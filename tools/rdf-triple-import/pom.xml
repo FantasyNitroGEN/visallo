@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.visallo</groupId>
         <artifactId>visallo-mr-base</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
         <relativePath>../mr-base</relativePath>
     </parent>
     <artifactId>visallo-tools-rdf-triple-import-mr</artifactId>
