@@ -1,0 +1,19 @@
+<div class="terms-modal modal fade"
+     style="text-align: left"
+     data-backdrop="static" data-keyboard="false">
+    <div class="modal-header">
+        <h3>{{ terms.title }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="term-body">
+            <p>{{{ terms.html }}}</p>
+            {{#if terms.date }}
+                <p style="text-align:right; font-style:italic">{{ dateonly terms.date }}</p>
+            {{/if}}
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" style="float:left" class="btn btn-danger">{{ i18n 'termsOfUse.button.decline' }}</a>
+        <a href="#" class="btn btn-primary">{{ i18n 'termsOfUse.button.accept' }}</a>
+    </div>
+</div>

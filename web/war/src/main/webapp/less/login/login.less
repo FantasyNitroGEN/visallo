@@ -1,0 +1,60 @@
+#login {
+  .fullscreen;
+  background: white;
+}
+.logo {
+  background: url(../img/visallo-logo.png);
+  background-position: 46%;
+  background-repeat: no-repeat;
+  background-size: contain;
+  display: block;
+  height: 40%;
+  margin: 1em auto 0;
+  max-width: 500px;
+  width: auto;
+}
+.authentication {
+    width: 16em;
+    margin: auto;
+}
+
+.animatelogin {
+  .menubar-pane {
+      left: @menubar-width * -1;
+      .transition(~"left 0.25s ease-out 0.7s");
+  }
+  .graph-pane {
+    .opacity(0);
+    .transition(~"all 0.25s ease-out 1s");
+  }
+  #login {
+    .username, .logo {
+      .transition(~"all 0.25s ease-in-out 0.2s");
+    }
+    .password {
+      .transition(~"all 0.25s ease-in-out 0.1s");
+    }
+    button {
+      .transition(~"all 0.25s ease-in-out 0s");
+    }
+  }
+}
+
+.animateloginstart {
+  .menubar-pane {
+    left: 0;
+  }
+  .graph-pane {
+    .opacity(100);
+  }
+  #login {
+    .username, .password, button {
+      position: relative;
+      left: 25px;
+      .opacity(0);
+    }
+    .logo {
+      .opacity(0);
+    }
+  }
+}

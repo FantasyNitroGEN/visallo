@@ -1,0 +1,135 @@
+
+.properties {
+  margin: 0;
+  padding: 0.5em 0 0 0;
+  
+  tr.hidden {
+    display: none;
+    &.unhide {
+      display: table-row;
+    }
+  }
+
+  table {
+    margin-bottom: 0;
+  }
+  
+  .table tbody + tbody {
+    border-top: none;
+  }
+  
+  .property-group {
+    .property-group-header {
+      cursor: pointer;
+      .disable-text-selection;
+      h1 {
+        font-size: 100%;
+      }
+    }
+    &.expanded > tr:last-child > td {
+      padding-bottom: 1em;
+    }
+    &.collapsed {      
+      .property-row {
+        display: none;        
+      }
+      & > .property-group-header {
+        display: table-row;
+      }
+    }
+  }
+
+  .property-name {    
+      color: darken(@pane-background, 30%);
+      text-align: right;
+      text-shadow: 0 1px 0 white;
+      text-transform: uppercase;
+      white-space: nowrap;    
+
+      strong {
+        font-size: 80%;               
+        white-space: normal;        
+      }
+  }
+
+  .visibility {
+    display:block;
+    color: #666; 
+    font-style: italic;
+    font-size: 90%;
+    &:empty { display: none; }
+  }
+
+  .property-value, .property-name {
+    padding: 0.9em 0.25em 0.25em 1em;    
+  }
+  .property-value {
+    padding-right: 0.5em;
+    .map-coordinates {
+      padding: 0.2em 0;
+    }
+  }
+
+  .show-more {   
+    padding-top: 0.5em;
+    font-size: 70%;
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-style: italic;
+    display: none;
+    .disable-text-selection;
+    &:after {
+      content:'…'
+    }
+  }
+  tr.last-not-hidden .show-more {
+    display: inline;
+  }
+  
+  .property-value {
+    width: 100%;
+    word-break: break-word;
+
+    .entity-visibility {
+      display:inline;
+    }
+
+    .selection {
+      .justification-selection;
+    }
+  }
+
+  td {
+    border-top: 0;
+    padding:0;
+  }
+
+  td.buttons {
+    & > button {
+      margin: 1em;
+      margin-bottom: 0;
+      .opacity(50);
+      &:hover { .opacity(100); }
+    }
+    padding: 0;
+  }
+
+  .underneath .form {
+    margin: 0;
+    padding: 1em;
+  }
+  .buttons .underneath {
+    margin: 1em 0;
+    padding: 0;
+  }
+  table .underneath {
+    margin: 0;
+    padding: 0;
+  }
+
+  & > table {
+    border-collapse: collapse;
+  }
+}
+

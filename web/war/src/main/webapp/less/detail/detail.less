@@ -1,0 +1,835 @@
+
+@import (reference) "../util/constants.less";
+@import (reference) "../util/selection.less";
+
+.av-time-display {
+  font-family: "Lucida Console", Monaco, monospace;
+  color: #aaa;
+}
+
+.content {
+
+  padding: 0;
+
+  &.loading {
+
+    background: url(../img/loading-large@2x.png) no-repeat center;
+    background-size: 150px auto;
+
+    &:after {
+        color: #ddd;
+        content: 'Loading';
+        display: block;
+        font-family: @light-font;
+        font-size: 150%;
+        left: 0;
+        margin-top: 4.5em;
+        position: absolute;
+        text-align: center;
+        top: 50%;
+        width: 100%;
+    }
+  }
+
+  .type-content > .nav-with-background > .preview, .content > .preview {
+    height: 300px;
+    cursor: pointer;
+    background: black;
+    margin-top: 1em;
+  }
+  .type-content > .nav-with-background > .audio-preview {
+    margin-top: 1em;
+  }
+
+  .type-content {
+
+    &.custom-entity-image .entity-background {
+        height: 14em;
+        h1 {
+          bottom: 1.5em;
+          top: auto;
+        }
+        .subtitle {
+          top: auto;
+          bottom: 0.25em;
+        }        
+    }
+
+    &.custom-entity-image .entity-background .entity-glyphIcon {
+        width: 100%;   
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        padding: 0;
+        background-position: center center;
+    }
+
+    &.custom-entity-image .nav-with-background {
+        margin-top: 16.5em;
+    }
+
+    .detail-overlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: rgba(255,255,255,0.6);
+      z-index: 1;
+      text-align: center;
+      background: rgba(255,255,255,0.8) url(../img/loading-large@2x.png) no-repeat center;
+      background-size: 150px auto;
+      .opacity(90);
+      h1 {
+        padding: 0;
+        margin: 0;
+        display: block;
+        font-family: @light-font;
+        font-size: 150%;
+        left: 0;
+        margin-top: 4.5em;
+        position: absolute;
+        text-align: center;
+        top: 50%;
+        width: 100%;
+        text-shadow: none;
+        font-weight: normal;
+        color: #ddd;
+        line-height: normal;
+      }
+    }
+
+  }
+
+  .delete-form .underneath .form {
+    margin-top: 0;
+  }
+
+  .currentTranscript {
+      color: white;
+      background: black;
+      padding: 0.5em;
+      margin-bottom: 1em;
+
+      .time {
+          font-size: 85%;
+          .av-time-display;
+      }
+  }
+
+  .detected-object-labels {
+    margin: 2em 0 0 0;
+    padding: 0 1em;
+    
+    &:empty {
+      display:none;
+    }
+    .label.detected-object-tag.loading {
+        background: #efefef;
+        a {
+            background: inherit;
+            color: black;
+        }
+        .badge.loading {
+            height: 1.6ex;
+            margin-left: 1ex;
+        }
+        .label-info {
+            color: #999;
+            text-shadow: 0 1px 0 white;
+        }
+    }
+  }
+
+  .detected-object-tag {
+    a {      
+      font-size: 80%;
+      padding: 0.3em 0.7em;
+      margin: 1em 0.25em 0 0.25em;
+    }
+    .label-info {
+      color: #777;
+      background: rgba(0,0,0,0.1);
+      text-shadow: none;
+      font-weight: normal;      
+      
+      &.resolved {
+        color: #555;
+        font-weight: bold;        
+      }
+    }    
+  }
+
+  .generic-draggable {
+    cursor: pointer;
+  }
+
+  .entity-background {
+
+  
+  .relationship-header {    
+    text-align: center;
+    margin-bottom: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0.5em 0;
+  }
+  }
+  .vertex-to-vertex-relationship {
+    font-size: 90%;   
+    line-height: 1.1em;    
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    padding: 0 1em;
+    .box-sizing(border-box);
+    
+    &:hover {          
+      text-decoration: none;
+    }
+    .subtitle {   
+      color: #999;
+      font-size: 75%;
+      font-variant: small-caps;
+      text-transform: lowercase;
+    }
+  }
+  
+  .underneath {
+    @import "dropdown";
+  }
+
+  section.collapsible {
+    h1 {
+      font-size: 100%;
+    }
+    p.paging {
+      text-align: center;
+      font-variant: small-caps;
+      text-transform: uppercase;
+      text-transform: lowercase;
+      font-size: 100%;
+      color: #999;
+      margin-top: 0.5em;
+      padding: 0 1.5em;
+      text-shadow: 0 1px 0 white;
+      letter-spacing: 0.2ex;
+      position: relative;      
+      
+      .previous, .next {
+        border: none;
+        background: none;
+        position: absolute;
+        top: 0; bottom: 0;
+        width: 40%;
+        outline: none;
+        &:after {
+          @width: 5px;
+          position: absolute;          
+          top: 50%;
+          margin-top: -@width;
+          content: '';          
+          border-color: transparent #999;
+          border-style: solid;  
+          border-width: @width;
+        }
+        &:hover:after {
+          border-color: transparent @blue-color;
+        }
+      }
+      .previous {
+        left: 0;    
+        &:after {
+          left: 1em;
+          border-left-width: 0;
+        }
+      }
+      .next {
+        right: 0;
+        float: right;
+        &:after {
+          right: 1em;
+          border-right-width: 0;          
+        }
+      }
+    }
+  }
+  
+  .texts {
+    margin: 0;
+    .text-section {
+      margin: 1px 0;
+      padding: 0;
+      
+      & > .text {
+        margin: 0;
+        padding: 1em;
+        // For actionbar space
+        padding-bottom: 2.5em;
+        
+        .underneath {
+          padding: 0;
+        }
+      }
+    }
+  }
+
+  .text {
+    margin: 2em 0;
+    position: static;
+    word-wrap: break-word;
+
+    .transition(~"color ease-in 0.2s");
+
+    @fade-color: #ddd;
+    @normal-color: #333;
+
+    // When entities are being dragged
+    &.drag-focus, &.dropdown {
+      color: @fade-color;
+      .resolved { color:@normal-color; }
+    }
+
+    .ui-draggable-dragging { white-space: nowrap; }
+
+    // When dropdown is opened
+    &.dropdown .vertex, &.dropdown .property { 
+      color:@fade-color;
+
+      &.focused {
+        color: @normal-color;
+      }
+    }
+  }
+  
+  .av-times {    
+    margin-top: -0.5em;
+    
+    dt {
+      .av-time-display;
+      font-size: 80%;
+      .disable-text-selection;
+    }
+    dd {
+      margin: 0 0 1em 0;      
+    }
+  }
+
+  .multiple {
+
+    .details-container { display:none; }
+
+    &.viewing-vertex {
+      margin: 0;
+      padding: 0;
+
+      .multiple-container { 
+        display:none;
+      }
+      .details-container { 
+        position: absolute;
+        top: 0;
+        bottom: 200px;
+        width: 100%;
+        left: 0;
+        right: 0;
+        display:block; 
+        .box-sizing(border-box);
+      }
+      .vertices-list,.edge-list {      
+        position: absolute;
+        height: 200px;
+        bottom: 0;
+        overflow: auto;
+        width: 100%;
+        left: 0;
+        right: 0;
+        padding: 0;
+        margin: 0;
+        .box-sizing(border-box);
+
+
+        ul.multi-select.nav-list {
+          margin: 0;
+          padding: 0;
+        }
+
+        .detail-pane .content .vertices-list > ul.multi-select.nav-list li {
+          padding: 0;
+        }
+               
+        ul li .preview {
+          left: 0.2em;
+          width: 3em;
+        }
+        
+        ul li ul {
+          right: 0;
+        }
+
+        li a {          
+          margin: 0;
+        }
+      }
+    }
+
+    svg, .svg-container {
+
+      .histogram-bar {
+        rect.bar-background {
+          fill: fadeOut(@blue-color, 10%);
+          cursor: pointer;
+        }
+        rect.click-target {                    
+          fill-opacity: 0;
+          cursor: pointer;
+        }
+        .on-bar-text, .on-number-bar-text,
+        .off-bar-text, .off-number-bar-text {
+          font-size: 90%;
+          cursor: pointer;
+          pointer-events: none;
+        }
+        .on-bar-text.other, .off-bar-text.other {
+          font-style: italic;
+        }
+        .on-bar-text, .on-number-bar-text {
+          fill: white;
+        }
+        .off-bar-text, .off-number-bar-text {
+          fill: fadeOut(@blue-color, 10%);
+        }
+        .on-number-bar-text, .off-number-bar-text {
+          font-family: @light-font;
+          font-size: 105%;
+          //opacity: 0.75;
+        }
+      }
+    }
+    
+    &:not(.viewing-vertex) {          
+      .vertex-list {
+        .active a {
+          color: #0088cc;        
+          text-shadow: none;
+          background: inherit;
+          .source, .date {
+            color: #555;
+          }
+
+          ul li.graph button {
+            background-image: url(../img/glyphicons/glyphicons_326_share@2x.png);
+          }
+          ul li.map button {
+            background-image: url(../img/glyphicons/glyphicons_242_google_maps@2x.png);
+          }
+        }
+      }
+    }
+
+    .vertices-list, .edge-list {
+       border-top: 1px solid #eee;
+    }
+    .multi-select {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    ul.histograms {
+      list-style: none;
+      padding: 0;
+      margin: 0 1em 3em 1em;
+      li {
+        padding: 0;
+        margin: 1em 0;
+      }
+
+      .property-section .nav-header {
+        margin: 0;
+        padding: 0;
+      }
+    }
+
+    &.edges {
+      .multiple-container {
+        margin-bottom: 0em;
+      }
+      .comp-toolbar {
+        height: 3px;
+      }
+      &.viewing-vertex {
+        .comp-toolbar {
+          height: 2em;
+        }
+        .edge-list .nav-list {
+          padding: 0;
+        }
+      }
+      .spacer {
+        height: 10em;
+      }
+      .edge-list {
+        margin-top: 3px;
+      }
+      .entity-background {
+        .relationship-header {
+          padding: 0;
+        }
+        .relation {
+          font-size: 85%;
+          color: white;
+          font-variant: small-caps;
+          text-transform: lowercase;
+          margin-bottom: 0.5em;
+          margin-top: 0.2em;
+          position: relative;
+
+          .badge {
+            .opacity(60);
+            float: none;
+            position: absolute;
+            top: 50%;
+            margin-top: -0.55em;
+            margin-right: 1em;
+            margin-left: 0.5em;
+          }
+          /*.relation::after {*/
+            /*content: '';*/
+            /*position: absolute;*/
+            /*width: 0;*/
+            /*height: 0;*/
+            /*left: 50%;*/
+            /*margin-left: -4px;*/
+            /*bottom: -15px;*/
+            /*border-width: 8px 4px;*/
+            /*border-color: #999 transparent transparent transparent;*/
+            /*border-style: solid;*/
+            /*z-index: -1;*/
+          /*}*/
+          /*.relation::before {*/
+            /*content: '';*/
+            /*position: absolute;*/
+            /*background: #999;*/
+            /*width: 2px;*/
+            /*height: 28px;*/
+            /*left: 50%;*/
+            /*margin-left: -1px;*/
+            /*top: 1px;*/
+            /*z-index: -1;*/
+        /*}*/
+        }
+      }
+    }
+  }
+
+  .image-preview, .background-scrubber {
+    cursor: crosshair;
+
+    @import "./facebox";
+  }
+
+  .image-preview {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    display: inline-block;
+    max-width: 100%;
+    position: relative;
+    margin: 0 0 -1.3em 0;
+    width: 100%;
+    overflow: hidden;
+
+    &.loading {
+      display: block;
+      width: 125px;
+      margin: 2em auto -1em;
+      cursor: default;
+      background-image: url(../img/loading-large.png);
+      background-size: auto 125px;
+      min-height: 125px;
+      background-position: center;
+      .spin(10s);
+      .animation-play-state(running);
+      .artifact-image {
+        display: none;
+      }
+    }
+  }
+  .detected-object {
+    margin-top: 1em;
+  }
+
+
+  .image-preview {
+    text-align: center;      
+    .artifact-image {
+      max-width: 100%;
+      position: relative;
+      display: inline-block;
+      .image {
+        max-height: 350px;      
+      }
+    }    
+  }
+
+  .badge {
+    float: right;
+  }
+
+  .relationships .resolved {
+    font-weight: normal;
+  }
+
+  .properties, .relationships {
+    .nav-list {
+      margin: 0;
+    }
+  }
+
+
+  @import "properties";
+  @import "comments";
+  @import "toolbar";
+
+  .properties, .comments {
+    button.info {
+      background: darken(@pane-background, 20%) url(../img/glyphicons/white/glyphicons_195_circle_info.png);
+      height: 16px;
+      width: 16px;
+      border-radius: 13px;
+      margin: 1px 1px 1px 0.5em;
+      outline: none;
+      opacity: 1;
+      background-repeat: no-repeat;
+      background-size: auto 89%;
+      background-position: center;
+      border: 0;
+      position: relative;
+
+      &:hover {
+        background-color: @blue-color;
+        width: 18px;
+        height: 18px;
+        left: -1px;
+        margin: 0px 0px 0px 0.5em;
+      }
+      &:active {
+        top: 1px;
+      }
+      // Larger click target
+      &:after {
+        content: '';
+        position: absolute;
+        background: transparent;
+        width: 300%;
+        height: 200%;
+        top: -50%;
+        left: -50%;
+      }
+    }
+  }
+  
+  .properties .buttons .underneath {
+    margin: 1em 0;       
+  }
+
+  .artifact-title {
+    padding: 1em 1em 0 1em;
+    margin: 0; 
+    font-size: 130%;    
+  }
+  
+  .artifact-header {    
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-with-background {  
+    overflow: auto;    
+    margin: 8em 0 0 0;
+    padding: 0;
+    position: absolute;
+    top: 0;    
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%; 
+
+    .relationships {
+
+      .entity {
+        border-bottom-width:0;
+        &:hover {
+          border-bottom-width: 1px;
+        }
+      }
+
+      .rel-arrow {
+        color: #222;
+        text-shadow: 0 1px 0 white;
+        font-family: sans-serif;
+        font-size: 130%;
+      }
+
+      ul li { margin: 0 1em 0 0; }
+      ul li.nav-header { margin: 1.5em 0 0 0; padding:0; }
+      .nav-list { padding-top: 0; }
+
+      .references {
+        padding: 0;
+        margin: 0 -1em;
+        .multi-select {
+          padding-right: 0;
+        }
+      }
+    }
+
+    .underneath {      
+      .buttons {
+        text-align: right;
+      }
+    }
+  }
+
+  .entity-background {
+    position: absolute;
+    background: #444;   
+    width: 100%;    
+    height: 6em;
+    top: 0;
+    margin: 0;
+    padding: 0 1em;    
+    z-index: 1;
+    .box-sizing(border-box);
+
+    &.loading {
+      background: #444;
+      width: 100%;
+            
+      .entity-glyphIcon {
+        background-color: transparent;
+        background-image: url(../img/loading-large.png) !important;
+        background-size: auto 125px !important;
+        background-position: center;
+        .spin(10s);
+        .animation-play-state(running);
+        .opacity(10);
+        &:after, &:before, * {display: none; }
+      }
+    }
+    
+    h1 {
+      white-space: nowrap;
+      display: inline-block; 
+      top: 0.5em;
+      color: white;      
+      font-size: 150%;
+      left: 0;
+      right: 0;          
+      overflow: hidden;
+      padding: 0 0.75em;
+      position: absolute;
+      text-overflow: ellipsis;
+      text-shadow: 0 0px 20px rgba(0,0,0,0.2), 0 0px 2px rgba(0,0,0,1);
+      z-index: 4;
+      margin: 0;
+    }    
+
+    & > .subtitle {
+      font-size: 120%;
+      font-weight: bold;
+      position: absolute;
+      top: 2.2em;
+      padding-left: .2ex;
+      display: inline-block;
+      margin-bottom: 0.5em;      
+      color: fadeOut(white, 15%);     
+      font-variant: small-caps;
+      text-transform: lowercase;   
+    }
+  }
+
+  h1 {
+    color: #555;
+    text-shadow: 0 2px 0 white;
+    font-size: 150%;
+    line-height: 1.3em;
+    word-break: break-word;
+  }
+
+  li.relationships { margin-top: 0; }
+
+  li.relationship {
+    margin-bottom: 1em;
+
+    .relationship {
+      font-variant: small-caps;
+      &:hover {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .entity-glyphIcon {
+    position: absolute;
+    margin: 0 -1em;    
+    width: 100%;
+    height: 100%;
+    background-size: auto 65%;
+    background-repeat: no-repeat;
+    background-position: right 1em center;
+    background-color: #444;
+    
+    &.shake {
+      .shake;
+    }
+    &.custom-image {
+      background-size: cover;
+    }
+    &.upload-available {
+
+      &.uploading input {
+        display: none;
+      }
+      input, canvas {
+        display: block;
+      }
+    }
+    input {
+      z-index: 3;
+      cursor: pointer;
+      display: none;
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+    }
+    canvas {
+      display: none;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .validation-error{
+    background-color: red;
+  }
+
+  .vertex, .artifact {
+    cursor: pointer;
+    border-bottom: 1px dotted black;
+  }
+  .property.resolved {
+    cursor: pointer;
+    font-style: italic;
+  }
+
+  .resolved {
+    font-weight: bold;
+  }
+}

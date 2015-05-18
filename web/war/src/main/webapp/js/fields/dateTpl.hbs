@@ -1,0 +1,65 @@
+<table cellpadding="0">
+  {{#if predicates}}
+  <tr class="input-prepend">
+
+    <td class="predicate-row">
+      <span class="add-on">
+        <select class="predicate">
+          <option value="<">{{ i18n 'field.date.form.less_than' }}</option>
+          <option value=">">{{ i18n 'field.date.form.greater_than' }}</option>
+          <option value="range">{{ i18n 'field.date.form.between' }}</option>
+          <option value="equal">{{ i18n 'field.date.form.equal' }}</option>
+        </select>
+      </span>
+    </td>
+
+    <td class="input-row{{#unless predicates}} display-badge{{/unless}}">
+
+      {{#if displayTime}}
+        <div class="controls-row">{{> fields/dateTimeTpl }}</div>
+        <div class="controls-row range-only">{{> fields/dateTimeTpl }}</div>
+      {{else}}
+        <input data-provide="datepicker" placeholder="{{today}}" 
+          value="{{dateString}}" type="text" pattern="\d{4}-\d+-\d+"></input>
+        <input data-provide="datepicker" placeholder="{{today}}" 
+          class="range-only" type="text" pattern="\d{4}-\d+-\d+"></input>
+      {{/if}}
+
+    </td>
+    {{#if displayTime}}
+    <td class="predicate-row">
+       <span class="add-on timezone"></span>
+    </td>
+    {{/if}}
+  </tr>
+  {{else}}
+  <tr class="input-append">
+
+    <td class="input-row"{{#if displayTime}}colspan="2"{{/if}}>
+
+      {{#if displayTime}}
+        <div class="controls-row">{{> fields/dateTimeTpl }}</div>
+        <div class="controls-row range-only">{{> fields/dateTimeTpl }}</div>
+      {{else}}
+        <input data-provide="datepicker" placeholder="{{today}}" 
+          value="{{dateString}}" type="text" pattern="\d{4}-\d+-\d+"></input>
+        <input data-provide="datepicker" placeholder="{{today}}" 
+          class="range-only" type="text" pattern="\d{4}-\d+-\d+"></input>
+      {{/if}}
+
+    </td>
+
+    {{#if displayTime}}
+    <td class="predicate-row">
+       <span class="add-on timezone"></span>
+    </td>
+    {{/if}}
+
+  </tr>
+  {{/if}}
+
+
+
+   
+</table>
+

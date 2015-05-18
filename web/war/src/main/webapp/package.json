@@ -1,0 +1,43 @@
+{
+  "name": "visallo",
+  "version": "0.1.0",
+  "description": "open source big data integration, analytics, and visualization",
+  "main": "karma.conf.js",
+  "repository": "git://github.com/v5analytics/visallo",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "bower": "~1.3.12",
+    "grunt": "~0.4.4",
+    "grunt-bower-task": "0.4.0",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-less": "1.0.1",
+    "grunt-contrib-requirejs": "~0.4.1",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-eslint": "^10.0.0",
+    "grunt-exec": "~0.4.2",
+    "grunt-karma": "~0.8.2",
+    "grunt-mocha-selenium": "git://github.com/jharwig/grunt-mocha-selenium",
+    "grunt-notify": "~0.2.20",
+    "grunt-plato": "~1.2.0",
+    "karma": "^0.12.32",
+    "karma-chrome-launcher": "~0.1.5",
+    "karma-coverage": "~0.2.6",
+    "karma-firefox-launcher": "~0.1.3",
+    "karma-junit-reporter": "^0.2.2",
+    "karma-mocha": "~0.1.9",
+    "karma-mocha-reporter": "~0.3.1",
+    "karma-osx-reporter": "~0.1.0",
+    "karma-phantomjs-launcher": "~0.1.4",
+    "karma-requirejs": "~0.2.2",
+    "karma-script-launcher": "~0.1.0"
+  },
+  "scripts": {
+    "test": "karma start --single-run"
+  },
+  "author": "",
+  "license": "Apache 2.0"
+}

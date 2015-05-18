@@ -1,0 +1,42 @@
+<ul>
+  {{#each toolbar~}}
+  {{#if this}}
+  <li 
+    class="{{#if submenu}}has-submenu{{/if}} {{#if cls}}{{ cls }}{{/if}} {{#if right}}pull-right{{/if}}{{#unless event}} no-event{{/unless}}"
+    {{#if event}} data-event="{{ event }}"{{/if}}
+    {{#if eventData}} data-event-data="{{ json eventData }}"{{/if}}
+      >
+      {{#if icon}}
+      <a title="{{ title }}" class="icon"><strong style="background-image:url({{icon}})">.</strong></a>
+      {{/if}}
+      {{#unless icon}}
+      <a><strong>{{ title }}</strong></a>
+      {{/unless}}
+    {{#if submenu~}}
+      <ul>
+        {{#each submenu~}}
+        {{#if this}}
+        <li class="{{#if divider}}divider{{/if}} {{#if cls}}{{ cls }}{{/if}}"
+            {{#if event}} data-event="{{ event }}"{{/if}}
+            {{#if eventData}} data-event-data="{{ json eventData }}"{{/if}}>
+          {{~#unless divider~}}
+            <a>{{ title }}
+              {{#if subtitle}}
+              <div class="subtitle">{{ subtitle }}</div>
+              {{/if}}
+            </a>
+            {{~#if options}}
+            {{#if options.fileSelector}}
+            <input type="file" title="">
+            {{/if}}
+            {{/if}}
+          {{~/unless~}}
+        </li>
+        {{~/if~}}
+        {{~/each}}
+      </ul>
+    {{~/if~}}
+  </li>
+  {{/if}}
+  {{~/each}}
+</ul>

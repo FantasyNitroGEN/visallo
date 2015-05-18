@@ -1,0 +1,30 @@
+<% if (typeof error !== "undefined") { %>
+  <div class="alert alert-error">
+    <% info = error; %>
+<% } else if (typeof warning !== "undefined") { %>
+  <div class="alert alert-warning">
+    <% info = warning; %>
+<% } else if (typeof message !== "undefined") { %>
+    <% info = message; %>
+  <div class="alert alert-info">
+<% } %>
+
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+
+  <% if (typeof type !== "undefined") { %>
+    <strong><%= type %></strong>
+  <% } %>
+
+
+  <% if (_.isArray(info) && info.length > 1) { %>
+    <ul>
+    <% info.forEach(function(error) { %>
+      <li><%= error %></li>
+    <% }); %>
+    </ul>
+  <% } else if (_.isArray(info)) { %>
+  <%= info[0] %>
+  <% } else { %>
+  <%= info %>
+  <% } %>
+</div>

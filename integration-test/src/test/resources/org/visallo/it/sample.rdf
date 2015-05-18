@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE rdf:RDF [
+        <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+        <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+        <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+        <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+        <!ENTITY test "http://visallo.org/test#">
+        ]>
+
+
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:visallo="http://visallo.org#"
+         xmlns:test="http://visallo.org/test#">
+
+
+    <rdf:Description rdf:about="&test;PERSON_Joe_Ferner">
+        <rdf:type rdf:resource="&test;person"/>
+        <test:firstName>Joe</test:firstName>
+        <test:lastName>Ferner</test:lastName>
+        <test:worksFor rdf:resource="&test;COMPANY_v5analytics"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&test;PERSON_Dave_Singley">
+        <rdf:type rdf:resource="&test;person"/>
+        <test:firstName>Dave</test:firstName>
+        <test:lastName>Singley</test:lastName>
+        <test:worksFor rdf:resource="&test;COMPANY_v5analytics"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&test;COMPANY_v5analytics">
+        <rdf:type rdf:resource="&test;company"/>
+        <visallo:title>V5 Analytics</visallo:title>
+    </rdf:Description>
+
+</rdf:RDF>

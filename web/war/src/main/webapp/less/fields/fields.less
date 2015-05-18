@@ -1,0 +1,219 @@
+
+.configuration {
+  table, tr {
+      width: 100%;
+  }
+  
+  tr.input-prepend, tr.input-append {
+    display: table-row;
+  }
+
+  .input-row {
+    width: 100%;
+    position: relative;
+
+    input, .controls-row {
+      margin-left: -1px;
+    }
+  }
+
+  .predicate-row:last-child span.timezone {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;    
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;    
+  }
+
+  .predicate-row span {
+    width: 100%;    
+    text-align: right;
+
+    &.timezone {
+      font-variant: small-caps;
+      text-transform: uppercase;
+      cursor: pointer;
+      .disable-text-selection;
+      &:hover strong:after {
+        display: inline;
+      }
+      strong {
+        font-weight: normal;
+        font-size: 9pt;
+        &:after {
+          content: " " attr(data-display-offset);
+          display: none;
+        }
+      }
+    }
+  }
+
+  .input-row > *, .predicate-row span {
+    margin-top: 10px;
+  }
+  
+  &.desc-focus {
+    .input-row {
+      
+      position: static !important;
+      
+      input.description {        
+        left: 0;
+        position: absolute;
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;        
+      }
+    } 
+    .input-prepend, .input-append {
+      position: relative;
+    }
+  }
+  
+  .selection {
+    position: absolute;
+    right: 1em;
+    left: 1em;
+    padding: 0;
+    margin: 0.4em 2px 0px 0;
+  }
+
+  .add-on .icon-calendar {
+    margin-right: 0;
+    margin-left: 1px;
+  }
+
+  .field-type-boolean {
+    .input-prepend {
+      font-size: 100%;
+      cursor: pointer;
+    }
+
+    input {
+      vertical-align: top;
+      position: relative;
+      top: 0;
+      margin-top: -0.5em;
+    }
+
+    .input-row {
+      .disable-text-selection;
+
+      div.display {
+        background: white;
+        border: 1px solid #ccc;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+        height: 100%;
+        width: 100%;
+        line-height: 2em;
+        padding: 0 0.5em;
+        .box-sizing(border-box);
+        .box-shadow(~"inset 0 1px 1px rgba(0, 0, 0, 0.075)");
+      }
+    }
+  }
+}
+
+/* 
+.underneath .configuration .field-type-boolean input {
+  margin-top: 0.3em;
+  margin-left: 0.2em;
+}
+*/
+
+.typeahead {
+  .active .subtitle {
+    color: inherit;
+  }
+  .subtitle {
+    color: darken(@pane-background, 35%);
+    font-size: 85%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.justification {
+  .animationwrap {
+    .clearfix;
+    &:after, &:before {
+      border-spacing: 0;
+    }
+  }
+  .viewing {
+    margin-bottom: 0.5em;
+
+    .text {
+      display:block;
+      font-style: italic;
+      .selection {
+        .justification-selection;
+      }
+      &:before { content: '\201C'; }
+      &:after { content: '\201D'; }
+    }
+    .source {
+      strong {
+        font-weight: normal;
+      }
+      font-weight: bold;
+    }
+    .offsets {
+      font-size: 80%;
+    }
+    .remove {
+      outline: none;
+      color: red;
+      font-variant: small-caps;
+      text-transform: lowercase;
+      text-shadow: none;
+      font-size: 100%;
+      margin: 0 0 1em;
+      padding: 0;
+      background: none;
+      border: 0;
+      vertical-align: baseline;
+      float: right;
+      width: auto;
+    }
+  }
+}
+
+.underneath .configuration {
+  
+  .predicate-row span {   
+    box-sizing: border-box;    
+    padding: 1em 0.5em;
+    line-height: 0.2em;
+  }
+  .predicate-row .add-on i {
+    margin-top: -0.5em;
+  }
+  
+  .input-row > *, .predicate-row span {
+    margin-top: 0;
+    margin-bottom: 0.75em;
+  }
+
+
+  .field-type-boolean {
+      td.predicate-row {
+        box-sizing: content-box;
+        font-size: 100%;
+        line-height: 1em;
+        span {
+            padding: 0 0.5em;
+            box-sizing: border-box;
+            margin-bottom: 0.75em;
+            width: 100%;
+            height: 100%;
+            line-height: 2em;
+            display: block;
+            input {
+              margin: 0.5em 0 0 0px;
+              width: 12px;
+            }
+        }
+    }
+  }
+
+}

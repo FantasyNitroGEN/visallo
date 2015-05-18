@@ -1,0 +1,66 @@
+<div class="empty-graph" style="display:none"></div>
+<div class="cytoscape-container" tabindex="1"></div>
+
+<div>
+<ul class="graph-context-menu dropdown-menu" role="menu">
+  <!-- TODO
+  <li><a tabindex="-1" href="#">Undo</a></li>
+  <li><a tabindex="-1" href="#">Redo</a></li>
+  <li class="divider"></li>
+  -->
+  <li class="requires-EDIT"><a class="has-shortcut" data-func="createVertex" tabindex="-1" href="#"><%= i18n('graph.contextmenu.create_vertex') %><span class="shortcut">alt+n</span></a></li>
+
+  <li class="divider requires-EDIT"></li>
+
+  <li><a class="has-shortcut" data-func="fitToWindow" tabindex="-1" href="#"><%= i18n('graph.contextmenu.fit_to_window') %><span class="shortcut">alt+f</span></a></li>
+
+  <li class="dropdown-submenu selectors">
+    <a tabindex="-1" href="#"><%= i18n('graph.contextmenu.select') %></a>
+    <ul class="dropdown-menu">
+      <li><a class="has-shortcut" data-func="select" data-args='["all"]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.select.all') %><span class="shortcut">meta+a</span></a></li>
+      <li><a class="has-shortcut" data-func="select" data-args='["none"]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.select.none') %><span class="shortcut">esc</span></a></li>
+      <li><a data-func="select" data-args='["invert"]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.select.invert') %></a></li>
+    </ul>
+  </li>
+
+  <li class="dropdown-submenu layouts">
+    <a tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout') %></a>
+    <ul class="dropdown-menu">
+      <li><a data-func="layout" data-args='["circle"]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.circle') %></a></li>
+      <li><a data-func="layout" data-args='["bettergrid"]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.grid') %></a></li>
+      <li><a data-func="layout" data-args='["breadthfirst"]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.hierarchical') %></a></li>
+      <li><a data-func="layout" data-args='["arbor"]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.force_directed') %></a></li>
+    </ul>
+  </li>
+
+  <li class="dropdown-submenu layouts-multi">
+    <a tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.selection') %></a>
+    <ul class="dropdown-menu">
+      <li><a data-func="layout" data-args='["circle",{"onlySelected":true}]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.circle') %></a></li>
+      <li><a data-func="layout" data-args='["bettergrid", {"onlySelected":true}]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.grid') %></a></li>
+      <li><a data-func="layout" data-args='["breadthfirst", {"onlySelected":true}]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.hierarchical') %></a></li>
+      <li><a data-func="layout" data-args='["arbor", {"onlySelected":true}]' tabindex="-1" href="#"><%= i18n('graph.contextmenu.layout.force_directed') %></a></li>
+    </ul>
+  </li>
+
+  <li class="dropdown-submenu">
+    <a tabindex="-1" href="#"><%= i18n('graph.contextmenu.zoom') %></a>
+    <ul class="dropdown-menu">
+      <li><a data-func="zoom" data-args="[2]" tabindex="-1" href="#"><%= i18n('graph.contextmenu.zoom.x2') %></a></li>
+      <li><a data-func="zoom" data-args="[1]" tabindex="-1" href="#"><%= i18n('graph.contextmenu.zoom.x1') %></a></li>
+      <li><a data-func="zoom" data-args="[0.5]" tabindex="-1" href="#"><%= i18n('graph.contextmenu.zoom.half') %></a></li>
+    </ul>
+  </li>
+
+</ul>
+</div>
+
+<div>
+<ul class="edge-context-menu dropdown-menu" role="menu">
+  <li><a data-func="deleteEdge" tabindex="-1" href="#"><%= i18n('graph.contextmenu.relationship.delete') %></a></li>
+  <!-- THIS WHOLE MENU is hidden based on privileges, change that if you add more -->
+</ul>
+</div>
+
+<div class="controls"></div>
+<div class="graph-views"></div>

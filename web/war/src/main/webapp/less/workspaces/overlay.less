@@ -1,0 +1,97 @@
+@import (reference) "../util/constants";
+@import (reference) "../util/selection";
+
+background: fadeout(white, 10%);
+position: absolute;
+left: @menubar-width;
+bottom: 0;
+padding: 0.5em 1em;
+font-size: 95%;
+margin: 0;
+white-space: no-wrap;
+cursor: default;
+z-index: @graph-zIndex;
+.opacity(0);
+.translate(-25px, 0);
+.transition(~"all ease-out 0.1s");
+.box-sizing(border-box);
+.disable-text-selection;
+
+&.visible {
+  .opacity(100);
+  .translate(0, 0);
+}
+
+
+h1 {
+  font-size: 95%;
+  margin:0;
+  padding:0;
+  line-height: 1.5em;
+  color: #777;
+}
+.badge {
+  line-height: 1.1em;
+  margin-left: 5px;
+  cursor: pointer;
+  background: @blue-color;
+  .box-sizing(border-box);
+  &.flash {
+
+    .pop-diff-badge-keyframe() {
+        0%, 100% {
+          .scale(1);
+        }
+        20%,50% {
+          .scale(1.4);
+          background-color: #f89406;
+        }
+    }
+    @-webkit-keyframes pop-diff-badge {.pop-diff-badge-keyframe;}
+    @-moz-keyframes pop-diff-badge {.pop-diff-badge-keyframe;}
+    @-ms-keyframes pop-diff-badge {.pop-diff-badge-keyframe;}
+    @-o-keyframes pop-diff-badge {.pop-diff-badge-keyframe;}
+    @keyframes pop-diff-badge {.pop-diff-badge-keyframe;}
+
+    .keyframe-animation(pop-diff-badge, 2s, 1);
+  }
+}
+
+.tooltip {
+  .tooltip-inner {
+    text-align: left;
+    padding: 0 1em 0.5em;
+    font-size: 90%;
+    text-transform: lowercase;
+  }
+  span, div {
+    white-space: nowrap;
+  }
+  strong {
+    font-size: 130%;
+    font-variant: small-caps;
+    text-transform: lowercase;
+    display: block;
+    color: #ccc;
+  }
+}
+
+@import "diff";
+
+.user {
+  margin-right: 0.5em;
+  padding-right: 0.5em;
+  border-right:1px solid #ccc;
+  &:empty {
+    display: none;
+  }
+}
+.name {    
+  font-size: 95%;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 90%;
+  color: #999;
+}

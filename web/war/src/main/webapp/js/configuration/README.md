@@ -1,0 +1,55 @@
+Plugins
+=======
+
+Override any plugins in this directory in `/opt/visallo/config/*.properties`
+
+    web.plugins.[plugin name]=/path/to/plugin/directory
+
+Plugin directory must have at least one file
+  
+    [plugin name].js
+
+For example, to override visibility:
+
+    # /opt/visallo/config/application.properties
+    web.plugins.visibility=/opt/visallo/plugins/visibility
+
+
+    > ls /opt/visallo/plugins/visibility
+  
+    visibility.js
+    form.ejs
+    style.css
+
+Root JavaScript file must use requirejs, and flightjs. Any other `html, js, css, ejs, hbs` files in plugin directory will be served at path:
+
+    /jsc/configuration/plugins/[plugin name]/*
+
+For example, 
+
+    /jsc/configuration/plugins/visibility/form.ejs
+
+
+
+JavaScript Requirements
+-----------------------
+
+Minimal plugin scaffold.
+
+    define(['flight/lib/component'], function(defineComponent) {
+
+        return defineComponent(Plugin);
+
+        function Plugin() {
+        }
+    });
+
+
+Templating
+----------
+
+define([
+    'tpl!./template' // loads ejs "template.ejs" in plugin directory
+    'hbs!./template' // loads handlebars "template.hbs" in plugin directory
+])
+

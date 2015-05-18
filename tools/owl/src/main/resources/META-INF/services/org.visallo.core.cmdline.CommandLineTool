@@ -1,0 +1,3 @@
+org.visallo.core.cmdline.OwlExport
+org.visallo.core.cmdline.OwlImport
+org.visallo.core.cmdline.OwlToJava

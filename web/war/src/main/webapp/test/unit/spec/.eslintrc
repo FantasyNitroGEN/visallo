@@ -1,0 +1,7 @@
+rules:
+    no-unused-expressions: 0
+    strict: 0
+globals:
+    describe: false
+    it: false
+    expect: false

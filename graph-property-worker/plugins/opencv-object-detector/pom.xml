@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.visallo</groupId>
+        <artifactId>visallo-graph-property-worker-plugin-base</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../graph-property-worker-plugin-base</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>visallo-gpw-opencv-object-detector</artifactId>
+    <name>Visallo: GraphPropertyWorker: Plugin: OpenCV Object Detector</name>
+
+    <properties>
+        <opencv.version>2.4.9-5</opencv.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>nu.pattern</groupId>
+            <artifactId>opencv</artifactId>
+            <version>${opencv.version}</version>
+        </dependency>
+    </dependencies>
+</project>

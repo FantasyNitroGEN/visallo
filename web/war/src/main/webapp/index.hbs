@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class='no-js lt-ie9 lt-ie8 lt-ie7'> <![endif]-->
+<!--[if IE 7]>         <html class='no-js lt-ie9 lt-ie8'> <![endif]-->
+<!--[if IE 8]>         <html class='no-js lt-ie9'> <![endif]-->
+<!--[if gt IE 8]><!--> <html class='no-js'> <!--<![endif]-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+    <title>{{title}}</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta name="title" content="{{title}}" />
+    <meta name="description" content="{{description}}" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+    <link href='css/visallo.css' rel='stylesheet' media='screen'>
+    {{#each pluginCssResources}}
+    <link href='{{.}}' rel='stylesheet' media='screen'>
+    {{/each}}
+
+    <script src='jsc/require.config.js'></script>
+    <script>
+    (function() {
+      var MAX_BUILD_LENGTH = 5,
+          buildNumber = '${buildNumber}',
+          buildTokenReplaced = buildNumber !== ('${' + 'buildNumber' + '}'),
+          versionParameter = buildTokenReplaced ? buildNumber : Date.now();
+
+      if (versionParameter.length > MAX_BUILD_LENGTH && buildTokenReplaced) {
+        versionParameter = versionParameter.substring(0, MAX_BUILD_LENGTH)
+      }
+
+      require.urlArgs = window.visalloCacheBreaker = "vslo_v=" + versionParameter;
+
+      document.addEventListener('readyForPlugins', function() {
+        require([
+        {{#each pluginJsResources}}  '{{.}}'{{#unless @last}},{{/unless}}
+        {{/each}}]);
+      }, false);
+    })();
+  </script>
+  <script data-main="visallo" src='libs/requirejs/require.js'></script>
+</head>
+<body>
+<!-- Version: ${project.version} -->
+<!-- SCM URL: ${project.scm.url} -->
+<!-- Git SHA-1: ${buildNumber} -->
+<!-- Build Timestamp: ${build.timestamp.formatted} -->
+<div id='app'></div>
+<div id='login'></div>
+
+{{! Inline Styles for fast loading of progress immediately after page load }}
+<div id="visallo-loading-static" style="position: absolute; left: 0; right: 0; width: 100%; text-align: center; top: 0; background: white; height: 100%; bottom: 0; pointer-events: none; font-size: 100%; "><h1 style="
+    position: absolute; top: 50%; width: auto;
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    margin: 0; color: #888; font-size: 150%; left: 50%; text-shadow: 0 1px 0 white; font-style: italic; padding: 0; width: 8em; ">
+  <img src="{{logoDataUri}}">
+  <div class="progress" style=" margin-top: 0.6em; height: 0.5em; margin-bottom: 0.4em; ">
+    <div class="bar" style="width: 0.5em; background:linear-gradient(#d9d9d9, #ddd); box-shadow: none;"></div>
+  </div>
+  <span style=" position: absolute; left: -2em; right: -2em; text-align: center; font-size: 60%; margin: 0; padding: 0; line-height: 1.1em; font-weight: normal; color: #bbb; text-shadow: 0 1px 0 white; font-style: normal; ">Initializing</span></h1>
+</div>
+
+</body>
+</html>

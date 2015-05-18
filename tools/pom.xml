@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.visallo</groupId>
+        <artifactId>visallo</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>visallo-tools-group</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Visallo: Tools</name>
+	
+	<modules>
+        <module>import</module>
+        <module>cli</module>
+        <module>user-admin</module>
+        <module>reindex-mr</module>
+        <module>format</module>
+        <module>rdf-import</module>
+        <module>rdf-triple-import</module>
+        <module>backup-restore</module>
+        <module>assign-image-mr</module>
+        <module>requeue</module>
+        <module>yarn-base</module>
+        <module>long-running-process-yarn</module>
+        <module>graph-property-worker-yarn</module>
+        <module>external-resource-worker-yarn</module>
+        <module>mr-base</module>
+        <module>owl</module>
+    </modules>
+</project>

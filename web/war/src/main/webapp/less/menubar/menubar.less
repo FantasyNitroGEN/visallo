@@ -1,0 +1,200 @@
+@import (reference) "../util/animation";
+
+background: @menubar-background;
+
+.user-select(none);
+
+.menu-top, .menu-bottom {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  a {
+    background: transparent;
+    background-size: auto 20px;
+    background-repeat: no-repeat;
+    background-position: center 5px;
+    color: white;
+    cursor: pointer;
+    display: block;
+    font-family: "HelveticaNeue-CondensedBold", helvetica, arial, sans-serif;        
+    font-size: 70%;
+    margin: 2px 0;
+    opacity: 0.5;
+    padding-top: 25px;
+    padding-bottom: 5px;
+    text-align: center;    
+    text-decoration: none;
+
+    .transition(opacity 0.2s ease-in-out);
+  }
+
+  .activity, .dashboard, .logout {
+    background-position: center;    
+    
+    a {
+      font-size: 0;
+      padding: 5px 0;
+    }
+  }
+
+  li.active a {
+    opacity: 0.9;
+  }
+
+  li.divider {
+    border-top: 1px solid #333;
+    border-bottom: 1px solid #555;
+    width: 75%;
+    margin: auto;
+    height: 0px;
+  }
+
+  li.spacer {
+    height: 0.5em;
+    display: block;
+  }
+}
+
+.menu-top, .menu-bottom {
+  .dashboard a {
+    background-image: url(../img/visallo-icon@2x.png);
+    opacity: 1.0;
+  }
+
+  .workspaces a {
+    background-image: url(../img/glyphicons/white/glyphicons_153_more_windows@2x.png);
+  }
+
+  .admin a {
+    background-image: url(../img/glyphicons/white/glyphicons_439_wrench@2x.png);
+  }
+
+  .graph { 
+    a {
+      background-image: url(../img/glyphicons/white/glyphicons_326_share@2x.png);
+    }
+    &.toggled a {
+      background-image: url(../img/graph-3d.png);
+      background-position: center top;
+      background-size: 80%;
+    }
+  }
+
+  .tooltip-inner .subtitle {
+    margin-left: 0.5em;
+    color: #ccc;
+    white-space: nowrap;
+    font-size: 90%;
+  }
+
+  .map a { 
+    background-image: url(../img/glyphicons/white/glyphicons_242_google_maps@2x.png);
+    background-size: auto 23px;
+  }
+
+  .search a { 
+    background-image: url(../img/glyphicons/white/glyphicons_027_search@2x.png);
+  }
+
+  .metrics a { background-image: url(../img/glyphicons/white/glyphicons_041_charts@2x.png); }
+  .prefs a { background-image: url(../img/glyphicons/white/glyphicons_280_settings@2x.png); }
+
+  // Activity is special in that it animates when active
+  .activity { 
+    position: relative;
+
+    a {
+      &:before {
+        .spinning-image('white/glyphicons_019_cogwheel@2x', 18px, -4px, -4px);
+        .spin(4s, forward);
+      }
+
+      &:after {
+        .spinning-image('white/glyphicons_019_cogwheel@2x', 14px, 6px, 6px);
+        .spin(4s, reverse);
+      }
+    }
+
+    .activityCount {
+      display: block;
+      background: #ccc;      
+      box-shadow: 0 1px 1px fadeOut(black, 50%);
+      @size: 1em;
+      width: @size;
+      height: @size;
+      line-height: @size;      
+      text-align: center;
+      padding: 0.5ex;      
+      position: absolute;
+      top: -0.9ex;
+      right: -0.7ex;
+      color: #777;
+      font-size: 85%;   
+      font-variant: small-caps;
+      font-weight: bold;     
+      border-radius: @size;
+      text-shadow: 0 1px 0px white;
+      .disable-text-selection;
+      cursor: pointer;
+    }
+
+    &.animating a:before {
+      .animation-play-state(running);
+    }
+    &.animating a:after { 
+      .animation-play-state(running);
+    }
+  }
+
+  .logout {
+    a {
+      background-image: url(../img/glyphicons/white/glyphicons_387_log_out@2x.png);
+      background-size: 22px auto;
+      background-position: 9px center;
+    }
+  }
+}
+
+
+
+.spinning-image(@image, @dimension, @offsetLeft, @offsetTop) {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: @dimension / 2 * -1px + @offsetLeft;
+  margin-top: @dimension / 2 * -1px + @offsetTop;
+  width: @dimension;
+  height: @dimension;
+  background-image: url("../img/glyphicons/@{image}.png");
+  background-size: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+
+.menu-bottom {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+}
+
+.content {
+  &.hide-icon-text {
+    .menu-top a, .menu-bottom a {
+      font-size: 0; 
+      padding-top: 10px;
+      padding-bottom: 5px;
+    }
+  }
+  &.hide-more {
+    .menu-bottom .divider, .menu-bottom .logout, .menu-bottom .spacer {
+        display: none;        
+    }
+    .menu-top .dashboard {
+        display: none;        
+    }
+  }
+}

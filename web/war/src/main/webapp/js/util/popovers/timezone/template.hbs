@@ -1,0 +1,15 @@
+<div class="timezonePopover popover top">
+  <div class="arrow"></div>
+  <div class="popover-content">
+
+    {{#if sourceTimezone}}
+    <label class="toggle-source">{{ i18n 'popovers.timezone.edit.label' }}:<button class="toggle btn btn-link">{{sourceTimezone}}</button></label>
+    {{/if}}
+
+    <div class="navbar-search">
+      <input type="text" class="search-query" placeholder="{{ i18n 'popovers.timezone.search.placeholder' }}">
+    </div>
+
+    <div class="dst">* {{ i18n 'popovers.timezone.observes_dst' }}</div>
+  </div>
+</div>

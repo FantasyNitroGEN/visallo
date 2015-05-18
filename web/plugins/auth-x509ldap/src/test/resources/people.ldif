@@ -1,0 +1,4 @@
+dn: ou=people,dc=test,dc=visallo,dc=org
+objectclass:organizationalunit
+ou: users
+description: Visallo People

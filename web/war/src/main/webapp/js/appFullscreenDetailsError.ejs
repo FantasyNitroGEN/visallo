@@ -1,0 +1,53 @@
+
+<% if (requiredFallback) { %>
+  <% if (!noWorkspaceGiven) { %>
+    <h1><%= i18n('fullscreen.unauthorized_workspace') %></h1>
+  <% } %>
+
+  <div class="no-workspace-access">
+    <% if (!noWorkspaceGiven) { %>
+      <%= i18n('fullscreen.unauthorized.body') %><br>
+    <% } %>
+    <% if (somePublished) { %>
+      <%= i18n('fullscreen.published.prefix.body') %>
+        <div class="btn-group">
+          <a class="btn btn-link dropdown-toggle disabled" data-toggle="dropdown">
+            <%= workspaceTitle %>
+            <span style="display:none" class="caret"></span>
+          </a>
+          <ul class="dropdown-menu"></ul>
+        </div>
+    <% } %>
+  </div>
+<% } %>
+
+<% if (vertices.length === 1) { %>
+
+  <% if (!requiredFallback) { %>
+    <h1><%= i18n('fullscreen.item_not_found') %></h1>
+  <% } %>
+  <p>
+  <%= i18n('fullscreen.item_not_found.body.prefix') %> 
+  <code><%= i18n('fullscreen.item_not_found.identifier', vertices[0]) %></code>
+  <%= i18n('fullscreen.item_not_found.body.suffix') %> 
+  </p>
+
+<% } else if (vertices.length > 1) { %>
+
+  <% if (!requiredFallback) { %>
+    <h1><%= i18n('fullscreen.items_not_found') %></h1>
+  <% } %>
+  <p><%= i18n('fullscreen.items_not_found.body') %></p>
+  <p>
+    <% vertices.forEach(function(vertex, i) { %>
+      <code><%= vertex %></code>
+      <% if (i < vertices.length - 1) { %>
+      , 
+      <% } %>
+    
+    <% }); %>
+  </p>
+<% } %>
+
+
+<p class="return-to-visallo"><a href="/"><%= i18n('fullscreen.return_to_visallo') %></a>

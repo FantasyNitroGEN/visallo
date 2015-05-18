@@ -1,0 +1,2 @@
+org.visallo.core.bootstrap.lib.LibDirectoryLoader
+org.visallo.core.bootstrap.lib.HdfsLibLoader

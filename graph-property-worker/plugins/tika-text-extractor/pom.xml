@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.visallo</groupId>
+        <artifactId>visallo-graph-property-worker-plugin-base</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../graph-property-worker-plugin-base</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>visallo-gpw-tika-text-extractor</artifactId>
+    <name>Visallo: GraphPropertyWorker: Plugin: Tika Text Extractor</name>
+
+    <properties>
+        <nekohtml.version>1.9.21</nekohtml.version>
+        <natty.version>0.7</natty.version>
+        <tika.version>1.7</tika.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.nekohtml</groupId>
+            <artifactId>nekohtml</artifactId>
+            <version>${nekohtml.version}</version>
+        </dependency>
+    </dependencies>
+</project>

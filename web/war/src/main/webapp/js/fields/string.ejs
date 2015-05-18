@@ -1,0 +1,26 @@
+<table cellpadding="0">
+  <tr class="<%= (predicates || (composite && !newProperty)) ? 'input-prepend' : '' %>">
+
+    <% if (predicates) { %>
+
+    <td class="predicate-row">
+      <span class="add-on"><%= i18n('field.string.form.contains') %></span>
+    </td>
+
+    <% } else if (composite && !newProperty) { %>
+
+    <td class="predicate-row">
+      <span class="add-on"><%= property.displayName %></span>
+    </td>
+
+    <% } %>
+
+
+    <td class="input-row">
+      <% if(property.displayType === 'textarea') { %>
+        <textarea placeholder="<%= property.displayName %>"><%= value %></textarea>
+      <% } else { %>
+        <input placeholder="<%= property.displayName %>" value="<%= value %>" type="text"/>
+      <% } %>
+    </td>
+</table>

@@ -1,0 +1,237 @@
+@import (reference) "../util/positioning.less";
+
+width: 225px;
+
+.admin-form {
+  .pin-left-split;
+
+  width: 200px;
+  background: @pane-background;
+  z-index: 89;  // so it floats above graph, but below splitbar handles
+
+  .content {
+    padding: 1em;
+    overflow-x: hidden;
+    
+    .nav {
+      margin: -0.5em 0 0 0;
+      padding: 0;      
+    }
+    
+    .collapsible {
+      h1 {
+        margin: 0 -1em;
+        padding: 0.25em 1em;      
+        line-height: 1.5em;   
+        .badge {
+          margin-top: 0.5ex;
+        }
+      }  
+    }
+    
+    a.btn {
+      margin: 0;  
+      width: 100%;
+      .box-sizing(border-box);
+    }
+    
+    button.close {
+      display: none;
+    }
+    
+    select {
+      width: 100%;
+    }
+
+    .btn-file {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      .box-sizing(border-box);
+      
+      input[type=file] {
+          position: absolute;
+          top: 0;
+          right: 0;
+          min-width: 100%;
+          min-height: 100%;
+          font-size: 999px;
+          text-align: right;
+          outline: none;
+          background: white;
+          cursor: inherit;
+          display: block;
+          .opacity(0);
+      }
+    }
+    
+    p {
+      font-size: 95%;
+      color: #555;
+    }
+
+    button {
+      display:block;            
+      width: 100%;
+      margin: 1em 0;
+    }
+    
+    .nav-list-title {
+      font-size: 100%;      
+    }
+
+    .nav-list-subtitle {
+      font-size: 90%;      
+    }    
+
+    &.notificationList {
+      .nav-list-subtitle {
+        line-height: 1.4em;
+      }
+      .title {
+        color: #666;
+      }
+      .title, .dates {
+        display: block;
+      }
+      li.INFORMATIONAL,
+      li.CRITICAL,
+      li.WARNING {
+        padding-left: 2em;
+        &:before {
+          content: '';
+          display: block;
+          position: absolute;
+          left: 0.6em;
+          top: 50%;
+          height: 8px;
+          width: 8px;
+          border-radius: 5px;
+          .translate(0, -50%);
+          .opacity(60);          
+        }        
+      }
+
+      li.INFORMATIONAL:before { background: @blue-color; }      
+      li.WARNING:before { background: orange; }
+      li.CRITICAL:before { background: red; }      
+    }
+
+    section > div > .nav {
+      margin: 0;
+      & > li {
+        border-bottom: 1px solid darken(@pane-background, 10%);
+        padding: 0.75em 0.5em;
+        &:last-child {
+          border: 0;
+        }
+      }
+    }
+
+    dl {
+      margin: 0;
+      font-size:  90%;
+      margin-left: 1em;
+      dt {        
+      }
+      dd {
+        margin: 0;
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        width: 100%;
+      }
+    }
+        
+    ol.inner-list {
+      margin: 0;
+      font-size: 90%;
+      li {
+        list-style: none;
+        word-break: break-all;
+        padding: 1em 0;
+        margin: 0;
+        line-height: 1.3em;
+        
+        &:last-child {
+          border: none;
+        }
+        border-bottom: 1px solid darken(@pane-background, 10%);
+        a, a:hover {
+          text-decoration: none;
+        }
+      }
+      
+      .inner-list li {
+        margin: 0;
+        padding: 0;
+        border: none;
+      }
+    }  
+    
+    li {
+      position: relative;
+      
+      &.highlight-on-hover {
+        margin: 0 -1em;
+        padding: 0.25em 1em;        
+        &:hover {
+          background: #eee;
+        }
+      }
+      
+      .show-on-hover {        
+        z-index: 1;
+        position: absolute;
+        width: auto;
+        right: -100%;        
+        top: 50%;
+        margin: 0 1em 0 0;
+        .translate(0, -50%);
+        .transition(~"right ease-in-out 0.1s 0");
+      }
+      &.show-hover-items .show-on-hover,
+      &:hover .show-on-hover {
+        right: 0;
+        .transition(~"right ease-in-out 0.1s 0.2s");
+      }      
+    }
+    
+    label {
+      input {
+        margin-right: 0.25em;
+        vertical-align: top;
+      }
+    }
+       
+    table {
+      
+      th {
+        text-align: right;
+        font-size: 80%;
+        color: #999;
+        white-space: nowrap;
+      }
+      td {
+        padding-left: 0.25em;
+      }
+    }
+  }
+}
+
+.admin-plugin-list {
+  h1.name {
+    font-size: 100%;
+  }
+  h2.description {
+    font-size: 100%;
+    line-height: 1em;
+    color: #666;
+    font-weight: normal;
+    margin: 0.5em 0 0.75em;
+  }
+  dl {
+    color: #666;
+  }
+}

@@ -1,0 +1,29 @@
+@import (reference) "gradient";
+
+.splitbar() {
+  &:before {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 1px;
+    background: @pane-border;
+    top: 0;
+    bottom: 0;
+  }
+}
+
+.ui-resizable-handle.ui-resizable-e {
+  width: 10px;
+  right: -8px;
+  &:before {
+    left: 2px;
+  }
+}
+.ui-resizable-handle.ui-resizable-w {
+  width: 20px;
+  left: -10px;
+  &:before {
+    left: 10px;
+  }
+}

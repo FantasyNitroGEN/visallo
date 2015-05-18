@@ -1,0 +1,35 @@
+
+<div class="entity-background">
+  <div class="entity-glyphIcon" style="background-image: url(<%= concept.glyphIconHref %>)"></div>
+  <h1 class="generic-draggable artifact-title" 
+    data-vertex-id='<%= vertex.id %>'><%= F.vertex.title(vertex) %></h1>
+  <div class="subtitle"><%= concept.displayName %></div>
+
+  <div class="comp-toolbar"></div>
+</div>
+
+<div class="nav-with-background">
+  <div class="delete-form"></div>
+
+  <% if(concept.displayType == 'video') { %>
+    <div class="preview"/>
+    <div class="currentTranscript"></div>
+  <% } %>
+  <% if(concept.displayType == 'image') { %>
+    <div class="image-preview opens-dropdown"></div>
+  <% } %>
+  <% if(concept.displayType == 'audio') { %>
+    <div class="audio-preview"></div>
+    <div class="currentTranscript"></div>
+  <% } %>
+
+  <div class='detected-object-labels'></div>
+
+  <div class="artifact-header">
+    <div class="properties"></div>
+    <div class="relationships"></div>
+    <div class="comments"></div>
+  </div>
+
+  <div class="texts"></div>
+</div>

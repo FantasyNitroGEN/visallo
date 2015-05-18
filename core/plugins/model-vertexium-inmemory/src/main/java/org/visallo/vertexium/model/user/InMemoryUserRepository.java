@@ -1,0 +1,155 @@
+package org.visallo.vertexium.model.user;
+
+import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.model.notification.UserNotificationRepository;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.user.UserSessionCounterRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.user.SystemUser;
+import org.visallo.core.user.User;
+import org.visallo.web.clientapi.model.Privilege;
+import org.visallo.web.clientapi.model.UserStatus;
+import org.json.JSONObject;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+
+import javax.inject.Inject;
+import java.util.*;
+
+public class InMemoryUserRepository extends UserRepository {
+    private final Graph graph;
+
+    @Inject
+    public InMemoryUserRepository(
+            Graph graph,
+            Configuration configuration,
+            SimpleOrmSession simpleOrmSession,
+            UserSessionCounterRepository userSessionCounterRepository,
+            WorkQueueRepository workQueueRepository,
+            UserNotificationRepository userNotificationRepository
+    ) {
+        super(configuration, simpleOrmSession, userSessionCounterRepository, workQueueRepository, userNotificationRepository);
+        this.graph = graph;
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public Iterable<User> find(int skip, int limit) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public User findById(String userId) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
+        username = formatUsername(username);
+        displayName = displayName.trim();
+        InMemoryUser user = new InMemoryUser(username, displayName, emailAddress, getDefaultPrivileges(), userAuthorizations, null);
+        afterNewUserAdded(user);
+        return user;
+    }
+
+    @Override
+    public void setPassword(User user, String password) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public boolean isPasswordValid(User user, String password) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void recordLogin(User user, String remoteAddr) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public User setCurrentWorkspace(String userId, String workspaceId) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public String getCurrentWorkspaceId(String userId) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void setUiPreferences(User user, JSONObject preferences) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public User setStatus(String userId, UserStatus status) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void internalAddAuthorization(User user, String auth, User authUser) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void internalRemoveAuthorization(User user, String auth, User authUser) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public Authorizations getAuthorizations(User user, String... additionalAuthorizations) {
+        List<String> auths = new ArrayList<>();
+        Collections.addAll(auths, ((InMemoryUser) user).getAuthorizations());
+        Collections.addAll(auths, additionalAuthorizations);
+        return this.graph.createAuthorizations(auths.toArray(new String[auths.size()]));
+    }
+
+    @Override
+    public void setDisplayName(User user, String displayName) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void setEmailAddress(User user, String emailAddress) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public Set<Privilege> getPrivileges(User user) {
+        if (user instanceof SystemUser) {
+            return Privilege.ALL;
+        }
+        return user.getPrivileges();
+    }
+
+    @Override
+    protected void internalDelete(User user) {
+
+    }
+
+    @Override
+    protected void internalSetPrivileges(User user, Set<Privilege> privileges, User authUser) {
+        ((InMemoryUser) user).setPrivileges(privileges);
+    }
+
+    @Override
+    public User findByPasswordResetToken(String token) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void setPasswordResetTokenAndExpirationDate(User user, String token, Date expirationDate) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void clearPasswordResetTokenAndExpirationDate(User user) {
+        throw new RuntimeException("Not implemented");
+    }
+}

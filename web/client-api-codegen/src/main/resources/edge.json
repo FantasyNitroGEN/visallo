@@ -1,0 +1,252 @@
+{
+    "apiVersion": "0.4.0",
+    "swaggerVersion": "1.2",
+    "basePath": "http://visallo-dev:8889",
+    "resourcePath": "/edge",
+    "apis": [
+        {
+            "path": "/edge/properties",
+            "operations": [
+                {
+                    "method": "GET",
+                    "summary": "Gets the edge properties",
+                    "type": "ClientApiEdgeWithVertexData",
+                    "nickname": "getByEdgeId",
+                    "parameters": [
+                        {
+                            "name": "graphEdgeId",
+                            "description": "ID of the edge",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        }
+                    ],
+                    "responseMessages": [
+                        {
+                            "code": 404,
+                            "message": "Edge not found"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/edge/property/history",
+            "operations": [
+                {
+                    "method": "GET",
+                    "summary": "Gets a property history on a edge",
+                    "type": "ClientApiHistoricalPropertyValues",
+                    "nickname": "getPropertyHistory",
+                    "parameters": [
+                        {
+                            "name": "graphEdgeId",
+                            "description": "graph edge id to set property on",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "propertyKey",
+                            "description": "the property key",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "propertyName",
+                            "description": "the property name",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "startTime",
+                            "description": "the start time of the history",
+                            "required": false,
+                            "type": "Long",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "endTime",
+                            "description": "the end time of the history",
+                            "required": false,
+                            "type": "Long",
+                            "paramType": "query"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/edge/create",
+            "operations": [
+                {
+                    "method": "POST",
+                    "summary": "Creates an edge",
+                    "type": "ClientApiEdgeWithVertexData",
+                    "nickname": "create",
+                    "parameters": [
+                        {
+                            "name": "sourceGraphVertexId",
+                            "description": "Source vertex id",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "destGraphVertexId",
+                            "description": "Destination vertex id",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "predicateLabel",
+                            "description": "Label to apply",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "visibilitySource",
+                            "description": "visibility source of new edge",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "justificationText",
+                            "description": "Justification for new edge",
+                            "required": false,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "sourceInfo",
+                            "description": "Source information",
+                            "required": false,
+                            "type": "string",
+                            "paramType": "query"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/edge/property",
+            "operations": [
+                {
+                    "method": "POST",
+                    "summary": "Sets an edge property",
+                    "type": "void",
+                    "nickname": "setProperty",
+                    "parameters": [
+                        {
+                            "name": "edgeId",
+                            "description": "edge id",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "propertyKey",
+                            "description": "the property key",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "propertyName",
+                            "description": "the property name",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "value",
+                            "description": "the property value",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "visibilitySource",
+                            "description": "the visibility source of the property",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "justificationString",
+                            "description": "The justification text",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "sourceInfo",
+                            "description": "source info",
+                            "required": false,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "metadata",
+                            "description": "metadata",
+                            "required": false,
+                            "type": "string",
+                            "paramType": "query"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/edge",
+            "operations": [
+                {
+                    "method": "DELETE",
+                    "summary": "Deletes an edge",
+                    "type": "void",
+                    "nickname": "deleteEdge",
+                    "parameters": [
+                        {
+                            "name": "edgeId",
+                            "description": "The edge id",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/edge/exists",
+            "operations": [
+                {
+                    "method": "POST",
+                    "summary": "Finds the status of multiple edges",
+                    "type": "ClientApiEdgesExistsResponse",
+                    "nickname": "doExist",
+                    "consumes": [
+                        "multipart/form-data"
+                    ],
+                    "parameters": [
+                        {
+                            "name": "edgeIds[]",
+                            "description": "edge ids",
+                            "required": true,
+                            "type": "List[string]",
+                            "paramType": "form"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "models": {
+
+    }
+}

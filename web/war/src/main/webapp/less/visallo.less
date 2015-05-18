@@ -1,0 +1,408 @@
+@pane-background: #f9f9f9;
+
+@import "util/constants";
+@import "util/animation";
+@import "util/button-loading";
+@import "util/controls";
+@import "util/collapsible";
+@import "util/splitbar";
+@import "util/positioning";
+@import "util/flexbox";
+@import "util/transforms";
+@import "util/video/scrubber";
+@import "util/audio/scrubber";
+@import "util/popovers/popovers";
+@import "util/edgeList/list";
+@import "util/vertexList/list";
+@import "util/actionbar/actionbar";
+@import "util/users/userSelect";
+@import "util/ontology/ontology";
+@import "util/instructions";
+@import "util/jquery-ui-draggable-multiselect";
+@import "util/context-menu";
+@import "util/selection";
+@import "util/offlineOverlay";
+@import "util/privileges";
+@import "util/nav-lists";
+
+// Import bootstrap
+@import "../libs/bootstrap/less/bootstrap.less";
+#grid {
+    .core  {
+        .span(@gridColumns) {
+            width: (@gridColumnWidth * @gridColumns) + (@gridGutterWidth * (@gridColumns - 1));
+        }
+    }
+};
+// Override sprite paths
+@iconSpritePath: "../libs/bootstrap/img/glyphicons-halflings.png";
+@iconWhiteSpritePath: "../libs/bootstrap/img/glyphicons-halflings-white.png";
+@import "../libs/bootstrap-datepicker/less/datepicker.less";
+@import "../libs/bootstrap-timepicker/less/timepicker.less";
+
+@import "../libs/video.js/dist/video-js/video-js.min.css";
+@import (less) "../libs/jquery-ui/themes/ui-lightness/jquery-ui.css";
+@import (less) "../libs/jquery-ui/themes/ui-lightness/jquery.ui.theme.css";
+@import (less) "../libs/openlayers/theme/default/style.css";
+
+@import "sync/sync";
+@import "fields/fields";
+@import "login/login";
+@import "notifications/notifications";
+@import "workspaces/userAccount";
+
+html.fullscreenApp {
+  height: 100%;
+  overflow: hidden;
+
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  #app {
+    .fullscreen;
+    overflow: hidden;
+  }
+}
+
+
+html.fullscreenDetails {
+  body {
+    background: #efefef;
+  }
+  .fullscreen-details {
+    @import "fullscreenDetails/details";
+  }
+}
+
+.above-graph(@extra:1) {
+  z-index: @graph-zIndex + @extra;
+}
+
+.left-pane(@left-padding: 0) {
+  .transition-transform(ease-in-out, 0.2s);
+
+  .translate3d(-100%, 0, 0);
+  &.visible {
+    .translate3d(@menubar-width + @left-padding, 0, 0);
+  }
+}
+.right-pane {
+  .fullscreen;
+  left: auto !important;
+  right: 0;
+  width: 25%;
+  min-width: 200px !important;
+  .translate3d(100%, 0, 0);
+  .transition-transform(ease-in-out, 0.2s);
+
+  &.visible {
+    .translate3d(0, 0, 0);
+    .transition-transform(ease-in-out, 0.2s);
+  }
+}
+
+.fullscreenApp {
+  .activity-pane,
+  .search-pane,
+  .workspaces-pane,
+  .admin-pane,
+  .plugin-pane,
+  .detail-pane {
+    .above-graph;
+    position: absolute;
+    background: @pane-background;
+
+    .content {
+      overflow: auto;
+      height: 100%;
+      .box-sizing(border-box);
+      & > .nav-list {
+        margin-top: 0.5em;
+      }
+    }
+  }
+  .search-pane .content {
+    overflow: visible;
+  }
+
+  .search-pane,
+  .workspaces-pane,
+  .admin-pane,
+  .plugin-pane,
+  .detail-pane {
+    height: 100%;
+
+    .ui-resizable-handle {
+      .splitbar;
+    }
+  }
+  
+  .detail-pane {
+    border-left: 1px solid @pane-border;    
+    .ui-resizable-handle:before {
+      background: transparent;
+    }
+  }
+}
+
+.graph-pane, .map-pane, .dashboard-pane, .fullscreen-pane {
+  display: none;
+
+  &.visible {
+    display: block;
+  }
+}
+
+.plugin-pane .plugin-subpane {
+  display: block;
+  position: absolute;
+  left: 100% !important;
+  bottom: 0;
+  top: 0;
+  margin-left: 1px;
+  width: 200px;
+  background: @pane-background;
+  z-index: 89;
+}
+
+
+.menubar-pane {
+  position: absolute;
+  left: -1px;
+  top: 0;
+  bottom: 0;
+  width: @menubar-width + 1px;
+  .above-graph(10);
+
+  @import "menubar/menubar";
+}
+
+.search-pane {
+  .left-pane;
+
+  @import "search/search";
+}
+
+.plugin-pane {
+  .left-pane;
+}
+
+.workspaces-pane {
+  .left-pane;
+
+  @import "workspaces/workspaces";
+}
+.workspace-overlay {
+  @import "workspaces/overlay";
+}
+
+.admin-pane {
+  .left-pane;
+
+  @import "admin/admin";
+}
+
+.fullscreenApp .activity-pane {
+  @padding: 10px;
+  .above-graph(2);
+  .left-pane(@padding);
+
+  bottom: @padding;
+
+  @import "activity/activity";
+}
+
+.graph-pane {
+  .fullscreen;
+  left: @menubar-width;
+
+  @import "graph/graph";
+}
+
+.fullscreen-pane {
+  .fullscreen;
+  left: @menubar-width;
+}
+
+.map-pane {
+  .fullscreen;
+  left: @menubar-width;
+
+  @import "map/map";
+}
+
+.dashboard-pane {
+  .fullscreen;
+  left: @menubar-width;
+
+  @import "dashboard/dashboard";
+}
+
+.help-dialog {
+  height: 40em;
+  width: 60%;
+  height: 80vh;
+  width: 60vw;
+  max-width: 65em;
+  margin-left: 0;
+  .translate(-50%, 0);
+  @import "help/help";
+  .modal-body {
+    position: absolute;
+    top: 3.8em;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: none;
+    overflow: auto;
+  }
+}
+
+.fullscreenApp .detail-pane {
+  .right-pane;
+  visibility: visible;
+  right: 0;
+}
+
+.detail-pane {
+  @import "detail/detail";
+}
+.field-tooltip {
+  @import "detail/field-tooltip";
+}
+
+.mode-select-pane {
+    padding-left: 300px;
+}
+
+.accepts-file {
+
+  &:after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5) url(../img/drop-items.png) no-repeat center center;
+    background-size: auto 45%;
+    .transition(~"all 0.2s ease-in-out");
+    .opacity(0);
+  }
+
+  &.file-hover {
+    &.uploading:after, &.uploading:hover:after {
+      display: none;
+    }
+
+    &:after {
+      .transition(~"all 0.2s ease-in-out 0.2s");
+      .opacity(80);
+    }
+  }
+}
+
+a {
+  cursor: pointer;
+}
+
+
+// Fix for firefox when using box-sizing (can't see text otherwise)
+body {
+textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
+  .input-block-level;
+ }
+}
+.navbar-search .search-query {
+  .input-block-level;
+}
+
+
+.btn-primary {
+  .transition(~"all ease-out 0.1s");
+  &.disabled, &[disabled] {
+    opacity: 0.6;
+    background: #aaa;
+    color: #efefef;
+    text-shadow: none;
+  }
+}
+
+.ui-draggable-dragging {
+  .opacity(100);
+  .scale(1.0);
+  .transition(~"opacity ease-in-out 0.3s, -webkit-transform ease-in-out 0.3s");
+}
+.draggable-invisible {
+  .opacity(0);
+  .scale(0.1);
+}
+.draggable-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.alert {
+  word-break: break-word;
+  .disable-text-selection;
+}
+
+.justification-selection {
+  background: fadeout(@blue-color, 80%);
+  padding: 0 2px;
+  margin: 0 2px;
+  text-shadow: 0 1px 0 fadeout(white, 60%);
+}
+
+.context-menu-warning {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  .translate(-50%, 0);
+  margin: auto;
+  z-index: @graph-zIndex;
+  .opacity(90);
+}
+
+.dropdown-menu li.disabled:hover > a > span {
+  color: #777;
+}
+
+@import "util/badge-loading.less";
+
+
+@import "util/scrollbars.less";
+
+.component-highlighter {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(24, 126, 226, 0.55);
+  border: 3px solid rgba(11, 76, 140, 0.36);
+  box-sizing: border-box;
+  z-index: 9999;
+  &:after {
+    content: attr(data-name);
+    top: 0;
+    left: 0;
+    color: white;
+    text-shadow: 0 -1px 0 rgba(11, 76, 140, 1.0);
+    font-size: 100%;
+    white-space: nowrap;
+    background: rgba(11, 76, 140, 0.36);
+    padding: 0 0.5em;
+    position: absolute;
+  }
+}
+
+.btn-link {
+  text-decoration: none;
+  &:focus,&:hover,&:active {
+    text-decoration: none;
+  }
+}
+.btn-link:focus {
+  outline: none;
+}
