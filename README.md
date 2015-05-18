@@ -4,13 +4,6 @@
 
 Visallo is an open source big data analysis and visualization platform. Please see [http://visallo.org](http://visallo.org) for more details and videos.
 
-## Getting Started
-
-To get started quickly, you can try out a hosted installation of Visallo, or download a virtual machine image with Visallo installed and pre-configured.
-
-- [Try Visallo Now](http://visallo.org/try.html)
-- [Watch Visallo Videos](https://www.youtube.com/playlist?list=PLDX7b-6_sNA7SCJw5rB9EF0TDpQyrO2XR)
-
 ## Quick Start
 
 1. Install Docker per their instructions: [https://docs.docker.com/installation](https://docs.docker.com/installation/#installation)
