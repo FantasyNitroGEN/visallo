@@ -124,10 +124,6 @@ public class GraphRepository {
         Metadata propertyMetadata;
         if (oldProperty != null) {
             propertyMetadata = oldProperty.getMetadata();
-            if (oldProperty.getName().equals(propertyName) && oldProperty.getKey().equals(propertyKey)) {
-                element.softDeleteProperty(propertyKey, propertyName, propertyVisibility, authorizations);
-                graph.flush();
-            }
         } else {
             propertyMetadata = new Metadata();
         }
