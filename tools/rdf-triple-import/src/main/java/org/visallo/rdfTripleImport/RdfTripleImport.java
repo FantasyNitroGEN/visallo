@@ -118,13 +118,19 @@ public class RdfTripleImport {
                 }
                 try {
                     InputStream in = new FileInputStream(file);
-                    return new StreamingPropertyValue(in, byte[].class);
+                    StreamingPropertyValue spv = new StreamingPropertyValue(in, byte[].class);
+                    spv.store(true);
+                    spv.searchIndex(false);
+                    return spv;
                 } catch (FileNotFoundException ex) {
                     throw new VisalloException("Could not read file: " + file.getAbsolutePath(), ex);
                 }
             case PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE:
                 InputStream in = new ByteArrayInputStream(propertyValuePart.getString().getBytes());
-                return new StreamingPropertyValue(in, byte[].class);
+                StreamingPropertyValue spv = new StreamingPropertyValue(in, byte[].class);
+                spv.store(true);
+                spv.searchIndex(false);
+                return spv;
             default:
                 throw new VisalloException("Unhandled property type: " + propertyValuePart.getType().getUri() + " (value: " + propertyValuePart.getString() + ")");
         }
