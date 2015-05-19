@@ -77,10 +77,21 @@ public class RdfTripleImport {
         graph.addEdge(edgeId, outVertexId, inVertexId, label, visibility, authorizations);
     }
 
-    private void setProperty(String vertexId, String propertyName, RdfTriple.LiteralPart propertyValuePart) {
+    private void setProperty(String vertexId, String label, RdfTriple.LiteralPart propertyValuePart) {
         VertexBuilder m = graph.prepareVertex(vertexId, visibility);
+        String propertyKey = MULTI_KEY;
+        String propertyName = label;
+        int lastHash = label.lastIndexOf('#');
+        if (lastHash > 0) {
+            int colonAfterHash = label.indexOf(':', lastHash);
+            if (colonAfterHash > 0) {
+                propertyName = label.substring(0, colonAfterHash);
+                propertyKey = label.substring(colonAfterHash + 1);
+            }
+        }
+
         Object propertyValue = getPropertyValue(propertyValuePart);
-        m.addPropertyValue(MULTI_KEY, propertyName, propertyValue, metadata, visibility);
+        m.addPropertyValue(propertyKey, propertyName, propertyValue, metadata, visibility);
         m.save(authorizations);
     }
 

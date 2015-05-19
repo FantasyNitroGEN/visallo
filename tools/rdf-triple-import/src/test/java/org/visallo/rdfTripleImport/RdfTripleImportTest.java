@@ -51,6 +51,18 @@ public class RdfTripleImportTest {
     }
 
     @Test
+    public void testImportPropertyWithKey() {
+        graph.addVertex("v1", new Visibility(""), authorizations);
+        graph.flush();
+
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1:key1> \"hello world\"");
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        assertEquals("hello world", v1.getPropertyValue("key1", "http://visallo.org/test#prop1"));
+    }
+
+    @Test
     public void testImportStreamingPropertyValue() throws IOException {
         graph.addVertex("v1", new Visibility(""), authorizations);
         graph.flush();
