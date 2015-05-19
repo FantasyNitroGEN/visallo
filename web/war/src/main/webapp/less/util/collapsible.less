@@ -1,13 +1,17 @@
 
 .twizzle {
+  &:hover:before {
+    color: darken(@pane-background, 30%);
+  }
   &:before {
     content: '▶';          
     font-style: normal;
     position: absolute;
     left: 1.5ex;
     font-size: 50%;
+    color: darken(@pane-background, 15%);
     .transition-transform(ease-in-out);
-    .transform-origin(~"30% 45%");
+    .transform-origin(~"40% 48%");
   }
 }
 
