@@ -27,7 +27,7 @@ fi
 
 VM_NAME='boot2docker-vm'
 
-while [[ $# > 1 ]]
+while [ $# -gt 1 ]
 do
   key="$1"
 
