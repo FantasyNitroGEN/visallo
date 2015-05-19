@@ -2,12 +2,24 @@ package org.visallo.sql.model.workspace;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
+import org.vertexium.Graph;
+import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.audit.AuditRepository;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceEntity;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.WorkspaceUser;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -17,13 +29,6 @@ import org.visallo.sql.model.user.SqlUser;
 import org.visallo.sql.model.user.SqlUserRepository;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.criterion.Restrictions;
-import org.vertexium.Graph;
-import org.vertexium.util.ConvertingIterable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +44,25 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
     private final HibernateSessionManager sessionManager;
 
     @Inject
-    public SqlWorkspaceRepository(final SqlUserRepository userRepository, final HibernateSessionManager sessionManager,
-                                  final Graph graph) {
-        super(graph);
+    public SqlWorkspaceRepository(
+            final SqlUserRepository userRepository,
+            final HibernateSessionManager sessionManager,
+            final Graph graph,
+            final VisibilityTranslator visibilityTranslator,
+            final TermMentionRepository termMentionRepository,
+            final OntologyRepository ontologyRepository,
+            final AuditRepository auditRepository,
+            final WorkQueueRepository workQueueRepository
+    ) {
+        super(
+                graph,
+                visibilityTranslator,
+                termMentionRepository,
+                ontologyRepository,
+                auditRepository,
+                userRepository,
+                workQueueRepository
+        );
         this.userRepository = userRepository;
         this.sessionManager = sessionManager;
     }

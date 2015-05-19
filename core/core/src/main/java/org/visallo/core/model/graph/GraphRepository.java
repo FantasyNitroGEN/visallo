@@ -1,6 +1,8 @@
 package org.visallo.core.model.graph;
 
 import com.google.inject.Inject;
+import org.vertexium.*;
+import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.PropertyJustificationMetadata;
 import org.visallo.core.model.audit.AuditAction;
@@ -12,14 +14,12 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.*;
-import org.vertexium.mutation.ExistingElementMutation;
 
 import java.util.Date;
 
