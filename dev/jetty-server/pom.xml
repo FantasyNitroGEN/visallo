@@ -114,6 +114,11 @@
             <artifactId>visallo-web-analysts-notebook-export</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-requeue</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- graph property worker dependencies -->
         <dependency>
