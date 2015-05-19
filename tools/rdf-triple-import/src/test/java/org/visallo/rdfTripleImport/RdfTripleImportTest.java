@@ -70,6 +70,20 @@ public class RdfTripleImportTest {
     }
 
     @Test
+    public void testImportStreamingPropertyValueInline() throws IOException {
+        graph.addVertex("v1", new Visibility(""), authorizations);
+        graph.flush();
+
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1> \"hello world\"^^<" + RdfTripleImport.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE + ">");
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        Object propertyValue = v1.getPropertyValue(RdfTripleImport.MULTI_KEY, "http://visallo.org/test#prop1");
+        assertTrue(propertyValue instanceof StreamingPropertyValue);
+        assertEquals("hello world", IOUtils.toString(((StreamingPropertyValue) propertyValue).getInputStream()));
+    }
+
+    @Test
     public void testImportEdge() {
         graph.addVertex("v1", new Visibility(""), authorizations);
         graph.addVertex("v2", new Visibility(""), authorizations);

@@ -6,10 +6,7 @@ import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,6 +16,7 @@ public class RdfTripleImport {
     public static final String MULTI_KEY = RdfTripleImport.class.getSimpleName();
     public static final String PROPERTY_TYPE_GEOLOCATION = "http://visallo.org#geolocation";
     public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE = "http://visallo.org#streamingPropertyValue";
+    public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE = "http://visallo.org#streamingPropertyValueInline";
     public static final String LABEL_CONCEPT_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     private final Graph graph;
     private final Visibility visibility;
@@ -124,6 +122,9 @@ public class RdfTripleImport {
                 } catch (FileNotFoundException ex) {
                     throw new VisalloException("Could not read file: " + file.getAbsolutePath(), ex);
                 }
+            case PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE:
+                InputStream in = new ByteArrayInputStream(propertyValuePart.getString().getBytes());
+                return new StreamingPropertyValue(in, byte[].class);
             default:
                 throw new VisalloException("Unhandled property type: " + propertyValuePart.getType().getUri() + " (value: " + propertyValuePart.getString() + ")");
         }
