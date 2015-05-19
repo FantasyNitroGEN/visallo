@@ -7,16 +7,26 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.vertexium.*;
+import org.vertexium.mutation.ExistingEdgeMutation;
+import org.vertexium.util.ConvertingIterable;
+import org.vertexium.util.FilterIterable;
+import org.vertexium.util.VerticesToEdgeIdsIterable;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.formula.FormulaEvaluator;
+import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.lock.LockRepository;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
 import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -25,11 +35,6 @@ import org.visallo.vertexium.model.user.VertexiumUserRepository;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
-import org.vertexium.*;
-import org.vertexium.mutation.ExistingEdgeMutation;
-import org.vertexium.util.ConvertingIterable;
-import org.vertexium.util.FilterIterable;
-import org.vertexium.util.VerticesToEdgeIdsIterable;
 
 import java.util.List;
 import java.util.Locale;
@@ -73,12 +78,26 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
     @Inject
     public VertexiumWorkspaceRepository(
-            Graph graph,
-            UserRepository userRepository,
-            AuthorizationRepository authorizationRepository,
-            WorkspaceDiffHelper workspaceDiff,
-            LockRepository lockRepository) {
-        super(graph);
+            final Graph graph,
+            final UserRepository userRepository,
+            final AuthorizationRepository authorizationRepository,
+            final WorkspaceDiffHelper workspaceDiff,
+            final LockRepository lockRepository,
+            final VisibilityTranslator visibilityTranslator,
+            final TermMentionRepository termMentionRepository,
+            final OntologyRepository ontologyRepository,
+            final AuditRepository auditRepository,
+            final WorkQueueRepository workQueueRepository
+    ) {
+        super(
+                graph,
+                visibilityTranslator,
+                termMentionRepository,
+                ontologyRepository,
+                auditRepository,
+                userRepository,
+                workQueueRepository
+        );
         this.userRepository = userRepository;
         this.authorizationRepository = authorizationRepository;
         this.workspaceDiff = workspaceDiff;

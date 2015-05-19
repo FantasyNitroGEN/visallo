@@ -2,22 +2,6 @@ package org.visallo.sql.model.workspace;
 
 import com.google.common.collect.Lists;
 import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.config.HashMapConfigurationLoader;
-import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.notification.UserNotificationRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserSessionCounterRepository;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.Workspace;
-import org.visallo.core.model.workspace.WorkspaceEntity;
-import org.visallo.core.model.workspace.WorkspaceUser;
-import org.visallo.sql.model.HibernateSessionManager;
-import org.visallo.sql.model.user.SqlUser;
-import org.visallo.sql.model.user.SqlUserRepository;
-import org.visallo.web.clientapi.model.GraphPosition;
-import org.visallo.web.clientapi.model.WorkspaceAccess;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.service.ServiceRegistry;
 import org.junit.After;
@@ -28,6 +12,27 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.config.HashMapConfigurationLoader;
+import org.visallo.core.exception.VisalloAccessDeniedException;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.audit.AuditRepository;
+import org.visallo.core.model.notification.UserNotificationRepository;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserSessionCounterRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.model.workspace.WorkspaceEntity;
+import org.visallo.core.model.workspace.WorkspaceUser;
+import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.sql.model.HibernateSessionManager;
+import org.visallo.sql.model.user.SqlUser;
+import org.visallo.sql.model.user.SqlUserRepository;
+import org.visallo.web.clientapi.model.GraphPosition;
+import org.visallo.web.clientapi.model.WorkspaceAccess;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +65,17 @@ public class SqlWorkspaceRepositoryTest {
     @Mock
     private UserNotificationRepository userNotificationRepository;
 
+    private VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
+
+    @Mock
+    private TermMentionRepository termMentionRepository;
+
+    @Mock
+    private OntologyRepository ontologyRepository;
+
+    @Mock
+    private AuditRepository auditRepository;
+
     @Before
     public void setUp() throws Exception {
         InMemoryGraph graph = InMemoryGraph.create();
@@ -79,7 +95,16 @@ public class SqlWorkspaceRepositoryTest {
                 workQueueRepository,
                 userNotificationRepository
         );
-        sqlWorkspaceRepository = new SqlWorkspaceRepository(sqlUserRepository, sessionManager, graph);
+        sqlWorkspaceRepository = new SqlWorkspaceRepository(
+                sqlUserRepository,
+                sessionManager,
+                graph,
+                visibilityTranslator,
+                termMentionRepository,
+                ontologyRepository,
+                auditRepository,
+                workQueueRepository
+        );
         testUser = (SqlUser) sqlUserRepository.addUser("123", "user 1", null, null, new String[0]);
     }
 
