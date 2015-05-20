@@ -18,17 +18,19 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
+import static org.visallo.core.model.user.CuratorUserSessionCounterRepository.IDS_SEGMENT;
 
 /**
  * These tests are mainly concerned with verifying interaction with the Apache Curator Framework under
  * various conditions.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class UserSessionCounterRepositoryTest {
+public class CuratorUserSessionCounterRepositoryTest {
     private static final String BASE_PATH = "/sessions";
+    private static final String IDS_PATH = BASE_PATH + IDS_SEGMENT;
     private static final String USER_ID = "TheUser";
     private static final String SESSION_ID = "TheSession";
-    private static final String USER_PATH = BASE_PATH + "/" + USER_ID;
+    private static final String USER_PATH = IDS_PATH + "/" + USER_ID;
     private static final String SESSION_PATH = USER_PATH + "/" + SESSION_ID;
 
     @Mock
@@ -51,7 +53,7 @@ public class UserSessionCounterRepositoryTest {
     private GetChildrenBuilder getChildrenBuilder;
 
     private Configuration configuration;
-    private UserSessionCounterRepository uscRepository;
+    private CuratorUserSessionCounterRepository uscRepository;
 
     @Before
     @SuppressWarnings("unchecked")
@@ -61,7 +63,7 @@ public class UserSessionCounterRepositoryTest {
         )).createConfiguration();
 
         setUpMocks();
-        uscRepository = new UserSessionCounterRepository(curator, configuration, false);
+        uscRepository = new CuratorUserSessionCounterRepository(curator, configuration);
 
         // Reset mocks invoked in the above constructor
         reset(curator, createBuilder, parentPathBuilder);
@@ -80,9 +82,9 @@ public class UserSessionCounterRepositoryTest {
     }
 
     @Test
-    public void newUserSessionCounterRepositoryShouldCreateBasePath() throws Exception {
-        new UserSessionCounterRepository(curator, configuration, false);
-        verify(parentPathBuilder).forPath(BASE_PATH);
+    public void newUserSessionCounterRepositoryShouldCreatePaths() throws Exception {
+        new CuratorUserSessionCounterRepository(curator, configuration);
+        verify(parentPathBuilder).forPath(IDS_PATH);
         verifyNoMoreInteractions(parentPathBuilder);
     }
 
@@ -178,14 +180,14 @@ public class UserSessionCounterRepositoryTest {
         String[] userPaths = new String[] { USER_PATH, USER_PATH + "X" };
         String[] sessionIds = new String[] { SESSION_ID, SESSION_ID + "X", SESSION_ID + "Y" };
         String[] sessionPaths = new String[] { SESSION_PATH, SESSION_PATH + "X", SESSION_PATH + "Y" };
-        when(getChildrenBuilder.forPath(BASE_PATH)).thenReturn(Arrays.asList(userIds));
+        when(getChildrenBuilder.forPath(IDS_PATH)).thenReturn(Arrays.asList(userIds));
         when(getChildrenBuilder.forPath(userPaths[0])).thenReturn(Arrays.asList(sessionIds));
         when(getChildrenBuilder.forPath(userPaths[1])).thenReturn(Collections.<String>emptyList());
         when(existsBuilder.forPath(sessionPaths[0])).thenReturn(newStat(0, reallyLongTimeAgo()));
         when(existsBuilder.forPath(sessionPaths[1])).thenReturn(newStat(0, reallyLongTimeAgo()));
         when(existsBuilder.forPath(sessionPaths[2])).thenReturn(newStat(0, longTimeAgo()));
-        when(getDataBuilder.forPath(sessionPaths[0])).thenReturn(SerializationUtils.serialize(new UserSessionCounterRepository.SessionData(true)));
-        when(getDataBuilder.forPath(sessionPaths[1])).thenReturn(SerializationUtils.serialize(new UserSessionCounterRepository.SessionData(false)));
+        when(getDataBuilder.forPath(sessionPaths[0])).thenReturn(SerializationUtils.serialize(new CuratorUserSessionCounterRepository.SessionData(true)));
+        when(getDataBuilder.forPath(sessionPaths[1])).thenReturn(SerializationUtils.serialize(new CuratorUserSessionCounterRepository.SessionData(false)));
 
         uscRepository.deleteOldSessions();
 
@@ -217,14 +219,14 @@ public class UserSessionCounterRepositoryTest {
     }
 
     private long reallyLongTimeAgo() {
-        return now() - UserSessionCounterRepository.UNSEEN_SESSION_DURATION - 10;
+        return now() - CuratorUserSessionCounterRepository.UNSEEN_SESSION_DURATION - 10;
     }
 
     private long longTimeAgo() {
-        return now() - UserSessionCounterRepository.SESSION_UPDATE_DURATION - 10;
+        return now() - CuratorUserSessionCounterRepository.SESSION_UPDATE_DURATION - 10;
     }
 
     private long shortTimeAgo() {
-        return now() - UserSessionCounterRepository.SESSION_UPDATE_DURATION + 10;
+        return now() - CuratorUserSessionCounterRepository.SESSION_UPDATE_DURATION + 10;
     }
 }
