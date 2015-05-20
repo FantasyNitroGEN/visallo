@@ -3,20 +3,7 @@ package org.visallo.web;
 import com.codahale.metrics.Counter;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.status.JmxMetricsManager;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.user.UserSessionCounterRepository;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.Workspace;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.apache.commons.lang.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
 import org.atmosphere.cache.UUIDBroadcasterCache;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.config.service.AtmosphereHandlerService;
@@ -26,6 +13,17 @@ import org.atmosphere.interceptor.BroadcastOnPostAtmosphereInterceptor;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.atmosphere.interceptor.JavaScriptProtocol;
 import org.json.JSONObject;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.user.UserSessionCounterRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.status.JmxMetricsManager;
+import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.UserStatus;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,8 +51,6 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     private static Broadcaster broadcaster;
     private WorkspaceRepository workspaceRepository;
     private WorkQueueRepository workQueueRepository;
-    private CuratorFramework curatorFramework;
-    private Configuration configuration;
     private UserSessionCounterRepository userSessionCounterRepository;
     private boolean subscribedToBroadcast = false;
     private Map<AtmosphereResource.TRANSPORT, Counter> requestsCounters = new HashMap<>();
@@ -108,10 +104,6 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
             subscribedToBroadcast = true;
         }
         broadcaster = resource.getBroadcaster();
-
-        if (userSessionCounterRepository == null) {
-            userSessionCounterRepository = new UserSessionCounterRepository(curatorFramework, configuration);
-        }
     }
 
     @Override
@@ -288,13 +280,8 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     }
 
     @Inject
-    public void setCuratorFramework(CuratorFramework curatorFramework) {
-        this.curatorFramework = curatorFramework;
-    }
-
-    @Inject
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
+    public void setUserSessionCounterRepository(UserSessionCounterRepository userSessionCounterRepository) {
+        this.userSessionCounterRepository = userSessionCounterRepository;
     }
 
     @Inject
