@@ -35,6 +35,20 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-elasticsearch-parentchild</artifactId>
+            <version>${vertexium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-rabbitmq</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-accumulo</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.codahale.metrics</groupId>
             <artifactId>metrics-core</artifactId>
         </dependency>
