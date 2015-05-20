@@ -1247,13 +1247,7 @@ define([
 
         this.graphUnselect = throttle('selection', SELECTION_THROTTLE, function(event) {
             if (this.ignoreCySelectionEvents) return;
-
-            var self = this,
-                selection = event.cy.elements().filter(':selected');
-
-            if (!selection.length) {
-                self.trigger('selectObjects');
-            }
+            this.updateVertexSelections(event.cy, event.cyTarget);
         });
 
         this.updateVertexSelections = function(cy, cyTarget) {
