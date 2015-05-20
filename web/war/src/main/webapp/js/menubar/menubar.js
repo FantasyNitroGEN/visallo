@@ -118,7 +118,7 @@ define([
                 if (type in ACTION_TYPES) {
                     ACTION_TYPES[type].names.push(cls);
                 }
-                TOOLTIPS[cls] = data.title;
+                TOOLTIPS[cls] = data.options && data.options.tooltip || data.title;
 
                 extensions[cls] = data;
                 attrs[cls + 'IconSelector'] = '.' + cls;
