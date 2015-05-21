@@ -5,28 +5,41 @@ import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.VisalloDate;
+import org.visallo.core.util.VisalloDateTime;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class RdfTripleImport {
     public static final String MULTI_KEY = RdfTripleImport.class.getSimpleName();
+    public static final String LABEL_CONCEPT_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     public static final String PROPERTY_TYPE_GEOLOCATION = "http://visallo.org#geolocation";
     public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE = "http://visallo.org#streamingPropertyValue";
     public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE = "http://visallo.org#streamingPropertyValueInline";
-    public static final String LABEL_CONCEPT_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    public static final String PROPERTY_TYPE_DATE = "http://www.w3.org/2001/XMLSchema#date";
+    public static final String PROPERTY_TYPE_DATE_TIME = "http://www.w3.org/2001/XMLSchema#dateTime";
+    public static final String PROPERTY_TYPE_YEAR = "http://www.w3.org/2001/XMLSchema#gYear";
+    public static final String PROPERTY_TYPE_MONTH_DAY = "http://www.w3.org/2001/XMLSchema#gMonthDay";
+    public static final String PROPERTY_TYPE_STRING = "http://www.w3.org/2001/XMLSchema#string";
+    public static final String PROPERTY_TYPE_BOOLEAN = "http://www.w3.org/2001/XMLSchema#boolean";
+    public static final String PROPERTY_TYPE_DOUBLE = "http://www.w3.org/2001/XMLSchema#double";
+    public static final String PROPERTY_TYPE_CURRENCY = "http://visallo.org#currency";
+    public static final String PROPERTY_TYPE_INT = "http://www.w3.org/2001/XMLSchema#int";
+    public static final String PROPERTY_TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
     private final Graph graph;
     private final Visibility visibility;
     private final Metadata metadata;
     private final Authorizations authorizations;
+    private final TimeZone timeZone;
 
-    public RdfTripleImport(Graph graph, Metadata metadata, Visibility visibility, Authorizations authorizations) {
+    public RdfTripleImport(Graph graph, Metadata metadata, TimeZone timeZone, Visibility visibility, Authorizations authorizations) {
         this.graph = graph;
         this.visibility = visibility;
         this.metadata = metadata;
+        this.timeZone = timeZone;
         this.authorizations = authorizations;
     }
 
@@ -101,24 +114,24 @@ public class RdfTripleImport {
         }
         String typeUri = propertyValuePart.getType().getUri();
         switch (typeUri) {
-            case "http://www.w3.org/2001/XMLSchema#date":
+            case PROPERTY_TYPE_DATE:
                 return parseDate(propertyValuePart.getString());
-            case "http://www.w3.org/2001/XMLSchema#dateTime":
+            case PROPERTY_TYPE_DATE_TIME:
                 return parseDateTime(propertyValuePart.getString());
-            case "http://www.w3.org/2001/XMLSchema#gYear":
+            case PROPERTY_TYPE_YEAR:
                 return Integer.parseInt(propertyValuePart.getString());
-            case "http://www.w3.org/2001/XMLSchema#gMonthDay":
+            case PROPERTY_TYPE_MONTH_DAY:
                 return propertyValuePart.getString(); // TODO: is there a better format for this.
-            case "http://www.w3.org/2001/XMLSchema#string":
+            case PROPERTY_TYPE_STRING:
                 return propertyValuePart.getString();
-            case "http://www.w3.org/2001/XMLSchema#boolean":
+            case PROPERTY_TYPE_BOOLEAN:
                 return Boolean.parseBoolean(propertyValuePart.getString());
-            case "http://www.w3.org/2001/XMLSchema#double":
+            case PROPERTY_TYPE_DOUBLE:
                 return Double.parseDouble(propertyValuePart.getString());
-            case "http://visallo.org#currency":
+            case PROPERTY_TYPE_CURRENCY:
                 return new BigDecimal(propertyValuePart.getString());
-            case "http://www.w3.org/2001/XMLSchema#int":
-            case "http://www.w3.org/2001/XMLSchema#integer":
+            case PROPERTY_TYPE_INT:
+            case PROPERTY_TYPE_INTEGER:
                 return Integer.parseInt(propertyValuePart.getString());
             case PROPERTY_TYPE_GEOLOCATION:
                 return GeoPoint.parse(propertyValuePart.getString());
@@ -148,19 +161,13 @@ public class RdfTripleImport {
     }
 
     private Date parseDate(String dateString) {
-        try {
-            return new SimpleDateFormat("yyyy-MM-dd").parse(dateString);
-        } catch (ParseException e) {
-            throw new VisalloException("Could not parse date: " + dateString, e);
-        }
+        VisalloDate visalloDate = VisalloDate.create(dateString);
+        return visalloDate.toDate();
     }
 
-    private Date parseDateTime(String dateString) {
-        try {
-            return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(dateString);
-        } catch (ParseException e) {
-            throw new VisalloException("Could not parse date: " + dateString, e);
-        }
+    private Date parseDateTime(String dateTimeString) {
+        VisalloDateTime visalloDateTime = VisalloDateTime.create(dateTimeString, timeZone);
+        return visalloDateTime.toDateGMT();
     }
 
     private void setConceptType(String vertexId, RdfTriple.Part third) {
