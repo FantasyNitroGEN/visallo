@@ -5,7 +5,7 @@ import java.util.Calendar;
 public enum ExpirationAgeUnit {
     SECOND(Calendar.SECOND, "SECOND", "SECOND"),
     MINUTE(Calendar.MINUTE, "MINUTE", "MINUTE"),
-    HOUR(Calendar.HOUR, "HOUR", "HOUR"),
+    HOUR(Calendar.HOUR_OF_DAY, "HOUR", "HOUR"),
     DAY(Calendar.DAY_OF_WEEK, "DAY", "DAY");
 
     private int calendarUnit;
