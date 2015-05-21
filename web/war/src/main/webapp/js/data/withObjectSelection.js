@@ -219,6 +219,9 @@ define([], function() {
                                 if (data && 'focus' in data) {
                                     postData.focus = data.focus;
                                 }
+                                if (data && 'options' in data) {
+                                    postData.options = data.options;
+                                }
                                 self.trigger('objectsSelected', postData);
                             });
                     });
