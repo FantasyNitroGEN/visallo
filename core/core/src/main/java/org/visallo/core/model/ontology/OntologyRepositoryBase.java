@@ -5,20 +5,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.exception.VisalloResourceNotFoundException;
-import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
-import org.visallo.core.model.properties.types.VisalloProperty;
-import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.util.ExecutorServiceUtil;
-import org.visallo.core.util.JSONUtil;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiOntology;
-import org.visallo.web.clientapi.model.PropertyType;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
@@ -40,6 +26,20 @@ import org.vertexium.TextIndexHint;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
+import org.visallo.core.model.properties.types.VisalloProperty;
+import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.util.ExecutorServiceUtil;
+import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.PropertyType;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -679,7 +679,35 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     protected ImmutableList<String> getDependentPropertyIris(OWLOntology o, OWLEntity owlEntity) {
-        return getAnnotationValuesByUriOrNull(o, owlEntity, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY);
+        List<String> results = new ArrayList<>();
+
+        ImmutableList<String> dependentPropertyIris = getAnnotationValuesByUriOrNull(o, owlEntity, "http://visallo.org#dependentPropertyIris");
+        addAllDependentPropertyIris(results, dependentPropertyIris);
+
+        ImmutableList<String> dependentPropertyIri = getAnnotationValuesByUriOrNull(o, owlEntity, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY);
+        addAllDependentPropertyIris(results, dependentPropertyIri);
+
+        if (results.size() == 0) {
+            return null;
+        }
+        return ImmutableList.copyOf(results);
+    }
+
+    private void addAllDependentPropertyIris(List<String> results, ImmutableList<String> dependentPropertyIri) {
+        if (dependentPropertyIri == null) {
+            return;
+        }
+        for (String str : dependentPropertyIri) {
+            str = str.trim();
+            if (str.startsWith("[")) {
+                JSONArray array = new JSONArray(str);
+                for (int i = 0; i < array.length(); i++) {
+                    results.add(array.getString(i));
+                }
+            } else {
+                results.add(str);
+            }
+        }
     }
 
     protected Double getBoost(OWLOntology o, OWLEntity owlEntity) {
