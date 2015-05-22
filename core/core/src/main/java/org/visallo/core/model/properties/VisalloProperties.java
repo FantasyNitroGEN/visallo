@@ -1,7 +1,7 @@
 package org.visallo.core.model.properties;
 
-import org.visallo.core.model.termMention.TermMentionForProperty;
 import org.visallo.core.model.properties.types.*;
+import org.visallo.core.model.termMention.TermMentionForProperty;
 
 public class VisalloProperties {
     public static final String CONCEPT_TYPE_THING = "http://www.w3.org/2002/07/owl#Thing";
@@ -11,6 +11,8 @@ public class VisalloProperties {
     public static final StringMetadataVisalloProperty LANGUAGE_METADATA = new StringMetadataVisalloProperty("http://visallo.org#language");
     public static final StringMetadataVisalloProperty TEXT_DESCRIPTION_METADATA = new StringMetadataVisalloProperty("http://visallo.org#textDescription");
     public static final StringMetadataVisalloProperty MIME_TYPE_METADATA = new StringMetadataVisalloProperty("http://visallo.org#mimeType");
+    public static final StringMetadataVisalloProperty SOURCE_FILE_NAME_METADATA = new StringMetadataVisalloProperty("http://visallo.org#sourceFileName");
+    public static final LongMetadataVisalloProperty SOURCE_FILE_OFFSET_METADATA = new LongMetadataVisalloProperty("http://visallo.org#sourceFileOffset");
 
     public static final DateSingleValueVisalloProperty MODIFIED_DATE = new DateSingleValueVisalloProperty("http://visallo.org#modifiedDate");
     public static final DateMetadataVisalloProperty MODIFIED_DATE_METADATA = new DateMetadataVisalloProperty("http://visallo.org#modifiedDate");

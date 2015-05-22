@@ -13,6 +13,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.mapreduce.VisalloElementMapperBase;
+import org.visallo.vertexium.mapreduce.VisalloMRBase;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ public class RdfTripleImportMapper extends VisalloElementMapperBase<LongWritable
     private VisibilityTranslator visibilityTranslator;
     private UserRepository userRepository;
     private VisibilityJson visibilityJson;
+    private String sourceFileName;
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
@@ -37,6 +39,7 @@ public class RdfTripleImportMapper extends VisalloElementMapperBase<LongWritable
         InjectHelper.inject(this);
         visibilityJson = new VisibilityJson();
         user = userRepository.getSystemUser();
+        sourceFileName = context.getConfiguration().get(VisalloMRBase.CONFIG_SOURCE_FILE_NAME);
     }
 
     @Override
@@ -45,10 +48,13 @@ public class RdfTripleImportMapper extends VisalloElementMapperBase<LongWritable
         context.setStatus(line);
         Metadata metadata = new Metadata();
         Date now = new Date();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
-        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, visibilityTranslator.getDefaultVisibility());
-        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibilityTranslator.getDefaultVisibility());
-        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, visibilityTranslator.getDefaultVisibility());
+        Visibility metadataVisibility = visibilityTranslator.getDefaultVisibility();
+        VisalloProperties.SOURCE_FILE_OFFSET_METADATA.setMetadata(metadata, key.get(), metadataVisibility);
+        VisalloProperties.SOURCE_FILE_NAME_METADATA.setMetadata(metadata, sourceFileName, metadataVisibility);
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, metadataVisibility);
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, metadataVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), metadataVisibility);
+        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, metadataVisibility);
         rdfTripleImport.importRdfLine(line, metadata);
     }
 
