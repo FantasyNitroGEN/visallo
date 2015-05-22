@@ -31,31 +31,29 @@ public class RdfTripleImport {
     public static final String PROPERTY_TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
     private final Graph graph;
     private final Visibility visibility;
-    private final Metadata metadata;
     private final Authorizations authorizations;
     private final TimeZone timeZone;
 
-    public RdfTripleImport(Graph graph, Metadata metadata, TimeZone timeZone, Visibility visibility, Authorizations authorizations) {
+    public RdfTripleImport(Graph graph, TimeZone timeZone, Visibility visibility, Authorizations authorizations) {
         this.graph = graph;
         this.visibility = visibility;
-        this.metadata = metadata;
         this.timeZone = timeZone;
         this.authorizations = authorizations;
     }
 
-    public void importRdfLine(String line) {
+    public void importRdfLine(String line, Metadata metadata) {
         if (line.length() == 0 || line.charAt(0) == '#') {
             return;
         }
         RdfTriple rdfTriple = RdfTripleParser.parseLine(line);
-        if (importRdfTriple(rdfTriple)) {
+        if (importRdfTriple(rdfTriple, metadata)) {
             return;
         }
 
         throw new VisalloException("Unhandled combination of RDF triples");
     }
 
-    public boolean importRdfTriple(RdfTriple rdfTriple) {
+    public boolean importRdfTriple(RdfTriple rdfTriple, Metadata metadata) {
         if (!(rdfTriple.getFirst() instanceof RdfTriple.UriPart)) {
             return true;
         }
@@ -68,12 +66,12 @@ public class RdfTripleImport {
         RdfTriple.Part third = rdfTriple.getThird();
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
-            setConceptType(vertexId, third);
+            setConceptType(vertexId, third, metadata);
             return true;
         }
 
         if (third instanceof RdfTriple.LiteralPart) {
-            setProperty(vertexId, label, (RdfTriple.LiteralPart) third);
+            setProperty(vertexId, label, (RdfTriple.LiteralPart) third, metadata);
             return true;
         }
 
@@ -90,7 +88,7 @@ public class RdfTripleImport {
         graph.addEdge(edgeId, outVertexId, inVertexId, label, visibility, authorizations);
     }
 
-    private void setProperty(String vertexId, String label, RdfTriple.LiteralPart propertyValuePart) {
+    private void setProperty(String vertexId, String label, RdfTriple.LiteralPart propertyValuePart, Metadata metadata) {
         VertexBuilder m = graph.prepareVertex(vertexId, visibility);
         String propertyKey = MULTI_KEY;
         String propertyName = label;
@@ -170,7 +168,7 @@ public class RdfTripleImport {
         return visalloDateTime.toDateGMT();
     }
 
-    private void setConceptType(String vertexId, RdfTriple.Part third) {
+    private void setConceptType(String vertexId, RdfTriple.Part third, Metadata metadata) {
         VertexBuilder m = graph.prepareVertex(vertexId, visibility);
         String conceptType = getConceptType(third);
         VisalloProperties.CONCEPT_TYPE.setProperty(m, conceptType, metadata, visibility);
