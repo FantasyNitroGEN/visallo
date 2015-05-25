@@ -149,9 +149,9 @@ define([
                 }
 
                 if (!(/META-/.test(shortcut.normalized))) {
-                    f.call(this, shortcut.fire, _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey'));
+                    f.call(this, shortcut.fire, _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey', 'altKey'));
                 }
-                f.call(this, shortcut.fire + 'Up', _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey'));
+                f.call(this, shortcut.fire + 'Up', _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey', 'altKey'));
             }
         };
 
@@ -179,7 +179,7 @@ define([
 
                 // Ctrl keys don't get keyup events so trigger here
                 if (/META-/.test(shortcut.normalized)) {
-                    f.call(this, shortcut.fire, _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey'));
+                    f.call(this, shortcut.fire, _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey', 'altKey'));
                 }
             }
         }
