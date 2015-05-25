@@ -10,6 +10,10 @@ define([
         return $(e.target).is('input,select,textarea:not(.clipboardManager)');
     }
 
+    function eventParts(e) {
+        return _.pick(e, 'which', 'shiftKey', 'metaKey', 'ctrlKey', 'altKey');
+    }
+
     function Keyboard() {
         this.after('teardown', function() {
             document.removeEventListener('mousedown', this.onDocumentMouseDown);
@@ -121,13 +125,6 @@ define([
                 return this.shortcuts['CTRL-' + w] || this.shortcuts['META-' + w];
             }
             if (event.altKey) {
-
-                // ALT+N keyCode is 229 instead of 78
-                if (w === 229) {
-                    return this.shortcuts['ALT-' + w] ||
-                        this.shortcuts['ALT-' + 78];
-                }
-
                 return this.shortcuts['ALT-' + w];
             }
             if (event.shiftKey) {
@@ -142,6 +139,8 @@ define([
 
             var shortcut = this.shortcutForEvent(e);
 
+            this.lastEventParts = null;
+
             if (shortcut) {
                 var f = this.fireEventUp;
                 if (shortcut.preventDefault !== false) {
@@ -149,12 +148,25 @@ define([
                     f = this.fireEventMetas;
                 }
 
+                if (!(/META-/.test(shortcut.normalized))) {
+                    f.call(this, shortcut.fire, _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey'));
+                }
                 f.call(this, shortcut.fire + 'Up', _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey'));
             }
         };
 
         this.onKeyDown = function(e) {
             if (shouldFilter(e)) return;
+
+            var parts = eventParts(e);
+            if (this.lastEventParts &&
+                _.isEqual(parts, this.lastEventParts) &&
+                this.lastEventTimestamp > (e.timeStamp - 1000)) {
+                return;
+            }
+
+            this.lastEventParts = parts;
+            this.lastEventTimestamp = e.timeStamp;
 
             var shortcut = this.shortcutForEvent(e);
 
@@ -165,7 +177,10 @@ define([
                     f = this.fireEventMetas;
                 }
 
-                f.call(this, shortcut.fire, _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey'));
+                // Ctrl keys don't get keyup events so trigger here
+                if (/META-/.test(shortcut.normalized)) {
+                    f.call(this, shortcut.fire, _.pick(e, 'metaKey', 'ctrlKey', 'shiftKey'));
+                }
             }
         }
 
