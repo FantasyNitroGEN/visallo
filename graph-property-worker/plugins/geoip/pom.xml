@@ -12,4 +12,16 @@
 
     <artifactId>visallo-gpw-geoip</artifactId>
     <name>Visallo: GraphPropertyWorker: Plugin: Geo-locate IP Addresses</name>
+
+    <properties>
+        <supercsv.version>2.1.0</supercsv.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.sf.supercsv</groupId>
+            <artifactId>super-csv</artifactId>
+            <version>${supercsv.version}</version>
+        </dependency>
+    </dependencies>
 </project>

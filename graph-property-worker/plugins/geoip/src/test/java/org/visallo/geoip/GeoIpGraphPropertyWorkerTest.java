@@ -40,6 +40,7 @@ public class GeoIpGraphPropertyWorkerTest extends GraphPropertyWorkerTestBase {
     public void setUp() throws Exception {
         when(ontologyRepository.getRequiredPropertyIRIByIntent(eq(GeoIpGraphPropertyWorker.GEO_LOCATION_INTENT))).thenReturn(TEST_GEO_LOCATION_PROPERTY_IRI);
         when(fileSystem.exists(eq(new Path("file:///test/GeoLite2-City-Blocks-IPv4.csv")))).thenReturn(true);
+        when(fileSystem.exists(eq(new Path("file:///test/GeoLite2-City-Locations-en.csv")))).thenReturn(true);
 
         gpw = new GeoIpGraphPropertyWorker();
         gpw.setGeoIpRepository(geoIpRepository);

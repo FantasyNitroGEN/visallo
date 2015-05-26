@@ -1,11 +1,13 @@
 package org.visallo.geoip;
 
+import com.google.common.base.Joiner;
+import org.supercsv.io.CsvListReader;
+import org.supercsv.prefs.CsvPreference;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,13 +18,65 @@ import java.util.Map;
 
 public class GeoIpRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GeoIpRepository.class);
-    private Map<Long, List<GeoIp>> lookupTable = new HashMap<>();
+    private Map<Long, List<GeoIp>> geoIpLookupTable = new HashMap<>();
+    private Map<Long, String> locationLookupTable = new HashMap<>();
 
-    public void load(InputStream in) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String line;
+    public void loadGeoLocations(InputStream in) {
+        try {
+            CsvListReader csvReader = new CsvListReader(new InputStreamReader(in), CsvPreference.STANDARD_PREFERENCE);
+            csvReader.read(); // skip title line
+
             int lineNumber = 1;
-            while ((line = br.readLine()) != null) {
+            List<String> line;
+            while ((line = csvReader.read()) != null) {
+                try {
+                    loadGeoLocationLine(line);
+                } catch (Exception ex) {
+                    LOGGER.warn("Invalid Geo location line:%d: %s", lineNumber, line, ex);
+                }
+                lineNumber++;
+            }
+        } catch (IOException ex) {
+            throw new VisalloException("Could not read geo locations file", ex);
+        }
+    }
+
+    public void loadGeoLocationLine(List<String> parts) {
+        if (parts.size() != 13) {
+            throw new VisalloException("Invalid Geo location line. Expected 13 parts, found " + parts.size());
+        }
+        long id = Long.parseLong(parts.get(0));
+        String continent = emptyStringToNull(parts.get(3));
+        String country = emptyStringToNull(parts.get(5));
+        String subdivision1 = emptyStringToNull(parts.get(7));
+        String subdivision2 = emptyStringToNull(parts.get(9));
+        String city = emptyStringToNull(parts.get(10));
+        addLocation(id, Joiner.on(", ").skipNulls().join(continent, country, subdivision1, subdivision2, city));
+    }
+
+    public void addLocation(long id, String location) {
+        this.locationLookupTable.put(id, location);
+    }
+
+    private String emptyStringToNull(String s) {
+        if (s == null) {
+            return null;
+        }
+        s = s.trim();
+        if (s.length() == 0) {
+            return null;
+        }
+        return s;
+    }
+
+    public void loadGeoIp(InputStream in) {
+        try {
+            CsvListReader csvReader = new CsvListReader(new InputStreamReader(in), CsvPreference.STANDARD_PREFERENCE);
+            csvReader.read(); // skip title line
+
+            int lineNumber = 1;
+            List<String> line;
+            while ((line = csvReader.read()) != null) {
                 try {
                     addGeoIpLine(line);
                 } catch (Exception ex) {
@@ -35,18 +89,17 @@ public class GeoIpRepository {
         }
     }
 
-    public void addGeoIpLine(String line) {
-        String[] parts = line.split(",", -1);
-        if (parts.length != 9) {
-            throw new VisalloException("Invalid GeoIP line. Expected 9 parts, found " + parts.length);
+    public void addGeoIpLine(List<String> parts) {
+        if (parts.size() != 9) {
+            throw new VisalloException("Invalid GeoIP line. Expected 9 parts, found " + parts.size());
         }
-        String ipAndBitMask = parts[0];
+        String ipAndBitMask = parts.get(0);
         if (ipAndBitMask.equals("network")) {
             return;
         }
 
         // no geo-location information
-        if (parts[7].length() == 0 || parts[8].length() == 0) {
+        if (parts.get(7).length() == 0 || parts.get(8).length() == 0) {
             return;
         }
 
@@ -56,20 +109,21 @@ public class GeoIpRepository {
         }
         String ip = ipAndBitMaskParts[0];
         int bits = Integer.parseInt(ipAndBitMaskParts[1]);
-        double latitude = Double.parseDouble(parts[7]);
-        double longitude = Double.parseDouble(parts[8]);
-        addGeoIp(ip, bits, new GeoPoint(latitude, longitude));
+        long geonameId = Long.parseLong(parts.get(1));
+        double latitude = Double.parseDouble(parts.get(7));
+        double longitude = Double.parseDouble(parts.get(8));
+        addGeoIp(ip, bits, geonameId, new GeoPoint(latitude, longitude));
     }
 
-    public void addGeoIp(String ipAddress, int bits, GeoPoint location) {
+    public void addGeoIp(String ipAddress, int bits, Long geonameId, GeoPoint location) {
         long ipAddr = parseIpAddress(ipAddress);
         long key = getLookupTableKey(ipAddr);
-        List<GeoIp> geoIps = lookupTable.get(key);
+        List<GeoIp> geoIps = geoIpLookupTable.get(key);
         if (geoIps == null) {
             geoIps = new ArrayList<>();
-            lookupTable.put(key, geoIps);
+            geoIpLookupTable.put(key, geoIps);
         }
-        geoIps.add(new GeoIp(ipAddr, bits, location));
+        geoIps.add(new GeoIp(ipAddr, bits, geonameId, location));
     }
 
     public GeoPoint find(String ipAddress) {
@@ -78,7 +132,7 @@ public class GeoIpRepository {
     }
 
     private GeoPoint find(long ipAddr) {
-        List<GeoIp> geoIps = lookupTable.get(getLookupTableKey(ipAddr));
+        List<GeoIp> geoIps = geoIpLookupTable.get(getLookupTableKey(ipAddr));
         if (geoIps == null) {
             return null;
         }
@@ -99,7 +153,7 @@ public class GeoIpRepository {
                 bestMatch = geoIp;
             }
         }
-        return bestMatch == null ? null : bestMatch.getGeoPoint();
+        return bestMatch == null ? null : bestMatch.getGeoPoint(locationLookupTable);
     }
 
     private long parseIpAddress(String ipAddress) {
@@ -127,9 +181,11 @@ public class GeoIpRepository {
         private final int bits;
         private final GeoPoint geoPoint;
         private final long ip;
+        private final Long geonameId;
 
-        private GeoIp(long ip, int bits, GeoPoint geoPoint) {
+        private GeoIp(long ip, int bits, Long geonameId, GeoPoint geoPoint) {
             this.ip = ip;
+            this.geonameId = geonameId;
             this.from = toFrom(ip, bits);
             this.to = toTo(ip, bits);
             this.bits = bits;
@@ -150,6 +206,22 @@ public class GeoIpRepository {
 
         public int getBits() {
             return bits;
+        }
+
+        public Long getGeonameId() {
+            return geonameId;
+        }
+
+        public GeoPoint getGeoPoint(Map<Long, String> locationLookupTable) {
+            GeoPoint result = getGeoPoint();
+            Long geonameId = getGeonameId();
+            if (geonameId != null) {
+                String location = locationLookupTable.get(geonameId);
+                if (location != null) {
+                    result = new GeoPoint(result.getLatitude(), result.getLongitude(), location);
+                }
+            }
+            return result;
         }
 
         public boolean isMatch(long ipAddr) {

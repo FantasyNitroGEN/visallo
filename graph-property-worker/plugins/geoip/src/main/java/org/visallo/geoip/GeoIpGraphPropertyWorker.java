@@ -45,12 +45,21 @@ public class GeoIpGraphPropertyWorker extends GraphPropertyWorker {
 
         FileSystem fs = workerPrepareData.getHdfsFileSystem();
         Path geoLite2CityBlocksIpv4HdfsPath = new Path(configuration.getPathPrefix() + "/GeoLite2-City-Blocks-IPv4.csv");
-        LOGGER.debug("Loading %s", geoLocationProperty.toString());
+        LOGGER.debug("Loading %s", geoLite2CityBlocksIpv4HdfsPath.toString());
         if (!fs.exists(geoLite2CityBlocksIpv4HdfsPath)) {
             throw new VisalloException("Could not find file: " + geoLite2CityBlocksIpv4HdfsPath);
         }
         try (InputStream in = fs.open(geoLite2CityBlocksIpv4HdfsPath)) {
-            this.geoIpRepository.load(in);
+            this.geoIpRepository.loadGeoIp(in);
+        }
+
+        Path geoLite2CityLocationsEnHdfsPath = new Path(configuration.getPathPrefix() + "/GeoLite2-City-Locations-en.csv");
+        LOGGER.debug("Loading %s", geoLite2CityLocationsEnHdfsPath.toString());
+        if (!fs.exists(geoLite2CityLocationsEnHdfsPath)) {
+            throw new VisalloException("Could not find file: " + geoLite2CityLocationsEnHdfsPath);
+        }
+        try (InputStream in = fs.open(geoLite2CityLocationsEnHdfsPath)) {
+            this.geoIpRepository.loadGeoLocations(in);
         }
     }
 
