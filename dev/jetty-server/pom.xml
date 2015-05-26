@@ -279,6 +279,20 @@
         </dependency>
     </dependencies>
 
+
+    <profiles>
+        <profile>
+            <id>gpw-geoip</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-gpw-geoip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>

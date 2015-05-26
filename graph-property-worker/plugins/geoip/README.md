@@ -1,0 +1,1 @@
+Download the GeoLite2 City CSV here: http://dev.maxmind.com/geoip/geoip2/geolite2/

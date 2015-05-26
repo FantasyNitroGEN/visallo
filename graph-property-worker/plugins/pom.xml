@@ -46,5 +46,6 @@
         <module>video-poster-frame</module>
         <module>video-frame-extract</module>
         <module>video-metadata</module>
+        <module>geoip</module>
     </modules>
 </project>
