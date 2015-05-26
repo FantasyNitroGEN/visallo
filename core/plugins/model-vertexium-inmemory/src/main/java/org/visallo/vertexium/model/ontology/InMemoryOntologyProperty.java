@@ -24,7 +24,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private Double boost;
     private String validationFormula;
     private String displayFormula;
-    private ImmutableList<String> dependentPropertyIris;
+    private ImmutableList<String> dependentPropertyIris = ImmutableList.<String>of();
     private List<String> intents = new ArrayList<>();
 
     @Override
@@ -144,7 +144,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     }
 
     public void setDependentPropertyIris(ImmutableList<String> dependentPropertyIris) {
-        this.dependentPropertyIris = dependentPropertyIris;
+        this.dependentPropertyIris = dependentPropertyIris == null ? ImmutableList.<String>of() : dependentPropertyIris;
     }
 
     @Override
