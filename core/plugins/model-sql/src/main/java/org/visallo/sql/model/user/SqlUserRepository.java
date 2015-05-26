@@ -12,6 +12,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.ProxyUser;
+import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -95,6 +96,10 @@ public class SqlUserRepository extends UserRepository {
 
     @Override
     public User findById(String userId) {
+        if (SystemUser.USER_ID.equals(userId)) {
+            return getSystemUser();
+        }
+
         Session session = sessionManager.getSession();
         List<SqlUser> users = session.createQuery("select user from " + SqlUser.class.getSimpleName() + " as user where user.userId=:id")
                 .setParameter("id", userId)

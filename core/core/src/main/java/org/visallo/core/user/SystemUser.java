@@ -1,10 +1,11 @@
 package org.visallo.core.user;
 
+import com.v5analytics.simpleorm.SimpleOrmContext;
+import org.json.JSONObject;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
-import org.json.JSONObject;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 
 import java.util.Date;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.Set;
 public class SystemUser implements User {
     private static final long serialVersionUID = 1L;
     public static final String USERNAME = "system";
+    public static final String USER_ID = UserRepository.GRAPH_USER_ID_PREFIX + "system";
     private final SimpleOrmContext simpleOrmContext;
 
     public SystemUser(SimpleOrmContext simpleOrmContext) {
@@ -25,7 +27,7 @@ public class SystemUser implements User {
 
     @Override
     public String getUserId() {
-        return "";
+        return USER_ID;
     }
 
     @Override
