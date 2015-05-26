@@ -1,5 +1,7 @@
 package org.visallo.core.config;
 
+import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
@@ -9,10 +11,9 @@ import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.util.ClassUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.commons.beanutils.ConvertUtilsBean;
-import org.json.JSONObject;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -154,46 +155,7 @@ public class Configuration {
         Map<Method, PostConfigurationValidator> validatorMap = new HashMap<>();
 
         for (Method m : o.getClass().getMethods()) {
-            Configurable configurableAnnotation = m.getAnnotation(Configurable.class);
-            if (configurableAnnotation != null) {
-                if (m.getParameterTypes().length != 1) {
-                    throw new VisalloException("Invalid method to be configurable. Expected 1 argument. Found " + m.getParameterTypes().length + " arguments");
-                }
-
-                String propName = m.getName().substring("set".length());
-                if (propName.length() > 1) {
-                    propName = propName.substring(0, 1).toLowerCase() + propName.substring(1);
-                }
-
-                String name;
-                String defaultValue;
-                if (configurableAnnotation.name() != null) {
-                    name = configurableAnnotation.name();
-                    defaultValue = configurableAnnotation.defaultValue();
-                } else {
-                    name = propName;
-                    defaultValue = null;
-                }
-                String val;
-                if (config.containsKey(name)) {
-                    val = config.get(name);
-                } else {
-                    if (Configurable.DEFAULT_VALUE.equals(defaultValue)) {
-                        if (configurableAnnotation.required()) {
-                            throw new VisalloException("Could not find property " + name + " for " + o.getClass().getName() + " and no default value was specified.");
-                        } else {
-                            continue;
-                        }
-                    }
-                    val = defaultValue;
-                }
-                try {
-                    Object convertedValue = convertUtilsBean.convert(val, m.getParameterTypes()[0]);
-                    m.invoke(o, convertedValue);
-                } catch (Exception ex) {
-                    throw new VisalloException("Could not set property " + m.getName() + " on " + o.getClass().getName());
-                }
-            }
+            setConfigurablesMethod(o, m, config, convertUtilsBean);
 
             PostConfigurationValidator validatorAnnotation = m.getAnnotation(PostConfigurationValidator.class);
             if (validatorAnnotation != null) {
@@ -207,18 +169,103 @@ public class Configuration {
             }
         }
 
-        for (Method method : validatorMap.keySet()) {
+        List<Field> fields = getAllFields(o);
+        for (Field f : fields) {
+            setConfigurablesField(o, f, config, convertUtilsBean);
+        }
+
+        for (Method postConfigurationValidatorMethod : validatorMap.keySet()) {
             try {
-                if (!(Boolean) method.invoke(o)) {
-                    String description = validatorMap.get(method).description();
+                if (!(Boolean) postConfigurationValidatorMethod.invoke(o)) {
+                    String description = validatorMap.get(postConfigurationValidatorMethod).description();
                     description = description.equals("") ? "()" : "(" + description + ")";
-                    throw new VisalloException(o.getClass().getName() + "." + method.getName() + description + " returned false");
+                    throw new VisalloException(o.getClass().getName() + "." + postConfigurationValidatorMethod.getName() + description + " returned false");
                 }
             } catch (InvocationTargetException e) {
-                throw new VisalloException("InvocationTargetException invoking validator " + o.getClass().getName() + "." + method.getName(), e);
+                throw new VisalloException("InvocationTargetException invoking validator " + o.getClass().getName() + "." + postConfigurationValidatorMethod.getName(), e);
             } catch (IllegalAccessException e) {
-                throw new VisalloException("IllegalAccessException invoking validator " + o.getClass().getName() + "." + method.getName(), e);
+                throw new VisalloException("IllegalAccessException invoking validator " + o.getClass().getName() + "." + postConfigurationValidatorMethod.getName(), e);
             }
+        }
+    }
+
+    private List<Field> getAllFields(Object o) {
+        List<Field> fields = new ArrayList<>();
+        Class c = o.getClass();
+        while (c != null) {
+            Collections.addAll(fields, c.getDeclaredFields());
+            c = c.getSuperclass();
+        }
+        return fields;
+    }
+
+    private void setConfigurablesMethod(Object o, Method m, Map<String, String> config, ConvertUtilsBean convertUtilsBean) {
+        Configurable configurableAnnotation = m.getAnnotation(Configurable.class);
+        if (configurableAnnotation == null) {
+            return;
+        }
+        if (m.getParameterTypes().length != 1) {
+            throw new VisalloException("Invalid method to be configurable. Expected 1 argument. Found " + m.getParameterTypes().length + " arguments");
+        }
+
+        String propName = m.getName().substring("set".length());
+        if (propName.length() > 1) {
+            propName = propName.substring(0, 1).toLowerCase() + propName.substring(1);
+        }
+
+        String name = configurableAnnotation.name();
+        String defaultValue = configurableAnnotation.defaultValue();
+        if (name.equals(Configurable.DEFAULT_NAME)) {
+            name = propName;
+        }
+        String val;
+        if (config.containsKey(name)) {
+            val = config.get(name);
+        } else {
+            if (Configurable.DEFAULT_VALUE.equals(defaultValue)) {
+                if (configurableAnnotation.required()) {
+                    throw new VisalloException("Could not find property " + name + " for " + o.getClass().getName() + " and no default value was specified.");
+                } else {
+                    return;
+                }
+            }
+            val = defaultValue;
+        }
+        try {
+            Object convertedValue = convertUtilsBean.convert(val, m.getParameterTypes()[0]);
+            m.invoke(o, convertedValue);
+        } catch (Exception ex) {
+            throw new VisalloException("Could not set property " + m.getName() + " on " + o.getClass().getName());
+        }
+    }
+
+    private void setConfigurablesField(Object o, Field f, Map<String, String> config, ConvertUtilsBean convertUtilsBean) {
+        Configurable configurableAnnotation = f.getAnnotation(Configurable.class);
+        if (configurableAnnotation == null) {
+            return;
+        }
+
+        String propName = f.getName();
+        String name = configurableAnnotation.name();
+        if (name.equals(Configurable.DEFAULT_NAME)) {
+            name = propName;
+        }
+        String defaultValue = configurableAnnotation.defaultValue();
+        String val;
+        if (config.containsKey(name)) {
+            val = config.get(name);
+        } else {
+            if (Configurable.DEFAULT_VALUE.equals(defaultValue)) {
+                return;
+            }
+            val = defaultValue;
+        }
+        try {
+            Object convertedValue = convertUtilsBean.convert(val, f.getType());
+            f.setAccessible(true);
+            f.set(o, convertedValue);
+        } catch (Exception ex) {
+            throw new VisalloException("Could not set property " + f.getName() + " on " + o.getClass().getName());
         }
     }
 
@@ -347,8 +394,7 @@ public class Configuration {
         for (String key : config.keySet()) {
             if (key.toLowerCase().contains("password")) {
                 properties.put(key, "********");
-            }
-            else {
+            } else {
                 properties.put(key, config.get(key));
             }
         }

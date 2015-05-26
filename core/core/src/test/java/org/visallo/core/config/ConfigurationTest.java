@@ -68,4 +68,52 @@ public class ConfigurationTest {
         String miss = configuration.get("no.such.key", null);
         assertEquals(null, miss);
     }
+
+    @Test
+    public void testSetConfigurables() {
+        SetConfigurablesTestClass obj = new SetConfigurablesTestClass();
+        configuration.setConfigurables(obj, new HashMap<String, String>() {{
+            put("propWithDifferentNameDifferent", "propWithDifferentNameDifferentValue");
+            put("propWithSetter", "propWithSetterValue");
+        }});
+
+        assertEquals("propWithCodeDefaultValue", obj.getPropWithCodeDefault());
+        assertEquals("propWithAnnotationDefaultValue", obj.getPropWithAnnotationDefault());
+        assertEquals("propWithDifferentNameDifferentValue", obj.getPropWithDifferentName());
+        assertEquals("propWithSetterValue", obj.getPropWithSetter());
+    }
+
+    private static class SetConfigurablesTestClass {
+        @Configurable
+        private String propWithCodeDefault = "propWithCodeDefaultValue";
+
+        @Configurable(defaultValue = "propWithAnnotationDefaultValue")
+        private String propWithAnnotationDefault;
+
+        @Configurable(name = "propWithDifferentNameDifferent")
+        private String propWithDifferentName;
+
+        private String propWithSetter;
+
+        public String getPropWithSetter() {
+            return propWithSetter;
+        }
+
+        @Configurable
+        public void setPropWithSetter(String propWithSetter) {
+            this.propWithSetter = propWithSetter;
+        }
+
+        public String getPropWithCodeDefault() {
+            return propWithCodeDefault;
+        }
+
+        public String getPropWithAnnotationDefault() {
+            return propWithAnnotationDefault;
+        }
+
+        public String getPropWithDifferentName() {
+            return propWithDifferentName;
+        }
+    }
 }
