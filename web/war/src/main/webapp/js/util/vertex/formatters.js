@@ -400,6 +400,44 @@ define([
                 return V.propDisplay(propertyAudit.propertyName, propertyAudit.newValue || propertyAudit.previousValue);
             },
 
+            rollup: function(name, values) {
+                name = V.propName(name);
+                var ontologyProperty = propertiesByTitle[name],
+                    min = Number.MAX_VALUE,
+                    max = Number.MIN_VALUE,
+                    sum = 0;
+
+                if (ontologyProperty) {
+                    switch (ontologyProperty.dataType) {
+                        case 'date':
+                            values.forEach(function(v) {
+                                min = Math.min(v, min);
+                                max = Math.max(v, max);
+                                console.log(sum, v)
+                                sum += v;
+                            })
+
+                            return {
+                                span: F.date.relativeToDate(min, max),
+                                average: F.date.dateString(sum / (values.length || 1))
+                            }
+                        case 'double':
+                        case 'integer':
+                        case 'currency':
+                        case 'number':
+                            sum = _.reduce(values, function(m, v) {
+                                return m + v;
+                            });
+                            return {
+                                sum: F.number.pretty(sum),
+                                average: F.number.pretty(sum / (values.length || 1))
+                            };
+                    }
+                }
+
+                return {};
+            },
+
             propDisplay: function(name, value, options) {
                 name = V.propName(name);
                 var ontologyProperty = propertiesByTitle[name];

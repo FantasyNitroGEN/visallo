@@ -419,7 +419,17 @@ define([
                         this.order()
                             .call(function() {
                                 this.select('.nav-header')
-                                    .text(_.partial(propertyDisplayName, properties));
+                                    .text(_.partial(propertyDisplayName, properties))
+                                    .append('span')
+                                    .text(function(d) {
+                                        var ontologyProperty = properties.byTitle[d[0]],
+                                            values = _.pluck(d[1], 'value');
+
+
+                                        return _.map(F.vertex.rollup(d[0], values), function(value, label) {
+                                            return label + '=' + value;
+                                        }).join(', ');
+                                    })
                                 this.select('svg')
                                     .call(function() {
                                         this.transition()

@@ -456,8 +456,11 @@ define([
                 return FORMATTERS.date.timeString(FORMATTERS.date.utc(millisStr));
             },
             relativeToNow: function(date) {
+                return FORMATTERS.date.relativeToDate(date, FORMATTERS.date.utc(Date.now())) + ' ' + i18n('time.ago');
+            },
+            relativeToDate: function(date, fromDate) {
                 if (_.isUndefined(date)) return '';
-                var span = new sf.TimeSpan(FORMATTERS.date.utc(Date.now()) - date),
+                var span = new sf.TimeSpan(fromDate - date),
                     time = '';
 
                 if (span.years > 1) {
@@ -484,7 +487,7 @@ define([
                     time = i18n('time.moments');
                 }
 
-                return time + ' ' + i18n('time.ago');
+                return time;
             }
         },
         timezone: {
