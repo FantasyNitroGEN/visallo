@@ -30,6 +30,7 @@ import java.util.*;
 import static org.vertexium.util.IterableUtils.toList;
 
 public abstract class UserRepository {
+    public static final String GRAPH_USER_ID_PREFIX = "USER_";
     public static final String VISIBILITY_STRING = "user";
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
     public static final String OWL_IRI = "http://visallo.org/user";

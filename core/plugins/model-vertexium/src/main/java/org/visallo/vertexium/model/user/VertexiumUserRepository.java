@@ -6,6 +6,12 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONObject;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
+import org.vertexium.VertexBuilder;
+import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.notification.UserNotificationRepository;
@@ -21,12 +27,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
-import org.apache.commons.lang.StringUtils;
-import org.json.JSONObject;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
-import org.vertexium.VertexBuilder;
-import org.vertexium.util.ConvertingIterable;
 
 import java.util.Collections;
 import java.util.Date;
@@ -165,6 +165,9 @@ public class VertexiumUserRepository extends UserRepository {
 
     @Override
     public User findById(String userId) {
+        if (SystemUser.USER_ID.equals(userId)) {
+            return getSystemUser();
+        }
         return createFromVertex(findByIdUserVertex(userId));
     }
 
@@ -186,7 +189,7 @@ public class VertexiumUserRepository extends UserRepository {
         byte[] salt = UserPasswordUtil.getSalt();
         byte[] passwordHash = UserPasswordUtil.hashPassword(password, salt);
 
-        String id = "USER_" + graph.getIdGenerator().nextId();
+        String id = GRAPH_USER_ID_PREFIX + graph.getIdGenerator().nextId();
         VertexBuilder userBuilder = graph.prepareVertex(id, VISIBILITY.getVisibility());
 
         VisalloProperties.CONCEPT_TYPE.setProperty(userBuilder, userConceptId, VISIBILITY.getVisibility());
