@@ -4,7 +4,8 @@
 
 1. Unzip the downloaded file
 
-1. Copy `GeoLite2-City-Blocks-IPv4.csv` to HDFS:
+1. Copy `GeoLite2-City-Blocks-IPv4.csv` and `GeoLite2-City-Locations-en.csv` to HDFS:
 
         hdfs dfs -mkdir /visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker
         hdfs dfs -put GeoLite2-City-CSV_*/GeoLite2-City-Blocks-IPv4.csv /visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker/
+        hdfs dfs -put GeoLite2-City-CSV_*/GeoLite2-City-Locations-en.csv /visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker/
