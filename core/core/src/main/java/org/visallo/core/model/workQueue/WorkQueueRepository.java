@@ -47,7 +47,8 @@ public abstract class WorkQueueRepository {
     public void pushGraphVisalloPropertyQueue(
             final Element element,
             final Iterable<VisalloPropertyUpdate> properties,
-            String workspaceId, String visibilitySource,
+            String workspaceId,
+            String visibilitySource,
             Priority priority
     ) {
         for (VisalloPropertyUpdate property : properties) {

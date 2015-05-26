@@ -1,7 +1,6 @@
 package org.visallo.test;
 
 import com.google.inject.Injector;
-import org.visallo.core.model.WorkQueueNames;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
@@ -23,6 +22,7 @@ import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
 import org.visallo.core.ingest.graphProperty.TermMentionFilter;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.audit.MockAuditRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -95,9 +95,16 @@ public abstract class GraphPropertyWorkerTestBase {
             if (authorizations == null) {
                 authorizations = getGraphAuthorizations();
             }
+            if (fileSystem == null) {
+                fileSystem = getFileSystem();
+            }
             graphPropertyWorkerPrepareData = new GraphPropertyWorkerPrepareData(configuration, termMentionFilters, fileSystem, user, authorizations, injector);
         }
         return graphPropertyWorkerPrepareData;
+    }
+
+    protected FileSystem getFileSystem() {
+        return null;
     }
 
     protected User getUser() {
@@ -221,6 +228,6 @@ public abstract class GraphPropertyWorkerTestBase {
     }
 
     protected Configuration getConfiguration() {
-        return ConfigurationLoader.load(getConfigurationMap());
+        return new HashMapConfigurationLoader(getConfigurationMap()).createConfiguration();
     }
 }

@@ -1,28 +1,30 @@
 package org.visallo.core.ingest.graphProperty;
 
 import com.google.inject.Inject;
+import org.vertexium.*;
+import org.vertexium.mutation.ExistingElementMutation;
+import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.video.VideoTranscript;
 import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.MediaVisalloProperties;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.RowKeyHelper;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.RowKeyHelper;
-import org.vertexium.*;
-import org.vertexium.mutation.ExistingElementMutation;
-import org.vertexium.property.StreamingPropertyValue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 
 public abstract class GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyWorker.class);
@@ -204,5 +206,15 @@ public abstract class GraphPropertyWorker {
         }
         graph.flush();
         getWorkspaceRepository().updateEntityOnWorkspace(data.getWorkspaceId(), vertex.getId(), false, null, getUser());
+    }
+
+    protected void pushChangedPropertiesOnWorkQueue(GraphPropertyWorkData data, List<VisalloPropertyUpdate> changedProperties) {
+        getWorkQueueRepository().pushGraphVisalloPropertyQueue(
+                data.getElement(),
+                changedProperties,
+                data.getWorkspaceId(),
+                data.getVisibilitySource(),
+                data.getPriority()
+        );
     }
 }
