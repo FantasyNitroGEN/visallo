@@ -1,6 +1,5 @@
 package org.visallo.core.model.properties.types;
 
-import com.google.common.collect.Iterables;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
@@ -8,9 +7,7 @@ import org.vertexium.mutation.ExistingElementMutation;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.collect.Iterables.getFirst;
-import static org.vertexium.util.IterableUtils.count;
-import static org.vertexium.util.IterableUtils.singleOrDefault;
+import static com.google.common.collect.Iterables.*;
 
 public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<TRaw, TGraph> {
     protected VisalloProperty(String propertyName) {
@@ -50,7 +47,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
     @SuppressWarnings("unchecked")
     public final Iterable<TRaw> getPropertyValues(final Element element) {
         Iterable<Object> values = element != null ? element.getPropertyValues(getPropertyName()) : null;
-        return values != null ? Iterables.transform(values, getRawConverter()) : Collections.EMPTY_LIST;
+        return values != null ? transform(values, getRawConverter()) : Collections.EMPTY_LIST;
     }
 
     public boolean hasProperty(Element element, String propertyKey) {
@@ -58,7 +55,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
     }
 
     public boolean hasProperty(Element element) {
-        return count(element.getProperties(getPropertyName())) > 0;
+        return size(element.getProperties(getPropertyName())) > 0;
     }
 
     public Property getProperty(Element element, String key) {
@@ -66,7 +63,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
     }
 
     public Property getOnlyProperty(Element element) {
-        return singleOrDefault(element.getProperties(), null);
+        return getOnlyElement(element.getProperties(getPropertyName()), null);
     }
 
     public Property getFirstProperty(Element element) {
@@ -127,7 +124,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
     }
 
     public TRaw getOnlyPropertyValue(Element element) {
-        Object value = singleOrDefault(element.getPropertyValues(getPropertyName()), null);
+        Object value = getOnlyElement(element.getPropertyValues(getPropertyName()), null);
         if (value != null) {
             return unwrap(value);
         }
