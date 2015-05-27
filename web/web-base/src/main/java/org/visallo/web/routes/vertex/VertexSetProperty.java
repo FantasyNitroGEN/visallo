@@ -2,6 +2,7 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.audit.AuditAction;
@@ -19,14 +20,13 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -74,7 +74,8 @@ public class VertexSetProperty extends BaseRequestHandler {
         final String valueStr = getOptionalParameter(request, "value");
         final String[] valuesStr = getOptionalParameterArray(request, "value[]");
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        final String justificationText = WebConfiguration.justificationRequired(getConfiguration()) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
+        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
+        final String justificationText = isJustificationRequired(isComment) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
         final String sourceInfo = getOptionalParameter(request, "sourceInfo");
         final String metadataString = getOptionalParameter(request, "metadata");
         User user = getUser(request);
@@ -85,7 +86,7 @@ public class VertexSetProperty extends BaseRequestHandler {
             throw new VisalloException("Parameter: 'value' or 'value[]' is required in the request");
         }
 
-        if (propertyName.equals(VisalloProperties.COMMENT.getPropertyName()) && propertyKey == null) {
+        if (isComment && propertyKey == null) {
             propertyKey = createCommentPropertyKey();
         }
 
@@ -115,6 +116,14 @@ public class VertexSetProperty extends BaseRequestHandler {
                 user,
                 workspaceId,
                 authorizations));
+    }
+
+    private boolean isJustificationRequired(boolean isComment) {
+        if (isComment) {
+            return false;
+        }
+
+        return WebConfiguration.justificationRequired(getConfiguration());
     }
 
     private String createCommentPropertyKey() {
