@@ -945,6 +945,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getRequiredConceptByIntent(intent).getIRI();
     }
 
+    @Override
+    public Concept getRequiredConceptByIRI(String iri) {
+        Concept concept = getConceptByIRI(iri);
+        if (concept == null) {
+            throw new VisalloException("Could not find concept by IRI: " + iri);
+        }
+        return concept;
+    }
+
     private List<Concept> findLoadedConceptsByIntent(String intent) {
         List<Concept> results = new ArrayList<>();
         for (Concept concept : getConceptsWithProperties()) {

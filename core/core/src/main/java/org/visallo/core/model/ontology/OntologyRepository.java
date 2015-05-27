@@ -76,6 +76,8 @@ public interface OntologyRepository {
 
     Concept getRequiredConceptByIntent(String intent);
 
+    Concept getRequiredConceptByIRI(String iri);
+
     String getRequiredConceptIRIByIntent(String intent);
 
     Relationship getRelationshipByIntent(String intent);
