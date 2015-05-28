@@ -6,6 +6,11 @@ define([
     listTemplate) {
     'use strict';
 
+    var ACCESS_EXTENSION_PAGE = {
+            identifier: 'access',
+            pageComponentPath: 'workspaces/userAccount/bundled/access/access'
+        };
+
     return defineComponent(UserAccount);
 
     function UserAccount() {
@@ -30,11 +35,12 @@ define([
             });
 
             require(['configuration/plugins/registry'], function(registry) {
-                registry.registerExtension('org.visallo.user.account.page', {
-                    identifier: 'access',
-                    pageComponentPath: 'workspaces/userAccount/bundled/access/access'
-                });
-                var pages = registry.extensionsForPoint('org.visallo.user.account.page')
+                var pages = registry.extensionsForPoint('org.visallo.user.account.page');
+                if (!_.findWhere(pages, { identifier: ACCESS_EXTENSION_PAGE.identifier })) {
+                    registry.registerExtension('org.visallo.user.account.page', ACCESS_EXTENSION_PAGE);
+                    pages.push(ACCESS_EXTENSION_PAGE);
+                }
+
                 self.select('listSelector').html(
                     listTemplate({
                         pages: _.chain(pages)
