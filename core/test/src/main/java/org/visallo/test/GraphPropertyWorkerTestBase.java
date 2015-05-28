@@ -1,6 +1,7 @@
 package org.visallo.test;
 
 import com.google.inject.Injector;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
@@ -9,7 +10,6 @@ import org.junit.Before;
 import org.vertexium.*;
 import org.vertexium.id.IdGenerator;
 import org.vertexium.id.QueueIdGenerator;
-import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.inmemory.InMemoryGraphConfiguration;
 import org.vertexium.search.DefaultSearchIndex;
@@ -33,6 +33,8 @@ import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.clientapi.model.Privilege;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -150,7 +152,7 @@ public abstract class GraphPropertyWorkerTestBase {
     }
 
     protected Authorizations getGraphAuthorizations(String... authorizations) {
-        return new InMemoryAuthorizations(authorizations);
+        return getGraph().createAuthorizations(authorizations);
     }
 
     protected byte[] getResourceAsByteArray(Class sourceClass, String resourceName) {
@@ -198,6 +200,13 @@ public abstract class GraphPropertyWorkerTestBase {
                     visibilitySource,
                     Priority.NORMAL
             );
+            if (gpw.isLocalFileRequired() && executeData.getLocalFile() == null && in != null) {
+                byte[] data = IOUtils.toByteArray(in);
+                File tempFile = File.createTempFile("visalloTest", "data");
+                FileUtils.writeByteArrayToFile(tempFile, data);
+                executeData.setLocalFile(tempFile);
+                in = new ByteArrayInputStream(data);
+            }
             gpw.execute(in, executeData);
         } catch (Exception ex) {
             throw new VisalloException("Failed to execute: " + gpw.getClass().getName(), ex);

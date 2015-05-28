@@ -28,7 +28,7 @@ import java.util.List;
 @Description("Extracts image metadata using Drewnoakes open source tool")
 public class ImageMetadataGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImageMetadataGraphPropertyWorker.class);
-    private static final String MULTI_VALUE_KEY = ImageMetadataGraphPropertyWorker.class.getName();
+    public static final String MULTI_VALUE_KEY = ImageMetadataGraphPropertyWorker.class.getName();
     private String fileSizeIri;
     private String dateTakenIri;
     private String deviceMakeIri;
@@ -69,7 +69,7 @@ public class ImageMetadataGraphPropertyWorker extends GraphPropertyWorker {
     public void execute(InputStream in, GraphPropertyWorkData data) throws Exception {
         org.vertexium.Metadata metadata = data.createPropertyMetadata();
         ExistingElementMutation<Vertex> mutation = data.getElement().prepareMutation();
-        List<String> properties = new ArrayList<String>();
+        List<String> properties = new ArrayList<>();
 
         File imageFile = data.getLocalFile();
         if (imageFile != null) {

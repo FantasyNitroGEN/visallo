@@ -145,4 +145,8 @@ public class VisalloDateTime {
     public String getTimeZone() {
         return timeZone;
     }
+
+    public Date getJavaDate() {
+        return new Date(getEpoch());
+    }
 }

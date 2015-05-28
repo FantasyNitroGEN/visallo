@@ -44,8 +44,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -340,7 +338,7 @@ public class VertexiumWorkspaceRepositoryTest {
         boolean foundRemovedEdge = false;
         for (Edge edge : edgesAfterDelete) {
             if (edge.getLabel().equals(VertexiumWorkspaceRepository.WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI)) {
-                assertEquals(false, (boolean) WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.getPropertyValue(edge));
+                assertEquals(false, WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.getPropertyValue(edge));
                 foundRemovedEdge = true;
             }
         }
