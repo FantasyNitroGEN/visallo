@@ -6,11 +6,25 @@ define([
 ], function(ajax, store, abortPrevious) {
     'use strict';
 
-    return {
+    var api = {
         diff: function(workspaceId) {
             return ajax('GET', '/workspace/diff', {
                 workspaceId: workspaceId || publicData.currentWorkspaceId
             });
+        },
+
+        getOrCreate: function() {
+            return (publicData.currentWorkspaceId ? api.get() : Promise.reject())
+                .catch(function() {
+                    return api.all()
+                        .then(function(workspaces) {
+                            var workspace = _.findWhere(workspaces, { sharedToUser: false });
+                            if (workspace) {
+                                return api.get(workspace.workspaceId);
+                            }
+                            return api.create();
+                        });
+                });
         },
 
         all: function() {
@@ -149,5 +163,7 @@ define([
         create: function(options) {
             return ajax('POST', '/workspace/create', options);
         }
-    }
+    };
+
+    return api;
 })
