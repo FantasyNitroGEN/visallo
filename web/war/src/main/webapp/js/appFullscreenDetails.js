@@ -243,7 +243,14 @@ define([
                     .then(self.handleVerticesLoaded.bind(self))
                     .catch(self.handleVerticesFailed.bind(self))
             });
-            this.trigger(document, 'switchWorkspace', { workspaceId: workspaceId });
+            if (workspaceId) {
+                this.trigger(document, 'switchWorkspace', { workspaceId: workspaceId });
+            } else {
+                this.dataRequest('workspace', 'getOrCreate')
+                    .done(function(workspace) {
+                        self.trigger(document, 'switchWorkspace', { workspaceId: workspace.workspaceId });
+                    })
+            }
         };
 
         this.onVertexUrlChange = function(event, data) {

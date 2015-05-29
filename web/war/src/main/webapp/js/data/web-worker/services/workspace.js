@@ -13,6 +13,20 @@ define([
             });
         },
 
+        getOrCreate: function() {
+            return (publicData.currentWorkspaceId ? api.get() : Promise.reject())
+                .catch(function() {
+                    return api.all()
+                        .then(function(workspaces) {
+                            var workspace = _.findWhere(workspaces, { sharedToUser: false });
+                            if (workspace) {
+                                return api.get(workspace.workspaceId);
+                            }
+                            return api.create();
+                        });
+                });
+        },
+
         all: function() {
             return ajax('GET', '/workspace/all')
                 .then(function(result) {
