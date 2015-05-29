@@ -33,7 +33,8 @@
     "jstz-detect": "~1.0.5",
     "timezone-js": "~0.4.13",
     "jscache": "ba01cdcf3e8a426782e0c297832b6c81286c9e8a",
-    "bluebird": "2.9.25"
+    "bluebird": "2.9.25",
+    "underscore.inflection": "jharwig/underscore.inflection#~1.2.1"
   },
   "devDependencies": {
     "sinon": "~1.10.3",

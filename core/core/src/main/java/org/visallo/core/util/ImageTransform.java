@@ -21,4 +21,35 @@ public class ImageTransform {
         return cwRotationNeeded;
     }
 
+    @Override
+    public String toString() {
+        return "ImageTransform{" +
+                "yAxisFlipNeeded=" + yAxisFlipNeeded +
+                ", cwRotationNeeded=" + cwRotationNeeded +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ImageTransform that = (ImageTransform) o;
+        if (yAxisFlipNeeded != that.yAxisFlipNeeded) {
+            return false;
+        }
+        return cwRotationNeeded == that.cwRotationNeeded;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (yAxisFlipNeeded ? 1 : 0);
+        result = 31 * result + cwRotationNeeded;
+        return result;
+    }
 }

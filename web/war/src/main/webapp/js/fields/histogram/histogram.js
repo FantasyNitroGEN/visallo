@@ -2,15 +2,18 @@ define([
     'flight/lib/component',
     'hbs!./histogramTpl',
     'd3',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    'colorjs'
 ], function(
     defineComponent,
     template,
     d3,
-    withDataRequest) {
+    withDataRequest,
+    Color) {
     'use strict';
 
     var HEIGHT = 100,
+        ALL_DATES = 'ALL_DATES',
         BRUSH_PADDING = 0,
         BRUSH_TEXT_PADDING = 2,
         BRUSH_BACKGROUND_HEIGHT = 13,
@@ -27,7 +30,7 @@ define([
 
     function Histogram() {
 
-        var margin = {top: 10, right: 16, bottom: 40, left: 16};
+        var margin = {top: 4, right: 16, bottom: 40, left: 16};
 
         this.after('initialize', function() {
             this.$node.html(template({}));
@@ -36,26 +39,93 @@ define([
             this.onGraphPaddingUpdated = _.debounce(this.onGraphPaddingUpdated.bind(this), 500);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
             this.on(document, 'workspaceUpdated', this.onWorkspaceUpdated);
+            this.on(document, 'workspaceLoaded', this.onWorkspaceLoaded);
             this.on(document, 'objectsSelected', this.onObjectsSelected);
+            this.on(document, 'verticesUpdated', this.onVerticesUpdated);
+            this.on('propertyConfigChanged', this.onPropertyConfigChanged);
+            this.on('fitHistogram', this.onFitHistogram);
 
-            this.dataRequest('workspace', 'histogramValues', this.attr.property)
-                .done(this.renderChart.bind(this));
+            // FIXME: use different attr config to get all date properties
+            if (!this.attr.property) {
+                this.attr.property = {
+                    title: ALL_DATES,
+                    dataType: 'date'
+                }
+            }
+
+            this.currentSelectedVertexIds = [];
+
+            Promise.all([
+                this.dataRequest('workspace', 'histogramValues', this.attr.property),
+                this.dataRequest('ontology', 'concepts')
+            ]).done(this.renderChart.bind(this));
 
             this.redraw = _.throttle(this.redraw.bind(this), 16);
         });
 
+        this.onFitHistogram = function() {
+            this.zoom.scale(1).translate([0, 0]).event(this.svg);
+        };
+
+        this.onPropertyConfigChanged = function(event, data) {
+            this.filteredPropertyIris = data.properties;
+            this.redraw(true);
+        };
+
         this.onObjectsSelected = function(event, data) {
-            if (!this.currentExtent) {
-                this.dataRequest('workspace', 'histogramValues', this.attr.property)
-                    .done(this.renderChart.bind(this));
+            if (data && data.options && (data.options.fromHistogram || data.options.fromFilter)) {
+                return;
             }
+
+            var selectedVertices = (data && data.vertices) || [],
+                selectedVertexIds = _.pluck(selectedVertices, 'id').sort();
+
+            this.clearBrush();
+            this.currentSelectedVertexIds = selectedVertexIds;
+            this.updateBarSelection(selectedVertexIds);
+        };
+
+        this.onVerticesUpdated = function() {
+            var self = this;
+            Promise.all([
+                this.dataRequest('workspace', 'histogramValues', this.attr.property),
+                this.dataRequest('ontology', 'concepts')
+            ]).done(function(results) {
+                self.renderChart(results);
+                self.updateBarSelection(self.currentSelectedVertexIds);
+            });
         };
 
         this.onWorkspaceUpdated = function(event, data) {
-            if (!this.currentExtent) {
-                this.dataRequest('workspace', 'histogramValues', this.attr.property)
-                    .done(this.renderChart.bind(this));
+            if (data.newVertices.length) {
+                var self = this;
+                Promise.all([
+                    this.dataRequest('workspace', 'histogramValues', this.attr.property),
+                    this.dataRequest('ontology', 'concepts')
+                ]).done(function(results) {
+                    self.renderChart(results);
+                    self.updateBarSelection(self.currentSelectedVertexIds);
+                });
             }
+            if (data.entityDeletes.length) {
+                this.currentSelectedVertexIds = _.difference(this.currentSelectedVertexIds, data.entityDeletes);
+                this.values = _.reject(this.values, function(v) {
+                    return _.contains(data.entityDeletes, v.vertexId);
+                });
+                this.data = this.binValues();
+                this.createBars(this.data);
+                this.updateBarSelection(this.currentSelectedVertexIds);
+            }
+        };
+
+        this.onWorkspaceLoaded = function() {
+            var self = this;
+            Promise.all([
+                this.dataRequest('workspace', 'histogramValues', this.attr.property),
+                this.dataRequest('ontology', 'concepts')
+            ]).done(function(results) {
+                self.renderChart(results);
+            });
         };
 
         this.onGraphPaddingUpdated = function(event, data) {
@@ -72,69 +142,141 @@ define([
             }
         };
 
-        this.redraw = function(rebin) {
+        this.redraw = function(rebin, skipAnimation) {
             var self = this,
                 xScale = this.xScale,
                 yScale = this.yScale,
                 data = this.data,
-                updateElements = function(animate) {
-                    yScale.domain([0, d3.max(data, function(d) {
-                        return d.y;
-                    })])
+                updateElements = function(shouldSkipAnimation) {
+                    yScale.domain([0, d3.max(data, function(layer) {
+                        return d3.max(layer.values, function(d) {
+                            return d.y0 + d.y;
+                        });
+                    }) || 0]);
 
-                    self.brush.x(self.zoom.x())
-                    self.createBars(data, animate);
+                    self.createBars(data, shouldSkipAnimation);
                     self.svg.select('.brush').call(self.brush.x(xScale));
                     self.svg.select('.x.axis').call(self.xAxis.orient('bottom'));
+
+                    if (self.currentExtent) {
+                        var selectedVertexIds = self.getVertexIdsFortExtent(self.currentExtent);
+                        if (!_.isEqual(selectedVertexIds, self.currentSelectedVertexIds)) {
+                            self.currentSelectedVertexIds = selectedVertexIds;
+                            self.triggerChange({ extent: self.currentExtent, vertexIds: self.currentSelectedVertexIds });
+                        }
+                    }
                 };
 
             if (rebin) {
                 if (!this.debouncedBin) {
-                    this.debouncedBin = _.debounce(function() {
+                    this.debouncedBin = _.debounce(function(shouldSkipAnimation) {
                         self.binCount = null;
                         data = self.data = self.binValues();
-                        updateElements(true);
+                        updateElements(shouldSkipAnimation);
                     }, 250);
                 }
-                this.debouncedBin();
+                this.debouncedBin(skipAnimation);
             }
-            updateElements();
+            updateElements(skipAnimation);
         };
 
         this.binValues = function() {
             var isDate = this.attr.property.dataType === 'date',
-                xScale = this.xScale;
+                isDateTime = this.attr.property.displayType !== 'dateOnly',
+                allDates = this.attr.property.title === ALL_DATES,
+                xScale = this.xScale,
+                ontologyConcepts = this.ontologyConcepts;
 
             if (!this.binCount) {
-                this.binCount = isDate ? xScale.ticks(25) : 25;//this.width;
+                this.binCount = allDates ? xScale.ticks(100) : isDate ? xScale.ticks(25) : 25;
             }
 
-            var count = this.values.length === 0 ? 0 : this.binCount;
-            return d3.layout.histogram().bins(count)(_.filter(this.values, function(v) {
-                return inDomain(v, xScale);
-            }));
+            var self = this,
+                count = this.values.length === 0 ? 0 : this.binCount,
+                histogram = d3.layout.histogram()
+                    .value(_.property('value'))
+                    .bins(count),
+                histogramsByConcept = _.chain(this.values)
+                    .groupBy('conceptIri')
+                    .mapObject(function(conceptValues) {
+                        var buckets = histogram(_.filter(conceptValues, function(v) {
+                            if (self.filteredPropertyIris) {
+                                if (!_.contains(self.filteredPropertyIris, v.propertyIri)) {
+                                    return false;
+                                }
+                            }
+                            return inDomain(v.value, xScale);
+                        }));
+                        _.each(buckets, function(bucket) {
+                            bucket.x = isDate && !isDateTime ? d3.time.day.floor(bucket.x) : bucket.x
+                        });
+                        return buckets;
+                    })
+                    .pairs()
+                    .map(function(kv) {
+                        var conceptIri = kv[0],
+                            ontologyConcept = ontologyConcepts.byId[conceptIri];
+
+                        var normalColor = '#c4c4c4';
+                        if (ontologyConcept && ontologyConcept.color) {
+                            normalColor = new Color(ontologyConcept.color).setLightness(.6).setSaturation(.5).toString();
+                        }
+                        var dimColor = new Color(normalColor).setSaturation(.1).setLightness(.3).toString();
+
+                        return { conceptIri: conceptIri, values: kv[1], normalColor: normalColor, dimColor: dimColor };
+                    })
+                    .value(),
+                stack = d3.layout.stack().values(_.property('values'));
+
+            return _.each(stack(histogramsByConcept), function(conceptData) {
+                conceptData.values = _.filter(conceptData.values, _.property('length'));
+            });
         }
+
+        this.getVertexIdsFortExtent = function(extent) {
+            extent = extent || this.currentExtent;
+            return _.chain(this.data || [])
+                    .map(function(d) {
+                        return _.filter(d.values, function(v) {
+                           return extent &&
+                               extent.length === 2 &&
+                               v.x >= extent[0] &&
+                               v.x <= extent[1];
+                        });
+                    })
+                    .flatten()
+                    .pluck('vertexId')
+                    .value()
+                    .sort();
+        };
 
         this.triggerChange = function(data) {
             this.trigger('updateHistogramExtent', data);
         };
 
-        this.renderChart = function(vals) {
+        this.renderChart = function(results) {
             this.$node.find('svg').remove();
 
             var self = this,
-
+                vals = results[0],
                 isDate = this.attr.property.dataType === 'date',
+                isDateTime = isDate && this.attr.property.displayType !== 'dateOnly';
 
-                isDateTime = isDate && this.attr.property.displayType !== 'dateOnly',
+            if (isDate && !isDateTime) {
+                vals.values.forEach(function(v) {
+                    v.value = v.value + (new Date(v.value).getTimezoneOffset() * 60000);
+                })
+            }
 
-                values = this.values = (
-                    isDate && !isDateTime ?
-                        _.map(vals, function(v) {
-                            return v + (new Date(v).getTimezoneOffset() * 60000);
-                        }) :
-                        vals
-                ),
+            this.trigger('ontologyPropertiesRenderered', {
+                ontologyProperties: vals.foundOntologyProperties
+            });
+
+            var foundOntologyProperties = this.foundOntologyProperties = vals.foundOntologyProperties,
+
+                ontologyConcepts = this.ontologyConcepts = results[1],
+
+                values = this.values = vals.values,
 
                 width = this.width = this.$node.scrollParent().width() - margin.left - margin.right,
                 height = this.height = HEIGHT - margin.top - margin.bottom,
@@ -146,19 +288,21 @@ define([
                 data = this.data = this.binValues(),
 
                 yScale = this.yScale = d3.scale.linear()
-                    .domain([0, d3.max(data, function(d) {
-                        return d.y;
+                    .domain([0, d3.max(data, function(layer) {
+                        return d3.max(layer.values, function(d) {
+                            return d.y0 + d.y;
+                        });
                     })])
                     .range([height, 0]),
 
-                xAxis = d3.svg.axis()
+                xAxis = this.xAxis = d3.svg.axis()
                     .scale(xScale)
                     .ticks(isDate ? 3 : 4)
                     .tickSize(5, 0)
                     .orient('bottom'),
 
                 onZoomedUpdate = _.throttle(function() {
-                    updateBrushInfo(undefined, undefined, true);
+                    updateBrushInfo();
                     updateFocusInfo();
                 }, 1000 / 30),
 
@@ -168,7 +312,11 @@ define([
                         translate = d3.event.translate[0],
                         translateChange = translate !== self.previousTranslate;
 
-                    self.redraw(scaleChange || translateChange);
+                    if (self.currentExtent) {
+                        self.brush.extent(self.currentExtent);
+                    }
+
+                    self.redraw(scaleChange || translateChange, true);
                     self.previousScale = scale;
                     self.previousTranslate = translate;
                     onZoomedUpdate();
@@ -176,12 +324,10 @@ define([
 
                 zoom = this.zoom = createZoomBehavior(),
 
-                brush = d3.svg.brush()
+                brush = this.brush = d3.svg.brush()
                     .x(zoom.x())
                     .on('brush', _.throttle(function() {
-                        var extent = brush.extent(),
-                            delta = extent[1] - extent[0];
-                        updateBrushInfo(extent, delta);
+                        updateBrushInfo();
                         updateFocusInfo();
                     }, 1000 / 30)),
 
@@ -215,12 +361,7 @@ define([
                     .append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'),
 
-                barGroup = this.barGroup = svg.append('g')
-                    .attr('class', 'barGroup'),
-
-                bar = this.createBars(data),
-
-                focus = svg.append('g')
+                focus = this.focus = svg.append('g')
                     .attr('class', 'focus')
                     .style('display', 'none'),
 
@@ -232,8 +373,12 @@ define([
                     )
                     .on('mousedown', function() {
                         d3.event.stopPropagation();
-                    })
-                    .call(brush),
+                    }).call(brush),
+
+                barGroup = this.barGroup = gBrush.insert('g', '.extent')
+                    .attr('class', 'barGroup'),
+
+                bars = this.createBars(data),
 
                 gBrushRects = gBrush.selectAll('rect')
                     .attr('height', height + BRUSH_PADDING * 2),
@@ -259,7 +404,7 @@ define([
                 gBrushTextStart = gBrushText.append('text')
                     .attr({
                         x: BRUSH_TEXT_PADDING,
-                        y: Math.max(0, margin.top - BRUSH_PADDING + BRUSH_TEXT_PADDING)
+                        y: Math.max(0, BRUSH_BACKGROUND_HEIGHT - BRUSH_PADDING - BRUSH_TEXT_PADDING)
                     }),
 
                 gBrushTextEnd = gBrushText.append('text')
@@ -312,12 +457,8 @@ define([
                 });
             }
 
-            this.xAxis = xAxis;
-            this.brush = brush;
-            this.focus = focus;
-
             focus.append('text')
-                .attr('y', height + margin.bottom)
+                .attr('y', height + margin.bottom - 5)
                 .attr('text-anchor', 'middle');
 
             focus.append('rect')
@@ -326,13 +467,13 @@ define([
                 .attr('width', 1)
                 .attr('height', margin.bottom * 0.6);
 
-            var axis = svg.append('g')
+            svg.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')');
-            axis.call(xAxis);
+                .attr('transform', 'translate(0,' + height + ')')
+                .call(xAxis);
 
             function calculateValuesExtent() {
-                var min, max, delta;
+                var min, max, delta, rawValues = _.pluck(values, 'value');
 
                 if (isDate) {
                     if (values.length === 0) {
@@ -342,12 +483,12 @@ define([
                         ];
                     } else if (values.length === 1) {
                         return [
-                            d3.time.day.offset(values[0], -1),
-                            d3.time.day.offset(values[0], 2)
+                            d3.time.day.offset(rawValues[0], -1),
+                            d3.time.day.offset(rawValues[0], 2)
                         ];
                     } else {
-                        min = d3.min(values);
-                        max = d3.max(values);
+                        min = d3.min(rawValues);
+                        max = d3.max(rawValues);
                         delta = max - min;
 
                         var days = Math.max(1,
@@ -362,11 +503,11 @@ define([
                 } else if (values.length === 0) {
                     return [0, 100];
                 } else if (values.length === 1) {
-                    return [values[0] - 1, values[0] + 1];
+                    return [rawValues[0] - 1, rawValues[0] + 1];
                 }
 
-                min = d3.min(values);
-                max = d3.max(values);
+                min = d3.min(rawValues);
+                max = d3.max(rawValues);
                 delta = max - min;
 
                 return [
@@ -387,23 +528,15 @@ define([
             }
 
             function createXScale() {
-                if (isDateTime || isDate) {
-                    return d3.time.scale()
-                        .domain(valuesExtent)
-                        .range([0, width]);
-                }
-
-                return d3.scale.linear()
-                    .domain(valuesExtent)
-                    .range([0, width]);
+                var scale = (isDateTime || isDate) ? d3.time.scale() : d3.scale.linear();
+                return scale.domain(valuesExtent).range([0, width]);
             }
 
-            var brushedTextFormat = xAxis.tickFormat();//d3.format('0.2f');
+            var brushedTextFormat = xAxis.tickFormat();
 
-            function updateBrushInfo(brushExtent, brushExtentDelta, zoomUpdate) {
-                var extent = brushExtent || brush.extent(),
-                    delta = _.isUndefined(brushExtent) ?
-                        (extent[1] - extent[0]) : brushExtentDelta,
+            function updateBrushInfo() {
+                var extent = brush.extent(),
+                    delta = extent[1] - extent[0],
                     width = Math.max(0, xScale(
                              isDate ?
                              new Date(xScale.domain()[0].getTime() + delta) :
@@ -414,17 +547,18 @@ define([
                     };
 
                 if (!_.isEqual(data.extent, self.currentExtent) && (data.extent || self.currentExtent)) {
-                    self.triggerChange(data);
+                    self.updateBarSelection();
+                    data.vertexIds = self.getVertexIdsFortExtent(data.extent);
+                    if (!_.isEqual(data.vertexIds, self.currentSelectedVertexIds)) {
+                        self.currentSelectedVertexIds = data.vertexIds;
+                        self.triggerChange(data);
+                    }
                 }
 
                 self.currentExtent = data.extent;
 
-                gBrushTextStartBackground
-                    .style('display', delta < 0.01 ? 'none' : '')
-                    .attr('width', width);
-                gBrushTextEndBackground
-                    .style('display', delta < 0.01 ? 'none' : '')
-                    .attr('width', width);
+                gBrushTextStartBackground.attr('width', width);
+                gBrushTextEndBackground.attr('width', width);
                 gBrushTextStart.text(brushedTextFormat(extent[0]));
 
                 gBrushText
@@ -438,12 +572,17 @@ define([
                         'translate(' + (width - BRUSH_TEXT_PADDING) + ', 0)'
                     );
             }
+            this.clearBrush = function() {
+                this.currentSelectedVertexIds = [];
+                gBrush.call(brush.clear());
+                delete self.currentExtent;
+                updateBrushInfo();
+            }
 
             var mouse = null;
             function mousemove() {
                 mouse = d3.mouse(this)[0];
                 updateFocusInfo();
-                updateBrushInfo(undefined, undefined, true);
             }
 
             var format = isDate && '%Y-%m-%d';
@@ -467,28 +606,50 @@ define([
             }
 
             this.redraw();
-
         }
 
-        this.createBars = function(data, animate) {
-            var height = this.height,
+        this.createBars = function(data, skipAnimation) {
+            var self = this,
+                height = this.height,
                 xScale = this.xScale,
                 yScale = this.yScale,
-                dx = data.length > 0 ? data[0].dx : 0,
-                keys = {},
-                bars = this.barGroup.selectAll('.bar').data(data),
+                firstNonEmpty = _.find(data, function(d) {
+                    return d.values.length;
+                }),
+                dx = firstNonEmpty ? firstNonEmpty.values[0].dx : 0,
+                barLayers = this.barGroup.selectAll('.barlayer').data(data.reverse(), function(d) {
+                    return d.conceptIri;
+                }),
+                bars = barLayers.selectAll('.bar').data(function(groupData) {
+                    return groupData.values;
+                }, function(d) {
+                    return d[0].conceptIri + d.x.getTime();
+                }),
                 isDate = this.attr.property.dataType === 'date',
-                isDateTime = this.attr.property.displayType !== 'dateOnly';
+                animationDuration = skipAnimation ? 0 : 250;
+
+            barLayers.enter().append('g').attr('class', 'barlayer').style('fill', function(d) {
+                return d.normalColor;
+            });
 
             bars.enter()
                 .append('g').attr('class', 'bar')
-                .append('rect');
-
-            bars
+                .classed('selected', function(d) {
+                    return !self.currentExtent && d.length && _.any(d, function(o) {
+                        return o.vertexId && _.contains(self.currentSelectedVertexIds || [], o.vertexId);
+                    });
+                })
                 .attr('transform', function(d) {
-                    var dX = isDate && !isDateTime ? d3.time.day.floor(d.x) : d.x;
-                    return 'translate(' + xScale(dX) + ',' + yScale(d.y) + ')';
-                }).select('rect')
+                    return 'translate(' + xScale(d.x) + ',' + yScale(0) + ')';
+                })
+                .append('rect')
+                .attr('height', 0);
+
+            bars.transition('height-animation').duration(animationDuration)
+                .attr('transform', function(d) {
+                    return 'translate(' + xScale(d.x) + ',' + yScale(d.y + d.y0) + ')';
+                });
+            bars.select('rect')
                     .attr('width',
                         Math.max(1,
                             (isDate ?
@@ -497,17 +658,50 @@ define([
                             ) - 1
                         )
                     )
+                    .transition('height-animation').duration(animationDuration)
                     .attr('height', function(d) {
-                        return height - yScale(d.y);
+                        return height - yScale(d.y + d.y0);
                     });
 
-            bars.exit().remove();
-            this.barGroup.selectAll('.bar').filter(function(d) {
-                return d.y === 0;
-            }).remove();
+            var exitingBars = bars.exit().transition('height-animation').duration(animationDuration);
+            exitingBars.attr('transform', function(d) {
+                return 'translate(' + xScale(d.x) + ',' + yScale(0) + ')';
+            });
+            exitingBars.select('rect').attr('height', 0);
+            exitingBars.remove();
+
+            barLayers.exit().remove();
+
+            if (skipAnimation) d3.timer.flush();
+
+            bars.on('mousedown', function(d) {
+                var xy = d3.mouse(self.svg.select('.brush').node()),
+                    xInv = xScale.invert(xy[0]);
+                self.clearBrush();
+                self.brush.extent([xInv, xInv]);
+                self.currentSelectedVertexIds = _.pluck(d, 'vertexId');
+                self.updateBarSelection(self.currentSelectedVertexIds);
+                self.triggerChange({ extent: self.currentExtent, vertexIds: self.currentSelectedVertexIds });
+            });
 
             return bars;
         }
 
+        this.updateBarSelection = function(selectedVertexIds) {
+            var barLayers = this.svg.selectAll('.barlayer'),
+                bars = barLayers.selectAll('.bar');
+
+            selectedVertexIds = selectedVertexIds || [];
+
+            bars.classed('selected', selectedVertexIds.length > 0 && function(d) {
+                return d.length && _.any(d, function(o) {
+                    return o.vertexId && _.contains(selectedVertexIds, o.vertexId);
+                });
+            });
+            barLayers.each(function(d) {
+                var currentColor = selectedVertexIds.length > 0 ? d.dimColor : d.normalColor;
+                d3.select(this).transition('fill-animation').style('fill', currentColor);
+            });
+        }
     }
 });

@@ -1,7 +1,6 @@
 package org.visallo.core.ingest.graphProperty;
 
 import com.google.inject.Inject;
-import org.visallo.core.model.WorkQueueNames;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FileSystem;
@@ -12,6 +11,7 @@ import org.vertexium.util.IterableUtils;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
@@ -153,11 +153,11 @@ public class GraphPropertyRunner extends WorkerBase {
 
     @Override
     public void process(Object messageId, JSONObject json) throws Exception {
-        String propertyKey = json.optString("propertyKey");
-        String propertyName = json.optString("propertyName");
-        String workspaceId = json.optString("workspaceId");
-        String visibilitySource = json.optString("visibilitySource");
-        String priorityString = json.optString("priority");
+        String propertyKey = json.optString("propertyKey", "");
+        String propertyName = json.optString("propertyName", "");
+        String workspaceId = json.optString("workspaceId", null);
+        String visibilitySource = json.optString("visibilitySource", null);
+        String priorityString = json.optString("priority", null);
         Priority priority = Priority.safeParse(priorityString);
 
         String graphVertexId = json.optString("graphVertexId");

@@ -1,13 +1,13 @@
 package org.visallo.core.util;
 
 import com.google.common.base.Joiner;
-import org.visallo.core.config.ConfigurationLoader;
+import com.google.common.collect.Lists;
 import org.slf4j.LoggerFactory;
+import org.visallo.core.config.ConfigurationLoader;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class VisalloLoggerFactory {
     private static final Map<String, VisalloLogger> logMap = new HashMap<>();
@@ -45,7 +45,42 @@ public class VisalloLoggerFactory {
                 ConfigurationLoader.configureLog4j();
                 initialized = true;
                 initializing = false;
+                logSystem();
             }
+        }
+    }
+
+    private static void logSystem() {
+        VisalloLogger logger = getLogger(VisalloLoggerFactory.class);
+        logEnv(logger);
+        logSystemProperties(logger);
+    }
+
+    private static void logSystemProperties(VisalloLogger logger) {
+        logger.info("program properties:");
+        ArrayList<Map.Entry<Object, Object>> properties = Lists.newArrayList(System.getProperties().entrySet());
+        Collections.sort(properties, new Comparator<Map.Entry<Object, Object>>() {
+            @Override
+            public int compare(Map.Entry<Object, Object> o1, Map.Entry<Object, Object> o2) {
+                return o1.getKey().toString().compareTo(o2.getKey().toString());
+            }
+        });
+        for (final Map.Entry<Object, Object> entry : properties) {
+            logger.info("  %s: %s", entry.getKey(), entry.getValue());
+        }
+    }
+
+    private static void logEnv(VisalloLogger logger) {
+        logger.info("program environment:");
+        ArrayList<Map.Entry<String, String>> entries = Lists.newArrayList(System.getenv().entrySet());
+        Collections.sort(entries, new Comparator<Map.Entry<String, String>>() {
+            @Override
+            public int compare(Map.Entry<String, String> o1, Map.Entry<String, String> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        });
+        for (final Map.Entry<String, String> entry : entries) {
+            logger.info("  %s: %s", entry.getKey(), entry.getValue());
         }
     }
 

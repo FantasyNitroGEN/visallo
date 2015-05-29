@@ -14,58 +14,57 @@ public class ImageTransformExtractor {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImageTransformExtractor.class);
 
     public static ImageTransform getImageTransform(byte[] data) {
-        //new ImageTransform(false, 0) is the original image orientation, with no flip needed, and no rotation needed.
-        ImageTransform imageTransform = new ImageTransform(false, 0);
-
         try {
             //Attempt to retrieve the metadata from the image.
             BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(data));
             Metadata metadata = ImageMetadataReader.readMetadata(in, true);
-            if (metadata != null) {
-                ExifIFD0Directory exifDir = metadata.getDirectory(ExifIFD0Directory.class);
-                if (exifDir != null) {
-                    Integer orientationInteger = exifDir.getInteger(ExifIFD0Directory.TAG_ORIENTATION);
-                    if (orientationInteger != null) {
-                        imageTransform = convertOrientationToTransform(orientationInteger);
-                    }
-                }
-            }
+            return getImageTransformFromMetadata(metadata);
         } catch (ImageProcessingException e) {
             LOGGER.error("drewnoakes metadata extractor threw ImageProcessingException when reading metadata." +
                     " Returning default orientation for image.", e);
         } catch (IOException e) {
             LOGGER.error("drewnoakes metadata extractor threw IOException when reading metadata." +
                     " Returning default orientation for image.", e);
+        }
+
+        return getNoFlipNoRotationImageTransform();
+    }
+
+    public static ImageTransform getImageTransform(File localFile) {
+        try {
+            //Attempt to retrieve the metadata from the image.
+            Metadata metadata = ImageMetadataReader.readMetadata(localFile);
+            return getImageTransformFromMetadata(metadata);
+        } catch (ImageProcessingException e) {
+            LOGGER.error("drewnoakes metadata extractor threw ImageProcessingException when reading metadata." +
+                    " Returning default orientation for image.", e);
+        } catch (IOException e) {
+            LOGGER.error("drewnoakes metadata extractor threw IOException when reading metadata." +
+                    " Returning default orientation for image.", e);
+        }
+
+        return getNoFlipNoRotationImageTransform();
+    }
+
+    private static ImageTransform getImageTransformFromMetadata(Metadata metadata) {
+        //new ImageTransform(false, 0) is the original image orientation, with no flip needed, and no rotation needed.
+        ImageTransform imageTransform = getNoFlipNoRotationImageTransform();
+
+        if (metadata != null) {
+            ExifIFD0Directory exifDir = metadata.getDirectory(ExifIFD0Directory.class);
+            if (exifDir != null) {
+                Integer orientationInteger = exifDir.getInteger(ExifIFD0Directory.TAG_ORIENTATION);
+                if (orientationInteger != null) {
+                    imageTransform = convertOrientationToTransform(orientationInteger);
+                }
+            }
         }
 
         return imageTransform;
     }
 
-    public static ImageTransform getImageTransform(File localFile) {
-        //new ImageTransform(false, 0) is the original image orientation, with no flip needed, and no rotation needed.
-        ImageTransform imageTransform = new ImageTransform(false, 0);
-
-        try {
-            //Attempt to retrieve the metadata from the image.
-            Metadata metadata = ImageMetadataReader.readMetadata(localFile);
-            if (metadata != null) {
-                ExifIFD0Directory exifDir = metadata.getDirectory(ExifIFD0Directory.class);
-                if (exifDir != null) {
-                    Integer orientationInteger = exifDir.getInteger(ExifIFD0Directory.TAG_ORIENTATION);
-                    if (orientationInteger != null) {
-                        imageTransform = convertOrientationToTransform(orientationInteger);
-                    }
-                }
-            }
-        } catch (ImageProcessingException e) {
-            LOGGER.error("drewnoakes metadata extractor threw ImageProcessingException when reading metadata." +
-                    " Returning default orientation for image.", e);
-        } catch (IOException e) {
-            LOGGER.error("drewnoakes metadata extractor threw IOException when reading metadata." +
-                    " Returning default orientation for image.", e);
-        }
-
-        return imageTransform;
+    private static ImageTransform getNoFlipNoRotationImageTransform() {
+        return new ImageTransform(false, 0);
     }
 
     /**
@@ -77,7 +76,7 @@ public class ImageTransformExtractor {
     public static ImageTransform convertOrientationToTransform(int orientationInt) {
         switch (orientationInt) {
             case 1:
-                return new ImageTransform(false, 0);
+                return getNoFlipNoRotationImageTransform();
             case 2:
                 return new ImageTransform(true, 0);
             case 3:
@@ -93,7 +92,7 @@ public class ImageTransformExtractor {
             case 8:
                 return new ImageTransform(false, 270);
             default:
-                return new ImageTransform(false, 0);
+                return getNoFlipNoRotationImageTransform();
         }
     }
 }

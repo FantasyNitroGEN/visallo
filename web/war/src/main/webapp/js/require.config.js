@@ -47,6 +47,7 @@ var require = {
         'timezone-js': '../libs/timezone-js/src/date',
         'tpl': '../libs/requirejs-ejs/rejs',
         'underscore': '../libs/underscore/underscore',
+        'underscore.inflection': '../libs/underscore.inflection/lib/underscore.inflection',
         'videojs': '../libs/video.js/dist/video-js/video'
     },
     shim: {

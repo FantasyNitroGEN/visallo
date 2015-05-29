@@ -22,7 +22,6 @@ z-index: @graph-zIndex;
   .translate(0, 0);
 }
 
-
 h1 {
   font-size: 95%;
   margin:0;
@@ -94,4 +93,24 @@ h1 {
   margin: 0;
   font-size: 90%;
   color: #999;
+  display: inline;
 }
+.toggle-timeline {
+  padding: 0;
+  padding-left: 0.25em;
+  font-size: 90%;
+  border-left: 1px solid #ccc;
+  margin-left: 1em;
+  padding-left: 2em;
+  line-height: 1em;
+  position: relative;
+  .twizzle;
+  &:before {
+    left: 4.5ex;
+    top: -0.5ex;
+  }
+  &.expanded {
+    .twizzle-expand;
+  }
+}
+

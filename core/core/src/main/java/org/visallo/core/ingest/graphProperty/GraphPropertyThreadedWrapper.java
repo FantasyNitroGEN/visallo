@@ -189,4 +189,11 @@ public class GraphPropertyThreadedWrapper implements Runnable {
     public void setMetricsManager(MetricsManager metricsManager) {
         this.metricsManager = metricsManager;
     }
+
+    @Override
+    public String toString() {
+        return "GraphPropertyThreadedWrapper{" +
+                "worker=" + worker +
+                '}';
+    }
 }
