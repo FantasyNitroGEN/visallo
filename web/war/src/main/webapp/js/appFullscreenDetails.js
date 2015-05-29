@@ -108,7 +108,8 @@ define([
                 .html(errorTemplate({
                     vertices: this.attr.graphVertexIds,
                     somePublished: false,
-                    requiredFallback: requiredFallback
+                    requiredFallback: requiredFallback,
+                    noWorkspaceGiven: !this.attr.workspaceId
                 }))
                 .addClass('visible');
         };
@@ -248,6 +249,7 @@ define([
             } else {
                 this.dataRequest('workspace', 'getOrCreate')
                     .done(function(workspace) {
+                        self.attr.workspaceId = workspace.workspaceId;
                         self.trigger(document, 'switchWorkspace', { workspaceId: workspace.workspaceId });
                     })
             }
