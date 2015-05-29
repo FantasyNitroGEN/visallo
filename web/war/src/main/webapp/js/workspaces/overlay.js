@@ -34,7 +34,8 @@ define([
         this.defaultAttrs({
             userSelector: '.user',
             nameSelector: '.name',
-            subtitleSelector: '.subtitle'
+            subtitleSelector: '.subtitle',
+            toggleTimelineSelector: '.toggle-timeline'
         });
 
         this.after('initialize', function() {
@@ -78,13 +79,31 @@ define([
             this.on(document, 'toggleDiffPanel', this.toggleDiffPanel);
             this.on(document, 'escape', this.closeDiffPanel);
 
+            this.on(document, 'toggleTimeline', function() {
+                self.select('toggleTimelineSelector').toggleClass('expanded');
+            });
+            this.on('click', {
+                toggleTimelineSelector: this.onToggleTimeline
+            });
+
             this.trigger(document, 'registerKeyboardShortcuts', {
                 scope: ['graph.help.scope', 'map.help.scope'].map(i18n),
                 shortcuts: {
                     'alt-d': { fire: 'toggleDiffPanel', desc: i18n('workspaces.help.show_diff') }
                 }
             });
+
+            this.trigger(document, 'registerKeyboardShortcuts', {
+                scope: ['graph.help.scope', 'map.help.scope'].map(i18n),
+                shortcuts: {
+                    'alt-i': { fire: 'toggleTimeline', desc: i18n('workspaces.help.toggle_timeline') }
+                }
+            });
         });
+
+        this.onToggleTimeline = function() {
+            this.trigger('toggleTimeline');
+        }
 
         this.toggleDiffPanel = function() {
             var badge = this.$node.find('.badge');

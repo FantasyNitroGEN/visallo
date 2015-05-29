@@ -7,6 +7,7 @@ define([
     'search/search',
     'workspaces/workspaces',
     'workspaces/overlay',
+    'workspaces/timeline',
     'admin/admin',
     'activity/activity',
     'graph/graph',
@@ -28,6 +29,7 @@ define([
     Search,
     Workspaces,
     WorkspaceOverlay,
+    WorkspaceTimeline,
     Admin,
     Activity,
     Graph,
@@ -155,6 +157,7 @@ define([
             this.on(document, 'showVertexContextMenu', this.onShowVertexContextMenu);
             this.on(document, 'hideMenu', this.onHideMenu);
             this.on(document, 'genericPaste', this.onGenericPaste);
+            this.on(document, 'toggleTimeline', this.onToggleTimeline);
 
             this.trigger(document, 'registerKeyboardShortcuts', {
                 scope: ['graph.help.scope', 'map.help.scope'].map(i18n),
@@ -292,6 +295,12 @@ define([
                     position: position
                 });
             }
+        };
+
+        this.onToggleTimeline = function(event) {
+            WorkspaceTimeline.attachTo(this.$node.find('.workspace-timeline'));
+
+            this.$node.toggleClass('workspace-timeline-visible');
         };
 
         this.onHideMenu = function() {

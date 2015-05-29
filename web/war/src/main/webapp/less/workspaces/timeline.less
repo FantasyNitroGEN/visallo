@@ -1,0 +1,216 @@
+@height: 100px;
+
+#app.workspace-timeline-visible {
+  & > .detail-pane,
+  & > .workspace-overlay,
+  & > .map-pane,
+  & > .graph-pane {
+    bottom: @height;
+    height: auto;
+  }
+  & > .workspace-timeline {
+    bottom: 0;
+    top: auto;
+  }
+}
+
+.timelineConfigPopover {
+  background: #444;
+  color: white;
+  position: relative;
+  left:5px;    
+
+  .popover-content {
+    max-height: 150px;
+    overflow: auto; 
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;   
+    li label {    
+        font-size: 80%;    
+        color: #eee;
+        position: relative;
+        margin: 0;
+
+        & > div {
+          display: inline-block;
+        }
+    }
+    li input {
+        vertical-align: top;
+        margin-right: 0.5em
+    }
+    li .subtitle {
+      display: block;
+      font-size: 90%;
+      color: #aaa;
+      line-height: 1.1em;
+      max-width: 110px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    li .colors {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      margin-top: -0.5em;
+      line-height: 0;
+
+      span {
+        display: inline-block;
+        height: 1em;
+        @r: 2px;
+        &:first-child {
+          border-top-left-radius: @r;
+          border-bottom-left-radius: @r;
+        }
+        &:last-child {
+          border-top-right-radius: @r;
+          border-bottom-right-radius: @r;
+        }
+      }
+    }
+  }
+  .popover-title {
+    background: #333;
+    border-bottom: 1px solid #222;    
+    font-size: 90%;    
+    input {
+      vertical-align: top;
+      margin-right: 0.2em
+    }
+    label {
+      margin: 0;
+    }
+  }
+
+  &.popover.top .arrow:after {
+      border-top-color: #444;
+      
+  }
+  &.popover.top .arrow {
+      border-top-color: #333;
+  }
+}
+
+.workspace-timeline {
+  @background: lighten(@menubar-background, 10%);
+  position: absolute;
+  left: @menubar-width;
+  z-index: @graph-zIndex;
+  bottom: @height * -1;
+  right: 0;
+  height: @height;
+  background: @background;
+  .box-shadow(~"inset 3px 5px 3px rgba(0,0,0,0.1)");
+  .transition(~"bottom ease-out 0.1s");
+
+  .timeline-controls {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 0.2em;
+
+    button {
+      background: darken(@background, 50%);
+      box-shadow: none;
+      border: 1px solid lighten(@background, 30%);
+      color: white;
+      font-size: 8pt;
+      width: auto;
+      height: 20px;
+      opacity: 0.2;
+      line-height: 0;
+      text-shadow: none;
+      padding: 0 0.5em;
+      font-weight: bold;
+      .transition(~"opacity ease-in-out 0.1s");
+
+      &.timeline-config {
+        width: 20px;
+        background-image: url('../img/glyphicons/white/glyphicons_019_cogwheel@2x.png');
+        background-size: auto 70%;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+    }
+    &:hover button {
+      opacity: 0.4;
+    }
+  }
+
+  svg {
+    margin: 0 -1em;
+
+    .bar rect {
+      shape-rendering: crispEdges;
+    }
+
+    .bar text {
+      fill: #fff;
+    }
+    .preventDrag, .axis-overlay {
+      opacity: 0;     
+    }
+    .axis-overlay {
+      cursor: move;
+    }
+    .axis path, .axis line {
+      fill: none;      
+      stroke: lighten(@background, 10%);
+      shape-rendering: crispEdges;
+    }
+    .axis text {
+      font-size: 85%;
+      fill: lighten(@background, 40%);
+    }
+    .axis * {
+      pointer-events: none;
+    }
+    .brush .extent {
+      stroke: lighten(@background, 10%);
+      fill: transparent;
+      fill-opacity: 1.0;
+      shape-rendering: crispEdges;
+    }
+    .brushText rect {
+      fill: black;
+      fill-opacity: 0.4;
+      pointer-events: none;
+    }
+    .brush text {      
+      font-size: 80%;
+      font-variant: small-caps;
+      text-transform: lowercase;
+      pointer-events: none;
+      fill: white;
+      text-shadow: 0 1px 1px black;
+    }
+    .resize path {
+      fill: transparent;
+      fill-opacity: 1.0;
+      stroke: lighten(@background, 10%);
+      stroke-width: 1px;
+    }
+    .overlay {
+      fill: none;
+      pointer-events: all;
+    }
+    .focus  {
+      pointer-events: none;
+      text {
+        font-size: 80%;
+        fill: lighten(@background, 50%);
+      }
+    }
+    .scrub {
+      fill: lighten(@background, 50%);
+    }
+    .bar.selected {
+      fill: @blue-color;
+    }
+  }
+}

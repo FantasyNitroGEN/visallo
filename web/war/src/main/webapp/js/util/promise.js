@@ -34,7 +34,7 @@ define([
     var Promise = P || self.Promise;
 
     //Uncomment for better stacktraces (but slower promises)
-    //Promise.longStackTraces();
+    //if ('longStackTraces' in Promise) Promise.longStackTraces();
 
     addProgress();
     addTimeout();
