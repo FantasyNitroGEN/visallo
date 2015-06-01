@@ -1,7 +1,14 @@
 package org.visallo.core.ingest.graphProperty;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.junit.Before;
+import org.mockito.Mock;
+import org.vertexium.Authorizations;
+import org.vertexium.Visibility;
+import org.vertexium.inmemory.InMemoryAuthorizations;
+import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.HashMapConfigurationLoader;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -13,14 +20,6 @@ import org.visallo.core.user.User;
 import org.visallo.test.GraphPropertyWorkerTestBase;
 import org.visallo.vertexium.model.user.InMemoryAuthorizationRepository;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.junit.Before;
-import org.mockito.Mock;
-import org.vertexium.Authorizations;
-import org.vertexium.Visibility;
-import org.vertexium.inmemory.InMemoryAuthorizations;
-import org.vertexium.inmemory.InMemoryGraph;
 
 import java.util.*;
 
@@ -40,8 +39,6 @@ public abstract class GraphPropertyWorkerTestSetupBase {
 
     @Mock
     protected User user;
-    @Mock
-    protected AuditRepository auditRepository;
     @Mock
     protected OntologyRepository ontologyRepository;
     @Mock
@@ -89,7 +86,6 @@ public abstract class GraphPropertyWorkerTestSetupBase {
         termMentionRepository = new TermMentionRepository(graph, authorizationRepository);
 
         worker = createGraphPropertyWorker();
-        worker.setAuditRepository(auditRepository);
         worker.setVisibilityTranslator(visibilityTranslator);
         worker.setConfiguration(new HashMapConfigurationLoader(configuration).createConfiguration());
         worker.setOntologyRepository(ontologyRepository);

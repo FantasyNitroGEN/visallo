@@ -5,15 +5,17 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
 import org.visallo.core.http.DefaultHttpRepository;
 import org.visallo.core.http.HttpRepository;
-import org.visallo.core.status.JmxMetricsManager;
-import org.visallo.core.status.MetricsManager;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.lock.CuratorLockRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
@@ -23,15 +25,12 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.status.JmxMetricsManager;
+import org.visallo.core.status.MetricsManager;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.ServiceLoaderUtil;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.vertexium.Graph;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -141,9 +140,6 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(OntologyRepository.class)
                 .toProvider(VisalloBootstrap.<OntologyRepository>getConfigurableProvider(configuration, Configuration.ONTOLOGY_REPOSITORY))
-                .in(Scopes.SINGLETON);
-        bind(AuditRepository.class)
-                .toProvider(VisalloBootstrap.<AuditRepository>getConfigurableProvider(configuration, Configuration.AUDIT_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(SimpleOrmSession.class)
                 .toProvider(VisalloBootstrap.<SimpleOrmSession>getConfigurableProvider(configuration, Configuration.SIMPLE_ORM_SESSION))

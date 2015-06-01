@@ -1,6 +1,5 @@
 package org.visallo.core.model.workspace;
 
-import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,14 +11,10 @@ import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.video.VideoFrameInfo;
-import org.visallo.core.model.audit.Audit;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
 import org.visallo.core.security.VisalloVisibility;
@@ -39,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkspaceRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceRepository.class);
-    public static final String TO_ENTITY_ID_SEPERATOR = "_TO_ENTITY_";
+    public static final String TO_ENTITY_ID_SEPARATOR = "_TO_ENTITY_";
     public static final String VISIBILITY_STRING = "workspace";
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
     public static final String WORKSPACE_CONCEPT_IRI = "http://visallo.org/workspace#workspace";
@@ -52,8 +47,6 @@ public abstract class WorkspaceRepository {
     private final VisibilityTranslator visibilityTranslator;
     private final TermMentionRepository termMentionRepository;
     private final OntologyRepository ontologyRepository;
-    private final AuditRepository auditRepository;
-    private final UserRepository userRepository;
     private final WorkQueueRepository workQueueRepository;
 
     protected WorkspaceRepository(
@@ -61,16 +54,12 @@ public abstract class WorkspaceRepository {
             final VisibilityTranslator visibilityTranslator,
             final TermMentionRepository termMentionRepository,
             final OntologyRepository ontologyRepository,
-            final AuditRepository auditRepository,
-            final UserRepository userRepository,
             final WorkQueueRepository workQueueRepository
     ) {
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
         this.termMentionRepository = termMentionRepository;
         this.ontologyRepository = ontologyRepository;
-        this.auditRepository = auditRepository;
-        this.userRepository = userRepository;
         this.workQueueRepository = workQueueRepository;
 
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
@@ -307,22 +296,22 @@ public abstract class WorkspaceRepository {
     }
 
     public static String getWorkspaceToEntityEdgeId(String workspaceVertexId, String entityVertexId) {
-        return workspaceVertexId + TO_ENTITY_ID_SEPERATOR + entityVertexId;
+        return workspaceVertexId + TO_ENTITY_ID_SEPARATOR + entityVertexId;
     }
 
-    public ClientApiWorkspacePublishResponse publish(ClientApiPublishItem[] publishData, String workspaceId, User user, Authorizations authorizations) {
+    public ClientApiWorkspacePublishResponse publish(ClientApiPublishItem[] publishData, String workspaceId, Authorizations authorizations) {
         if (this.entityHasImageIri == null) {
             this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage");
         }
 
         ClientApiWorkspacePublishResponse workspacePublishResponse = new ClientApiWorkspacePublishResponse();
-        publishVertices(publishData, workspacePublishResponse, workspaceId, user, authorizations);
-        publishEdges(publishData, workspacePublishResponse, workspaceId, user, authorizations);
-        publishProperties(publishData, workspacePublishResponse, workspaceId, user, authorizations);
+        publishVertices(publishData, workspacePublishResponse, workspaceId, authorizations);
+        publishEdges(publishData, workspacePublishResponse, workspaceId, authorizations);
+        publishProperties(publishData, workspacePublishResponse, workspaceId, authorizations);
         return workspacePublishResponse;
     }
 
-    private void publishVertices(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, User user, Authorizations authorizations) {
+    private void publishVertices(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, Authorizations authorizations) {
         LOGGER.debug("BEGIN publishVertices");
         for (ClientApiPublishItem data : publishData) {
             try {
@@ -346,7 +335,7 @@ public abstract class WorkspaceRepository {
                     workspacePublishResponse.addFailure(data);
                     continue;
                 }
-                publishVertex(vertex, data.getAction(), authorizations, workspaceId, user);
+                publishVertex(vertex, data.getAction(), authorizations, workspaceId);
             } catch (Exception ex) {
                 LOGGER.error("Error publishing %s", data.toString(), ex);
                 data.setErrorMessage(ex.getMessage());
@@ -357,7 +346,7 @@ public abstract class WorkspaceRepository {
         graph.flush();
     }
 
-    private void publishEdges(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, User user, Authorizations authorizations) {
+    private void publishEdges(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, Authorizations authorizations) {
         LOGGER.debug("BEGIN publishEdges");
         for (ClientApiPublishItem data : publishData) {
             try {
@@ -390,7 +379,7 @@ public abstract class WorkspaceRepository {
                     workspacePublishResponse.addFailure(data);
                     continue;
                 }
-                publishEdge(edge, sourceVertex, destVertex, data.getAction(), workspaceId, user, authorizations);
+                publishEdge(edge, sourceVertex, destVertex, data.getAction(), workspaceId, authorizations);
             } catch (Exception ex) {
                 LOGGER.error("Error publishing %s", data.toString(), ex);
                 data.setErrorMessage(ex.getMessage());
@@ -401,7 +390,7 @@ public abstract class WorkspaceRepository {
         graph.flush();
     }
 
-    private void publishProperties(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, User user, Authorizations authorizations) {
+    private void publishProperties(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, Authorizations authorizations) {
         LOGGER.debug("BEGIN publishProperties");
         for (ClientApiPublishItem data : publishData) {
             try {
@@ -429,7 +418,7 @@ public abstract class WorkspaceRepository {
                     continue;
                 }
 
-                publishProperty(element, data.getAction(), propertyKey, propertyName, workspaceId, user, authorizations);
+                publishProperty(element, data.getAction(), propertyKey, propertyName, workspaceId, authorizations);
             } catch (Exception ex) {
                 LOGGER.error("Error publishing %s", data.toString(), ex);
                 data.setErrorMessage(ex.getMessage());
@@ -468,7 +457,7 @@ public abstract class WorkspaceRepository {
         return element;
     }
 
-    private void publishVertex(Vertex vertex, ClientApiPublishItem.Action action, Authorizations authorizations, String workspaceId, User user) throws IOException {
+    private void publishVertex(Vertex vertex, ClientApiPublishItem.Action action, Authorizations authorizations, String workspaceId) throws IOException {
         if (action == ClientApiPublishItem.Action.delete || WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
@@ -481,7 +470,6 @@ public abstract class WorkspaceRepository {
         vertex = graph.getVertex(vertex.getId(), authWithVideoFrame);
 
         LOGGER.debug("publishing vertex %s(%s)", vertex.getId(), vertex.getVisibility().toString());
-        Visibility originalVertexVisibility = vertex.getVisibility();
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
 
         if (!visibilityJson.getWorkspaces().contains(workspaceId)) {
@@ -498,7 +486,7 @@ public abstract class WorkspaceRepository {
             OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName());
             checkNotNull(ontologyProperty, "Could not find ontology property " + property.getName());
             if (!ontologyProperty.getUserVisible() && !property.getName().equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
-                publishNewProperty(vertexElementMutation, property, workspaceId, user);
+                publishNewProperty(vertexElementMutation, property, workspaceId);
             }
         }
 
@@ -509,13 +497,6 @@ public abstract class WorkspaceRepository {
         VisalloProperties.VISIBILITY_JSON.setProperty(vertexElementMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
         vertexElementMutation.save(authorizations);
 
-        auditRepository.auditVertex(AuditAction.PUBLISH, vertex.getId(), "", "", user, visalloVisibility.getVisibility());
-
-        SimpleOrmContext simpleOrmContext = userRepository.getSimpleOrmContext(authorizations, VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
-        for (Audit row : auditRepository.findByIdStartsWith(vertex.getId(), simpleOrmContext)) {
-            auditRepository.updateColumnVisibility(row, originalVertexVisibility, visalloVisibility.getVisibility().getVisibilityString(), simpleOrmContext);
-        }
-
         for (Vertex termMention : termMentionRepository.findByVertexIdForVertex(vertex.getId(), authorizations)) {
             termMentionRepository.updateVisibility(termMention, visalloVisibility.getVisibility(), authorizations);
         }
@@ -524,7 +505,7 @@ public abstract class WorkspaceRepository {
         workQueueRepository.broadcastPublishVertex(vertex);
     }
 
-    private void publishProperty(Element element, ClientApiPublishItem.Action action, String key, String name, String workspaceId, User user, Authorizations authorizations) {
+    private void publishProperty(Element element, ClientApiPublishItem.Action action, String key, String name, String workspaceId, Authorizations authorizations) {
         if (action == ClientApiPublishItem.Action.delete) {
             element.softDeleteProperty(key, name, authorizations);
             graph.flush();
@@ -559,7 +540,7 @@ public abstract class WorkspaceRepository {
                 graph.flush();
                 workQueueRepository.broadcastPublishProperty(element, key, name);
                 foundProperty = true;
-            } else if (publishNewProperty(elementMutation, property, workspaceId, user)) {
+            } else if (publishNewProperty(elementMutation, property, workspaceId)) {
                 elementMutation.save(authorizations);
                 graph.flush();
                 workQueueRepository.broadcastPublishProperty(element, key, name);
@@ -583,7 +564,7 @@ public abstract class WorkspaceRepository {
         }
     }
 
-    private boolean publishNewProperty(ExistingElementMutation elementMutation, Property property, String workspaceId, User user) {
+    private boolean publishNewProperty(ExistingElementMutation elementMutation, Property property, String workspaceId) {
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata());
         if (visibilityJson == null) {
             LOGGER.debug("skipping property %s. no visibility json property", property.toString());
@@ -602,12 +583,17 @@ public abstract class WorkspaceRepository {
                 .alterPropertyVisibility(property, visalloVisibility.getVisibility())
                 .setPropertyMetadata(property, VisalloProperties.VISIBILITY_JSON.getPropertyName(), visibilityJson.toString(), visibilityTranslator.getDefaultVisibility());
 
-        auditRepository.auditEntityProperty(AuditAction.PUBLISH, elementMutation.getElement().getId(), property.getKey(),
-                property.getName(), property.getValue(), property.getValue(), "", "", property.getMetadata(), user, visalloVisibility.getVisibility());
         return true;
     }
 
-    private void publishEdge(Edge edge, Vertex sourceVertex, Vertex destVertex, ClientApiPublishItem.Action action, String workspaceId, User user, Authorizations authorizations) {
+    private void publishEdge(
+            Edge edge,
+            @SuppressWarnings("UnusedParameters") Vertex sourceVertex,
+            Vertex destVertex,
+            ClientApiPublishItem.Action action,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         if (action == ClientApiPublishItem.Action.delete || WorkspaceDiffHelper.isPublicDelete(edge, authorizations)) {
             graph.softDeleteEdge(edge, authorizations);
             graph.flush();
@@ -622,14 +608,13 @@ public abstract class WorkspaceRepository {
         }
 
         if (edge.getLabel().equals(entityHasImageIri)) {
-            publishGlyphIconProperty(edge, workspaceId, user, authorizations);
+            publishGlyphIconProperty(edge, workspaceId, authorizations);
         }
 
         edge.softDeleteProperty(ElementMutation.DEFAULT_KEY, VisalloProperties.VISIBILITY_JSON.getPropertyName(), authorizations);
         visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
         ExistingElementMutation<Edge> edgeExistingElementMutation = edge.prepareMutation();
-        Visibility originalEdgeVisibility = edge.getVisibility();
         edgeExistingElementMutation.alterElementVisibility(visalloVisibility.getVisibility());
 
         for (Property property : edge.getProperties()) {
@@ -642,23 +627,14 @@ public abstract class WorkspaceRepository {
                 userVisible = ontologyProperty.getUserVisible();
             }
             if (!userVisible && !property.getName().equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
-                publishNewProperty(edgeExistingElementMutation, property, workspaceId, user);
+                publishNewProperty(edgeExistingElementMutation, property, workspaceId);
             }
         }
-
-        auditRepository.auditEdgeElementMutation(AuditAction.PUBLISH, edgeExistingElementMutation, edge, sourceVertex, destVertex, "", user, visalloVisibility.getVisibility());
 
         Metadata metadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
         VisalloProperties.VISIBILITY_JSON.setProperty(edgeExistingElementMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
         edge = edgeExistingElementMutation.save(authorizations);
-
-        auditRepository.auditRelationship(AuditAction.PUBLISH, sourceVertex, destVertex, edge, "", "", user, edge.getVisibility());
-
-        SimpleOrmContext simpleOrmContext = userRepository.getSimpleOrmContext(authorizations, VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
-        for (Audit row : auditRepository.findByIdStartsWith(edge.getId(), simpleOrmContext)) {
-            auditRepository.updateColumnVisibility(row, originalEdgeVisibility, visalloVisibility.getVisibility().getVisibilityString(), simpleOrmContext);
-        }
 
         for (Vertex termMention : termMentionRepository.findResolvedTo(destVertex.getId(), authorizations)) {
             termMentionRepository.updateVisibility(termMention, visalloVisibility.getVisibility(), authorizations);
@@ -672,13 +648,13 @@ public abstract class WorkspaceRepository {
         workQueueRepository.broadcastPublishEdge(edge);
     }
 
-    private void publishGlyphIconProperty(Edge hasImageEdge, String workspaceId, User user, Authorizations authorizations) {
+    private void publishGlyphIconProperty(Edge hasImageEdge, String workspaceId, Authorizations authorizations) {
         Vertex entityVertex = hasImageEdge.getVertex(Direction.OUT, authorizations);
         checkNotNull(entityVertex, "Could not find has image source vertex " + hasImageEdge.getVertexId(Direction.OUT));
         ExistingElementMutation elementMutation = entityVertex.prepareMutation();
         Iterable<Property> glyphIconProperties = entityVertex.getProperties(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName());
         for (Property glyphIconProperty : glyphIconProperties) {
-            if (publishNewProperty(elementMutation, glyphIconProperty, workspaceId, user)) {
+            if (publishNewProperty(elementMutation, glyphIconProperty, workspaceId)) {
                 elementMutation.save(authorizations);
                 return;
             }

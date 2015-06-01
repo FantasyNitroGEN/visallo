@@ -15,7 +15,6 @@ import org.vertexium.util.VerticesToEdgeIdsIterable;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.formula.FormulaEvaluator;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -86,7 +85,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             final VisibilityTranslator visibilityTranslator,
             final TermMentionRepository termMentionRepository,
             final OntologyRepository ontologyRepository,
-            final AuditRepository auditRepository,
             final WorkQueueRepository workQueueRepository
     ) {
         super(
@@ -94,8 +92,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 visibilityTranslator,
                 termMentionRepository,
                 ontologyRepository,
-                auditRepository,
-                userRepository,
                 workQueueRepository
         );
         this.userRepository = userRepository;

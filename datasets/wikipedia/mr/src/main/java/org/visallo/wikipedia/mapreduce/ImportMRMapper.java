@@ -1,24 +1,5 @@
 package org.visallo.wikipedia.mapreduce;
 
-import com.google.inject.Inject;
-import com.v5analytics.simpleorm.AccumuloSimpleOrmSession;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.config.HashMapConfigurationLoader;
-import org.visallo.vertexium.mapreduce.VisalloElementMapperBase;
-import org.visallo.core.model.audit.Audit;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.SimpleOrmAuditRepository;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.termMention.TermMentionBuilder;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.security.DirectVisibilityTranslator;
-import org.visallo.core.security.VisibilityTranslator;
-import org.visallo.core.user.SystemUser;
-import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.VisibilityJson;
-import org.visallo.wikipedia.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -39,17 +20,24 @@ import org.sweble.wikitext.engine.utils.DefaultConfigEnWp;
 import org.sweble.wikitext.parser.parser.LinkTargetException;
 import org.vertexium.*;
 import org.vertexium.accumulo.AccumuloAuthorizations;
-import org.vertexium.accumulo.mapreduce.VertexiumMRUtils;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.JoinIterable;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.termMention.TermMentionBuilder;
+import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.vertexium.mapreduce.VisalloElementMapperBase;
+import org.visallo.web.clientapi.model.VisibilityJson;
+import org.visallo.wikipedia.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImportMRMapper.class);
@@ -68,17 +56,12 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
     private Authorizations authorizations;
     private WikiConfigImpl config;
     private WtEngineImpl compiler;
-    private User user;
-    private SimpleOrmAuditRepository auditRepository;
-    private UserRepository userRepository;
     private String sourceFileName;
     private Counter pagesProcessedCounter;
-    private Text auditTableNameText;
     private Counter pagesSkippedCounter;
     private VisibilityJson visibilityJson;
     private VisibilityTranslator visibilityTranslator;
     private Visibility defaultVisibility;
-    private AccumuloSimpleOrmSession simpleOrmSession;
 
     public ImportMRMapper() {
         this.textXPath = XPathFactory.instance().compile(TEXT_XPATH, Filters.text());
@@ -89,16 +72,11 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
         super.setup(context);
-        Map configurationMap = VertexiumMRUtils.toMap(context.getConfiguration());
         this.visibilityTranslator = new DirectVisibilityTranslator();
         this.visibility = this.visibilityTranslator.getDefaultVisibility();
         this.defaultVisibility = this.visibilityTranslator.getDefaultVisibility();
         this.visibilityJson = new VisibilityJson();
         this.authorizations = new AccumuloAuthorizations();
-        this.user = new SystemUser(null);
-        this.simpleOrmSession = new AccumuloSimpleOrmSession(configurationMap);
-        Configuration configuration = new HashMapConfigurationLoader(configurationMap).createConfiguration();
-        this.auditRepository = new SimpleOrmAuditRepository(null, configuration, null, userRepository);
         this.sourceFileName = context.getConfiguration().get(CONFIG_SOURCE_FILE_NAME);
 
         try {
@@ -110,7 +88,6 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
 
         pagesProcessedCounter = context.getCounter(WikipediaImportCounters.PAGES_PROCESSED);
         pagesSkippedCounter = context.getCounter(WikipediaImportCounters.PAGES_SKIPPED);
-        auditTableNameText = new Text(simpleOrmSession.getTableName(Audit.class));
     }
 
     @Override
@@ -149,7 +126,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
 
         String multiKey = ImportMR.MULTI_VALUE_KEY + '#' + parsePage.getPageTitle();
 
-        Vertex pageVertex = savePage(context, wikipediaPageVertexId, parsePage, pageString, multiKey);
+        Vertex pageVertex = savePage(wikipediaPageVertexId, parsePage, pageString, multiKey);
         context.progress();
 
         savePageLinks(context, pageVertex, textConverter, multiKey);
@@ -162,7 +139,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
         return lowerCaseTitle.startsWith("wikipedia:");
     }
 
-    private Vertex savePage(Context context, String wikipediaPageVertexId, ParsePage parsePage, String pageString, String multiKey) throws IOException, InterruptedException {
+    private Vertex savePage(String wikipediaPageVertexId, ParsePage parsePage, String pageString, String multiKey) throws IOException, InterruptedException {
         boolean isRedirect = parsePage.getWikitext().startsWith("REDIRECT:");
 
         StreamingPropertyValue rawPropertyValue = new StreamingPropertyValue(new ByteArrayInputStream(pageString.getBytes()), byte[].class);
@@ -202,10 +179,6 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
         }
 
         Vertex pageVertex = pageVertexBuilder.save(authorizations);
-
-        // audit vertex
-        Audit audit = auditRepository.createAudit(AuditAction.CREATE, pageVertex.getId(), "Wikipedia MR", "", user);
-        context.write(auditTableNameText, this.simpleOrmSession.getMutationForObject(audit, visibility.getVisibilityString()));
 
         // because save above will cause the StreamingPropertyValue to be read we need to reset the position to 0 for search indexing
         rawPropertyValue.getInputStream().reset();
@@ -282,11 +255,6 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
                     }
                 }
         );
-    }
-
-    @Inject
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 
     private class ParsePage {

@@ -2,6 +2,10 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -9,16 +13,12 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.routes.workspace.WorkspaceHelper;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -80,7 +80,7 @@ public class VertexDeleteProperty extends BaseRequestHandler {
         for (int i = 0; i < sandboxStatuses.length; i++) {
             boolean propertyIsPublic = (sandboxStatuses[i] == SandboxStatus.PUBLIC);
             Property property = properties.get(i);
-            workspaceHelper.deleteProperty(graphVertex, property, propertyIsPublic, workspaceId, user, Priority.HIGH, authorizations);
+            workspaceHelper.deleteProperty(graphVertex, property, propertyIsPublic, workspaceId, Priority.HIGH, authorizations);
         }
 
         respondWithSuccessJson(response);

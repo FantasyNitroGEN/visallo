@@ -1,17 +1,16 @@
 package org.visallo.core.ingest.graphProperty;
 
-import org.visallo.core.bootstrap.InjectHelper;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.VisibilityJson;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -66,10 +65,7 @@ public abstract class MimeTypeGraphPropertyWorker extends GraphPropertyWorker {
         }
         VisalloProperties.MIME_TYPE.addPropertyValue(m, getMultiKey(data.getProperty()), mimeType, mimeTypeMetadata, data.getVisibility());
         m.setPropertyMetadata(data.getProperty(), VisalloProperties.MIME_TYPE.getPropertyName(), mimeType, getVisibilityTranslator().getDefaultVisibility());
-        Vertex v = m.save(getAuthorizations());
-        getAuditRepository().auditVertexElementMutation(AuditAction.UPDATE, m, v, this.getClass().getName(), getUser(), data.getVisibility());
-        getAuditRepository().auditAnalyzedBy(AuditAction.ANALYZED_BY, v, getClass().getSimpleName(), getUser(), v.getVisibility());
-
+        m.save(getAuthorizations());
         getGraph().flush();
 
         runPostMimeTypeWorkers(mimeType, data);

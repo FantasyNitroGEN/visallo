@@ -3,16 +3,6 @@ package org.visallo.tikaTextExtractor;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import de.l3s.boilerpipe.extractors.NumWordsRulesExtractor;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.types.LongVisalloProperty;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
@@ -21,8 +11,8 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.CompositeParser;
 import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.pdf.VisalloParserConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig;
+import org.apache.tika.parser.pdf.VisalloParserConfig;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.SecureContentHandler;
 import org.json.JSONException;
@@ -32,6 +22,15 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.LongVisalloProperty;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -149,9 +148,9 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
                 StreamingPropertyValue textValue = new StreamingPropertyValue(new ByteArrayInputStream(text.getBytes(charset)), String.class);
                 VisalloProperties.TEXT.addPropertyValue(m, MULTI_VALUE_KEY, textValue, textMetadata, data.getVisibility());
 
-                Date lastupdate = GenericDateExtractor
+                Date lastUpdate = GenericDateExtractor
                         .extractSingleDate(customImageMetadataJson.get("lastupdate").toString());
-                VisalloProperties.MODIFIED_DATE.setProperty(m, lastupdate, data.createPropertyMetadata(), data.getVisibility());
+                VisalloProperties.MODIFIED_DATE.setProperty(m, lastUpdate, data.createPropertyMetadata(), data.getVisibility());
 
                 // TODO set("retrievalTime", Long.parseLong(customImageMetadataJson.get("atc:retrieval-timestamp").toString()));
 
@@ -166,7 +165,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             VisalloProperties.TEXT.addPropertyValue(m, MULTI_VALUE_KEY, textValue, textMetadata, data.getVisibility());
 
             VisalloProperties.MODIFIED_DATE.setProperty(m, extractDate(metadata), data.createPropertyMetadata(), data.getVisibility());
-            String title = extractTextField(metadata, subjectKeys).trim();
+            String title = extractTextField(metadata, subjectKeys);
             if (title != null && title.length() > 0) {
                 org.vertexium.Metadata titleMetadata = data.createPropertyMetadata();
                 VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, getVisibilityTranslator().getDefaultVisibility());
@@ -185,9 +184,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             }
         }
 
-        Vertex v = m.save(getAuthorizations());
-        getAuditRepository().auditVertexElementMutation(AuditAction.UPDATE, m, v, MULTI_VALUE_KEY, getUser(), data.getVisibility());
-        getAuditRepository().auditAnalyzedBy(AuditAction.ANALYZED_BY, v, getClass().getSimpleName(), getUser(), v.getVisibility());
+        m.save(getAuthorizations());
 
         getGraph().flush();
         getWorkQueueRepository().pushGraphPropertyQueue(
@@ -321,6 +318,9 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             field = metadata.get(fieldKey);
         }
 
+        if (field != null) {
+            field = field.trim();
+        }
         return field;
     }
 

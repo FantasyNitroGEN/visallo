@@ -2,10 +2,10 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.ArtifactDetectedObject;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -26,8 +26,6 @@ import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.*;
-import org.vertexium.mutation.ElementMutation;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +35,6 @@ public class ResolveDetectedObject extends BaseRequestHandler {
     private static final String MULTI_VALUE_KEY_PREFIX = ResolveDetectedObject.class.getName();
     private static final String MULTI_VALUE_KEY = ResolveDetectedObject.class.getName();
     private final Graph graph;
-    private final AuditRepository auditRepository;
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;
     private final VisibilityTranslator visibilityTranslator;
@@ -48,7 +45,6 @@ public class ResolveDetectedObject extends BaseRequestHandler {
     @Inject
     public ResolveDetectedObject(
             final Graph graph,
-            final AuditRepository auditRepository,
             final OntologyRepository ontologyRepository,
             final UserRepository userRepository,
             final Configuration configuration,
@@ -59,7 +55,6 @@ public class ResolveDetectedObject extends BaseRequestHandler {
     ) {
         super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
-        this.auditRepository = auditRepository;
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
         this.visibilityTranslator = visibilityTranslator;
@@ -121,13 +116,11 @@ public class ResolveDetectedObject extends BaseRequestHandler {
             VisalloProperties.TITLE.addPropertyValue(resolvedVertexMutation, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
 
             resolvedVertex = resolvedVertexMutation.save(authorizations);
-            auditRepository.auditVertexElementMutation(AuditAction.UPDATE, resolvedVertexMutation, resolvedVertex, "", user, visalloVisibility.getVisibility());
             ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
             termMentionRepository.addJustification(resolvedVertex, justificationText, sourceInfo, visalloVisibility, authorizations);
 
             resolvedVertex = resolvedVertexMutation.save(authorizations);
 
-            auditRepository.auditVertexElementMutation(AuditAction.UPDATE, resolvedVertexMutation, resolvedVertex, "", user, visalloVisibility.getVisibility());
             VisalloProperties.VISIBILITY_JSON.setProperty(resolvedVertexMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
 
             graph.flush();
@@ -140,7 +133,6 @@ public class ResolveDetectedObject extends BaseRequestHandler {
 
         Edge edge = graph.addEdge(artifactVertex, resolvedVertex, artifactContainsImageOfEntityIri, visalloVisibility.getVisibility(), authorizations);
         VisalloProperties.VISIBILITY_JSON.setProperty(edge, visibilityJson, metadata, visalloVisibility.getVisibility(), authorizations);
-        auditRepository.auditRelationship(AuditAction.CREATE, artifactVertex, resolvedVertex, edge, "", "", user, visalloVisibility.getVisibility());
 
         ArtifactDetectedObject artifactDetectedObject = new ArtifactDetectedObject(
                 x1,

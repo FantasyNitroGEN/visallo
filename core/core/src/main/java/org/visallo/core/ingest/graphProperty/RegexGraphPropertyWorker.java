@@ -2,15 +2,14 @@ package org.visallo.core.ingest.graphProperty;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
-import org.visallo.core.model.audit.AuditAction;
+import org.vertexium.Element;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionBuilder;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.vertexium.Element;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -64,7 +63,6 @@ public abstract class RegexGraphPropertyWorker extends GraphPropertyWorker {
             termMentions.add(termMention);
         }
         applyTermMentionFilters(sourceVertex, termMentions);
-        getAuditRepository().auditAnalyzedBy(AuditAction.ANALYZED_BY, sourceVertex, getClass().getSimpleName(), getUser(), sourceVertex.getVisibility());
         pushTextUpdated(data);
     }
 

@@ -2,19 +2,19 @@ package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.routes.workspace.WorkspaceHelper;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -65,7 +65,7 @@ public class EdgeDelete extends BaseRequestHandler {
 
         boolean isPublicEdge = sandboxStatus == SandboxStatus.PUBLIC;
 
-        workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, isPublicEdge, Priority.HIGH, user, authorizations);
+        workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, isPublicEdge, Priority.HIGH, authorizations);
         respondWithSuccessJson(response);
     }
 }

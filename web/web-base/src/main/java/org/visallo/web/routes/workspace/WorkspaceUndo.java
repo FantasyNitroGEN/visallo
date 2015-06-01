@@ -3,6 +3,9 @@ package org.visallo.web.routes.workspace;
 import com.google.common.base.Joiner;
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.json.JSONArray;
+import org.vertexium.*;
+import org.vertexium.util.IterableUtils;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.UserRepository;
@@ -11,13 +14,10 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
 import org.visallo.core.user.User;
+import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BaseRequestHandler;
-import org.json.JSONArray;
-import org.vertexium.*;
-import org.vertexium.util.IterableUtils;
 import org.visallo.web.clientapi.model.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -79,8 +79,8 @@ public class WorkspaceUndo extends BaseRequestHandler {
         LOGGER.debug("undoing:\n%s", Joiner.on("\n").join(undoData));
         ClientApiWorkspaceUndoResponse workspaceUndoResponse = new ClientApiWorkspaceUndoResponse();
         undoVertices(undoData, workspaceUndoResponse, workspaceId, Priority.HIGH, user, authorizations);
-        undoEdges(undoData, workspaceUndoResponse, workspaceId, Priority.HIGH, user, authorizations);
-        undoProperties(undoData, workspaceUndoResponse, workspaceId, user, authorizations);
+        undoEdges(undoData, workspaceUndoResponse, workspaceId, Priority.HIGH, authorizations);
+        undoProperties(undoData, workspaceUndoResponse, workspaceId, authorizations);
         LOGGER.debug("undoing results: %s", workspaceUndoResponse);
         respondWithClientApiObject(response, workspaceUndoResponse);
     }
@@ -128,7 +128,7 @@ public class WorkspaceUndo extends BaseRequestHandler {
         graph.flush();
     }
 
-    private void undoEdges(ClientApiUndoItem[] undoItem, ClientApiWorkspaceUndoResponse workspaceUndoResponse, String workspaceId, Priority priority, User user, Authorizations authorizations) {
+    private void undoEdges(ClientApiUndoItem[] undoItem, ClientApiWorkspaceUndoResponse workspaceUndoResponse, String workspaceId, Priority priority, Authorizations authorizations) {
         LOGGER.debug("BEGIN undoEdges");
         for (ClientApiUndoItem data : undoItem) {
             try {
@@ -161,7 +161,7 @@ public class WorkspaceUndo extends BaseRequestHandler {
                     data.setErrorMessage(error_msg);
                     workspaceUndoResponse.addFailure(data);
                 } else {
-                    workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, false, priority, user, authorizations);
+                    workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, false, priority, authorizations);
                     graph.flush();
                     workQueueRepository.broadcastUndoEdge(edge);
                 }
@@ -175,7 +175,7 @@ public class WorkspaceUndo extends BaseRequestHandler {
         graph.flush();
     }
 
-    private void undoProperties(ClientApiUndoItem[] undoItem, ClientApiWorkspaceUndoResponse workspaceUndoResponse, String workspaceId, User user, Authorizations authorizations) {
+    private void undoProperties(ClientApiUndoItem[] undoItem, ClientApiWorkspaceUndoResponse workspaceUndoResponse, String workspaceId, Authorizations authorizations) {
         LOGGER.debug("BEGIN undoProperties");
         for (ClientApiUndoItem data : undoItem) {
             try {
@@ -223,7 +223,7 @@ public class WorkspaceUndo extends BaseRequestHandler {
                         graph.flush();
                         workQueueRepository.broadcastUndoPropertyDelete(vertex, propertyKey, propertyName);
                     } else {
-                        workspaceHelper.deleteProperty(vertex, property, false, workspaceId, user, Priority.HIGH, authorizations);
+                        workspaceHelper.deleteProperty(vertex, property, false, workspaceId, Priority.HIGH, authorizations);
                         graph.flush();
                         workQueueRepository.broadcastUndoProperty(vertex, propertyKey, propertyName);
                     }

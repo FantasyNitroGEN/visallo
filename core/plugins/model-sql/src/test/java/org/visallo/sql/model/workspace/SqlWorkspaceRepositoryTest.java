@@ -16,7 +16,6 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -73,9 +72,6 @@ public class SqlWorkspaceRepositoryTest {
     @Mock
     private OntologyRepository ontologyRepository;
 
-    @Mock
-    private AuditRepository auditRepository;
-
     @Before
     public void setUp() throws Exception {
         InMemoryGraph graph = InMemoryGraph.create();
@@ -102,7 +98,6 @@ public class SqlWorkspaceRepositoryTest {
                 visibilityTranslator,
                 termMentionRepository,
                 ontologyRepository,
-                auditRepository,
                 workQueueRepository
         );
         testUser = (SqlUser) sqlUserRepository.addUser("123", "user 1", null, null, new String[0]);

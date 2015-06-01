@@ -2,11 +2,12 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.graph.GraphRepository;
-import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -14,15 +15,11 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiElement;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
-import org.vertexium.Visibility;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,7 +28,6 @@ public class VertexSetVisibility extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSetVisibility.class);
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
-    private final AuditRepository auditRepository;
     private final GraphRepository graphRepository;
 
     @Inject
@@ -41,13 +37,11 @@ public class VertexSetVisibility extends BaseRequestHandler {
             final Configuration configuration,
             final WorkspaceRepository workspaceRepository,
             final WorkQueueRepository workQueueRepository,
-            final AuditRepository auditRepository,
             final GraphRepository graphRepository
     ) {
         super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
-        this.auditRepository = auditRepository;
         this.graphRepository = graphRepository;
     }
 
@@ -67,11 +61,11 @@ public class VertexSetVisibility extends BaseRequestHandler {
             return;
         }
 
-        ClientApiElement element = handle(graphVertexId, visibilitySource, workspaceId, user, authorizations);
+        ClientApiElement element = handle(graphVertexId, visibilitySource, workspaceId, authorizations);
         respondWithClientApiObject(response, element);
     }
 
-    private ClientApiElement handle(String graphVertexId, String visibilitySource, String workspaceId, User user, Authorizations authorizations) {
+    private ClientApiElement handle(String graphVertexId, String visibilitySource, String workspaceId, Authorizations authorizations) {
         Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
         if (graphVertex == null) {
             return null;
@@ -79,14 +73,13 @@ public class VertexSetVisibility extends BaseRequestHandler {
 
         LOGGER.info("changing vertex (%s) visibility source to %s", graphVertex.getId(), visibilitySource);
 
-        VisibilityAndElementMutation<Vertex> setPropertyResult = graphRepository.updateElementVisibilitySource(
+        graphRepository.updateElementVisibilitySource(
                 graphVertex,
                 SandboxStatusUtil.getSandboxStatus(graphVertex, workspaceId),
                 visibilitySource,
                 workspaceId,
                 authorizations
         );
-        auditRepository.auditVertexElementMutation(AuditAction.UPDATE, setPropertyResult.elementMutation, graphVertex, "", user, setPropertyResult.visibility.getVisibility());
 
         this.graph.flush();
 

@@ -2,10 +2,9 @@ package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -17,13 +16,12 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +31,6 @@ public class SetEdgeProperty extends BaseRequestHandler {
 
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
-    private final AuditRepository auditRepository;
     private VisibilityTranslator visibilityTranslator;
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
@@ -42,7 +39,6 @@ public class SetEdgeProperty extends BaseRequestHandler {
     public SetEdgeProperty(
             final OntologyRepository ontologyRepository,
             final Graph graph,
-            final AuditRepository auditRepository,
             final VisibilityTranslator visibilityTranslator,
             final UserRepository userRepository,
             final Configuration configuration,
@@ -53,7 +49,6 @@ public class SetEdgeProperty extends BaseRequestHandler {
         super(userRepository, workspaceRepository, configuration);
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
-        this.auditRepository = auditRepository;
         this.visibilityTranslator = visibilityTranslator;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
@@ -108,7 +103,6 @@ public class SetEdgeProperty extends BaseRequestHandler {
             return;
         }
         Edge edge = graph.getEdge(edgeId, authorizations);
-        Object oldValue = edge.getPropertyValue(propertyName, 0);
         VisibilityAndElementMutation<Edge> setPropertyResult = graphRepository.setProperty(
                 edge,
                 propertyName,
@@ -123,13 +117,6 @@ public class SetEdgeProperty extends BaseRequestHandler {
                 authorizations
         );
         setPropertyResult.elementMutation.save(authorizations);
-
-        String sourceId = edge.getVertexId(Direction.OUT);
-        String destId = edge.getVertexId(Direction.IN);
-
-        // TODO: replace "" when we implement commenting on ui
-        auditRepository.auditRelationshipProperty(AuditAction.DELETE, sourceId, destId, propertyKey, propertyName, oldValue, null, edge, "", "",
-                user, setPropertyResult.visibility.getVisibility());
 
         this.workQueueRepository.pushGraphPropertyQueue(edge, null, propertyName, workspaceId, visibilitySource, Priority.HIGH);
 

@@ -1,20 +1,21 @@
 package org.visallo.ccextractor;
 
 import com.google.inject.Inject;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.video.VideoTranscript;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.util.ProcessRunner;
-import org.visallo.gpw.video.SubRip;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.video.VideoTranscript;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.ProcessRunner;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.gpw.video.SubRip;
 
 import java.io.File;
 import java.io.InputStream;
@@ -22,6 +23,7 @@ import java.io.InputStream;
 @Name("CC Extractor")
 @Description("Extracts close captioning from a video file")
 public class CCExtractorGraphPropertyWorker extends GraphPropertyWorker {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(CCExtractorGraphPropertyWorker.class);
     private static final String PROPERTY_KEY = CCExtractorGraphPropertyWorker.class.getName();
     private ProcessRunner processRunner;
 
@@ -50,14 +52,14 @@ public class CCExtractorGraphPropertyWorker extends GraphPropertyWorker {
             Metadata metadata = data.createPropertyMetadata();
             VisalloProperties.TEXT_DESCRIPTION_METADATA.setMetadata(metadata, "Close Caption", getVisibilityTranslator().getDefaultVisibility());
             addVideoTranscriptAsTextPropertiesToMutation(m, PROPERTY_KEY, videoTranscript, metadata, data.getVisibility());
-            Vertex v = m.save(getAuthorizations());
-            getAuditRepository().auditVertexElementMutation(AuditAction.UPDATE, m, v, PROPERTY_KEY, getUser(), data.getVisibility());
-            getAuditRepository().auditAnalyzedBy(AuditAction.ANALYZED_BY, v, getClass().getSimpleName(), getUser(), data.getVisibility());
+            m.save(getAuthorizations());
 
             getGraph().flush();
             pushVideoTranscriptTextPropertiesOnWorkQueue(data.getElement(), PROPERTY_KEY, videoTranscript, data.getPriority());
         } finally {
-            ccFile.delete();
+            if (!ccFile.delete()) {
+                LOGGER.warn("Could not delete cc file: %s", ccFile.getAbsolutePath());
+            }
         }
     }
 

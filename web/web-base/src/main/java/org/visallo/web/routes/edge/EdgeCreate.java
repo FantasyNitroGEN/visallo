@@ -2,9 +2,8 @@ package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -18,7 +17,6 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,14 +25,12 @@ public class EdgeCreate extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EdgeCreate.class);
 
     private final Graph graph;
-    private final AuditRepository auditRepository;
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
 
     @Inject
     public EdgeCreate(
             final Graph graph,
-            final AuditRepository auditRepository,
             final WorkspaceRepository workspaceRepository,
             final WorkQueueRepository workQueueRepository,
             final UserRepository userRepository,
@@ -43,7 +39,6 @@ public class EdgeCreate extends BaseRequestHandler {
     ) {
         super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
-        this.auditRepository = auditRepository;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
     }
@@ -82,10 +77,6 @@ public class EdgeCreate extends BaseRequestHandler {
                 user,
                 authorizations
         );
-
-        // TODO: replace second "" when we implement commenting on ui
-        auditRepository.auditRelationship(AuditAction.CREATE, sourceVertex, destVertex, edge, "", "",
-                user, edge.getVisibility());
 
         graph.flush();
 

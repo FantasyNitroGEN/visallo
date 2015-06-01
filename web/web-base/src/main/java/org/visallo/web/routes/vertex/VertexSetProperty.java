@@ -5,8 +5,6 @@ import com.v5analytics.webster.HandlerChain;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -38,7 +36,6 @@ public class VertexSetProperty extends BaseRequestHandler {
 
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
-    private final AuditRepository auditRepository;
     private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -48,7 +45,6 @@ public class VertexSetProperty extends BaseRequestHandler {
     public VertexSetProperty(
             final OntologyRepository ontologyRepository,
             final Graph graph,
-            final AuditRepository auditRepository,
             final VisibilityTranslator visibilityTranslator,
             final UserRepository userRepository,
             final Configuration configuration,
@@ -59,7 +55,6 @@ public class VertexSetProperty extends BaseRequestHandler {
         super(userRepository, workspaceRepository, configuration);
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
-        this.auditRepository = auditRepository;
         this.visibilityTranslator = visibilityTranslator;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
@@ -143,7 +138,8 @@ public class VertexSetProperty extends BaseRequestHandler {
             String visibilitySource,
             User user,
             String workspaceId,
-            Authorizations authorizations) {
+            Authorizations authorizations
+    ) {
         if (propertyKey == null) {
             propertyKey = this.graph.getIdGenerator().nextId();
         }
@@ -225,7 +221,6 @@ public class VertexSetProperty extends BaseRequestHandler {
                 user,
                 authorizations
         );
-        auditRepository.auditVertexElementMutation(AuditAction.UPDATE, setPropertyResult.elementMutation, graphVertex, "", user, setPropertyResult.visibility.getVisibility());
         graphVertex = setPropertyResult.elementMutation.save(authorizations);
         graph.flush();
 

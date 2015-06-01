@@ -1,19 +1,6 @@
 package org.visallo.opencvObjectDetector;
 
 import com.google.inject.Inject;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.ingest.ArtifactDetectedObject;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -26,6 +13,18 @@ import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.ingest.ArtifactDetectedObject;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -123,8 +122,6 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
     }
 
     private void saveDetectedObjects(Vertex artifactVertex, Metadata metadata, List<ArtifactDetectedObject> detectedObjects, Priority priority) {
-        getAuditRepository().auditAnalyzedBy(AuditAction.ANALYZED_BY, artifactVertex,
-                getClass().getSimpleName(), getUser(), artifactVertex.getVisibility());
         List<String> propertyKeys = new ArrayList<>();
         for (ArtifactDetectedObject detectedObject : detectedObjects) {
             propertyKeys.add(saveDetectedObject(artifactVertex, metadata, detectedObject));

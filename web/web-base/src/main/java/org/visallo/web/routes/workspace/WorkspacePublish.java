@@ -39,7 +39,7 @@ public class WorkspacePublish extends BaseRequestHandler {
         String workspaceId = getActiveWorkspaceId(request);
 
         LOGGER.debug("publishing:\n%s", Joiner.on("\n").join(publishData));
-        ClientApiWorkspacePublishResponse workspacePublishResponse = getWorkspaceRepository().publish(publishData, workspaceId, user, authorizations);
+        ClientApiWorkspacePublishResponse workspacePublishResponse = getWorkspaceRepository().publish(publishData, workspaceId, authorizations);
 
         LOGGER.debug("publishing results: %s", workspacePublishResponse);
         respondWithClientApiObject(response, workspacePublishResponse);

@@ -2,15 +2,14 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.PropertyJustificationMetadata;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionBuilder;
-import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -25,8 +24,6 @@ import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.*;
-import org.vertexium.mutation.ElementMutation;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +32,6 @@ public class ResolveTermEntity extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ResolveTermEntity.class);
     private static final String MULTI_VALUE_KEY = ResolveTermEntity.class.getName();
     private final Graph graph;
-    private final AuditRepository auditRepository;
     private final OntologyRepository ontologyRepository;
     private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceRepository workspaceRepository;
@@ -45,17 +41,14 @@ public class ResolveTermEntity extends BaseRequestHandler {
     @Inject
     public ResolveTermEntity(
             final Graph graphRepository,
-            final AuditRepository auditRepository,
             final OntologyRepository ontologyRepository,
             final UserRepository userRepository,
             final VisibilityTranslator visibilityTranslator,
             final Configuration configuration,
-            final TermMentionRepository termMentionRepository,
             final WorkspaceRepository workspaceRepository,
             final WorkQueueRepository workQueueRepository) {
         super(userRepository, workspaceRepository, configuration);
         this.graph = graphRepository;
-        this.auditRepository = auditRepository;
         this.ontologyRepository = ontologyRepository;
         this.visibilityTranslator = visibilityTranslator;
         this.workspaceRepository = workspaceRepository;
@@ -122,8 +115,6 @@ public class ResolveTermEntity extends BaseRequestHandler {
                 VisalloProperties.JUSTIFICATION.setProperty(vertex, propertyJustificationMetadata, visalloVisibility.getVisibility(), authorizations);
             }
 
-            auditRepository.auditVertexElementMutation(AuditAction.UPDATE, vertexMutation, vertex, "", user, visalloVisibility.getVisibility());
-
             VisalloProperties.VISIBILITY_JSON.setProperty(vertexMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
 
             this.graph.flush();
@@ -134,8 +125,6 @@ public class ResolveTermEntity extends BaseRequestHandler {
         // TODO: a better way to check if the same edge exists instead of looking it up every time?
         Edge edge = graph.addEdge(artifactVertex, vertex, this.artifactHasEntityIri, visalloVisibility.getVisibility(), authorizations);
         VisalloProperties.VISIBILITY_JSON.setProperty(edge, visibilityJson, metadata, visalloVisibility.getVisibility(), authorizations);
-
-        auditRepository.auditRelationship(AuditAction.CREATE, artifactVertex, vertex, edge, "", "", user, visalloVisibility.getVisibility());
 
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
         new TermMentionBuilder()

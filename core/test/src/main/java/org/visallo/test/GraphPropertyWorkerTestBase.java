@@ -23,8 +23,6 @@ import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
 import org.visallo.core.ingest.graphProperty.TermMentionFilter;
 import org.visallo.core.model.WorkQueueNames;
-import org.visallo.core.model.audit.AuditRepository;
-import org.visallo.core.model.audit.MockAuditRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
@@ -46,7 +44,6 @@ public abstract class GraphPropertyWorkerTestBase {
     private HashMap<String, String> configurationMap;
     private GraphPropertyWorkerPrepareData graphPropertyWorkerPrepareData;
     private User user;
-    private AuditRepository auditRepository;
     private WorkQueueNames workQueueNames;
     private WorkQueueRepository workQueueRepository;
     private VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
@@ -66,7 +63,6 @@ public abstract class GraphPropertyWorkerTestBase {
         configurationMap = null;
         graphPropertyWorkerPrepareData = null;
         user = null;
-        auditRepository = null;
         workQueueRepository = null;
         System.setProperty(ConfigurationLoader.ENV_CONFIGURATION_LOADER, HashMapConfigurationLoader.class.getName());
         workQueueNames = new WorkQueueNames(getConfiguration());
@@ -174,7 +170,6 @@ public abstract class GraphPropertyWorkerTestBase {
     protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, String workspaceId, String visibilitySource) {
         try {
             gpw.setConfiguration(getConfiguration());
-            gpw.setAuditRepository(getAuditRepository());
             gpw.setGraph(getGraph());
             gpw.setVisibilityTranslator(getVisibilityTranslator());
             gpw.setWorkQueueRepository(getWorkQueueRepository());
@@ -223,13 +218,6 @@ public abstract class GraphPropertyWorkerTestBase {
 
     protected List<JSONObject> getGraphPropertyQueue() {
         return InMemoryWorkQueueRepository.getQueue(workQueueNames.getGraphPropertyQueueName());
-    }
-
-    protected AuditRepository getAuditRepository() {
-        if (auditRepository == null) {
-            auditRepository = new MockAuditRepository();
-        }
-        return auditRepository;
     }
 
     protected VisibilityTranslator getVisibilityTranslator() {

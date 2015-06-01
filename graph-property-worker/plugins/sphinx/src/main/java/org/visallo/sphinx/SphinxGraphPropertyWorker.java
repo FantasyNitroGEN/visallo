@@ -1,19 +1,20 @@
 package org.visallo.sphinx;
 
 import com.google.inject.Inject;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.video.VideoTranscript;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.util.ProcessRunner;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.video.VideoTranscript;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.ProcessRunner;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -25,6 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Name("Sphinx")
 @Description("Uses Sphinx to extract audio transcripts")
 public class SphinxGraphPropertyWorker extends GraphPropertyWorker {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SphinxGraphPropertyWorker.class);
     private static final long BYTES_PER_SAMPLE = 2;
     private static final long SAMPLES_PER_SECOND = 16000;
     public static final String MULTI_VALUE_KEY = SphinxGraphPropertyWorker.class.getName();
@@ -41,9 +43,7 @@ public class SphinxGraphPropertyWorker extends GraphPropertyWorker {
         Metadata metadata = data.createPropertyMetadata();
         VisalloProperties.TEXT_DESCRIPTION_METADATA.setMetadata(metadata, "Audio Transcript", getVisibilityTranslator().getDefaultVisibility());
         addVideoTranscriptAsTextPropertiesToMutation(m, MULTI_VALUE_KEY, transcript, metadata, data.getVisibility());
-        Vertex v = m.save(getAuthorizations());
-        getAuditRepository().auditVertexElementMutation(AuditAction.UPDATE, m, v, MULTI_VALUE_KEY, getUser(), data.getVisibility());
-        getAuditRepository().auditAnalyzedBy(AuditAction.ANALYZED_BY, v, getClass().getSimpleName(), getUser(), v.getVisibility());
+        m.save(getAuthorizations());
 
         getGraph().flush();
         pushVideoTranscriptTextPropertiesOnWorkQueue(data.getElement(), MULTI_VALUE_KEY, transcript, data.getPriority());
@@ -78,9 +78,15 @@ public class SphinxGraphPropertyWorker extends GraphPropertyWorker {
 
             return SphinxOutputParser.parse(sphinxOutput, timeOffsetInSec);
         } finally {
-            wavFile.delete();
-            wavFileNoSilence.delete();
-            wavFileNoHeaders.delete();
+            if (!wavFile.delete()) {
+                LOGGER.warn("Could not delete wav file: %s", wavFile.getAbsolutePath());
+            }
+            if (!wavFileNoSilence.delete()) {
+                LOGGER.warn("Could not delete wav no silence file: %s", wavFileNoSilence.getAbsolutePath());
+            }
+            if (!wavFileNoHeaders.delete()) {
+                LOGGER.warn("Could not delete wav no header file: %s", wavFileNoHeaders.getAbsolutePath());
+            }
         }
     }
 

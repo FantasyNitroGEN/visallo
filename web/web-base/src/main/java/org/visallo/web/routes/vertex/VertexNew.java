@@ -2,6 +2,7 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
@@ -16,15 +17,14 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiAddElementProperties;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -110,10 +110,8 @@ public class VertexNew extends BaseRequestHandler {
                 visibilitySource,
                 workspaceId,
                 justificationText,
-                "manual",
                 sourceInfo,
-                authorizations,
-                user
+                authorizations
         );
 
         ClientApiAddElementProperties properties = null;

@@ -2,22 +2,20 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.routes.workspace.WorkspaceHelper;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +26,6 @@ public class UnresolveTermEntity extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UnresolveTermEntity.class);
     private final TermMentionRepository termMentionRepository;
     private final Graph graph;
-    private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceHelper workspaceHelper;
 
     @Inject
@@ -36,7 +33,6 @@ public class UnresolveTermEntity extends BaseRequestHandler {
             final TermMentionRepository termMentionRepository,
             final Graph graph,
             final UserRepository userRepository,
-            final VisibilityTranslator visibilityTranslator,
             final WorkspaceRepository workspaceRepository,
             final Configuration configuration,
             final WorkspaceHelper workspaceHelper
@@ -44,7 +40,6 @@ public class UnresolveTermEntity extends BaseRequestHandler {
         super(userRepository, workspaceRepository, configuration);
         this.termMentionRepository = termMentionRepository;
         this.graph = graph;
-        this.visibilityTranslator = visibilityTranslator;
         this.workspaceHelper = workspaceHelper;
     }
 
@@ -89,14 +84,13 @@ public class UnresolveTermEntity extends BaseRequestHandler {
         VisibilityJson visibilityJson;
         if (vertexSandboxStatus == SandboxStatus.PUBLIC) {
             visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(edge);
-            visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
+            VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
         } else {
             visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(resolvedVertex);
-            visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
+            VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
         }
-        VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
 
-        workspaceHelper.unresolveTerm(resolvedVertex, termMention, visalloVisibility, user, authorizations);
+        workspaceHelper.unresolveTerm(termMention, authorizations);
         respondWithSuccessJson(response);
     }
 }

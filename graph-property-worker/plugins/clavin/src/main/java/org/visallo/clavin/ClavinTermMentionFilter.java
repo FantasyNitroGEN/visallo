@@ -7,13 +7,14 @@ import com.bericotech.clavin.gazetteer.GeoName;
 import com.bericotech.clavin.resolver.LuceneLocationResolver;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import com.google.inject.Inject;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.vertexium.*;
+import org.vertexium.type.GeoPoint;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.graphProperty.TermMentionFilter;
 import org.visallo.core.ingest.graphProperty.TermMentionFilterPrepareData;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -25,9 +26,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.vertexium.*;
-import org.vertexium.type.GeoPoint;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,7 +89,6 @@ public class ClavinTermMentionFilter extends TermMentionFilter {
     private String countryIri;
     private String cityIri;
     private String geoLocationIri;
-    private AuditRepository auditRepository;
     private User user;
     private String artifactHasEntityIri;
     private WorkspaceRepository workspaceRepository;
@@ -241,7 +238,6 @@ public class ClavinTermMentionFilter extends TermMentionFilter {
                 LOGGER.debug("Replacing original location [%s] with resolved location [%s]", termMention.getId(), resolvedMention.getId());
             }
         }
-        auditRepository.auditAnalyzedBy(AuditAction.ANALYZED_BY, sourceVertex, getClass().getSimpleName(), user, sourceVertex.getVisibility());
     }
 
     private String toSign(final ResolvedLocation location) {
@@ -295,11 +291,6 @@ public class ClavinTermMentionFilter extends TermMentionFilter {
     @Inject
     public void setOntologyRepository(OntologyRepository ontologyRepository) {
         this.ontologyRepository = ontologyRepository;
-    }
-
-    @Inject
-    public void setAuditRepository(AuditRepository auditRepository) {
-        this.auditRepository = auditRepository;
     }
 
     @Inject

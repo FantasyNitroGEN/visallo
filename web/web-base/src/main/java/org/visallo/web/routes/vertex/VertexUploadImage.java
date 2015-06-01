@@ -3,9 +3,11 @@ package org.visallo.web.routes.vertex;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.apache.commons.io.IOUtils;
+import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
+import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -18,15 +20,11 @@ import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.RowKeyHelper;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.RowKeyHelper;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.apache.commons.io.IOUtils;
-import org.vertexium.*;
-import org.vertexium.mutation.ElementMutation;
-import org.vertexium.property.StreamingPropertyValue;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,7 +48,6 @@ public class VertexUploadImage extends BaseRequestHandler {
     private static final String MULTI_VALUE_KEY = VertexUploadImage.class.getName();
 
     private final Graph graph;
-    private final AuditRepository auditRepository;
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;
     private final VisibilityTranslator visibilityTranslator;
@@ -61,7 +58,6 @@ public class VertexUploadImage extends BaseRequestHandler {
     @Inject
     public VertexUploadImage(
             final Graph graph,
-            final AuditRepository auditRepository,
             final OntologyRepository ontologyRepository,
             final WorkQueueRepository workQueueRepository,
             final UserRepository userRepository,
@@ -70,7 +66,6 @@ public class VertexUploadImage extends BaseRequestHandler {
             final WorkspaceRepository workspaceRepository) {
         super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
-        this.auditRepository = auditRepository;
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
         this.visibilityTranslator = visibilityTranslator;
@@ -127,14 +122,11 @@ public class VertexUploadImage extends BaseRequestHandler {
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
 
         String title = String.format("Image of %s", VisalloProperties.TITLE.getOnlyPropertyValue(entityVertex));
-        ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, visalloVisibility, authorizations);
+        ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, visalloVisibility);
         Vertex artifactVertex = artifactVertexBuilder.save(authorizations);
         this.graph.flush();
 
-        auditRepository.auditVertexElementMutation(AuditAction.UPDATE, artifactVertexBuilder, artifactVertex, "", user, visalloVisibility.getVisibility());
-
         entityVertexMutation.setProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName(), artifactVertex.getId(), metadata, visalloVisibility.getVisibility());
-        auditRepository.auditVertexElementMutation(AuditAction.UPDATE, entityVertexMutation, entityVertex, "", user, visalloVisibility.getVisibility());
         entityVertex = entityVertexMutation.save(authorizations);
         graph.flush();
 
@@ -142,8 +134,7 @@ public class VertexUploadImage extends BaseRequestHandler {
         if (existingEdges.size() == 0) {
             EdgeBuilder edgeBuilder = graph.prepareEdge(entityVertex, artifactVertex, entityHasImageIri, visalloVisibility.getVisibility());
             VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visalloVisibility.getVisibility());
-            Edge edge = edgeBuilder.save(authorizations);
-            auditRepository.auditRelationship(AuditAction.CREATE, entityVertex, artifactVertex, edge, "", "", user, visalloVisibility.getVisibility());
+            edgeBuilder.save(authorizations);
         }
 
         this.workspaceRepository.updateEntityOnWorkspace(workspace, artifactVertex.getId(), null, null, user);
@@ -185,8 +176,7 @@ public class VertexUploadImage extends BaseRequestHandler {
             String title,
             VisibilityJson visibilityJson,
             Metadata metadata,
-            VisalloVisibility visalloVisibility,
-            Authorizations authorizations
+            VisalloVisibility visalloVisibility
     ) throws IOException {
         final InputStream fileInputStream = file.getInputStream();
         final byte[] rawContent = IOUtils.toByteArray(fileInputStream);

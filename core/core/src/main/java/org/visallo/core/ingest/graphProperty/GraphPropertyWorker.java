@@ -6,7 +6,6 @@ import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.video.VideoTranscript;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.MediaVisalloProperties;
@@ -32,7 +31,6 @@ public abstract class GraphPropertyWorker {
     private VisibilityTranslator visibilityTranslator;
     private WorkQueueRepository workQueueRepository;
     private OntologyRepository ontologyRepository;
-    private AuditRepository auditRepository;
     private AuthorizationRepository authorizationRepository;
     private GraphPropertyWorkerPrepareData workerPrepareData;
     private Configuration configuration;
@@ -115,15 +113,6 @@ public abstract class GraphPropertyWorker {
     @Inject
     public final void setOntologyRepository(OntologyRepository ontologyRepository) {
         this.ontologyRepository = ontologyRepository;
-    }
-
-    protected AuditRepository getAuditRepository() {
-        return auditRepository;
-    }
-
-    @Inject
-    public final void setAuditRepository(AuditRepository auditRepository) {
-        this.auditRepository = auditRepository;
     }
 
     protected Configuration getConfiguration() {

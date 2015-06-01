@@ -13,7 +13,6 @@ import org.vertexium.id.QueueIdGenerator;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.inmemory.InMemoryGraphConfiguration;
 import org.vertexium.search.DefaultSearchIndex;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
@@ -37,13 +36,8 @@ public class GraphRepositoryTest {
     @Mock
     private User user1;
 
-    private VisibilityTranslator visibilityTranslator;
-
     @Mock
     private TermMentionRepository termMentionRepository;
-
-    @Mock
-    private AuditRepository auditRepository;
 
     private Authorizations defaultAuthorizations;
 
@@ -52,14 +46,13 @@ public class GraphRepositoryTest {
         InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap());
         idGenerator = new QueueIdGenerator();
         graph = InMemoryGraph.create(config, idGenerator, new DefaultSearchIndex(config));
-        visibilityTranslator = new DirectVisibilityTranslator();
+        VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
         defaultAuthorizations = graph.createAuthorizations();
 
         graphRepository = new GraphRepository(
                 graph,
                 visibilityTranslator,
-                termMentionRepository,
-                auditRepository
+                termMentionRepository
         );
 
         String entity1VertexId = "entity1Id";

@@ -16,7 +16,6 @@ import org.vertexium.search.DefaultSearchIndex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.lock.LocalLockRepository;
@@ -90,9 +89,6 @@ public class VertexiumWorkspaceRepositoryTest {
     @Mock
     private OntologyRepository ontologyRepository;
 
-    @Mock
-    private AuditRepository auditRepository;
-
     private InMemoryAuthorizations defaultAuthorizations;
 
     @Before
@@ -130,15 +126,13 @@ public class VertexiumWorkspaceRepositoryTest {
                 visibilityTranslator,
                 termMentionRepository,
                 ontologyRepository,
-                auditRepository,
                 workQueueRepository
         );
 
         graphRepository = new GraphRepository(
                 graph,
                 visibilityTranslator,
-                termMentionRepository,
-                auditRepository
+                termMentionRepository
         );
 
         InMemoryOntologyProperty prop1 = new InMemoryOntologyProperty();
@@ -359,7 +353,7 @@ public class VertexiumWorkspaceRepositoryTest {
             setName("prop1");
             setVertexId(entity1Vertex.getId());
         }};
-        ClientApiWorkspacePublishResponse response = workspaceRepository.publish(publishDate, workspace.getWorkspaceId(), user1, defaultAuthorizations);
+        ClientApiWorkspacePublishResponse response = workspaceRepository.publish(publishDate, workspace.getWorkspaceId(), defaultAuthorizations);
         assertEquals(1, response.getFailures().size());
         assertEquals(ClientApiPublishItem.Action.addOrUpdate, response.getFailures().get(0).getAction());
         assertEquals("property", response.getFailures().get(0).getType());
@@ -405,7 +399,7 @@ public class VertexiumWorkspaceRepositoryTest {
             setName("prop1");
             setVertexId(entity1Vertex.getId());
         }};
-        ClientApiWorkspacePublishResponse response = workspaceRepository.publish(publishDate, workspace.getWorkspaceId(), user1, workspaceAuthorizations);
+        ClientApiWorkspacePublishResponse response = workspaceRepository.publish(publishDate, workspace.getWorkspaceId(), workspaceAuthorizations);
         if (response.getFailures().size() > 0) {
             String failMessage = "Had " + response.getFailures().size() + " failure(s): " + ": " + response.getFailures().get(0).getErrorMessage();
             assertEquals(failMessage, 0, response.getFailures().size());

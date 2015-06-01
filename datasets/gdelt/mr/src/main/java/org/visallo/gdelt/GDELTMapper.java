@@ -1,16 +1,5 @@
 package org.visallo.gdelt;
 
-import com.v5analytics.simpleorm.AccumuloSimpleOrmSession;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.config.HashMapConfigurationLoader;
-import org.visallo.core.model.audit.Audit;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.SimpleOrmAuditRepository;
-import org.visallo.core.model.properties.types.VisalloProperty;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.user.SystemUser;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -22,6 +11,9 @@ import org.vertexium.accumulo.mapreduce.VertexiumMRUtils;
 import org.vertexium.id.IdGenerator;
 import org.vertexium.type.GeoPoint;
 import org.vertexium.util.MapUtils;
+import org.visallo.core.model.properties.types.VisalloProperty;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -35,11 +27,6 @@ public class GDELTMapper extends ElementMapper<LongWritable, Text, Text, Mutatio
     private AccumuloGraph graph;
     private Visibility visibility;
     private AccumuloAuthorizations authorizations;
-    private SystemUser user;
-    private SimpleOrmAuditRepository auditRepository;
-    private UserRepository userRepository;
-    private AccumuloSimpleOrmSession simpleOrmSession;
-    private Text auditTableName;
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
@@ -49,11 +36,6 @@ public class GDELTMapper extends ElementMapper<LongWritable, Text, Text, Mutatio
         this.graph = (AccumuloGraph) new GraphFactory().createGraph(MapUtils.getAllWithPrefix(configurationMap, "graph"));
         this.visibility = new Visibility("");
         this.authorizations = new AccumuloAuthorizations();
-        this.simpleOrmSession = new AccumuloSimpleOrmSession(configurationMap);
-        this.user = new SystemUser(null);
-        Configuration configuration = new HashMapConfigurationLoader(configurationMap).createConfiguration();
-        this.auditRepository = new SimpleOrmAuditRepository(null, configuration, null, userRepository);
-        this.auditTableName = new Text(simpleOrmSession.getTableName(Audit.class));
     }
 
     @Override
@@ -97,10 +79,6 @@ public class GDELTMapper extends ElementMapper<LongWritable, Text, Text, Mutatio
         setGeolocationProperty(event, eventVertexBuilder);
         Vertex eventVertex = eventVertexBuilder.save(authorizations);
 
-        // audit event
-        Audit auditEvent = auditRepository.createAudit(AuditAction.CREATE, eventVertex.getId(), "GDELT MR", "", user);
-        context.write(auditTableName, simpleOrmSession.getMutationForObject(auditEvent, visibility.getVisibilityString()));
-
         context.getCounter(GDELTImportCounters.EVENTS_PROCESSED).increment(1);
         return eventVertex;
     }
@@ -123,19 +101,11 @@ public class GDELTMapper extends ElementMapper<LongWritable, Text, Text, Mutatio
         // actor 1 vertex
         Vertex actorVertex = importActor(actor, context);
 
-        // audit actor 1
-        Audit auditActor = auditRepository.createAudit(AuditAction.CREATE, actorVertex.getId(), "GDELT MR", "", user);
-        context.write(auditTableName, this.simpleOrmSession.getMutationForObject(auditActor, visibility.getVisibilityString()));
-
         context.getCounter(GDELTImportCounters.EDGES_ATTEMPTED).increment(1);
 
         // actor 1 to event edge
         EdgeBuilder actor1EdgeBuilder = prepareEdge(generateActor1ToEventEdgeId(actorVertex, eventVertex), actorVertex, eventVertex, GDELTProperties.ACTOR1_TO_EVENT_EDGE, visibility);
-        Edge actor1ToEventEdge = actor1EdgeBuilder.save(authorizations);
-
-        // audit actor 1 to event edge
-        Audit auditActor1ToEventEdge = auditRepository.createAudit(AuditAction.CREATE, actor1ToEventEdge.getId(), "GDELT MR", "", user);
-        context.write(auditTableName, this.simpleOrmSession.getMutationForObject(auditActor1ToEventEdge, visibility.getVisibilityString()));
+        actor1EdgeBuilder.save(authorizations);
 
         context.getCounter(GDELTImportCounters.EDGES_PROCESSED).increment(1);
     }
@@ -151,19 +121,11 @@ public class GDELTMapper extends ElementMapper<LongWritable, Text, Text, Mutatio
         // actor 2
         Vertex actorVertex = importActor(actor, context);
 
-        // audit actor 2
-        Audit auditActor = auditRepository.createAudit(AuditAction.CREATE, actorVertex.getId(), "GDELT MR", "", user);
-        context.write(auditTableName, this.simpleOrmSession.getMutationForObject(auditActor, visibility.getVisibilityString()));
-
         context.getCounter(GDELTImportCounters.EDGES_ATTEMPTED).increment(1);
 
         // event to actor 2 edge
         EdgeBuilder eventToActor2EdgeBuilder = prepareEdge(generateEventToActor2EdgeId(actorVertex, eventVertex), eventVertex, actorVertex, GDELTProperties.EVENT_TO_ACTOR2_EDGE, visibility);
-        Edge eventToActor2Edge = eventToActor2EdgeBuilder.save(authorizations);
-
-        // audit event to actor 2 edge
-        Audit auditEventToActor2Edge = auditRepository.createAudit(AuditAction.CREATE, eventToActor2Edge.getId(), "GDELT MR", "", user);
-        context.write(auditTableName, this.simpleOrmSession.getMutationForObject(auditEventToActor2Edge, visibility.getVisibilityString()));
+        eventToActor2EdgeBuilder.save(authorizations);
 
         context.getCounter(GDELTImportCounters.EDGES_PROCESSED).increment(1);
     }

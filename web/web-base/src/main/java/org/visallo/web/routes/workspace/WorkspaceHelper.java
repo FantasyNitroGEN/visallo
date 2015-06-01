@@ -2,8 +2,9 @@ package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.vertexium.*;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -11,15 +12,10 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.vertexium.*;
 
 import java.util.List;
 
@@ -29,11 +25,9 @@ import static org.vertexium.util.IterableUtils.toList;
 public class WorkspaceHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceHelper.class);
     private final TermMentionRepository termMentionRepository;
-    private final AuditRepository auditRepository;
     private final UserRepository userRepository;
     private final WorkQueueRepository workQueueRepository;
     private final Graph graph;
-    private final VisibilityTranslator visibilityTranslator;
     private String entityHasImageIri;
     private String artifactContainsImageOfEntityIri;
     private final OntologyRepository ontologyRepository;
@@ -41,19 +35,15 @@ public class WorkspaceHelper {
     @Inject
     public WorkspaceHelper(
             final TermMentionRepository termMentionRepository,
-            final AuditRepository auditRepository,
             final UserRepository userRepository,
             final WorkQueueRepository workQueueRepository,
             final Graph graph,
-            final VisibilityTranslator visibilityTranslator,
             final OntologyRepository ontologyRepository
     ) {
         this.termMentionRepository = termMentionRepository;
-        this.auditRepository = auditRepository;
         this.userRepository = userRepository;
         this.workQueueRepository = workQueueRepository;
         this.graph = graph;
-        this.visibilityTranslator = visibilityTranslator;
         this.ontologyRepository = ontologyRepository;
 
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
@@ -67,7 +57,7 @@ public class WorkspaceHelper {
         }
     }
 
-    public void unresolveTerm(Vertex resolvedVertex, Vertex termMention, VisalloVisibility visibility, User user, Authorizations authorizations) {
+    public void unresolveTerm(Vertex termMention, Authorizations authorizations) {
         Vertex sourceVertex = termMentionRepository.findSourceVertex(termMention, authorizations);
         if (sourceVertex == null) {
             return;
@@ -77,20 +67,15 @@ public class WorkspaceHelper {
         if (edges.size() == 1) {
             graph.softDeleteEdge(edges.get(0), authorizations);
             workQueueRepository.pushEdgeDeletion(edges.get(0));
-            auditRepository.auditRelationship(AuditAction.DELETE, sourceVertex, resolvedVertex, edges.get(0), "", "", user, visibility.getVisibility());
         }
 
         termMentionRepository.delete(termMention, authorizations);
         workQueueRepository.pushTextUpdated(sourceVertex.getId());
 
         graph.flush();
-
-        auditRepository.auditVertex(AuditAction.UNRESOLVE, resolvedVertex.getId(), "", "", user, visibility.getVisibility());
     }
 
-    public void deleteProperty(Vertex vertex, Property property, boolean propertyIsPublic, String workspaceId, User user, Priority priority, Authorizations authorizations) {
-        auditRepository.auditEntityProperty(AuditAction.DELETE, vertex.getId(), property.getKey(), property.getName(), property.getValue(), null, "", "", property.getMetadata(), user, property.getVisibility());
-
+    public void deleteProperty(Vertex vertex, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
         if (propertyIsPublic) {
             vertex.markPropertyHidden(property, new Visibility(workspaceId), authorizations);
         } else {
@@ -102,7 +87,15 @@ public class WorkspaceHelper {
         workQueueRepository.pushGraphPropertyQueue(vertex, property, priority);
     }
 
-    public void deleteEdge(String workspaceId, Edge edge, Vertex sourceVertex, Vertex destVertex, boolean isPublicEdge, Priority priority, User user, Authorizations authorizations) {
+    public void deleteEdge(
+            String workspaceId,
+            Edge edge,
+            Vertex sourceVertex,
+            @SuppressWarnings("UnusedParameters") Vertex destVertex,
+            boolean isPublicEdge,
+            Priority priority,
+            Authorizations authorizations
+    ) {
         ensureOntologyIrisInitialized();
 
         if (isPublicEdge) {
@@ -143,9 +136,6 @@ public class WorkspaceHelper {
 
             graph.flush();
             this.workQueueRepository.pushEdgeDeletion(edge);
-
-            // TODO: replace "" when we implement commenting on ui
-            auditRepository.auditRelationship(AuditAction.DELETE, sourceVertex, destVertex, edge, "", "", user, new VisalloVisibility().getVisibility());
         }
 
         graph.flush();
@@ -173,7 +163,6 @@ public class WorkspaceHelper {
             JSONArray unresolved = new JSONArray();
             VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
             visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
-            VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
 
             // because we store the current vertex image in a property we need to possibly find that property and change it
             //  if we are deleting the current image.
@@ -196,7 +185,6 @@ public class WorkspaceHelper {
                         // remove property
                         VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
                         graph.softDeleteEdge(edge, authorizations);
-                        auditRepository.auditRelationship(AuditAction.DELETE, outVertex, vertex, edge, "", "", user, visalloVisibility.getVisibility());
                         workQueueRepository.pushEdgeDeletion(edge);
                         workQueueRepository.pushGraphPropertyQueue(
                                 outVertex,
@@ -213,7 +201,7 @@ public class WorkspaceHelper {
             // because we store term mentions with an added visibility we need to delete them with that added authorizations.
             //  we also need to notify the front-end of changes as well as audit the changes
             for (Vertex termMention : termMentionRepository.findResolvedTo(vertex.getId(), authorizations)) {
-                unresolveTerm(vertex, termMention, visalloVisibility, user, authorizations);
+                unresolveTerm(termMention, authorizations);
                 JSONObject result = new JSONObject();
                 result.put("success", true);
                 unresolved.put(result);
@@ -229,9 +217,6 @@ public class WorkspaceHelper {
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
             this.workQueueRepository.pushVertexDeletion(vertex);
-
-            // TODO: replace "" when we implement commenting on ui
-            auditRepository.auditVertex(AuditAction.DELETE, vertex.getId(), "", "", user, new VisalloVisibility().getVisibility());
         }
 
         graph.flush();

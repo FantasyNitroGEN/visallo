@@ -11,7 +11,6 @@ import org.vertexium.Graph;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -51,7 +50,6 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
             final VisibilityTranslator visibilityTranslator,
             final TermMentionRepository termMentionRepository,
             final OntologyRepository ontologyRepository,
-            final AuditRepository auditRepository,
             final WorkQueueRepository workQueueRepository
     ) {
         super(
@@ -59,8 +57,6 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
                 visibilityTranslator,
                 termMentionRepository,
                 ontologyRepository,
-                auditRepository,
-                userRepository,
                 workQueueRepository
         );
         this.userRepository = userRepository;
@@ -181,7 +177,7 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
 
     @Override
     public List<WorkspaceUser> findUsersWithAccess(String workspaceId, User user) {
-        List<WorkspaceUser> withAccess = new ArrayList<WorkspaceUser>();
+        List<WorkspaceUser> withAccess = new ArrayList<>();
         List<SqlWorkspaceUser> sqlWorkspaceUsers = getSqlWorkspaceUserLists(workspaceId);
 
         for (SqlWorkspaceUser sqlWorkspaceUser : sqlWorkspaceUsers) {

@@ -5,8 +5,6 @@ import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.PropertyJustificationMetadata;
-import org.visallo.core.model.audit.AuditAction;
-import org.visallo.core.model.audit.AuditRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionFor;
@@ -31,19 +29,16 @@ public class GraphRepository {
     private final Graph graph;
     private final VisibilityTranslator visibilityTranslator;
     private final TermMentionRepository termMentionRepository;
-    private final AuditRepository auditRepository;
 
     @Inject
     public GraphRepository(
             Graph graph,
             VisibilityTranslator visibilityTranslator,
-            TermMentionRepository termMentionRepository,
-            AuditRepository auditRepository
+            TermMentionRepository termMentionRepository
     ) {
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
         this.termMentionRepository = termMentionRepository;
-        this.auditRepository = auditRepository;
     }
 
     public void verifyVersion() {
@@ -180,10 +175,8 @@ public class GraphRepository {
             String visibilitySource,
             String workspaceId,
             String justificationText,
-            String process,
             ClientApiSourceInfo sourceInfo,
-            Authorizations authorizations,
-            User user
+            Authorizations authorizations
     ) {
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspaceId);
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
@@ -207,11 +200,6 @@ public class GraphRepository {
         }
 
         Vertex vertex = vertexBuilder.save(authorizations);
-        String auditComment = justificationText;
-        if (auditComment == null) {
-            auditComment = "";
-        }
-        auditRepository.auditVertex(AuditAction.CREATE, vertex.getId(), process, auditComment, user, visalloVisibility.getVisibility());
         graph.flush();
 
         if (justificationText != null) {
