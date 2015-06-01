@@ -170,6 +170,8 @@ function(jQuery,
                 window.isFullscreenDetails = popoutDetails;
             }
 
+            visalloData.isFullscreen = false;
+
             if (loginRequired) {
                 require(['login'], function(Login) {
                     removeVisalloLoading().then(function() {
@@ -182,6 +184,7 @@ function(jQuery,
                     })
                 });
             } else if (popoutDetails) {
+                visalloData.isFullscreen = true;
                 $('#login').remove();
                 require(['appFullscreenDetails'], function(comp) {
                     removeVisalloLoading().then(function() {

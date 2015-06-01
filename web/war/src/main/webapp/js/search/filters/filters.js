@@ -71,6 +71,7 @@ define([
             })
             this.on('conceptSelected', this.onConceptChange);
             this.on('searchByRelatedEntity', this.onSearchByRelatedEntity);
+            this.on('searchByProperty', this.onSearchByProperty);
             this.on('filterExtensionChanged', this.onFilterExtensionChanged);
 
             this.loadPropertyFilters();
@@ -129,6 +130,29 @@ define([
             _.extend(this.otherFilters, newFilters);
             $(event.target).closest('.extension-filter-row').show();
             this.notifyOfFilters();
+        };
+
+        this.onSearchByProperty = function(event, data) {
+            var self = this;
+
+            event.stopPropagation();
+
+            this.onClearFilters();
+
+            this.dataRequest('ontology', 'properties')
+                .done(function(properties) {
+                    var property = properties.byTitle[data.property.name];
+                    self.trigger('propertyselected', {
+                        property: property,
+                        value: data.property.value,
+                        values: data.property.values
+                    });
+                    self.conceptFilter = data.conceptId || '';
+                    self.trigger(self.select('conceptDropdownSelector'), 'selectConceptId', {
+                        conceptId: data.conceptId || ''
+                    });
+                    self.notifyOfFilters();
+                });
         };
 
         this.onSearchByRelatedEntity = function(event, data) {
@@ -282,13 +306,20 @@ define([
 
         this.onPropertySelected = function(event, data) {
             var self = this,
-                target = $(event.target),
+                $dropdown = this.$node.find('.newrow .dropdown input'),
+                target = event.target === this.node ?
+                    $dropdown :
+                    $(event.target),
                 li = target.closest('li').addClass('fId' + self.filterId),
                 property = data.property,
                 isCompoundField = property.dependentPropertyIris && property.dependentPropertyIris.length;
 
             if (property.title === 'http://visallo.org#text') {
                 property.dataType = 'boolean';
+            }
+
+            if (('value' in data) || ('values' in data)) {
+                $dropdown.val(property.displayName);
             }
 
             var fieldComponent = isCompoundField ?
@@ -308,6 +339,7 @@ define([
                         property: property,
                         vertex: null,
                         predicates: true,
+                        values: data.values,
                         supportsHistogram: false
                     });
                 } else {
@@ -315,6 +347,7 @@ define([
                         property: property,
                         id: self.filterId++,
                         predicates: true,
+                        value: data.value,
                         supportsHistogram: self.attr.supportsHistogram
                     });
                 }

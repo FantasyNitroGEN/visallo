@@ -21,12 +21,14 @@ define([
             deleteButtonSelector: '.btn-danger',
             editButtonSelector: '.btn-edit',
             addButtonSelector: '.btn-add',
+            searchButtonSelector: '.btn-search',
             replyButtonSelector: '.reply',
             justificationValueSelector: 'a'
         });
 
         this.before('initialize', function(node, config) {
             config.template = 'propertyInfo/template';
+            config.isFullscreen = visalloData.isFullscreen;
             if (config.property) {
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
                 config.isCommentCreator = config.isComment &&
@@ -66,6 +68,7 @@ define([
                             deleteButtonSelector: self.onDelete,
                             editButtonSelector: self.onEdit,
                             addButtonSelector: self.onAdd,
+                            searchButtonSelector: self.onSearch,
                             replyButtonSelector: self.onReply,
                             justificationValueSelector: self.teardown
                         });
@@ -221,7 +224,7 @@ define([
                 .call(function() {
                     this.enter()
                         .call(function() {
-                            this.insert('div', 'button').attr('class', 'justification')
+                            this.insert('div', '.buttons').attr('class', 'justification')
                                 .call(function() {
                                     this.append('div')
                                         .attr('class', 'property-name property-justification')
@@ -277,6 +280,15 @@ define([
 
             this.trigger('editProperty', {
                 path: path
+            });
+            this.teardown();
+        };
+
+        this.onSearch = function() {
+            var concept = F.vertex.concept(this.attr.data);
+            this.trigger('searchByProperty', {
+                property: _.pick(this.attr.property, 'name', 'value', 'values'),
+                conceptId: concept && concept.id
             });
             this.teardown();
         };

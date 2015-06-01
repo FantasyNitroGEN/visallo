@@ -155,7 +155,7 @@ define([
                                         compoundProperty: true,
                                         name: compoundInfo.property.title,
                                         key: key,
-                                        value: key
+                                        values: matching || []
                                     };
 
                                 if (first) {

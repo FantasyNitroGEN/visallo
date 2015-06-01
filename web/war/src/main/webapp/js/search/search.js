@@ -68,6 +68,7 @@ define([
             this.on('searchtypeloaded', this.onSearchTypeLoaded);
             this.on(document, 'searchForPhrase', this.onSearchForPhrase);
             this.on(document, 'searchByRelatedEntity', this.onSearchByRelatedEntity);
+            this.on(document, 'searchByProperty', this.onSearchByProperty);
             this.on(document, 'searchPaneVisible', this.onSearchPaneVisible);
             this.on(document, 'switchSearchType', this.onSwitchSearchType);
         });
@@ -114,6 +115,17 @@ define([
 
                     self.setQueryVal('"' + data.query.replace(/"/g, '\\"') + '"').select();
                     self.triggerQuerySubmit();
+                })
+        };
+
+        this.onSearchByProperty = function(event, data) {
+            var self = this;
+
+            this.openSearchType('Visallo')
+                .done(function() {
+                    var node = self.getSearchTypeNode().find('.search-filters .content');
+                    self.select('querySelector').val('');
+                    self.trigger(node, 'searchByProperty', data);
                 })
         };
 

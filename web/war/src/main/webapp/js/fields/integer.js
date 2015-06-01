@@ -22,18 +22,20 @@ define([
 
             this.on('change keyup', {
                 inputSelector: function() {
-
                     this.updateRangeVisibility();
-
-                    this.filterUpdated(
-                        this.getValues().map(function(v) {
-                            return makeNumber(v);
-                        }),
-                        this.select('predicateSelector').val()
-                    );
+                    this.triggerFieldUpdated();
                 }
             });
         });
+
+        this.triggerFieldUpdated = function() {
+            this.filterUpdated(
+                this.getValues().map(function(v) {
+                    return makeNumber(v);
+                }),
+                this.select('predicateSelector').val()
+            );
+        };
 
         this.isValid = function() {
             var values = this.getValues();

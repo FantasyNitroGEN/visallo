@@ -143,6 +143,16 @@ define([
             this.updateTimezone();
         });
 
+        this.triggerFieldUpdated = function() {
+            this.filterUpdated(
+                this.getValues(),
+                this.select('predicateSelector').val(),
+                {
+                    metadata: this.currentTimezoneMetadata
+                }
+            );
+        };
+
         this.onSelectTimezone = function(event, data) {
             if (data.name) {
                 this.updateTimezone(data);
@@ -194,14 +204,7 @@ define([
 
             }
 
-            this.filterUpdated(
-                this.getValues(),
-                this.select('predicateSelector').val(),
-                {
-                    metadata: this.currentTimezoneMetadata
-                }
-            );
-
+            this.triggerFieldUpdated();
         };
 
         this.onTimezoneOpen = function(event) {

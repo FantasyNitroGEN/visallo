@@ -30,11 +30,11 @@ define([
                 inputSelector: this.onToggle
             });
 
-            this.update();
+            this.triggerFieldUpdated();
         });
 
         this.onToggle = function(event) {
-            this.update();
+            this.triggerFieldUpdated();
         };
 
         this.onClick = function(event) {
@@ -47,10 +47,10 @@ define([
 
             input.prop('checked', val);
 
-            this.update();
+            this.triggerFieldUpdated();
         };
 
-        this.update = function() {
+        this.triggerFieldUpdated = function() {
             var input = this.select('inputSelector'),
                 val = input.prop('checked');
 

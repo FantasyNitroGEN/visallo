@@ -2,27 +2,34 @@
   <div class="arrow"></div>
   <div class="popover-content">
     <table class="table"></table>
+    <ul class="buttons">
 
     {{#unless isComment}}
       {{#if canDelete}}
-      <button class="btn btn-danger btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.delete' }}</button>
+      <li><button class="btn btn-danger btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.delete' }}</button></li>
       {{/if}}
+
+      {{#unless isFullscreen}}
+      <li><button class="btn btn-search btn-small">{{ i18n 'popovers.property_info.button.search' }}</button></li>
+      {{/unless}}
+
       {{#if canEdit}}
-      <button class="{{#unless canDelete}}nodelete{{/unless}} btn-edit btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.edit' }}</button>
+      <li><button class="btn-edit btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
       {{/if}}
       {{#unless canEdit}}
-      <button class="{{#unless canDelete}}nodelete{{/unless}} btn-add btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.add' }}</button>
+      <li><button class="btn-add btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.add' }}</button></li>
       {{/unless}}
     {{/unless}}
 
     {{#if isComment}}
       {{#if canDelete}}
-      <button class="btn btn-danger btn-small requires-COMMENT">{{ i18n 'popovers.property_info.button.delete' }}</button>
+      <li><button class="btn btn-danger btn-small requires-COMMENT">{{ i18n 'popovers.property_info.button.delete' }}</button></li>
       {{/if}}
       {{#if isCommentCreator}}
-      <button class="editadd btn btn-small requires-EDIT btn-edit">{{ i18n 'popovers.property_info.button.edit' }}</button>
+      <li><button class="editadd btn btn-small requires-COMMENT btn-edit">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
       {{/if}}
-      <button class="reply btn btn-small requires-COMMENT">{{ i18n 'popovers.property_info.button.reply' }}</button>
+      <li><button class="reply btn btn-small requires-COMMENT">{{ i18n 'popovers.property_info.button.reply' }}</button></li>
     {{/if}}
+    </ul>
   </div>
 </div>

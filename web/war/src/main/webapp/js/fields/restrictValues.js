@@ -35,12 +35,15 @@ define([
 
             this.on('change', {
                 selectSelector: function(event) {
-                    var val = this.select('selectSelector').val()
-
-                    this.filterUpdated(val);
+                    this.triggerFieldUpdated();
                 }
             })
         });
+
+        this.triggerFieldUpdated = function() {
+            var val = this.select('selectSelector').val()
+            this.filterUpdated(val);
+        };
 
         this.isValid = function() {
             var vals = this.getValues();

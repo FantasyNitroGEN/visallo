@@ -45,6 +45,25 @@ define(['util/withTeardown'], function(withTeardown) {
             if (this.attr.focus !== false) {
                 inputs.eq(0).focus();
             }
+
+            if (!_.isFunction(this.triggerFieldUpdated)) {
+                throw new Error('triggerFieldUpdated is required function for fields');
+            }
+
+            if (!_.isUndefined(this.attr.value)) {
+                var predicate = this.$node.find('.predicate');
+
+                predicate.find('option')
+                    .toArray()
+                    .forEach(function(option) {
+                        var matched = false;
+                        if (option.value === '=' || option.value === 'equal') {
+                            predicate.val(option.value);
+                        }
+                    });
+
+                this.triggerFieldUpdated();
+            }
         });
 
         this.filterUpdated = function(values, predicate, options) {
