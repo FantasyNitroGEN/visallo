@@ -22,7 +22,7 @@ define([
                 .done(function(ontologyProperties) {
                     self.ontologyProperties = ontologyProperties;
                     self.render();
-                    self.triggerIfValid();
+                    self.triggerFieldUpdated();
                 });
         });
 
@@ -35,10 +35,10 @@ define([
 
             this.compoundValues[data.propertyId] = data.values;
 
-            this.triggerIfValid();
+            this.triggerFieldUpdated();
         };
 
-        this.triggerIfValid = function() {
+        this.triggerFieldUpdated = function() {
             if (this.isValid()) {
                 this.trigger('propertychange', {
                     id: this.attr.id,
@@ -60,7 +60,7 @@ define([
 
             event.stopPropagation();
             this.compoundValues[data.propertyId] = data.values;
-            this.triggerIfValid();
+            this.triggerFieldUpdated();
         };
 
         this.getValues = function() {
