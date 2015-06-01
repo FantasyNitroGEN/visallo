@@ -1,5 +1,6 @@
 package org.visallo.web.routes.vertex;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import org.vertexium.*;
@@ -29,7 +30,9 @@ import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class VertexSetProperty extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSetProperty.class);
@@ -144,6 +147,61 @@ public class VertexSetProperty extends BaseRequestHandler {
             propertyKey = this.graph.getIdGenerator().nextId();
         }
 
+        Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, this.visibilityTranslator.getDefaultVisibility());
+        ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
+        Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
+        List<SavePropertyResults> savePropertyResults = saveProperty(
+                graphVertex,
+                propertyKey,
+                propertyName,
+                valueStr,
+                valuesStr,
+                justificationText,
+                visibilitySource,
+                metadata,
+                sourceInfo,
+                user,
+                workspaceId,
+                authorizations
+        );
+        graph.flush();
+
+        Workspace workspace = workspaceRepository.findById(workspaceId, user);
+
+        this.workspaceRepository.updateEntityOnWorkspace(workspace, graphVertex.getId(), null, null, user);
+
+        for (SavePropertyResults savePropertyResult : savePropertyResults) {
+            this.workQueueRepository.pushGraphPropertyQueue(
+                    graphVertex,
+                    savePropertyResult.getPropertyKey(),
+                    savePropertyResult.getPropertyName(),
+                    workspaceId,
+                    visibilitySource,
+                    Priority.HIGH
+            );
+        }
+
+        if (sourceInfo != null) {
+            this.workQueueRepository.pushTextUpdated(sourceInfo.vertexId);
+        }
+
+        return ClientApiConverter.toClientApi(graphVertex, workspaceId, authorizations);
+    }
+
+    private List<SavePropertyResults> saveProperty(
+            Vertex graphVertex,
+            String propertyKey,
+            String propertyName,
+            String valueStr,
+            String[] valuesStr,
+            String justificationText,
+            String visibilitySource,
+            Metadata metadata,
+            ClientApiSourceInfo sourceInfo,
+            User user,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         if (valueStr == null && valuesStr != null && valuesStr.length == 1) {
             valueStr = valuesStr[0];
         }
@@ -151,8 +209,6 @@ public class VertexSetProperty extends BaseRequestHandler {
             valuesStr = new String[1];
             valuesStr[0] = valueStr;
         }
-
-        Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, this.visibilityTranslator.getDefaultVisibility());
 
         Object value;
         if (propertyName.equals(VisalloProperties.COMMENT.getPropertyName())) {
@@ -171,25 +227,25 @@ public class VertexSetProperty extends BaseRequestHandler {
                     throw new VisalloException("properties with dependent properties must contain the same number of values. expected " + property.getDependentPropertyIris().size() + " found " + valuesStr.length);
                 }
 
-                ClientApiElement clientApiElement = null;
                 int valuesIndex = 0;
+                List<SavePropertyResults> results = new ArrayList<>();
                 for (String dependentPropertyIri : property.getDependentPropertyIris()) {
-                    clientApiElement = handle(
-                            graphVertexId,
-                            dependentPropertyIri,
+                    results.addAll(saveProperty(
+                            graphVertex,
                             propertyKey,
+                            dependentPropertyIri,
                             valuesStr[valuesIndex++],
                             null,
                             justificationText,
-                            sourceInfoString,
-                            metadataString,
                             visibilitySource,
+                            metadata,
+                            sourceInfo,
                             user,
                             workspaceId,
                             authorizations
-                    );
+                    ));
                 }
-                return clientApiElement;
+                return results;
             } else {
                 if (valuesStr != null && valuesStr.length > 1) {
                     throw new VisalloException("properties without dependent properties must not contain more than one value.");
@@ -206,8 +262,6 @@ public class VertexSetProperty extends BaseRequestHandler {
             }
         }
 
-        Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
-        ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
         VisibilityAndElementMutation<Vertex> setPropertyResult = graphRepository.setProperty(
                 graphVertex,
                 propertyName,
@@ -221,26 +275,31 @@ public class VertexSetProperty extends BaseRequestHandler {
                 user,
                 authorizations
         );
-        graphVertex = setPropertyResult.elementMutation.save(authorizations);
-        graph.flush();
+        Vertex save = setPropertyResult.elementMutation.save(authorizations);
+        return Lists.newArrayList(new SavePropertyResults(save, propertyKey, propertyName));
+    }
 
-        Workspace workspace = workspaceRepository.findById(workspaceId, user);
+    private static class SavePropertyResults {
+        private final Vertex vertex;
+        private final String propertyKey;
+        private final String propertyName;
 
-        this.workspaceRepository.updateEntityOnWorkspace(workspace, graphVertex.getId(), null, null, user);
-
-        this.workQueueRepository.pushGraphPropertyQueue(
-                graphVertex,
-                propertyKey,
-                propertyName,
-                workspaceId,
-                visibilitySource,
-                Priority.HIGH
-        );
-
-        if (sourceInfo != null) {
-            this.workQueueRepository.pushTextUpdated(sourceInfo.vertexId);
+        public SavePropertyResults(Vertex vertex, String propertyKey, String propertyName) {
+            this.vertex = vertex;
+            this.propertyKey = propertyKey;
+            this.propertyName = propertyName;
         }
 
-        return ClientApiConverter.toClientApi(graphVertex, workspaceId, authorizations);
+        public Vertex getVertex() {
+            return vertex;
+        }
+
+        public String getPropertyKey() {
+            return propertyKey;
+        }
+
+        public String getPropertyName() {
+            return propertyName;
+        }
     }
 }
