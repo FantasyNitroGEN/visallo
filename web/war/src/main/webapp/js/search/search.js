@@ -4,6 +4,7 @@ define([
     'hbs!./searchTpl',
     'tpl!util/alert',
     'util/withDataRequest',
+    'util/formatters',
     'configuration/plugins/registry'
 ], function(
     require,
@@ -11,6 +12,7 @@ define([
     template,
     alertTemplate,
     withDataRequest,
+    F,
     registry) {
     'use strict';
 
@@ -33,6 +35,7 @@ define([
             querySelector: '.navbar-search .search-query',
             queryValidationSelector: '.search-query-validation',
             hitsSelector: '.search-hits',
+            advancedSearchTypeSelector: '.advanced-search li a',
             queryContainerSelector: '.search-query-container',
             clearSearchSelector: '.search-query-container a',
             segmentedControlSelector: '.segmented-control',
@@ -56,7 +59,8 @@ define([
 
             this.on('click', {
                 segmentedControlSelector: this.onSegmentedControlsClick,
-                clearSearchSelector: this.onClearSearchClick
+                clearSearchSelector: this.onClearSearchClick,
+                advancedSearchTypeSelector: this.onAdvancedSearchTypeClick
             });
             this.on('change keydown keyup paste', this.onQueryChange);
             this.on(this.select('querySelector'), 'focus', this.onQueryFocus);
@@ -244,6 +248,13 @@ define([
             this.trigger(node, 'clearSearch')
         };
 
+        this.onAdvancedSearchTypeClick = function(event) {
+            var $target = $(event.target),
+                path = $target.data('componentPath');
+
+            this.switchSearchType({ advancedSearch: path, displayName: $target.text() })
+        };
+
         this.onClearSearch = function(event) {
             var node = this.getSearchTypeNode(),
                 $query = this.select('querySelector'),
@@ -284,14 +295,75 @@ define([
         };
 
         this.switchSearchType = function(newSearchType) {
+            var self = this,
+                advanced = !_.isString(newSearchType);
+
+            if (advanced) {
+                var path = newSearchType.advancedSearch,
+                    previousSearchType = this.searchType;
+
+                if (!path) {
+                    this.searchType = null;
+                    this.switchSearchType(previousSearchType);
+                    return;
+                }
+
+                this.$node.find('.advanced-search .caret')[0]
+                    .previousSibling.textContent = newSearchType.displayName;
+
+                var cls = F.className.to(path),
+                    $container = this.$node.find('.advanced-search-type.' + cls),
+                    attach = false;
+
+                if (!$container.length) {
+                    attach = true;
+                    $container = $('<div>')
+                        .addClass('advanced-search-type ' + cls)
+                        .appendTo(this.node)
+                    $('<div>')
+                        .addClass('advanced-search-type-results ' + cls)
+                        .data('width-preference', path)
+                        .html('<div class="content">')
+                        .appendTo(this.node)
+                        .resizable({
+                            handles: 'e',
+                            minWidth: 200,
+                            maxWidth: 350,
+                            resize: function() {
+                                self.trigger(document, 'paneResized');
+                            }
+                        }).hide();
+                }
+
+                this.$node.find('.search-type.active').removeClass('active');
+                this.$node.find('.search-query-container').hide();
+                $container.show();
+
+                if (attach) {
+                    require([path], function(AdvancedSearchExtension) {
+                        AdvancedSearchExtension.attachTo($container, {
+                            resultsSelector: cls
+                        });
+                    })
+                }
+
+                return;
+            }
+
+            this.$node.find('.advanced-search-type, .advanced-search-type-results').hide();
+            this.$node.find('.search-query-container').show();
+
             if (!newSearchType || this.searchType === newSearchType) {
                 return;
             }
 
             this.updateQueryValue(newSearchType);
 
-            var self = this,
-                segmentedButton = this.$node.find('.find-' + newSearchType.toLowerCase())
+            this.$node.find('.advanced-search .caret')[0]
+                .previousSibling.textContent = i18n('search.advanced.default');
+            this.$node.find('.advanced-search').toggle(newSearchType === 'Visallo');
+
+            var segmentedButton = this.$node.find('.find-' + newSearchType.toLowerCase())
                     .addClass('active')
                     .siblings('button').removeClass('active').end(),
                 node = this.getSearchTypeNode()
@@ -360,9 +432,11 @@ define([
         };
 
         this.render = function() {
-            var self = this;
+            var self = this,
+                advancedSearch = registry.extensionsForPoint('org.visallo.search.advanced');
 
             this.$node.html(template({
+                advancedSearch: advancedSearch,
                 types: SEARCH_TYPES.map(function(type, i) {
                     return {
                         cls: type.toLowerCase(),
