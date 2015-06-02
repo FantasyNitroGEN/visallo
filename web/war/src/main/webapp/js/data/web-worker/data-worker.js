@@ -64,7 +64,8 @@ function setupConsole() {
 }
 
 function setupWebsocket() {
-    var supportedInWorker = !!(this.WebSocket || this.MozWebSocket);
+    var isFirefox = navigator && navigator.userAgent && ~navigator.userAgent.indexOf('Firefox'),
+        supportedInWorker = !!(this.WebSocket || this.MozWebSocket) && !isFirefox;
 
     if (supportedInWorker) {
         self.window = self;
