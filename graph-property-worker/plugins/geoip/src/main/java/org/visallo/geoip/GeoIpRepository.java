@@ -32,7 +32,7 @@ public class GeoIpRepository {
                 try {
                     loadGeoLocationLine(line);
                 } catch (Exception ex) {
-                    LOGGER.warn("Invalid Geo location line:%d: %s", lineNumber, line, ex);
+                    LOGGER.warn("Invalid Geo location line: %d: %s", lineNumber, line, ex);
                 }
                 lineNumber++;
             }
@@ -80,7 +80,7 @@ public class GeoIpRepository {
                 try {
                     addGeoIpLine(line);
                 } catch (Exception ex) {
-                    LOGGER.warn("Invalid GeoIP line:%d: %s", lineNumber, line, ex);
+                    LOGGER.warn("Invalid GeoIP line: %d: %s", lineNumber, line, ex);
                 }
                 lineNumber++;
             }
@@ -99,7 +99,7 @@ public class GeoIpRepository {
         }
 
         // no geo-location information
-        if (parts.get(7).length() == 0 || parts.get(8).length() == 0) {
+        if (parts.get(7) == null || parts.get(7).length() == 0 || parts.get(8) == null || parts.get(8).length() == 0) {
             return;
         }
 
