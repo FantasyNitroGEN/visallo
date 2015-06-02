@@ -432,6 +432,12 @@ define([
         };
 
         this.render = function() {
+            registry.documentExtensionPoint('org.visallo.search.advanced',
+                'Add alternate search interfaces',
+                function(e) {
+                    return (e.componentPath && e.displayName);
+                }
+            );
             var self = this,
                 advancedSearch = registry.extensionsForPoint('org.visallo.search.advanced');
 
