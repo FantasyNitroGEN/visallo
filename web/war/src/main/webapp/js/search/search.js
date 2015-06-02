@@ -309,7 +309,7 @@ define([
                 }
 
                 this.$node.find('.advanced-search .caret')[0]
-                    .previousSibling.textContent = newSearchType.displayName;
+                    .previousSibling.textContent = newSearchType.displayName + ' ';
 
                 var cls = F.className.to(path),
                     $container = this.$node.find('.advanced-search-type.' + cls),
@@ -360,7 +360,7 @@ define([
             this.updateQueryValue(newSearchType);
 
             this.$node.find('.advanced-search .caret')[0]
-                .previousSibling.textContent = i18n('search.advanced.default');
+                .previousSibling.textContent = i18n('search.advanced.default') + ' ';
             this.$node.find('.advanced-search').toggle(newSearchType === 'Visallo');
 
             var segmentedButton = this.$node.find('.find-' + newSearchType.toLowerCase())
