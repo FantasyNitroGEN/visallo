@@ -27,7 +27,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.*;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,7 +52,7 @@ public class GraphPropertyRunner extends WorkerBase {
     }
 
     private void prepareWorkers() {
-        FileSystem hdfsFileSystem = getFileSystem();
+        FileSystem hdfsFileSystem = configuration.getFileSystem();
 
         List<TermMentionFilter> termMentionFilters = loadTermMentionFilters(hdfsFileSystem);
 
@@ -102,18 +101,6 @@ public class GraphPropertyRunner extends WorkerBase {
         if (failedToPrepareAtLeastOneGraphPropertyWorker) {
             throw new VisalloException("Failed to initialize at least one graph property worker. See the log for more details.");
         }
-    }
-
-    private FileSystem getFileSystem() {
-        FileSystem hdfsFileSystem;
-        org.apache.hadoop.conf.Configuration conf = configuration.toHadoopConfiguration();
-        try {
-            String hdfsRootDir = configuration.get(Configuration.HADOOP_URL, null);
-            hdfsFileSystem = FileSystem.get(new URI(hdfsRootDir), conf, "hadoop");
-        } catch (Exception e) {
-            throw new VisalloException("Could not open hdfs filesystem", e);
-        }
-        return hdfsFileSystem;
     }
 
     private List<TermMentionFilter> loadTermMentionFilters(FileSystem hdfsFileSystem) {
