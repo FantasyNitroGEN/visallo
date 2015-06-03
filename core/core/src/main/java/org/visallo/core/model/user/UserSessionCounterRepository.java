@@ -3,6 +3,7 @@ package org.visallo.core.model.user;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import org.apache.commons.lang.SerializationException;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
@@ -156,8 +157,16 @@ public class UserSessionCounterRepository {
             long lastUpdated = sessionStat.getMtime();
             if (now - lastUpdated > UNSEEN_SESSION_DURATION) {
                 byte[] data = curator.getData().forPath(sessionPath);
-                SessionData sessionData = (SessionData) SerializationUtils.deserialize(data);
-                if (sessionData.autoDelete) {
+                boolean autoDelete = true;
+                try {
+                    SessionData sessionData = (SessionData) SerializationUtils.deserialize(data);
+                    autoDelete = sessionData.autoDelete;
+                } catch (SerializationException e) {
+                    // data is somehow corrupt
+                    LOGGER.debug("unable to deserialize SessionData for session %s", sessionPath);
+                    LOGGER.debug("exception is:", e);
+                }
+                if (autoDelete) {
                     LOGGER.debug("deleting old user session %s", sessionPath);
                     curator.delete().inBackground().forPath(sessionPath);
                 }
