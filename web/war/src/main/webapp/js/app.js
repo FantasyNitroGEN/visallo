@@ -833,8 +833,6 @@ define([
                 this.select('activitySelector'),
                 this.select('extensionPanesSelector')
             ]);
-
-            $('.search-results').hide();
         };
 
         this.collapse = function(panes) {

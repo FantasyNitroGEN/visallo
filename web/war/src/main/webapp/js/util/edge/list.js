@@ -2,15 +2,17 @@ define([
     'flight/lib/component',
     'd3',
     'util/formatters',
+    'util/withDataRequest',
     'util/vertex/justification/viewer'
 ], function(
     defineComponent,
     d3,
     F,
+    withDataRequest,
     JustificationViewer) {
     'use strict';
 
-    return defineComponent(EdgeList);
+    return defineComponent(EdgeList, withDataRequest);
 
     function EdgeList() {
 
@@ -19,17 +21,37 @@ define([
         });
 
         this.after('initialize', function() {
+            var self = this;
+
             this.on('click', {
                 edgeItemSelector: this.onSelectEdge
             });
             this.on(document, 'edgesDeleted', this.onEdgesDeleted);
+            this.on(document, 'objectsSelected', this.onObjectsSelected);
 
             this.$list = $('<ul>')
-                .addClass('nav nav-list')
-                .appendTo(this.$node.empty()) //.addClass('vertex-list vertices-list'))
+                .addClass('nav nav-list edge-list')
+                .appendTo(this.$node.empty())
                 .get(0);
-            this.render();
+
+            this.dataRequest('ontology', 'relationships')
+                .done(function(relationships) {
+                    self.ontologyRelationships = relationships;
+                    self.render();
+                });
         });
+
+        this.onObjectsSelected = function(event, data) {
+            if (data && data.edges.length) {
+                var toSelect = this.$node.find(data.edges.map(function(e) {
+                        return '.' + F.className.to(e.id);
+                    }).join(','))
+                this.$node.find('.active').not(toSelect).removeClass('active');
+                toSelect.addClass('active');
+            } else {
+                this.$node.find('.active').removeClass('active');
+            }
+        };
 
         this.onEdgesDeleted = function(event, data) {
             if (data.edgeId) {
@@ -53,13 +75,17 @@ define([
         };
 
         this.render = function() {
+            var self = this;
+
             d3.select(this.$list)
                 .selectAll('li.edge')
                 .data(this.attr.edges)
                 .call(function() {
                     this.enter()
                         .append('li')
-                            .attr('class', 'edge vertex-item')
+                        .attr('class', function(d) {
+                            return 'edge vertex-item ' + F.className.to(d.id);
+                        })
                         .append('a')
                         .call(function() {
                             this.append('span');
@@ -78,7 +104,9 @@ define([
 
                         $this.teardownAllComponents();
 
-                        if (justification || sourceInfo) {
+                        if (self.attr.showTypeLabel) {
+                            $this.text(self.ontologyRelationships.byTitle[d.label].displayName);
+                        } else if (justification || sourceInfo) {
                             JustificationViewer.attachTo($this, {
                                 justificationMetadata: justification && justification.value,
                                 sourceMetadata: sourceInfo && sourceInfo.value

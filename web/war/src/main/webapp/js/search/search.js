@@ -77,7 +77,14 @@ define([
             this.on(document, 'searchByProperty', this.onSearchByProperty);
             this.on(document, 'searchPaneVisible', this.onSearchPaneVisible);
             this.on(document, 'switchSearchType', this.onSwitchSearchType);
+            this.on(document, 'menubarToggleDisplay', this.onToggleDisplay);
         });
+
+        this.onToggleDisplay = function(event, data) {
+            if (data.name === 'search' && this.$node.closest('.visible').length === 0) {
+                this.$node.find('.advanced-search-type-results').hide();
+            }
+        };
 
         this.onSearchTypeLoaded = function() {
             this.trigger('paneResized');
