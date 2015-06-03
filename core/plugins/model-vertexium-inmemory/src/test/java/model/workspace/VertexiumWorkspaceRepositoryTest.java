@@ -391,6 +391,7 @@ public class VertexiumWorkspaceRepositoryTest {
                 "newValue",
                 new Metadata(),
                 "",
+                "",
                 workspace.getWorkspaceId(),
                 "I changed it",
                 new ClientApiSourceInfo(),

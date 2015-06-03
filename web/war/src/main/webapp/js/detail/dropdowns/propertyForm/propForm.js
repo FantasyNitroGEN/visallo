@@ -484,11 +484,15 @@ define([
                 propertyKey = this.currentProperty.key,
                 propertyName = this.currentProperty.title,
                 value = this.currentValue,
-                justification = _.pick(this.justification || {}, 'sourceInfo', 'justificationText');
+                justification = _.pick(this.justification || {}, 'sourceInfo', 'justificationText'),
+                oldMetadata = this.currentProperty.metadata,
+                oldVisibilitySource = oldMetadata && oldMetadata['http://visallo.org#visibilityJson']
+                    ? oldMetadata['http://visallo.org#visibilityJson'].source
+                    : undefined;
 
             _.defer(this.buttonLoading.bind(this, this.attr.saveButtonSelector));
 
-            this.$node.find('input').tooltip('hide')
+            this.$node.find('input').tooltip('hide');
 
             this.$node.find('.errors').hide();
             if (propertyName.length &&
@@ -509,6 +513,7 @@ define([
                             name: propertyName,
                             value: value,
                             visibilitySource: this.visibilitySource.value,
+                            oldVisibilitySource: oldVisibilitySource,
                             metadata: this.currentMetadata
                         }, justification)
                 });
