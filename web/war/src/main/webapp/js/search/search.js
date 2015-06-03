@@ -62,7 +62,9 @@ define([
                 clearSearchSelector: this.onClearSearchClick,
                 advancedSearchTypeSelector: this.onAdvancedSearchTypeClick
             });
-            this.on('change keydown keyup paste', this.onQueryChange);
+            this.on('change keydown keyup paste', {
+                querySelector: this.onQueryChange
+            });
             this.on(this.select('querySelector'), 'focus', this.onQueryFocus);
 
             this.on('filterschange', this.onFiltersChange);
