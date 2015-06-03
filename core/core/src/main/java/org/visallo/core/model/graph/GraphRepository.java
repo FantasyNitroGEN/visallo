@@ -103,26 +103,44 @@ public class GraphRepository {
             String propertyKey,
             Object value,
             Metadata metadata,
-            String visibilitySource,
+            String newVisibilitySource,
             String workspaceId,
             String justificationText,
             ClientApiSourceInfo sourceInfo,
             User user,
             Authorizations authorizations
     ) {
-        VisibilityJson visibilityJson = new VisibilityJson();
-        visibilityJson.setSource(visibilitySource);
-        visibilityJson.addWorkspace(workspaceId);
-        VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
-        Visibility propertyVisibility = visalloVisibility.getVisibility();
-        Property oldProperty = element.getProperty(propertyKey, propertyName, propertyVisibility);
-        Metadata propertyMetadata;
-        if (oldProperty != null) {
-            propertyMetadata = oldProperty.getMetadata();
-        } else {
-            propertyMetadata = new Metadata();
+        return setProperty(element, propertyName, propertyKey, value, metadata, null, newVisibilitySource, workspaceId,
+                justificationText, sourceInfo, user, authorizations);
+    }
+
+    public <T extends Element> VisibilityAndElementMutation<T> setProperty(
+            T element,
+            String propertyName,
+            String propertyKey,
+            Object value,
+            Metadata metadata,
+            String oldVisibilitySource,
+            String newVisibilitySource,
+            String workspaceId,
+            String justificationText,
+            ClientApiSourceInfo sourceInfo,
+            User user,
+            Authorizations authorizations
+    ) {
+        Visibility oldPropertyVisibility = null;
+        if (oldVisibilitySource != null) {
+            VisibilityJson oldVisibilityJson = new VisibilityJson();
+            oldVisibilityJson.setSource(oldVisibilitySource);
+            oldVisibilityJson.addWorkspace(workspaceId);
+            VisalloVisibility oldVisalloVisibility = visibilityTranslator.toVisibility(oldVisibilityJson);
+            oldPropertyVisibility = oldVisalloVisibility.getVisibility();
         }
 
+        Property oldProperty = element.getProperty(propertyKey, propertyName, oldPropertyVisibility);
+        boolean isUpdate = oldProperty != null;
+
+        Metadata propertyMetadata = isUpdate ? oldProperty.getMetadata() : new Metadata();
         VertexiumMetadataUtil.mergeMetadata(propertyMetadata, metadata);
 
         Property publicProperty = element.getProperty(propertyKey, propertyName);
@@ -132,19 +150,20 @@ public class GraphRepository {
 
         ExistingElementMutation<T> elementMutation = element.prepareMutation();
 
-        visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(visibilityJson, visibilitySource, workspaceId);
+        VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, newVisibilitySource, workspaceId);
         Date now = new Date();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(propertyMetadata, now, visibilityTranslator.getDefaultVisibility());
         VisalloProperties.MODIFIED_BY_METADATA.setMetadata(propertyMetadata, user.getUserId(), visibilityTranslator.getDefaultVisibility());
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(propertyMetadata, SET_PROPERTY_CONFIDENCE, visibilityTranslator.getDefaultVisibility());
 
-        visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
+        VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
+        Visibility propertyVisibility = visalloVisibility.getVisibility();
 
         if (justificationText != null) {
             PropertyJustificationMetadata propertyJustificationMetadata = new PropertyJustificationMetadata(justificationText);
             termMentionRepository.removeSourceInfoEdge(element, propertyKey, propertyName, visalloVisibility, authorizations);
-            VisalloProperties.JUSTIFICATION_METADATA.setMetadata(propertyMetadata, propertyJustificationMetadata, visalloVisibility.getVisibility());
+            VisalloProperties.JUSTIFICATION_METADATA.setMetadata(propertyMetadata, propertyJustificationMetadata, propertyVisibility);
         } else if (sourceInfo != null) {
             Vertex sourceVertex = graph.getVertex(sourceInfo.vertexId, authorizations);
             VisalloProperties.JUSTIFICATION.removeMetadata(propertyMetadata);
@@ -160,12 +179,15 @@ public class GraphRepository {
                     sourceInfo.startOffset,
                     sourceInfo.endOffset,
                     sourceVertex,
-                    visalloVisibility.getVisibility(),
+                    propertyVisibility,
                     authorizations
             );
         }
 
-        elementMutation.addPropertyValue(propertyKey, propertyName, value, propertyMetadata, visalloVisibility.getVisibility());
+        if (isUpdate) {
+            elementMutation.alterPropertyVisibility(oldProperty, propertyVisibility);
+        }
+        elementMutation.addPropertyValue(propertyKey, propertyName, value, propertyMetadata, propertyVisibility);
         return new VisibilityAndElementMutation<>(visalloVisibility, elementMutation);
     }
 

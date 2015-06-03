@@ -410,6 +410,16 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>web-zip-code-boundaries</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-web-zip-code-boundaries</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <build>

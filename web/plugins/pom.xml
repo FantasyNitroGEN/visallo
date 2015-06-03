@@ -28,5 +28,6 @@
         <module>change-password</module>
         <module>change-email</module>
         <module>requeue</module>
+        <module>zip-code-boundaries</module>
     </modules>
 </project>

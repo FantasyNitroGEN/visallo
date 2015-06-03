@@ -108,6 +108,11 @@ public abstract class MinimalRequestHandler implements Handler {
 
 
     protected boolean getOptionalParameterBoolean(final HttpServletRequest request, final String parameterName, boolean defaultValue) {
+        Boolean defaultValueBoolean = defaultValue;
+        return getOptionalParameterBoolean(request, parameterName, defaultValueBoolean);
+    }
+
+    protected Boolean getOptionalParameterBoolean(final HttpServletRequest request, final String parameterName, Boolean defaultValue) {
         String val = getOptionalParameter(request, parameterName);
         if (val == null || val.length() == 0) {
             return defaultValue;

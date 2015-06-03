@@ -1,6 +1,7 @@
 package org.visallo.core.config;
 
 import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloException;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.*;
 
 /**
@@ -455,5 +457,17 @@ public class Configuration {
 
     public JSONObject getConfigurationInfo() {
         return configurationLoader.getConfigurationInfo();
+    }
+
+    public FileSystem getFileSystem() {
+        FileSystem hdfsFileSystem;
+        org.apache.hadoop.conf.Configuration conf = toHadoopConfiguration();
+        try {
+            String hdfsRootDir = get(Configuration.HADOOP_URL, null);
+            hdfsFileSystem = FileSystem.get(new URI(hdfsRootDir), conf, "hadoop");
+        } catch (Exception e) {
+            throw new VisalloException("Could not open hdfs filesystem", e);
+        }
+        return hdfsFileSystem;
     }
 }
