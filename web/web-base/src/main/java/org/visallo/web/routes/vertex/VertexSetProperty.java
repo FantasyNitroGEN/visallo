@@ -72,6 +72,7 @@ public class VertexSetProperty extends BaseRequestHandler {
         final String valueStr = getOptionalParameter(request, "value");
         final String[] valuesStr = getOptionalParameterArray(request, "value[]");
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
+        final String oldVisibilitySource = getOptionalParameter(request, "oldVisibilitySource");
         boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
         final String justificationText = isJustificationRequired(isComment) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
         final String sourceInfo = getOptionalParameter(request, "sourceInfo");
@@ -110,6 +111,7 @@ public class VertexSetProperty extends BaseRequestHandler {
                 justificationText,
                 sourceInfo,
                 metadataString,
+                oldVisibilitySource,
                 visibilitySource,
                 user,
                 workspaceId,
@@ -138,6 +140,7 @@ public class VertexSetProperty extends BaseRequestHandler {
             String justificationText,
             String sourceInfoString,
             String metadataString,
+            String oldVisibilitySource,
             String visibilitySource,
             User user,
             String workspaceId,
@@ -157,6 +160,7 @@ public class VertexSetProperty extends BaseRequestHandler {
                 valueStr,
                 valuesStr,
                 justificationText,
+                oldVisibilitySource,
                 visibilitySource,
                 metadata,
                 sourceInfo,
@@ -195,6 +199,7 @@ public class VertexSetProperty extends BaseRequestHandler {
             String valueStr,
             String[] valuesStr,
             String justificationText,
+            String oldVisibilitySource,
             String visibilitySource,
             Metadata metadata,
             ClientApiSourceInfo sourceInfo,
@@ -237,6 +242,7 @@ public class VertexSetProperty extends BaseRequestHandler {
                             valuesStr[valuesIndex++],
                             null,
                             justificationText,
+                            oldVisibilitySource,
                             visibilitySource,
                             metadata,
                             sourceInfo,
@@ -268,6 +274,7 @@ public class VertexSetProperty extends BaseRequestHandler {
                 propertyKey,
                 value,
                 metadata,
+                oldVisibilitySource,
                 visibilitySource,
                 workspaceId,
                 justificationText,

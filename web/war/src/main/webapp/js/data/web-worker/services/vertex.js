@@ -203,6 +203,7 @@ define([
                  propertyName: property.name,
                  value: property.value,
                  visibilitySource: property.visibilitySource,
+                 oldVisibilitySource: property.oldVisibilitySource,
                  justificationText: property.justificationText
             }, function(params) {
                 if (property.sourceInfo) {
