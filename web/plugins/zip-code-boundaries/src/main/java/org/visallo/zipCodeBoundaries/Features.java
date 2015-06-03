@@ -20,7 +20,7 @@ public class Features implements ClientApiObject {
 
     public static class Feature {
         private String zipCode;
-        private List<Coordinate> coordinates = new ArrayList<>();
+        private List<double[]> coordinates = new ArrayList<>();
 
         public static Feature create(org.opengis.feature.Feature feature) {
             Property zipCodeProperty = feature.getProperty("ZCTA5CE10");
@@ -32,7 +32,7 @@ public class Features implements ClientApiObject {
 
             MultiPolygon poly = (MultiPolygon) feature.getDefaultGeometryProperty().getValue();
             for (com.vividsolutions.jts.geom.Coordinate polyPt : poly.getCoordinates()) {
-                result.coordinates.add(new Coordinate(polyPt));
+                result.coordinates.add(new double[]{polyPt.y, polyPt.x});
             }
 
             return result;
@@ -42,35 +42,8 @@ public class Features implements ClientApiObject {
             return zipCode;
         }
 
-        public List<Coordinate> getCoordinates() {
+        public List<double[]> getCoordinates() {
             return coordinates;
-        }
-    }
-
-    public static class Coordinate {
-        private final double latitude;
-        private final double longitude;
-
-        public Coordinate(double latitude, double longitude) {
-            this.latitude = latitude;
-            this.longitude = longitude;
-        }
-
-        public Coordinate(com.vividsolutions.jts.geom.Coordinate polyPt) {
-            this(polyPt.y, polyPt.x);
-        }
-
-        public double getLatitude() {
-            return latitude;
-        }
-
-        public double getLongitude() {
-            return longitude;
-        }
-
-        @Override
-        public String toString() {
-            return "{" + latitude + ", " + longitude + '}';
         }
     }
 }
