@@ -32,8 +32,15 @@ define([
 
         var margin = {top: 4, right: 16, bottom: 40, left: 16};
 
+        this.defaultAttrs({
+            noDataMessageSelector: '.no-data-message',
+            noDataMessageDetailsText: i18n('histogram.no_data_details')
+        });
+
         this.after('initialize', function() {
-            this.$node.html(template({}));
+            this.$node.html(template({
+                noDataMessageDetailsText: this.attr.noDataMessageDetailsText
+            }));
 
             this.triggerChange = _.debounce(this.triggerChange.bind(this), 500);
             this.onGraphPaddingUpdated = _.debounce(this.onGraphPaddingUpdated.bind(this), 500);
@@ -626,7 +633,11 @@ define([
                     return d[0].conceptIri + d.x.getTime();
                 }),
                 isDate = this.attr.property.dataType === 'date',
-                animationDuration = skipAnimation ? 0 : 250;
+                animationDuration = skipAnimation ? 0 : 250,
+                hasData = this.data && this.data.length;
+
+            this.select('noDataMessageSelector').css('display', hasData ? 'none' : 'block');
+            this.svg.style('display', hasData ? 'block' : 'none');
 
             barLayers.enter().append('g').attr('class', 'barlayer').style('fill', function(d) {
                 return d.normalColor;
