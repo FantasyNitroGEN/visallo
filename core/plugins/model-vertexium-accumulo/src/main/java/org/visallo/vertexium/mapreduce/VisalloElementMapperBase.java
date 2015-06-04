@@ -1,5 +1,9 @@
 package org.visallo.vertexium.mapreduce;
 
+import org.apache.hadoop.mapreduce.Mapper;
+import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.bootstrap.VisalloBootstrap;
+import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.accumulo.core.data.Mutation;
@@ -13,6 +17,13 @@ import java.io.IOException;
 public abstract class VisalloElementMapperBase<KEYIN, VALUEIN> extends ElementMapper<KEYIN, VALUEIN, Text, Mutation> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VisalloElementMapperBase.class);
     private IdGenerator idGenerator = new UUIDIdGenerator(null);
+
+    @Override
+    protected void setup(Context context) throws IOException, InterruptedException {
+        super.setup(context);
+        org.visallo.core.config.Configuration visalloConfig = ConfigurationLoader.load();
+        InjectHelper.inject(this, VisalloBootstrap.bootstrapModuleMaker(visalloConfig), visalloConfig);
+    }
 
     @Override
     protected void map(KEYIN key, VALUEIN line, Context context) {
