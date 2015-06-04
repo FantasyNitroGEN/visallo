@@ -7,7 +7,7 @@
     <artifactId>visallo-root</artifactId>
     <packaging>pom</packaging>
     <name>Visallo: Root</name>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-TEST-SNAPSHOT</version>
 
     <inceptionYear>2013</inceptionYear>
     <organization>
