@@ -16,9 +16,13 @@ define(['util/promise'], function() {
                 })
                 .then(function() {
                     var currentType = $searchPane.find('.navbar-search .segmented-control .active').data('type'),
-                        filtersLoaded = $searchPane.find('.search-filters').length;
+                        filtersLoaded = $searchPane.find('.search-filters').length,
+                        advancedSearchActive = $searchPane.find('.search-type.active').length === 0;
 
-                    if (!filtersLoaded || !currentType || currentType !== searchType) {
+                    if (advancedSearchActive ||
+                        !filtersLoaded ||
+                        !currentType ||
+                        currentType !== searchType) {
                         return new Promise(function(f) {
                             $(document).on('searchtypeloaded', function loadedHandler() {
                                     $(this).off('searchtypeloaded', loadedHandler);

@@ -319,6 +319,7 @@ define([
                     return;
                 }
 
+                this.advancedActive = true;
                 this.updateAdvancedSearchDropdown(newSearchType);
 
                 var cls = F.className.to(path),
@@ -363,9 +364,11 @@ define([
             this.$node.find('.advanced-search-type, .advanced-search-type-results').hide();
             this.$node.find('.search-query-container').show();
 
-            if (!newSearchType || this.searchType === newSearchType) {
+            if (!this.advancedActive && (!newSearchType || this.searchType === newSearchType)) {
                 return;
             }
+
+            this.advancedActive = false;
 
             this.updateQueryValue(newSearchType);
 
