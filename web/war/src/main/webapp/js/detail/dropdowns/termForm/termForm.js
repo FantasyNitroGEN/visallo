@@ -38,12 +38,6 @@ define([
                 this.demoteSpanToTextVertex(this.promoted);
             }
 
-            var info = $(this.attr.mentionNode).removeClass('focused').data('info');
-
-            if (info) {
-                this.updateConceptLabel(info['http://visallo.org#conceptType'] || '');
-            }
-
             // Remove extra textNodes
             if (this.node.parentNode) {
                 this.node.parentNode.normalize();
@@ -100,7 +94,7 @@ define([
                     self.trigger(self.select('conceptContainerSelector').show(), 'selectConceptId', {
                         conceptId: conceptType
                     });
-                    self.updateConceptLabel(conceptType)
+                    self.checkValid()
                 });
 
                 if (this.unresolve) {
@@ -124,6 +118,12 @@ define([
                         readonly: self.unresolve
                     });
                 });
+
+                if (!this.unresolve) {
+                    require(['detail/dropdowns/propertyForm/justification'], function(Justification) {
+                        Justification.attachTo(self.$node.find('.justification'));
+                    });
+                }
             } else if (this.attr.restrictConcept) {
                 this.deferredConcepts.done(function() {
                     self.trigger(self.select('conceptContainerSelector'), 'selectConceptId', {
@@ -192,6 +192,10 @@ define([
                         endOffset: parameters.mentionEnd,
                         snippet: self.attr.snippet
                     };
+                }
+
+                if (this.justification.justificationText) {
+                    parameters.justificationText = this.justification.justificationText;
                 }
 
                 this.dataRequest('vertex', 'resolveTerm', parameters)
@@ -275,15 +279,12 @@ define([
 
         this.onConceptSelected = function(event, data) {
             this.selectedConceptId = data && data.concept && data.concept.id || '';
-            this.updateConceptLabel(this.selectedConceptId);
-
             if (this.selectedConceptId) {
-                this.select('actionButtonSelector').removeAttr('disabled');
                 this.select('vertexContainerSelector').trigger('setConcept', { conceptId: this.selectedConceptId });
             } else {
-                this.select('actionButtonSelector').attr('disabled', true);
                 this.select('vertexContainerSelector').trigger('setConcept');
             }
+            this.checkValid();
         };
 
         this.onVisibilityChange = function(event, data) {
@@ -291,12 +292,20 @@ define([
             // TODO: inspect valid
         };
 
-        this.updateConceptLabel = function(conceptId, vertex) {
-            if (conceptId === '') {
-                this.select('actionButtonSelector').attr('disabled', true);
-                return;
+        this.onJustificationChange = function(event, data) {
+            this.justification = data;
+            this.checkValid();
+        };
+
+        this.checkValid = function() {
+            if (!this.unresolve) {
+                var button = this.select('actionButtonSelector');
+                if (this.justification && this.justification.valid && this.selectedConceptId) {
+                    button.removeAttr('disabled');
+                } else {
+                    button.attr('disabled', true);
+                }
             }
-            this.select('actionButtonSelector').removeAttr('disabled');
         };
 
         this.setupContent = function() {
@@ -378,6 +387,7 @@ define([
         this.registerEvents = function() {
 
             this.on('visibilitychange', this.onVisibilityChange);
+            this.on('justificationchange', this.onJustificationChange);
 
             this.on('conceptSelected', this.onConceptSelected);
             this.on('resetTypeahead', this.reset);
