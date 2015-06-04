@@ -11,17 +11,18 @@
     <artifactId>visallo</artifactId>
     <packaging>pom</packaging>
     <name>Visallo</name>
+    <version>1.0.0-SNAPSHOT</version>c
 
     <scm>
-        <url>https://github.com/v5analytics/visallo</url>
-        <connection>scm:git:git://github.com:v5analytics/visallo.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:v5analytics/visallo.git</developerConnection>
-    </scm>
+        <url>https://github.com/v5analytics/visallo-private</url>
+        <connection>scm:git:git://github.com/v5analytics/visallo-private.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/v5analytics/visallo-private.git</developerConnection>
+  </scm>
 
     <repositories>
         <repository>
             <id>v5analytics</id>
-            <url>https://mvn.v5analytics.com/content/groups/org.visallo</url>
+            <url>https://mvn.v5analytics.com/content/groups/org.visallo.test</url>
         </repository>
         <repository>
             <id>v5analytics-snapshots</id>
@@ -29,21 +30,20 @@
                 <enabled>true</enabled>
                 <updatePolicy>interval:60</updatePolicy>
             </snapshots>
-            <url>https://mvn.v5analytics.com/content/groups/org.visallo-snapshots</url>
-        </repository>
-        <repository>
-            <id>v5analytics-public</id>
-            <url>https://mvn.v5analytics.com/content/groups/public</url>
-        </repository>
-        <repository>
-            <id>v5analytics-snapshots-public</id>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>interval:60</updatePolicy>
-            </snapshots>
-            <url>https://mvn.v5analytics.com/content/groups/public-snapshots</url>
+            <url>https://mvn.v5analytics.com/content/groups/org.visallo.test-snapshots</url>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>v5analytics-snapshots</id>
+            <url>https://mvn.v5analytics.com/content/repositories/org.visallo.test-snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>v5analytics</id>
+            <url>https://mvn.v5analytics.com/content/repositories/org.visallo.test</url>
+        </repository>
+    </distributionManagement>
 
     <modules>
         <module>core</module>
