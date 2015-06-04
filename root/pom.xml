@@ -27,7 +27,6 @@
         <url>https://github.com/v5analytics/visallo-private</url>
         <connection>scm:git:git://github.com/v5analytics/visallo-private.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/v5analytics/visallo-private.git</developerConnection>
-      <tag>HEAD</tag>
   </scm>
 
     <properties>
