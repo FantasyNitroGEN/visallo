@@ -164,7 +164,7 @@ define([
                             });
                         }) || 0]);
 
-                        if(self.attr.includeYAxis) {
+                        if (self.attr.includeYAxis) {
                             self.svg.select('.y.axis').call(self.yAxis)
                                                       .selectAll('.tick text')
                                                       .attr('transform', 'translate(0,6)');
@@ -485,7 +485,7 @@ define([
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(xAxis);
 
-            if(this.attr.includeYAxis) {
+            if (this.attr.includeYAxis) {
                 svg.append('g')
                     .attr('class', 'y axis')
                     .call(yAxis)
