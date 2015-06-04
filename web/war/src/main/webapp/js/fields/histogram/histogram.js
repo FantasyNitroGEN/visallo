@@ -150,41 +150,36 @@ define([
         };
 
         this.redraw = function(rebin, skipAnimation) {
-            var self = this,
-                xScale = this.xScale,
-                yScale = this.yScale,
-                data = this.data,
-                updateElements = function(shouldSkipAnimation) {
-                    yScale.domain([0, d3.max(data, function(layer) {
-                        return d3.max(layer.values, function(d) {
-                            return d.y0 + d.y;
-                        });
-                    }) || 0]);
-
-                    self.createBars(data, shouldSkipAnimation);
-                    self.svg.select('.brush').call(self.brush.x(xScale));
-                    self.svg.select('.x.axis').call(self.xAxis.orient('bottom'));
-
-                    if (self.currentExtent) {
-                        var selectedVertexIds = self.getVertexIdsFortExtent(self.currentExtent);
-                        if (!_.isEqual(selectedVertexIds, self.currentSelectedVertexIds)) {
-                            self.currentSelectedVertexIds = selectedVertexIds;
-                            self.triggerChange({ extent: self.currentExtent, vertexIds: self.currentSelectedVertexIds });
-                        }
-                    }
-                };
+            var self = this;
 
             if (rebin) {
                 if (!this.debouncedBin) {
                     this.debouncedBin = _.debounce(function(shouldSkipAnimation) {
                         self.binCount = null;
-                        data = self.data = self.binValues();
-                        updateElements(shouldSkipAnimation);
+                        self.data = self.binValues();
+                        self.redraw(false, shouldSkipAnimation);
                     }, 250);
                 }
                 this.debouncedBin(skipAnimation);
             }
-            updateElements(skipAnimation);
+
+            this.yScale.domain([0, d3.max(this.data, function(layer) {
+                return d3.max(layer.values, function(d) {
+                    return d.y0 + d.y;
+                });
+            }) || 0]);
+
+            this.createBars(this.data, skipAnimation);
+            this.svg.select('.brush').call(this.brush.x(this.xScale));
+            this.svg.select('.x.axis').call(this.xAxis.orient('bottom'));
+
+            if (this.currentExtent) {
+                var selectedVertexIds = this.getVertexIdsFortExtent(self.currentExtent);
+                if (!_.isEqual(selectedVertexIds, this.currentSelectedVertexIds)) {
+                    this.currentSelectedVertexIds = selectedVertexIds;
+                    this.triggerChange({ extent: this.currentExtent, vertexIds: this.currentSelectedVertexIds });
+                }
+            }
         };
 
         this.binValues = function() {
