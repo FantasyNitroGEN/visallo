@@ -30,11 +30,12 @@ define([
 
     function Histogram() {
 
-        var margin = {top: 4, right: 16, bottom: 40, left: 16};
+        var margin = {top: 6, right: 16, bottom: 40, left: 16};
 
         this.defaultAttrs({
             noDataMessageSelector: '.no-data-message',
-            noDataMessageDetailsText: i18n('histogram.no_data_details')
+            noDataMessageDetailsText: i18n('histogram.no_data_details'),
+            includeYAxis: false
         });
 
         this.after('initialize', function() {
@@ -157,17 +158,23 @@ define([
                     this.debouncedBin = _.debounce(function(shouldSkipAnimation) {
                         self.binCount = null;
                         self.data = self.binValues();
+                        self.yScale.domain([0, d3.max(self.data, function(layer) {
+                            return d3.max(layer.values, function(d) {
+                                return d.y0 + d.y;
+                            });
+                        }) || 0]);
+
+                        if (self.attr.includeYAxis) {
+                            self.svg.select('.y.axis').call(self.yAxis)
+                                                      .selectAll('.tick text')
+                                                      .attr('transform', 'translate(0,6)');
+                        }
+
                         self.redraw(false, shouldSkipAnimation);
                     }, 250);
                 }
                 this.debouncedBin(skipAnimation);
             }
-
-            this.yScale.domain([0, d3.max(this.data, function(layer) {
-                return d3.max(layer.values, function(d) {
-                    return d.y0 + d.y;
-                });
-            }) || 0]);
 
             this.createBars(this.data, skipAnimation);
             this.svg.select('.brush').call(this.brush.x(this.xScale));
@@ -303,6 +310,12 @@ define([
                     .tickSize(5, 0)
                     .orient('bottom'),
 
+                yAxis = this.yAxis = d3.svg.axis()
+                    .scale(yScale)
+                    .ticks(1)
+                    .tickSize(5, 0)
+                    .orient('right'),
+
                 onZoomedUpdate = _.throttle(function() {
                     updateBrushInfo();
                     updateFocusInfo();
@@ -363,16 +376,14 @@ define([
                     .append('g')
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'),
 
-                focus = this.focus = svg.append('g')
+                svgBackground = svg.append('g'),
+
+                focus = this.focus = svgBackground.append('g')
                     .attr('class', 'focus')
                     .style('display', 'none'),
 
-                gBrush = svgOuter.append('g')
+                gBrush = svg.append('g')
                     .attr('class', 'brush')
-                    .attr(
-                        'transform',
-                        'translate(' + margin.left + ',' + Math.max(0, margin.top - BRUSH_PADDING - 1) + ')'
-                    )
                     .on('mousedown', function() {
                         d3.event.stopPropagation();
                     }).call(brush),
@@ -469,10 +480,18 @@ define([
                 .attr('width', 1)
                 .attr('height', margin.bottom * 0.6);
 
-            svg.append('g')
+            svgBackground.append('g')
                 .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(xAxis);
+
+            if (this.attr.includeYAxis) {
+                svg.append('g')
+                    .attr('class', 'y axis')
+                    .call(yAxis)
+                    .selectAll('.tick text')
+                    .attr('transform', 'translate(0,6)');
+            }
 
             function calculateValuesExtent() {
                 var min, max, delta, rawValues = _.pluck(values, 'value');
