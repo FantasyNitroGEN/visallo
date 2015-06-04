@@ -6,9 +6,7 @@ define([
     'util/vertex/formatters',
     'util/ontology/conceptSelect',
     'util/vertex/vertexSelect',
-    'util/withDataRequest',
-    'util/range',
-    'util/jquery.removePrefixedClasses'
+    'util/withDataRequest'
 ], function(
     defineComponent,
     withDropdown,
@@ -17,8 +15,7 @@ define([
     F,
     ConceptSelector,
     VertexSelector,
-    withDataRequest,
-    rangeUtils) {
+    withDataRequest) {
     'use strict';
 
     return defineComponent(TermForm, withDropdown, withDataRequest);
@@ -39,12 +36,6 @@ define([
         this.after('teardown', function() {
             if (this.promoted && this.promoted.length) {
                 this.demoteSpanToTextVertex(this.promoted);
-            }
-
-            var info = $(this.attr.mentionNode).removeClass('focused').data('info');
-
-            if (info) {
-                this.updateConceptLabel(info['http://visallo.org#conceptType'] || '');
             }
 
             // Remove extra textNodes
@@ -87,7 +78,7 @@ define([
 
                 this.trigger(this.select('conceptContainerSelector'), 'enableConcept', {
                     enable: !newGraphVertexId
-                })
+                });
 
                 var conceptType = _.isArray(info) ?
                     _.findWhere(info, { name: 'http://visallo.org#conceptType' }) :
@@ -102,8 +93,8 @@ define([
                 this.deferredConcepts.done(function() {
                     self.trigger(self.select('conceptContainerSelector').show(), 'selectConceptId', {
                         conceptId: conceptType
-                    })
-                    self.updateConceptLabel(conceptType)
+                    });
+                    self.checkValid()
                 });
 
                 if (this.unresolve) {
@@ -127,6 +118,12 @@ define([
                         readonly: self.unresolve
                     });
                 });
+
+                if (!this.unresolve) {
+                    require(['detail/dropdowns/propertyForm/justification'], function(Justification) {
+                        Justification.attachTo(self.$node.find('.justification'));
+                    });
+                }
             } else if (this.attr.restrictConcept) {
                 this.deferredConcepts.done(function() {
                     self.trigger(self.select('conceptContainerSelector'), 'selectConceptId', {
@@ -142,7 +139,7 @@ define([
             } else {
                 this.detectedObjectModification(event);
             }
-        }
+        };
 
         this.termModification = function(event) {
             var self = this,
@@ -195,6 +192,10 @@ define([
                         endOffset: parameters.mentionEnd,
                         snippet: self.attr.snippet
                     };
+                }
+
+                if (this.justification.justificationText) {
+                    parameters.justificationText = this.justification.justificationText;
                 }
 
                 this.dataRequest('vertex', 'resolveTerm', parameters)
@@ -253,7 +254,7 @@ define([
             } else {
                 self.resolveDetectedObject(parameters);
             }
-        }
+        };
 
         this.resolveDetectedObject = function(parameters) {
             var self = this;
@@ -278,15 +279,12 @@ define([
 
         this.onConceptSelected = function(event, data) {
             this.selectedConceptId = data && data.concept && data.concept.id || '';
-            this.updateConceptLabel(this.selectedConceptId);
-
             if (this.selectedConceptId) {
-                this.select('actionButtonSelector').removeAttr('disabled');
                 this.select('vertexContainerSelector').trigger('setConcept', { conceptId: this.selectedConceptId });
             } else {
-                this.select('actionButtonSelector').attr('disabled', true);
                 this.select('vertexContainerSelector').trigger('setConcept');
             }
+            this.checkValid();
         };
 
         this.onVisibilityChange = function(event, data) {
@@ -294,14 +292,20 @@ define([
             // TODO: inspect valid
         };
 
-        this.updateConceptLabel = function(conceptId, vertex) {
-            var self = this;
+        this.onJustificationChange = function(event, data) {
+            this.justification = data;
+            this.checkValid();
+        };
 
-            if (conceptId === '') {
-                this.select('actionButtonSelector').attr('disabled', true);
-                return;
+        this.checkValid = function() {
+            if (!this.unresolve) {
+                var button = this.select('actionButtonSelector');
+                if (this.justification && this.justification.valid && this.selectedConceptId) {
+                    button.removeAttr('disabled');
+                } else {
+                    button.attr('disabled', true);
+                }
             }
-            this.select('actionButtonSelector').removeAttr('disabled');
         };
 
         this.setupContent = function() {
@@ -310,7 +314,6 @@ define([
                 vertex = this.$node,
                 existingEntity,
                 objectSign = '',
-                sign,
                 data, graphVertexId, title;
 
             if (!this.attr.detectedObject) {
@@ -323,10 +326,6 @@ define([
                 if (this.attr.selection && !existingEntity) {
                     this.trigger(document, 'ignoreSelectionChanges.detail');
                     this.promoted = this.promoteSelectionToSpan();
-
-                    // Promoted span might have been auto-expanded to avoid nested
-                    // spans
-                    sign = this.promoted.text();
 
                     _.defer(function() {
                         self.trigger(document, 'resumeSelectionChanges.detail');
@@ -388,6 +387,7 @@ define([
         this.registerEvents = function() {
 
             this.on('visibilitychange', this.onVisibilityChange);
+            this.on('justificationchange', this.onJustificationChange);
 
             this.on('conceptSelected', this.onConceptSelected);
             this.on('resetTypeahead', this.reset);
@@ -441,7 +441,7 @@ define([
 
                     self.trigger(self.select('conceptContainerSelector'), 'selectConceptId', {
                         conceptId: self.selectedConceptId
-                    })
+                    });
 
                     if (!self.selectedConceptId) {
                         self.select('actionButtonSelector').attr('disabled', true);
@@ -469,8 +469,7 @@ define([
         };
 
         this.promoteSelectionToSpan = function() {
-            var textVertex = this.node,
-                isTranscript = this.$node.closest('.av-times').length,
+            var isTranscript = this.$node.closest('.av-times').length,
                 range = this.attr.selection.range,
                 el,
                 tempTextNode,
