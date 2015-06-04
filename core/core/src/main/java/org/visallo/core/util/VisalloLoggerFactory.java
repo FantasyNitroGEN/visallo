@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import org.slf4j.LoggerFactory;
 import org.visallo.core.config.ConfigurationLoader;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -54,10 +56,20 @@ public class VisalloLoggerFactory {
         VisalloLogger logger = getLogger(VisalloLoggerFactory.class);
         logEnv(logger);
         logSystemProperties(logger);
+        logJvmInputArguments(logger);
+    }
+
+    private static void logJvmInputArguments(VisalloLogger logger) {
+        logger.info("jvm input arguments:");
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> arguments = runtimeMxBean.getInputArguments();
+        for (String arg : arguments) {
+            logger.info("  %s", arg);
+        }
     }
 
     private static void logSystemProperties(VisalloLogger logger) {
-        logger.info("program properties:");
+        logger.info("system properties:");
         ArrayList<Map.Entry<Object, Object>> properties = Lists.newArrayList(System.getProperties().entrySet());
         Collections.sort(properties, new Comparator<Map.Entry<Object, Object>>() {
             @Override
@@ -71,7 +83,7 @@ public class VisalloLoggerFactory {
     }
 
     private static void logEnv(VisalloLogger logger) {
-        logger.info("program environment:");
+        logger.info("environment:");
         ArrayList<Map.Entry<String, String>> entries = Lists.newArrayList(System.getenv().entrySet());
         Collections.sort(entries, new Comparator<Map.Entry<String, String>>() {
             @Override
