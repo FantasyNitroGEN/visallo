@@ -7,7 +7,7 @@ ln -s /opt/accumulo-1.6.1 /opt/accumulo
 rm -rf /opt/accumulo-1.6.1/logs
 mkdir -p /var/log/accumulo
 ln -s /var/log/accumulo /opt/accumulo-1.6.1/logs
-cp /opt/accumulo/conf/examples/1GB/standalone/* /opt/accumulo/conf
+cp /opt/accumulo/conf/examples/2GB/standalone/* /opt/accumulo/conf
 sed -i -e "s|HADOOP_PREFIX=/path/to/hadoop|HADOOP_PREFIX=/opt/hadoop|" \
     -e "s|JAVA_HOME=/path/to/java|JAVA_HOME=/opt/jdk|" \
     -e "s|ZOOKEEPER_HOME=/path/to/zookeeper|ZOOKEEPER_HOME=/opt/zookeeper|" \
