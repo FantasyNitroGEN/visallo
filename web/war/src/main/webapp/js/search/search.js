@@ -186,6 +186,8 @@ define([
                     alertTemplate({ error: data.error || i18n('search.query.error') })
                 )
             }
+
+            this.updateTypeCss();
         };
 
         this.onFiltersChange = function(event, data) {
@@ -317,8 +319,7 @@ define([
                     return;
                 }
 
-                this.$node.find('.advanced-search .caret')[0]
-                    .previousSibling.textContent = newSearchType.displayName + ' ';
+                this.updateAdvancedSearchDropdown(newSearchType);
 
                 var cls = F.className.to(path),
                     $container = this.$node.find('.advanced-search-type.' + cls),
@@ -368,9 +369,7 @@ define([
 
             this.updateQueryValue(newSearchType);
 
-            this.$node.find('.advanced-search .caret')[0]
-                .previousSibling.textContent = i18n('search.advanced.default') + ' ';
-            this.$node.find('.advanced-search').toggle(newSearchType === 'Visallo');
+            this.updateAdvancedSearchDropdown(newSearchType);
 
             var segmentedButton = this.$node.find('.find-' + newSearchType.toLowerCase())
                     .addClass('active')
@@ -386,13 +385,34 @@ define([
                 } else {
                     SearchType.attachTo(node);
                 }
+                self.updateTypeCss();
             });
+        };
+
+        this.updateAdvancedSearchDropdown = function(newSearchType) {
+            var dropdownCaret = this.$node.find('.advanced-search .caret')[0];
+
+            if (dropdownCaret) {
+                dropdownCaret.previousSibling.textContent = (
+                    _.isObject(newSearchType) && newSearchType.displayName ?
+                        newSearchType.displayName :
+                        i18n('search.advanced.default')
+                ) + ' ';
+            }
+            this.$node.find('.advanced-search').toggle(_.isObject(newSearchType) || newSearchType === 'Visallo');
+        }
+
+        this.updateTypeCss = function() {
+            this.$node.find('.search-type .search-filters').css(
+                'top',
+                this.select('formSelector').outerHeight(true)
+            );
         };
 
         this.updateClearSearch = function() {
             this.canClearSearch = this.getQueryVal().length > 0 || this.hasFilters();
             this.select('clearSearchSelector').toggle(this.canClearSearch);
-        }
+        };
 
         this.hasFilters = function() {
             return !!(this.filters && this.filters.hasSome);
