@@ -21,8 +21,20 @@
 
     <repositories>
         <repository>
-            <id>v5analytics</id>
+            <id>v5analytics-test</id>
             <url>https://mvn.v5analytics.com/content/groups/org.visallo.test</url>
+        </repository>
+        <repository>
+            <id>v5analytics-test-snapshots</id>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>interval:60</updatePolicy>
+            </snapshots>
+            <url>https://mvn.v5analytics.com/content/groups/org.visallo.test-snapshots</url>
+        </repository>
+        <repository>
+            <id>v5analytics</id>
+            <url>https://mvn.v5analytics.com/content/groups/org.visallo</url>
         </repository>
         <repository>
             <id>v5analytics-snapshots</id>
@@ -30,9 +42,22 @@
                 <enabled>true</enabled>
                 <updatePolicy>interval:60</updatePolicy>
             </snapshots>
-            <url>https://mvn.v5analytics.com/content/groups/org.visallo.test-snapshots</url>
+            <url>https://mvn.v5analytics.com/content/groups/org.visallo-snapshots</url>
+        </repository>
+        <repository>
+            <id>v5analytics-public</id>
+            <url>https://mvn.v5analytics.com/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>v5analytics-snapshots-public</id>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>interval:60</updatePolicy>
+            </snapshots>
+            <url>https://mvn.v5analytics.com/content/groups/public-snapshots</url>
         </repository>
     </repositories>
+
 
     <distributionManagement>
         <snapshotRepository>
