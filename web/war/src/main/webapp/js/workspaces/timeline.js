@@ -99,7 +99,8 @@ define([
                     ontologyProperties = results.shift();
 
                 Histogram.attachTo(self.$node.children('.timeline-svg-container'), {
-                    noDataMessageDetailsText: i18n('timeline.no_data_details')
+                    noDataMessageDetailsText: i18n('timeline.no_data_details'),
+                    includeYAxis: true
                 });
             })
         }
