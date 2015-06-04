@@ -24,10 +24,11 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/v5analytics/visallo</url>
-        <connection>scm:git:git://github.com:v5analytics/visallo.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:v5analytics/visallo.git</developerConnection>
-    </scm>
+        <url>https://github.com/v5analytics/visallo-private</url>
+        <connection>scm:git:git://github.com/v5analytics/visallo-private.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/v5analytics/visallo-private.git</developerConnection>
+      <tag>HEAD</tag>
+  </scm>
 
     <properties>
         <!-- General -->
@@ -113,6 +114,8 @@
         <plugin.maven.jxr.version>2.3</plugin.maven.jxr.version>
         <plugin.maven.project.info.reports.version>2.7</plugin.maven.project.info.reports.version>
         <plugin.maven.resources.version>2.6</plugin.maven.resources.version>
+        <plugin.maven.release.version>2.5.2</plugin.maven.release.version>
+        <plugin.scm.provider.gitexe.version>1.9.4</plugin.scm.provider.gitexe.version>
         <plugin.maven.shade.version>2.2</plugin.maven.shade.version>
         <plugin.maven.site.version>3.3</plugin.maven.site.version>
         <plugin.maven.source.version>2.2.1</plugin.maven.source.version>
@@ -131,11 +134,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>v5analytics-snapshots</id>
-            <url>https://mvn.v5analytics.com/content/repositories/${distributionManagement.target}-snapshots</url>
+            <url>https://mvn.v5analytics.com/content/repositories/org.visallo.test-snapshots</url>
         </snapshotRepository>
         <repository>
             <id>v5analytics</id>
-            <url>https://mvn.v5analytics.com/content/repositories/${distributionManagement.target}</url>
+            <url>https://mvn.v5analytics.com/content/repositories/org.visallo.test</url>
         </repository>
     </distributionManagement>
 
@@ -799,7 +802,7 @@
                         <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml
                         </dependencyReducedPomLocation>
                         <transformers>
-                            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                         </transformers>
                         <filters>
                             <filter>
@@ -897,6 +900,18 @@
                             </configuration>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>${plugin.maven.release.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.scm</groupId>
+                            <artifactId>maven-scm-provider-gitexe</artifactId>
+                            <version>${plugin.scm.provider.gitexe.version}</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>
