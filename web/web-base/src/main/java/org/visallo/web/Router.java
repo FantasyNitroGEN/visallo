@@ -2,6 +2,7 @@ package org.visallo.web;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.v5analytics.webster.handlers.StaticResourceHandler;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
@@ -171,6 +172,13 @@ public class Router extends HttpServlet {
                     throw new VisalloException("Could not initialize webapp plugin: " + webAppPlugin.getClass().getName(), e);
                 }
             }
+
+            app.get("/css/images/ui-icons_222222_256x240.png",
+                new StaticResourceHandler(
+                    this.getClass(),
+                    "/org/visallo/web/routes/resource/ui-icons_222222_256x240.png",
+                    "image/png")
+            );
 
             app.onException(VisalloAccessDeniedException.class, new ErrorCodeHandler(HttpServletResponse.SC_FORBIDDEN));
         } catch (Exception ex) {
