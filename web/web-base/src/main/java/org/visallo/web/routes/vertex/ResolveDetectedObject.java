@@ -116,6 +116,9 @@ public class ResolveDetectedObject extends BaseRequestHandler {
             VisalloProperties.TITLE.addPropertyValue(resolvedVertexMutation, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
 
             resolvedVertex = resolvedVertexMutation.save(authorizations);
+
+            graph.flush();
+
             ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
             termMentionRepository.addJustification(resolvedVertex, justificationText, sourceInfo, visalloVisibility, authorizations);
 

@@ -194,7 +194,7 @@ define([
                     };
                 }
 
-                if (this.justification.justificationText) {
+                if (this.justification && this.justification.justificationText) {
                     parameters.justificationText = this.justification.justificationText;
                 }
 
@@ -244,6 +244,10 @@ define([
                     y2: parseFloat(this.attr.dataInfo.y2),
                     visibilitySource: this.visibilitySource || ''
                 };
+
+            if (this.justification && this.justification.justificationText) {
+                parameters.justificationText = this.justification.justificationText;
+            }
 
             _.defer(this.buttonLoading.bind(this));
             if (this.unresolve) {
@@ -298,13 +302,15 @@ define([
         };
 
         this.checkValid = function() {
+            var button = this.select('actionButtonSelector');
             if (!this.unresolve) {
-                var button = this.select('actionButtonSelector');
                 if (this.justification && this.justification.valid && this.selectedConceptId) {
                     button.removeAttr('disabled');
                 } else {
                     button.attr('disabled', true);
                 }
+            } else {
+                button.removeAttr('disabled');
             }
         };
 
