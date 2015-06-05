@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class ReindexMRMapper extends Mapper<Text, Element, Object, Element> {
     private static VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ReindexMRMapper.class);
-    private static final int DEFAULT_BATCH_SIZE = 100;
+    private static final int DEFAULT_BATCH_SIZE = 25000;
     private AccumuloGraph graph;
     private Authorizations authorizations;
     private List<Element> elementCache;
