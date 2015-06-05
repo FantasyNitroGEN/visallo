@@ -121,7 +121,7 @@ public class VertexUploadImage extends BaseRequestHandler {
         Metadata metadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
 
-        String title = String.format("Image of %s", VisalloProperties.TITLE.getOnlyPropertyValue(entityVertex));
+        String title = imageTitle(entityVertex);
         ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, visalloVisibility);
         Vertex artifactVertex = artifactVertexBuilder.save(authorizations);
         this.graph.flush();
@@ -157,6 +157,17 @@ public class VertexUploadImage extends BaseRequestHandler {
         );
 
         respondWithClientApiObject(response, ClientApiConverter.toClientApi(entityVertex, workspaceId, authorizations));
+    }
+
+    private String imageTitle(Vertex entityVertex) {
+        String title = VisalloProperties.TITLE.getOnlyPropertyValue(entityVertex);
+        if (title == null) {
+            String conceptTypeProperty = VisalloProperties.CONCEPT_TYPE.getPropertyName();
+            String vertexConceptType = (String) entityVertex.getProperty(conceptTypeProperty).getValue();
+            Concept concept = ontologyRepository.getConceptByIRI(vertexConceptType);
+            title = concept.getDisplayName();
+        }
+        return String.format("Image of %s", title);
     }
 
     private VisibilityJson getVisalloVisibility(Vertex entityVertex, String workspaceId) {
