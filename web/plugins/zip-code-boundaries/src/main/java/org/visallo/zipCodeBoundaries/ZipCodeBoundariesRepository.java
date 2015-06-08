@@ -97,4 +97,19 @@ public class ZipCodeBoundariesRepository {
         }
         return results;
     }
+
+    public Features.Feature findZipCode(String zipCode) {
+        try (FeatureIterator iterator = collection.features()) {
+            while (iterator.hasNext()) {
+                Feature feature = iterator.next();
+                if (zipCode.equals(Features.Feature.getZipCode(feature))) {
+                    Features.Feature f = Features.Feature.create(feature);
+                    if (f != null) {
+                        return f;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 }

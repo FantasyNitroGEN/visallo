@@ -79,4 +79,10 @@ public class ZipCodeBoundariesRepositoryTest {
         List<Features.Feature> features = zipCodeBoundariesRepository.find(new GeoRect(northWest, southEast));
         assertEquals(163, features.size());
     }
+
+    @Test
+    public void testFindZipCode() {
+        Features.Feature feature = zipCodeBoundariesRepository.findZipCode("20147");
+        assertEquals(2, feature.getCoordinates().size());
+    }
 }

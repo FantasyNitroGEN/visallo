@@ -1,6 +1,8 @@
 package org.visallo.zipCodeBoundaries;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
 import org.opengis.feature.Property;
 import org.visallo.web.clientapi.model.ClientApiObject;
 
@@ -20,29 +22,42 @@ public class Features implements ClientApiObject {
 
     public static class Feature {
         private String zipCode;
-        private List<double[]> coordinates = new ArrayList<>();
+        private List<List<double[]>> coordinates = new ArrayList<>();
 
         public static Feature create(org.opengis.feature.Feature feature) {
-            Property zipCodeProperty = feature.getProperty("ZCTA5CE10");
-            if (zipCodeProperty == null) {
+            String zipCode = getZipCode(feature);
+            if (zipCode == null) {
                 return null;
             }
             Feature result = new Feature();
-            result.zipCode = (String) zipCodeProperty.getValue();
+            result.zipCode = zipCode;
 
-            MultiPolygon poly = (MultiPolygon) feature.getDefaultGeometryProperty().getValue();
-            for (com.vividsolutions.jts.geom.Coordinate polyPt : poly.getCoordinates()) {
-                result.coordinates.add(new double[]{polyPt.y, polyPt.x});
+            MultiPolygon multiPoly = (MultiPolygon) feature.getDefaultGeometryProperty().getValue();
+            for (int i = 0; i < multiPoly.getNumGeometries(); i++) {
+                List<double[]> polyCoords = new ArrayList<>();
+                Polygon poly = (Polygon) multiPoly.getGeometryN(i);
+                for (Coordinate polyPt : poly.getCoordinates()) {
+                    polyCoords.add(new double[]{polyPt.y, polyPt.x});
+                }
+                result.coordinates.add(polyCoords);
             }
 
             return result;
+        }
+
+        public static String getZipCode(org.opengis.feature.Feature feature) {
+            Property prop = feature.getProperty("ZCTA5CE10");
+            if (prop == null) {
+                return null;
+            }
+            return (String) prop.getValue();
         }
 
         public String getZipCode() {
             return zipCode;
         }
 
-        public List<double[]> getCoordinates() {
+        public List<List<double[]>> getCoordinates() {
             return coordinates;
         }
     }
