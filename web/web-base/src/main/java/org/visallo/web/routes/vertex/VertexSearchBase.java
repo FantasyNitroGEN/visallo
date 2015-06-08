@@ -2,6 +2,12 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
+import org.vertexium.query.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
@@ -18,12 +24,6 @@ import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
 import org.visallo.web.clientapi.model.PropertyType;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
-import org.vertexium.query.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -157,7 +157,7 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
                         conceptIds[count] = c.getIRI();
                         count++;
                     }
-                    queryAndData.getQuery().has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Compare.IN, conceptIds);
+                    queryAndData.getQuery().has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Contains.IN, conceptIds);
                 }
             } else {
                 queryAndData.getQuery().has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptType);

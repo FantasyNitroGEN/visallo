@@ -1,5 +1,6 @@
 package org.visallo.core.formula;
 
+import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
@@ -24,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(JUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 public class FormulaEvaluatorTest {
 
     private static FormulaEvaluator evaluator;
