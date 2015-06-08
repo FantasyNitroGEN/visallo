@@ -240,12 +240,12 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     private void incrementUserSessionCount(AtmosphereResource resource) {
         String userId = getCurrentUserId(resource);
         boolean autoDelete = !(resource.transport() == AtmosphereResource.TRANSPORT.WEBSOCKET);
-        userSessionCounterRepository.updateSession(userId, getHttpSessionId(resource), autoDelete);
+        userSessionCounterRepository.updateSession(userId, resource.uuid(), autoDelete);
     }
 
     private boolean decrementUserSessionCount(AtmosphereResource resource) {
         String userId = getCurrentUserId(resource);
-        return userSessionCounterRepository.deleteSession(userId, getHttpSessionId(resource)) < 1;
+        return userSessionCounterRepository.deleteSession(userId, resource.uuid()) < 1;
     }
 
     private String getCurrentUserId(AtmosphereResource resource) {
@@ -258,10 +258,6 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
             return userId;
         }
         throw new VisalloException("failed to get a current userId via an AtmosphereResource");
-    }
-
-    private String getHttpSessionId(AtmosphereResource resource) {
-        return resource.getRequest().getSession().getId();
     }
 
     @Inject
