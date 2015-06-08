@@ -20,7 +20,7 @@ public class Features implements ClientApiObject {
         return features;
     }
 
-    public static class Feature {
+    public static class Feature implements ClientApiObject {
         private String zipCode;
         private List<List<double[]>> coordinates = new ArrayList<>();
 

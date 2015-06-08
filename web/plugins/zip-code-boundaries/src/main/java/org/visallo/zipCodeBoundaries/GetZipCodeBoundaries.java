@@ -29,6 +29,13 @@ public class GetZipCodeBoundaries extends BaseRequestHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+        String zipCode = getOptionalParameter(request, "zipCode");
+        if (zipCode != null) {
+            Features.Feature feature = this.zipCodeBoundariesRepository.findZipCode(zipCode);
+            respondWithClientApiObject(response, feature);
+            return;
+        }
+
         GeoPoint northWest = GeoPoint.parse(getRequiredParameter(request, "northWest"));
         GeoPoint southEast = GeoPoint.parse(getRequiredParameter(request, "southEast"));
         GeoRect rect = new GeoRect(northWest, southEast);
