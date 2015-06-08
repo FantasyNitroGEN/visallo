@@ -1,5 +1,6 @@
 package org.visallo.reindexmr;
 
+import com.beust.jcommander.Parameter;
 import com.google.inject.Inject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
@@ -21,10 +22,15 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.mapreduce.VisalloMRBase;
 
+import java.util.List;
+
 public class ReindexMR extends VisalloMRBase {
     private static VisalloLogger LOGGER;
     private AccumuloGraph graph;
     private ElementType elementType;
+
+    @Parameter(description = "vertex|edge")
+    private List<String> type;
 
     public static void main(String[] args) throws Exception {
         LOGGER = VisalloLoggerFactory.getLogger(ReindexMR.class);
@@ -62,11 +68,9 @@ public class ReindexMR extends VisalloMRBase {
     }
 
     @Override
-    protected void parseArgs(JobConf conf, String[] args) {
-        if (args.length != 1) {
-            throw new RuntimeException("Required arguments <vertex|edge>");
-        }
-        elementType = ElementType.valueOf(args[0].toUpperCase());
+    protected void processArgs(JobConf conf, String[] args) {
+        String type = this.type.get(0);
+        elementType = ElementType.valueOf(type.toUpperCase());
         LOGGER.info("Element type: " + elementType);
     }
 

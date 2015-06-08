@@ -29,7 +29,7 @@ public class RdfTripleImportMR extends VisalloMRBase {
     @Parameter(names = {"-t", "--timezone"}, description = "Default time zone for dates and times")
     private String timeZone;
 
-    @Parameter(description = "Input file name")
+    @Parameter(description = "<infile>")
     private List<String> inFileName;
 
     public static void main(String[] args) throws Exception {
@@ -52,9 +52,7 @@ public class RdfTripleImportMR extends VisalloMRBase {
     }
 
     @Override
-    protected void parseArgs(JobConf conf, String[] args) {
-        new JCommander(this, args);
-
+    protected void processArgs(JobConf conf, String[] args) {
         if (visibilityString != null) {
             conf.set(CONFIG_VISIBILITY_STRING, new VisalloVisibility(visibilityString).getVisibility().getVisibilityString());
         }

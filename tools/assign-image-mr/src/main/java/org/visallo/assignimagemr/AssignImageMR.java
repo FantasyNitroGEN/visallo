@@ -1,11 +1,6 @@
 package org.visallo.assignimagemr;
 
 import com.google.inject.Inject;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.vertexium.mapreduce.VisalloMRBase;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
@@ -14,9 +9,11 @@ import org.vertexium.Graph;
 import org.vertexium.accumulo.AccumuloGraph;
 import org.vertexium.accumulo.mapreduce.AccumuloElementOutputFormat;
 import org.vertexium.accumulo.mapreduce.AccumuloVertexInputFormat;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.security.VisalloVisibility;
+import org.visallo.vertexium.mapreduce.VisalloMRBase;
 
 public class AssignImageMR extends VisalloMRBase {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AssignImageMR.class);
     private AccumuloGraph graph;
 
     public static void main(String[] args) throws Exception {
@@ -48,7 +45,7 @@ public class AssignImageMR extends VisalloMRBase {
     }
 
     @Override
-    protected void parseArgs(JobConf conf, String[] args) {
+    protected void processArgs(JobConf conf, String[] args) {
     }
 
     @Override

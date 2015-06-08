@@ -1,8 +1,6 @@
 package org.visallo.themoviedb;
 
-import org.visallo.vertexium.mapreduce.VisalloMRBase;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -10,13 +8,20 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.util.ToolRunner;
 import org.vertexium.accumulo.mapreduce.AccumuloElementOutputFormat;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.vertexium.mapreduce.VisalloMRBase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class ImportJsonMR extends VisalloMRBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImportJsonMR.class);
     private static final String JOB_NAME = "theMovieDbJsonImport";
+
+    @Parameter(description = "<infile>")
+    private List<String> inFileName;
 
     @Override
     protected String getJobName() {
@@ -35,11 +40,8 @@ public class ImportJsonMR extends VisalloMRBase {
     }
 
     @Override
-    protected void parseArgs(JobConf conf, String[] args) {
-        if (args.length != 1) {
-            throw new RuntimeException("Required arguments <inputFileName>");
-        }
-        String inFileName = args[0];
+    protected void processArgs(JobConf conf, String[] args) {
+        String inFileName = this.inFileName.get(0);
         conf.set("in", inFileName);
         conf.set(CONFIG_SOURCE_FILE_NAME, new File(inFileName).getName());
         LOGGER.info("inFileName: %s", inFileName);

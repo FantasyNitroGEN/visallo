@@ -1,5 +1,6 @@
 package org.visallo.themoviedb;
 
+import com.beust.jcommander.Parameter;
 import org.visallo.vertexium.mapreduce.VisalloMRBase;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -13,10 +14,14 @@ import org.apache.hadoop.util.ToolRunner;
 import org.vertexium.accumulo.mapreduce.AccumuloElementOutputFormat;
 
 import java.io.File;
+import java.util.List;
 
 public class ImportImgMR extends VisalloMRBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImportImgMR.class);
     private static final String JOB_NAME = "theMovieDbImgImport";
+
+    @Parameter(description = "<infile>")
+    private List<String> inFileName;
 
     @Override
     protected String getJobName() {
@@ -35,11 +40,8 @@ public class ImportImgMR extends VisalloMRBase {
     }
 
     @Override
-    protected void parseArgs(JobConf conf, String[] args) {
-        if (args.length != 1) {
-            throw new RuntimeException("Required arguments <inputFileName>");
-        }
-        String inFileName = args[0];
+    protected void processArgs(JobConf conf, String[] args) {
+        String inFileName = this.inFileName.get(0);
         conf.set("in", inFileName);
         conf.set(CONFIG_SOURCE_FILE_NAME, new File(inFileName).getName());
         LOGGER.info("inFileName: %s", inFileName);

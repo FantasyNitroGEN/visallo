@@ -1,12 +1,7 @@
 package org.visallo.wikipedia.mapreduce;
 
+import com.beust.jcommander.Parameter;
 import com.google.inject.Inject;
-import org.visallo.vertexium.mapreduce.VisalloMRBase;
-import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.wikipedia.WikipediaConstants;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -16,13 +11,23 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.ToolRunner;
 import org.vertexium.accumulo.mapreduce.AccumuloElementOutputFormat;
+import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.vertexium.mapreduce.VisalloMRBase;
+import org.visallo.wikipedia.WikipediaConstants;
 
 import java.io.File;
+import java.util.List;
 
 public class ImportMR extends VisalloMRBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImportMR.class);
     public static final String WIKIPEDIA_MIME_TYPE = "text/plain";
     public static final String MULTI_VALUE_KEY = ImportMR.class.getName();
+
+    @Parameter(description = "<infile>")
+    private List<String> inFileName;
 
     private OntologyRepository ontologyRepository;
 
@@ -59,11 +64,8 @@ public class ImportMR extends VisalloMRBase {
     }
 
     @Override
-    protected void parseArgs(JobConf conf, String[] args) {
-        if (args.length != 1) {
-            throw new RuntimeException("Required arguments <inputFileName>");
-        }
-        String inFileName = args[0];
+    protected void processArgs(JobConf conf, String[] args) {
+        String inFileName = this.inFileName.get(0);
         LOGGER.info("inFileName: %s", inFileName);
         conf.set("in", inFileName);
         conf.set(ImportMRMapper.CONFIG_SOURCE_FILE_NAME, new File(inFileName).getName());

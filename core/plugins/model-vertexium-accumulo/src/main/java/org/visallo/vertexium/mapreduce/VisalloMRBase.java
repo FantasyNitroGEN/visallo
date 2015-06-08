@@ -1,10 +1,8 @@
 package org.visallo.vertexium.mapreduce;
 
-import org.visallo.core.bootstrap.InjectHelper;
-import org.visallo.core.bootstrap.VisalloBootstrap;
-import org.visallo.core.config.ConfigurationLoader;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import com.beust.jcommander.DynamicParameter;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -16,8 +14,15 @@ import org.apache.hadoop.util.Tool;
 import org.vertexium.accumulo.AccumuloGraphConfiguration;
 import org.vertexium.accumulo.mapreduce.AccumuloElementOutputFormat;
 import org.vertexium.accumulo.mapreduce.ElementMapper;
+import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.bootstrap.VisalloBootstrap;
+import org.visallo.core.config.ConfigurationLoader;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,12 +37,22 @@ public abstract class VisalloMRBase extends Configured implements Tool {
     private boolean local;
     private Timer periodicCounterOutputTimer;
 
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @DynamicParameter(names = {"-job"}, description = "Set a job property. (e.g.: -job mapreduce.map.memory.mb=1024)")
+    private Map<String, String> jobProperties = new HashMap<>();
+
+    @Parameter(names = {"--help", "-h"}, description = "Print help", help = true)
+    private boolean help;
+
     @Override
     public int run(String[] args) throws Exception {
         LOGGER = VisalloLoggerFactory.getLogger(VisalloMRBase.class);
 
         org.visallo.core.config.Configuration visalloConfig = ConfigurationLoader.load();
         JobConf conf = getConfiguration(args, visalloConfig);
+        if (conf == null) {
+            return -1;
+        }
         AccumuloGraphConfiguration accumuloGraphConfiguration = new AccumuloGraphConfiguration(conf, "graph.");
         InjectHelper.inject(this, VisalloBootstrap.bootstrapModuleMaker(visalloConfig), visalloConfig);
 
@@ -107,13 +122,23 @@ public abstract class VisalloMRBase extends Configured implements Tool {
         Configuration hadoopConfig = visalloConfig.toHadoopConfiguration(getConf());
         hadoopConfig.set(ElementMapper.GRAPH_CONFIG_PREFIX, "graph.");
         JobConf result = new JobConf(hadoopConfig, this.getClass());
-        parseArgs(result, args);
+        JCommander j = new JCommander(this, args);
+        j.setProgramName("hadoop jar <jar>");
+        if (help) {
+            j.usage();
+            return null;
+        }
+        processArgs(result, args);
+        for (Map.Entry<String, String> jobProperty : jobProperties.entrySet()) {
+            result.set(jobProperty.getKey(), jobProperty.getValue());
+            LOGGER.info("setting config: %s = %s", jobProperty.getKey(), jobProperty.getValue());
+        }
         setConf(result);
         LOGGER.info("Using config:\n" + result);
         return result;
     }
 
-    protected abstract void parseArgs(JobConf conf, String[] args);
+    protected abstract void processArgs(JobConf conf, String[] args);
 
     public String getInstanceName() {
         return instanceName;
