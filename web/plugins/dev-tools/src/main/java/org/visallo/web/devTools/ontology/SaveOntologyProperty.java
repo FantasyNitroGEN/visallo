@@ -2,6 +2,9 @@ package org.visallo.web.devTools.ontology;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.json.JSONArray;
+import org.mortbay.util.ajax.JSON;
+import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -10,8 +13,6 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.BaseRequestHandler;
-import org.json.JSONArray;
-import org.vertexium.Authorizations;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,11 +34,12 @@ public class SaveOntologyProperty extends BaseRequestHandler {
         String displayName = getRequiredParameter(request, "displayName");
         String dataType = getRequiredParameter(request, "dataType");
         String displayType = getRequiredParameter(request, "displayType");
-        HashSet<String> dependentPropertyIris = new HashSet<String>(Arrays.asList(getRequiredParameterArray(request, "dependentPropertyIris[]")));
+        HashSet<String> dependentPropertyIris = new HashSet<>(Arrays.asList(getRequiredParameterArray(request, "dependentPropertyIris[]")));
         Boolean searchable = getOptionalParameterBoolean(request, "searchable", true);
         Boolean addable = getOptionalParameterBoolean(request, "addable", true);
         Boolean userVisible = getOptionalParameterBoolean(request, "userVisible", true);
         String displayFormula = getRequiredParameter(request, "displayFormula");
+        String possibleValues = getRequiredParameter(request, "possibleValues");
 
         User user = getUser(request);
         Authorizations authorizations = getAuthorizations(request, user);
@@ -63,6 +65,10 @@ public class SaveOntologyProperty extends BaseRequestHandler {
         property.setProperty(OntologyProperties.SEARCHABLE.getPropertyName(), searchable, authorizations);
         property.setProperty(OntologyProperties.ADDABLE.getPropertyName(), addable, authorizations);
         property.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), userVisible, authorizations);
+        if (possibleValues != null && possibleValues.trim().length() > 0) {
+            possibleValues = JSON.toString(JSON.parse(possibleValues));
+            property.setProperty(OntologyProperties.POSSIBLE_VALUES.getPropertyName(), possibleValues, authorizations);
+        }
 
         if (displayFormula.length() != 0) {
             property.setProperty(OntologyProperties.DISPLAY_FORMULA.getPropertyName(), displayFormula, authorizations);

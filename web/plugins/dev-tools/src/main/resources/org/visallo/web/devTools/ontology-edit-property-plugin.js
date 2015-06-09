@@ -66,6 +66,7 @@ require([
                     searchable: this.$node.find('.searchable').is(':checked'),
                     userVisible: this.$node.find('.userVisible').is(':checked'),
                     displayFormula: this.$node.find('.displayFormula').val(),
+                    possibleValues: this.$node.find('.possibleValues').val(),
                     dependentPropertyIris: this.$node.find('.dependentPropertyIris')
                         .val().split(/[\n\s,]+/)
                 })
@@ -94,6 +95,9 @@ require([
                 _.each(data.property, function(value, key) {
                     if (key === 'dependentPropertyIris') {
                         value = value.join('\n');
+                    }
+                    if (key === 'possibleValues' && value) {
+                        value = JSON.stringify(value, null, 2);
                     }
                     self.updateFieldValue(key, value)
                 });
