@@ -1,21 +1,27 @@
 package org.visallo.zipCodeResolver;
 
-import org.visallo.core.exception.VisalloException;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
+import org.visallo.core.exception.VisalloException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ZipCodeRepository {
+    public static final String ZIPCODE_CSV = "zipcode.csv";
     private final Map<String, ZipCodeEntry> zipCodesByZipCode = new HashMap<>();
 
     public ZipCodeRepository() {
         try {
-            InputStreamReader reader = new InputStreamReader(this.getClass().getResourceAsStream("zipcode.csv"));
+            InputStream zipCodeCsv = this.getClass().getResourceAsStream(ZIPCODE_CSV);
+            if (zipCodeCsv == null) {
+                throw new VisalloException("Could not read zipcode.csv from classpath (try rebuilding): " + this.getClass().getResource("zipcode.csv"));
+            }
+            InputStreamReader reader = new InputStreamReader(zipCodeCsv);
             CsvListReader csvReader = new CsvListReader(reader, CsvPreference.STANDARD_PREFERENCE);
             csvReader.read(); // skip title line
 
