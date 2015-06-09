@@ -8,8 +8,15 @@ define([], function() {
         this.websocketNotSupportedInWorker = function() {
             var self = this,
                 config = this.getAtmosphereConfiguration(),
-                atmospherePromise = new Promise(function(fulfill, reject) {
-                    require(['atmosphere'], function(atmosphere) {
+                atmospherePromise = Promise.all([
+                    Promise.require('atmosphere'),
+                    new Promise(function(fulfill, reject) {
+                        if (visalloData.currentUser) return fulfill();
+                        self.on('applicationReady currentUserVisalloDataUpdated', fulfill);
+                    })
+                ]).then(function(result) {
+                    var atmosphere = result.shift();
+                    return new Promise(function(fulfill, reject) {
                         var socket = atmosphere.subscribe(_.extend(config, {
 
                             // Remember to also Change
