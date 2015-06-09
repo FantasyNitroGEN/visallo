@@ -21,7 +21,6 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -73,7 +72,7 @@ public class ResolveTermEntity extends BaseRequestHandler {
         final String conceptId = getRequiredParameter(request, "conceptId");
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
         final String resolvedVertexId = getOptionalParameter(request, "resolvedVertexId");
-        final String justificationText = WebConfiguration.justificationRequired(getConfiguration()) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
+        final String justificationText = routeHelper.getJustificationText(request);
         final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
 
         User user = getUser(request);

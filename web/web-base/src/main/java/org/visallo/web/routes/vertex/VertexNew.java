@@ -21,7 +21,6 @@ import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiAddElementProperties;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
@@ -63,7 +62,7 @@ public class VertexNew extends BaseRequestHandler {
         final String vertexId = getOptionalParameter(request, "vertexId");
         final String conceptType = getRequiredParameter(request, "conceptType");
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        final String justificationText = WebConfiguration.justificationRequired(getConfiguration()) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
+        final String justificationText = routeHelper.getJustificationText(request);
         final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
         final String propertiesJsonString = getOptionalParameter(request, "properties");
         User user = getUser(request);
