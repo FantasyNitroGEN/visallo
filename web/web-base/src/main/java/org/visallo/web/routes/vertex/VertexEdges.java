@@ -1,22 +1,27 @@
 package org.visallo.web.routes.vertex;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiVertexEdges;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class VertexEdges extends BaseRequestHandler {
     private final Graph graph;
@@ -38,8 +43,8 @@ public class VertexEdges extends BaseRequestHandler {
         String workspaceId = getActiveWorkspaceId(request);
 
         String graphVertexId = getAttributeString(request, "graphVertexId");
-        long offset = getOptionalParameterLong(request, "offset", 0);
-        long size = getOptionalParameterLong(request, "size", 25);
+        int offset = getOptionalParameterInt(request, "offset", 0);
+        int size = getOptionalParameterInt(request, "size", 25);
         String edgeLabel = getOptionalParameter(request, "edgeLabel");
 
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
@@ -48,58 +53,56 @@ public class VertexEdges extends BaseRequestHandler {
             return;
         }
 
-        Iterable<Edge> edges;
+        List<Edge> edges;
         if (edgeLabel == null) {
-            edges = vertex.getEdges(Direction.BOTH, authorizations);
+            edges = newArrayList(vertex.getEdges(Direction.BOTH, authorizations));
         } else {
-            edges = vertex.getEdges(Direction.BOTH, edgeLabel, authorizations);
+            edges = newArrayList(vertex.getEdges(Direction.BOTH, edgeLabel, authorizations));
         }
 
         ClientApiVertexEdges result = new ClientApiVertexEdges();
-        long referencesAdded = 0, skipped = 0, totalReferences = 0;
+        int totalEdgeCount = edges.size();
 
-        Map<String, Vertex> accessibleVertexIds = getAccessibleVertices(vertex, edges, authorizations);
+        edges = edges.subList(Math.min(edges.size(), offset), Math.min(edges.size(), offset + size));
+        Map<String, Vertex> vertices = getVertices(vertex.getId(), edges, authorizations);
 
         for (Edge edge : edges) {
             String otherVertexId = edge.getOtherVertexId(vertex.getId());
-            Vertex otherVertex = accessibleVertexIds.get(otherVertexId);
-            if (otherVertex == null) {
-                continue;
-            }
-
-            totalReferences++;
-            if (referencesAdded >= size) {
-                continue;
-            }
-
-            if (skipped < offset) {
-                skipped++;
-                continue;
-            }
+            Vertex otherVertex = vertices.get(otherVertexId);
 
             ClientApiVertexEdges.Edge clientApiEdge = new ClientApiVertexEdges.Edge();
             clientApiEdge.setRelationship(ClientApiConverter.toClientApiEdge(edge, workspaceId));
-            clientApiEdge.setVertex(ClientApiConverter.toClientApiVertex(otherVertex, workspaceId, authorizations));
+            ClientApiVertex clientApiVertex;
+            if (otherVertex == null) {
+                clientApiVertex = new ClientApiVertex();
+                clientApiVertex.setId(otherVertexId);
+            } else {
+                clientApiVertex = ClientApiConverter.toClientApiVertex(otherVertex, workspaceId, authorizations);
+            }
+            clientApiEdge.setVertex(clientApiVertex);
             result.getRelationships().add(clientApiEdge);
-            referencesAdded++;
         }
-        result.setTotalReferences(totalReferences);
+        result.setTotalReferences(totalEdgeCount);
 
         respondWithClientApiObject(response, result);
     }
 
-    // a user may have access to an edge but not the vertex on the other end.
-    // so we need to get all the vertices to see if we have access.
-    public Map<String, Vertex> getAccessibleVertices(Vertex vertex, Iterable<Edge> edges, Authorizations authorizations) {
-        List<String> vertexIds = new ArrayList<String>();
-        for (Edge edge : edges) {
-            vertexIds.add(edge.getOtherVertexId(vertex.getId()));
-        }
-        Iterable<Vertex> accessibleVertices = graph.getVertices(vertexIds, authorizations);
-        Map<String, Vertex> accessibleVertexIds = new HashMap<String, Vertex>();
-        for (Vertex v : accessibleVertices) {
-            accessibleVertexIds.put(v.getId(), v);
-        }
-        return accessibleVertexIds;
+    private Map<String, Vertex> getVertices(final String myVertexId, List<Edge> edges, Authorizations authorizations) {
+        Iterable<String> vertexIds = Iterables.transform(
+                edges,
+                new Function<Edge, String>() {
+                    @Override
+                    public String apply(Edge edge) {
+                        return edge.getOtherVertexId(myVertexId);
+                    }
+                });
+        Iterable<Vertex> vertices = graph.getVertices(vertexIds, authorizations);
+        vertices = Iterables.filter(vertices, Predicates.notNull());
+        return Maps.uniqueIndex(vertices, new Function<Vertex, String>() {
+            @Override
+            public String apply(Vertex vertex) {
+                return vertex.getId();
+            }
+        });
     }
 }
