@@ -208,11 +208,11 @@ public class VertexUploadImage extends BaseRequestHandler {
         rawValue.store(true);
 
         ElementBuilder<Vertex> vertexBuilder = graph.prepareVertex(visalloVisibility.getVisibility());
+        // Note that VisalloProperties.MIME_TYPE is expected to be set by a GraphPropertyWorker.
         VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visalloVisibility.getVisibility());
         VisalloProperties.TITLE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
         VisalloProperties.MODIFIED_DATE.setProperty(vertexBuilder, new Date(), metadata, visalloVisibility.getVisibility());
         VisalloProperties.FILE_NAME.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, fileName, metadata, visalloVisibility.getVisibility());
-        VisalloProperties.MIME_TYPE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, mimeType, metadata, visalloVisibility.getVisibility());
         VisalloProperties.RAW.setProperty(vertexBuilder, rawValue, metadata, visalloVisibility.getVisibility());
         VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptIri, metadata, visalloVisibility.getVisibility());
         VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, SOURCE_UPLOAD, metadata, visalloVisibility.getVisibility());
