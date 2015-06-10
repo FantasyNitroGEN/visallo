@@ -134,9 +134,9 @@ public abstract class OntologyProperty {
                 }
             case GEO_LOCATION:
                 return new GeoCircle(
+                        values.getDouble(index + 0),
                         values.getDouble(index + 1),
-                        values.getDouble(index + 2),
-                        values.getDouble(index + 3)
+                        values.getDouble(index + 2)
                 );
             case CURRENCY:
                 return new BigDecimal(values.getString(index));
