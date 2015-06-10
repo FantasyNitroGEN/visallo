@@ -856,7 +856,6 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#titleFormulaEntityPropB">
         <rdfs:label xml:lang="en">PropB</rdfs:label>
-        <visallo:searchable rdf:datatype="&xsd;boolean">false</visallo:searchable>
         <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
         <rdfs:domain rdf:resource="http://visallo.org/dev#titleFormulaEntity"/>
         <rdfs:range rdf:resource="&xsd;string"/>

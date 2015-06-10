@@ -555,6 +555,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     ) {
         OntologyProperty typeProperty = getPropertyByIRI(propertyIri);
         if (typeProperty == null) {
+            searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost);
 
             String propertyVertexId = ID_PREFIX_PROPERTY + propertyIri;

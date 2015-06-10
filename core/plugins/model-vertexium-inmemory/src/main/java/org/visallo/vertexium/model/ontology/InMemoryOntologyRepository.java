@@ -190,6 +190,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     ) {
         InMemoryOntologyProperty property = (InMemoryOntologyProperty) getPropertyByIRI(propertyIri);
         if (property == null) {
+            searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost);
 
             property = new InMemoryOntologyProperty();
