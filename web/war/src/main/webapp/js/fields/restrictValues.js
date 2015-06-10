@@ -42,7 +42,7 @@ define([
 
         this.triggerFieldUpdated = function() {
             var val = this.select('selectSelector').val()
-            this.filterUpdated(val);
+            this.filterUpdated(val, 'equal');
         };
 
         this.isValid = function() {
