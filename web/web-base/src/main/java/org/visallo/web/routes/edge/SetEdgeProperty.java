@@ -20,7 +20,6 @@ import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,8 +60,9 @@ public class SetEdgeProperty extends BaseRequestHandler {
         String propertyKey = getOptionalParameter(request, "propertyKey");
         final String valueStr = getRequiredParameter(request, "value");
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        final String justificationText = WebConfiguration.justificationRequired(getConfiguration()) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
-        final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
+        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
+        final String sourceInfo = getOptionalParameter(request, "sourceInfo");
+        final String justificationText = routeHelper.getJustificationText(isComment, sourceInfo, request);
         final String metadataString = getOptionalParameter(request, "metadata");
 
         String workspaceId = getActiveWorkspaceId(request);
@@ -83,9 +83,9 @@ public class SetEdgeProperty extends BaseRequestHandler {
             return;
         }
 
-        if (propertyName.equals(VisalloProperties.COMMENT.getPropertyName()) && request.getPathInfo().equals("/edge/property")) {
+        if (isComment && request.getPathInfo().equals("/edge/property")) {
             throw new VisalloException("Use /edge/comment to save comment properties");
-        } else if (request.getPathInfo().equals("/edge/comment") && !propertyName.equals(VisalloProperties.COMMENT.getPropertyName())) {
+        } else if (!isComment && request.getPathInfo().equals("/edge/comment")) {
             throw new VisalloException("Use /edge/property to save non-comment properties");
         }
 
@@ -112,7 +112,7 @@ public class SetEdgeProperty extends BaseRequestHandler {
                 visibilitySource,
                 workspaceId,
                 justificationText,
-                ClientApiSourceInfo.fromString(sourceInfoString),
+                ClientApiSourceInfo.fromString(sourceInfo),
                 user,
                 authorizations
         );

@@ -15,7 +15,6 @@ import org.visallo.core.util.JsonSerializer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,7 +48,7 @@ public class EdgeCreate extends BaseRequestHandler {
         final String destGraphVertexId = getRequiredParameter(request, "destGraphVertexId");
         final String predicateLabel = getRequiredParameter(request, "predicateLabel");
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        final String justificationText = WebConfiguration.justificationRequired(getConfiguration()) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
+        final String justificationText = routeHelper.getJustificationText(request);
         final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
 
         String workspaceId = getActiveWorkspaceId(request);

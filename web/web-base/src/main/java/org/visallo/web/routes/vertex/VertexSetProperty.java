@@ -23,7 +23,6 @@ import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 
@@ -74,8 +73,8 @@ public class VertexSetProperty extends BaseRequestHandler {
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
         final String oldVisibilitySource = getOptionalParameter(request, "oldVisibilitySource");
         boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-        final String justificationText = isJustificationRequired(isComment) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
         final String sourceInfo = getOptionalParameter(request, "sourceInfo");
+        final String justificationText = routeHelper.getJustificationText(isComment, sourceInfo, request);
         final String metadataString = getOptionalParameter(request, "metadata");
         User user = getUser(request);
         String workspaceId = getActiveWorkspaceId(request);
@@ -116,14 +115,6 @@ public class VertexSetProperty extends BaseRequestHandler {
                 user,
                 workspaceId,
                 authorizations));
-    }
-
-    private boolean isJustificationRequired(boolean isComment) {
-        if (isComment) {
-            return false;
-        }
-
-        return WebConfiguration.justificationRequired(getConfiguration());
     }
 
     private String createCommentPropertyKey() {

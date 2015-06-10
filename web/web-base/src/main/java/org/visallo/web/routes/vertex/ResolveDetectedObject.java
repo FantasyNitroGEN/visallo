@@ -22,7 +22,6 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.WebConfiguration;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
@@ -78,7 +77,7 @@ public class ResolveDetectedObject extends BaseRequestHandler {
         final String conceptId = getRequiredParameter(request, "conceptId");
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
         final String graphVertexId = getOptionalParameter(request, "graphVertexId");
-        final String justificationText = WebConfiguration.justificationRequired(getConfiguration()) ? getRequiredParameter(request, "justificationText") : getOptionalParameter(request, "justificationText");
+        final String justificationText = routeHelper.getJustificationText(request);
         final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
         String originalPropertyKey = getOptionalParameter(request, "originalPropertyKey");
         double x1 = Double.parseDouble(getRequiredParameter(request, "x1"));

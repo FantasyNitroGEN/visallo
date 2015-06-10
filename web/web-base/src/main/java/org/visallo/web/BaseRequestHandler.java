@@ -45,11 +45,13 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
     private final ObjectMapper objectMapper = ObjectMapperFactory.getInstance();
+    protected final RouteHelper routeHelper;
 
     protected BaseRequestHandler(UserRepository userRepository, WorkspaceRepository workspaceRepository, Configuration configuration) {
         super(configuration);
         this.userRepository = userRepository;
         this.workspaceRepository = workspaceRepository;
+        this.routeHelper = new RouteHelper(configuration, this);
     }
 
     @Override
