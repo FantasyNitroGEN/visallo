@@ -1,5 +1,6 @@
 package org.visallo.web.clientapi.codegen;
 
+import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
 import org.visallo.web.clientapi.model.ClientApiEdgesExistsResponse;
@@ -9,6 +10,7 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 
 import javax.ws.rs.core.MediaType;
 
+import java.io.File;
 import java.util.*;
 
 public class EdgeApi {

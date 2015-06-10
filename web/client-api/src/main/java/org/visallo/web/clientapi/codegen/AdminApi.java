@@ -1,5 +1,6 @@
 package org.visallo.web.clientapi.codegen;
 
+import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
 import com.sun.jersey.multipart.FormDataMultiPart;

@@ -2,20 +2,23 @@ package org.visallo.web;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.handlers.StaticResourceHandler;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
+import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.web.privilegeFilters.*;
 import org.visallo.web.routes.Index;
 import org.visallo.web.routes.admin.AdminList;
 import org.visallo.web.routes.admin.AdminUploadOntology;
 import org.visallo.web.routes.admin.PluginList;
 import org.visallo.web.routes.config.Configuration;
+import org.visallo.web.routes.edge.*;
+import org.visallo.web.routes.vertex.VertexGetCountsByConceptType;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessById;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessCancel;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessDelete;
@@ -28,8 +31,6 @@ import org.visallo.web.routes.ontology.Ontology;
 import org.visallo.web.routes.resource.MapMarkerImage;
 import org.visallo.web.routes.resource.ResourceExternalGet;
 import org.visallo.web.routes.resource.ResourceGet;
-import com.v5analytics.webster.Handler;
-import org.visallo.web.routes.edge.*;
 import org.visallo.web.routes.user.*;
 import org.visallo.web.routes.vertex.*;
 import org.visallo.web.routes.workspace.*;
@@ -121,6 +122,7 @@ public class Router extends HttpServlet {
             app.post("/vertex/upload-image", authenticator, csrfProtector, EditPrivilegeFilter.class, VertexUploadImage.class);
             app.get("/vertex/find-path", authenticator, csrfProtector, ReadPrivilegeFilter.class, VertexFindPath.class);
             app.post("/vertex/find-related", authenticator, csrfProtector, ReadPrivilegeFilter.class, VertexFindRelated.class);
+            app.get("/vertex/counts-by-concept-type", authenticator, csrfProtector, ReadPrivilegeFilter.class, VertexGetCountsByConceptType.class);
 
             app.post("/edge/property", authenticator, csrfProtector, EditPrivilegeFilter.class, SetEdgeProperty.class);
             app.post("/edge/comment", authenticator, csrfProtector, CommentPrivilegeFilter.class, SetEdgeProperty.class);
@@ -174,10 +176,10 @@ public class Router extends HttpServlet {
             }
 
             app.get("/css/images/ui-icons_222222_256x240.png",
-                new StaticResourceHandler(
-                    this.getClass(),
-                    "/org/visallo/web/routes/resource/ui-icons_222222_256x240.png",
-                    "image/png")
+                    new StaticResourceHandler(
+                            this.getClass(),
+                            "/org/visallo/web/routes/resource/ui-icons_222222_256x240.png",
+                            "image/png")
             );
 
             app.onException(VisalloAccessDeniedException.class, new ErrorCodeHandler(HttpServletResponse.SC_FORBIDDEN));

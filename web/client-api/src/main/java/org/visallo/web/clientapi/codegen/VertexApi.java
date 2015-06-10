@@ -1,8 +1,20 @@
 package org.visallo.web.clientapi.codegen;
 
+import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
-import org.visallo.web.clientapi.model.*;
+import org.visallo.web.clientapi.model.ClientApiLongRunningProcessSubmitResponse;
+import org.visallo.web.clientapi.model.ClientApiVertexFindRelatedResponse;
+import org.visallo.web.clientapi.model.ClientApiVerticesExistsResponse;
+import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
+import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiVertexEdges;
+import org.visallo.web.clientapi.model.ClientApiVertexCountsByConceptType;
+import org.visallo.web.clientapi.model.ClientApiArtifactImportResponse;
+import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
+import org.visallo.web.clientapi.model.ClientApiDetectedObjects;
+import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyValues;
+import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 import com.sun.jersey.multipart.FormDataMultiPart;
 
 import javax.ws.rs.core.MediaType;
@@ -128,7 +140,7 @@ public class VertexApi {
       }
     }
   }
-  public ClientApiElement create (String conceptType, String visibilitySource, String justificationText, String vertexId, ClientApiAddElementProperties properties) throws ApiException {
+  public ClientApiElement create (String conceptType, String visibilitySource, String justificationText, String vertexId, org.visallo.web.clientapi.model.ClientApiAddElementProperties properties) throws ApiException {
     Object postBody = null;
     // verify required params are set
     if(conceptType == null || visibilitySource == null || justificationText == null ) {
@@ -1228,6 +1240,47 @@ public class VertexApi {
       String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, postBody, headerParams, formParams, contentType);
       if(response != null){
         return (ClientApiVerticesExistsResponse) ApiInvoker.deserialize(response, "", ClientApiVerticesExistsResponse.class);
+      }
+      else {
+        return null;
+      }
+    } catch (ApiException ex) {
+      if(ex.getCode() == 404) {
+      	return null;
+      }
+      else {
+        throw ex;
+      }
+    }
+  }
+  public ClientApiVertexCountsByConceptType getVertexCountsByConceptType () throws ApiException {
+    Object postBody = null;
+    // create path and map variables
+    String path = "/vertex/counts-by-concept-type".replaceAll("\\{format\\}","json");
+
+    // query params
+    Map<String, String> queryParams = new HashMap<String, String>();
+    Map<String, String> headerParams = new HashMap<String, String>();
+    Map<String, String> formParams = new HashMap<String, String>();
+
+    String[] contentTypes = {
+      "application/json"};
+
+    String contentType = contentTypes.length > 0 ? contentTypes[0] : "application/json";
+
+    if(contentType.startsWith("multipart/form-data")) {
+      boolean hasFields = false;
+      FormDataMultiPart mp = new FormDataMultiPart();
+      if(hasFields)
+        postBody = mp;
+    }
+    else {
+      }
+
+    try {
+      String response = apiInvoker.invokeAPI(basePath, path, "GET", queryParams, postBody, headerParams, formParams, contentType);
+      if(response != null){
+        return (ClientApiVertexCountsByConceptType) ApiInvoker.deserialize(response, "", ClientApiVertexCountsByConceptType.class);
       }
       else {
         return null;

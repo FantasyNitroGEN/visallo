@@ -948,6 +948,19 @@
                     ]
                 }
             ]
+        },
+        {
+            "path": "/vertex/counts-by-concept-type",
+            "operations": [
+                {
+                    "method": "GET",
+                    "summary": "Gets the count of vertices by concept type",
+                    "type": "ClientApiVertexCountsByConceptType",
+                    "nickname": "getVertexCountsByConceptType",
+                    "parameters": [
+                    ]
+                }
+            ]
         }
     ],
     "models": {
