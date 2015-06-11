@@ -23,7 +23,8 @@ define(['util/withTeardown'], function(withTeardown) {
         });
 
         this.after('initialize', function() {
-            var inputs = this.select('visibleInputsSelector'),
+            var self = this,
+                inputs = this.select('visibleInputsSelector'),
                 inputsNoSelects = inputs.not('select');
 
             this.$node.find('input:not([type=checkbox])').each(function() {
@@ -57,7 +58,11 @@ define(['util/withTeardown'], function(withTeardown) {
                     .toArray()
                     .forEach(function(option) {
                         var matched = false;
-                        if (option.value === '=' || option.value === 'equal') {
+                        if (self.attr.predicateType) {
+                            if (self.attr.predicateType === option.value) {
+                                predicate.val(option.value);
+                            }
+                        } else if (option.value === '=' || option.value === 'equal') {
                             predicate.val(option.value);
                         }
                     });

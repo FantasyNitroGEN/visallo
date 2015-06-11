@@ -141,14 +141,15 @@ define([
 
             this.dataRequest('ontology', 'properties')
                 .done(function(ontologyProperties) {
-                    var properties = data.properties || [data.property];
+                    var properties = data.properties || _.compact([data.property]);
 
                     Promise.resolve(properties)
                         .each(function(property) {
                             return self.addPropertyRow({
                                 property: ontologyProperties.byTitle[property.name],
                                 value: property.value,
-                                values: property.values
+                                values: property.values,
+                                predicate: property.predicate
                             });
                         })
                         .done(function() {
@@ -347,6 +348,7 @@ define([
                         property: property,
                         vertex: null,
                         predicates: true,
+                        predicateType: data.predicate,
                         values: data.values,
                         supportsHistogram: false
                     });
@@ -355,6 +357,7 @@ define([
                         property: property,
                         id: self.filterId++,
                         predicates: true,
+                        predicateType: data.predicate,
                         value: data.value,
                         supportsHistogram: self.attr.supportsHistogram
                     });
