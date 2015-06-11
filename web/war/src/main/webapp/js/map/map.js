@@ -768,7 +768,8 @@ define([
 
             if (configProperties['map.provider'] === 'google') {
               base = new ol.Layer.Google('Google Streets', {
-                  numZoomLevels: 20,
+                  minZoomLevel: 2,
+                  numZoomLevels: 18,
                   wrapDateLine: false
               });
             } else if (configProperties['map.provider'] === 'osm') {
