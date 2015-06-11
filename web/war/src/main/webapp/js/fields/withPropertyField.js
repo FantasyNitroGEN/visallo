@@ -13,7 +13,8 @@ define(['util/withTeardown'], function(withTeardown) {
             value: '',
             composite: false,
             predicates: false,
-            newProperty: false
+            newProperty: false,
+            defaultPredicate: '='
         });
 
         this.after('teardown', function() {
@@ -62,7 +63,7 @@ define(['util/withTeardown'], function(withTeardown) {
                             if (self.attr.predicateType === option.value) {
                                 predicate.val(option.value);
                             }
-                        } else if (option.value === '=' || option.value === 'equal') {
+                        } else if (option.value === self.attr.defaultPredicate) {
                             predicate.val(option.value);
                         }
                     });

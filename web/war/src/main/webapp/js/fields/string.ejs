@@ -4,7 +4,12 @@
     <% if (predicates) { %>
 
     <td class="predicate-row">
-      <span class="add-on"><%= i18n('field.string.form.contains') %></span>
+      <span class="add-on">
+        <select class="predicate">
+          <option value="~"><%= i18n('field.string.form.contains') %></option>
+          <option value="="><%= i18n('field.string.form.equals') %></option>
+        </select>
+      </span>
     </td>
 
     <% } else if (composite && !newProperty) { %>

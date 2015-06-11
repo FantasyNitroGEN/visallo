@@ -188,7 +188,7 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         String propertyName = obj.getString("propertyName");
         Object value0 = jsonValueToObject(values, propertyDataType, 0);
 
-        if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "".equals(predicateString))) {
+        if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "~".equals(predicateString))) {
             graphQuery.has(propertyName, TextPredicate.CONTAINS, value0);
         } else if (PropertyType.BOOLEAN.equals(propertyDataType) && (predicateString == null || "".equals(predicateString))) {
             graphQuery.has(propertyName, Compare.EQUAL, value0);

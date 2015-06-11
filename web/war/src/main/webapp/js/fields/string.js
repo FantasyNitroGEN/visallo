@@ -10,6 +10,10 @@ define([
 
     function StringField() {
 
+        this.before('initialize', function(node, config) {
+            config.defaultPredicate = '~';
+        })
+
         this.after('initialize', function() {
             var self = this;
 
@@ -17,15 +21,18 @@ define([
 
             this.on('change keyup', {
                 inputSelector: function(event) {
-                    var val = $.trim($(event.target).val());
-
-                    this.filterUpdated(val);
+                    if (event.which === 13 || event.type === 'change') {
+                        this.triggerFieldUpdated();
+                    }
                 }
             });
         });
 
         this.triggerFieldUpdated = function() {
-            this.filterUpdated(this.getValues()[0]);
+            this.filterUpdated(
+                this.getValues(),
+                this.select('predicateSelector').val()
+            );
         };
 
         this.isValid = function() {
