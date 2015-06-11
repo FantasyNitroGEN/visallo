@@ -147,8 +147,10 @@ define(['require', 'underscore'], function(require, _) {
                             case '<': return actual <= values[0];
                             case '>': return actual >= values[0];
                             case 'range': return actual >= values[0] && actual <= values[1];
+                            case '=':
                             case 'equal':
                                 return _.isEqual(values[0], actual);
+                            case '~':
                             case 'contains': return actual.indexOf(values[0]) >= 0;
 
                             default: console.warn('Unknown predicate:', predicate);
@@ -213,7 +215,7 @@ define(['require', 'underscore'], function(require, _) {
                         transformFunction = function(v) {
                             return v.toLowerCase();
                         };
-                        predicate = 'contains';
+                        predicate = predicate || 'contains';
                         compareFunction = predicateCompare;
                 }
 
