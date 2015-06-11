@@ -140,18 +140,24 @@ define([
             this.onClearFilters();
 
             this.dataRequest('ontology', 'properties')
-                .done(function(properties) {
-                    var property = properties.byTitle[data.property.name];
-                    self.trigger('propertyselected', {
-                        property: property,
-                        value: data.property.value,
-                        values: data.property.values
-                    });
-                    self.conceptFilter = data.conceptId || '';
-                    self.trigger(self.select('conceptDropdownSelector'), 'selectConceptId', {
-                        conceptId: data.conceptId || ''
-                    });
-                    self.notifyOfFilters();
+                .done(function(ontologyProperties) {
+                    var properties = data.properties || [data.property];
+
+                    Promise.resolve(properties)
+                        .each(function(property) {
+                            return self.addPropertyRow({
+                                property: ontologyProperties.byTitle[property.name],
+                                value: property.value,
+                                values: property.values
+                            });
+                        })
+                        .done(function() {
+                            self.conceptFilter = data.conceptId || '';
+                            self.trigger(self.select('conceptDropdownSelector'), 'selectConceptId', {
+                                conceptId: data.conceptId || ''
+                            });
+                            self.notifyOfFilters();
+                        });
                 });
         };
 
@@ -305,11 +311,13 @@ define([
         };
 
         this.onPropertySelected = function(event, data) {
+            this.addPropertyRow(data, event.target);
+        };
+
+        this.addPropertyRow = function(data, optionalRow) {
             var self = this,
                 $dropdown = this.$node.find('.newrow .dropdown input'),
-                target = event.target === this.node ?
-                    $dropdown :
-                    $(event.target),
+                target = optionalRow && $(optionalRow) || $dropdown,
                 li = target.closest('li').addClass('fId' + self.filterId),
                 property = data.property,
                 isCompoundField = property.dependentPropertyIris && property.dependentPropertyIris.length;
@@ -328,7 +336,7 @@ define([
                     'fields/restrictValues' :
                     'fields/' + property.dataType;
 
-            require([fieldComponent], function(PropertyFieldItem) {
+            return Promise.require(fieldComponent).then(function(PropertyFieldItem) {
                 var node = li.find('.configuration').removeClass('alternate');
 
                 self.teardownField(node);
