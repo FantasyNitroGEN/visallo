@@ -79,6 +79,7 @@ define([
             if (this.attr.allowPlayback !== true || this.select('videoSelector').length) {
                 return;
             }
+            event.preventDefault();
 
             var userClickedPlayButton = $(event.target).is('.scrubbing-play-button');
 
