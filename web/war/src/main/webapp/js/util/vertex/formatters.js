@@ -413,7 +413,6 @@ define([
                             values.forEach(function(v) {
                                 min = Math.min(v, min);
                                 max = Math.max(v, max);
-                                console.log(sum, v)
                                 sum += v;
                             })
 
