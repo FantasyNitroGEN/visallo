@@ -91,6 +91,11 @@ define([
                     'artifacts-' + artifacts,
                     artifacts ? 'has-artifacts' : ''
                 ].join(' '));
+
+            // this allows drop-down menus for a vertically short panel to appear over its bottom neighbor panel
+            this.$node.find('.detail-pane').each(function(i, el) {
+                $(el).css('z-index', 100000 - i);
+            });
         };
 
         this.updateTitle = function() {
