@@ -1165,4 +1165,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
         definePropertyBuilder.define();
     }
+
+    protected boolean determineSearchable(String propertyIri, PropertyType dataType, Collection<TextIndexHint> textIndexHints, boolean searchable) {
+        if (dataType == PropertyType.STRING) {
+            if (searchable && (textIndexHints.isEmpty() || textIndexHints.equals(TextIndexHint.NONE))) {
+                searchable = false;
+            } else if (!searchable && (!textIndexHints.isEmpty() || !textIndexHints.equals(TextIndexHint.NONE))) {
+                throw new VisalloException("textIndexHints should not be specified for non-searchable string property: " + propertyIri);
+            }
+        }
+        return searchable;
+    }
 }
