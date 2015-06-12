@@ -50,7 +50,5 @@ public class VertexSearchTest extends RouteTestBase {
         ClientApiVertexSearchResponse response = handle(vertexSearch, ClientApiVertexSearchResponse.class);
         assertEquals(2, response.getVertices().size());
         assertEquals(2, response.getItemCount());
-        //assertNotNull("getTotalHits cannot be null", response.getTotalHits());
-        //assertEquals(2L, (long) response.getTotalHits());
     }
 }

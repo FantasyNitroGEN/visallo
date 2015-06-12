@@ -11,11 +11,13 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
+import org.visallo.web.routes.workspace.WorkspaceHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +28,7 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +53,12 @@ public abstract class RouteTestBase {
 
     @Mock
     protected WorkspaceRepository workspaceRepository;
+
+    @Mock
+    protected TermMentionRepository termMentionRepository;
+
+    @Mock
+    protected WorkspaceHelper workspaceHelper;
 
     protected Configuration configuration;
 
@@ -103,6 +112,13 @@ public abstract class RouteTestBase {
 
     protected void handle(BaseRequestHandler handler) throws Exception {
         handler.handle(request, response, chain);
+    }
+
+    protected void handleAssertSuccess(BaseRequestHandler handler) throws Exception {
+        handle(handler);
+        org.json.JSONObject successJson = new org.json.JSONObject();
+        successJson.put("success", true);
+        assertEquals(successJson.toString(), getResponseAsString());
     }
 
     protected <T extends ClientApiObject> T handle(BaseRequestHandler handler, Class<T> responseType) throws Exception {
