@@ -4,21 +4,24 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
+import org.vertexium.query.CompositeGraphQuery;
+import org.vertexium.query.Query;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.query.CompositeGraphQuery;
-import org.vertexium.query.Query;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class VertexSearch extends VertexSearchBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSearch.class);
@@ -71,9 +74,13 @@ public class VertexSearch extends VertexSearchBase {
         if (relatedToVertexId == null) {
             graphQuery = getGraph().query(query, authorizations);
         } else if (StringUtils.isBlank(query)) {
-            graphQuery = getGraph().getVertex(relatedToVertexId, authorizations).query(authorizations);
+            Vertex relatedToVertex = getGraph().getVertex(relatedToVertexId, authorizations);
+            checkNotNull(relatedToVertex, "Could not find vertex: " + relatedToVertexId);
+            graphQuery = relatedToVertex.query(authorizations);
         } else {
-            graphQuery = getGraph().getVertex(relatedToVertexId, authorizations).query(query, authorizations);
+            Vertex relatedToVertex = getGraph().getVertex(relatedToVertexId, authorizations);
+            checkNotNull(relatedToVertex, "Could not find vertex: " + relatedToVertexId);
+            graphQuery = relatedToVertex.query(query, authorizations);
         }
         return graphQuery;
     }

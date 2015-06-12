@@ -1,13 +1,16 @@
 package org.visallo.web;
 
+import com.amazonaws.util.json.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.v5analytics.webster.HandlerChain;
+import org.json.JSONArray;
 import org.mockito.Mock;
 import org.vertexium.Graph;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
@@ -41,6 +44,9 @@ public abstract class RouteTestBase {
 
     @Mock
     protected HandlerChain chain;
+
+    @Mock
+    protected OntologyRepository ontologyRepository;
 
     @Mock
     protected WorkspaceRepository workspaceRepository;
@@ -97,5 +103,26 @@ public abstract class RouteTestBase {
 
     protected void handle(BaseRequestHandler handler) throws Exception {
         handler.handle(request, response, chain);
+    }
+
+    protected <T extends ClientApiObject> T handle(BaseRequestHandler handler, Class<T> responseType) throws Exception {
+        handler.handle(request, response, chain);
+        return getResponseAsClientApiObject(responseType);
+    }
+
+    protected void setArrayParameter(String parameterName, String[] values) {
+        when(request.getParameterValues(eq(parameterName))).thenReturn(values);
+    }
+
+    protected void setParameter(String parameterName, JSONObject json) {
+        setParameter(parameterName, json.toString());
+    }
+
+    protected void setParameter(String parameterName, JSONArray json) {
+        setParameter(parameterName, json.toString());
+    }
+
+    protected void setParameter(String parameterName, String value) {
+        when(request.getParameter(eq(parameterName))).thenReturn(value);
     }
 }

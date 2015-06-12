@@ -34,6 +34,12 @@
             <artifactId>visallo-web</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -168,7 +174,11 @@
     <profiles>
         <profile>
             <id>grunt-windows</id>
-            <activation><os><family>windows</family></os></activation>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -185,7 +195,8 @@
                                 </goals>
                                 <configuration>
                                     <executable>cmd</executable>
-                                        <commandlineArgs>/c "${basedir}/src/main/scripts/grunt.bat" ${grunt.target}</commandlineArgs>
+                                    <commandlineArgs>/c "${basedir}/src/main/scripts/grunt.bat" ${grunt.target}
+                                    </commandlineArgs>
                                 </configuration>
                             </execution>
                         </executions>
@@ -195,7 +206,11 @@
         </profile>
         <profile>
             <id>grunt-unix</id>
-            <activation><os><family>!windows</family></os></activation>
+            <activation>
+                <os>
+                    <family>!windows</family>
+                </os>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
