@@ -198,6 +198,11 @@ define([
 
             if (!this.binCount) {
                 this.binCount = allDates ? xScale.ticks(100) : isDate ? xScale.ticks(25) : 25;
+                if (_.isArray(this.binCount)) {
+                    this.binCount = _.map(this.binCount, function(d) {
+                        return _.isFunction(d.getTime) ? d.getTime() : d;
+                    });
+                }
             }
 
             var self = this,
@@ -217,7 +222,7 @@ define([
                             return inDomain(v.value, xScale);
                         }));
                         _.each(buckets, function(bucket) {
-                            bucket.x = isDate && !isDateTime ? d3.time.day.floor(bucket.x) : bucket.x
+                            bucket.x = isDate && !isDateTime ? d3.time.day.floor(bucket.x) : new Date(bucket.x)
                         });
                         return buckets;
                     })
