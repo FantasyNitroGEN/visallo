@@ -62,12 +62,6 @@ public class WorkspaceHelper {
         if (sourceVertex == null) {
             return;
         }
-        List<Edge> edges = toList(sourceVertex.getEdges(Direction.BOTH, authorizations));
-
-        if (edges.size() == 1) {
-            graph.softDeleteEdge(edges.get(0), authorizations);
-            workQueueRepository.pushEdgeDeletion(edges.get(0));
-        }
 
         termMentionRepository.delete(termMention, authorizations);
         workQueueRepository.pushTextUpdated(sourceVertex.getId());
