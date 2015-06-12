@@ -1,6 +1,11 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.Graph;
+import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
@@ -10,14 +15,9 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiEdge;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceEdges;
-import org.vertexium.Authorizations;
-import org.vertexium.Edge;
-import org.vertexium.Graph;
-import org.vertexium.util.ConvertingIterable;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -76,8 +76,12 @@ public class WorkspaceEdges extends BaseRequestHandler {
     /**
      * This is overridable so web plugins can modify the resulting set of edges.
      */
-    protected ClientApiWorkspaceEdges getEdges(HttpServletRequest request, String workspaceId,
-                                               Iterable<String> vertexIds, Authorizations authorizations) {
+    protected ClientApiWorkspaceEdges getEdges(
+            HttpServletRequest request,
+            String workspaceId,
+            Iterable<String> vertexIds,
+            Authorizations authorizations
+    ) {
         ClientApiWorkspaceEdges edgeResult = new ClientApiWorkspaceEdges();
         List<Edge> edges = toList(graph.getEdges(graph.findRelatedEdges(vertexIds, authorizations), authorizations));
         for (Edge edge : edges) {

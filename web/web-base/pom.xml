@@ -81,6 +81,13 @@
             <groupId>com.github.jknack</groupId>
             <artifactId>handlebars</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

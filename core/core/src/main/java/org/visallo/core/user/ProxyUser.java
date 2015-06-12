@@ -1,11 +1,11 @@
 package org.visallo.core.user;
 
+import com.v5analytics.simpleorm.SimpleOrmContext;
+import org.json.JSONObject;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
-import org.json.JSONObject;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 
 import java.util.Date;
 import java.util.Set;
@@ -192,5 +192,23 @@ public class ProxyUser implements User {
         if (proxiedUser == null) {
             proxiedUser = userRepository.findById(userId);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || !(o instanceof User)) {
+            return false;
+        }
+
+        User other = (User) o;
+        return getUserId().equals(other.getUserId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getUserId().hashCode();
     }
 }
