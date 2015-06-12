@@ -17,10 +17,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
-import java.util.List;
-
-import static org.vertexium.util.IterableUtils.toList;
-
 @Singleton
 public class WorkspaceHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceHelper.class);
@@ -75,6 +71,8 @@ public class WorkspaceHelper {
         } else {
             vertex.softDeleteProperty(property.getKey(), property.getName(), property.getVisibility(), authorizations);
         }
+
+        unresolveTermMentionsForProperty(vertex, property, authorizations);
 
         graph.flush();
 
@@ -214,5 +212,17 @@ public class WorkspaceHelper {
         }
 
         graph.flush();
+    }
+
+    private void unresolveTermMentionsForProperty(Vertex vertex, Property property, Authorizations authorizations) {
+        for (Vertex termMention : termMentionRepository.findResolvedTo(vertex.getId(), authorizations)) {
+            String key = VisalloProperties.TERM_MENTION_REF_PROPERTY_KEY.getPropertyValue(termMention);
+            String name = VisalloProperties.TERM_MENTION_REF_PROPERTY_NAME.getPropertyValue(termMention);
+            String visibility = VisalloProperties.TERM_MENTION_REF_PROPERTY_VISIBILITY.getPropertyValue(termMention);
+            if (property.getKey().equals(key) && property.getName().equals(name) &&
+                    property.getVisibility().getVisibilityString().equals(visibility)) {
+                unresolveTerm(termMention, authorizations);
+            }
+        }
     }
 }
