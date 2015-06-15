@@ -11,6 +11,11 @@ define([], function() {
                 enabled = false,
                 droppable = $(document.body);
 
+            // Prevent dragging any context menu items to graph/map
+            $(document.body).on('dragstart', '.dropdown-menu', function(e) {
+                e.preventDefault();
+            });
+
             // Other droppables might be on top of graph, listen to
             // their over/out events and ignore drops if the user hasn't
             // dragged outside of them. Can't use greedy option since they are

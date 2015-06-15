@@ -1,9 +1,14 @@
-
-
+@import "./selection";
 
 body .dropdown-menu {
   min-width: 13em;
   .disable-text-selection;
+  .disable-drag;
+
+  a, .shortcut {
+    .disable-text-selection;
+    .disable-drag;
+  }
 
   li a span {
     color: #777;
