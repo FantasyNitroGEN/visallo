@@ -66,6 +66,7 @@ define([
                             foundOntologyProperties = [],
                             foundYPropertiesByConcept = {},
                             values = _.chain(vertices)
+                                .compact()
                                 .map(function(v) {
                                     var conceptProperty = _.findWhere(v.properties, { name: 'http://visallo.org#conceptType'}),
                                         conceptPropertyIri = conceptProperty && conceptProperty.value ||
