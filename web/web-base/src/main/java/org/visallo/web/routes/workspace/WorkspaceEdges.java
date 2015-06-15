@@ -5,11 +5,9 @@ import com.v5analytics.webster.HandlerChain;
 import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
-import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
-import org.visallo.core.model.workspace.WorkspaceEntity;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -23,8 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
-
-import static org.vertexium.util.IterableUtils.toList;
 
 public class WorkspaceEdges extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceEdges.class);

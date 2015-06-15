@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.VertexBuilder;
+import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
@@ -234,23 +235,25 @@ public class VertexiumUserRepository extends UserRepository {
     @Override
     public void recordLogin(User user, String remoteAddr) {
         Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        ExistingElementMutation<Vertex> m = userVertex.prepareMutation();
 
         Date currentLoginDate = UserVisalloProperties.CURRENT_LOGIN_DATE.getPropertyValue(userVertex);
         if (currentLoginDate != null) {
-            UserVisalloProperties.PREVIOUS_LOGIN_DATE.setProperty(userVertex, currentLoginDate, VISIBILITY.getVisibility(), authorizations);
+            UserVisalloProperties.PREVIOUS_LOGIN_DATE.setProperty(m, currentLoginDate, VISIBILITY.getVisibility());
         }
 
         String currentLoginRemoteAddr = UserVisalloProperties.CURRENT_LOGIN_REMOTE_ADDR.getPropertyValue(userVertex);
         if (currentLoginRemoteAddr != null) {
-            UserVisalloProperties.PREVIOUS_LOGIN_REMOTE_ADDR.setProperty(userVertex, currentLoginRemoteAddr, VISIBILITY.getVisibility(), authorizations);
+            UserVisalloProperties.PREVIOUS_LOGIN_REMOTE_ADDR.setProperty(m, currentLoginRemoteAddr, VISIBILITY.getVisibility());
         }
 
-        UserVisalloProperties.CURRENT_LOGIN_DATE.setProperty(userVertex, new Date(), VISIBILITY.getVisibility(), authorizations);
-        UserVisalloProperties.CURRENT_LOGIN_REMOTE_ADDR.setProperty(userVertex, remoteAddr, VISIBILITY.getVisibility(), authorizations);
+        UserVisalloProperties.CURRENT_LOGIN_DATE.setProperty(m, new Date(), VISIBILITY.getVisibility());
+        UserVisalloProperties.CURRENT_LOGIN_REMOTE_ADDR.setProperty(m, remoteAddr, VISIBILITY.getVisibility());
 
         int loginCount = UserVisalloProperties.LOGIN_COUNT.getPropertyValue(userVertex, 0);
-        UserVisalloProperties.LOGIN_COUNT.setProperty(userVertex, loginCount + 1, VISIBILITY.getVisibility(), authorizations);
+        UserVisalloProperties.LOGIN_COUNT.setProperty(m, loginCount + 1, VISIBILITY.getVisibility());
 
+        m.save(authorizations);
         graph.flush();
     }
 
