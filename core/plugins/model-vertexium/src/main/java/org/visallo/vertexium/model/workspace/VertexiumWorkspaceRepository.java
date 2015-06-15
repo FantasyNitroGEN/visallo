@@ -253,6 +253,16 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
+    public List<String> findEntityVertexIds(Workspace workspace, User user) {
+        if (workspace instanceof VertexiumWorkspace) {
+            Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
+            Vertex workspaceVertex = getVertexFromWorkspace(workspace, false, authorizations);
+            return toList(workspaceVertex.getVertexIds(Direction.BOTH, WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI, authorizations));
+        }
+        return super.findEntityVertexIds(workspace, user);
+    }
+
+    @Override
     public List<WorkspaceEntity> findEntities(final Workspace workspace, final User user) {
         LOGGER.debug("findEntities(workspaceId: %s, userId: %s)", workspace.getWorkspaceId(), user.getUserId());
         if (!hasReadPermissions(workspace.getWorkspaceId(), user)) {

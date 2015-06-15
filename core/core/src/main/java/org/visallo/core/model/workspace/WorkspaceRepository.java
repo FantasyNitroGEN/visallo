@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.vertexium.util.IterableUtils.toList;
 
 public abstract class WorkspaceRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceRepository.class);
@@ -660,6 +661,16 @@ public abstract class WorkspaceRepository {
             }
         }
         LOGGER.warn("new has image edge without a glyph icon property being set on vertex %s", entityVertex.getId());
+    }
+
+    public List<String> findEntityVertexIds(Workspace workspace, User user) {
+        List<WorkspaceEntity> workspaceEntities = findEntities(workspace, user);
+        return toList(new ConvertingIterable<WorkspaceEntity, String>(workspaceEntities) {
+            @Override
+            protected String convert(WorkspaceEntity workspaceEntity) {
+                return workspaceEntity.getEntityVertexId();
+            }
+        });
     }
 
     public static class Update {

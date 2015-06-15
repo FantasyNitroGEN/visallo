@@ -56,13 +56,7 @@ public class WorkspaceEdges extends BaseRequestHandler {
         long startTime = System.nanoTime();
 
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
-        List<WorkspaceEntity> workspaceEntities = workspaceRepository.findEntities(workspace, user);
-        List<String> vertexIds = toList(new ConvertingIterable<WorkspaceEntity, String>(workspaceEntities) {
-            @Override
-            protected String convert(WorkspaceEntity workspaceEntity) {
-                return workspaceEntity.getEntityVertexId();
-            }
-        });
+        List<String> vertexIds = workspaceRepository.findEntityVertexIds(workspace, user);
         Collections.addAll(vertexIds, additionalVertexIds);
 
         ClientApiWorkspaceEdges results = getEdges(request, workspaceId, vertexIds, authorizations);
@@ -83,7 +77,7 @@ public class WorkspaceEdges extends BaseRequestHandler {
             Authorizations authorizations
     ) {
         ClientApiWorkspaceEdges edgeResult = new ClientApiWorkspaceEdges();
-        List<Edge> edges = toList(graph.getEdges(graph.findRelatedEdges(vertexIds, authorizations), authorizations));
+        Iterable<Edge> edges = graph.getEdges(graph.findRelatedEdges(vertexIds, authorizations), authorizations);
         for (Edge edge : edges) {
             ClientApiEdge e = new ClientApiEdge();
             ClientApiConverter.populateClientApiEdge(e, edge, workspaceId);
