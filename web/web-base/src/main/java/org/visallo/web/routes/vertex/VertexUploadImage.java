@@ -16,7 +16,6 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -42,7 +41,6 @@ public class VertexUploadImage extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexUploadImage.class);
 
     private static final String ATTR_GRAPH_VERTEX_ID = "graphVertexId";
-    private static final String DEFAULT_MIME_TYPE = "image";
     private static final String SOURCE_UPLOAD = "User Upload";
     private static final String PROCESS = VertexUploadImage.class.getName();
     private static final String MULTI_VALUE_KEY = VertexUploadImage.class.getName();
@@ -116,24 +114,26 @@ public class VertexUploadImage extends BaseRequestHandler {
         ElementMutation<Vertex> entityVertexMutation = entityVertex.prepareMutation();
 
         VisibilityJson visibilityJson = getVisalloVisibility(entityVertex, workspaceId);
-        VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
+        Visibility visibility = visibilityTranslator.toVisibility(visibilityJson).getVisibility();
 
         Metadata metadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
 
         String title = imageTitle(entityVertex);
-        ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, visalloVisibility);
+        ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, visibility);
         Vertex artifactVertex = artifactVertexBuilder.save(authorizations);
         this.graph.flush();
 
-        entityVertexMutation.setProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName(), artifactVertex.getId(), metadata, visalloVisibility.getVisibility());
+        entityVertexMutation.setProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName(), artifactVertex.getId(), metadata, visibility);
         entityVertex = entityVertexMutation.save(authorizations);
         graph.flush();
 
         List<Edge> existingEdges = toList(entityVertex.getEdges(artifactVertex, Direction.BOTH, entityHasImageIri, authorizations));
         if (existingEdges.size() == 0) {
-            EdgeBuilder edgeBuilder = graph.prepareEdge(entityVertex, artifactVertex, entityHasImageIri, visalloVisibility.getVisibility());
-            VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visalloVisibility.getVisibility());
+            EdgeBuilder edgeBuilder = graph.prepareEdge(entityVertex, artifactVertex, entityHasImageIri, visibility);
+            VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, new Date(), visibility);
+            VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), visibility);
             edgeBuilder.save(authorizations);
         }
 
@@ -187,18 +187,13 @@ public class VertexUploadImage extends BaseRequestHandler {
             String title,
             VisibilityJson visibilityJson,
             Metadata metadata,
-            VisalloVisibility visalloVisibility
+            Visibility visibility
     ) throws IOException {
         final InputStream fileInputStream = file.getInputStream();
         final byte[] rawContent = IOUtils.toByteArray(fileInputStream);
         LOGGER.debug("Uploaded file raw content byte length: %d", rawContent.length);
 
         final String fileName = file.getName();
-
-        String mimeType = DEFAULT_MIME_TYPE;
-        if (file.getContentType() != null) {
-            mimeType = file.getContentType();
-        }
 
         final String fileRowKey = RowKeyHelper.buildSHA256KeyString(rawContent);
         LOGGER.debug("Generated row key: %s", fileRowKey);
@@ -207,16 +202,16 @@ public class VertexUploadImage extends BaseRequestHandler {
         rawValue.searchIndex(false);
         rawValue.store(true);
 
-        ElementBuilder<Vertex> vertexBuilder = graph.prepareVertex(visalloVisibility.getVisibility());
+        ElementBuilder<Vertex> vertexBuilder = graph.prepareVertex(visibility);
         // Note that VisalloProperties.MIME_TYPE is expected to be set by a GraphPropertyWorker.
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visalloVisibility.getVisibility());
-        VisalloProperties.TITLE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
-        VisalloProperties.MODIFIED_DATE.setProperty(vertexBuilder, new Date(), metadata, visalloVisibility.getVisibility());
-        VisalloProperties.FILE_NAME.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, fileName, metadata, visalloVisibility.getVisibility());
-        VisalloProperties.RAW.setProperty(vertexBuilder, rawValue, metadata, visalloVisibility.getVisibility());
-        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptIri, metadata, visalloVisibility.getVisibility());
-        VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, SOURCE_UPLOAD, metadata, visalloVisibility.getVisibility());
-        VisalloProperties.PROCESS.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, PROCESS, metadata, visalloVisibility.getVisibility());
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visibility);
+        VisalloProperties.TITLE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, title, metadata, visibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(vertexBuilder, new Date(), metadata, visibility);
+        VisalloProperties.FILE_NAME.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, fileName, metadata, visibility);
+        VisalloProperties.RAW.setProperty(vertexBuilder, rawValue, metadata, visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptIri, metadata, visibility);
+        VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, SOURCE_UPLOAD, metadata, visibility);
+        VisalloProperties.PROCESS.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, PROCESS, metadata, visibility);
         return vertexBuilder;
     }
 }
