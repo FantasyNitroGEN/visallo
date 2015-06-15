@@ -75,7 +75,7 @@ public class Configuration {
     public static final String STATUS_PORT_RANGE = "status.portRange";
     public static final String DEFAULT_STATUS_PORT_RANGE = "40000-41000";
     public static final String STATUS_REFRESH_INTERVAL = "status.refreshInterval";
-    public static final int DEFAULT_STATUS_REFRESH_INTERVAL = 60;
+    public static final int DEFAULT_STATUS_REFRESH_INTERVAL = 10;
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
 
