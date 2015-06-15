@@ -64,10 +64,10 @@ public class WorkspaceEdgesTest extends RouteTestBase {
 
     @Test
     public void testHandleWithEntitiesOnWorkspace() throws Exception {
-        List<WorkspaceEntity> workspaceEntities = new ArrayList<>();
-        workspaceEntities.add(new WorkspaceEntity("v1", true, 0, 0, "{}"));
-        workspaceEntities.add(new WorkspaceEntity("v2", true, 0, 0, "{}"));
-        when(workspaceRepository.findEntities(workspace, user)).thenReturn(workspaceEntities);
+        List<String> workspaceEntityVertexIds = new ArrayList<>();
+        workspaceEntityVertexIds.add("v1");
+        workspaceEntityVertexIds.add("v2");
+        when(workspaceRepository.findEntityVertexIds(workspace, user)).thenReturn(workspaceEntityVertexIds);
 
         ClientApiWorkspaceEdges edges = handle(workspaceEdges, ClientApiWorkspaceEdges.class);
         assertEquals(1, edges.getEdges().size());

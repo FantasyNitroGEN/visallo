@@ -693,19 +693,19 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return ImmutableList.copyOf(results);
     }
 
-    private void addAllDependentPropertyIris(List<String> results, ImmutableList<String> dependentPropertyIri) {
-        if (dependentPropertyIri == null) {
+    private void addAllDependentPropertyIris(List<String> results, ImmutableList<String> dependentPropertyIris) {
+        if (dependentPropertyIris == null) {
             return;
         }
-        for (String str : dependentPropertyIri) {
-            str = str.trim();
-            if (str.startsWith("[")) {
-                JSONArray array = new JSONArray(str);
+        for (String dependentPropertyIri : dependentPropertyIris) {
+            dependentPropertyIri = dependentPropertyIri.trim();
+            if (dependentPropertyIri.startsWith("[")) {
+                JSONArray array = new JSONArray(dependentPropertyIri);
                 for (int i = 0; i < array.length(); i++) {
                     results.add(array.getString(i));
                 }
             } else {
-                results.add(str);
+                results.add(dependentPropertyIri);
             }
         }
     }
