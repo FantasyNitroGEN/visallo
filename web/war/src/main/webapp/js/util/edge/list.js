@@ -90,7 +90,7 @@ define([
                         .call(function() {
                             this.append('span');
                             this.append('div').attr('class', 'subtitle')
-                        })
+                        });
 
                     this.attr('data-edge-id', function(d) {
                         return d.id;
@@ -116,23 +116,33 @@ define([
                         }
                     });
 
-                    this.select('.subtitle').text(function(d) {
+                    this.select('.subtitle').text(i18n('detail.multiple.edge.loading')).each(function(d) {
                         var propertyDate = _.findWhere(d.properties, { name: 'http://visallo.org#modifiedDate' }),
-                            propertyBy = _.findWhere(d.properties, { name: 'http://visallo.org#modifiedBy' });
+                            propertyBy = _.findWhere(d.properties, { name: 'http://visallo.org#modifiedBy' }),
+                            subtitleEl = d3.select(this),
+                            setText = function(userNames, date) {
+                                var text = i18n('detail.multiple.edge.created.display',
+                                    userNames && userNames[0] ?
+                                        userNames[0] :
+                                        i18n('detail.multiple.edge.created.by.unknown'),
+                                    date ?
+                                        F.date.relativeToNow(F.date.utc(date.value)) :
+                                        i18n('detail.multiple.edge.created.date.unknown'));
+                                subtitleEl.text(text);
+                            };
 
-                        return i18n('detail.multiple.edge.created.display',
-                            propertyBy ?
-                            visalloData.currentUser.displayName :
-                                i18n('detail.multiple.edge.created.by.unknown'),
-                            propertyDate ?
-                                F.date.relativeToNow(F.date.utc(propertyDate.value)) :
-                                i18n('detail.multiple.edge.created.date.unknown')
-                        );
+                        if (propertyBy) {
+                            withDataRequest.dataRequest('user', 'getUserNames', [propertyBy.value])
+                                .done(function(userNames) {
+                                    setText(userNames, propertyDate);
+                                });
+                        } else {
+                            setText(propertyBy, propertyDate);
+                        }
                     });
 
                     this.exit().remove();
                 });
         }
-
     }
 });
