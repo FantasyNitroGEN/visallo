@@ -148,7 +148,7 @@ public class GraphPropertyThreadedWrapper implements Runnable {
     public GraphPropertyRunnerStatus.GraphPropertyWorkerStatus getStatus() {
         GraphPropertyRunnerStatus.GraphPropertyWorkerStatus status = new GraphPropertyRunnerStatus.GraphPropertyWorkerStatus();
         StatusServer.getGeneralInfo(status, this.worker.getClass());
-        status.getMetrics().put("totalProcessed", Status.Metric.create(totalErrorCounter));
+        status.getMetrics().put("totalProcessed", Status.Metric.create(totalProcessedCounter));
         status.getMetrics().put("processing", Status.Metric.create(processingCounter));
         status.getMetrics().put("totalErrors", Status.Metric.create(totalErrorCounter));
         status.getMetrics().put("processingTime", Status.Metric.create(processingTimeTimer));
