@@ -132,6 +132,8 @@ public class VertexUploadImage extends BaseRequestHandler {
         if (existingEdges.size() == 0) {
             EdgeBuilder edgeBuilder = graph.prepareEdge(entityVertex, artifactVertex, entityHasImageIri, visibility);
             VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, new Date(), visibility);
+            VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), visibility);
             edgeBuilder.save(authorizations);
         }
 
