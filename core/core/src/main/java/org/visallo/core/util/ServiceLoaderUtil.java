@@ -41,7 +41,7 @@ public class ServiceLoaderUtil {
     }
 
     public static <T> Iterable<Class<? extends T>> loadClasses(Class<T> clazz, Configuration configuration) {
-        List<Class<? extends T>> services = new ArrayList<>();
+        Set<Class<? extends T>> services = new HashSet<>();
         String fullName = PREFIX + clazz.getName();
         LOGGER.debug("loading services for class %s", fullName);
         try {
