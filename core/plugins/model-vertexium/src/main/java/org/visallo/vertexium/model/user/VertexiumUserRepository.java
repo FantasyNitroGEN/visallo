@@ -45,10 +45,7 @@ public class VertexiumUserRepository extends UserRepository {
     private Graph graph;
     private String userConceptId;
     private org.vertexium.Authorizations authorizations;
-    private final Cache<String, Set<String>> userAuthorizationCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(15, TimeUnit.SECONDS)
-            .build();
-    private final Cache<String, Set<Privilege>> userPrivilegesCache = CacheBuilder.newBuilder()
+    private final Cache<String, Vertex> userVertexCache = CacheBuilder.newBuilder()
             .expireAfterWrite(15, TimeUnit.SECONDS)
             .build();
 
@@ -307,7 +304,7 @@ public class VertexiumUserRepository extends UserRepository {
         String authorizationsString = StringUtils.join(authorizationSet, ",");
         UserVisalloProperties.AUTHORIZATIONS.setProperty(userVertex, authorizationsString, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
-        userAuthorizationCache.invalidate(user.getUserId());
+        userVertexCache.invalidate(user.getUserId());
     }
 
     @Override
@@ -321,7 +318,7 @@ public class VertexiumUserRepository extends UserRepository {
         String authorizationsString = StringUtils.join(authorizationSet, ",");
         UserVisalloProperties.AUTHORIZATIONS.setProperty(userVertex, authorizationsString, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
-        userAuthorizationCache.invalidate(user.getUserId());
+        userVertexCache.invalidate(user.getUserId());
     }
 
     @Override
@@ -331,12 +328,19 @@ public class VertexiumUserRepository extends UserRepository {
             userAuthorizations = new HashSet<>();
             userAuthorizations.add(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
         } else {
-            userAuthorizations = userAuthorizationCache.getIfPresent(user.getUserId());
+            Vertex userVertex = userVertexCache.getIfPresent(user.getUserId());
+            if (userVertex != null) {
+                userAuthorizations = getAuthorizations(userVertex);
+            } else {
+                userAuthorizations = null;
+            }
         }
         if (userAuthorizations == null) {
+            LOGGER.debug("BEGIN getAuthorizations query");
             Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+            userVertexCache.put(user.getUserId(), userVertex);
             userAuthorizations = getAuthorizations(userVertex);
-            userAuthorizationCache.put(user.getUserId(), userAuthorizations);
+            LOGGER.debug("END getAuthorizations query");
         }
 
         Set<String> authorizationsSet = new HashSet<>(userAuthorizations);
@@ -385,12 +389,19 @@ public class VertexiumUserRepository extends UserRepository {
         if (user instanceof SystemUser) {
             return Privilege.ALL;
         } else {
-            privileges = userPrivilegesCache.getIfPresent(user.getUserId());
+            Vertex userVertex = userVertexCache.getIfPresent(user.getUserId());
+            if (userVertex != null) {
+                privileges = getPrivileges(userVertex);
+            } else {
+                privileges = null;
+            }
         }
         if (privileges == null) {
+            LOGGER.debug("BEGIN getPrivileges query");
             Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+            userVertexCache.put(user.getUserId(), userVertex);
             privileges = getPrivileges(userVertex);
-            userPrivilegesCache.put(user.getUserId(), privileges);
+            LOGGER.debug("END getPrivileges query");
         }
         return privileges;
     }
@@ -407,7 +418,7 @@ public class VertexiumUserRepository extends UserRepository {
         Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.PRIVILEGES.setProperty(userVertex, Privilege.toString(privileges), VISIBILITY.getVisibility(), authorizations);
         graph.flush();
-        userPrivilegesCache.invalidate(user.getUserId());
+        userVertexCache.invalidate(user.getUserId());
     }
 
     private Set<Privilege> getPrivileges(Vertex userVertex) {

@@ -229,6 +229,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             return usersWithAccess;
         }
 
+        LOGGER.debug("BEGIN findUsersWithAccess query");
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
         Vertex workspaceVertex = getVertex(workspaceId, user);
         Iterable<Edge> userEdges = workspaceVertex.getEdges(Direction.BOTH, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations);
@@ -249,6 +250,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             }
         });
         this.usersWithAccessCache.put(cacheKey, usersWithAccess);
+        LOGGER.debug("END findUsersWithAccess query");
         return usersWithAccess;
     }
 
