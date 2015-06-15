@@ -1,12 +1,13 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.ClientApiWorkspaces;
@@ -29,18 +30,19 @@ public class WorkspaceList extends BaseRequestHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
         User user = getUser(request);
-        ClientApiWorkspaces results = handle(user);
+        Authorizations authorizations = getAuthorizations(request, user);
+        ClientApiWorkspaces results = handle(user, authorizations);
         respondWithClientApiObject(response, results);
     }
 
-    public ClientApiWorkspaces handle(User user) {
+    public ClientApiWorkspaces handle(User user, Authorizations authorizations) {
         Iterable<Workspace> workspaces = workspaceRepository.findAllForUser(user);
         String activeWorkspaceId = getUserRepository().getCurrentWorkspaceId(user.getUserId());
         activeWorkspaceId = activeWorkspaceId != null ? activeWorkspaceId : "";
 
         ClientApiWorkspaces results = new ClientApiWorkspaces();
         for (Workspace workspace : workspaces) {
-            ClientApiWorkspace workspaceClientApi = workspaceRepository.toClientApi(workspace, user, false);
+            ClientApiWorkspace workspaceClientApi = workspaceRepository.toClientApi(workspace, user, false, authorizations);
             if (workspaceClientApi != null) {
                 if (activeWorkspaceId.equals(workspace.getWorkspaceId())) { //if its the active one
                     workspaceClientApi.setActive(true);

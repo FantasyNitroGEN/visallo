@@ -1,6 +1,8 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -9,7 +11,6 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 
@@ -38,6 +39,7 @@ public class WorkspaceDelete extends BaseRequestHandler {
             final String workspaceId = getAttributeString(request, "workspaceId");
 
             User user = getUser(request);
+            Authorizations authorizations = getAuthorizations(request, user);
 
             LOGGER.info("Deleting workspace with id: %s", workspaceId);
             Workspace workspace = workspaceRepository.findById(workspaceId, user);
@@ -45,7 +47,7 @@ public class WorkspaceDelete extends BaseRequestHandler {
                 respondWithNotFound(response);
                 return;
             }
-            ClientApiWorkspace clientApiWorkspaceBeforeDeletion = workspaceRepository.toClientApi(workspace, user, false);
+            ClientApiWorkspace clientApiWorkspaceBeforeDeletion = workspaceRepository.toClientApi(workspace, user, false, authorizations);
             workspaceRepository.delete(workspace, user);
             workQueueRepository.pushWorkspaceDelete(clientApiWorkspaceBeforeDeletion);
 

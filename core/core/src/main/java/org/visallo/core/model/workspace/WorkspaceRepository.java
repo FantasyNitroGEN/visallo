@@ -1,5 +1,7 @@
 package org.visallo.core.model.workspace;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,10 +27,12 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
@@ -212,7 +216,7 @@ public abstract class WorkspaceRepository {
         }
     }
 
-    public ClientApiWorkspace toClientApi(Workspace workspace, User user, boolean includeVertices) {
+    public ClientApiWorkspace toClientApi(Workspace workspace, User user, boolean includeVertices, Authorizations authorizations) {
         checkNotNull(workspace, "workspace cannot be null");
         checkNotNull(user, "user cannot be null");
 
@@ -238,8 +242,20 @@ public abstract class WorkspaceRepository {
             }
 
             if (includeVertices) {
-                for (WorkspaceEntity workspaceEntity : findEntities(workspace, user)) {
+                List<WorkspaceEntity> workspaceEntities = findEntities(workspace, user);
+                Iterable<String> workspaceEntityIds = Iterables.transform(workspaceEntities, new Function<WorkspaceEntity, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(WorkspaceEntity workspaceEntity) {
+                        return workspaceEntity.getEntityVertexId();
+                    }
+                });
+                Map<String, Boolean> viewableVertices = getGraph().doVerticesExist(workspaceEntityIds, authorizations);
+                for (WorkspaceEntity workspaceEntity : workspaceEntities) {
                     if (!workspaceEntity.isVisible()) {
+                        continue;
+                    }
+                    if (!viewableVertices.get(workspaceEntity.getEntityVertexId())) {
                         continue;
                     }
 

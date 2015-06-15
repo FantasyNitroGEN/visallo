@@ -3,6 +3,9 @@ package org.visallo.web.routes.workspace;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.json.JSONObject;
+import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.notification.ExpirationAge;
 import org.visallo.core.model.notification.ExpirationAgeUnit;
@@ -14,14 +17,12 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceUpdateData;
 import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
-import org.json.JSONObject;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -55,6 +56,7 @@ public class WorkspaceUpdate extends BaseRequestHandler {
         final String data = getRequiredParameter(request, "data");
 
         User authUser = getUser(request);
+        Authorizations authorizations = getAuthorizations(request, authUser);
 
         Workspace workspace = workspaceRepository.findById(workspaceId, authUser);
         if (workspace == null) {
@@ -78,11 +80,11 @@ public class WorkspaceUpdate extends BaseRequestHandler {
         updateUsers(workspace, updateData.getUserUpdates(), authUser, title, message);
 
         workspace = workspaceRepository.findById(workspaceId, authUser);
-        ClientApiWorkspace clientApiWorkspaceAfterUpdateButBeforeDelete = workspaceRepository.toClientApi(workspace, authUser, true);
+        ClientApiWorkspace clientApiWorkspaceAfterUpdateButBeforeDelete = workspaceRepository.toClientApi(workspace, authUser, true, authorizations);
         List<ClientApiWorkspace.User> previousUsers = clientApiWorkspaceAfterUpdateButBeforeDelete.getUsers();
         deleteUsers(workspace, updateData.getUserDeletes(), authUser);
 
-        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, authUser, true);
+        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, authUser, true, authorizations);
 
         respondWithSuccessJson(response);
 

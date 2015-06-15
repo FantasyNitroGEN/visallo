@@ -1,12 +1,13 @@
 package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiUser;
 
@@ -31,12 +32,13 @@ public class UserGet extends BaseRequestHandler {
             respondWithNotFound(response);
             return;
         }
+        Authorizations authorizations = getAuthorizations(request, user);
 
         ClientApiUser clientApiUser = getUserRepository().toClientApiPrivate(user);
 
         Iterable<Workspace> workspaces = getWorkspaceRepository().findAllForUser(user);
         for (Workspace workspace : workspaces) {
-            clientApiUser.getWorkspaces().add(getWorkspaceRepository().toClientApi(workspace, user, false));
+            clientApiUser.getWorkspaces().add(getWorkspaceRepository().toClientApi(workspace, user, false, authorizations));
         }
 
         respondWithClientApiObject(response, clientApiUser);

@@ -1,6 +1,8 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -9,7 +11,6 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 
@@ -39,11 +40,12 @@ public class WorkspaceCreate extends BaseRequestHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
         User authUser = getUser(request);
         User user = getUserRepository().findById(authUser.getUserId());
+        Authorizations authorizations = getAuthorizations(request, user);
 
         String title = getOptionalParameter(request, "title");
 
         Workspace workspace = handle(title, user, authUser);
-        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true);
+        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true, authorizations);
         workQueueRepository.pushWorkspaceChange(clientApiWorkspace, new ArrayList<ClientApiWorkspace.User>(), authUser.getUserId(), null);
         respondWithClientApiObject(response, clientApiWorkspace);
     }
