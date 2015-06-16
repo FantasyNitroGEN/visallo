@@ -11,41 +11,41 @@ import java.util.Date;
 import java.util.Set;
 
 public interface User extends Serializable {
-    public static final long serialVersionUID = 2L;
+    long serialVersionUID = 2L;
 
-    public SimpleOrmContext getSimpleOrmContext();
+    SimpleOrmContext getSimpleOrmContext();
 
-    public String getUserId();
+    String getUserId();
 
-    public String getUsername();
+    String getUsername();
 
-    public String getDisplayName();
+    String getDisplayName();
 
-    public String getEmailAddress();
+    String getEmailAddress();
 
-    public Date getCreateDate();
+    Date getCreateDate();
 
-    public Date getCurrentLoginDate();
+    Date getCurrentLoginDate();
 
-    public String getCurrentLoginRemoteAddr();
+    String getCurrentLoginRemoteAddr();
 
-    public Date getPreviousLoginDate();
+    Date getPreviousLoginDate();
 
-    public String getPreviousLoginRemoteAddr();
+    String getPreviousLoginRemoteAddr();
 
-    public int getLoginCount();
+    int getLoginCount();
 
-    public UserType getUserType();
+    UserType getUserType();
 
-    public UserStatus getUserStatus();
+    UserStatus getUserStatus();
 
-    public String getCurrentWorkspaceId();
+    String getCurrentWorkspaceId();
 
-    public JSONObject getUiPreferences();
+    JSONObject getUiPreferences();
 
-    public Set<Privilege> getPrivileges();
+    Set<Privilege> getPrivileges();
 
-    public String getPasswordResetToken();
+    String getPasswordResetToken();
 
-    public Date getPasswordResetTokenExpirationDate();
+    Date getPasswordResetTokenExpirationDate();
 }

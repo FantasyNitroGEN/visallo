@@ -15,7 +15,10 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
+import org.visallo.core.user.User;
+import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.clientapi.model.ClientApiObject;
+import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 import org.visallo.web.routes.workspace.WorkspaceHelper;
 
@@ -26,7 +29,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
@@ -71,6 +76,8 @@ public abstract class RouteTestBase {
 
     protected ProxyUser user;
 
+    protected User nonProxiedUser;
+
     private ByteArrayOutputStream responseByteArrayOutputStream;
 
     private ObjectMapper objectMapper;
@@ -83,6 +90,12 @@ public abstract class RouteTestBase {
         objectMapper = ObjectMapperFactory.getInstance();
 
         graph = InMemoryGraph.create();
+
+        Set<Privilege> privileges = new HashSet<>();
+        String[] authorizations = new String[0];
+        String currentWorkspaceId = null;
+        nonProxiedUser = new InMemoryUser("jdoe", "Jane Doe", "jane.doe@email.com", privileges, authorizations, currentWorkspaceId);
+        when(userRepository.findById(eq(USER_ID))).thenReturn(nonProxiedUser);
 
         sessionUser = new SessionUser(USER_ID);
         user = new ProxyUser(USER_ID, userRepository);
