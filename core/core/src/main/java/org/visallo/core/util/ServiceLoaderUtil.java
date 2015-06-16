@@ -67,7 +67,7 @@ public class ServiceLoaderUtil {
     }
 
     private static <T> Collection<Class<? extends T>> loadFile(URL serviceFile, Configuration configuration) throws IOException {
-        List<Class<? extends T>> services = new ArrayList<>();
+        Set<Class<? extends T>> services = new HashSet<>();
         LOGGER.debug("loadFile(%s)", serviceFile);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(serviceFile.openStream()))) {

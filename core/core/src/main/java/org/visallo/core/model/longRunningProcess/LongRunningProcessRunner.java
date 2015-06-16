@@ -1,11 +1,11 @@
 package org.visallo.core.model.longRunningProcess;
 
 import com.google.inject.Inject;
-import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.status.StatusServer;
@@ -47,6 +47,7 @@ public class LongRunningProcessRunner extends WorkerBase {
                 InjectHelper.getInjector());
         for (LongRunningProcessWorker worker : InjectHelper.getInjectedServices(LongRunningProcessWorker.class, configuration)) {
             try {
+                LOGGER.info("preparing: %s", worker.getClass().getName());
                 worker.prepare(workerPrepareData);
             } catch (Exception ex) {
                 throw new VisalloException("Could not prepare graph property worker " + worker.getClass().getName(), ex);
