@@ -2,6 +2,11 @@ package org.visallo.analystsNotebook;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
+import org.vertexium.util.LookAheadIterable;
 import org.visallo.analystsNotebook.aggregateClassification.AggregateClassificationClient;
 import org.visallo.analystsNotebook.model.*;
 import org.visallo.core.config.Configuration;
@@ -14,11 +19,6 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.vertexium.Authorizations;
-import org.vertexium.Edge;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
-import org.vertexium.util.LookAheadIterable;
 
 import java.util.*;
 
