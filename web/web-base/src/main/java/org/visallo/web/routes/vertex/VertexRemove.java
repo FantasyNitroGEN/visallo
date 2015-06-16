@@ -2,6 +2,9 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -11,9 +14,6 @@ import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.routes.workspace.WorkspaceHelper;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

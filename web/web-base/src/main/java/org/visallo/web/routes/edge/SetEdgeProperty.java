@@ -102,7 +102,13 @@ public class SetEdgeProperty extends BaseRequestHandler {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             return;
         }
+
         Edge edge = graph.getEdge(edgeId, authorizations);
+
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+
         VisibilityAndElementMutation<Edge> setPropertyResult = graphRepository.setProperty(
                 edge,
                 propertyName,

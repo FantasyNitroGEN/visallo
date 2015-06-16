@@ -61,6 +61,9 @@ public class VertexSetVisibility extends BaseRequestHandler {
             return;
         }
 
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
+
         ClientApiElement element = handle(graphVertexId, visibilitySource, workspaceId, authorizations);
         respondWithClientApiObject(response, element);
     }

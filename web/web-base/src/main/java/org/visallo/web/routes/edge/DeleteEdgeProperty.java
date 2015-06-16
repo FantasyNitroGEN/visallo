@@ -3,6 +3,7 @@ package org.visallo.web.routes.edge;
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import org.vertexium.Authorizations;
+import org.vertexium.Direction;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
@@ -54,6 +55,11 @@ public class DeleteEdgeProperty extends BaseRequestHandler {
 
         // TODO remove all properties from all edges? I don't think so
         Edge edge = graph.getEdge(edgeId, authorizations);
+
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+
         edge.softDeleteProperty(propertyKey, propertyName, authorizations);
         graph.flush();
 

@@ -2,10 +2,7 @@ package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
-import org.vertexium.Authorizations;
-import org.vertexium.Edge;
-import org.vertexium.Graph;
-import org.vertexium.Visibility;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -65,6 +62,10 @@ public class EdgeSetVisibility extends BaseRequestHandler {
             chain.next(request, response);
             return;
         }
+
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, graphEdge.getVertexId(Direction.IN), null, null, user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, graphEdge.getVertexId(Direction.OUT), null, null, user);
 
         LOGGER.info("changing edge (%s) visibility source to %s", graphEdge.getId(), visibilitySource);
 

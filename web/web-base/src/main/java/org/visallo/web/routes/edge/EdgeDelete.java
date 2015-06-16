@@ -65,7 +65,7 @@ public class EdgeDelete extends BaseRequestHandler {
 
         boolean isPublicEdge = sandboxStatus == SandboxStatus.PUBLIC;
 
-        workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, isPublicEdge, Priority.HIGH, authorizations);
+        workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, isPublicEdge, Priority.HIGH, authorizations, user);
         respondWithSuccessJson(response);
     }
 }

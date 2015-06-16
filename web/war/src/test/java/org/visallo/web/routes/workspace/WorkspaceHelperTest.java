@@ -15,6 +15,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import static org.mockito.Matchers.eq;
@@ -42,6 +43,9 @@ public class WorkspaceHelperTest {
     @Mock
     private OntologyRepository ontologyRepository;
 
+    @Mock
+    private WorkspaceRepository workspaceRepository;
+
     @Before
     public void setUp() {
         graph = InMemoryGraph.create();
@@ -52,7 +56,7 @@ public class WorkspaceHelperTest {
 
         when(ontologyRepository.getRelationshipIRIByIntent(eq("entityHasImage"))).thenReturn("http://visallo.org/test#entityHasImage");
         when(ontologyRepository.getRelationshipIRIByIntent(eq("artifactContainsImageOfEntity"))).thenReturn("http://visallo.org/test#artifactContainsImageOfEntity");
-        workspaceHelper = new WorkspaceHelper(termMentionRepository, userRepository, workQueueRepository, graph, ontologyRepository);
+        workspaceHelper = new WorkspaceHelper(termMentionRepository, userRepository, workQueueRepository, graph, ontologyRepository, workspaceRepository);
     }
 
     @Test

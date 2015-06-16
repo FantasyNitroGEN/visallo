@@ -27,6 +27,7 @@ public class WorkspaceHelper {
     private String entityHasImageIri;
     private String artifactContainsImageOfEntityIri;
     private final OntologyRepository ontologyRepository;
+    private final WorkspaceRepository workspaceRepository;
 
     @Inject
     public WorkspaceHelper(
@@ -34,13 +35,15 @@ public class WorkspaceHelper {
             final UserRepository userRepository,
             final WorkQueueRepository workQueueRepository,
             final Graph graph,
-            final OntologyRepository ontologyRepository
+            final OntologyRepository ontologyRepository,
+            final WorkspaceRepository workspaceRepository
     ) {
         this.termMentionRepository = termMentionRepository;
         this.userRepository = userRepository;
         this.workQueueRepository = workQueueRepository;
         this.graph = graph;
         this.ontologyRepository = ontologyRepository;
+        this.workspaceRepository = workspaceRepository;
 
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
         if (this.entityHasImageIri == null) {
@@ -86,9 +89,14 @@ public class WorkspaceHelper {
             @SuppressWarnings("UnusedParameters") Vertex destVertex,
             boolean isPublicEdge,
             Priority priority,
-            Authorizations authorizations
+            Authorizations authorizations,
+            User user
     ) {
         ensureOntologyIrisInitialized();
+
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
+        workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
 
         if (isPublicEdge) {
             Visibility workspaceVisibility = new Visibility(workspaceId);
@@ -143,7 +151,11 @@ public class WorkspaceHelper {
     }
 
     public void deleteVertex(Vertex vertex, String workspaceId, boolean isPublicVertex, Priority priority, Authorizations authorizations, User user) {
+        LOGGER.debug("BEGIN deleteVertex(vertexId: %s, workspaceId: %s, isPublicVertex: %b, user: %s)", vertex.getId(), workspaceId, isPublicVertex, user.getUsername());
         ensureOntologyIrisInitialized();
+
+        // make sure the entity is on the workspace so that it shows up in the diff panel
+        workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);
 
         if (isPublicVertex) {
             Visibility workspaceVisibility = new Visibility(workspaceId);
@@ -158,6 +170,7 @@ public class WorkspaceHelper {
 
             // because we store the current vertex image in a property we need to possibly find that property and change it
             //  if we are deleting the current image.
+            LOGGER.debug("change entity image properties");
             for (Edge edge : vertex.getEdges(Direction.BOTH, entityHasImageIri, authorizations)) {
                 if (edge.getVertexId(Direction.IN).equals(vertex.getId())) {
                     Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
@@ -169,6 +182,7 @@ public class WorkspaceHelper {
 
             // because detected objects are currently stored as properties on the artifact that reference the entity
             //   that they are resolved to we need to delete that property
+            LOGGER.debug("change artifact contains image of entity");
             for (Edge edge : vertex.getEdges(Direction.BOTH, artifactContainsImageOfEntityIri, authorizations)) {
                 for (Property rowKeyProperty : vertex.getProperties(VisalloProperties.ROW_KEY.getPropertyName())) {
                     String multiValueKey = rowKeyProperty.getValue().toString();
@@ -192,6 +206,7 @@ public class WorkspaceHelper {
 
             // because we store term mentions with an added visibility we need to delete them with that added authorizations.
             //  we also need to notify the front-end of changes as well as audit the changes
+            LOGGER.debug("unresolve terms");
             for (Vertex termMention : termMentionRepository.findResolvedTo(vertex.getId(), authorizations)) {
                 unresolveTerm(termMention, authorizations);
                 JSONObject result = new JSONObject();
@@ -200,18 +215,21 @@ public class WorkspaceHelper {
             }
 
             // because we store workspaces with an added visibility we need to delete them with that added authorizations.
+            LOGGER.debug("soft delete edges");
             Authorizations systemAuthorization = userRepository.getAuthorizations(user, WorkspaceRepository.VISIBILITY_STRING, workspaceId);
             Vertex workspaceVertex = graph.getVertex(workspaceId, systemAuthorization);
             for (Edge edge : workspaceVertex.getEdges(vertex, Direction.BOTH, systemAuthorization)) {
                 graph.softDeleteEdge(edge, systemAuthorization);
             }
 
+            LOGGER.debug("soft delete vertex");
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
             this.workQueueRepository.pushVertexDeletion(vertex);
         }
 
         graph.flush();
+        LOGGER.debug("END deleteVertex");
     }
 
     private void unresolveTermMentionsForProperty(Vertex vertex, Property property, Authorizations authorizations) {

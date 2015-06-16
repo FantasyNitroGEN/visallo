@@ -79,7 +79,7 @@ public class WorkspaceUndo extends BaseRequestHandler {
         LOGGER.debug("undoing:\n%s", Joiner.on("\n").join(undoData));
         ClientApiWorkspaceUndoResponse workspaceUndoResponse = new ClientApiWorkspaceUndoResponse();
         undoVertices(undoData, workspaceUndoResponse, workspaceId, Priority.HIGH, user, authorizations);
-        undoEdges(undoData, workspaceUndoResponse, workspaceId, Priority.HIGH, authorizations);
+        undoEdges(undoData, workspaceUndoResponse, workspaceId, Priority.HIGH, authorizations, user);
         undoProperties(undoData, workspaceUndoResponse, workspaceId, authorizations);
         LOGGER.debug("undoing results: %s", workspaceUndoResponse);
         respondWithClientApiObject(response, workspaceUndoResponse);
@@ -128,7 +128,14 @@ public class WorkspaceUndo extends BaseRequestHandler {
         graph.flush();
     }
 
-    private void undoEdges(ClientApiUndoItem[] undoItem, ClientApiWorkspaceUndoResponse workspaceUndoResponse, String workspaceId, Priority priority, Authorizations authorizations) {
+    private void undoEdges(
+            ClientApiUndoItem[] undoItem,
+            ClientApiWorkspaceUndoResponse workspaceUndoResponse,
+            String workspaceId,
+            Priority priority,
+            Authorizations authorizations,
+            User user
+    ) {
         LOGGER.debug("BEGIN undoEdges");
         for (ClientApiUndoItem data : undoItem) {
             try {
@@ -161,7 +168,7 @@ public class WorkspaceUndo extends BaseRequestHandler {
                     data.setErrorMessage(error_msg);
                     workspaceUndoResponse.addFailure(data);
                 } else {
-                    workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, false, priority, authorizations);
+                    workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, false, priority, authorizations, user);
                     graph.flush();
                     workQueueRepository.broadcastUndoEdge(edge);
                 }

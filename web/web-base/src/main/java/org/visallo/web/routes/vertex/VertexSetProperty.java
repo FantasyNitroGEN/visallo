@@ -101,6 +101,9 @@ public class VertexSetProperty extends BaseRequestHandler {
             throw new VisalloException("Use /vertex/property to save non-comment properties");
         }
 
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
+
         respondWithClientApiObject(response, handle(
                 graphVertexId,
                 propertyName,
