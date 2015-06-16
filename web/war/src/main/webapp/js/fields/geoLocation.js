@@ -90,7 +90,13 @@ define([
                     if (self.attr.predicates && i === (self.attr.hasGeocoder ? 3 : 2)) {
                         return makeNumber(v) > 0;
                     }
-                    return v.length && _.isNumber(makeNumber(v)) && !isNaN(v);
+                    if (v.length && _.isNumber(makeNumber(v)) && !isNaN(v)) {
+                        if (i === (self.attr.hasGeocoder ? 1 : 0)) {
+                            return makeNumber(v) >= -90 && makeNumber(v) <= 90;
+                        }
+                        return true;
+                    }
+                    return false;
                 });
         };
 
