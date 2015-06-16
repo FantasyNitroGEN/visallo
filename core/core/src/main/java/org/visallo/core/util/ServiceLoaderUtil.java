@@ -55,8 +55,21 @@ public class ServiceLoaderUtil {
                     serviceFilesSet.add(serviceFile);
                 }
 
+                Map<String, URL> loadedClassNames = new HashMap<>();
                 for (URL serviceFile : serviceFilesSet) {
-                    services.addAll(ServiceLoaderUtil.<T>loadFile(serviceFile, configuration));
+                    List<String> fileClassNames = loadFile(serviceFile);
+                    for (String className : fileClassNames) {
+                        if (configuration.getBoolean(CONFIG_DISABLE_PREFIX + className, false)) {
+                            LOGGER.info("ignoring class %s because it is disabled in configuration", className);
+                            continue;
+                        }
+                        if (loadedClassNames.containsKey(className)) {
+                            LOGGER.warn("ignoring class '%s' because it is already loaded from '%s'", className, loadedClassNames.get(className));
+                            continue;
+                        }
+                        services.add(ServiceLoaderUtil.<T>loadClass(serviceFile, className));
+                        loadedClassNames.put(className, serviceFile);
+                    }
                 }
             }
 
@@ -66,10 +79,9 @@ public class ServiceLoaderUtil {
         }
     }
 
-    private static <T> Collection<Class<? extends T>> loadFile(URL serviceFile, Configuration configuration) throws IOException {
-        Set<Class<? extends T>> services = new HashSet<>();
+    private static List<String> loadFile(URL serviceFile) throws IOException {
+        List<String> results = new ArrayList<>();
         LOGGER.debug("loadFile(%s)", serviceFile);
-
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(serviceFile.openStream()))) {
             String className;
             while ((className = reader.readLine()) != null) {
@@ -77,15 +89,10 @@ public class ServiceLoaderUtil {
                 if (className.length() == 0) {
                     continue;
                 }
-                if (configuration.getBoolean(CONFIG_DISABLE_PREFIX + className, false)) {
-                    LOGGER.info("ignoring class %s because it is disabled in configuration", className);
-                    continue;
-                }
-                services.add(ServiceLoaderUtil.<T>loadClass(serviceFile, className));
+                results.add(className);
             }
         }
-
-        return services;
+        return results;
     }
 
     private static <T> Class<? extends T> loadClass(URL config, String className) {
