@@ -76,16 +76,21 @@ define([
 
         this.onKeyUp = function(event) {
             var renderer = this.graphRenderer,
-                repulsion = renderer._layout.repulsionMultiplier;
+                repulsion = renderer._layout.repulsionMultiplier,
+                updateRequired = false;
 
             if (event.which === 187) {
                 // expand
                 repulsion *= 1.5;
+                updateRequired = true;
             } else if (event.which === 189) {
                 repulsion *= 0.75;
+                updateRequired = true;
             }
 
-            renderer.updateLayoutOptions({repulsion: repulsion});
+            if (updateRequired) {
+                renderer.updateLayoutOptions({repulsion: repulsion});
+            }
         };
 
         this.onWorkspaceUpdated = function(event, data) {
