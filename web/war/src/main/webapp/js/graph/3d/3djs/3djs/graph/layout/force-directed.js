@@ -160,6 +160,10 @@ define([], function() {
                   force_z = (repulsion_constant * repulsion_constant) / delta_length_z;
                 }
 
+                if (delta_length > 1000) {
+                    force = force_z = 0;
+                }
+
                 node_v.layout.force += force;
                 node_u.layout.force += force;
 
