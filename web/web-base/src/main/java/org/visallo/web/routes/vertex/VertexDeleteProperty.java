@@ -75,6 +75,9 @@ public class VertexDeleteProperty extends BaseRequestHandler {
             return;
         }
 
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        getWorkspaceRepository().updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
+
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
 
         for (int i = 0; i < sandboxStatuses.length; i++) {
