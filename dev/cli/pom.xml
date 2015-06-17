@@ -70,6 +70,11 @@
             <version>${vertexium.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-kryo-serializer</artifactId>
+            <version>${vertexium.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.v5analytics.simpleorm</groupId>
             <artifactId>simple-orm-accumulo</artifactId>
         </dependency>
