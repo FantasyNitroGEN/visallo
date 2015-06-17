@@ -6,8 +6,7 @@ define([
     './withPropertyField',
     './withHistogram',
     'util/formatters',
-    'util/popovers/withElementScrollingPositionUpdates',
-    'jstz'
+    'util/popovers/withElementScrollingPositionUpdates'
 ], function(
     defineComponent,
     template,
@@ -15,8 +14,7 @@ define([
     withPropertyField,
     withHistogram,
     F,
-    withPositionUpdates,
-    jstz) {
+    withPositionUpdates) {
     'use strict';
 
     return defineComponent(DateField, withPropertyField, withHistogram, withPositionUpdates);
@@ -30,11 +28,10 @@ define([
 
         this.before('initialize', function(node, config) {
             config.focus = false;
-        })
+        });
 
         this.after('initialize', function() {
             var self = this,
-                value = '',
                 dateString = '',
                 timeString = '';
 
@@ -53,7 +50,7 @@ define([
                 }
 
                 if (millis) {
-                    dateString = value = F.date.dateStringUtc(millis);
+                    dateString = F.date.dateStringUtc(millis);
                     timeString = F.date.timeString(millis);
                 } else {
                     this.attr.value = '';
@@ -71,7 +68,7 @@ define([
             }));
 
             this.updateRangeVisibility();
-            this.updateTimezone()
+            this.updateTimezone();
 
             this.getValues = function() {
                 var inputs = this.$node.hasClass('alternate') ?
@@ -134,7 +131,6 @@ define([
                 }, 500)
             });
 
-            this.timezoneOpened = false;
             this.on('click', {
                 timezoneSelector: this.onTimezoneOpen
             });
@@ -144,13 +140,33 @@ define([
         });
 
         this.triggerFieldUpdated = function() {
-            this.filterUpdated(
-                this.getValues(),
-                this.select('predicateSelector').val(),
-                {
-                    metadata: this.currentTimezoneMetadata
+            if (this.isValid()) {
+                var values = this.getValues(),
+                    predicate = this.select('predicateSelector').val();
+                if (this.displayTime) {
+                    // apply seconds to the time
+                    if (predicate === '=') {
+                        // turn into a range across all seconds in this minute
+                        predicate = 'range';
+                        values[1] = values[0] + ':59';
+                        values[0] += ':00';
+                    } else if (predicate === 'range') {
+                        values[0] += ':00';
+                        values[1] += ':59';
+                    } else if (predicate === '<') {
+                        values[0] += ':00';
+                    } else if (predicate === '>') {
+                        values[0] += ':59';
+                    }
                 }
-            );
+                this.filterUpdated(
+                    values,
+                    predicate,
+                    {
+                        metadata: this.currentTimezoneMetadata
+                    }
+                );
+            }
         };
 
         this.onSelectTimezone = function(event, data) {
@@ -161,8 +177,7 @@ define([
 
         this.updateTimezone = function(tz) {
             if (this.displayTime) {
-                var self = this,
-                    values = this.getValues(),
+                var values = this.getValues(),
                     date = (values && values[0]) ? new Date(values[0]) : null,
                     shiftTime = tz && tz.shiftTime;
 
@@ -175,7 +190,7 @@ define([
 
                         if (values && values[0] && inputs.length > 1) {
                             date = F.timezone.date(values[0], 'Etc/UTC');
-                            inputs.eq(0).val(date.toString('yyyy-MM-dd', tz)).datepicker('update')
+                            inputs.eq(0).val(date.toString('yyyy-MM-dd', tz)).datepicker('update');
                             inputs.eq(1).data('timepicker').setTime(date.toString('HH:mm', tz));
                         } else if (values && values[1] && inputs.length > 3) {
                             date = F.timezone.date(values[1], 'Etc/UTC');
