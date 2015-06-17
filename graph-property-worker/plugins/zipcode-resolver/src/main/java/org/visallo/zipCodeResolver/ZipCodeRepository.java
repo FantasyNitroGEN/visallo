@@ -43,10 +43,6 @@ public class ZipCodeRepository {
     }
 
     public ZipCodeEntry find(String text) {
-        int dash = text.indexOf('-');
-        if (dash > 0) {
-            text = text.substring(0, dash);
-        }
-        return zipCodesByZipCode.get(text);
+        return zipCodesByZipCode.get(text.substring(0, Math.min(text.length(), 5)));
     }
 }
