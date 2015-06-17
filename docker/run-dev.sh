@@ -20,7 +20,12 @@ dir_list() {
 }
 
 if [ $(uname) = 'Linux' ]; then
-  SUDO=sudo
+  docker ps >/dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    SUDO=sudo
+  else
+    SUDO=
+  fi
 else
   SUDO=
 fi
