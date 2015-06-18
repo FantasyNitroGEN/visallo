@@ -321,7 +321,8 @@ define([
                 target = optionalRow && $(optionalRow) || $dropdown,
                 li = target.closest('li').addClass('fId' + self.filterId),
                 property = data.property,
-                isCompoundField = property.dependentPropertyIris && property.dependentPropertyIris.length;
+                isCompoundField = property.dependentPropertyIris && property.dependentPropertyIris.length,
+                fieldComponent;
 
             if (property.title === 'http://visallo.org#text') {
                 property.dataType = 'boolean';
@@ -331,11 +332,13 @@ define([
                 $dropdown.val(property.displayName);
             }
 
-            var fieldComponent = isCompoundField ?
-                'fields/compound/compound' :
-                property.possibleValues ?
-                    'fields/restrictValues' :
-                    'fields/' + property.dataType;
+            if (isCompoundField) {
+                fieldComponent = 'fields/compound/compound';
+            } else if (property.displayType === 'duration') {
+                fieldComponent = 'fields/duration';
+            } else {
+                fieldComponent = property.possibleValues ? 'fields/restrictValues' : 'fields/' + property.dataType;
+            }
 
             return Promise.require(fieldComponent).then(function(PropertyFieldItem) {
                 var node = li.find('.configuration').removeClass('alternate');

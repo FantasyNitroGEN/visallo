@@ -595,12 +595,13 @@
         <visallo:intent>videoDuration</visallo:intent>
         <visallo:intent>media.duration</visallo:intent>
         <visallo:intent>audioDuration</visallo:intent>
+        <visallo:displayType xml:lang="en">duration</visallo:displayType>
         <rdfs:domain rdf:resource="http://visallo.org/dev#audio"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#phoneCall"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
         <rdfs:range rdf:resource="&xsd;double"/>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org/dev#eyecolor -->

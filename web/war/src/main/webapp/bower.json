@@ -10,6 +10,7 @@
     "color-js": "~1.0.1",
     "cytoscape": "2.4.0",
     "d3": "3.5.5",
+    "duration.js": "~3.4.0",
     "flight": "~1.1.1",
     "intercom": "~0.1.4",
     "jquery": "~2.0.3",

@@ -325,14 +325,20 @@ define([
                     });
                 } else if (propertyDetails) {
                     var isCompoundField = propertyDetails.dependentPropertyIris &&
-                        propertyDetails.dependentPropertyIris.length;
+                        propertyDetails.dependentPropertyIris.length,
+                        fieldComponent;
+
+                    if (isCompoundField) {
+                        fieldComponent = 'fields/compound/compound';
+                    } else if (propertyDetails.displayType === 'duration') {
+                        fieldComponent = 'fields/duration';
+                    } else {
+                        fieldComponent = propertyDetails.possibleValues ?
+                            'fields/restrictValues' : 'fields/' + propertyDetails.dataType;
+                    }
 
                     require([
-                        (isCompoundField ?
-                            'fields/compound/compound' :
-                            propertyDetails.possibleValues ?
-                                'fields/restrictValues' :
-                                'fields/' + propertyDetails.dataType),
+                        fieldComponent,
                         'detail/dropdowns/propertyForm/justification',
                         'configuration/plugins/visibility/visibilityEditor'
                     ], function(PropertyField, Justification, Visibility) {
