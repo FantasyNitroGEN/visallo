@@ -458,7 +458,7 @@ define([
                     switch (ontologyProperty.displayType) {
                         case 'phoneNumber': return F.string.phoneNumber(value);
                         case 'ssn': return F.string.ssn(value);
-                        case 'byte': return F.bytes.pretty(value);
+                        case 'bytes': return F.bytes.pretty(value);
                         case 'heading': return F.number.heading(value);
                     }
                 }

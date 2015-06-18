@@ -25,9 +25,9 @@
     <% } %>
 
     <td class="input-row">
-      <input type="text" pattern="[\d,.]+" value="<%= value %>" placeholder="<%= property.displayName %>">
+      <input type="text" pattern="[\d,.]+" value="<%= value %>"
+             placeholder="<%= i18n('field.double.displaytype.' + property.displayType + '.placeholder') || property.displayName %>">
       <input class="range-only" pattern="[\d,.]+" type="text">
     </td>
   </tr>
 </table>
-

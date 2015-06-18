@@ -968,7 +968,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/media#fileSize">
         <rdfs:label xml:lang="en">File Size</rdfs:label>
         <visallo:intent>media.fileSize</visallo:intent>
-        <visallo:displayType xml:lang="en">byte</visallo:displayType>
+        <visallo:displayType xml:lang="en">bytes</visallo:displayType>
         <rdfs:domain rdf:resource="http://visallo.org/dev#audio"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#image"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
