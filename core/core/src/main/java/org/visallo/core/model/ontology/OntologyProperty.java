@@ -21,12 +21,14 @@ import java.util.regex.Pattern;
 public abstract class OntologyProperty {
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     public static final SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    public static final SimpleDateFormat DATE_TIME_WITH_SECONDS_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static final Pattern GEO_LOCATION_FORMAT = Pattern.compile("POINT\\((.*?),(.*?)\\)", Pattern.CASE_INSENSITIVE);
     public static final Pattern GEO_LOCATION_ALTERNATE_FORMAT = Pattern.compile("(.*?),(.*)", Pattern.CASE_INSENSITIVE);
 
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         DATE_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        DATE_TIME_WITH_SECONDS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     public abstract String getTitle();
@@ -60,7 +62,7 @@ public abstract class OntologyProperty {
     public abstract void setProperty(String name, Object value, Authorizations authorizations);
 
     public static Collection<ClientApiOntology.Property> toClientApiProperties(Iterable<OntologyProperty> properties) {
-        Collection<ClientApiOntology.Property> results = new ArrayList<ClientApiOntology.Property>();
+        Collection<ClientApiOntology.Property> results = new ArrayList<>();
         for (OntologyProperty property : properties) {
             results.add(property.toClientApi());
         }
@@ -98,11 +100,7 @@ public abstract class OntologyProperty {
         Object value = valueStr;
         switch (dataType) {
             case DATE:
-                try {
-                    value = DATE_TIME_FORMAT.parse(valueStr);
-                } catch (ParseException ex) {
-                    value = DATE_FORMAT.parse(valueStr);
-                }
+                value = parseDateTime(valueStr);
                 break;
             case GEO_LOCATION:
                 value = parseGeoLocation(valueStr);
@@ -127,14 +125,10 @@ public abstract class OntologyProperty {
         switch (propertyDataType) {
             case DATE:
                 String valueStr = values.getString(index);
-                try {
-                    return DATE_TIME_FORMAT.parse(valueStr);
-                } catch (ParseException ex) {
-                    return DATE_FORMAT.parse(valueStr);
-                }
+                return parseDateTime(valueStr);
             case GEO_LOCATION:
                 return new GeoCircle(
-                        values.getDouble(index + 0),
+                        values.getDouble(index),
                         values.getDouble(index + 1),
                         values.getDouble(index + 2)
                 );
@@ -178,5 +172,17 @@ public abstract class OntologyProperty {
 
     public boolean hasDependentPropertyIris() {
         return getDependentPropertyIris() != null && getDependentPropertyIris().size() > 0;
+    }
+
+    private static Date parseDateTime(String valueStr) throws ParseException {
+        try {
+            return DATE_TIME_WITH_SECONDS_FORMAT.parse(valueStr);
+        } catch (ParseException ex1) {
+            try {
+                return DATE_TIME_FORMAT.parse(valueStr);
+            } catch (ParseException ex2) {
+                return DATE_FORMAT.parse(valueStr);
+            }
+        }
     }
 }
