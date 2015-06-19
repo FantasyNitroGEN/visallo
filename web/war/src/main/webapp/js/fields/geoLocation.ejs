@@ -19,7 +19,7 @@
     </td>
 
     <td class="input-row">
-      <input class="lat" type="text" value="<%= value && 'latitude' in value ? value.latitude : '' %>" />
+      <input class="lat" type="text" required pattern="[\d-.]+" value="<%= value && 'latitude' in value ? value.latitude : '' %>">
     </td>
   </tr>
 
@@ -29,7 +29,7 @@
     </td>
 
     <td class="input-row">
-      <input class="lon" type="text" value="<%= value && 'longitude' in value ? value.longitude : '' %>"></input>
+      <input class="lon" type="text" required pattern="[\d-.]+" value="<%= value && 'longitude' in value ? value.longitude : '' %>">
     </td>
   </tr>
 
@@ -40,10 +40,9 @@
     </td>
 
     <td class="input-row">
-      <input class="radius" placeholder="<%= i18n('field.geolocation.form.radius.placeholder') %>" type="text"></input>
+      <input class="radius" required pattern="[\d.,]+" placeholder="<%= i18n('field.geolocation.form.radius.placeholder') %>" type="text">
     </td>
   </tr>
   <% } %>
 
 </table>
-
