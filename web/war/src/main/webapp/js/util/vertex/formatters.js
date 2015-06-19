@@ -135,7 +135,7 @@ define([
                     anchor.appendTo(el);
                 },
 
-                byte: function(el, property) {
+                bytes: function(el, property) {
                     el.textContent = F.bytes.pretty(property.value);
                 },
 
