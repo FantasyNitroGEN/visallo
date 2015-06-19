@@ -4,10 +4,11 @@ define([
     'chrono',
     'jstz',
     'timezone-js',
+    'duration-js',
     'util/messages',
     'jquery',
     'underscore'
-], function(sf, chrono, jstz, timezoneJS, i18n) {
+], function(sf, chrono, jstz, timezoneJS, Duration, i18n) {
     'use strict';
 
     var BITS_FOR_INDEX = 12,
@@ -150,6 +151,15 @@ define([
                     'west',
                     'northwest'
                 ][Math.round(inRange / 45) % 8]) + ' ' + FORMATTERS.number.pretty(inRange) + '°';
+            },
+            duration: function(value) {
+                if (value === undefined) {
+                    return '';
+                } else if (value === 0) {
+                    return '0s';
+                } else {
+                    return new Duration(value + 's').toString().replace(/(ms|[wdhms])/g, '$1 ').trim()
+                }
             }
         },
 

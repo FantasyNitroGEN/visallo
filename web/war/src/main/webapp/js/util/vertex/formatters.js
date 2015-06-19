@@ -460,6 +460,7 @@ define([
                         case 'ssn': return F.string.ssn(value);
                         case 'bytes': return F.bytes.pretty(value);
                         case 'heading': return F.number.heading(value);
+                        case 'duration' : return F.number.duration(value);
                     }
                 }
 
