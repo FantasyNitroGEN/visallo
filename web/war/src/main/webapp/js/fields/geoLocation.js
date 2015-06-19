@@ -58,17 +58,19 @@ define([
             }
 
             this.$node.toggleClass('desc-focus', event.type === 'focus');
-        }
+        };
 
         this.triggerFieldUpdated = function() {
-            var values = _.compact(this.getValues());
-            this.filterUpdated(values.map(function(v, i) {
-                if (values.length === 3 && i === 0) {
-                    return v;
-                }
-                return makeNumber(v);
-            }));
-        }
+            if (this.isValid()) {
+                var values = _.compact(this.getValues());
+                this.filterUpdated(values.map(function (v, i) {
+                    if (values.length === 3 && i === 0) {
+                        return v;
+                    }
+                    return makeNumber(v);
+                }));
+            }
+        };
 
         this.isValid = function() {
             var self = this,
@@ -147,7 +149,7 @@ define([
                                     _.delay(function() {
                                         lon.addClass('pop-fast');
                                     }, 250)
-                                })
+                                });
 
                                 if (self.isValid()) {
                                     self.triggerFieldUpdated();
