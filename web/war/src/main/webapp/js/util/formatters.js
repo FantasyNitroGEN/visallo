@@ -153,7 +153,13 @@ define([
                 ][Math.round(inRange / 45) % 8]) + ' ' + FORMATTERS.number.pretty(inRange) + '°';
             },
             duration: function(value) {
-                return new Duration(value + 's').toString().replace(/(ms|[wdhms])/g, '$1 ').trim();
+                if (value === undefined) {
+                    return '';
+                } else if (value === 0) {
+                    return '0s';
+                } else {
+                    return new Duration(value + 's').toString().replace(/(ms|[wdhms])/g, '$1 ').trim()
+                }
             }
         },
 

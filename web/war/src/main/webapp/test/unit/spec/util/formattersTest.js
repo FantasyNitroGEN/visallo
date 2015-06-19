@@ -37,9 +37,11 @@ define(['util/formatters'], function(f) {
             })
 
             it('should transform seconds to duration string', function() {
-                f.number.duration(1).should.equal('1s')
-                f.number.duration(0).should.equal('0s')
-                f.number.duration(undefined).should.equal('')
+                f.number.duration(undefined).should.equal('');
+                f.number.duration(0).should.equal('0s');
+                f.number.duration(1).should.equal('1s');
+                f.number.duration(90).should.equal('1m 30s');
+                f.number.duration(7654).should.equal('2h 7m 34s');
             })
         });
 
