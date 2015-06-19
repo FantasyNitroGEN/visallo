@@ -39,7 +39,7 @@ define([
         this.triggerFieldUpdated = function() {
             if (this.isValid()) {
                 this.filterUpdated(
-                    this.getValues().map(function (v) {
+                    this.getValues().map(function(v) {
                         return toSeconds(v);
                     }),
                     this.select('predicateSelector').val()

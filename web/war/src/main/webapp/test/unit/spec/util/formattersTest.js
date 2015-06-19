@@ -35,6 +35,12 @@ define(['util/formatters'], function(f) {
                 expect(f.number.prettyApproximate(1000000000)).to.equal('1numbers.billion_suffix');
                 expect(f.number.prettyApproximate(6740000000)).to.equal('6.7numbers.billion_suffix');
             })
+
+            it('should transform seconds to duration string', function() {
+                f.number.duration(1).should.equal('1s')
+                f.number.duration(0).should.equal('0s')
+                f.number.duration(undefined).should.equal('')
+            })
         });
 
         describe('for bytes', function() {
