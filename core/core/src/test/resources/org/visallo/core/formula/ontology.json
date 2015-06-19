@@ -955,7 +955,7 @@
          "userVisible":true,
          "searchable":true,
          "dataType":"integer",
-         "displayType":"byte"
+         "displayType":"bytes"
       },
       {
          "title":"http://visallo.org/media#height",
