@@ -24,7 +24,10 @@ define([
     function GeoLocationField() {
 
         this.defaultAttrs({
-            descriptionSelector: '.description'
+            descriptionSelector: '.description',
+            latSelector: '.lat',
+            lonSelector: '.lon',
+            radiusSelector: '.radius'
         });
 
         this.after('initialize', function() {
@@ -61,15 +64,13 @@ define([
         };
 
         this.triggerFieldUpdated = function() {
-            if (this.isValid()) {
-                var values = _.compact(this.getValues());
-                this.filterUpdated(values.map(function (v, i) {
-                    if (values.length === 3 && i === 0) {
-                        return v;
-                    }
-                    return makeNumber(v);
-                }));
-            }
+            var values = _.compact(this.getValues());
+            this.filterUpdated(values.map(function(v, i) {
+                if (values.length === 3 && i === 0) {
+                    return v;
+                }
+                return makeNumber(v);
+            }));
         };
 
         this.isValid = function() {
@@ -86,19 +87,25 @@ define([
 
             return (values.length === expected) &&
                 _.every(values, function(v, i) {
+                    var valIsValid = false;
                     if ((self.attr.hasGeocoder || !self.attr.predicates) && i === 0) {
-                        return true;
-                    }
-                    if (self.attr.predicates && i === (self.attr.hasGeocoder ? 3 : 2)) {
-                        return makeNumber(v) > 0;
-                    }
-                    if (v.length && _.isNumber(makeNumber(v)) && !isNaN(v)) {
+                        valIsValid = true;
+                    } else if (self.attr.predicates && i === (self.attr.hasGeocoder ? 3 : 2)) {
+                        var radiusElement = self.select('radiusSelector');
+                        valIsValid = makeNumber(v) > 0;
+                        (valIsValid ? radiusElement.removeClass : radiusElement.addClass)('invalid');
+                    } else {
+                        var latLonElement;
+                        valIsValid = v.length && _.isNumber(makeNumber(v)) && !isNaN(v);
                         if (i === (self.attr.hasGeocoder ? 1 : 0)) {
-                            return makeNumber(v) >= -90 && makeNumber(v) <= 90;
+                            latLonElement = self.select('latSelector');
+                            valIsValid = valIsValid && (makeNumber(v) >= -90 && makeNumber(v) <= 90);
+                        } else {
+                            latLonElement = self.select('lonSelector');
                         }
-                        return true;
+                        latLonElement.toggleClass('invalid', !valIsValid);
                     }
-                    return false;
+                    return valIsValid;
                 });
         };
 
