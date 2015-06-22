@@ -78,7 +78,7 @@ define([
                 expected = 2,
                 values = this.getValues();
 
-            if (self.attr.hasGeocoder) {
+            if (!self.attr.predicates && self.attr.hasGeocoder) {
                 expected++;
             }
             if (self.attr.predicates) {
@@ -88,7 +88,7 @@ define([
             return (values.length === expected) &&
                 _.every(values, function(v, i) {
                     var valIsValid = false;
-                    if ((self.attr.hasGeocoder || !self.attr.predicates) && i === 0) {
+                    if ((self.attr.hasGeocoder && !self.attr.predicates) && i === 0) {
                         valIsValid = true;
                     } else if (self.attr.predicates && i === (self.attr.hasGeocoder ? 3 : 2)) {
                         var radiusElement = self.select('radiusSelector');
