@@ -20,6 +20,7 @@ require.config({
         'timezone-js': 'libs/date',
         'underscore': 'libs/underscore',
         'bluebird': 'libs/promise-6.0.0',
+        'duration-js': 'libs/duration',
 
         // MOCKS
         'jquery': 'mocks/jquery',
