@@ -36,11 +36,34 @@ define([
                         e.dataTransfer.items.length === 0) return;
 
                     if (Privileges.canEDIT) {
-                        if (e.dataTransfer.files.length) {
-                            self.handleFilesDropped(e.dataTransfer.files, e);
-                        } else if (e.dataTransfer.items.length && _.isFunction(self.handleItemsDropped)) {
-                            self.handleItemsDropped(e.dataTransfer.items, e);
-                        }
+                        var dt = e.dataTransfer,
+                            files = dt.files,
+                            items = dt.items,
+                            folderCheck = (files.length) ?
+                                Promise.all(_.toArray(e.dataTransfer.files).map(function(file) {
+                                    return new Promise(function(fulfill, reject) {
+                                        var reader = new FileReader();
+                                        reader.onload = fulfill;
+                                        reader.onerror = reject;
+                                        reader.readAsText(file);
+                                    })
+                                })) :
+                                Promise.resolve();
+
+                        folderCheck
+                            .then(function() {
+                                if (files.length) {
+                                    self.handleFilesDropped(files, e);
+                                } else if (items.length && _.isFunction(self.handleItemsDropped)) {
+                                    self.handleItemsDropped(items, e);
+                                }
+                            })
+                            .catch(function() {
+                                self.trigger('displayInformation', {
+                                    message: i18n('popovers.file_import.folder.error'),
+                                    position: [e.pageX, e.pageY]
+                                });
+                            })
                     }
                 }
             };

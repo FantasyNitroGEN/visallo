@@ -20,6 +20,9 @@ function(defineComponent) {
             this.transformProperty = $.cssProps.transform;
             this.textNode = this.overlayNode.find('.tooltip-inner');
 
+            var $win = $(window);
+            this.position = [$win.width() / 2, $win.height() / 2];
+
             this.on('displayInformation', this.onDisplayInformation);
             this.on('hideInformation', this.onHideInformation);
             this.on('mousemove.displayInformation', this.onMouseMove);
@@ -46,6 +49,10 @@ function(defineComponent) {
          */
         this.onDisplayInformation = function(event, data) {
             var self = this;
+
+            if (data && 'position' in data && _.isArray(data.position) && data.position.length === 2) {
+                this.position = data.position;
+            }
 
             clearTimeout(this.timeout);
             if (!this.position) return;
