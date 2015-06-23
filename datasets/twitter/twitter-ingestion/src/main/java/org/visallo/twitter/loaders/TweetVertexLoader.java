@@ -89,7 +89,7 @@ public final class TweetVertexLoader {
 
         final Date publishedDate = parsedStatus.getCreatedAt();
         if (publishedDate != null) {
-            VisalloProperties.PUBLISHED_DATE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, publishedDate, LoaderConstants.EMPTY_VISIBILITY);
+            TwitterOntology.PUBLISHED_DATE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, publishedDate, LoaderConstants.EMPTY_VISIBILITY);
         }
 
         final VisibilityJson visibilityJson = new VisibilityJson();

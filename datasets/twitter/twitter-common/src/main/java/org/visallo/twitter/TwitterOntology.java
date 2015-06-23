@@ -1,5 +1,6 @@
 package org.visallo.twitter;
 
+import org.visallo.core.model.properties.types.DateVisalloProperty;
 import org.visallo.core.model.properties.types.StringVisalloProperty;
 
 public class TwitterOntology {
@@ -17,4 +18,6 @@ public class TwitterOntology {
 
     public static final StringVisalloProperty PROFILE_IMAGE_URL = new StringVisalloProperty("http://visallo.org/twitter#profileImageUrl");
     public static final StringVisalloProperty SCREEN_NAME = new StringVisalloProperty("http://visallo.org/twitter#screenName");
+
+    public static final DateVisalloProperty PUBLISHED_DATE = new DateVisalloProperty("http://visallo.org#publishedDate");
 }

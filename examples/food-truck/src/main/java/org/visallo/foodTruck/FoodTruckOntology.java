@@ -14,4 +14,6 @@ public class FoodTruckOntology {
     public static final GeoPointVisalloProperty GEO_LOCATION = new GeoPointVisalloProperty("http://visallo.org/foodtruck#geoLocation");
     public static final DateVisalloProperty GEO_LOCATION_DATE = new DateVisalloProperty("http://visallo.org/foodtruck#geoLocationDate");
     public static final StringVisalloProperty KEYWORD = new StringVisalloProperty("http://visallo.org/foodtruck#keyword");
+
+    public static final DateVisalloProperty PUBLISHED_DATE = new DateVisalloProperty("http://visallo.org#publishedDate");
 }

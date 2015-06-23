@@ -16,7 +16,6 @@ public class VisalloProperties {
 
     public static final DateSingleValueVisalloProperty MODIFIED_DATE = new DateSingleValueVisalloProperty("http://visallo.org#modifiedDate");
     public static final DateMetadataVisalloProperty MODIFIED_DATE_METADATA = new DateMetadataVisalloProperty("http://visallo.org#modifiedDate");
-    public static final DateVisalloProperty PUBLISHED_DATE = new DateVisalloProperty("http://visallo.org#publishedDate");
 
     public static final DoubleMetadataVisalloProperty CONFIDENCE_METADATA = new DoubleMetadataVisalloProperty("http://visallo.org#confidence");
 

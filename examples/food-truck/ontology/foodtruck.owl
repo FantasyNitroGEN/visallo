@@ -73,7 +73,16 @@
         <rdfs:domain rdf:resource="http://visallo.org/foodtruck#foodTruck"/>
         <rdfs:domain rdf:resource="http://visallo.org/foodtruck#location"/>
     </owl:DatatypeProperty>
-    
+
+
+    <!-- http://visallo.org#publishedDate -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org#publishedDate">
+        <rdfs:label xml:lang="en">Published Date</rdfs:label>
+        <displayType xml:lang="en">dateOnly</displayType>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:DatatypeProperty>
 
 
     <!-- http://visallo.org/foodtruck#geoLocationDate -->

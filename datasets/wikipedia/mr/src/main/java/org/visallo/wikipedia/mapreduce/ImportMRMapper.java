@@ -169,7 +169,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
         if (parsePage.getRevisionTimestamp() != null) {
             Metadata publishedDateMetadata = new Metadata();
             VisalloProperties.CONFIDENCE_METADATA.setMetadata(publishedDateMetadata, isRedirect ? 0.3 : 0.4, defaultVisibility);
-            VisalloProperties.PUBLISHED_DATE.addPropertyValue(pageVertexBuilder, multiKey, parsePage.getRevisionTimestamp(), publishedDateMetadata, visibility);
+            WikipediaConstants.PUBLISHED_DATE.addPropertyValue(pageVertexBuilder, multiKey, parsePage.getRevisionTimestamp(), publishedDateMetadata, visibility);
         }
 
         if (!isRedirect) {

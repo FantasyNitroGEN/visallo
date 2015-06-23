@@ -449,7 +449,7 @@
       "displayName": "thing",
       "titleFormula": "prop('http://visallo.org#title') || ''",
       "subtitleFormula": "prop('http://visallo.org#source') || ''",
-      "timeFormula": "prop('http://visallo.org#publishedDate') || ''",
+      "timeFormula": "''",
       "parentConcept": "http://visallo.org#root",
       "pluralDisplayName": "things",
       "glyphIconHref": "resource?id=http%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23Thing",

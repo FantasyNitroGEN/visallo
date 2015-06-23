@@ -1,6 +1,7 @@
 package org.visallo.wikipedia;
 
 import org.vertexium.Vertex;
+import org.visallo.core.model.properties.types.DateVisalloProperty;
 
 public class WikipediaConstants {
     public static final String WIKIPEDIA_QUEUE = "wikipedia";
@@ -10,6 +11,8 @@ public class WikipediaConstants {
     public static final String WIKIPEDIA_SOURCE = "Wikipedia";
     public static final String WIKIPEDIA_ID_PREFIX = "WIKIPEDIA_";
     public static final String WIKIPEDIA_LINK_ID_PREFIX = "WIKIPEDIA_LINK_";
+
+    public static final DateVisalloProperty PUBLISHED_DATE = new DateVisalloProperty("http://visallo.org#publishedDate");
 
     public static String getWikipediaPageVertexId(String pageTitle) {
         return WIKIPEDIA_ID_PREFIX + pageTitle.trim().toLowerCase();

@@ -35,7 +35,7 @@ public class FoodTruckLocationUpdateGraphPropertyWorker extends GraphPropertyWor
         String keywordTitle = VisalloProperties.TITLE.getOnlyPropertyValue(keywordVertex);
         GeoPoint geoLocation = FoodTruckOntology.GEO_LOCATION.getOnlyPropertyValue(keywordVertex);
         if (geoLocation != null) {
-            Date geoLocationDate = VisalloProperties.PUBLISHED_DATE.getOnlyPropertyValue(tweetVertex);
+            Date geoLocationDate = FoodTruckOntology.PUBLISHED_DATE.getOnlyPropertyValue(tweetVertex);
             Date currentGetLocationDate = FoodTruckOntology.GEO_LOCATION_DATE.getOnlyPropertyValue(foodTruck);
             if (currentGetLocationDate == null || geoLocationDate.compareTo(currentGetLocationDate) > 0) {
                 Calendar geoLocationCalendar = Calendar.getInstance();

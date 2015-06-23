@@ -391,7 +391,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
             OntologyProperties.TITLE_FORMULA.setProperty(builder, "prop('http://visallo.org#title') || ''", VISIBILITY.getVisibility());
             OntologyProperties.SUBTITLE_FORMULA.setProperty(builder, "prop('http://visallo.org#source') || ''", VISIBILITY.getVisibility());
-            OntologyProperties.TIME_FORMULA.setProperty(builder, "prop('http://visallo.org#publishedDate') || ''", VISIBILITY.getVisibility());
+            OntologyProperties.TIME_FORMULA.setProperty(builder, "''", VISIBILITY.getVisibility());
         }
         Vertex vertex = builder.save(getAuthorizations());
 
