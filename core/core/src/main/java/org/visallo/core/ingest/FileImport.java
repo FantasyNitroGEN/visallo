@@ -1,13 +1,13 @@
 package org.visallo.core.ingest;
 
 import com.google.inject.Inject;
-import org.visallo.core.model.WorkQueueNames;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
@@ -44,6 +44,7 @@ public class FileImport {
     private final WorkQueueNames workQueueNames;
     private final Configuration configuration;
     private List<FileImportSupportingFileHandler> fileImportSupportingFileHandlers;
+    private List<PostFileImportHandler> postFileImportHandlers;
 
     @Inject
     public FileImport(
@@ -132,17 +133,8 @@ public class FileImport {
                             visibilitySource,
                             priority
                     );
-                    this.workQueueRepository.pushGraphPropertyQueue(
-                            vertex,
-                            MULTI_VALUE_KEY,
-                            VisalloProperties.TITLE.getPropertyName(),
-                            workspace.getWorkspaceId(),
-                            visibilitySource,
-                            priority
-                    );
                 } else {
                     this.workQueueRepository.pushGraphPropertyQueue(vertex, MULTI_VALUE_KEY, VisalloProperties.RAW.getPropertyName(), priority);
-                    this.workQueueRepository.pushGraphPropertyQueue(vertex, MULTI_VALUE_KEY, VisalloProperties.TITLE.getPropertyName(), priority);
                 }
             }
             return vertex;
@@ -179,7 +171,6 @@ public class FileImport {
             List<VisalloPropertyUpdate> changedProperties = new ArrayList<>();
             VisalloProperties.VISIBILITY_JSON.updateProperty(changedProperties, null, vertexBuilder, visibilityJson, propertyMetadata, visibility);
             VisalloProperties.RAW.updateProperty(changedProperties, null, vertexBuilder, rawValue, propertyMetadata, visibility);
-            VisalloProperties.TITLE.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, f.getName(), propertyMetadata, visibility);
             VisalloProperties.CONTENT_HASH.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, hash, propertyMetadata, visibility);
             VisalloProperties.FILE_NAME.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, f.getName(), propertyMetadata, visibility);
             VisalloProperties.MODIFIED_DATE.updateProperty(changedProperties, null, vertexBuilder, new Date(f.lastModified()), propertyMetadata, visibility);
@@ -195,6 +186,11 @@ public class FileImport {
             }
 
             vertex = vertexBuilder.save(authorizations);
+
+            for (PostFileImportHandler postFileImportHandler : this.postFileImportHandlers) {
+                postFileImportHandler.handle(graph, vertex, changedProperties, workspace, propertyMetadata, visibility, user, authorizations);
+            }
+
             graph.flush();
 
             if (workspace != null) {
@@ -249,6 +245,13 @@ public class FileImport {
             fileImportSupportingFileHandlers = toList(ServiceLoaderUtil.load(FileImportSupportingFileHandler.class, this.configuration));
             for (FileImportSupportingFileHandler fileImportSupportingFileHandler : fileImportSupportingFileHandlers) {
                 InjectHelper.inject(fileImportSupportingFileHandler);
+            }
+        }
+
+        if (postFileImportHandlers == null) {
+            postFileImportHandlers = toList(ServiceLoaderUtil.load(PostFileImportHandler.class, this.configuration));
+            for (PostFileImportHandler postFileImportHandler : postFileImportHandlers) {
+                InjectHelper.inject(postFileImportHandler);
             }
         }
     }

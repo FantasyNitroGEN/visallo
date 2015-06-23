@@ -77,7 +77,7 @@ public class VertexGetPropertyValue extends BaseRequestHandler {
     }
 
     private void handle(HttpServletResponse response, Vertex vertex, Property property, PlaybackOptions playbackOptions) throws IOException {
-        String fileName = getFileName(vertex);
+        String fileName = VisalloProperties.FILE_NAME.getOnlyPropertyValue(vertex);
 
         String mimeType = getMimeType(property);
         if (mimeType != null) {
@@ -115,14 +115,6 @@ public class VertexGetPropertyValue extends BaseRequestHandler {
         } else {
             response.addHeader("Content-Disposition", "inline; filename=" + fileName);
         }
-    }
-
-    private String getFileName(Vertex vertex) {
-        String fileName = VisalloProperties.FILE_NAME.getOnlyPropertyValue(vertex);
-        if (fileName == null) {
-            fileName = VisalloProperties.TITLE.getOnlyPropertyValue(vertex);
-        }
-        return fileName;
     }
 
     private void handleFullPlayback(HttpServletResponse response, InputStream in) throws IOException {

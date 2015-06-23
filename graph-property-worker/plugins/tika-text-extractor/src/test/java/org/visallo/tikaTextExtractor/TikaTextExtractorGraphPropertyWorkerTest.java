@@ -1,10 +1,5 @@
 package org.visallo.tikaTextExtractor;
 
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestSetupBase;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.workQueue.Priority;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +9,11 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.VertexBuilder;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestSetupBase;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.Priority;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -21,9 +21,18 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorkerTestSetupBase {
+
+    public static final String DOCUMENT_TITLE_PROPERTY_IRI = "http://visallo.org/test#title";
+
+    @Override
+    public void setup() throws Exception {
+        when(ontologyRepository.getPropertyIRIByIntent("documentTitle")).thenReturn(DOCUMENT_TITLE_PROPERTY_IRI);
+        super.setup();
+    }
 
     @Override
     protected GraphPropertyWorker createGraphPropertyWorker() {
@@ -53,7 +62,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         worker.execute(in, workData);
 
         vertex = graph.getVertex("v1", authorizations);
-        assertEquals("Test Title", VisalloProperties.TITLE.getOnlyPropertyValue(vertex));
+        assertEquals("Test Title", vertex.getPropertyValue(DOCUMENT_TITLE_PROPERTY_IRI));
 
         assertEquals(
                 "Five reasons why Windows 8 has failed\n" +
@@ -92,7 +101,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         worker.execute(in, workData);
 
         vertex = graph.getVertex("v1", authorizations);
-        assertEquals("Test Title", VisalloProperties.TITLE.getOnlyPropertyValue(vertex));
+        assertEquals("Test Title", vertex.getPropertyValue(DOCUMENT_TITLE_PROPERTY_IRI));
         assertEquals("", IOUtils.toString(VisalloProperties.TEXT.getOnlyPropertyValue(vertex).getInputStream(), "UTF-8"));
         assertEquals(new Date(1357063760000L), VisalloProperties.MODIFIED_DATE.getPropertyValue(vertex));
     }
@@ -114,7 +123,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         worker.execute(in, workData);
 
         vertex = graph.getVertex("v1", authorizations);
-        assertEquals("Test Title", VisalloProperties.TITLE.getOnlyPropertyValue(vertex));
+        assertEquals("Test Title", vertex.getPropertyValue(DOCUMENT_TITLE_PROPERTY_IRI));
         assertEquals(
                 "Five reasons why Windows 8 has failed\n" +
                         "The numbers speak for themselves. Vista, universally acknowledged as a failure, actually had significantly better adoption numbers than Windows 8. At similar points in their roll-outs, Vista had a desktop market share of 4.52% compared to Windows 8's share of 2.67%. Underlining just how poorly Windows 8's adoption has gone, Vista didn't even have the advantage of holiday season sales to boost its numbers. Tablets--and not Surface RT tablets--were what people bought last December, not Windows 8 PCs.\n",

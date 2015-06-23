@@ -139,6 +139,8 @@ To override an intent you can add the following to your configuration.
 
 | Name                    | Type        | Description                                 |
 |-------------------------|-------------|---------------------------------------------|
+| artifactTitle           | string      | The title of an artifact (fallback if documentTitle, etc. is not specified) |
+| documentTitle           | string      | The title of a document                     |
 | geoLocation             | geoLocation | Geo-location                                |
 | media.clockwiseRotation | integer     | Image clockwise rotation                    |
 | media.dateTaken         | date        | Date/time image was taken                   |

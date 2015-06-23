@@ -256,6 +256,16 @@
             </dependencies>
         </profile>
         <profile>
+            <id>gpw-java-code-ingest</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-gpw-java-code-ingest</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>opennlp-dictionary-extractor</id>
             <dependencies>
                 <dependency>

@@ -79,6 +79,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
     private List<String> numberOfPagesKeys;
     private LongVisalloProperty pageCountProperty;
     private String authorPropertyIri;
+    private String titlePropertyIri;
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
@@ -112,7 +113,11 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
         authorKeys = Arrays.asList(tikaProperties.getProperty(AUTHOR_PROPERTY, "author").split(","));
         numberOfPagesKeys = Arrays.asList(tikaProperties.getProperty(NUMBER_OF_PAGES_PROPERTY, "xmpTPg:NPages").split(","));
 
-        authorPropertyIri = getOntologyRepository().getPropertyIRIByIntent("author");
+        authorPropertyIri = getOntologyRepository().getPropertyIRIByIntent("documentAuthor");
+        titlePropertyIri = getOntologyRepository().getPropertyIRIByIntent("documentTitle");
+        if (titlePropertyIri == null) {
+            titlePropertyIri = getOntologyRepository().getPropertyIRIByIntent("artifactTitle");
+        }
     }
 
     @Override
@@ -159,7 +164,9 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
 
                 org.vertexium.Metadata titleMetadata = data.createPropertyMetadata();
                 VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, getVisibilityTranslator().getDefaultVisibility());
-                VisalloProperties.TITLE.addPropertyValue(m, MULTI_VALUE_KEY, customImageMetadataJson.get("title").toString(), titleMetadata, data.getVisibility());
+                if (titlePropertyIri != null) {
+                    m.addPropertyValue(MULTI_VALUE_KEY, titlePropertyIri, customImageMetadataJson.get("title").toString(), titleMetadata, data.getVisibility());
+                }
             } catch (JSONException e) {
                 LOGGER.warn("Image returned invalid custom metadata");
             }
@@ -172,7 +179,9 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             if (title != null && title.length() > 0) {
                 org.vertexium.Metadata titleMetadata = data.createPropertyMetadata();
                 VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, getVisibilityTranslator().getDefaultVisibility());
-                VisalloProperties.TITLE.addPropertyValue(m, MULTI_VALUE_KEY, title, titleMetadata, data.getVisibility());
+                if (titlePropertyIri != null) {
+                    m.addPropertyValue(MULTI_VALUE_KEY, titlePropertyIri, title, titleMetadata, data.getVisibility());
+                }
             }
 
             // TODO set("retrievalTime", extractRetrievalTime(metadata));

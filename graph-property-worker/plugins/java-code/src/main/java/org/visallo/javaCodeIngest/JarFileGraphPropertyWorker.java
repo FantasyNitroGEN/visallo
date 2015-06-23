@@ -22,10 +22,7 @@ public class JarFileGraphPropertyWorker extends GraphPropertyWorker {
 
     @Override
     public void execute(InputStream in, GraphPropertyWorkData data) throws Exception {
-        VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), Ontology.CONCEPT_TYPE_JAR_FILE, data.getProperty().getVisibility(), getAuthorizations());
-        VisalloProperties.MIME_TYPE.addPropertyValue(data.getElement(), MULTI_VALUE_KEY, "application/java-archive", data.getProperty().getVisibility(), getAuthorizations());
-
-        List<Vertex> existingFileVerticies = toList(((Vertex) data.getElement()).getVertices(Direction.BOTH, Ontology.EDGE_LABEL_JAR_CONTAINS, getAuthorizations()));
+        List<Vertex> existingFileVertices = toList(((Vertex) data.getElement()).getVertices(Direction.BOTH, JavaCodeIngestOntology.EDGE_LABEL_JAR_CONTAINS, getAuthorizations()));
 
         JarInputStream jarInputStream = new JarInputStream(in);
         JarEntry jarEntry;
@@ -34,7 +31,7 @@ public class JarFileGraphPropertyWorker extends GraphPropertyWorker {
                 continue;
             }
 
-            if (fileAlreadyExists(existingFileVerticies, jarEntry.getName())) {
+            if (fileAlreadyExists(existingFileVertices, jarEntry.getName())) {
                 continue;
             }
 
@@ -65,16 +62,15 @@ public class JarFileGraphPropertyWorker extends GraphPropertyWorker {
     }
 
     private void createJarContainsFileEdge(Vertex jarEntryVertex, GraphPropertyWorkData data) {
-        EdgeBuilder jarContainsEdgeBuilder = getGraph().prepareEdge((Vertex) data.getElement(), jarEntryVertex, Ontology.EDGE_LABEL_JAR_CONTAINS, data.getProperty().getVisibility());
+        EdgeBuilder jarContainsEdgeBuilder = getGraph().prepareEdge((Vertex) data.getElement(), jarEntryVertex, JavaCodeIngestOntology.EDGE_LABEL_JAR_CONTAINS, data.getProperty().getVisibility());
         jarContainsEdgeBuilder.save(getAuthorizations());
     }
 
     private Vertex createFileVertex(JarEntry jarEntry, StreamingPropertyValue rawValue, GraphPropertyWorkData data) {
         VertexBuilder jarEntryVertexBuilder = getGraph().prepareVertex(data.getProperty().getVisibility());
-        VisalloProperties.TITLE.addPropertyValue(jarEntryVertexBuilder, MULTI_VALUE_KEY, jarEntry.getName(), data.getProperty().getVisibility());
-        VisalloProperties.CONCEPT_TYPE.setProperty(jarEntryVertexBuilder, Ontology.CONCEPT_TYPE_CLASS_FILE, data.getProperty().getVisibility());
+        VisalloProperties.CONCEPT_TYPE.setProperty(jarEntryVertexBuilder, JavaCodeIngestOntology.CONCEPT_TYPE_CLASS_FILE, data.getProperty().getVisibility());
         VisalloProperties.MIME_TYPE.addPropertyValue(jarEntryVertexBuilder, MULTI_VALUE_KEY, "application/octet-stream", data.getProperty().getVisibility());
-        VisalloProperties.FILE_NAME.addPropertyValue(jarEntryVertexBuilder, MULTI_VALUE_KEY, jarEntry.getName(), data.getProperty().getVisibility());
+        JavaCodeIngestOntology.JAR_ENTRY_NAME.addPropertyValue(jarEntryVertexBuilder, MULTI_VALUE_KEY, jarEntry.getName(), data.getProperty().getVisibility());
         VisalloProperties.RAW.setProperty(jarEntryVertexBuilder, rawValue, data.getProperty().getVisibility());
         return jarEntryVertexBuilder.save(getAuthorizations());
     }

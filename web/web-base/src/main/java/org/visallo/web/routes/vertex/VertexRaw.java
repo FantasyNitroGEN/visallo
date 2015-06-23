@@ -62,9 +62,6 @@ public class VertexRaw extends BaseRequestHandler {
         }
 
         String fileName = VisalloProperties.FILE_NAME.getOnlyPropertyValue(artifactVertex);
-        if (fileName == null) {
-            fileName = VisalloProperties.TITLE.getOnlyPropertyValue(artifactVertex);
-        }
 
         if (playback) {
             handlePartialPlayback(request, response, artifactVertex, fileName);

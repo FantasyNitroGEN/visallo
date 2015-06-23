@@ -176,7 +176,7 @@ public class FlightRepository {
         VisalloProperties.SOURCE.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, SOURCE_NAME, visibility);
         if (airport != null) {
             FlightTrackOntology.LOCATION.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, airport.getGeoPoint(), visibility);
-            VisalloProperties.TITLE.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, airport.getTitle(), visibility);
+            FlightTrackOntology.AIRPORT_NAME.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, airport.getTitle(), visibility);
         }
         v = vb.save(authorizations);
         airportCodeToVertex.put(airportCode, v);
@@ -253,7 +253,7 @@ public class FlightRepository {
 
         VertexBuilder vb = graph.prepareVertex(airlineId, visibility);
         VisalloProperties.CONCEPT_TYPE.setProperty(vb, FlightTrackOntology.CONCEPT_TYPE_AIRLINE, visibility);
-        VisalloProperties.TITLE.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, airline.getTitle(), visibility);
+        FlightTrackOntology.AIRLINE_NAME.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, airline.getTitle(), visibility);
         FlightTrackOntology.AIRLINE_PREFIX.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, airline.getIdentPrefix(), visibility);
         VisalloProperties.SOURCE.addPropertyValue(vb, MULTI_VALUE_PROPERTY_KEY, SOURCE_NAME, visibility);
         v = vb.save(authorizations);
@@ -262,7 +262,7 @@ public class FlightRepository {
         graph.flush();
 
         workQueueRepository.pushElement(v);
-        workQueueRepository.pushGraphPropertyQueue(v, MULTI_VALUE_PROPERTY_KEY, VisalloProperties.TITLE.getPropertyName(), priority);
+        workQueueRepository.pushGraphPropertyQueue(v, MULTI_VALUE_PROPERTY_KEY, FlightTrackOntology.AIRLINE_NAME.getPropertyName(), priority);
         workQueueRepository.pushGraphPropertyQueue(v, MULTI_VALUE_PROPERTY_KEY, FlightTrackOntology.AIRLINE_PREFIX.getPropertyName(), priority);
 
         return v;

@@ -12,11 +12,11 @@
 
 <rdf:RDF xmlns="http://visallo.org/java-code-ingest#"
      xml:base="http://visallo.org/java-code-ingest"
-     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
      xmlns:visallo="http://visallo.org#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
-     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
     <owl:Ontology rdf:about="http://visallo.org/java-code-ingest">
         <owl:imports rdf:resource="http://visallo.org"/>
     </owl:Ontology>
@@ -86,8 +86,8 @@
 
     <owl:ObjectProperty rdf:about="http://visallo.org/java-code-ingest#classReferences">
         <rdfs:label xml:lang="en">References</rdfs:label>
-        <rdfs:range rdf:resource="http://visallo.org/java-code-ingest#class"/>
         <rdfs:domain rdf:resource="http://visallo.org/java-code-ingest#class"/>
+        <rdfs:range rdf:resource="http://visallo.org/java-code-ingest#class"/>
     </owl:ObjectProperty>
     
 
@@ -162,6 +162,42 @@
         <rdfs:domain rdf:resource="http://visallo.org/java-code-ingest#code"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
+
+    <!-- http://visallo.org/java-code-ingest#jarEntryName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/java-code-ingest#jarEntryName">
+        <rdfs:label xml:lang="en">JAR Entry Name</rdfs:label>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/java-code-ingest#file"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+    <!-- http://visallo.org/java-code-ingest#methodName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/java-code-ingest#methodName">
+        <rdfs:label xml:lang="en">Method Name</rdfs:label>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/java-code-ingest#method"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+    <!-- http://visallo.org/java-code-ingest#methodSignature -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/java-code-ingest#methodSignature">
+        <rdfs:label xml:lang="en">Method Signature</rdfs:label>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/java-code-ingest#method"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+    <!-- http://visallo.org/java-code-ingest#fieldName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/java-code-ingest#fieldName">
+        <rdfs:label xml:lang="en">Field Name</rdfs:label>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/java-code-ingest#field"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
     
 
 
@@ -200,6 +236,17 @@
 
     <owl:Class rdf:about="http://visallo.org/java-code-ingest#code">
         <rdfs:label xml:lang="en">Code</rdfs:label>
+        <visallo:titleFormula xml:lang="en">
+ var className = prop(&apos;http://visallo.org/java-code-ingest#className&apos;);
+  if(className) {
+    var i = className.lastIndexOf(&apos;.&apos;);
+    if(i &gt; 0) {
+      className = className.substring(i + 1);
+    }
+    return className;
+  }
+  return null; 
+</visallo:titleFormula>
     </owl:Class>
     
 
@@ -209,6 +256,7 @@
     <owl:Class rdf:about="http://visallo.org/java-code-ingest#field">
         <rdfs:label xml:lang="en">Field</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/java-code-ingest#code"/>
+        <visallo:titleFormula xml:lang="en"> prop(&apos;http://visallo.org/java-code-ingest#fieldName&apos;) || &apos;&apos; </visallo:titleFormula>
         <visallo:glyphIconFileName xml:lang="en">java-field.png</visallo:glyphIconFileName>
     </owl:Class>
     
@@ -219,6 +267,7 @@
     <owl:Class rdf:about="http://visallo.org/java-code-ingest#file">
         <rdfs:label xml:lang="en">File</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/java-code-ingest#code"/>
+        <visallo:titleFormula xml:lang="en"> prop(&apos;http://visallo.org#fileName&apos;) || prop(&apos;http://visallo.org/java-code-ingest#jarEntryName&apos;) || &apos;&apos; </visallo:titleFormula>
     </owl:Class>
     
 
@@ -249,10 +298,11 @@
         <rdfs:label xml:lang="en">Method</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/java-code-ingest#code"/>
         <visallo:glyphIconFileName xml:lang="en">java-method.png</visallo:glyphIconFileName>
+        <visallo:titleFormula xml:lang="en"> prop(&apos;http://visallo.org/java-code-ingest#methodName&apos;) + prop(&apos;http://visallo.org/java-code-ingest#methodSignature&apos;) || &apos;&apos; </visallo:titleFormula>
     </owl:Class>
 </rdf:RDF>
 
 
 
-<!-- Generated by the OWL API (version 3.4.2) http://owlapi.sourceforge.net -->
+<!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
 

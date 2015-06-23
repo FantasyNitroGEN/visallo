@@ -512,6 +512,18 @@
     
 
 
+    <!-- http://visallo.org/dev#artifactTitle -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#artifactTitle">
+        <rdfs:label xml:lang="en">Title</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <visallo:intent>documentTitle</visallo:intent>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#raw"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://visallo.org/dev#birthDate -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#birthDate">
@@ -601,7 +613,7 @@
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
         <rdfs:range rdf:resource="&xsd;double"/>
     </owl:DatatypeProperty>
-
+    
 
 
     <!-- http://visallo.org/dev#eyecolor -->
@@ -968,8 +980,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/media#fileSize">
         <rdfs:label xml:lang="en">File Size</rdfs:label>
-        <visallo:intent>media.fileSize</visallo:intent>
         <visallo:displayType xml:lang="en">bytes</visallo:displayType>
+        <visallo:intent>media.fileSize</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#audio"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#image"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
@@ -1255,6 +1267,7 @@
     <owl:Class rdf:about="http://visallo.org/dev#raw">
         <rdfs:label xml:lang="en">Raw</rdfs:label>
         <visallo:glyphIconFileName xml:lang="en">artifact.png</visallo:glyphIconFileName>
+        <visallo:titleFormula xml:lang="en"> prop(&apos;http://visallo.org/dev#artifactTitle&apos;) || prop(&apos;http://visallo.org#fileName&apos;) || &apos;&apos; </visallo:titleFormula>
         <visallo:color xml:lang="en">rgb(28, 137, 28)</visallo:color>
     </owl:Class>
     

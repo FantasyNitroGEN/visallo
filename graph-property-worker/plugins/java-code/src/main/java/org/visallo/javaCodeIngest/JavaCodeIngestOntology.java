@@ -2,7 +2,7 @@ package org.visallo.javaCodeIngest;
 
 import org.visallo.core.model.properties.types.StringVisalloProperty;
 
-public class Ontology {
+public class JavaCodeIngestOntology {
     public static final String EDGE_LABEL_JAR_CONTAINS = "http://visallo.org/java-code-ingest#jarFileContains";
     public static final String EDGE_LABEL_CLASS_FILE_CONTAINS_CLASS = "http://visallo.org/java-code-ingest#classFileContainsClass";
     public static final String EDGE_LABEL_CLASS_CONTAINS = "http://visallo.org/java-code-ingest#classContains";
@@ -20,4 +20,8 @@ public class Ontology {
 
     public static final StringVisalloProperty CLASS_NAME = new StringVisalloProperty("http://visallo.org/java-code-ingest#className");
     public static final StringVisalloProperty ARGUMENT_NAME = new StringVisalloProperty("http://visallo.org/java-code-ingest#argumentName");
+    public static final StringVisalloProperty FIELD_NAME = new StringVisalloProperty("http://visallo.org/java-code-ingest#fieldName");
+    public static final StringVisalloProperty JAR_ENTRY_NAME = new StringVisalloProperty("http://visallo.org/java-code-ingest#jarEntryName");
+    public static final StringVisalloProperty METHOD_NAME = new StringVisalloProperty("http://visallo.org/java-code-ingest#methodName");
+    public static final StringVisalloProperty METHOD_SIGNATURE = new StringVisalloProperty("http://visallo.org/java-code-ingest#methodSignature");
 }
