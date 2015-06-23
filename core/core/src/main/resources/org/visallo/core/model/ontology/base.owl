@@ -399,18 +399,7 @@
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
-    
 
-
-    <!-- http://visallo.org#displayName -->
-
-    <owl:DatatypeProperty rdf:about="http://visallo.org#displayName">
-        <textIndexHints>NONE</textIndexHints>
-        <userVisible>false</userVisible>
-        <rdfs:range rdf:resource="&xsd;string"/>
-        <rdfs:domain rdf:resource="&owl;Thing"/>
-    </owl:DatatypeProperty>
-    
 
 
     <!-- http://visallo.org#entityImageUrl -->
