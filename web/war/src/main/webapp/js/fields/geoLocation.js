@@ -75,29 +75,31 @@ define([
 
         this.isValid = function() {
             var self = this,
+                hasDescriptionField = self.select('descriptionSelector').length,
+                hasRadiusField = self.select('radiusSelector').length,
                 expected = 2,
                 values = this.getValues();
 
-            if (!self.attr.predicates && self.attr.hasGeocoder) {
+            if (hasDescriptionField) {
                 expected++;
             }
-            if (self.attr.predicates) {
+            if (hasRadiusField) {
                 expected++;
             }
 
             return (values.length === expected) &&
                 _.every(values, function(v, i) {
                     var valIsValid = false;
-                    if ((self.attr.hasGeocoder && !self.attr.predicates) && i === 0) {
+                    if (hasDescriptionField && i === 0) {
                         valIsValid = true;
-                    } else if (self.attr.predicates && i === (self.attr.hasGeocoder ? 3 : 2)) {
+                    } else if (hasRadiusField && i === (expected - 1)) {
                         var radiusElement = self.select('radiusSelector');
                         valIsValid = makeNumber(v) > 0;
                         (valIsValid ? radiusElement.removeClass : radiusElement.addClass)('invalid');
                     } else {
                         var latLonElement;
                         valIsValid = v.length && _.isNumber(makeNumber(v)) && !isNaN(v);
-                        if (i === (self.attr.hasGeocoder ? 1 : 0)) {
+                        if (i === (hasDescriptionField ? 1 : 0)) {
                             latLonElement = self.select('latSelector');
                             valIsValid = valIsValid && (makeNumber(v) >= -90 && makeNumber(v) <= 90);
                         } else {
