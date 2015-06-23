@@ -409,33 +409,57 @@ define([], function() {
                             dataRequest('edge', 'store', { edgeIds: edgesToRequest }) :
                             Promise.resolve([])
                         ).then(function(edges) {
-                            edgesById = _.indexBy(edges, 'id');
+                            edgesById = _.indexBy(_.compact(edges), 'id');
                             edges.forEach(function(edge) {
                                 vertexIdsToRequest.push(edge.sourceVertexId)
                                 vertexIdsToRequest.push(edge.destVertexId)
                             });
-                            return dataRequest('vertex', 'store', { vertexIds: _.unique(vertexIdsToRequest) });
+                            if (vertexIdsToRequest.length) {
+                                return dataRequest('vertex', 'store', { vertexIds: _.unique(vertexIdsToRequest) });
+                            }
+                            return Promise.resolve([]);
                         }).then(function(vertices) {
-                            var verticesById = _.indexBy(vertices, 'id');
+                            var verticesById = _.indexBy(_.compact(vertices), 'id');
                             notHidden.forEach(function(s) {
-                                if (s.vertexIds.length === 1) {
-                                    s.title = F.vertex.title(verticesById[s.vertexIds[0]]);
-                                } else if (s.vertexIds.length) {
-                                    s.title = F.number.pretty(s.vertexIds.length) + ' entities';
+                                var hadVertexIds = s.vertexIds.length;
+                                s.vertexIds = _.filter(s.vertexIds, function(vertexId) {
+                                    return vertexId in verticesById;
+                                })
+                                s.edgeIds = _.filter(s.edgeIds, function(edgeId) {
+                                    return edgeId in edgesById;
+                                })
+                                if (hadVertexIds) {
+                                    if (s.vertexIds.length === 1) {
+                                        s.title = F.vertex.title(verticesById[s.vertexIds[0]]);
+                                    } else if (s.vertexIds.length) {
+                                        s.title = F.number.pretty(s.vertexIds.length) + ' entities';
+                                    } else {
+                                        s.hide = true;
+                                    }
                                 } else if (s.edgeIds.length === 1) {
                                     var edge = edgesById[s.edgeIds[0]],
-                                        source = verticesById[edge.sourceVertexId],
-                                        target = verticesById[edge.destVertexId],
-                                        ontologyEdge = relationships.byTitle[edge.label],
+                                        source = edge && verticesById[edge.sourceVertexId],
+                                        target = edge && verticesById[edge.destVertexId],
+                                        ontologyEdge = edge && relationships.byTitle[edge.label],
                                         label = ' → ';
-                                    s.title = [
-                                        F.string.truncate(F.vertex.title(source), 2),
-                                        F.string.truncate(F.vertex.title(target), 2)
-                                    ].join(label);
-                                } else {
+                                    if (source && target) {
+                                        s.title = [
+                                            F.string.truncate(F.vertex.title(source), 2),
+                                            F.string.truncate(F.vertex.title(target), 2)
+                                        ].join(label);
+                                    } else {
+                                        s.hide = true;
+                                    }
+                                } else if (s.edgeIds.length) {
                                     s.title = F.number.pretty(s.edgeIds.length) + ' relationships';
+                                } else {
+                                    s.hide = true;
                                 }
                             })
+                            notHidden = _.reject(selectedObjectsStack, function(s) {
+                                return s.hide;
+                            });
+                            self.setPublicApi('selectedObjectsStack', notHidden.slice(Math.max(0, notHidden.length - max)));
                         });
                 });
             } else {

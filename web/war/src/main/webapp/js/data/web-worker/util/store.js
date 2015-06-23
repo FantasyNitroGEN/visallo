@@ -97,6 +97,10 @@ define([
                 if (vertexIds.length) {
                     var workspace = api.getObject(workspaceId, 'workspace');
                     workspace.vertices = _.omit(workspace.vertices, vertexIds);
+
+                    vertexIds.forEach(function(vertexId) {
+                        api.removeObject(workspaceId, 'vertex', vertexId);
+                    })
                 }
             },
 
