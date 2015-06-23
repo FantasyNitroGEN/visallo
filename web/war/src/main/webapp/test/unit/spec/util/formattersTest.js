@@ -207,6 +207,11 @@ define(['util/formatters'], function(f) {
                 })
             })
 
+            it('should create local dates', function() {
+                f.date.local('2015-06-23 13:16 CDT').getTime().should.equal(1435083360000)
+                f.date.dateTimeString(1435083360000).should.equal('2015-06-23 13:16 CDT')
+            })
+
             it('should format to prefered format', function() {
                 var now = new Date(),
                 month = String(now.getMonth() + 1);
