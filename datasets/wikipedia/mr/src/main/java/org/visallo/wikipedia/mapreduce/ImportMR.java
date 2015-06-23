@@ -26,7 +26,7 @@ public class ImportMR extends VisalloMRBase {
     public static final String WIKIPEDIA_MIME_TYPE = "text/plain";
     public static final String MULTI_VALUE_KEY = ImportMR.class.getName();
 
-    @Parameter(description = "<infile>")
+    @Parameter(description = "<infile>", required = true)
     private List<String> inFileName;
 
     private OntologyRepository ontologyRepository;

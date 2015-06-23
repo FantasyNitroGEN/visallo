@@ -160,7 +160,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
 
         Metadata titleMetadata = new Metadata();
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, isRedirect ? 0.3 : 0.4, defaultVisibility);
-        VisalloProperties.TITLE.addPropertyValue(pageVertexBuilder, multiKey, parsePage.getPageTitle(), titleMetadata, visibility);
+        WikipediaConstants.PAGE_TITLE.addPropertyValue(pageVertexBuilder, multiKey, parsePage.getPageTitle(), titleMetadata, visibility);
 
         Metadata sourceUrlMetadata = new Metadata();
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(sourceUrlMetadata, isRedirect ? 0.3 : 0.4, defaultVisibility);
@@ -217,7 +217,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
         Metadata titleMetadata = new Metadata();
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, 0.1, defaultVisibility);
         String linkTargetHash = Base64.encodeBase64String(linkTarget.trim().toLowerCase().getBytes());
-        VisalloProperties.TITLE.addPropertyValue(linkedPageVertexBuilder, ImportMR.MULTI_VALUE_KEY + "#" + linkTargetHash, linkTarget, titleMetadata, visibility);
+        WikipediaConstants.PAGE_TITLE.addPropertyValue(linkedPageVertexBuilder, ImportMR.MULTI_VALUE_KEY + "#" + linkTargetHash, linkTarget, titleMetadata, visibility);
 
         Vertex linkedPageVertex = linkedPageVertexBuilder.save(authorizations);
         Edge edge = addEdge(WikipediaConstants.getWikipediaPageToPageEdgeId(pageVertex, linkedPageVertex),
