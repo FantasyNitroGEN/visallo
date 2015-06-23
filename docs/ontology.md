@@ -140,6 +140,7 @@ To override an intent you can add the following to your configuration.
 | Name                    | Type        | Description                                 |
 |-------------------------|-------------|---------------------------------------------|
 | artifactTitle           | string      | The title of an artifact (fallback if documentTitle, etc. is not specified) |
+| city                    | string      | Geographic city                             |
 | documentTitle           | string      | The title of a document                     |
 | geoLocation             | geoLocation | Geo-location                                |
 | media.clockwiseRotation | integer     | Image clockwise rotation                    |
@@ -154,3 +155,5 @@ To override an intent you can add the following to your configuration.
 | media.width             | integer     | The width in pixels of the media            |
 | media.yAxisFlipped      | boolean     | Is image Y-axis flipped                     |
 | pageCount               | long        | Number of pages in the artifact             |
+| state                   | string      | Geographic state                            |
+| zipCode                 | string      | Zip code                                    |

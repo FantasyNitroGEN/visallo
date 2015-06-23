@@ -1,6 +1,8 @@
 package org.visallo.zipCodeResolver;
 
 import com.google.inject.Inject;
+import org.vertexium.*;
+import org.vertexium.type.GeoPoint;
 import org.visallo.core.ingest.graphProperty.TermMentionFilter;
 import org.visallo.core.ingest.graphProperty.TermMentionFilterPrepareData;
 import org.visallo.core.model.Description;
@@ -11,8 +13,6 @@ import org.visallo.core.model.termMention.TermMentionBuilder;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.*;
-import org.vertexium.type.GeoPoint;
 
 import java.util.Set;
 
@@ -20,7 +20,10 @@ import java.util.Set;
 @Description("Resolves ZipCodes")
 public class ZipCodeResolverTermMentionFilter extends TermMentionFilter {
     public static final String MULTI_VALUE_PROPERTY_KEY = ZipCodeResolverTermMentionFilter.class.getName();
-    private String zipCodeIri;
+    private String zipCodeConceptIri;
+    private String zipCodePropertyIri;
+    private String cityPropertyIri;
+    private String statePropertyIri;
     private String geoLocationIri;
     private String artifactHasEntityIri;
     private WorkspaceRepository workspaceRepository;
@@ -37,7 +40,10 @@ public class ZipCodeResolverTermMentionFilter extends TermMentionFilter {
     }
 
     public void prepareIris() {
-        zipCodeIri = ontologyRepository.getRequiredConceptIRIByIntent("zipCode");
+        zipCodeConceptIri = ontologyRepository.getRequiredConceptIRIByIntent("zipCode");
+        zipCodePropertyIri = ontologyRepository.getRequiredPropertyIRIByIntent("zipCode");
+        cityPropertyIri = ontologyRepository.getPropertyIRIByIntent("city");
+        statePropertyIri = ontologyRepository.getPropertyIRIByIntent("state");
         geoLocationIri = ontologyRepository.getRequiredPropertyIRIByIntent("geoLocation");
         artifactHasEntityIri = ontologyRepository.getRequiredRelationshipIRIByIntent("artifactHasEntity");
     }
@@ -45,7 +51,7 @@ public class ZipCodeResolverTermMentionFilter extends TermMentionFilter {
     @Override
     public void apply(Vertex sourceVertex, final Iterable<Vertex> termMentions, final Authorizations authorizations) throws Exception {
         for (Vertex termMention : termMentions) {
-            if (!zipCodeIri.equals(VisalloProperties.TERM_MENTION_CONCEPT_TYPE.getPropertyValue(termMention))) {
+            if (!zipCodeConceptIri.equals(VisalloProperties.TERM_MENTION_CONCEPT_TYPE.getPropertyValue(termMention))) {
                 continue;
             }
 
@@ -60,17 +66,22 @@ public class ZipCodeResolverTermMentionFilter extends TermMentionFilter {
             }
 
             String id = String.format("GEO-ZIPCODE-%s", zipCodeEntry.getZipCode());
-            String title = String.format("%s - %s, %s", zipCodeEntry.getZipCode(), zipCodeEntry.getCity(), zipCodeEntry.getState());
             VisibilityJson sourceVertexVisibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(sourceVertex);
             Metadata metadata = new Metadata();
             VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, sourceVertexVisibilityJson, getVisibilityTranslator().getDefaultVisibility());
             GeoPoint geoPoint = zipCodeEntry.createGeoPoint();
             ElementBuilder<Vertex> resolvedToVertexBuilder = getGraph().prepareVertex(id, sourceVertex.getVisibility())
                     .addPropertyValue(MULTI_VALUE_PROPERTY_KEY, geoLocationIri, geoPoint, metadata, sourceVertex.getVisibility());
-            VisalloProperties.CONCEPT_TYPE.setProperty(resolvedToVertexBuilder, zipCodeIri, metadata, sourceVertex.getVisibility());
+            VisalloProperties.CONCEPT_TYPE.setProperty(resolvedToVertexBuilder, zipCodeConceptIri, metadata, sourceVertex.getVisibility());
             VisalloProperties.SOURCE.addPropertyValue(resolvedToVertexBuilder, MULTI_VALUE_PROPERTY_KEY, "Zip Code Resolver", metadata, sourceVertex.getVisibility());
-            VisalloProperties.TITLE.addPropertyValue(resolvedToVertexBuilder, MULTI_VALUE_PROPERTY_KEY, title, metadata, sourceVertex.getVisibility());
             VisalloProperties.VISIBILITY_JSON.setProperty(resolvedToVertexBuilder, sourceVertexVisibilityJson, metadata, sourceVertex.getVisibility());
+            resolvedToVertexBuilder.addPropertyValue(MULTI_VALUE_PROPERTY_KEY, zipCodePropertyIri, zipCodeEntry.getZipCode(), metadata, sourceVertex.getVisibility());
+            if (cityPropertyIri != null) {
+                resolvedToVertexBuilder.addPropertyValue(MULTI_VALUE_PROPERTY_KEY, cityPropertyIri, zipCodeEntry.getCity(), metadata, sourceVertex.getVisibility());
+            }
+            if (statePropertyIri != null) {
+                resolvedToVertexBuilder.addPropertyValue(MULTI_VALUE_PROPERTY_KEY, statePropertyIri, zipCodeEntry.getState(), metadata, sourceVertex.getVisibility());
+            }
             Vertex zipCodeVertex = resolvedToVertexBuilder.save(authorizations);
             getGraph().flush();
 
@@ -85,10 +96,11 @@ public class ZipCodeResolverTermMentionFilter extends TermMentionFilter {
                 }
             }
 
+            String title = String.format("%s - %s, %s", zipCodeEntry.getZipCode(), zipCodeEntry.getCity(), zipCodeEntry.getState());
             new TermMentionBuilder(termMention, sourceVertex)
                     .resolvedTo(zipCodeVertex, resolvedEdge)
                     .title(title)
-                    .conceptIri(zipCodeIri)
+                    .conceptIri(zipCodeConceptIri)
                     .process(getClass().getName())
                     .visibilityJson(VisalloProperties.TERM_MENTION_VISIBILITY_JSON.getPropertyValue(termMention))
                     .save(getGraph(), getVisibilityTranslator(), authorizations);

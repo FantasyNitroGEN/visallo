@@ -903,10 +903,29 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#zipCodeProp">
         <rdfs:label xml:lang="en">Zip Code</rdfs:label>
+        <visallo:intent>zipCode</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
-    
+
+    <!-- http://visallo.org/dev#stateProp -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#stateProp">
+        <rdfs:label xml:lang="en">State</rdfs:label>
+        <visallo:intent>state</visallo:intent>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+    <!-- http://visallo.org/dev#cityProp -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#cityProp">
+        <rdfs:label xml:lang="en">City</rdfs:label>
+        <visallo:intent>city</visallo:intent>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
 
 
     <!-- http://visallo.org/dev#geoLocationAndDate/date -->
@@ -1334,6 +1353,23 @@
         <visallo:intent>zipCode</visallo:intent>
         <visallo:glyphIconFileName xml:lang="en">glyphicons_020_home@2x.png</visallo:glyphIconFileName>
         <visallo:color xml:lang="en">rgb(219, 63, 219)</visallo:color>
+        <visallo:titleFormula>
+            var zipCode = prop('http://visallo.org/dev#zipCodeProp');
+            var city = prop('http://visallo.org/dev#cityProp');
+            var state = prop('http://visallo.org/dev#stateProp');
+            if(!zipCode) {
+              return null;
+            }
+            var result = zipCode;
+            if(city &amp;&amp; state) {
+              result += ' - ' + city + ', ' + state;
+            } else if(city) {
+              result += ' - ' + city;
+            } else if(state) {
+              result += ' - ' + state;
+            }
+            return result;
+        </visallo:titleFormula>
     </owl:Class>
 </rdf:RDF>
 
