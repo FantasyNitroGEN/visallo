@@ -248,7 +248,9 @@ define([
                             var ontologyProperty = ontologyProperties.byTitle[filter.propertyId];
                             if (ontologyProperty && ontologyProperty.dependentPropertyIris) {
                                 return ontologyProperty.dependentPropertyIris.map(function(iri, i) {
-                                    if (!_.isUndefined(filter.values[i])) {
+                                    if (_.isArray(filter.values[i]) && _.reject(filter.values[i], function(v) {
+                                        return v === null || v === undefined;
+                                    }).length) {
                                         return {
                                             propertyId: iri,
                                             predicate: filter.predicate,
