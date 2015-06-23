@@ -1123,7 +1123,6 @@
     <owl:Class rdf:about="http://visallo.org/dev#document">
         <rdfs:label xml:lang="en">Document</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/dev#raw"/>
-        <visallo:subtitleFormula xml:lang="en"> prop(&apos;http://visallo.org#author&apos;) || &apos;&apos; </visallo:subtitleFormula>
         <visallo:intent>document</visallo:intent>
         <analystsNotebook89:iconFile>Document</analystsNotebook89:iconFile>
         <analystsNotebook6:iconFile>Document</analystsNotebook6:iconFile>

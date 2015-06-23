@@ -38,7 +38,6 @@ for vertices, e.g.:
              <rdfs:subClassOf rdf:resource="http://visallo.org/dev#raw"/>
              <visallo:displayType xml:lang="en">document</visallo:displayType>
              <visallo:color xml:lang="en">rgb(28, 137, 28)</visallo:color>
-             <visallo:subtitleFormula xml:lang="en">prop(&apos;http://visallo.org#author&apos;) || &apos;&apos;</visallo:subtitleFormula>
              <analystsNotebook851:iconFile>Document</analystsNotebook851:iconFile>
          </owl:Class>
 

@@ -78,6 +78,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
     private List<String> authorKeys;
     private List<String> numberOfPagesKeys;
     private LongVisalloProperty pageCountProperty;
+    private String authorPropertyIri;
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
@@ -110,6 +111,8 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
         customFlickrMetadataKeys = Arrays.asList(tikaProperties.getProperty(CUSTOM_FLICKR_METADATA_KEYS_PROPERTY, "Unknown tag (0x9286)").split(","));
         authorKeys = Arrays.asList(tikaProperties.getProperty(AUTHOR_PROPERTY, "author").split(","));
         numberOfPagesKeys = Arrays.asList(tikaProperties.getProperty(NUMBER_OF_PAGES_PROPERTY, "xmpTPg:NPages").split(","));
+
+        authorPropertyIri = getOntologyRepository().getPropertyIRIByIntent("author");
     }
 
     @Override
@@ -130,8 +133,8 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
         // TODO set("srcType", extractTextField(metadata, srcTypeKeys));
 
         String author = extractTextField(metadata, authorKeys);
-        if (author != null && author.length() > 0) {
-            VisalloProperties.AUTHOR.addPropertyValue(m, MULTI_VALUE_KEY, author, data.createPropertyMetadata(), data.getVisibility());
+        if (authorPropertyIri != null && author != null && author.length() > 0) {
+            m.addPropertyValue(MULTI_VALUE_KEY, authorPropertyIri, author, data.createPropertyMetadata(), data.getVisibility());
         }
 
         String customImageMetadata = extractTextField(metadata, customFlickrMetadataKeys);

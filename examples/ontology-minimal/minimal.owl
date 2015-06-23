@@ -53,7 +53,6 @@
         <rdfs:subClassOf rdf:resource="http://visallo.org/minimal#raw"/>
         <visallo:intent>document</visallo:intent>
         <visallo:displayType xml:lang="en">document</visallo:displayType>
-        <visallo:subtitleFormula xml:lang="en">prop(&apos;http://visallo.org#author&apos;) || &apos;&apos; </visallo:subtitleFormula>
         <visallo:color xml:lang="en">rgb(28, 137, 28)</visallo:color>
     </owl:Class>
     

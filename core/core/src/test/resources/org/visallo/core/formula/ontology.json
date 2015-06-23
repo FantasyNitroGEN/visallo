@@ -90,7 +90,6 @@
          "title":"http://visallo.org/dev#document",
          "displayName":"Document",
          "displayType":"document",
-         "subtitleFormula":"prop('http://visallo.org#author') || ''",
          "parentConcept":"http://visallo.org/dev#raw",
          "pluralDisplayName":"Documents",
          "color":"rgb(28, 137, 28)",
@@ -396,7 +395,6 @@
          "glyphIconHref":"resource?id=http%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23Thing",
          "properties":[
             "http://visallo.org#audio-mp3",
-            "http://visallo.org#author",
             "http://visallo.org#conceptType",
             "http://visallo.org#confidence",
             "http://visallo.org#contentHash",
@@ -446,13 +444,6 @@
          "userVisible":false,
          "searchable":true,
          "dataType":"binary"
-      },
-      {
-         "title":"http://visallo.org#author",
-         "displayName":"Author",
-         "userVisible":true,
-         "searchable":true,
-         "dataType":"string"
       },
       {
          "title":"http://visallo.org#color",

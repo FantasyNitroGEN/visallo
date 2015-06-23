@@ -29,7 +29,6 @@ public class VisalloProperties {
 
     public static final StringVisalloProperty GRAPH_PROPERTY_WORKER_WHITE_LIST = new StringVisalloProperty("http://visallo.org#graphPropertyWorkerWhiteList");
     public static final StringVisalloProperty GRAPH_PROPERTY_WORKER_BLACK_LIST = new StringVisalloProperty("http://visallo.org#graphPropertyWorkerBlackList");
-    public static final StringVisalloProperty AUTHOR = new StringVisalloProperty("http://visallo.org#author");
     public static final StringSingleValueVisalloProperty CONCEPT_TYPE = new StringSingleValueVisalloProperty("http://visallo.org#conceptType");
     public static final StringVisalloProperty CONTENT_HASH = new StringVisalloProperty("http://visallo.org#contentHash");
     public static final StringVisalloProperty FILE_NAME = new StringVisalloProperty("http://visallo.org#fileName");
