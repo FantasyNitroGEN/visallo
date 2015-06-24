@@ -44,7 +44,7 @@ define([
             var self = this;
 
             this.lastCheck = F.date.utc(new Date()).getTime();
-            $.get('ping.html')
+            $.ajax({ url: 'ping.html', cache: false })
                 .done(function() {
                     window.location.reload();
                 })
