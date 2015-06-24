@@ -42,7 +42,8 @@ public class RdfGraphPropertyWorker extends GraphPropertyWorker {
 
         hasEntityIri = getOntologyRepository().getRequiredRelationshipIRIByIntent("artifactHasEntity");
 
-        // rdfConceptTypeIri is not required because the concept type could have been set by some other means.
+        // rdfConceptTypeIri is not required because the
+        // concept type on the vertex could have been set somewhere else
         rdfConceptTypeIri = getOntologyRepository().getConceptIRIByIntent("rdf");
     }
 
