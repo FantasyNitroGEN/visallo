@@ -723,7 +723,10 @@ define([
                     V.prop(vertex, 'conceptType') === 'relationship' ||
                     (_.has(vertex, 'sourceVertexId') && _.has(vertex, 'destVertexId'));
             }
-        }
+        };
+
+    // Legacy
+    V.properties.byte = V.properties.bytes;
 
     return $.extend({}, F, { vertex: V });
 
