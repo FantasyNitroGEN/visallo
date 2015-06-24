@@ -238,10 +238,10 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
         for (double i = 0; i < videoFrames.size(); i += skip) {
             results.add(videoFrames.get((int) Math.floor(i)));
         }
-        if (results.size() < 20) {
+        if (results.size() < ArtifactThumbnailRepository.FRAMES_PER_PREVIEW) {
             results.add(videoFrames.get(videoFrames.size() - 1));
         }
-        if (results.size() > 20) {
+        if (results.size() > ArtifactThumbnailRepository.FRAMES_PER_PREVIEW) {
             results.remove(results.size() - 1);
         }
         return results;
