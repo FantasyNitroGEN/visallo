@@ -1,4 +1,6 @@
-define([], function() {
+define([
+    'util/withDataRequest'
+], function(withDataRequest) {
     'use strict';
 
     return withPropertyInfo;
@@ -9,12 +11,20 @@ define([], function() {
             var $target = $(button),
                 shouldOpen = $target.lookupAllComponents().length === 0;
 
-            require(['util/popovers/propertyInfo/propertyInfo'], function(PropertyInfo) {
+            Promise.all([
+                Promise.require('util/popovers/propertyInfo/propertyInfo'),
+                withDataRequest.dataRequest('ontology', 'properties')
+            ]).done(function(results) {
+                var PropertyInfo = results.shift(),
+                    ontologyProperties = results.shift(),
+                    ontologyProperty = ontologyProperties && property && property.name && ontologyProperties.byTitle[property.name];
+
                 if (shouldOpen) {
                     PropertyInfo.teardownAll();
                     PropertyInfo.attachTo($target, {
                         data: data,
-                        property: property
+                        property: property,
+                        ontologyProperty: ontologyProperty
                     });
                 } else {
                     $target.teardownComponent(PropertyInfo);

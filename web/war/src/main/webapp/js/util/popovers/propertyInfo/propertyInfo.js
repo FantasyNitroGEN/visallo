@@ -38,6 +38,7 @@ define([
                     config.isCommentCreator :
                     true;
                 config.canDelete = config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson';
+                config.canSearch = config.ontologyProperty && config.ontologyProperty.searchable && !config.isFullscreen;
             }
             config.hideDialog = true;
         });

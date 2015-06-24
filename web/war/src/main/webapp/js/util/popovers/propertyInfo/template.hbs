@@ -9,9 +9,9 @@
       <li><button class="btn btn-danger btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.delete' }}</button></li>
       {{/if}}
 
-      {{#unless isFullscreen}}
+      {{#if canSearch}}
       <li><button class="btn btn-search btn-small">{{ i18n 'popovers.property_info.button.search' }}</button></li>
-      {{/unless}}
+      {{/if}}
 
       {{#if canEdit}}
       <li><button class="btn-edit btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
