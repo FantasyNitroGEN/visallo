@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 
-wget -O /opt/accumulo-1.6.1-bin.tar.gz http://www.us.apache.org/dist/accumulo/1.6.1/accumulo-1.6.1-bin.tar.gz
+wget -O /opt/accumulo-1.6.1-bin.tar.gz http://archive.apache.org/dist/accumulo/1.6.1/accumulo-1.6.1-bin.tar.gz
 tar -xzf /opt/accumulo-1.6.1-bin.tar.gz -C /opt
 rm /opt/accumulo-1.6.1-bin.tar.gz
 ln -s /opt/accumulo-1.6.1 /opt/accumulo
