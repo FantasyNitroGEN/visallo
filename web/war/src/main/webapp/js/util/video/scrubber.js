@@ -3,18 +3,22 @@ define([
     'flight/lib/component',
     'videojs',
     'tpl!./scrubber',
-    'tpl!./video'
-], function(defineComponent, videojs, template, videoTemplate) {
+    'tpl!./video',
+    'util/withDataRequest'
+], function(defineComponent, videojs, template, videoTemplate, withDataRequest) {
     'use strict';
 
-    // TODO: get this from the server
-    var NUMBER_FRAMES = 20,
+    var NUMBER_FRAMES = 0, // Populated by config
         POSTER = 1,
         FRAMES = 2;
 
-    videojs.options.flash.swf = '/libs/video.js/dist/video-js/video-js.swf';
+    videojs.options.flash.swf = '../libs/video.js/dist/video-js/video-js.swf';
 
-    return defineComponent(VideoScrubber);
+    return defineComponent(VideoScrubber, withDataRequest);
+
+    function toPixels(str) {
+        return str + 'px';
+    }
 
     function VideoScrubber() {
 
@@ -29,6 +33,127 @@ define([
             videoSelector: 'video'
         });
 
+        this.after('initialize', function() {
+            var dim = this.getVideoDimensions(),
+                dimContainer = [this.$node.width(), Math.min(dim[1], 240)],
+                ratioImage = dim[0] / dim[1],
+                ratioContainer = dimContainer[0] / dimContainer[1],
+                scaled = (
+                    ratioContainer > ratioImage ?
+                    [dim[0] * (dimContainer[1] / dim[1]), dimContainer[1]] :
+                    [dimContainer[0], dim[1] * (dimContainer[0] / dim[0])]
+                ).map(function(v) {
+                    return Math.floor(v);
+                });
+
+            //console.log(dim, dimContainer, 'scaled=' + scaled.map(toPixels));
+
+            this.$node
+                .toggleClass('disableScrubbing', !this.attr.videoPreviewImageUrl)
+                .toggleClass('allowPlayback', this.attr.allowPlayback)
+                .css('height', scaled[1])
+                .html(template({}));
+
+            var sizeCss = {
+                width: scaled[0] + 'px',
+                height: scaled[1] + 'px',
+                left: '50%',
+                top: '50%',
+                marginLeft: '-' + scaled[0] / 2 + 'px',
+                marginTop: '-' + scaled[1] / 2 + 'px',
+                position: 'absolute'
+            };
+            this.select('backgroundScrubberSelector').css(sizeCss);
+            this.select('backgroundPosterSelector').css(_.extend({}, sizeCss, {
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                backgroundSize: scaled.map(toPixels).join(' '),
+                backgroundImage: 'url(' + this.attr.posterFrameUrl + ')'
+            }));
+
+            this.dataRequest('config', 'properties')
+                .then(function(properties) {
+                    NUMBER_FRAMES = parseInt(properties['video.preview.frames.count'], 10);
+                })
+                .then(this.setupVideo.bind(this));
+        });
+
+        this.getVideoDimensions = function() {
+            var dim = this.attr.videoDimensions;
+            if (!dim || isNaN(dim[0]) || isNaN(dim[1])) {
+                this.attr.videoDimensions = dim = [360, 240];
+            }
+            return dim;
+        };
+
+        this.setupVideo = function() {
+            var self = this;
+
+            this.showPoster();
+            //var i = 0;
+            //setTimeout(function() {
+                //i = (i + 4) % 20;
+                //console.log('showing frame', i)
+                //self.showFrames(19);
+            //}, 1000)
+            //return;
+
+            this.on('videoPlayerInitialized', function(e) {
+                this.off('mousemove');
+                this.off('mouseleave');
+                this.off('click');
+            });
+            this.on('click', this.onClick);
+            this.on('seekToTime', this.onSeekToTime);
+
+            this.loadVideoPreview()
+                .then(function(previewDimensions) {
+                    self.videoPreviewImageDimensions = previewDimensions;
+                    console.log(previewDimensions)
+
+                    self.on('mousemove', {
+                        scrubbingLineSelector: function(e) {
+                            e.stopPropagation();
+                        }
+                    });
+                    self.$node
+                        .on('mouseenter mousemove', function(e) {
+                            if ($(e.target).is('.scrubbing-play-button')) {
+                                e.stopPropagation();
+                                self.showPoster();
+                            } else {
+                                var left = e.pageX - $(e.target).closest('.preview').offset().left,
+                                    percent = left / this.offsetWidth,
+                                    index = Math.round(percent * NUMBER_FRAMES);
+
+                                self.scrubPercent = index / NUMBER_FRAMES;
+                                self.showFrames(index);
+                            }
+                        })
+                        .on('mouseleave', function(e) {
+                            self.showPoster();
+                        })
+                })
+                .catch(function() { })
+        };
+
+        this.loadVideoPreview = function() {
+            var url = this.attr.videoPreviewImageUrl;
+
+            if (url) {
+                return new Promise(function(f, r) {
+                    var i = new Image();
+                    i.onload = function() {
+                        f([i.width, i.height]);
+                    }
+                    i.onerror = r;
+                    i.src = url;
+                });
+            }
+
+            return Promise.reject();
+        }
+
         this.showFrames = function(index) {
             if (index === this.currentFrame || !this.attr.videoPreviewImageUrl) {
                 return;
@@ -41,12 +166,9 @@ define([
             }).show();
 
             var css = {
-                width: '100%',
-                height: '100%',
-                position: 'absolute',
                 backgroundRepeat: 'repeat-x',
-                backgroundSize: (width * NUMBER_FRAMES) + 'px auto',
-                backgroundPosition: (width * (index || 0) * -1) + 'px center',
+                //backgroundSize: (width * NUMBER_FRAMES) + 'px auto',
+                backgroundPosition: (320 * (index || 0) * -1) + 'px 0',
                 backgroundImage: 'url(' + this.attr.videoPreviewImageUrl + ')'
             };
 
@@ -169,59 +291,6 @@ define([
                 });
             }
         };
-
-        this.after('initialize', function() {
-            var self = this;
-
-            this.$node
-                .toggleClass('disableScrubbing', !this.attr.videoPreviewImageUrl)
-                .toggleClass('allowPlayback', this.attr.allowPlayback)
-                      .html(template({}));
-
-            this.select('backgroundPosterSelector').css({
-                width: '100%',
-                height: '100%',
-                position: 'absolute',
-                backgroundSize: '100%',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'left center',
-                backgroundImage: 'url(' + this.attr.posterFrameUrl + ')'
-            });
-
-            this.showPoster();
-
-            this.on('videoPlayerInitialized', function(e) {
-                self.off('mousemove');
-                self.off('mouseleave');
-                self.off('click');
-            });
-
-            this.on('mousemove', {
-                scrubbingLineSelector: function(e) {
-                    e.stopPropagation();
-                }
-            });
-            this.$node
-                .on('mouseenter mousemove', function(e) {
-                    if ($(e.target).is('.scrubbing-play-button')) {
-                        e.stopPropagation();
-                        self.showPoster();
-                    } else {
-                        var left = e.pageX - $(e.target).closest('.preview').offset().left,
-                            percent = left / this.offsetWidth,
-                            index = Math.round(percent * NUMBER_FRAMES);
-
-                        self.scrubPercent = index / NUMBER_FRAMES;
-                        self.showFrames(index);
-                    }
-                })
-                .on('mouseleave', function(e) {
-                    self.showPoster();
-                })
-                .on('click', self.onClick.bind(self));
-
-            this.on('seekToTime', this.onSeekToTime);
-        });
 
         this.onSeekToTime = function(event, data) {
             this.startVideo({

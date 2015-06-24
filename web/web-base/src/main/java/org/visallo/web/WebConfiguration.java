@@ -2,6 +2,7 @@ package org.visallo.web;
 
 import com.google.common.base.Joiner;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.VisalloPropertyBase;
 import org.visallo.core.model.properties.types.MetadataVisalloProperty;
@@ -19,6 +20,7 @@ public class WebConfiguration {
     public static final String VERTEX_LOAD_RELATED_MAX_FORCE_SEARCH = PREFIX + "vertex.loadRelatedMaxForceSearch";
     public static final String VERTEX_RELATIONSHIPS_MAX_PER_SECTION = PREFIX + "vertex.relationships.maxPerSection";
     public static final String DETAIL_HISTORY_STACK_MAX = PREFIX + "detail.history.stack.max";
+    public static final String VIDEO_PREVIEW_FRAMES_COUNT = PREFIX + "video.preview.frames.count";
     public static final String FIELD_JUSTIFICATION_VALIDATION = PREFIX + "field.justification.validation";
     public static final String SEARCH_DISABLE_WILDCARD_SEARCH = PREFIX + "search.disableWildcardSearch";
     public static final String NOTIFICATIONS_SYSTEM_AUTO_DISMISS_SECONDS = PREFIX + "notifications.system.autoDismissSeconds";
@@ -61,6 +63,8 @@ public class WebConfiguration {
         DEFAULTS.put(VERTEX_RELATIONSHIPS_MAX_PER_SECTION, "5");
 
         DEFAULTS.put(DETAIL_HISTORY_STACK_MAX, "5");
+
+        DEFAULTS.put(VIDEO_PREVIEW_FRAMES_COUNT, Integer.toString(ArtifactThumbnailRepository.FRAMES_PER_PREVIEW));
 
         // Justification field validation
         DEFAULTS.put(FIELD_JUSTIFICATION_VALIDATION, JustificationFieldValidation.REQUIRED.toString());
