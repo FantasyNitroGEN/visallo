@@ -38,6 +38,8 @@ define([
                 .toggleClass('disableScrubbing', true)
                 .toggleClass('allowPlayback', false);
 
+            this.setVideoPreviewBackgroundImage = _.once(this.setVideoPreviewBackgroundImage.bind(this));
+
             Promise.all([
                 this.dataRequest('config', 'properties'),
                 this.loadPosterFrame()
@@ -203,6 +205,12 @@ define([
             return Promise.reject();
         }
 
+        this.setVideoPreviewBackgroundImage = function() {
+            this.select('backgroundScrubberSelector').css({
+                backgroundImage: 'url(' + this.attr.videoPreviewImageUrl + ')'
+            });
+        };
+
         this.showFrames = function(index) {
             if (index === this.currentFrame || !this.attr.videoPreviewImageUrl) {
                 return;
@@ -216,9 +224,10 @@ define([
                     this.scaledDimensions[1] / this.videoPreviewFrameImageDimensions[1] *
                     (index || 0) * -1,
                     '0'
-                ].map(toPixels).join(' '),
-                backgroundImage: 'url(' + this.attr.videoPreviewImageUrl + ')'
+                ].map(toPixels).join(' ')
             };
+
+            this.setVideoPreviewBackgroundImage();
 
             var $preview = this.select('backgroundScrubberSelector').css(css).show();
             this.select('backgroundPosterSelector').hide();
