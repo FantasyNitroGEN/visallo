@@ -34,48 +34,25 @@ define([
         });
 
         this.after('initialize', function() {
-            var dim = this.getVideoDimensions(),
-                dimContainer = [this.$node.width(), Math.min(dim[1], 240)],
-                ratioImage = dim[0] / dim[1],
-                ratioContainer = dimContainer[0] / dimContainer[1],
-                scaled = (
-                    ratioContainer > ratioImage ?
-                    [dim[0] * (dimContainer[1] / dim[1]), dimContainer[1]] :
-                    [dimContainer[0], dim[1] * (dimContainer[0] / dim[0])]
-                ).map(function(v) {
-                    return Math.floor(v);
-                });
-
-            //console.log(dim, dimContainer, 'scaled=' + scaled.map(toPixels));
-
             this.$node
-                .toggleClass('disableScrubbing', !this.attr.videoPreviewImageUrl)
-                .toggleClass('allowPlayback', this.attr.allowPlayback)
-                .css('height', scaled[1])
-                .html(template({}));
+                .toggleClass('disableScrubbing', true)
+                .toggleClass('allowPlayback', false);
 
-            var sizeCss = {
-                width: scaled[0] + 'px',
-                height: scaled[1] + 'px',
-                left: '50%',
-                top: '50%',
-                marginLeft: '-' + scaled[0] / 2 + 'px',
-                marginTop: '-' + scaled[1] / 2 + 'px',
-                position: 'absolute'
-            };
-            this.select('backgroundScrubberSelector').css(sizeCss);
-            this.select('backgroundPosterSelector').css(_.extend({}, sizeCss, {
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
-                backgroundSize: scaled.map(toPixels).join(' '),
-                backgroundImage: 'url(' + this.attr.posterFrameUrl + ')'
-            }));
+            Promise.all([
+                this.dataRequest('config', 'properties'),
+                this.loadPosterFrame()
+            ])
+                .then(function(results) {
+                    var properties = results.shift(),
+                        posterDimensions = results.shift();
 
-            this.dataRequest('config', 'properties')
-                .then(function(properties) {
                     NUMBER_FRAMES = parseInt(properties['video.preview.frames.count'], 10);
+                    return posterDimensions;
                 })
-                .then(this.setupVideo.bind(this));
+                .then(this.setupVideo.bind(this))
+                .catch(function(e) {
+                    throw e;
+                })
         });
 
         this.getVideoDimensions = function() {
@@ -86,18 +63,79 @@ define([
             return dim;
         };
 
-        this.setupVideo = function() {
+        this.updateCss = function(applyTemplate) {
+            var dim = this.posterFrameDimensions,
+                maxHeight = dim[1] > dim[0] ? 360 : 240,
+                dimContainer = [this.$node.width(), Math.min(dim[1], maxHeight)],
+                ratioImage = dim[0] / dim[1],
+                ratioContainer = dimContainer[0] / dimContainer[1],
+                scaled = (
+                    ratioContainer > ratioImage ?
+                    [dim[0] * (dimContainer[1] / dim[1]), dimContainer[1]] :
+                    [dimContainer[0], dim[1] * (dimContainer[0] / dim[0])]
+                ).map(function(v) {
+                    return Math.floor(v);
+                });
+
+            this.scaledDimensions = scaled;
+
+            this.$node
+                .toggleClass('disableScrubbing', !this.attr.videoPreviewImageUrl)
+                .toggleClass('allowPlayback', this.attr.allowPlayback)
+                .css('height', scaled[1]);
+
+            if (applyTemplate) {
+                this.$node.html(template({}));
+            }
+
+            var sizeCss = {
+                width: scaled[0] + 'px',
+                height: scaled[1] + 'px',
+                left: '50%',
+                top: '50%',
+                marginLeft: '-' + scaled[0] / 2 + 'px',
+                marginTop: '-' + scaled[1] / 2 + 'px',
+                position: 'absolute'
+            };
+            this.videoPreviewMarginLeft = scaled[0] / 2;
+            this.select('backgroundScrubberSelector').css(sizeCss);
+            this.select('backgroundPosterSelector').css(_.extend({}, sizeCss, {
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                backgroundSize: scaled.map(toPixels).join(' '),
+                backgroundImage: 'url(' + this.attr.posterFrameUrl + ')'
+            }));
+        };
+
+        this.onGraphPaddingUpdated = function(e, d) {
+            if (e.type === 'graphPaddingUpdated') {
+                if (this.previousDetailPadding && d.padding.r === this.previousDetailPadding) return;
+                this.previousDetailPadding = d.padding.r;
+            }
+
+            this.updateCss();
+
+            if (this.showing === POSTER) {
+                this.showPoster();
+            } else {
+                var frame = this.currentFrame;
+                this.currentFrame = null;
+                this.showFrames(frame);
+            }
+        };
+
+        this.setupVideo = function(dim) {
             var self = this;
 
-            this.showPoster();
-            //var i = 0;
-            //setTimeout(function() {
-                //i = (i + 4) % 20;
-                //console.log('showing frame', i)
-                //self.showFrames(19);
-            //}, 1000)
-            //return;
+            // FIXME: needed?
+            this.posterFrameDimensions = dim;
 
+            this.updateCss(true);
+            this.showPoster();
+
+            var throttledFrameUpdate = _.throttle(this.onGraphPaddingUpdated.bind(this), 100);
+            this.on(document, 'graphPaddingUpdated', throttledFrameUpdate);
+            this.on(document, 'windowResize', throttledFrameUpdate);
             this.on('videoPlayerInitialized', function(e) {
                 this.off('mousemove');
                 this.off('mouseleave');
@@ -109,7 +147,7 @@ define([
             this.loadVideoPreview()
                 .then(function(previewDimensions) {
                     self.videoPreviewImageDimensions = previewDimensions;
-                    console.log(previewDimensions)
+                    self.videoPreviewFrameImageDimensions = [previewDimensions[0] / NUMBER_FRAMES, previewDimensions[1]];
 
                     self.on('mousemove', {
                         scrubbingLineSelector: function(e) {
@@ -118,16 +156,21 @@ define([
                     });
                     self.$node
                         .on('mouseenter mousemove', function(e) {
-                            if ($(e.target).is('.scrubbing-play-button')) {
+                            var $target = $(e.target);
+                            if ($target.is('.scrubbing-play-button') || $target.is(this)) {
                                 e.stopPropagation();
                                 self.showPoster();
                             } else {
-                                var left = e.pageX - $(e.target).closest('.preview').offset().left,
-                                    percent = left / this.offsetWidth,
-                                    index = Math.round(percent * NUMBER_FRAMES);
+                                var left = e.pageX - $target.offset().left,
+                                    percent = left / $target.width();
 
-                                self.scrubPercent = index / NUMBER_FRAMES;
-                                self.showFrames(index);
+                                if (percent <= 1.0 && percent >= 0.0) {
+                                    var index = Math.round(percent * NUMBER_FRAMES);
+                                    self.scrubPercent = index / NUMBER_FRAMES;
+                                    self.showFrames(index);
+                                } else {
+                                    self.showPoster();
+                                }
                             }
                         })
                         .on('mouseleave', function(e) {
@@ -137,9 +180,15 @@ define([
                 .catch(function() { })
         };
 
-        this.loadVideoPreview = function() {
-            var url = this.attr.videoPreviewImageUrl;
+        this.loadPosterFrame = function() {
+            return this.loadImageUrl(this.attr.posterFrameUrl);
+        };
 
+        this.loadVideoPreview = function() {
+            return this.loadImageUrl(this.attr.videoPreviewImageUrl);
+        };
+
+        this.loadImageUrl = function(url) {
             if (url) {
                 return new Promise(function(f, r) {
                     var i = new Image();
@@ -159,23 +208,28 @@ define([
                 return;
             }
 
-            var width = this.$node.width();
-
-            this.select('scrubbingLineSelector').css({
-                left: (index / NUMBER_FRAMES) * width
-            }).show();
-
             var css = {
                 backgroundRepeat: 'repeat-x',
-                //backgroundSize: (width * NUMBER_FRAMES) + 'px auto',
-                backgroundPosition: (320 * (index || 0) * -1) + 'px 0',
+                backgroundSize: 'auto 100%',
+                backgroundPosition: [
+                    this.videoPreviewFrameImageDimensions[0] *
+                    this.scaledDimensions[1] / this.videoPreviewFrameImageDimensions[1] *
+                    (index || 0) * -1,
+                    '0'
+                ].map(toPixels).join(' '),
                 backgroundImage: 'url(' + this.attr.videoPreviewImageUrl + ')'
             };
 
-            this.select('backgroundScrubberSelector').css(css).show();
+            var $preview = this.select('backgroundScrubberSelector').css(css).show();
             this.select('backgroundPosterSelector').hide();
             this.showing = FRAMES;
             this.currentFrame = index;
+
+            this.select('scrubbingLineSelector').css({
+                left: $preview.position().left -
+                    this.videoPreviewMarginLeft +
+                    (index / NUMBER_FRAMES) * $preview.width()
+            }).show();
 
             this.trigger('scrubberFrameChange', {
                index: index,

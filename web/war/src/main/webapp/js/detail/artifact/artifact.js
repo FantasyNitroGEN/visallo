@@ -527,18 +527,10 @@ define([
 
         this.videoSetup = function(vertex, config) {
             this.ignoreDetectedObjects = true;
-            if (!('ontology.intent.property.media.height' in config) ||
-               !('ontology.intent.property.media.height' in config)) {
-                console.warn('Scrubbing disabled because media.width or media.height not in ontology');
-            }
 
             VideoScrubber.attachTo(this.select('previewSelector'), {
                 rawUrl: F.vertex.raw(vertex),
                 posterFrameUrl: F.vertex.image(vertex),
-                videoDimensions: [
-                    parseInt(F.vertex.propRaw(vertex, config['ontology.intent.property.media.width']), 10),
-                    parseInt(F.vertex.propRaw(vertex, config['ontology.intent.property.media.height']), 10)
-                ],
                 videoPreviewImageUrl: F.vertex.imageFrames(vertex),
                 duration: this.duration,
                 allowPlayback: true

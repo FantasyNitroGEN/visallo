@@ -15,6 +15,8 @@ import org.visallo.core.model.Name;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.DoubleSingleValueVisalloProperty;
+import org.visallo.core.model.properties.types.DoubleVisalloProperty;
 import org.visallo.core.model.properties.types.IntegerVisalloProperty;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.FFprobeVideoFiltersUtil;
@@ -42,36 +44,38 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VideoFrameExtractGraphPropertyWorker.class);
     private ProcessRunner processRunner;
     private IntegerVisalloProperty videoRotationProperty;
+    private DoubleVisalloProperty videoDurationProperty;
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
         super.prepare(workerPrepareData);
         getAuthorizationRepository().addAuthorizationToGraph(VideoFrameInfo.VISIBILITY_STRING);
         videoRotationProperty = new IntegerVisalloProperty(getOntologyRepository().getRequiredPropertyIRIByIntent("media.clockwiseRotation"));
+        videoDurationProperty = new DoubleVisalloProperty(getOntologyRepository().getRequiredPropertyIRIByIntent("media.duration"));
     }
 
     @Override
     public void execute(InputStream in, GraphPropertyWorkData data) throws Exception {
         Integer videoRotation = videoRotationProperty.getOnlyPropertyValue(data.getElement(), 0);
+        Double videoDuration = videoDurationProperty.getOnlyPropertyValue(data.getElement());
         Visibility newVisibility = new VisalloVisibility(VisalloVisibility.and(getVisibilityTranslator().toVisibilityNoSuperUser(data.getVisibilityJson()), VideoFrameInfo.VISIBILITY_STRING)).getVisibility();
 
         Pattern fileNamePattern = Pattern.compile("image-([0-9]+)\\.png");
         File tempDir = Files.createTempDir();
         try {
             Double defaultFPSToExtract = 1.0;
+            if (videoDuration != null && videoDuration <= ArtifactThumbnailRepository.FRAMES_PER_PREVIEW) {
+                defaultFPSToExtract = (double)ArtifactThumbnailRepository.FRAMES_PER_PREVIEW / videoDuration;
+            }
             extractFrames(data.getLocalFile(), tempDir, data, defaultFPSToExtract, videoRotation);
 
             List<String> propertyKeys = new ArrayList<>();
-            long videoDuration = 0;
             for (File frameFile : tempDir.listFiles()) {
                 Matcher m = fileNamePattern.matcher(frameFile.getName());
                 if (!m.matches()) {
                     continue;
                 }
                 long frameStartTime = (long) ((Double.parseDouble(m.group(1)) / defaultFPSToExtract) * 1000.0);
-                if (frameStartTime > videoDuration) {
-                    videoDuration = frameStartTime;
-                }
 
                 try (InputStream frameFileIn = new FileInputStream(frameFile)) {
                     ExistingElementMutation<Vertex> mutation = data.getElement().prepareMutation();
@@ -180,20 +184,36 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
             previewFrameHeight = ArtifactThumbnailRepository.PREVIEW_FRAME_WIDTH;
         }
 
-        BufferedImage previewImage = new BufferedImage(previewFrameWidth * videoFrames.size(), previewFrameHeight, BufferedImage.TYPE_INT_RGB);
-        Graphics g = previewImage.getGraphics();
+        BufferedImage previewImage = null;
+        Graphics g = null;
         for (int i = 0; i < videoFrames.size(); i++) {
             Property videoFrame = videoFrames.get(i);
             Image img = loadImage(videoFrame);
+            int widthImage = img.getWidth(null);
+            int heightImage = img.getHeight(null);
+            if (i == 0) {
+                float ratioImage = (float)widthImage / (float)heightImage;
+                float ratioContainer = (float)previewFrameWidth / (float)previewFrameHeight;
+                float calculatedWidth, calculatedHeight;
+                if (ratioContainer > ratioImage) {
+                    calculatedWidth = widthImage * ((float)previewFrameHeight / heightImage);
+                    calculatedHeight = (float)previewFrameHeight;
+                } else {
+                    calculatedWidth = (float)previewFrameWidth;
+                    calculatedHeight = heightImage * ((float)previewFrameWidth / widthImage);
+                }
+                previewFrameWidth = (int) calculatedWidth;
+                previewFrameHeight = (int) calculatedHeight;
+                previewImage = new BufferedImage(previewFrameWidth * videoFrames.size(), previewFrameHeight, BufferedImage.TYPE_INT_RGB);
+                g = previewImage.getGraphics();
+            }
             int dx1 = i * previewFrameWidth;
             int dy1 = 0;
             int dx2 = dx1 + previewFrameWidth;
             int dy2 = previewFrameHeight;
             int sx1 = 0;
             int sy1 = 0;
-            int sx2 = img.getWidth(null);
-            int sy2 = img.getHeight(null);
-            g.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
+            g.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, widthImage, heightImage, null);
         }
         return previewImage;
     }
