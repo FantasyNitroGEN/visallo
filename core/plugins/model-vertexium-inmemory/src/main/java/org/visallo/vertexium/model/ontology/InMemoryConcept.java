@@ -30,7 +30,7 @@ public class InMemoryConcept extends Concept {
     private Map<String, String> metadata = new HashMap<String, String>();
     private List<String> intents = new ArrayList<>();
 
-    protected InMemoryConcept(String conceptIRI, String parentIRI) {
+    public InMemoryConcept(String conceptIRI, String parentIRI) {
         super(parentIRI, new ArrayList<OntologyProperty>());
         this.conceptIRI = conceptIRI;
     }
