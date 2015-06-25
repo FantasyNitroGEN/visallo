@@ -2,6 +2,10 @@ package org.visallo.gpw.video;
 
 import com.google.common.io.Files;
 import com.google.inject.Inject;
+import org.apache.commons.io.FileUtils;
+import org.vertexium.*;
+import org.vertexium.mutation.ExistingElementMutation;
+import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
@@ -9,18 +13,14 @@ import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
-import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.MediaVisalloProperties;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.IntegerVisalloProperty;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.util.FFprobeVideoFiltersUtil;
+import org.visallo.core.util.ProcessRunner;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.ProcessRunner;
-import org.visallo.core.util.FFprobeRotationUtil;
-import org.apache.commons.io.FileUtils;
-import org.vertexium.*;
-import org.vertexium.mutation.ExistingElementMutation;
-import org.vertexium.property.StreamingPropertyValue;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -118,21 +118,10 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
         ffmpegOptionsList.add("-r");
         ffmpegOptionsList.add("" + framesPerSecondToExtract);
 
-        //Scale.
-        //Will not force conversion to 720:480 aspect ratio, but will resize video with original aspect ratio.
-        if (videoRotation == 0 || videoRotation == 180) {
-            ffmpegOptionsList.add("-s");
-            ffmpegOptionsList.add("720x480");
-        } else if (videoRotation == 90 || videoRotation == 270) {
-            ffmpegOptionsList.add("-s");
-            ffmpegOptionsList.add("480x720");
-        }
-
-        //Rotate.
-        String[] ffmpegRotationOptions = FFprobeRotationUtil.createFFMPEGRotationOptions(videoRotation);
-        if (ffmpegRotationOptions != null) {
-            ffmpegOptionsList.add(ffmpegRotationOptions[0]);
-            ffmpegOptionsList.add(ffmpegRotationOptions[1]);
+        String[] ffmpegVideoFilterOptions = FFprobeVideoFiltersUtil.getFFmpegVideoFilterOptions(videoRotation);
+        if (ffmpegVideoFilterOptions != null) {
+            ffmpegOptionsList.add(ffmpegVideoFilterOptions[0]);
+            ffmpegOptionsList.add(ffmpegVideoFilterOptions[1]);
         }
 
         ffmpegOptionsList.add(new File(outDir, "image-%8d.png").getAbsolutePath());

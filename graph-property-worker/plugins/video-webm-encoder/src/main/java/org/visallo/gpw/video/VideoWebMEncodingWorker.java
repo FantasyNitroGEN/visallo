@@ -13,7 +13,7 @@ import org.visallo.core.model.properties.types.IntegerVisalloProperty;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.core.util.ProcessRunner;
-import org.visallo.core.util.FFprobeRotationUtil;
+import org.visallo.core.util.FFprobeVideoFiltersUtil;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
@@ -109,19 +109,11 @@ public class VideoWebMEncodingWorker extends GraphPropertyWorker {
         ffmpegOptionsList.add("-threads");
         ffmpegOptionsList.add("2");
 
-        //Scale.
-        //Will not force conversion to 720:480 aspect ratio, but will resize video with original aspect ratio.
-        ffmpegOptionsList.add("-vf");
-        ffmpegOptionsList.add("scale=720:480");
-
         Integer videoRotation = videoRotationProperty.getOnlyPropertyValue(data.getElement());
-        if (videoRotation != null) {
-            String[] ffmpegRotationOptions = FFprobeRotationUtil.createFFMPEGRotationOptions(videoRotation);
-            //Rotate
-            if (ffmpegRotationOptions != null) {
-                ffmpegOptionsList.add(ffmpegRotationOptions[0]);
-                ffmpegOptionsList.add(ffmpegRotationOptions[1]);
-            }
+        String[] ffmpegVideoFilterOptions = FFprobeVideoFiltersUtil.getFFmpegVideoFilterOptions(videoRotation);
+        if (ffmpegVideoFilterOptions != null) {
+            ffmpegOptionsList.add(ffmpegVideoFilterOptions[0]);
+            ffmpegOptionsList.add(ffmpegVideoFilterOptions[1]);
         }
 
         ffmpegOptionsList.add("-acodec");
