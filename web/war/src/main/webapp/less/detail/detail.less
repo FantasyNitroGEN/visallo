@@ -32,10 +32,11 @@
   }
 
   .type-content > .nav-with-background > .preview, .content > .preview {
-    height: 300px;
+    height: 240px;
     cursor: pointer;
-    background: black;
-    margin-top: 1em;
+    background: rgba(0, 0, 0, 0.05);
+    margin-top: 1px;
+    overflow: hidden;
   }
   .type-content > .nav-with-background > .audio-preview {
     margin-top: 1em;
@@ -105,6 +106,9 @@
 
   }
 
+  .delete-form {
+    overflow: auto;
+  }
   .delete-form .underneath .form {
     margin-top: 0;
   }
@@ -112,7 +116,7 @@
   .currentTranscript {
       color: white;
       background: black;
-      padding: 0.5em;
+      //padding: 0.5em;
       margin-bottom: 1em;
 
       .time {

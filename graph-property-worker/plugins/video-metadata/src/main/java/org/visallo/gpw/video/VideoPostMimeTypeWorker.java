@@ -1,18 +1,18 @@
 package org.visallo.gpw.video;
 
 import com.google.inject.Inject;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
-import org.visallo.core.ingest.graphProperty.PostMimeTypeWorker;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Metadata;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
+import org.visallo.core.ingest.graphProperty.PostMimeTypeWorker;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.*;
 
 import java.io.File;
@@ -71,7 +71,7 @@ public class VideoPostMimeTypeWorker extends PostMimeTypeWorker {
             setProperty(widthIri, FFprobeDimensionsUtil.getWidth(videoMetadata), m, metadata, data, properties);
             setProperty(heightIri, FFprobeDimensionsUtil.getHeight(videoMetadata), m, metadata, data, properties);
             setProperty(metadataIri, videoMetadata.toString(), m, metadata, data, properties);
-            setProperty(clockwiseRotationIri, FFprobeRotationUtil.getRotation(videoMetadata), m, metadata, data, properties);
+            setProperty(clockwiseRotationIri, FFprobeVideoFiltersUtil.getRotation(videoMetadata), m, metadata, data, properties);
         }
 
         setProperty(fileSizeIri, FileSizeUtil.getSize(localFile), m, metadata, data, properties);

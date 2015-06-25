@@ -210,7 +210,7 @@ define([
             });
 
             if (this[displayType + 'Setup']) {
-                this[displayType + 'Setup'](this.attr.data);
+                this[displayType + 'Setup'](this.attr.data, config);
             }
 
             this.update();
@@ -525,8 +525,9 @@ define([
             })
         };
 
-        this.videoSetup = function(vertex) {
+        this.videoSetup = function(vertex, config) {
             this.ignoreDetectedObjects = true;
+
             VideoScrubber.attachTo(this.select('previewSelector'), {
                 rawUrl: F.vertex.raw(vertex),
                 posterFrameUrl: F.vertex.image(vertex),

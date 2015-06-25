@@ -1,5 +1,6 @@
 package org.visallo.gpw.video;
 
+import com.google.common.base.Joiner;
 import com.google.inject.Inject;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
@@ -13,7 +14,7 @@ import org.visallo.core.model.properties.types.IntegerVisalloProperty;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.core.util.ProcessRunner;
-import org.visallo.core.util.FFprobeRotationUtil;
+import org.visallo.core.util.FFprobeVideoFiltersUtil;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 @Name("Video Poster Frame")
 @Description("Gets a video poster frame by extracting a frame from the video")
@@ -89,31 +91,19 @@ public class VideoPosterFrameWorker extends GraphPropertyWorker {
         ffmpegOptionsList.add(data.getLocalFile().getAbsolutePath());
         ffmpegOptionsList.add("-vcodec");
         ffmpegOptionsList.add("png");
+
+        Integer videoRotation = videoRotationProperty.getOnlyPropertyValue(data.getElement());
+        String[] filterOptions = FFprobeVideoFiltersUtil.getFFmpegVideoFilterOptions(videoRotation);
+        if (filterOptions != null) {
+            ffmpegOptionsList.add(filterOptions[0]);
+            ffmpegOptionsList.add(filterOptions[1]);
+        }
+
         ffmpegOptionsList.add("-vframes");
         ffmpegOptionsList.add("1");
         ffmpegOptionsList.add("-an");
         ffmpegOptionsList.add("-f");
         ffmpegOptionsList.add("rawvideo");
-
-        Integer videoRotation = videoRotationProperty.getOnlyPropertyValue(data.getElement());
-        if (videoRotation != null) {
-            //Scale.
-            //Will not force conversion to 720:480 aspect ratio, but will resize video with original aspect ratio.
-            if (videoRotation == 0 || videoRotation == 180) {
-                ffmpegOptionsList.add("-s");
-                ffmpegOptionsList.add("720x480");
-            } else if (videoRotation == 90 || videoRotation == 270) {
-                ffmpegOptionsList.add("-s");
-                ffmpegOptionsList.add("480x720");
-            }
-
-            String[] ffmpegRotationOptions = FFprobeRotationUtil.createFFMPEGRotationOptions(videoRotation);
-            //Rotate
-            if (ffmpegRotationOptions != null) {
-                ffmpegOptionsList.add(ffmpegRotationOptions[0]);
-                ffmpegOptionsList.add(ffmpegRotationOptions[1]);
-            }
-        }
 
         ffmpegOptionsList.add("-y");
         ffmpegOptionsList.add(videoPosterFrameFile.getAbsolutePath());

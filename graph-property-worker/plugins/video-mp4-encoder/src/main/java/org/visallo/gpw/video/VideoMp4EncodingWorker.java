@@ -1,25 +1,25 @@
 package org.visallo.gpw.video;
 
 import com.google.inject.Inject;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
-import org.visallo.core.ingest.graphProperty.VerifyResults;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.MediaVisalloProperties;
-import org.visallo.core.model.properties.types.IntegerVisalloProperty;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.ProcessRunner;
-import org.visallo.core.util.FFprobeRotationUtil;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
+import org.visallo.core.ingest.graphProperty.VerifyResults;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.properties.MediaVisalloProperties;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.IntegerVisalloProperty;
+import org.visallo.core.util.FFprobeVideoFiltersUtil;
+import org.visallo.core.util.ProcessRunner;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -122,19 +122,11 @@ public class VideoMp4EncodingWorker extends GraphPropertyWorker {
         ffmpegOptionsList.add("-bufsize");
         ffmpegOptionsList.add("1000k");
 
-        //Scale.
-        //Will not force conversion to 720:480 aspect ratio, but will resize video with original aspect ratio.
-        ffmpegOptionsList.add("-vf");
-        ffmpegOptionsList.add("scale=720:480");
-
         Integer videoRotation = videoRotationProperty.getOnlyPropertyValue(data.getElement());
-        if (videoRotation != null) {
-            String[] ffmpegRotationOptions = FFprobeRotationUtil.createFFMPEGRotationOptions(videoRotation);
-            //Rotate
-            if (ffmpegRotationOptions != null) {
-                ffmpegOptionsList.add(ffmpegRotationOptions[0]);
-                ffmpegOptionsList.add(ffmpegRotationOptions[1]);
-            }
+        String[] ffmpegVideoFilterOptions = FFprobeVideoFiltersUtil.getFFmpegVideoFilterOptions(videoRotation);
+        if (ffmpegVideoFilterOptions != null) {
+            ffmpegOptionsList.add(ffmpegVideoFilterOptions[0]);
+            ffmpegOptionsList.add(ffmpegVideoFilterOptions[1]);
         }
 
         ffmpegOptionsList.add("-threads");

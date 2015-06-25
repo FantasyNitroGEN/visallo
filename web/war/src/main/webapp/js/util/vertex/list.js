@@ -325,11 +325,16 @@ define([
                                 videoPreview = F.vertex.imageFrames(vertex);
 
                             if (videoPreview) {
-                                VideoScrubber.attachTo(preview, {
+                                var div = preview.find('div');
+                                if (!div.length) {
+                                    div = $('<div>').appendTo(preview);
+                                }
+                                VideoScrubber.attachTo(div, {
                                     posterFrameUrl: image,
                                     videoPreviewImageUrl: videoPreview
                                 });
                             } else {
+                                preview.find('div').remove();
                                 var conceptImage = F.vertex.concept(vertex).glyphIconHref,
                                 clsName = 'non_concept_preview';
 

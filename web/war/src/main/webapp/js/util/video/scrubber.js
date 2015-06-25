@@ -3,18 +3,22 @@ define([
     'flight/lib/component',
     'videojs',
     'tpl!./scrubber',
-    'tpl!./video'
-], function(defineComponent, videojs, template, videoTemplate) {
+    'tpl!./video',
+    'util/withDataRequest'
+], function(defineComponent, videojs, template, videoTemplate, withDataRequest) {
     'use strict';
 
-    // TODO: get this from the server
-    var NUMBER_FRAMES = 20,
+    var NUMBER_FRAMES = 0, // Populated by config
         POSTER = 1,
         FRAMES = 2;
 
-    videojs.options.flash.swf = '/libs/video.js/dist/video-js/video-js.swf';
+    videojs.options.flash.swf = '../libs/video.js/dist/video-js/video-js.swf';
 
-    return defineComponent(VideoScrubber);
+    return defineComponent(VideoScrubber, withDataRequest);
+
+    function toPixels(str) {
+        return str + 'px';
+    }
 
     function VideoScrubber() {
 
@@ -29,31 +33,203 @@ define([
             videoSelector: 'video'
         });
 
+        this.after('initialize', function() {
+            this.$node
+                .toggleClass('disableScrubbing', true)
+                .toggleClass('allowPlayback', false);
+
+            Promise.all([
+                this.dataRequest('config', 'properties'),
+                this.loadPosterFrame()
+            ])
+                .then(function(results) {
+                    var properties = results.shift(),
+                        posterDimensions = results.shift();
+
+                    NUMBER_FRAMES = parseInt(properties['video.preview.frames.count'], 10);
+                    return posterDimensions;
+                })
+                .then(this.setupVideo.bind(this))
+                .catch(function(e) {
+                    throw e;
+                })
+        });
+
+        this.getVideoDimensions = function() {
+            var dim = this.attr.videoDimensions;
+            if (!dim || isNaN(dim[0]) || isNaN(dim[1])) {
+                this.attr.videoDimensions = dim = [360, 240];
+            }
+            return dim;
+        };
+
+        this.updateCss = function(applyTemplate) {
+            var dim = this.posterFrameDimensions,
+                maxHeight = dim[1] > dim[0] ? 360 : 240,
+                dimContainer = [this.$node.width(), Math.min(dim[1], maxHeight)],
+                ratioImage = dim[0] / dim[1],
+                ratioContainer = dimContainer[0] / dimContainer[1],
+                scaled = (
+                    ratioContainer > ratioImage ?
+                    [dim[0] * (dimContainer[1] / dim[1]), dimContainer[1]] :
+                    [dimContainer[0], dim[1] * (dimContainer[0] / dim[0])]
+                ).map(function(v) {
+                    return Math.floor(v);
+                });
+
+            this.scaledDimensions = scaled;
+
+            this.$node
+                .toggleClass('disableScrubbing', !this.attr.videoPreviewImageUrl)
+                .toggleClass('allowPlayback', this.attr.allowPlayback)
+                .css('height', scaled[1]);
+
+            if (applyTemplate) {
+                this.$node.html(template({}));
+            }
+
+            var sizeCss = {
+                width: scaled[0] + 'px',
+                height: scaled[1] + 'px',
+                left: '50%',
+                top: '50%',
+                marginLeft: '-' + scaled[0] / 2 + 'px',
+                marginTop: '-' + scaled[1] / 2 + 'px',
+                position: 'absolute'
+            };
+            this.videoPreviewMarginLeft = scaled[0] / 2;
+            this.select('backgroundScrubberSelector').css(sizeCss);
+            this.select('backgroundPosterSelector').css(_.extend({}, sizeCss, {
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                backgroundSize: scaled.map(toPixels).join(' '),
+                backgroundImage: 'url(' + this.attr.posterFrameUrl + ')'
+            }));
+        };
+
+        this.onGraphPaddingUpdated = function(e, d) {
+            if (e.type === 'graphPaddingUpdated') {
+                if (this.previousDetailPadding && d.padding.r === this.previousDetailPadding) return;
+                this.previousDetailPadding = d.padding.r;
+            }
+
+            this.updateCss();
+
+            if (this.showing === POSTER) {
+                this.showPoster();
+            } else {
+                var frame = this.currentFrame;
+                this.currentFrame = null;
+                this.showFrames(frame);
+            }
+        };
+
+        this.setupVideo = function(dim) {
+            var self = this;
+
+            // FIXME: needed?
+            this.posterFrameDimensions = dim;
+
+            this.updateCss(true);
+            this.showPoster();
+
+            var throttledFrameUpdate = _.throttle(this.onGraphPaddingUpdated.bind(this), 100);
+            this.on(document, 'graphPaddingUpdated', throttledFrameUpdate);
+            this.on(document, 'windowResize', throttledFrameUpdate);
+            this.on('videoPlayerInitialized', function(e) {
+                this.off('mousemove');
+                this.off('mouseleave');
+                this.off('click');
+            });
+            this.on('click', this.onClick);
+            this.on('seekToTime', this.onSeekToTime);
+
+            this.loadVideoPreview()
+                .then(function(previewDimensions) {
+                    self.videoPreviewImageDimensions = previewDimensions;
+                    self.videoPreviewFrameImageDimensions = [previewDimensions[0] / NUMBER_FRAMES, previewDimensions[1]];
+
+                    self.on('mousemove', {
+                        scrubbingLineSelector: function(e) {
+                            e.stopPropagation();
+                        }
+                    });
+                    self.$node
+                        .on('mouseenter mousemove', function(e) {
+                            var $target = $(e.target);
+                            if ($target.is('.scrubbing-play-button') || $target.is(this)) {
+                                e.stopPropagation();
+                                self.showPoster();
+                            } else {
+                                var left = e.pageX - $target.offset().left,
+                                    percent = left / $target.width();
+
+                                if (percent <= 1.0 && percent >= 0.0) {
+                                    var index = Math.round(percent * NUMBER_FRAMES);
+                                    self.scrubPercent = index / NUMBER_FRAMES;
+                                    self.showFrames(index);
+                                } else {
+                                    self.showPoster();
+                                }
+                            }
+                        })
+                        .on('mouseleave', function(e) {
+                            self.showPoster();
+                        })
+                })
+                .catch(function() { })
+        };
+
+        this.loadPosterFrame = function() {
+            return this.loadImageUrl(this.attr.posterFrameUrl);
+        };
+
+        this.loadVideoPreview = function() {
+            return this.loadImageUrl(this.attr.videoPreviewImageUrl);
+        };
+
+        this.loadImageUrl = function(url) {
+            if (url) {
+                return new Promise(function(f, r) {
+                    var i = new Image();
+                    i.onload = function() {
+                        f([i.width, i.height]);
+                    }
+                    i.onerror = r;
+                    i.src = url;
+                });
+            }
+
+            return Promise.reject();
+        }
+
         this.showFrames = function(index) {
             if (index === this.currentFrame || !this.attr.videoPreviewImageUrl) {
                 return;
             }
 
-            var width = this.$node.width();
-
-            this.select('scrubbingLineSelector').css({
-                left: (index / NUMBER_FRAMES) * width
-            }).show();
-
             var css = {
-                width: '100%',
-                height: '100%',
-                position: 'absolute',
                 backgroundRepeat: 'repeat-x',
-                backgroundSize: (width * NUMBER_FRAMES) + 'px auto',
-                backgroundPosition: (width * (index || 0) * -1) + 'px center',
+                backgroundSize: 'auto 100%',
+                backgroundPosition: [
+                    this.videoPreviewFrameImageDimensions[0] *
+                    this.scaledDimensions[1] / this.videoPreviewFrameImageDimensions[1] *
+                    (index || 0) * -1,
+                    '0'
+                ].map(toPixels).join(' '),
                 backgroundImage: 'url(' + this.attr.videoPreviewImageUrl + ')'
             };
 
-            this.select('backgroundScrubberSelector').css(css).show();
+            var $preview = this.select('backgroundScrubberSelector').css(css).show();
             this.select('backgroundPosterSelector').hide();
             this.showing = FRAMES;
             this.currentFrame = index;
+
+            this.select('scrubbingLineSelector').css({
+                left: $preview.position().left -
+                    this.videoPreviewMarginLeft +
+                    (index / NUMBER_FRAMES) * $preview.width()
+            }).show();
 
             this.trigger('scrubberFrameChange', {
                index: index,
@@ -169,59 +345,6 @@ define([
                 });
             }
         };
-
-        this.after('initialize', function() {
-            var self = this;
-
-            this.$node
-                .toggleClass('disableScrubbing', !this.attr.videoPreviewImageUrl)
-                .toggleClass('allowPlayback', this.attr.allowPlayback)
-                      .html(template({}));
-
-            this.select('backgroundPosterSelector').css({
-                width: '100%',
-                height: '100%',
-                position: 'absolute',
-                backgroundSize: '100%',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'left center',
-                backgroundImage: 'url(' + this.attr.posterFrameUrl + ')'
-            });
-
-            this.showPoster();
-
-            this.on('videoPlayerInitialized', function(e) {
-                self.off('mousemove');
-                self.off('mouseleave');
-                self.off('click');
-            });
-
-            this.on('mousemove', {
-                scrubbingLineSelector: function(e) {
-                    e.stopPropagation();
-                }
-            });
-            this.$node
-                .on('mouseenter mousemove', function(e) {
-                    if ($(e.target).is('.scrubbing-play-button')) {
-                        e.stopPropagation();
-                        self.showPoster();
-                    } else {
-                        var left = e.pageX - $(e.target).closest('.preview').offset().left,
-                            percent = left / this.offsetWidth,
-                            index = Math.round(percent * NUMBER_FRAMES);
-
-                        self.scrubPercent = index / NUMBER_FRAMES;
-                        self.showFrames(index);
-                    }
-                })
-                .on('mouseleave', function(e) {
-                    self.showPoster();
-                })
-                .on('click', self.onClick.bind(self));
-
-            this.on('seekToTime', this.onSeekToTime);
-        });
 
         this.onSeekToTime = function(event, data) {
             this.startVideo({
