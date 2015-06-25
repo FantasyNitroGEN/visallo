@@ -83,7 +83,7 @@ define([
     function positionTextNumber() {
         var self = this,
             t = this.previousSibling,
-            tX = t.x.baseVal[0].value,
+            tX = (t.x.baseVal[0] || t.x.baseVal.getItem(0)).value,
             getWidthOfNodeByClass = function(cls) {
                 var node = self.parentNode;
                 while ((node = node.nextSibling)) {
