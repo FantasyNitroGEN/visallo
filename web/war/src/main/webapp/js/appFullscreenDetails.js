@@ -18,8 +18,7 @@ define([
     }
 
     function filterArtifacts(v) {
-        var concept = F.vertex.concept(v);
-        return concept && (/^(document|image|video)$/).test(concept.displayType) || false;
+        return F.vertex.isArtifact(v);
     }
 
     function FullscreenDetails() {
@@ -134,7 +133,7 @@ define([
 
                 // Image/Video/Audio before documents
                 descriptors.push(
-                    /document/.test(concept.displayType) ? '1' : '0'
+                    F.vertex.displayType(v) === 'document' ? '1' : '0'
                 );
 
                 // Sort by title
@@ -175,7 +174,7 @@ define([
                         this.$node.find('.entities-container') :
                         this.$node.find('.artifacts-container'),
                     type = filterArtifacts(v) ? 'artifact' : 'entity',
-                    subType = F.vertex.concept(v).displayType,
+                    subType = F.vertex.displayType(v),
                     $newPane = $('<div class="detail-pane visible highlight-none"><div class="content"/></div>')
                         .addClass('type-' + type +
                                   (subType ? (' subType-' + subType) : '') +

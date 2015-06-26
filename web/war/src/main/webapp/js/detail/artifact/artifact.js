@@ -133,7 +133,7 @@ define([
         this.handleVertexLoaded = function(vertex, config) {
             var self = this,
                 concept = F.vertex.concept(vertex),
-                displayType = concept.displayType,
+                displayType = F.vertex.displayType(vertex),
                 properties = vertex && vertex.properties;
 
             this.attr.data = vertex;

@@ -477,13 +477,14 @@ define([
 
         this.classesForVertex = function(vertex) {
             var cls = [],
-                concept = F.vertex.concept(vertex);
+                concept = F.vertex.concept(vertex),
+                displayType = F.vertex.displayType(vertex);
 
             if (F.vertex.imageIsFromConcept(vertex) === false) {
                 cls.push('hasCustomGlyph');
             }
-            if (~['video', 'image'].indexOf(concept.displayType)) {
-                cls.push(concept.displayType);
+            if (~['video', 'image'].indexOf(displayType)) {
+                cls.push(displayType);
             }
 
             registry.extensionsForPoint('org.visallo.graph.node.class')

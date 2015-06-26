@@ -126,9 +126,6 @@ define([
                                 if (!child.glyphIconHref) {
                                     child.glyphIconHref = node.glyphIconHref;
                                 }
-                                if (!child.displayType) {
-                                    child.displayType = node.displayType;
-                                }
                                 if (!child.color) {
                                     if (node.color) {
                                         child.color = node.color;
