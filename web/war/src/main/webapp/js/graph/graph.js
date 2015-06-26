@@ -477,7 +477,6 @@ define([
 
         this.classesForVertex = function(vertex) {
             var cls = [],
-                concept = F.vertex.concept(vertex),
                 displayType = F.vertex.displayType(vertex);
 
             if (F.vertex.imageIsFromConcept(vertex) === false) {
