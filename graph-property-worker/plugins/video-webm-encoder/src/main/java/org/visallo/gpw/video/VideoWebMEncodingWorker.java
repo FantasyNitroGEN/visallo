@@ -80,6 +80,7 @@ public class VideoWebMEncodingWorker extends GraphPropertyWorker {
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), MediaVisalloProperties.MIME_TYPE_VIDEO_WEBM, getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.VIDEO_WEBM.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
+                getGraph().flush();
             }
         } finally {
             if (!webmFile.delete()) {

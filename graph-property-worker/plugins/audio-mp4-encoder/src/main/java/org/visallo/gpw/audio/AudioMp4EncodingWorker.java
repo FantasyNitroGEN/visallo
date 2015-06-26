@@ -52,6 +52,7 @@ public class AudioMp4EncodingWorker extends GraphPropertyWorker {
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), MediaVisalloProperties.MIME_TYPE_AUDIO_MP4, getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.AUDIO_MP4.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
+                getGraph().flush();
             }
         } finally {
             if (!mp4File.delete()) {

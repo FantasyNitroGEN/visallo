@@ -52,6 +52,7 @@ public class AudioOggEncodingWorker extends GraphPropertyWorker {
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), MediaVisalloProperties.MIME_TYPE_AUDIO_OGG, getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.AUDIO_OGG.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
+                getGraph().flush();
             }
         } finally {
             if (!mp4File.delete()) {
