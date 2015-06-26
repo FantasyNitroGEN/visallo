@@ -84,17 +84,12 @@ define([
             } else if (vertices.length === 1) {
                 var vertex = vertices[0],
                     concept = F.vertex.concept(vertex),
-                    type = concept && concept.displayType ||
-                        (F.vertex.isEdge(vertex) ? 'edge' : 'entity');
+                    type = F.vertex.displayType(vertex);
 
                 if (type === 'edge') {
                     moduleName = type;
                 } else {
-                    moduleName = (((type !== 'document' &&
-                                    type !== 'image' &&
-                                    type !== 'video' &&
-                                    type !== 'audio') ? 'entity' : 'artifact'
-                    ) || 'entity').toLowerCase();
+                    moduleName = F.vertex.isArtifact(vertex) ? 'artifact' : 'entity';
                 }
                 moduleData = vertex;
             } else if (edges.length > 1) {

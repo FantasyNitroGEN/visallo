@@ -56,25 +56,6 @@ define([
                 )
             })
 
-            it('should set displayType based on parent if not defined', function() {
-                var root = concepts.entityConcept,
-                    raw = _.findWhere(root.children, { id: 'http://visallo.org/dev#raw' }),
-                    video = _.findWhere(raw.children, { id: 'http://visallo.org/dev#video' }),
-                    videoSub = _.findWhere(video.children, { id: 'http://visallo.org/dev#videoSub' });
-
-                expect(video).to.exist
-                expect(videoSub).to.exist
-                expect(videoSub).to.have.property('displayType').that.equals('video')
-
-                var byId = concepts.byId['http://visallo.org/dev#videoSub'];
-                expect(byId).to.exist
-                byId.should.have.property('displayType').that.equals('video')
-
-                var byTitle = _.findWhere(concepts.byTitle, { id: 'http://visallo.org/dev#videoSub' })
-                expect(byTitle).to.exist
-                byTitle.should.have.property('displayType').that.equals('video')
-            })
-
             it('should leave glyphicon if set on concept', function() {
                 var email = _.findWhere(concepts.byTitle, { id: 'http://visallo.org/dev#emailAddress' });
 

@@ -92,6 +92,7 @@ public class VideoMp4EncodingWorker extends GraphPropertyWorker {
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), MediaVisalloProperties.MIME_TYPE_VIDEO_MP4, getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.VIDEO_MP4.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
+                getGraph().flush();
             }
         } finally {
             if (!mp4File.delete()) {

@@ -306,8 +306,9 @@ define([
 
                 var entityImageVertexId = V.prop(vertex, 'entityImageVertexId'),
                     concept = V.concept(vertex),
-                    isImage = (/image/i).test(concept.displayType),
-                    isVideo = (/video/i).test(concept.displayType);
+                    displayType = V.displayType(vertex),
+                    isImage = displayType === 'image',
+                    isVideo = displayType === 'video';
 
                 if (entityImageVertexId || isImage) {
                     return 'vertex/thumbnail?' + $.param({
@@ -722,6 +723,31 @@ define([
                 return propsIsObjectNotArray ||
                     V.prop(vertex, 'conceptType') === 'relationship' ||
                     (_.has(vertex, 'sourceVertexId') && _.has(vertex, 'destVertexId'));
+            },
+
+            isArtifact: function(vertex) {
+                return _.contains(_.pluck(vertex.properties, 'name'), V.propName('raw'));
+            },
+
+            displayType: function(vertex) {
+                if (!V.isArtifact(vertex)) {
+                    return V.isEdge(vertex) ? 'edge' : 'entity';
+                }
+
+                var propNames = _.pluck(vertex.properties, 'name');
+                if (_.some(propNames, function(propName) { return propName.indexOf('http://visallo.org#video-') === 0; })) {
+                    return 'video';
+                } else if (_.some(propNames, function(propName) { return propName.indexOf('http://visallo.org#audio-') === 0; })) {
+                    return 'audio';
+                } else {
+                    var rawProp = V.props(vertex, V.propName('raw')),
+                        rawPropMimeType = rawProp && rawProp.length && rawProp[0].metadata && rawProp[0].metadata[V.propName('mimeType')];
+                    if (rawPropMimeType && rawPropMimeType.indexOf('image/') === 0) {
+                        return 'image';
+                    } else {
+                        return 'document';
+                    }
+                }
             }
         };
 

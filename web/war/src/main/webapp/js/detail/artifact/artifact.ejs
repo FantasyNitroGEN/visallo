@@ -11,14 +11,14 @@
 <div class="nav-with-background">
   <div class="delete-form"></div>
 
-  <% if(concept.displayType == 'video') { %>
+  <% if(F.vertex.displayType(vertex) == 'video') { %>
     <div class="preview"/>
     <div class="currentTranscript"></div>
   <% } %>
-  <% if(concept.displayType == 'image') { %>
+  <% if(F.vertex.displayType(vertex) == 'image') { %>
     <div class="image-preview opens-dropdown"></div>
   <% } %>
-  <% if(concept.displayType == 'audio') { %>
+  <% if(F.vertex.displayType(vertex) == 'audio') { %>
     <div class="audio-preview"></div>
     <div class="currentTranscript"></div>
   <% } %>

@@ -92,9 +92,9 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
                 }
             }
 
-            getGraph().flush();
-
             generateAndSaveVideoPreviewImage((Vertex) data.getElement(), videoRotation);
+
+            getGraph().flush();
 
             for (String propertyKey : propertyKeys) {
                 getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), propertyKey, MediaVisalloProperties.VIDEO_FRAME.getPropertyName(), data.getPriority());

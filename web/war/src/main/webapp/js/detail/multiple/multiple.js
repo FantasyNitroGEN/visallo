@@ -269,16 +269,11 @@ define([
                     return;
                 }
 
-                var type = F.vertex.concept(first).displayType;
-
-                if (type === 'relationship') {
+                var type = F.vertex.displayType(first);
+                if (type === 'edge') {
                     moduleName = type;
                 } else {
-                    moduleName = (((type !== 'document' &&
-                                    type !== 'image' &&
-                                    type !== 'audio' &&
-                                    type !== 'video') ? 'entity' : 'artifact'
-                    ) || 'entity').toLowerCase();
+                    moduleName = F.vertex.isArtifact(first) ? 'artifact' : 'entity';
                 }
 
                 self._selectedGraphId = first.id;
