@@ -52,9 +52,9 @@ public class FFprobeVideoFiltersUtil {
 
     private static String[] getScaleTransforms(Integer videoRotation) {
         if (videoRotation != null && (videoRotation == 90 || videoRotation == 270)) {
-            return new String[] {"scale=-1:480"};
+            return new String[] {"scale=trunc(oh*a/2)*2:480"};
         }
-        return new String[] {"scale=720:-1"};
+        return new String[] {"scale=720:trunc(ow/a/2)*2"};
     }
 
     public static String[] getFFmpegVideoFilterOptions(Integer videoRotation) {

@@ -212,7 +212,7 @@ define([
         };
 
         this.showFrames = function(index) {
-            if (index === this.currentFrame || !this.attr.videoPreviewImageUrl) {
+            if (index === this.currentFrame || !this.attr.videoPreviewImageUrl || this.videoStarted) {
                 return;
             }
 
@@ -247,6 +247,7 @@ define([
         };
 
         this.showPoster = function() {
+            if (this.videoStarted) return;
             this.select('scrubbingLineSelector').hide();
             this.select('backgroundScrubberSelector').hide();
             this.select('backgroundPosterSelector').show();
@@ -282,6 +283,9 @@ define([
                 options = opts || {},
                 $video = this.select('videoSelector'),
                 videoPlayer = $video.length && $video[0];
+
+            this.videoStarted = true;
+            this.$node.css('height', 'auto');
 
             if (videoPlayer && videoPlayer.readyState === 4) {
                 videoPlayer.currentTime = Math.max(0.0,
