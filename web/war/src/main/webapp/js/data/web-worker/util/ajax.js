@@ -96,9 +96,9 @@ define(['util/promise'], function() {
                             fulfill(text)
                         }
                     } else {
-                        if (r.statusText && (/^\s*{/).test(r.statusText)) {
+                        if (r.responseText && (/^\s*{/).test(r.responseText)) {
                             try {
-                                var errorJson = JSON.parse(r.statusText);
+                                var errorJson = JSON.parse(r.responseText);
                                 reject(errorJson);
                                 return;
                             } catch(e) { /*eslint no-empty:0 */ }
@@ -140,6 +140,12 @@ define(['util/promise'], function() {
                     console.warn('Request Debugging is set for ' + url)
                     if (debugOptions.error) {
                         r.setRequestHeader('Visallo-Request-Error', debugOptions.error);
+                    }
+                    if (debugOptions.errorJson) {
+                        if (!debugOptions.errorJson.invalidValues) {
+                            debugOptions.errorJson.invalidValues = [];
+                        }
+                        r.setRequestHeader('Visallo-Request-Error-Json', JSON.stringify(debugOptions.errorJson));
                     }
                     if (debugOptions.delay) {
                         r.setRequestHeader('Visallo-Request-Delay-Millis', debugOptions.delay);

@@ -131,12 +131,12 @@ define([
                     self.checkValid();
                 })
                 .catch(function(e) {
-                    var statusText = e.statusText,
+                    var responseText = e.responseText,
                         error;
 
-                    if (/^\s*{/.test(statusText)) {
+                    if (/^\s*{/.test(responseText)) {
                         try {
-                            var json = JSON.parse(statusText);
+                            var json = JSON.parse(responseText);
                             error = json.username;
                         } catch(e) { }
                     }

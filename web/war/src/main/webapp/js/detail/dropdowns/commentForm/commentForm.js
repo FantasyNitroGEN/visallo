@@ -91,7 +91,7 @@ define([
                     self.teardown();
                 })
                 .catch(function(error) {
-                    self.markFieldErrors(error && error.statusText || error);
+                    self.markFieldErrors(error);
                     self.clearLoading();
                 })
         };

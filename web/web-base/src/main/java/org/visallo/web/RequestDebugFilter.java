@@ -14,6 +14,7 @@ public class RequestDebugFilter implements Filter {
 
     public static final String HEADER_DELAY = "Visallo-Request-Delay-Millis";
     public static final String HEADER_ERROR = "Visallo-Request-Error";
+    public static final String HEADER_ERROR_JSON = "Visallo-Request-Error-Json";
 
     static {
         if ("true".equals(System.getProperty(VISALLO_REQUEST_DEBUG))) {
@@ -41,6 +42,7 @@ public class RequestDebugFilter implements Filter {
 
             String delay = httpRequest.getHeader(HEADER_DELAY);
             String error = httpRequest.getHeader(HEADER_ERROR);
+            String json = httpRequest.getHeader(HEADER_ERROR_JSON);
 
             if (delay != null) {
                 try {
@@ -49,8 +51,17 @@ public class RequestDebugFilter implements Filter {
                 } catch (InterruptedException e) { }
             }
 
+            if (json != null) {
+                LOGGER.warn("Visallo Debug Header Found %s. Sending error json instead: %s", HEADER_ERROR_JSON, json);
+                httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                httpResponse.setContentType("application/json");
+                httpResponse.setCharacterEncoding("UTF-8");
+                httpResponse.getWriter().write(json);
+                return true;
+            }
+
             if (error != null) {
-                LOGGER.warn("Visallo Debug Header Found %s. Sending error instead: %s", HEADER_DELAY, error);
+                LOGGER.warn("Visallo Debug Header Found %s. Sending error instead: %s", HEADER_ERROR, error);
                 Integer code = Integer.parseInt(error);
                 ((HttpServletResponse) response).sendError(code);
                 return true;

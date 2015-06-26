@@ -63,7 +63,7 @@ define([
                     if (self.$node.is(':empty')) {
                         self.render();
                     }
-                    self.markFieldErrors(error && error.statusText || error);
+                    self.markFieldErrors(error);
                     self.clearLoading();
                 })
         };

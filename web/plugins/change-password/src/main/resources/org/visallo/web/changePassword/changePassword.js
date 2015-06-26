@@ -45,7 +45,7 @@ require(['configuration/plugins/userAccount/plugin'], function(UserAccountPlugin
                         btn.removeClass('loading').removeAttr('disabled');
                     })
                     .fail(function(e) {
-                        self.markFieldErrors(e && e.statusText || e, self.$node);
+                        self.markFieldErrors(e && e.responseText || e, self.$node);
                     })
                     .done(function() {
                         self.$node.prepend(alertTemplate({

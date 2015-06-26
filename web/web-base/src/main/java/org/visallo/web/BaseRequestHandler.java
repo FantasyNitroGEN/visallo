@@ -192,7 +192,6 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
         respondWithBadRequest(response, parameterName, errorMessage, values);
     }
 
-
     /**
      * Send a Bad Request response with JSON object mapping field error messages
      */
@@ -206,7 +205,8 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
             }
             error.put("invalidValues", values);
         }
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, error.toString());
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        respondWithJson(response, error);
     }
 
     /**
