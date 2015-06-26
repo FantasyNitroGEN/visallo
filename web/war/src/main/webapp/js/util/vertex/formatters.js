@@ -741,7 +741,7 @@ define([
                     return 'audio';
                 } else {
                     var rawProp = V.props(vertex, V.propName('raw')),
-                        rawPropMimeType = rawProp && rawProp.length && rawProp[0].metadata[V.propName('mimeType')];
+                        rawPropMimeType = rawProp && rawProp.length && rawProp[0].metadata && rawProp[0].metadata[V.propName('mimeType')];
                     if (rawPropMimeType && rawPropMimeType.indexOf('image/') === 0) {
                         return 'image';
                     } else {

@@ -8,6 +8,7 @@ define(['util/vertex/formatters'], function(f) {
         PROPERTY_NAME_FIRST = 'http://visallo.org/dev#firstName',
         PROPERTY_NAME_LAST = 'http://visallo.org/dev#lastName',
         PROPERTY_NAME_TITLE = 'http://visallo.org#title',
+        PROPERTY_NAME_RAW = 'http://visallo.org#raw',
         PROPERTY_NAME_BOOLEAN = 'http://visallo.org/dev#boolean',
         PROPERTY_NAME_DOUBLE = 'http://visallo.org/dev#duration',
         PROPERTY_NAME_DATE = 'http://visallo.org/dev#dateOnly',
@@ -22,6 +23,11 @@ define(['util/vertex/formatters'], function(f) {
         PROPERTY_NAME_GEO_AND_DATE = 'http://visallo.org/dev#geoLocationAndDate',
         PROPERTY_NAME_GEO_AND_DATE_GEO = 'http://visallo.org/dev#geoLocationAndDate/geolocation',
         PROPERTY_NAME_GEO_AND_DATE_DATE = 'http://visallo.org/dev#geoLocationAndDate/date',
+        PROPERTY_NAME_MP4_VIDEO = 'http://visallo.org#video-mp4',
+        PROPERTY_NAME_WEBM_VIDEO = 'http://visallo.org#video-webm',
+        PROPERTY_NAME_AAC_AUDIO = 'http://visallo.org#audio-aac',
+        PROPERTY_NAME_OGG_AUDIO = 'http://visallo.org#audio-ogg',
+        PROPERTY_NAME_MIMETYPE = 'http://visallo.org#mimeType',
         COMPOUND_PROPERTY_NAME = 'http://visallo.org/dev#name',
         COMPOUND_TEST_PROPERTY_NAME = 'http://visallo.org/testing#compound1',
 
@@ -677,6 +683,87 @@ define(['util/vertex/formatters'], function(f) {
                         V.propRaw(vertex, COMPOUND_TEST_PROPERTY_NAME);
                     }).to.throw('compound properties')
                 })
+            })
+        })
+
+        describe('isArtifact', function() {
+            it('should return false if the vertex has no raw propery', function() {
+                var vertex = vertexFactory('v1', []);
+                expect(V.isArtifact(vertex)).to.be.false;
+            })
+            it('should return true if the vertex has a raw propery', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_RAW, 'some document content')
+                ]);
+                expect(V.isArtifact(vertex)).to.be.true;
+            })
+        })
+
+        describe('displayType', function() {
+            it('should return \'entity\' if the passed in entity is a non-artifact entity', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'http://visallo.org/dev#person')
+                ]);
+                expect(V.displayType(vertex)).to.equal('entity');
+            })
+            it('should return \'edge\' if the passed in entity is an edge', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'relationship')
+                ]);
+                expect(V.displayType(vertex)).to.equal('edge');
+            })
+            it('should return \'video\' if the vertex has transcoded mp4 video', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'anything'),
+                    propertyFactory(PROPERTY_NAME_RAW, 'some content'),
+                    propertyFactory(PROPERTY_NAME_MP4_VIDEO, 'some content')
+                ]);
+                expect(V.displayType(vertex)).to.equal('video');
+            })
+            it('should return \'video\' if the vertex has transcoded webm video', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'anything'),
+                    propertyFactory(PROPERTY_NAME_RAW, 'some content'),
+                    propertyFactory(PROPERTY_NAME_WEBM_VIDEO, 'some content')
+                ]);
+                expect(V.displayType(vertex)).to.equal('video');
+            })
+            it('should return \'audio\' if the vertex has transcoded aac audio', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'anything'),
+                    propertyFactory(PROPERTY_NAME_RAW, 'some content'),
+                    propertyFactory(PROPERTY_NAME_AAC_AUDIO, 'some content')
+                ]);
+                expect(V.displayType(vertex)).to.equal('audio');
+            })
+            it('should return \'audio\' if the vertex has transcoded ogg audio', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'anything'),
+                    propertyFactory(PROPERTY_NAME_RAW, 'some content'),
+                    propertyFactory(PROPERTY_NAME_OGG_AUDIO, 'some content')
+                ]);
+                expect(V.displayType(vertex)).to.equal('audio');
+            })
+            it('should return \'image\' if the vertex raw property has an image mime-type', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'anything'),
+                    addMetadata(propertyFactory(PROPERTY_NAME_RAW, 'some content'), PROPERTY_NAME_MIMETYPE, 'image/png')
+                ]);
+                expect(V.displayType(vertex)).to.equal('image');
+            })
+            it('should return \'document\' if the vertex is an artifact but not a video, audio, or image', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'anything'),
+                    addMetadata(propertyFactory(PROPERTY_NAME_RAW, 'some content'), PROPERTY_NAME_MIMETYPE, 'application/pdf')
+                ]);
+                expect(V.displayType(vertex)).to.equal('document');
+            })
+            it('should return \'document\' if the vertex has raw but is missing mime type', function() {
+                var vertex = vertexFactory('v1', [
+                    propertyFactory(PROPERTY_NAME_CONCEPT, 'anything'),
+                    propertyFactory(PROPERTY_NAME_RAW, 'some content')
+                ]);
+                expect(V.displayType(vertex)).to.equal('document');
             })
         })
     });
