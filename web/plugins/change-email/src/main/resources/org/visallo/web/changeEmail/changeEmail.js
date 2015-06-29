@@ -1,5 +1,7 @@
-require(['configuration/plugins/userAccount/plugin'], function(UserAccountPlugin) {
-    UserAccountPlugin.registerUserAccountPage({
+require(['configuration/plugins/registry'], function(registry) {
+    'use strict';
+
+    registry.registerExtension('org.visallo.user.account.page', {
         identifier: 'changeEmail',
         pageComponentPath: 'org.visallo.useraccount.changeEmail'
     });
