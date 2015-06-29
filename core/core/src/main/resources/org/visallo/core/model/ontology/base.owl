@@ -320,6 +320,25 @@
     </owl:DatatypeProperty>
     
 
+    <!-- http://visallo.org#audio-mp4 -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org#audio-mp4">
+        <rdfs:label xml:lang="en">Audio MP4</rdfs:label>
+        <userVisible xml:lang="en">false</userVisible>
+        <rdfs:range rdf:resource="&xsd;hexBinary"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:DatatypeProperty>
+
+
+    <!-- http://visallo.org#audio-ogg -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org#audio-ogg">
+        <rdfs:label xml:lang="en">Audio OGG</rdfs:label>
+        <userVisible xml:lang="en">false</userVisible>
+        <rdfs:range rdf:resource="&xsd;hexBinary"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:DatatypeProperty>
+
 
     <!-- http://visallo.org#cached-image -->
 
