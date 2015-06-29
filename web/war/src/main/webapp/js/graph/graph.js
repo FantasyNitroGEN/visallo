@@ -1359,10 +1359,12 @@ define([
                 event.cyTarget.select();
             }
 
-            this.trigger('updateWorkspace', {
-                entityUpdates: verticesMoved
-            });
-            this.setWorkspaceDirty();
+            if (distance > 0) {
+                this.trigger('updateWorkspace', {
+                    entityUpdates: verticesMoved
+                });
+                this.setWorkspaceDirty();
+            }
         };
 
         this.graphMouseOver = function(event) {

@@ -235,9 +235,14 @@ define([
         },
 
         edges: function(workspaceId, additionalVertices) {
-            return ajax('GET', '/workspace/edges', {
+            var params = {
                 workspaceId: workspaceId || publicData.currentWorkspaceId
-            }).then(function(result) {
+            };
+            if (additionalVertices && additionalVertices.length) {
+                params.ids = additionalVertices
+            }
+
+            return ajax('GET', '/workspace/edges', params).then(function(result) {
                 return result.edges;
             })
         },

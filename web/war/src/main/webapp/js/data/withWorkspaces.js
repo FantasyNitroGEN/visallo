@@ -72,7 +72,7 @@ define(['util/undoManager'], function(UndoManager) {
         this.onLoadEdges = function(event, data) {
             var self = this;
             this.dataRequestPromise.done(function(dataRequest) {
-                dataRequest('workspace', 'edges', data && data.workspaceId)
+                dataRequest('workspace', 'edges', data && data.workspaceId, data && data.vertexIds)
                     .done(function(edges) {
                         self.edgesLoaded({ edges: edges });
                     })
@@ -143,7 +143,8 @@ define(['util/undoManager'], function(UndoManager) {
             this.trigger('workspaceUpdated', message);
             if (message.newVertices.length) {
                 this.trigger('loadEdges', {
-                    workspaceId: message.workspace.workspaceId
+                    workspaceId: message.workspace.workspaceId,
+                    vertexIds: _.pluck(message.newVertices, 'id')
                 });
             }
         };
