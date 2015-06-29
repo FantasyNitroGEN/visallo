@@ -390,6 +390,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     createEdge(workspaceVertex, otherVertex, update.getGraphPosition(), update.getGraphLayoutJson(), update.getVisible(), authorizations);
                 }
                 getGraph().flush();
+                workspaceEntitiesCached.invalidateAll();
             }
         });
     }
