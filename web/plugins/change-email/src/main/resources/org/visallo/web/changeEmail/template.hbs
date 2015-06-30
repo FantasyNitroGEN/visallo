@@ -3,7 +3,11 @@
 
 <label>
     {{ i18n 'useraccount.page.changeEmail.label' }}<br>
-    <input type="text" class="current" value="{{ email }}">
+    <input type="text"
+           class="current"
+           required
+           pattern="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
+           value="{{ email }}">
 </label>
 
 <button style="margin: 1em 0;width: 100%;" class="btn btn-primary">{{ i18n 'useraccount.page.changeEmail.button' }}</button>

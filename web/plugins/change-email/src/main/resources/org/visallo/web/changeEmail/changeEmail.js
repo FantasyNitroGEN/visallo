@@ -15,7 +15,8 @@ require(['configuration/plugins/registry'], function(registry) {
 
         function ChangeEmail() {
             this.defaultAttrs({
-                buttonSelector: 'button'
+                buttonSelector: 'button',
+                inputSelector: 'input'
             });
 
             this.after('initialize', function() {
@@ -29,8 +30,24 @@ require(['configuration/plugins/registry'], function(registry) {
 
                 this.on('click', {
                     buttonSelector: this.onChange
-                })
+                });
+                this.on('change keyup', {
+                    inputSelector: this.validateEmail
+                });
             });
+
+            this.validateEmail = function(event) {
+                var inputs = this.select('inputSelector'),
+                    anyInvalid = inputs.filter(function(i, input) {
+                                    return input.validity && !input.validity.valid;
+                                 }).length;
+
+                if (anyInvalid) {
+                    this.select('buttonSelector').attr('disabled', true);
+                } else {
+                    this.select('buttonSelector').removeAttr('disabled');
+                }
+            };
 
             this.onChange = function(event) {
                 var self = this,
