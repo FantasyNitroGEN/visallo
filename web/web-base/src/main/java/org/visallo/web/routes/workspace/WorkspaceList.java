@@ -33,9 +33,9 @@ public class WorkspaceList extends BaseRequestHandler {
         String workspaceId = getWorkspaceIdOrDefault(request);
         Authorizations authorizations = null;
         if (workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user)) {
-            authorizations = userRepository.getAuthorizations(user, workspaceId);
+            authorizations = getUserRepository().getAuthorizations(user, workspaceId);
         } else {
-            authorizations = userRepository.getAuthorizations(user);
+            authorizations = getUserRepository().getAuthorizations(user);
         }
         ClientApiWorkspaces results = handle(user, authorizations);
         respondWithClientApiObject(response, results);
