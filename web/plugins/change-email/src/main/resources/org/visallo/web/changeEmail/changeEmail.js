@@ -15,7 +15,7 @@ require(['configuration/plugins/registry'], function(registry) {
 
         function ChangeEmail() {
             this.defaultAttrs({
-                buttonSelector: 'button',
+                buttonSelector: 'button.btn-primary',
                 inputSelector: 'input'
             });
 
