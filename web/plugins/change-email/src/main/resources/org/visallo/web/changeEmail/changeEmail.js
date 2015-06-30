@@ -26,6 +26,7 @@ require(['configuration/plugins/registry'], function(registry) {
                     self.$node.html(template({
                         email: visalloData.currentUser.email
                     }));
+                    self.validateEmail();
                 });
 
                 this.on('click', {
