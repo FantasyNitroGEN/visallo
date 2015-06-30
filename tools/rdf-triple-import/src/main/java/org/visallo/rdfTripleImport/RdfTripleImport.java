@@ -12,6 +12,8 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RdfTripleImport {
     public static final String MULTI_KEY = RdfTripleImport.class.getSimpleName();
@@ -30,13 +32,15 @@ public class RdfTripleImport {
     public static final String PROPERTY_TYPE_INT = "http://www.w3.org/2001/XMLSchema#int";
     public static final String PROPERTY_TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
     private final Graph graph;
-    private final Visibility visibility;
     private final Authorizations authorizations;
     private final TimeZone timeZone;
+    private final Visibility defaultVisibility;
+    private final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
+    private final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
 
-    public RdfTripleImport(Graph graph, TimeZone timeZone, Visibility visibility, Authorizations authorizations) {
+    public RdfTripleImport(Graph graph, TimeZone timeZone, Visibility defaultVisibility, Authorizations authorizations) {
         this.graph = graph;
-        this.visibility = visibility;
+        this.defaultVisibility = defaultVisibility;
         this.timeZone = timeZone;
         this.authorizations = authorizations;
     }
@@ -64,45 +68,63 @@ public class RdfTripleImport {
         String vertexId = ((RdfTriple.UriPart) rdfTriple.getFirst()).getUri();
         String label = ((RdfTriple.UriPart) rdfTriple.getSecond()).getUri();
         RdfTriple.Part third = rdfTriple.getThird();
+        Visibility vertexVisibility = this.defaultVisibility;
+
+        Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(vertexId);
+        if (visibilityMatcher.matches()) {
+            vertexId = visibilityMatcher.group(1);
+            vertexVisibility = new Visibility(visibilityMatcher.group(2));
+        }
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
-            setConceptType(vertexId, third, metadata);
+            setConceptType(vertexId, third, metadata, vertexVisibility);
             return true;
         }
 
         if (third instanceof RdfTriple.LiteralPart) {
-            setProperty(vertexId, label, (RdfTriple.LiteralPart) third, metadata);
+            setProperty(vertexId, vertexVisibility, label, (RdfTriple.LiteralPart) third, metadata, this.defaultVisibility);
             return true;
         }
 
         if (third instanceof RdfTriple.UriPart) {
-            addEdge(vertexId, label, ((RdfTriple.UriPart) third).getUri());
+            addEdge(vertexId, label, ((RdfTriple.UriPart) third).getUri(), this.defaultVisibility);
             return true;
         }
 
         return false;
     }
 
-    private void addEdge(String outVertexId, String label, String inVertexId) {
+    private void addEdge(String outVertexId, String label, String inVertexId, Visibility visibility) {
         String edgeId = outVertexId + "_" + label + "_" + inVertexId;
+
+        Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(label);
+        if (visibilityMatcher.matches()) {
+            label = visibilityMatcher.group(1);
+            visibility = new Visibility(visibilityMatcher.group(2));
+        }
+
         graph.addEdge(edgeId, outVertexId, inVertexId, label, visibility, authorizations);
     }
 
-    private void setProperty(String vertexId, String label, RdfTriple.LiteralPart propertyValuePart, Metadata metadata) {
-        VertexBuilder m = graph.prepareVertex(vertexId, visibility);
+    private void setProperty(String vertexId, Visibility elementVisibility, String label, RdfTriple.LiteralPart propertyValuePart, Metadata metadata, Visibility visibility) {
+        VertexBuilder m = graph.prepareVertex(vertexId, elementVisibility);
         String propertyKey = MULTI_KEY;
-        String propertyName = label;
-        int lastHash = label.lastIndexOf('#');
-        if (lastHash > 0) {
-            int colonAfterHash = label.indexOf(':', lastHash);
-            if (colonAfterHash > 0) {
-                propertyName = label.substring(0, colonAfterHash);
-                propertyKey = label.substring(colonAfterHash + 1);
-            }
+        Visibility propertyVisibility = visibility;
+        Matcher visibilityMatch = VISIBILITY_PATTERN.matcher(label);
+        if (visibilityMatch.matches()) {
+            label = visibilityMatch.group(1);
+            propertyVisibility = new Visibility(visibilityMatch.group(2));
         }
 
+        Matcher keyMatch = PROPERTY_KEY_PATTERN.matcher(label);
+        if (keyMatch.matches()) {
+            label = keyMatch.group(1);
+            propertyKey = keyMatch.group(2);
+        }
+
+        String propertyName = label;
         Object propertyValue = getPropertyValue(propertyValuePart);
-        m.addPropertyValue(propertyKey, propertyName, propertyValue, metadata, visibility);
+        m.addPropertyValue(propertyKey, propertyName, propertyValue, metadata, propertyVisibility);
         m.save(authorizations);
     }
 
@@ -168,7 +190,7 @@ public class RdfTripleImport {
         return visalloDateTime.toDateGMT();
     }
 
-    private void setConceptType(String vertexId, RdfTriple.Part third, Metadata metadata) {
+    private void setConceptType(String vertexId, RdfTriple.Part third, Metadata metadata, Visibility visibility) {
         VertexBuilder m = graph.prepareVertex(vertexId, visibility);
         String conceptType = getConceptType(third);
         VisalloProperties.CONCEPT_TYPE.setProperty(m, conceptType, metadata, visibility);

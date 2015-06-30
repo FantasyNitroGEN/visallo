@@ -32,7 +32,7 @@ public class RdfTripleImportTest {
         graph = InMemoryGraph.create();
         metadata = new Metadata();
         Visibility visibility = new Visibility("");
-        authorizations = graph.createAuthorizations();
+        authorizations = graph.createAuthorizations("A");
         TimeZone timeZone = TimeZone.getDefault();
         rdfTripleImport = new RdfTripleImport(graph, timeZone, visibility, authorizations);
         graph.addVertex("v1", new Visibility(""), authorizations);
@@ -46,6 +46,21 @@ public class RdfTripleImportTest {
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
+        assertEquals("http://visallo.org/test#type1", VisalloProperties.CONCEPT_TYPE.getPropertyValue(v1));
+        assertNotNull(v1);
+    }
+
+    @Test
+    public void testImportVertexWithVisibility() {
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        graph.deleteVertex(v1, authorizations);
+        graph.flush();
+
+        rdfTripleImport.importRdfLine("<v1[A]> <" + RdfTripleImport.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>", metadata);
+        graph.flush();
+
+        v1 = graph.getVertex("v1", authorizations);
+        assertEquals("A", v1.getVisibility().getVisibilityString());
         assertEquals("http://visallo.org/test#type1", VisalloProperties.CONCEPT_TYPE.getPropertyValue(v1));
         assertNotNull(v1);
     }
@@ -120,6 +135,30 @@ public class RdfTripleImportTest {
     }
 
     @Test
+    public void testImportPropertyVisibility() {
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1[A]> \"hello world\"", metadata);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        Property property = v1.getProperty("http://visallo.org/test#prop1");
+        assertNotNull("Could not find property", property);
+        assertEquals("hello world", property.getValue());
+        assertEquals("A", property.getVisibility().getVisibilityString());
+    }
+
+    @Test
+    public void testImportPropertyVisibilityAndKey() {
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1:key1[A]> \"hello world\"", metadata);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        Property property = v1.getProperty("key1", "http://visallo.org/test#prop1");
+        assertNotNull("Could not find property with key", property);
+        assertEquals("hello world", property.getValue());
+        assertEquals("A", property.getVisibility().getVisibilityString());
+    }
+
+    @Test
     public void testImportStreamingPropertyValue() throws IOException {
         File file = File.createTempFile(RdfTripleImportTest.class.getName(), "txt");
         file.deleteOnExit();
@@ -155,6 +194,20 @@ public class RdfTripleImportTest {
         assertEquals(1, v1.getEdgeCount(Direction.OUT, authorizations));
         List<Edge> edges = toList(v1.getEdges(Direction.OUT, authorizations));
         assertEquals(1, edges.size());
+        assertEquals("http://visallo.org/test#edgeLabel1", edges.get(0).getLabel());
+        assertEquals("v2", edges.get(0).getOtherVertex("v1", authorizations).getId());
+    }
+
+    @Test
+    public void testImportEdgeWithVisibility() {
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#edgeLabel1[A]> <v2>", metadata);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        assertEquals(1, v1.getEdgeCount(Direction.OUT, authorizations));
+        List<Edge> edges = toList(v1.getEdges(Direction.OUT, authorizations));
+        assertEquals(1, edges.size());
+        assertEquals("A", edges.get(0).getVisibility().getVisibilityString());
         assertEquals("http://visallo.org/test#edgeLabel1", edges.get(0).getLabel());
         assertEquals("v2", edges.get(0).getOtherVertex("v1", authorizations).getId());
     }
