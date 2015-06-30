@@ -30,7 +30,13 @@ public class WorkspaceList extends BaseRequestHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
         User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
+        String workspaceId = getWorkspaceIdOrDefault(request);
+        Authorizations authorizations = null;
+        if (workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user)) {
+            authorizations = getUserRepository().getAuthorizations(user, workspaceId);
+        } else {
+            authorizations = getUserRepository().getAuthorizations(user);
+        }
         ClientApiWorkspaces results = handle(user, authorizations);
         respondWithClientApiObject(response, results);
     }

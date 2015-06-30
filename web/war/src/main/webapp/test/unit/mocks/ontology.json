@@ -1101,12 +1101,20 @@
       ]
     },
     {
+      "title": "http://visallo.org/media#fileSizeLegacy",
+      "displayName": "File Size",
+      "userVisible": true,
+      "searchable": true,
+      "dataType": "integer",
+      "displayType": "byte"
+    },
+    {
       "title": "http://visallo.org/media#fileSize",
       "displayName": "File Size",
       "userVisible": true,
       "searchable": true,
       "dataType": "integer",
-      "displayType": "byte",
+      "displayType": "bytes",
       "intents": [
         "media.fileSize"
       ]

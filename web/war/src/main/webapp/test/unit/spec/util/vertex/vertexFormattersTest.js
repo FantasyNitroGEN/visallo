@@ -28,6 +28,8 @@ define(['util/vertex/formatters'], function(f) {
         PROPERTY_NAME_AAC_AUDIO = 'http://visallo.org#audio-aac',
         PROPERTY_NAME_OGG_AUDIO = 'http://visallo.org#audio-ogg',
         PROPERTY_NAME_MIMETYPE = 'http://visallo.org#mimeType',
+        PROPERTY_NAME_FILESIZE_LEGACY = 'http://visallo.org/media#fileSizeLegacy',
+        PROPERTY_NAME_FILESIZE = 'http://visallo.org/media#fileSize',
         COMPOUND_PROPERTY_NAME = 'http://visallo.org/dev#name',
         COMPOUND_TEST_PROPERTY_NAME = 'http://visallo.org/testing#compound1',
 
@@ -125,6 +127,12 @@ define(['util/vertex/formatters'], function(f) {
             })
         })
 
+        describe('properties', function() {
+            it('should support legacy byte displayType', function() {
+                V.properties.bytes.should.equal(V.properties.byte);
+            })
+        })
+
         describe('propDisplay', function() {
             it('should have propDisplay function', function() {
                 V.should.have.property('propDisplay').that.is.a.function
@@ -144,6 +152,11 @@ define(['util/vertex/formatters'], function(f) {
 
                 V.propDisplay(PROPERTY_NAME_TITLE, 'test string',
                     { palantirPrettyPrint: true }).should.equal('Test String')
+            })
+
+            it('should support legacy byte or bytes displayType', function() {
+                V.propDisplay(PROPERTY_NAME_FILESIZE, 4096).should.equal('4.0 bytes.kilo')
+                V.propDisplay(PROPERTY_NAME_FILESIZE_LEGACY, 2048).should.equal('2.0 bytes.kilo')
             })
         })
 
