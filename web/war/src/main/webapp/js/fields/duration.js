@@ -12,7 +12,11 @@ define([
     return defineComponent(DurationField, withPropertyField, withHistogram);
 
     function toSeconds(v) {
-        return Duration.parse(v).milliseconds() / 1000.0;
+        try {
+            return Duration.parse(v).milliseconds() / 1000.0;
+        } catch (e) {
+            return NaN;
+        }
     }
 
     function DurationField() {
@@ -37,25 +41,17 @@ define([
         });
 
         this.triggerFieldUpdated = function() {
-            if (this.isValid()) {
-                this.filterUpdated(
-                    this.getValues().map(function(v) {
-                        return toSeconds(v);
-                    }),
-                    this.select('predicateSelector').val()
-                );
-            }
+            this.filterUpdated(
+                this.getValues().map(function(v) {
+                    return toSeconds(v);
+                }),
+                this.select('predicateSelector').val()
+            );
         };
 
         this.isValid = function() {
-            var values = this.getValues();
-            return _.every(values, function(v) {
-                try {
-                    toSeconds(v);
-                    return true;
-                } catch (e) {
-                    return false;
-                }
+            return !_.any(this.getValues(), function(v) {
+                return isNaN(toSeconds(v));
             });
         };
     }

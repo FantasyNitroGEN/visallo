@@ -73,10 +73,8 @@ define(['util/withTeardown'], function(withTeardown) {
         });
 
         this.filterUpdated = function(values, predicate, options) {
-            values = $.isArray(values) ? values : [values];
-
             if (!_.isFunction(this.isValid) || this.isValid()) {
-
+                values = $.isArray(values) ? values : [values];
                 if (
                     (!this._previousValues ||
                         (this._previousValues && !_.isEqual(this._previousValues, values))) ||

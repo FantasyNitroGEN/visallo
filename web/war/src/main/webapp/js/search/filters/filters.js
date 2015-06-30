@@ -379,7 +379,6 @@ define([
             li.addClass('invalid');
 
             delete this.propertyFilters[data.id];
-            this.notifyOfFilters();
         };
 
         this.createFieldSelection = function() {
