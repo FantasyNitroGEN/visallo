@@ -24,7 +24,7 @@ define([
 
             this.$node.html(template(this.attr));
 
-            $(this.$node.find('.input-row input')).attr('placeholder', '5h 40m 30s').attr('pattern', '[\\d,.wdhms ]+');
+            $(this.$node.find('.input-row input')).attr('pattern', '^([\\d.]+[wdhms]+[\\s,;:]*)+$');
 
             this.updateRangeVisibility();
 
