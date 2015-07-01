@@ -44,7 +44,9 @@ public class CuratorUserSessionCounterRepositoryTest {
     @Mock
     private DeleteBuilder deleteBuilder;
     @Mock
-    private Pathable<Void> backgroundDelete;
+    private BackgroundVersionable backgroundDeleteVersionable;
+    @Mock
+    private Pathable<Void> pathable;
     @Mock
     private SetDataBuilder setDataBuilder;
     @Mock
@@ -56,7 +58,6 @@ public class CuratorUserSessionCounterRepositoryTest {
     private CuratorUserSessionCounterRepository uscRepository;
 
     @Before
-    @SuppressWarnings("unchecked")
     public void before() throws Exception {
         configuration = new HashMapConfigurationLoader(ImmutableMap.of(
                 Configuration.USER_SESSION_COUNTER_PATH_PREFIX, BASE_PATH
@@ -75,7 +76,8 @@ public class CuratorUserSessionCounterRepositoryTest {
         when(curator.create()).thenReturn(createBuilder);
         when(createBuilder.creatingParentsIfNeeded()).thenReturn(parentPathBuilder);
         when(curator.delete()).thenReturn(deleteBuilder);
-        when(deleteBuilder.inBackground()).thenReturn(backgroundDelete);
+        when(deleteBuilder.deletingChildrenIfNeeded()).thenReturn(backgroundDeleteVersionable);
+        when(backgroundDeleteVersionable.inBackground()).thenReturn(pathable);
         when(curator.setData()).thenReturn(setDataBuilder);
         when(curator.getData()).thenReturn(getDataBuilder);
         when(curator.getChildren()).thenReturn(getChildrenBuilder);
@@ -150,8 +152,9 @@ public class CuratorUserSessionCounterRepositoryTest {
 
         verifyZeroInteractions(createBuilder);
         verifyZeroInteractions(setDataBuilder);
+        verifyZeroInteractions(backgroundDeleteVersionable);
+        verifyZeroInteractions(pathable);
         verify(deleteBuilder).forPath(SESSION_PATH);
-        verifyNoMoreInteractions(deleteBuilder);
         assertEquals(expectedSessionCount, sessionCount);
     }
 
@@ -167,10 +170,12 @@ public class CuratorUserSessionCounterRepositoryTest {
         verifyZeroInteractions(createBuilder);
         verifyZeroInteractions(setDataBuilder);
         verify(deleteBuilder).forPath(SESSION_PATH);
-        verify(deleteBuilder).inBackground();
-        verify(backgroundDelete).forPath(USER_PATH);
+        verify(deleteBuilder).deletingChildrenIfNeeded();
+        verify(backgroundDeleteVersionable).inBackground();
+        verify(pathable).forPath(USER_PATH);
         verifyNoMoreInteractions(deleteBuilder);
-        verifyNoMoreInteractions(backgroundDelete);
+        verifyNoMoreInteractions(backgroundDeleteVersionable);
+        verifyNoMoreInteractions(pathable);
         assertEquals(expectedSessionCount, sessionCount);
     }
 
@@ -193,10 +198,12 @@ public class CuratorUserSessionCounterRepositoryTest {
 
         verifyZeroInteractions(createBuilder);
         verifyZeroInteractions(setDataBuilder);
-        verify(deleteBuilder).inBackground();
-        verify(backgroundDelete).forPath(sessionPaths[0]); // the only session deleted!
+        verify(deleteBuilder).deletingChildrenIfNeeded();
+        verify(backgroundDeleteVersionable).inBackground();
+        verify(pathable).forPath(sessionPaths[0]);
         verifyNoMoreInteractions(deleteBuilder);
-        verifyNoMoreInteractions(backgroundDelete);
+        verifyNoMoreInteractions(backgroundDeleteVersionable);
+        verifyNoMoreInteractions(pathable);
     }
 
     private Stat newStat(int numChildren, long modTime) {
