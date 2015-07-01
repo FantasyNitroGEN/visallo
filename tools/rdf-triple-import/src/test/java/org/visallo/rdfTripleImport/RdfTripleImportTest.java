@@ -8,6 +8,7 @@ import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.VisalloDate;
 import org.visallo.core.util.VisalloDateTime;
 
@@ -60,7 +61,7 @@ public class RdfTripleImportTest {
         graph.flush();
 
         v1 = graph.getVertex("v1", authorizations);
-        assertEquals("A", v1.getVisibility().getVisibilityString());
+        assertEquals(new VisalloVisibility("A").getVisibility().getVisibilityString(), v1.getVisibility().getVisibilityString());
         assertEquals("http://visallo.org/test#type1", VisalloProperties.CONCEPT_TYPE.getPropertyValue(v1));
         assertNotNull(v1);
     }
@@ -143,7 +144,7 @@ public class RdfTripleImportTest {
         Property property = v1.getProperty("http://visallo.org/test#prop1");
         assertNotNull("Could not find property", property);
         assertEquals("hello world", property.getValue());
-        assertEquals("A", property.getVisibility().getVisibilityString());
+        assertEquals(new VisalloVisibility("A").getVisibility().getVisibilityString(), property.getVisibility().getVisibilityString());
     }
 
     @Test
@@ -155,7 +156,7 @@ public class RdfTripleImportTest {
         Property property = v1.getProperty("key1", "http://visallo.org/test#prop1");
         assertNotNull("Could not find property with key", property);
         assertEquals("hello world", property.getValue());
-        assertEquals("A", property.getVisibility().getVisibilityString());
+        assertEquals(new VisalloVisibility("A").getVisibility().getVisibilityString(), property.getVisibility().getVisibilityString());
     }
 
     @Test
@@ -207,7 +208,7 @@ public class RdfTripleImportTest {
         assertEquals(1, v1.getEdgeCount(Direction.OUT, authorizations));
         List<Edge> edges = toList(v1.getEdges(Direction.OUT, authorizations));
         assertEquals(1, edges.size());
-        assertEquals("A", edges.get(0).getVisibility().getVisibilityString());
+        assertEquals(new VisalloVisibility("A").getVisibility().getVisibilityString(), edges.get(0).getVisibility().getVisibilityString());
         assertEquals("http://visallo.org/test#edgeLabel1", edges.get(0).getLabel());
         assertEquals("v2", edges.get(0).getOtherVertex("v1", authorizations).getId());
     }

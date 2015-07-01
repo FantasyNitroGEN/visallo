@@ -5,12 +5,15 @@ import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.VisalloDate;
 import org.visallo.core.util.VisalloDateTime;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,6 +40,7 @@ public class RdfTripleImport {
     private final Visibility defaultVisibility;
     private final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
     private final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
+    private final Map<String, Visibility> visibilityCache = new HashMap<>();
 
     public RdfTripleImport(Graph graph, TimeZone timeZone, Visibility defaultVisibility, Authorizations authorizations) {
         this.graph = graph;
@@ -73,7 +77,7 @@ public class RdfTripleImport {
         Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(vertexId);
         if (visibilityMatcher.matches()) {
             vertexId = visibilityMatcher.group(1);
-            vertexVisibility = new Visibility(visibilityMatcher.group(2));
+            vertexVisibility = getVisibility(visibilityMatcher.group(2));
         }
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
@@ -100,7 +104,7 @@ public class RdfTripleImport {
         Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(label);
         if (visibilityMatcher.matches()) {
             label = visibilityMatcher.group(1);
-            visibility = new Visibility(visibilityMatcher.group(2));
+            visibility = getVisibility(visibilityMatcher.group(2));
         }
 
         graph.addEdge(edgeId, outVertexId, inVertexId, label, visibility, authorizations);
@@ -113,7 +117,7 @@ public class RdfTripleImport {
         Matcher visibilityMatch = VISIBILITY_PATTERN.matcher(label);
         if (visibilityMatch.matches()) {
             label = visibilityMatch.group(1);
-            propertyVisibility = new Visibility(visibilityMatch.group(2));
+            propertyVisibility = getVisibility(visibilityMatch.group(2));
         }
 
         Matcher keyMatch = PROPERTY_KEY_PATTERN.matcher(label);
@@ -207,5 +211,15 @@ public class RdfTripleImport {
         }
 
         throw new VisalloException("Unhandled part type: " + third.getClass().getName());
+    }
+
+    private Visibility getVisibility(String visibilityString) {
+        Visibility visibility = visibilityCache.get(visibilityString);
+        if (visibility != null) {
+            return visibility;
+        }
+        visibility = new VisalloVisibility(visibilityString).getVisibility();
+        visibilityCache.put(visibilityString, visibility);
+        return visibility;
     }
 }
