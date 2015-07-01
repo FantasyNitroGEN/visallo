@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>visallo-core-group</artifactId>
-    <name>Visallo: Core</name>
+    <name>Visallo: Core Group</name>
     <packaging>pom</packaging>
 
     <modules>

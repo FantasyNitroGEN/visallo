@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.property.StreamingPropertyValue;
+import org.vertexium.type.GeoPoint;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.VisalloDate;
@@ -124,6 +125,19 @@ public class RdfTripleImportTest {
         VisalloDateTime dateTime = VisalloDateTime.create(v1.getPropertyValue(RdfTripleImport.MULTI_KEY, "http://visallo.org/test#prop1"));
         assertEquals(new VisalloDateTime(2015, 5, 21, 8, 42, 22, 0, "America/Anchorage"), dateTime);
         assertEquals("Time incorrect: " + dateTime.toDateGMT(), 1432226542000L, dateTime.getEpoch());
+    }
+
+    @Test
+    public void testImportGeoPoint() {
+        String line = "<v1> <http://visallo.org/test#prop1> \"Dulles International Airport, VA [38.955589294433594, -77.44930267333984]\"^^<" + RdfTripleImport.PROPERTY_TYPE_GEOLOCATION + ">";
+        rdfTripleImport.importRdfLine(line, metadata);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        GeoPoint prop1 = (GeoPoint) v1.getPropertyValue(RdfTripleImport.MULTI_KEY, "http://visallo.org/test#prop1");
+        assertEquals("Dulles International Airport, VA", prop1.getDescription());
+        assertEquals(38.955589294433594, prop1.getLatitude(), 0.00001);
+        assertEquals(-77.44930267333984, prop1.getLongitude(), 0.00001);
     }
 
     @Test
