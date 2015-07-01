@@ -25,6 +25,7 @@ import java.io.InputStream;
 @Description("Encodes audio into the OGG format")
 public class AudioOggEncodingWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AudioOggEncodingWorker.class);
+    private static final String PROPERTY_KEY = "";
     private ProcessRunner processRunner;
 
     @Override
@@ -53,6 +54,7 @@ public class AudioOggEncodingWorker extends GraphPropertyWorker {
                 MediaVisalloProperties.AUDIO_OGG.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
                 getGraph().flush();
+                getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), PROPERTY_KEY, MediaVisalloProperties.AUDIO_OGG.getPropertyName(), data.getPriority());
             }
         } finally {
             if (!mp4File.delete()) {

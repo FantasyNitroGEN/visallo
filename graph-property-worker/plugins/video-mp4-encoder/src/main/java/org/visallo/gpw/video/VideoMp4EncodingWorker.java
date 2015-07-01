@@ -30,6 +30,7 @@ import java.util.ArrayList;
 @Description("Encodes video into MP4 format")
 public class VideoMp4EncodingWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VideoMp4EncodingWorker.class);
+    private static final String PROPERTY_KEY = "";
     private ProcessRunner processRunner;
     private IntegerVisalloProperty videoRotationProperty;
 
@@ -93,6 +94,7 @@ public class VideoMp4EncodingWorker extends GraphPropertyWorker {
                 MediaVisalloProperties.VIDEO_MP4.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
                 getGraph().flush();
+                getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), PROPERTY_KEY, MediaVisalloProperties.VIDEO_MP4.getPropertyName(), data.getPriority());
             }
         } finally {
             if (!mp4File.delete()) {
