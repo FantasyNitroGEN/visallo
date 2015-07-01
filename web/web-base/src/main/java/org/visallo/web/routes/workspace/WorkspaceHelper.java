@@ -62,6 +62,14 @@ public class WorkspaceHelper {
             return;
         }
 
+        String resolveEdgeId = VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID.getPropertyValue(termMention, null);
+        if (resolveEdgeId != null) {
+            Edge resolveEdge = graph.getEdge(resolveEdgeId, authorizations);
+            graph.softDeleteEdge(resolveEdge, authorizations);
+            graph.flush();
+            workQueueRepository.pushEdgeDeletion(resolveEdge);
+        }
+
         termMentionRepository.delete(termMention, authorizations);
         workQueueRepository.pushTextUpdated(sourceVertex.getId());
 
