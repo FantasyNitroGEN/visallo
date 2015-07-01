@@ -140,9 +140,9 @@ define([
         });
 
         this.triggerFieldUpdated = function() {
+            var values = this.getValues(),
+                predicate = this.select('predicateSelector').val();
             if (this.isValid()) {
-                var values = this.getValues(),
-                    predicate = this.select('predicateSelector').val();
                 if (this.displayTime) {
                     // apply seconds to the time
                     if (predicate === '=') {
@@ -159,14 +159,14 @@ define([
                         values[0] += ':59';
                     }
                 }
-                this.filterUpdated(
-                    values,
-                    predicate,
-                    {
-                        metadata: this.currentTimezoneMetadata
-                    }
-                );
             }
+            this.filterUpdated(
+                values,
+                predicate,
+                {
+                    metadata: this.currentTimezoneMetadata
+                }
+            );
         };
 
         this.onSelectTimezone = function(event, data) {
