@@ -30,6 +30,7 @@ import java.util.ArrayList;
 @Description("Encodes video into WebM format")
 public class VideoWebMEncodingWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VideoWebMEncodingWorker.class);
+    private static final String PROPERTY_KEY = "";
     private ProcessRunner processRunner;
     private IntegerVisalloProperty videoRotationProperty;
 
@@ -81,6 +82,7 @@ public class VideoWebMEncodingWorker extends GraphPropertyWorker {
                 MediaVisalloProperties.VIDEO_WEBM.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
                 getGraph().flush();
+                getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), PROPERTY_KEY, MediaVisalloProperties.VIDEO_WEBM.getPropertyName(), data.getPriority());
             }
         } finally {
             if (!webmFile.delete()) {

@@ -25,6 +25,7 @@ import java.io.InputStream;
 @Description("Encodes audio into the MP4 format")
 public class AudioMp4EncodingWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AudioMp4EncodingWorker.class);
+    private static final String PROPERTY_KEY = "";
     private ProcessRunner processRunner;
 
     @Override
@@ -53,6 +54,7 @@ public class AudioMp4EncodingWorker extends GraphPropertyWorker {
                 MediaVisalloProperties.AUDIO_MP4.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
                 getGraph().flush();
+                getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), PROPERTY_KEY, MediaVisalloProperties.AUDIO_MP4.getPropertyName(), data.getPriority());
             }
         } finally {
             if (!mp4File.delete()) {
