@@ -106,13 +106,14 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
         try {
             Stat sessionStat = curator.checkExists().forPath(sessionPath);
             if (sessionStat != null) {
-                curator.delete().forPath(sessionPath);
+                curator.delete().forPath(sessionPath); // must be synchronous so count is accurate
             }
             int count = countUserSessions(userId);
+            LOGGER.debug("user session count for %s is %d", userId, count);
             if (count < 1) {
+                LOGGER.debug("deleting user %s with no remaining sessions", userId);
                 deleteInBackground(userPath(userId));
             }
-            LOGGER.debug("user session count for %s is %d", userId, count);
             return count;
         } catch (Exception e) {
             throw new VisalloException("failed to delete user session " + userId, e);
@@ -129,8 +130,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
     }
 
     protected void deleteInBackground(String path) throws Exception {
-        LOGGER.debug("deleting path %s", path);
-        curator.delete().inBackground().forPath(path);
+        curator.delete().deletingChildrenIfNeeded().inBackground().forPath(path);
     }
 
     protected String userPath(String userId) {
@@ -175,7 +175,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
                 }
                 if (autoDelete) {
                     LOGGER.debug("deleting old user session %s", sessionPath);
-                    curator.delete().inBackground().forPath(sessionPath);
+                    deleteInBackground(sessionPath);
                 }
             }
         }
