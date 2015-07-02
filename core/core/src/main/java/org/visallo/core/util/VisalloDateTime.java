@@ -7,7 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class VisalloDateTime {
+public class VisalloDateTime implements Comparable<VisalloDateTime> {
     private static final String DATE_TIME_NO_TIME_ZONE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     private static final TimeZone GMT = TimeZone.getTimeZone("GMT");
     private final VisalloTime time;
@@ -72,6 +72,11 @@ public class VisalloDateTime {
             return create(((Calendar) obj).getTime(), ((Calendar) obj).getTimeZone());
         }
         throw new VisalloException("Invalid object type to convert to " + VisalloDateTime.class.getSimpleName() + ": " + obj.getClass().getName());
+    }
+
+    public static VisalloDateTime create(Date date, String timeZoneString) {
+        TimeZone timeZone = TimeZone.getTimeZone(timeZoneString);
+        return create(date, timeZone);
     }
 
     public static VisalloDateTime create(Date date, TimeZone timeZone) {
@@ -148,5 +153,22 @@ public class VisalloDateTime {
 
     public Date getJavaDate() {
         return new Date(getEpoch());
+    }
+
+    public VisalloDateTime add(int amount, VisalloDate.Unit units) {
+        switch (units) {
+            case DAY:
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(getJavaDate());
+                cal.add(Calendar.DATE, amount);
+                return VisalloDateTime.create(cal.getTime(), getTimeZone());
+            default:
+                throw new VisalloException("Unhandled unit: " + units);
+        }
+    }
+
+    @Override
+    public int compareTo(VisalloDateTime o) {
+        return this.getJavaDate().compareTo(o.getJavaDate());
     }
 }

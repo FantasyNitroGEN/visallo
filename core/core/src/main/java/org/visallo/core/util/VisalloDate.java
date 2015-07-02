@@ -11,6 +11,11 @@ import java.util.TimeZone;
 public class VisalloDate {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final TimeZone GMT = TimeZone.getTimeZone("GMT");
+
+    public enum Unit {
+        DAY
+    }
+
     private final String year;
     private final String month;
     private final String date;
