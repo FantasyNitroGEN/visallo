@@ -448,55 +448,59 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected void importDataProperty(OWLOntology o, OWLDataProperty dataTypeProperty) {
         String propertyIRI = dataTypeProperty.getIRI().toString();
-        String propertyDisplayName = getLabel(o, dataTypeProperty);
-        PropertyType propertyType = getPropertyType(o, dataTypeProperty);
-        boolean userVisible = getUserVisible(o, dataTypeProperty);
-        boolean searchable = getSearchable(o, dataTypeProperty);
-        boolean addable = getAddable(o, dataTypeProperty);
-        String displayType = getDisplayType(o, dataTypeProperty);
-        String propertyGroup = getPropertyGroup(o, dataTypeProperty);
-        String validationFormula = getValidationFormula(o, dataTypeProperty);
-        String displayFormula = getDisplayFormula(o, dataTypeProperty);
-        ImmutableList<String> dependentPropertyIris = getDependentPropertyIris(o, dataTypeProperty);
-        Double boost = getBoost(o, dataTypeProperty);
-        String[] intents = getIntents(o, dataTypeProperty);
-        if (propertyType == null) {
-            throw new VisalloException("Could not get property type on data property " + propertyIRI);
-        }
-
-        List<Concept> domainConcepts = new ArrayList<>();
-        for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(dataTypeProperty, o)) {
-            OWLClass domainClass = domainClassExpr.asOWLClass();
-            String domainClassUri = domainClass.getIRI().toString();
-            Concept domainConcept = getConceptByIRI(domainClassUri);
-            if (domainConcept == null) {
-                LOGGER.error("Could not find class with uri: %s", domainClassUri);
-            } else {
-                LOGGER.info("Adding data property " + propertyIRI + " to class " + domainConcept.getIRI());
-                domainConcepts.add(domainConcept);
+        try {
+            String propertyDisplayName = getLabel(o, dataTypeProperty);
+            PropertyType propertyType = getPropertyType(o, dataTypeProperty);
+            boolean userVisible = getUserVisible(o, dataTypeProperty);
+            boolean searchable = getSearchable(o, dataTypeProperty);
+            boolean addable = getAddable(o, dataTypeProperty);
+            String displayType = getDisplayType(o, dataTypeProperty);
+            String propertyGroup = getPropertyGroup(o, dataTypeProperty);
+            String validationFormula = getValidationFormula(o, dataTypeProperty);
+            String displayFormula = getDisplayFormula(o, dataTypeProperty);
+            ImmutableList<String> dependentPropertyIris = getDependentPropertyIris(o, dataTypeProperty);
+            Double boost = getBoost(o, dataTypeProperty);
+            String[] intents = getIntents(o, dataTypeProperty);
+            if (propertyType == null) {
+                throw new VisalloException("Could not get property type on data property " + propertyIRI);
             }
-        }
 
-        Map<String, String> possibleValues = getPossibleValues(o, dataTypeProperty);
-        Collection<TextIndexHint> textIndexHints = getTextIndexHints(o, dataTypeProperty);
-        addPropertyTo(
-                domainConcepts,
-                propertyIRI,
-                propertyDisplayName,
-                propertyType,
-                possibleValues,
-                textIndexHints,
-                userVisible,
-                searchable,
-                addable,
-                displayType,
-                propertyGroup,
-                boost,
-                validationFormula,
-                displayFormula,
-                dependentPropertyIris,
-                intents
-        );
+            List<Concept> domainConcepts = new ArrayList<>();
+            for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(dataTypeProperty, o)) {
+                OWLClass domainClass = domainClassExpr.asOWLClass();
+                String domainClassUri = domainClass.getIRI().toString();
+                Concept domainConcept = getConceptByIRI(domainClassUri);
+                if (domainConcept == null) {
+                    LOGGER.error("Could not find class with uri: %s", domainClassUri);
+                } else {
+                    LOGGER.info("Adding data property " + propertyIRI + " to class " + domainConcept.getIRI());
+                    domainConcepts.add(domainConcept);
+                }
+            }
+
+            Map<String, String> possibleValues = getPossibleValues(o, dataTypeProperty);
+            Collection<TextIndexHint> textIndexHints = getTextIndexHints(o, dataTypeProperty);
+            addPropertyTo(
+                    domainConcepts,
+                    propertyIRI,
+                    propertyDisplayName,
+                    propertyType,
+                    possibleValues,
+                    textIndexHints,
+                    userVisible,
+                    searchable,
+                    addable,
+                    displayType,
+                    propertyGroup,
+                    boost,
+                    validationFormula,
+                    displayFormula,
+                    dependentPropertyIris,
+                    intents
+            );
+        } catch (Throwable ex) {
+            throw new VisalloException("Failed to load data property: " + propertyIRI, ex);
+        }
     }
 
     protected abstract OntologyProperty addPropertyTo(
