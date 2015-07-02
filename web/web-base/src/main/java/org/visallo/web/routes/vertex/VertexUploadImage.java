@@ -18,10 +18,7 @@ import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
-import org.visallo.core.util.ClientApiConverter;
-import org.visallo.core.util.RowKeyHelper;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.core.util.*;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -212,6 +209,13 @@ public class VertexUploadImage extends BaseRequestHandler {
         VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptIri, metadata, visibility);
         VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, SOURCE_UPLOAD, metadata, visibility);
         VisalloProperties.PROCESS.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, PROCESS, metadata, visibility);
+
+        String yAxisFlippedIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.yAxisFlipped");
+        String clockwiseRotationIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.clockwiseRotation");
+        ImageTransform imageTransform = ImageTransformExtractor.getImageTransform(rawContent);
+        vertexBuilder.setProperty(yAxisFlippedIri, imageTransform.isYAxisFlipNeeded(), metadata, visibility);
+        vertexBuilder.setProperty(clockwiseRotationIri, imageTransform.getCWRotationNeeded(), metadata, visibility);
+
         return vertexBuilder;
     }
 }
