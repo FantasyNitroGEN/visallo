@@ -86,8 +86,8 @@ define([
             $.post('login', { username: $username.val() })
                 .fail(function(xhr, status, error) {
                     $error.text(error);
-                    self.enableButton(true);
                     self.disabled = false;
+                    self.enableButton(true);
                 })
                 .done(function() {
                     self.trigger('loginSuccess');
