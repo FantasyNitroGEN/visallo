@@ -155,8 +155,8 @@ define([
         };
 
         this.onSwitchWorkspace = function(event, data) {
-            var li = this.findWorkspaceRow(data.workspaceId);
-            if (li.length) {
+            if (this.$node.closest('.visible').length) {
+                var li = this.findWorkspaceRow(data.workspaceId);
                 this.switchActive(data.workspaceId);
                 li.find('.badge').addClass('loading').show().next().hide();
             }
