@@ -19,21 +19,29 @@ define(['util/formatters'], function(f) {
             it('should have prettyApproximate function', function() {
                 expect(f.number.prettyApproximate(0)).to.equal('0');
                 expect(f.number.prettyApproximate(1)).to.equal('1');
+                expect(f.number.prettyApproximate(-1)).to.equal('-1');
 
                 expect(f.number.prettyApproximate(1024)).to.equal('1numbers.thousand_suffix');
                 expect(f.number.prettyApproximate(1100)).to.equal('1.1numbers.thousand_suffix');
                 expect(f.number.prettyApproximate(1150)).to.equal('1.2numbers.thousand_suffix');
+                expect(f.number.prettyApproximate(-1150)).to.equal('-1.2numbers.thousand_suffix');
 
                 expect(f.number.prettyApproximate(10000)).to.equal('10numbers.thousand_suffix');
                 expect(f.number.prettyApproximate(10550)).to.equal('10.6numbers.thousand_suffix');
+                expect(f.number.prettyApproximate(-10550)).to.equal('-10.6numbers.thousand_suffix');
 
                 expect(f.number.prettyApproximate(100000)).to.equal('100numbers.thousand_suffix');
+                expect(f.number.prettyApproximate(-100000)).to.equal('-100numbers.thousand_suffix');
 
                 expect(f.number.prettyApproximate(1000000)).to.equal('1numbers.million_suffix');
                 expect(f.number.prettyApproximate(6235987)).to.equal('6.2numbers.million_suffix');
+                expect(f.number.prettyApproximate(-6235987)).to.equal('-6.2numbers.million_suffix');
 
                 expect(f.number.prettyApproximate(1000000000)).to.equal('1numbers.billion_suffix');
                 expect(f.number.prettyApproximate(6740000000)).to.equal('6.7numbers.billion_suffix');
+                expect(f.number.prettyApproximate(-6740000000)).to.equal('-6.7numbers.billion_suffix');
+
+                expect(f.number.prettyApproximate(1000000000000)).to.equal('1numbers.trillion_suffix');
             })
 
             it('should transform seconds to duration string', function() {

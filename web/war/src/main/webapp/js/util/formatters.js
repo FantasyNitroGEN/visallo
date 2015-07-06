@@ -102,15 +102,21 @@ define([
                 return '';
             },
             prettyApproximate: function(number) {
-                if (number >= 1000000000000) {
-                    return (decimalAdjust('round', number / 1000000000000, -1) + i18n('numbers.trillion_suffix'));
-                } else if (number >= 1000000000) {
-                    return (decimalAdjust('round', number / 1000000000, -1) + i18n('numbers.billion_suffix'));
-                } else if (number >= 1000000) {
-                    return (decimalAdjust('round', number / 1000000, -1) + i18n('numbers.million_suffix'));
-                } else if (number >= 1000) {
-                    return (decimalAdjust('round', number / 1000, -1) + i18n('numbers.thousand_suffix'));
-                } else return FORMATTERS.number.pretty(number);
+                var isNegative = number < 0.0,
+                    abs = Math.abs(number),
+                    result;
+
+                if (abs >= 1000000000000) {
+                    result = (decimalAdjust('round', abs / 1000000000000, -1) + i18n('numbers.trillion_suffix'));
+                } else if (abs >= 1000000000) {
+                    result = (decimalAdjust('round', abs / 1000000000, -1) + i18n('numbers.billion_suffix'));
+                } else if (abs >= 1000000) {
+                    result = (decimalAdjust('round', abs / 1000000, -1) + i18n('numbers.million_suffix'));
+                } else if (abs >= 1000) {
+                    result = (decimalAdjust('round', abs / 1000, -1) + i18n('numbers.thousand_suffix'));
+                } else result = FORMATTERS.number.pretty(abs);
+
+                return (isNegative ? '-' : '') + result;
             },
             percent: function(number) {
                 if (_.isString(number)) {
