@@ -39,7 +39,6 @@ public class Configuration {
     public static final String WORKSPACE_REPOSITORY = "repository.workspace";
     public static final String AUTHORIZATION_REPOSITORY = "repository.authorization";
     public static final String ONTOLOGY_REPOSITORY = "repository.ontology";
-    public static final String AUDIT_REPOSITORY = "repository.audit";
     public static final String WORK_QUEUE_REPOSITORY = "repository.workQueue";
     public static final String LONG_RUNNING_PROCESS_REPOSITORY = "repository.longRunningProcess";
     public static final String SIMPLE_ORM_SESSION = "simpleOrmSession";
@@ -58,7 +57,6 @@ public class Configuration {
     public static final String ONTOLOGY_REPOSITORY_OWL = "repository.ontology.owl";
     public static final String GRAPH_PROVIDER = "graph";
     public static final String VISIBILITY_TRANSLATOR = "security.visibilityTranslator";
-    public static final String AUDIT_VISIBILITY_LABEL = "audit.visibilityLabel";
     public static final String DEFAULT_PRIVILEGES = "newuser.privileges";
     public static final String WEB_CONFIGURATION_PREFIX = "web.ui.";
     public static final String WEB_GEOCODER_ENABLED = WEB_CONFIGURATION_PREFIX + "geocoder.enabled";
