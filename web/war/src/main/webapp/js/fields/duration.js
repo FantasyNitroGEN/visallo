@@ -4,16 +4,21 @@ define([
     'tpl!./double',
     'duration-js',
     'util/formatters',
+    'util/parsers',
     './withPropertyField',
     './withHistogram'
-], function(defineComponent, template, Duration, F, withPropertyField, withHistogram) {
+], function(defineComponent, template, Duration, F, P, withPropertyField, withHistogram) {
     'use strict';
 
     return defineComponent(DurationField, withPropertyField, withHistogram);
 
     function toSeconds(v) {
         try {
-            return Duration.parse(v).milliseconds() / 1000.0;
+            if (P.number.isValidWithUnits(v)) {
+                return Duration.parse(v).milliseconds() / 1000.0;
+            } else {
+                return NaN;
+            }
         } catch (e) {
             return NaN;
         }
