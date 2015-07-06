@@ -156,6 +156,7 @@ define([
                                 })
                                 .flatten(true)
                                 .compact()
+                                .sortBy('value')
                                 .value();
 
                         return { values: values, foundOntologyProperties: foundOntologyProperties };
