@@ -58,7 +58,14 @@ define([
 
         this.update = function(properties) {
             var self = this,
-                displayProperties = this.transformPropertiesForUpdate(properties);
+                displayProperties = this.transformPropertiesForUpdate(properties),
+                expandedSections = visalloData.currentUser.uiPreferences['property-groups-expanded'];
+
+            if (expandedSections) {
+                expandedSections = JSON.parse(expandedSections);
+            } else {
+                expandedSections = [];
+            }
 
             this.reload = this.update.bind(this, properties);
 
@@ -70,7 +77,8 @@ define([
                         self.attr.data,
                         self.ontologyProperties,
                         self.showMoreExpanded,
-                        parseInt(self.config['properties.multivalue.defaultVisibleCount'], 10)
+                        parseInt(self.config['properties.multivalue.defaultVisibleCount'], 10),
+                        expandedSections
                     )
                 );
         };
@@ -412,6 +420,34 @@ define([
                 });
             });
         };
+
+        this.saveSectionTogglePreference = function(sectionEl, expanded) {
+            var name = $(sectionEl).data('sectionName'),
+                previouslyExpanded = visalloData.currentUser.uiPreferences['property-groups-expanded'],
+                shouldSave = false;
+
+            if (previouslyExpanded) {
+                previouslyExpanded = JSON.parse(previouslyExpanded);
+            } else {
+                previouslyExpanded = [];
+            }
+
+            var inList = previouslyExpanded.indexOf(name) >= 0;
+
+            if (expanded && !inList) {
+                previouslyExpanded.push(name);
+                shouldSave = true;
+            } else if (!expanded && inList) {
+                previouslyExpanded = _.without(previouslyExpanded, name);
+                shouldSave = true;
+            }
+
+            if (shouldSave) {
+                var prefValue = JSON.stringify(previouslyExpanded);
+                visalloData.currentUser.uiPreferences['property-groups-expanded'] = prefValue;
+                this.dataRequest('user', 'preference', 'property-groups-expanded', prefValue);
+            }
+        };
     }
 
     function onTableClick() {
@@ -422,6 +458,7 @@ define([
 
         if ($header.is('.property-group-header')) {
             $tbody.toggleClass('collapsed expanded');
+            this.saveSectionTogglePreference($tbody[0], !$tbody.hasClass('collapsed'));
         } else if ($target.is('.show-more')) {
             var isShowing = $target.data('showing');
             $target.data('showing', !isShowing);
@@ -444,7 +481,7 @@ define([
         }
     }
 
-    function createPropertyGroups(vertex, ontologyProperties, showMoreExpanded, maxItemsBeforeHidden) {
+    function createPropertyGroups(vertex, ontologyProperties, showMoreExpanded, maxItemsBeforeHidden, expandedSections) {
         this.enter()
             .insert('tbody', '.buttons-row')
             .attr('class', function(d, groupIndex, j) {
@@ -453,10 +490,17 @@ define([
                     return cls + ' expanded';
                 }
 
-                return cls + ' collapsed';
+                return cls + (
+                    _.contains(expandedSections, d[0]) ?
+                        '' : ' collapsed'
+                );
             });
 
         this.order();
+
+        this.attr('data-section-name', function(d) {
+            return d[0];
+        })
 
         var totalPropertyCountsByName = {};
 
