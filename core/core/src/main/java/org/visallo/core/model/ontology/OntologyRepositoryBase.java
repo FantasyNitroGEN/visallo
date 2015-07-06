@@ -135,6 +135,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     public abstract boolean isOntologyDefined(String iri);
 
     private void addEntityGlyphIcon(Concept entityConcept) {
+        if (entityConcept.getGlyphIcon() != null) {
+            LOGGER.debug("entityConcept GlyphIcon already set. skipping addEntityGlyphIcon.");
+            return;
+        }
+        LOGGER.debug("addEntityGlyphIcon");
         InputStream entityGlyphIconInputStream = OntologyRepositoryBase.class.getResourceAsStream(RESOURCE_ENTITY_PNG);
         checkNotNull(entityGlyphIconInputStream, "Could not load resource " + RESOURCE_ENTITY_PNG);
 
