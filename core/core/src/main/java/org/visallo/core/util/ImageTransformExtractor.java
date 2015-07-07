@@ -5,18 +5,19 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class ImageTransformExtractor {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImageTransformExtractor.class);
 
     public static ImageTransform getImageTransform(byte[] data) {
+        return getImageTransform(new ByteArrayInputStream(data));
+    }
+
+    public static ImageTransform getImageTransform(InputStream inputStream) {
         try {
             //Attempt to retrieve the metadata from the image.
-            BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(data));
+            BufferedInputStream in = new BufferedInputStream(inputStream);
             Metadata metadata = ImageMetadataReader.readMetadata(in, true);
             return getImageTransformFromMetadata(metadata);
         } catch (ImageProcessingException e) {

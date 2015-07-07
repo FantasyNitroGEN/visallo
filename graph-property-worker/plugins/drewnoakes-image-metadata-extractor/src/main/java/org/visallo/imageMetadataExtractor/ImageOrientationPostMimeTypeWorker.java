@@ -33,9 +33,10 @@ public class ImageOrientationPostMimeTypeWorker extends PostMimeTypeWorker {
         clockwiseRotationIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.clockwiseRotation");
     }
 
-    private void setProperty(String iri, Object value, ExistingElementMutation<Vertex> mutation, Metadata metadata, GraphPropertyWorkData data, List<String> properties) {
+    private void setProperty(String iri, Object value, ExistingElementMutation<Vertex> mutation, Metadata metadata,
+                             GraphPropertyWorkData data, List<String> properties) {
         if (iri != null && value != null) {
-            mutation.addPropertyValue(MULTI_VALUE_PROPERTY_KEY, iri, value, metadata, data.getVisibility());
+            mutation.setProperty(iri, value, metadata, data.getVisibility());
             properties.add(iri);
         }
     }
@@ -49,18 +50,17 @@ public class ImageOrientationPostMimeTypeWorker extends PostMimeTypeWorker {
         File localFile = getLocalFileForRaw(data.getElement());
         Metadata metadata = data.createPropertyMetadata();
         ExistingElementMutation<Vertex> mutation = data.getElement().prepareMutation();
-        ArrayList<String> properties = new ArrayList<String>();
+        ArrayList<String> properties = new ArrayList<>();
 
         ImageTransform imageTransform = ImageTransformExtractor.getImageTransform(localFile);
-        if (imageTransform != null) {
-            setProperty(yAxisFlippedIri, imageTransform.isYAxisFlipNeeded(), mutation, metadata, data, properties);
-            setProperty(clockwiseRotationIri, imageTransform.getCWRotationNeeded(), mutation, metadata, data, properties);
+        setProperty(yAxisFlippedIri, imageTransform.isYAxisFlipNeeded(), mutation, metadata, data, properties);
+        setProperty(clockwiseRotationIri, imageTransform.getCWRotationNeeded(), mutation, metadata, data, properties);
 
-            mutation.save(authorizations);
-            getGraph().flush();
-            for (String propertyName : properties) {
-                getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), MULTI_VALUE_PROPERTY_KEY, propertyName, data.getPriority());
-            }
+        mutation.save(authorizations);
+        getGraph().flush();
+        for (String propertyName : properties) {
+            getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), MULTI_VALUE_PROPERTY_KEY, propertyName,
+                    data.getPriority());
         }
     }
 
