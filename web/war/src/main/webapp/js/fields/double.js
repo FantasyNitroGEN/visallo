@@ -2,15 +2,16 @@
 define([
     'flight/lib/component',
     'tpl!./double',
+    'util/parsers',
     './withPropertyField',
     './withHistogram'
-], function(defineComponent, template, withPropertyField, withHistogram) {
+], function(defineComponent, template, P, withPropertyField, withHistogram) {
     'use strict';
 
     return defineComponent(DoubleField, withPropertyField, withHistogram);
 
     function makeNumber(v) {
-        return parseFloat(v, 10);
+        return P.number.parseFloat(v);
     }
 
     function DoubleField() {
@@ -41,7 +42,8 @@ define([
             var values = this.getValues();
 
             return _.every(values, function(v) {
-                return v.length && _.isNumber(makeNumber(v));
+                var n = makeNumber(v);
+                return v.length && _.isNumber(n) && !isNaN(n);
             });
         };
     }

@@ -2,15 +2,16 @@
 define([
     'flight/lib/component',
     'tpl!./geoLocation',
+    'util/parsers',
     './withPropertyField',
     'util/withDataRequest'
-], function(defineComponent, template, withPropertyField, withDataRequest) {
+], function(defineComponent, template, P, withPropertyField, withDataRequest) {
     'use strict';
 
     return defineComponent(GeoLocationField, withPropertyField, withDataRequest);
 
     function makeNumber(v) {
-        return parseFloat(v, 10);
+        return P.number.parseFloat(v);
     }
 
     function splitLatLon(latLonStr) {
@@ -89,19 +90,20 @@ define([
 
             return (values.length === expected) &&
                 _.every(values, function(v, i) {
-                    var valIsValid = false;
+                    var valIsValid = false,
+                        n = makeNumber(v);
                     if (hasDescriptionField && i === 0) {
                         valIsValid = true;
                     } else if (hasRadiusField && i === (expected - 1)) {
                         var radiusElement = self.select('radiusSelector');
-                        valIsValid = makeNumber(v) > 0;
+                        valIsValid = n > 0;
                         (valIsValid ? radiusElement.removeClass : radiusElement.addClass)('invalid');
                     } else {
                         var latLonElement;
-                        valIsValid = v.length && _.isNumber(makeNumber(v)) && !isNaN(v);
+                        valIsValid = v.length > 0 && _.isNumber(n) && !isNaN(n);
                         if (i === (hasDescriptionField ? 1 : 0)) {
                             latLonElement = self.select('latSelector');
-                            valIsValid = valIsValid && (makeNumber(v) >= -90 && makeNumber(v) <= 90);
+                            valIsValid = valIsValid && (n >= -90 && n <= 90);
                         } else {
                             latLonElement = self.select('lonSelector');
                         }
