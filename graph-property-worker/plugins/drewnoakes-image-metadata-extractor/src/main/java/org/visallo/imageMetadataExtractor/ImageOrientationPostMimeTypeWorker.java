@@ -1,18 +1,21 @@
 package org.visallo.imageMetadataExtractor;
 
 import com.google.inject.Inject;
+import org.vertexium.Authorizations;
+import org.vertexium.Vertex;
+import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
 import org.visallo.core.ingest.graphProperty.PostMimeTypeWorker;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.properties.types.BooleanSingleValueVisalloProperty;
+import org.visallo.core.model.properties.types.IntegerSingleValueVisalloProperty;
+import org.visallo.core.model.properties.types.PropertyMetadata;
+import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.util.ImageTransform;
 import org.visallo.core.util.ImageTransformExtractor;
-import org.vertexium.Authorizations;
-import org.vertexium.Metadata;
-import org.vertexium.Vertex;
-import org.vertexium.mutation.ExistingElementMutation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -21,24 +24,15 @@ import java.util.List;
 @Name("Drewnoakes Image Metadata")
 @Description("Extracts image metadata using Drewnoakes after MIME type")
 public class ImageOrientationPostMimeTypeWorker extends PostMimeTypeWorker {
-    private static final String MULTI_VALUE_PROPERTY_KEY = ImageOrientationPostMimeTypeWorker.class.getName();
     private OntologyRepository ontologyRepository;
-    private String yAxisFlippedIri;
-    private String clockwiseRotationIri;
+    private BooleanSingleValueVisalloProperty yAxisFlippedProperty;
+    private IntegerSingleValueVisalloProperty clockwiseRotationProperty;
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
         super.prepare(workerPrepareData);
-        yAxisFlippedIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.yAxisFlipped");
-        clockwiseRotationIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.clockwiseRotation");
-    }
-
-    private void setProperty(String iri, Object value, ExistingElementMutation<Vertex> mutation, Metadata metadata,
-                             GraphPropertyWorkData data, List<String> properties) {
-        if (iri != null && value != null) {
-            mutation.setProperty(iri, value, metadata, data.getVisibility());
-            properties.add(iri);
-        }
+        yAxisFlippedProperty = new BooleanSingleValueVisalloProperty(ontologyRepository.getRequiredPropertyIRIByIntent("media.yAxisFlipped"));
+        clockwiseRotationProperty = new IntegerSingleValueVisalloProperty(ontologyRepository.getRequiredPropertyIRIByIntent("media.clockwiseRotation"));
     }
 
     @Override
@@ -48,20 +42,17 @@ public class ImageOrientationPostMimeTypeWorker extends PostMimeTypeWorker {
         }
 
         File localFile = getLocalFileForRaw(data.getElement());
-        Metadata metadata = data.createPropertyMetadata();
+        PropertyMetadata metadata = new PropertyMetadata(getUser(), data.getVisibilityJson(), data.getVisibility());
         ExistingElementMutation<Vertex> mutation = data.getElement().prepareMutation();
-        ArrayList<String> properties = new ArrayList<>();
 
         ImageTransform imageTransform = ImageTransformExtractor.getImageTransform(localFile);
-        setProperty(yAxisFlippedIri, imageTransform.isYAxisFlipNeeded(), mutation, metadata, data, properties);
-        setProperty(clockwiseRotationIri, imageTransform.getCWRotationNeeded(), mutation, metadata, data, properties);
+        List<VisalloPropertyUpdate> changedProperties = new ArrayList<>();
+        yAxisFlippedProperty.updateProperty(changedProperties, data.getElement(), mutation, imageTransform.isYAxisFlipNeeded(), metadata, data.getVisibility());
+        clockwiseRotationProperty.updateProperty(changedProperties, data.getElement(), mutation, imageTransform.getCWRotationNeeded(), metadata, data.getVisibility());
 
         mutation.save(authorizations);
         getGraph().flush();
-        for (String propertyName : properties) {
-            getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), MULTI_VALUE_PROPERTY_KEY, propertyName,
-                    data.getPriority());
-        }
+        getWorkQueueRepository().pushGraphVisalloPropertyQueue(data.getElement(), changedProperties, data.getPriority());
     }
 
     @Inject

@@ -1,15 +1,16 @@
 package org.visallo.core.ingest.graphProperty;
 
 import com.google.inject.Inject;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.Authorizations;
 import org.vertexium.Element;
 import org.vertexium.Graph;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,9 +22,10 @@ public abstract class PostMimeTypeWorker {
     private Graph graph;
     private WorkQueueRepository workQueueRepository;
     private File localFileForRaw;
+    private GraphPropertyWorkerPrepareData workerPrepareData;
 
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
-
+        this.workerPrepareData = workerPrepareData;
     }
 
     protected abstract void execute(String mimeType, GraphPropertyWorkData data, Authorizations authorizations) throws Exception;
@@ -53,6 +55,10 @@ public abstract class PostMimeTypeWorker {
                 return localFileForRaw;
             }
         }
+    }
+
+    protected User getUser() {
+        return this.workerPrepareData.getUser();
     }
 
     @Inject
