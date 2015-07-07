@@ -218,8 +218,12 @@ define(['util/formatters'], function(f) {
             })
 
             it('should create local dates', function() {
-                f.date.local('2015-06-23 13:16 CDT').getTime().should.equal(1435083360000)
-                f.date.dateTimeString(1435083360000).should.equal('2015-06-23 13:16 CDT')
+                var date = new Date('2015-06-23T13:16:00'),
+                    offset = date.getTimezoneOffset(),
+                    dateLocal = new Date(date.getTime() + offset * 60 * 1000);
+
+                f.date.local('2015-06-23 13:16 CDT').getTime().should.equal(dateLocal.getTime())
+                f.date.dateTimeString(dateLocal.getTime()).should.match(/^2015-06-23 13:16 .+$/)
             })
 
             it('should format to prefered format', function() {
