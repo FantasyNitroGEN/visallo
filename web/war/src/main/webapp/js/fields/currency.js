@@ -2,15 +2,16 @@
 define([
     'flight/lib/component',
     'tpl!./currency',
+    'util/parsers',
     './withHistogram',
     './withPropertyField'
-], function(defineComponent, template, withHistogram, withPropertyField) {
+], function(defineComponent, template, P, withHistogram, withPropertyField) {
     'use strict';
 
     return defineComponent(CurrencyField, withPropertyField, withHistogram);
 
     function makeNumber(v) {
-        return parseFloat(v.replace(/[^0-9.]/g, ''), 10);
+        return P.number.parseFloat(v);
     }
 
     function CurrencyField() {
@@ -41,7 +42,8 @@ define([
             var values = this.getValues();
 
             return _.every(values, function(v) {
-                return v.length && _.isNumber(makeNumber(v));
+                var n = makeNumber(v);
+                return v.length && _.isNumber(n) && !isNaN(n);
             });
         };
     }

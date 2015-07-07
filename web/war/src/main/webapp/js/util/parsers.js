@@ -3,7 +3,7 @@ define([
     'use strict';
 
     var FULL_NUMERIC_REGEX = /^[\-\+]?\d+\.?\d*$/,
-        NUMERIC_WITH_UNITS_REGEX = /^[\-\+]?\d+\.?\d*[a-z]*/,
+        NUMERIC_WITH_UNITS_REGEX = /^[\-\+]?\d+\.?\d*[a-z]*$/,
         PARSERS = {
 
             number: {
