@@ -44,8 +44,11 @@ define([
                     this.$node.prepend(alertTemplate({ message: message || i18n('admin.plugin.success') }));
                 };
                 this.showError = function(message) {
-                    this.$node.find('.alert').remove();
+                    this.hideError();
                     this.$node.prepend(alertTemplate({ error: message || i18n('admin.plugin.error') }));
+                };
+                this.hideError = function() {
+                    this.$node.find('.alert').remove();
                 };
                 this.handleSubmitButton = function(button, promise) {
                     var $button = $(button),

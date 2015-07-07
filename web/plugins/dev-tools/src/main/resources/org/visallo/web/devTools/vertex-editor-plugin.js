@@ -206,6 +206,8 @@ require([
                 return;
             }
 
+            this.hideError();
+
             var newVertex = vertex.id !== this.currentVertexId,
                 addNewText = i18n('admin.vertex.editor.addNewProperty.label');
 
@@ -290,6 +292,7 @@ require([
                                             .text('Cancel');
                                     })
 
+                            this.order();
                             if (newVertex) {
                                 this.attr('class', 'multivalue');
                             }
