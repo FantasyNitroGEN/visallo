@@ -47,8 +47,10 @@ public class VertexUploadImage extends BaseRequestHandler {
     private final WorkQueueRepository workQueueRepository;
     private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceRepository workspaceRepository;
-    private String conceptIri;
-    private String entityHasImageIri;
+    private final String clockwiseRotationIri;
+    private final String yAxisFlippedIri;
+    private final String conceptIri;
+    private final String entityHasImageIri;
 
     @Inject
     public VertexUploadImage(
@@ -66,26 +68,14 @@ public class VertexUploadImage extends BaseRequestHandler {
         this.visibilityTranslator = visibilityTranslator;
         this.workspaceRepository = workspaceRepository;
 
-        this.conceptIri = ontologyRepository.getConceptIRIByIntent("entityImage");
-        if (this.conceptIri == null) {
-            LOGGER.warn("'entityImage' intent has not been defined. Please update your ontology.");
-        }
-
-        this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
-        if (this.entityHasImageIri == null) {
-            LOGGER.warn("'entityHasImage' intent has not been defined. Please update your ontology.");
-        }
+        this.conceptIri = ontologyRepository.getRequiredConceptIRIByIntent("entityImage");
+        this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage");
+        this.yAxisFlippedIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.yAxisFlipped");
+        this.clockwiseRotationIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.clockwiseRotation");
     }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        if (this.conceptIri == null) {
-            this.conceptIri = ontologyRepository.getRequiredConceptIRIByIntent("entityImage");
-        }
-        if (this.entityHasImageIri == null) {
-            this.entityHasImageIri = ontologyRepository.getRequiredConceptIRIByIntent("entityHasImage");
-        }
-
         final String graphVertexId = getAttributeString(request, ATTR_GRAPH_VERTEX_ID);
         final List<Part> files = Lists.newArrayList(request.getParts());
 
@@ -210,8 +200,6 @@ public class VertexUploadImage extends BaseRequestHandler {
         VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, SOURCE_UPLOAD, metadata, visibility);
         VisalloProperties.PROCESS.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, PROCESS, metadata, visibility);
 
-        String yAxisFlippedIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.yAxisFlipped");
-        String clockwiseRotationIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.clockwiseRotation");
         ImageTransform imageTransform = ImageTransformExtractor.getImageTransform(rawContent);
         vertexBuilder.setProperty(yAxisFlippedIri, imageTransform.isYAxisFlipNeeded(), metadata, visibility);
         vertexBuilder.setProperty(clockwiseRotationIri, imageTransform.getCWRotationNeeded(), metadata, visibility);
