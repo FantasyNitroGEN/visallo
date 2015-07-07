@@ -102,6 +102,8 @@ define(['util/withTeardown'], function(withTeardown) {
                     id: this.attr.id,
                     propertyId: this.attr.property.title
                 });
+                this._previousPredicate = null;
+                this._previousValues = null;
             }
         };
 

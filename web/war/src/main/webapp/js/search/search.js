@@ -68,7 +68,6 @@ define([
             this.on(this.select('querySelector'), 'focus', this.onQueryFocus);
 
             this.on('filterschange', this.onFiltersChange);
-            this.on('propertyinvalid', this.onPropertyInvalid);
             this.on('clearSearch', this.onClearSearch);
             this.on('searchRequestBegan', this.onSearchResultsBegan);
             this.on('searchRequestCompleted', this.onSearchResultsCompleted);
@@ -191,10 +190,6 @@ define([
             this.updateTypeCss();
         };
 
-        this.onPropertyInvalid = function(event, data) {
-            this.filters = data;
-        };
-
         this.onFiltersChange = function(event, data) {
             var self = this,
                 hadFilters = this.hasFilters();
@@ -212,10 +207,16 @@ define([
                             return;
                         } else {
                             self.select('querySelector').val('*');
+                            query = self.getQueryVal();
                         }
                     }
 
-                    if (query || hasFilters || hadFilters) {
+                    var queryIsStarSearch = query === '*',
+                        hasQuery = query && query.length,
+                        validSearch = hasFilters ? hasQuery :
+                            (hadFilters && hasQuery && !queryIsStarSearch);
+
+                    if (validSearch) {
                         if (data.options && data.options.isScrubbing) {
                             self.triggerQueryUpdatedThrottled();
                         } else {
