@@ -61,6 +61,7 @@ define([
             });
 
             $('html').removePrefixedClasses('no-privilege-').addClass(cls.join(' '));
+            this.trigger('privilegesReady');
         };
 
     }

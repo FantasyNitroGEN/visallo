@@ -158,6 +158,7 @@ define([
             this.on(document, 'hideMenu', this.onHideMenu);
             this.on(document, 'genericPaste', this.onGenericPaste);
             this.on(document, 'toggleTimeline', this.onToggleTimeline);
+            this.on(document, 'privilegesReady', _.once(this.onPrivilegesReady.bind(this)));
 
             this.trigger(document, 'registerKeyboardShortcuts', {
                 scope: ['graph.help.scope', 'map.help.scope'].map(i18n),
@@ -250,17 +251,17 @@ define([
             } else {
                 this.applicationLoaded();
             }
-
-            _.delay(function() {
-                if (self.attr.addVertexIds) {
-                    self.handleAddToWorkspace(self.attr.addVertexIds);
-                }
-                if (self.attr.openAdminTool && Privileges.canADMIN) {
-                    self.trigger('menubarToggleDisplay', { name: 'admin' });
-                    self.trigger('showAdminPlugin', self.attr.openAdminTool);
-                }
-            }, 500);
         });
+
+        this.onPrivilegesReady = function() {
+            if (this.attr.addVertexIds) {
+                this.handleAddToWorkspace(this.attr.addVertexIds);
+            }
+            if (this.attr.openAdminTool && Privileges.canADMIN) {
+                this.trigger('menubarToggleDisplay', { name: 'admin' });
+                this.trigger('showAdminPlugin', this.attr.openAdminTool);
+            }
+        };
 
         this.applicationLoaded = function() {
             var self = this;
