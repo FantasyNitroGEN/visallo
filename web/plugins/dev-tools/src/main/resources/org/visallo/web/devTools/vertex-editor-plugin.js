@@ -315,7 +315,7 @@ require([
 
                                             property.metadata = _.omit(property.metadata, notMetadata);
 
-                                            property['http://visallo.org#visibilityJson'] = vis || { source:'' };
+                                            property['http://visallo.org#visibilityJson'] = vis || { source: '' };
                                         })
                                         .pairs()
                                         .reject(function(pair) {
@@ -366,7 +366,7 @@ require([
                                                     displayAsJson = _.isObject(d[1]),
                                                     value = d[0] === 'http://visallo.org#visibilityJson' ?
                                                         d[1].source :
-                                                        displayAsJson ?  JSON.stringify(d[1], null, 4) : d[1];
+                                                        displayAsJson ? JSON.stringify(d[1], null, 4) : d[1];
 
                                                 this.append('span')
                                                     .call(function() {
