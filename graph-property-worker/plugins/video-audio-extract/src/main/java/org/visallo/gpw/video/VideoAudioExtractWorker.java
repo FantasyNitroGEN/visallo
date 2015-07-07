@@ -25,7 +25,7 @@ import java.io.InputStream;
 @Description("Extracts the audio stream from a video")
 public class VideoAudioExtractWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VideoAudioExtractWorker.class);
-    private static final String PROPERTY_KEY = VideoAudioExtractWorker.class.getName();
+    private static final String PROPERTY_KEY = "";
     private ProcessRunner processRunner;
 
     @Override
