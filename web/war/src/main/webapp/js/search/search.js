@@ -207,10 +207,16 @@ define([
                             return;
                         } else {
                             self.select('querySelector').val('*');
+                            query = self.getQueryVal();
                         }
                     }
 
-                    if (query || hasFilters || hadFilters) {
+                    var queryIsStarSearch = query === '*',
+                        hasQuery = query && query.length,
+                        validSearch = hasFilters ? hasQuery :
+                            (hadFilters && hasQuery && !queryIsStarSearch);
+
+                    if (validSearch) {
                         if (data.options && data.options.isScrubbing) {
                             self.triggerQueryUpdatedThrottled();
                         } else {
@@ -226,8 +232,10 @@ define([
         this.onQueryChange = function(event) {
             if (event.which === $.ui.keyCode.ENTER) {
                 if (event.type === 'keyup') {
-                    this.triggerQuerySubmit();
-                    $(event.target).select()
+                    if (this.select('querySelector').val().length) {
+                        this.triggerQuerySubmit();
+                        $(event.target).select()
+                    }
                 }
             } else if (event.which === $.ui.keyCode.ESCAPE) {
                 if (event.type === 'keyup') {
@@ -440,7 +448,6 @@ define([
 
         this.triggerOnType = function(eventName) {
             var searchType = this.getSearchTypeNode();
-
             this.trigger(searchType, eventName, {
                 value: this.getQueryVal(),
                 filters: this.filters || {}
