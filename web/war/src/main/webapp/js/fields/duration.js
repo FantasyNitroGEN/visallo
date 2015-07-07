@@ -14,7 +14,11 @@ define([
 
     function toSeconds(v) {
         try {
-            if (P.number.isValidWithUnits(v)) {
+            var allValid = _.every(v.split(/\s/), function(n) {
+                return P.number.isValidWithUnits(n);
+            });
+
+            if (allValid) {
                 return Duration.parse(v).milliseconds() / 1000.0;
             } else {
                 return NaN;
