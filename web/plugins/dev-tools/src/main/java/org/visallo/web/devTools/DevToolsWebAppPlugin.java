@@ -22,10 +22,10 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
         Class<? extends Handler> authenticationHandlerClass = authenticationHandler.getClass();
         Class<? extends Handler> csrfHandlerClass = VisalloCsrfHandler.class;
 
-        app.get("/jsc/org/visallo/web/devTools/less/vertex-editor.less",
-                new StaticResourceHandler(getClass(), "/org/visallo/web/devTools/less/vertex-editor.less", "text/less"));
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/vertex-editor.hbs");
-        app.registerJavaScript("/org/visallo/web/devTools/vertex-editor-plugin.js");
+        app.get("/jsc/org/visallo/web/devTools/less/element-editor.less",
+                new StaticResourceHandler(getClass(), "/org/visallo/web/devTools/less/element-editor.less", "text/less"));
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/element-editor.hbs");
+        app.registerJavaScript("/org/visallo/web/devTools/element-editor-plugin.js");
         app.registerResourceBundle("/org/visallo/web/devTools/messages.properties");
 
         app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/requeue.hbs");
@@ -56,6 +56,7 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
         app.post("/admin/queueVertices", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, QueueVertices.class);
         app.post("/admin/queueEdges", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, QueueEdges.class);
         app.post("/admin/deleteVertex", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, DeleteVertex.class);
+        app.post("/admin/deleteEdge", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, DeleteEdge.class);
 
         app.post("/org/visallo/web/devTools/saveOntologyConcept", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, SaveOntologyConcept.class);
         app.post("/org/visallo/web/devTools/saveOntologyProperty", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, SaveOntologyProperty.class);

@@ -13,6 +13,13 @@ define([
             });
         },
 
+        edgeDelete: function(edgeId, workspaceId) {
+            return ajax('POST->HTML', '/admin/deleteEdge', {
+                edgeId: edgeId,
+                workspaceId: workspaceId
+            });
+        },
+
         dictionary: function() {
             return ajax('GET', '/admin/dictionary');
         },

@@ -10,7 +10,7 @@ require([
 
     return defineVisalloAdminPlugin(Requeue, {
         mixins: [withDataRequest],
-        section: 'Vertex',
+        section: 'Element',
         name: 'Requeue',
         subtitle: 'Requeue vertices and edges'
     });

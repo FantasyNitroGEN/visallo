@@ -1,35 +1,35 @@
 require([
     'configuration/admin/plugin',
-    'hbs!org/visallo/web/devTools/templates/vertex-editor',
+    'hbs!org/visallo/web/devTools/templates/element-editor',
     'util/messages',
-    'util/formatters',
     'd3',
     'util/withDataRequest',
-    'less!org/visallo/web/devTools/less/vertex-editor'
+    'less!org/visallo/web/devTools/less/element-editor'
 ], function(
     defineVisalloAdminPlugin,
     template,
     i18n,
-    F,
     d3,
     withDataRequest,
     less) {
     'use strict';
 
-    defineVisalloAdminPlugin(VertexEditor, {
+    var F;
+
+    defineVisalloAdminPlugin(ElementEditor, {
         less: less,
         mixins: [withDataRequest],
-        section: i18n('admin.vertex.editor.section'),
-        name: i18n('admin.vertex.editor.name'),
-        subtitle: i18n('admin.vertex.editor.subtitle')
+        section: i18n('admin.element.editor.section'),
+        name: i18n('admin.element.editor.name'),
+        subtitle: i18n('admin.element.editor.subtitle')
     });
 
-    function VertexEditor() {
+    function ElementEditor() {
         this.defaultAttrs({
             loadSelector: '.refresh',
-            deleteVertexSelector: '.delete-vertex',
+            deleteElementSelector: '.delete-element',
             workspaceInputSelector: '.workspaceId',
-            vertexInputSelector: '.vertexId',
+            elementInputSelector: '.elementId',
             collapsibleSelector: '.collapsible > h1',
             editSelector: '.prop-edit',
             deleteSelector: '.prop-delete',
@@ -43,7 +43,7 @@ require([
             this.on('click', {
                 loadSelector: this.onLoad,
                 editSelector: this.onEdit,
-                deleteVertexSelector: this.onVertexDelete,
+                deleteElementSelector: this.onElementDelete,
                 deleteSelector: this.onDelete,
                 saveSelector: this.onSave,
                 cancelSelector: this.onCancel,
@@ -52,14 +52,36 @@ require([
 
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'verticesUpdated', this.onVerticesUpdated);
+            this.on(document, 'edgesUpdated', this.onEdgesUpdated);
 
-            this.$node.html(template({
-                workspaceId: visalloData.currentWorkspaceId,
-                vertexId: ''
-            }));
+            this.on('change keyup paste', {
+                elementInputSelector: this.validate,
+                workspaceInputSelector: this.validate
+            })
 
-            this.onObjectsSelected(null, visalloData.selectedObjects);
+            require(['util/vertex/formatters'], function(f) {
+                F = f;
+                self.$node.html(template({
+                    workspaceId: visalloData.currentWorkspaceId,
+                    elementId: ''
+                }));
+
+                self.onObjectsSelected(null, visalloData.selectedObjects);
+            })
         });
+
+        this.validate = function() {
+            var valid = (
+                $.trim(this.select('workspaceInputSelector').val()).length &&
+                $.trim(this.select('elementInputSelector').val()).length
+            );
+            this.select('loadSelector').add(this.select('deleteElementSelector'))
+                .prop('disabled', !valid);
+
+            if (!valid) {
+                this.$node.find('section').remove();
+            }
+        };
 
         this.onEdit = function(event) {
             var button = $(event.target),
@@ -73,8 +95,8 @@ require([
 
             this.handleSubmitButton(
                 button,
-                this.dataRequest('vertex', 'deleteProperty',
-                    this.$node.find('.vertexId').val(),
+                this.dataRequest(self.elementType, 'deleteProperty',
+                    this.$node.find('.elementId').val(),
                     li.data('property'),
                     this.$node.find('.workspaceId').val()
                 )
@@ -96,15 +118,14 @@ require([
 
             this.handleSubmitButton(
                 button,
-
-                this.dataRequest('vertex', 'setProperty',
-                    this.$node.find('.vertexId').val(),
+                this.dataRequest(self.elementType, 'setProperty',
+                    this.$node.find('.elementId').val(),
                     {
                         key: li.find('input[name=key]').val(),
                         name: property.name || li.find('input[name=name]').val(),
-                        value: li.find('input[name=value]').val(),
+                        value: li.find('input[name=value],textarea[name=value]').val(),
                         visibilitySource: li.find('textarea[name="http://visallo.org#visibilityJson"]').val(),
-                        justificationText: 'admin graph vertex editor',
+                        justificationText: 'Admin tools element editor',
                         metadata: JSON.parse(li.find('textarea[name=metadata]').val())
                     },
                     this.$node.find('.workspaceId').val()
@@ -132,66 +153,79 @@ require([
         };
 
         this.onToggleExpand = function(event) {
-            var item = $(event.target).closest('.collapsible');
+            var item = $(event.target)
+                .closest('.collapsible')
+                .toggleClass('expanded');
 
-            if (event.altKey) {
-                if (item.hasClass('expanded')) {
-                    item.siblings('.collapsible').addBack().removeClass('expanded');
-                } else {
-                    item.siblings('.collapsible').addBack().addClass('expanded')
-                        .last().find('.multivalue').addClass('editing');
-                }
+            if (item.next('.collapsible').length === 0) {
+                item.find('.multivalue').addClass('editing');
             } else {
-                item.toggleClass('expanded');
-                if (item.next('.collapsible').length === 0) {
-                    item.find('.multivalue').addClass('editing');
-                } else {
-                    item.find('.editing').removeClass('editing');
-                }
+                item.find('.editing').removeClass('editing');
             }
         };
 
         this.onVerticesUpdated = function(event, data) {
-            if (this.currentVertexId) {
-                var vertex = _.findWhere(data && data.vertices, { id: this.currentVertexId })
+            if (this.currentElementId) {
+                var vertex = _.findWhere(data && data.vertices, { id: this.currentElementId })
                 if (vertex) {
                     this.update(vertex);
                 }
             }
         };
 
-        this.onObjectsSelected = function(event, data) {
-            var vertex = _.first(data && data.vertices);
+        this.onEdgesUpdated = function(event, data) {
+            var edge = data && data.edges && _.findWhere(data.edges, { id: this.currentElementId });
+            if (edge) {
+                this.update(edge);
+            }
+        };
 
-            if (vertex) {
-                this.select('vertexInputSelector').val(vertex.id);
-                this.update(vertex);
+        this.onObjectsSelected = function(event, data) {
+            var element = data && _.first(data.vertices) || _.first(data.edges);
+
+            if (element) {
+                this.select('elementInputSelector').val(element.id);
+                this.update(element);
             }
         };
 
         this.onLoad = function() {
-            var self = this;
+            var self = this,
+                workspaceId = this.select('workspaceInputSelector').val(),
+                elementId = this.select('elementInputSelector').val();
 
+            // Try vertex, then edge store
             this.dataRequest('vertex', 'store', {
-                workspaceId: this.select('workspaceInputSelector').val(),
-                vertexIds: this.select('vertexInputSelector').val()
-            }).done(function(vertex) {
-                self.update(vertex);
-            });
+                workspaceId: workspaceId,
+                vertexIds: elementId
+            })
+                .then(function(element) {
+                    if (_.isUndefined(element)) {
+                        return self.dataRequest('edge', 'store', {
+                            workspaceId: workspaceId,
+                            edgeIds: elementId
+                        })
+                    }
+                    return element;
+                })
+                .then(function(element) {
+                    self.update(element);
+                })
         };
 
-        this.onVertexDelete = function(event) {
+        this.onElementDelete = function(event) {
             var self = this,
                 button = $(event.target),
-                graphVertexId = this.select('vertexInputSelector').val(),
+                elementId = this.select('elementInputSelector').val(),
                 workspaceId = this.select('workspaceInputSelector').val();
 
             this.handleSubmitButton(
                 button,
-                this.dataRequest('admin', 'vertexDelete', graphVertexId, workspaceId)
+                this.dataRequest('admin', self.elementType + 'Delete', elementId, workspaceId)
                     .then(function() {
                         self.$node.find('section').remove();
-                        self.$node.find('.vertexId').val('');
+                        self.$node.find('.elementId').val('');
+                        self.showSuccess('Successfully deleted ' + self.elementType);
                     })
                     .catch(function() {
                         self.showError();
@@ -199,23 +233,26 @@ require([
             );
         };
 
-        this.update = function(vertex) {
-            if (!vertex) {
-                this.showError('Vertex does not exist');
+        this.update = function(element) {
+            this.validate();
+
+            if (!element) {
+                this.showError('Element does not exist');
                 this.$node.find('section').remove();
                 return;
             }
 
             this.hideError();
+            this.elementType = F.vertex.isEdge(element) ? 'edge' : 'vertex';
 
-            var newVertex = vertex.id !== this.currentVertexId,
-                addNewText = i18n('admin.vertex.editor.addNewProperty.label');
+            var newElement = element.id !== this.currentElementId,
+                addNewText = i18n('admin.element.editor.addNewProperty.label');
 
-            this.currentVertexId = vertex.id;
+            this.currentElementId = element.id;
             d3.select(this.node)
                 .selectAll('section')
                 .data(
-                    _.chain(vertex.properties)
+                    _.chain(element.properties)
                       .groupBy('name')
                       .pairs()
                       .sortBy(function(pair) {
@@ -249,19 +286,10 @@ require([
                             this.append('div').append('ol').attr('class', 'props inner-list');
                         });
 
-                    if (newVertex) {
-                        this.attr('class', 'collapsible')
-                    }
-                    this.sort(function(pairA, pairB) {
-                        var a = pairA[0], b = pairB[0];
-                        if (a === addNewText) return 1;
-                        if (b === addNewText) return 0;
-
-                        return a.localeCompare(b);
-                    });
-                    this.select('h1 strong').text(function(d) {
-                        return d[0];
-                    });
+                    this.order();
+                    this.select('h1 strong')
+                        .text(function(d) { return d[0]; })
+                        .attr('title', function(d) { return d[0]; });
                     this.select('.badge').text(function(d) {
                         return F.number.pretty(d[1].length);
                     })
@@ -293,12 +321,9 @@ require([
                                     })
 
                             this.order();
-                            if (newVertex) {
-                                this.attr('class', 'multivalue');
-                            }
-                            this.attr('data-property', function(d) {
-                                return JSON.stringify(_.pick(d, 'name', 'key'));
-                            });
+                            this.each(function(d) {
+                                $(this).data('property', _.pick(d, 'name', 'key'));
+                            })
                             this.select('ul').selectAll('li')
                                 .data(function(d) {
                                     var notMetadata = ['name', 'key', 'value', 'sandboxStatus',
@@ -347,16 +372,16 @@ require([
                                         .append('label')
                                         .attr('class', 'nav-header')
 
-                                    this.select('label').each(function(d) {
+                                    this.order().select('label').each(function(d) {
                                         var display = {
                                             'http://visallo.org#visibilityJson':
-                                                i18n('admin.vertex.editor.visibility.label'),
+                                                i18n('admin.element.editor.visibility.label'),
                                             'http://visallo.org#justification':
-                                                i18n('admin.vertex.editor.justification.label'),
+                                                i18n('admin.element.editor.justification.label'),
                                             _sourceMetadata:
-                                                i18n('admin.vertex.editor.justification.label'),
+                                                i18n('admin.element.editor.justification.label'),
                                             sandboxStatus:
-                                                i18n('admin.vertex.editor.sandboxStatus.label')
+                                                i18n('admin.element.editor.sandboxStatus.label')
                                         };
                                         this.textContent = (display[d[0]] || d[0]) + ' ';
                                         d3.select(this)
