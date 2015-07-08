@@ -35,6 +35,9 @@ define([
 
     //Uncomment for better stacktraces (but slower promises)
     //if ('longStackTraces' in Promise) Promise.longStackTraces();
+    if (_.isFunction(Promise.onPossiblyUnhandledRejection)) {
+        Promise.onPossiblyUnhandledRejection(function() { });
+    }
 
     addProgress();
     addTimeout();
