@@ -71,6 +71,20 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             PropertyMetadata metadata,
             Visibility visibility
     ) {
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), visibility);
+    }
+
+    /**
+     * @param changedPropertiesOut Adds the property to this list if the property value changed
+     */
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            TRaw newValue,
+            Metadata metadata,
+            Visibility visibility
+    ) {
         if (newValue == null) {
             return;
         }
@@ -82,7 +96,7 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             currentValue = getPropertyValue(element);
         }
         if (currentValue == null || !newValue.equals(currentValue)) {
-            setProperty(m, newValue, metadata.createMetadata(), visibility);
+            setProperty(m, newValue, metadata, visibility);
             changedPropertiesOut.add(new VisalloPropertyUpdate(this));
         }
     }

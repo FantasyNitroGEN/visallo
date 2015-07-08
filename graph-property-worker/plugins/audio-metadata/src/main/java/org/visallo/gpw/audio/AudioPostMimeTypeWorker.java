@@ -3,6 +3,7 @@ package org.visallo.gpw.audio;
 import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
+import org.vertexium.Metadata;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
@@ -13,7 +14,6 @@ import org.visallo.core.model.Name;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.types.DoubleVisalloProperty;
 import org.visallo.core.model.properties.types.IntegerVisalloProperty;
-import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.util.FFprobeDurationUtil;
 import org.visallo.core.util.FFprobeExecutor;
@@ -50,7 +50,7 @@ public class AudioPostMimeTypeWorker extends PostMimeTypeWorker {
         JSONObject audioMetadata = FFprobeExecutor.getJson(processRunner, localFile.getAbsolutePath());
         ExistingElementMutation<Vertex> m = data.getElement().prepareMutation();
         List<VisalloPropertyUpdate> changedProperties = new ArrayList<>();
-        PropertyMetadata metadata = new PropertyMetadata(getUser(), data.getVisibilityJson(), data.getVisibility());
+        Metadata metadata = data.createPropertyMetadata();
         if (audioMetadata != null) {
             duration.updateProperty(changedProperties, data.getElement(), m, MULTI_VALUE_PROPERTY_KEY,
                     FFprobeDurationUtil.getDuration(audioMetadata), metadata, data.getVisibility());

@@ -86,8 +86,11 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         elementMutation.alterPropertyVisibility(propertyKey, getPropertyName(), newVisibility);
     }
 
+    /**
+     * @param changedPropertiesOut Adds the property to this list if the property value changed
+     */
     public void updateProperty(
-            List<VisalloPropertyUpdate> changedProperties,
+            List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
             ElementMutation m,
             String propertyKey,
@@ -95,11 +98,14 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             PropertyMetadata metadata,
             Visibility visibility
     ) {
-        updateProperty(changedProperties, element, m, propertyKey, newValue, metadata.createMetadata(), visibility);
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), visibility);
     }
 
+    /**
+     * @param changedPropertiesOut Adds the property to this list if the property value changed
+     */
     public void updateProperty(
-            List<VisalloPropertyUpdate> changedProperties,
+            List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
             ElementMutation m,
             String propertyKey,
@@ -119,7 +125,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         }
         if (currentValue == null || !newValue.equals(currentValue)) {
             addPropertyValue(m, propertyKey, newValue, metadata, visibility);
-            changedProperties.add(new VisalloPropertyUpdate(this, propertyKey));
+            changedPropertiesOut.add(new VisalloPropertyUpdate(this, propertyKey));
         }
     }
 

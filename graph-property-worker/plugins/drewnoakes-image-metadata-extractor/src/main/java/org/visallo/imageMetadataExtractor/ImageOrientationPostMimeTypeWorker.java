@@ -2,6 +2,7 @@ package org.visallo.imageMetadataExtractor;
 
 import com.google.inject.Inject;
 import org.vertexium.Authorizations;
+import org.vertexium.Metadata;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
@@ -12,7 +13,6 @@ import org.visallo.core.model.Name;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.types.BooleanSingleValueVisalloProperty;
 import org.visallo.core.model.properties.types.IntegerSingleValueVisalloProperty;
-import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.util.ImageTransform;
 import org.visallo.core.util.ImageTransformExtractor;
@@ -42,7 +42,7 @@ public class ImageOrientationPostMimeTypeWorker extends PostMimeTypeWorker {
         }
 
         File localFile = getLocalFileForRaw(data.getElement());
-        PropertyMetadata metadata = new PropertyMetadata(getUser(), data.getVisibilityJson(), data.getVisibility());
+        Metadata metadata = data.createPropertyMetadata();
         ExistingElementMutation<Vertex> mutation = data.getElement().prepareMutation();
 
         ImageTransform imageTransform = ImageTransformExtractor.getImageTransform(localFile);
