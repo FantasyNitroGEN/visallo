@@ -4,6 +4,7 @@
   "dependencies": {
     "PathFinding.js": "git://github.com/qiao/PathFinding.js.git#0.4.10",
     "atmosphere": "~2.2.5",
+    "bluebird": "2.9.32",
     "bootstrap": "git://github.com/twbs/bootstrap.git#2.3.2",
     "bootstrap-datepicker": "~1.2.0",
     "chrono": "~0.1.9",
@@ -34,7 +35,6 @@
     "jstz-detect": "~1.0.5",
     "timezone-js": "~0.4.13",
     "jscache": "ba01cdcf3e8a426782e0c297832b6c81286c9e8a",
-    "bluebird": "2.9.25",
     "underscore.inflection": "jharwig/underscore.inflection#~1.2.1"
   },
   "devDependencies": {
