@@ -3,9 +3,7 @@ package org.visallo.gpw.audio;
 import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
-import org.vertexium.Metadata;
 import org.vertexium.Vertex;
-import org.vertexium.Visibility;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
@@ -13,7 +11,14 @@ import org.visallo.core.ingest.graphProperty.PostMimeTypeWorker;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.util.*;
+import org.visallo.core.model.properties.types.DoubleVisalloProperty;
+import org.visallo.core.model.properties.types.IntegerVisalloProperty;
+import org.visallo.core.model.properties.types.PropertyMetadata;
+import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
+import org.visallo.core.util.FFprobeDurationUtil;
+import org.visallo.core.util.FFprobeExecutor;
+import org.visallo.core.util.FileSizeUtil;
+import org.visallo.core.util.ProcessRunner;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,14 +30,14 @@ public class AudioPostMimeTypeWorker extends PostMimeTypeWorker {
     public static final String MULTI_VALUE_PROPERTY_KEY = AudioPostMimeTypeWorker.class.getName();
     private ProcessRunner processRunner;
     private OntologyRepository ontologyRepository;
-    private String durationIri;
-    private String fileSizeIri;
+    private DoubleVisalloProperty duration;
+    private IntegerVisalloProperty fileSize;
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
         super.prepare(workerPrepareData);
-        durationIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.duration");
-        fileSizeIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.fileSize");
+        duration = new DoubleVisalloProperty(ontologyRepository.getRequiredPropertyIRIByIntent("media.duration"));
+        fileSize = new IntegerVisalloProperty(ontologyRepository.getRequiredPropertyIRIByIntent("media.fileSize"));
     }
 
     @Override
@@ -44,29 +49,19 @@ public class AudioPostMimeTypeWorker extends PostMimeTypeWorker {
         File localFile = getLocalFileForRaw(data.getElement());
         JSONObject audioMetadata = FFprobeExecutor.getJson(processRunner, localFile.getAbsolutePath());
         ExistingElementMutation<Vertex> m = data.getElement().prepareMutation();
-        List<String> properties = new ArrayList<>();
-        Metadata metadata = data.createPropertyMetadata();
+        List<VisalloPropertyUpdate> changedProperties = new ArrayList<>();
+        PropertyMetadata metadata = new PropertyMetadata(getUser(), data.getVisibilityJson(), data.getVisibility());
         if (audioMetadata != null) {
-            setProperty(durationIri, FFprobeDurationUtil.getDuration(audioMetadata), m, metadata, data, properties);
+            duration.updateProperty(changedProperties, data.getElement(), m, MULTI_VALUE_PROPERTY_KEY,
+                    FFprobeDurationUtil.getDuration(audioMetadata), metadata, data.getVisibility());
         }
 
-        setProperty(fileSizeIri, FileSizeUtil.getSize(localFile), m, metadata, data, properties);
+        fileSize.updateProperty(changedProperties, data.getElement(), m, MULTI_VALUE_PROPERTY_KEY,
+                FileSizeUtil.getSize(localFile), metadata, data.getVisibility());
 
         m.save(authorizations);
         getGraph().flush();
-
-        for (String propertyName : properties) {
-            getWorkQueueRepository().pushGraphPropertyQueue(data.getElement(), MULTI_VALUE_PROPERTY_KEY, propertyName, data.getPriority());
-        }
-
-        getGraph().flush();
-    }
-
-    private void setProperty(String iri, Object value, ExistingElementMutation<Vertex> mutation, Metadata metadata, GraphPropertyWorkData data, List<String> properties) {
-        if (iri != null && value != null) {
-            mutation.addPropertyValue(MULTI_VALUE_PROPERTY_KEY, iri, value, metadata, new Visibility(data.getVisibilitySource()));
-            properties.add(iri);
-        }
+        getWorkQueueRepository().pushGraphVisalloPropertyQueue(data.getElement(), changedProperties, data.getPriority());
     }
 
     @Inject
