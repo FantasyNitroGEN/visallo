@@ -26,9 +26,10 @@ public abstract class OntologyProperty {
     public static final Pattern GEO_LOCATION_ALTERNATE_FORMAT = Pattern.compile("(.*?),(.*)", Pattern.CASE_INSENSITIVE);
 
     static {
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        DATE_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        DATE_TIME_WITH_SECONDS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        DATE_FORMAT.setTimeZone(utc);
+        DATE_TIME_FORMAT.setTimeZone(utc);
+        DATE_TIME_WITH_SECONDS_FORMAT.setTimeZone(utc);
     }
 
     public abstract String getTitle();

@@ -158,6 +158,23 @@ define([
                     } else if (predicate === '>') {
                         values[0] += ':59';
                     }
+                } else {
+                    // append time to the day
+                    var MIDNIGHT = ' 00:00:00';
+                    var BEFORE_MIDNIGHT = ' 11:59:59';
+                    if (predicate === '=') {
+                        // turn into a range across all seconds in this day
+                        predicate = 'range';
+                        values[1] = F.date.addDaysToDateString(values[0], 1) + MIDNIGHT;
+                        values[0] += MIDNIGHT;
+                    } else if (predicate === 'range') {
+                        values[0] += MIDNIGHT;
+                        values[1] = F.date.addDaysToDateString(values[1], 1) + MIDNIGHT;
+                    } else if (predicate === '<') {
+                        values[0] += MIDNIGHT;
+                    } else if (predicate === '>') {
+                        values[0] += BEFORE_MIDNIGHT;
+                    }
                 }
             }
             this.filterUpdated(

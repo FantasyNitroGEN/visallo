@@ -530,6 +530,17 @@ define([
                 }
 
                 return time;
+            },
+            addDaysToDate: function(date, numDays) {
+                var newDate = new Date(date.valueOf());
+                newDate.setDate(newDate.getDate() + numDays);
+                return newDate;
+            },
+            dateToDateString: function(date) {
+                return date.toISOString().replace(/T.*$/, '');
+            },
+            addDaysToDateString: function(dateString, numDays) {
+                return FORMATTERS.date.dateToDateString(FORMATTERS.date.addDaysToDate(new Date(dateString), numDays));
             }
         },
         timezone: {
