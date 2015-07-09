@@ -269,6 +269,27 @@ define(['util/formatters'], function(f) {
                 f.date.dateTimeString(originalTime).should.contain(noTz);
             })
 
+            it('addDaysToDate() should return a Date object N days away', function() {
+                var date = new Date('2015-07-04T12:30:40');
+                f.date.addDaysToDate(date, 0).getTime().should.equal(new Date('2015-07-04T12:30:40').getTime());
+                f.date.addDaysToDate(date, 10).getTime().should.equal(new Date('2015-07-14T12:30:40').getTime());
+                f.date.addDaysToDate(date, 30).getTime().should.equal(new Date('2015-08-03T12:30:40').getTime());
+                f.date.addDaysToDate(date, -4).getTime().should.equal(new Date('2015-06-30T12:30:40').getTime());
+            });
+
+            it('dateToDateString() should return a string containing only the date portion', function() {
+                var date = new Date('2015-07-04T12:30:40');
+                f.date.dateToDateString(date).should.equal('2015-07-04');
+            });
+
+            it('addDaysToDateString() should return a string containing only a date N days away', function() {
+                var dateString = '2015-07-04T12:30:40';
+                f.date.addDaysToDateString(dateString, 0).should.equal('2015-07-04');
+                f.date.addDaysToDateString(dateString, 10).should.equal('2015-07-14');
+                f.date.addDaysToDateString(dateString, 30).should.equal('2015-08-03');
+                f.date.addDaysToDateString(dateString, -4).should.equal('2015-06-30');
+            });
+
             shouldBeRelative({seconds: 30}, 'time.moments time.ago')
             shouldBeRelative({seconds: 59}, 'time.moments time.ago')
             shouldBeRelative({seconds: 60}, 'time.minute time.ago')
