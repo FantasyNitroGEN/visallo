@@ -551,6 +551,11 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.vertexium</groupId>
+                <artifactId>vertexium-kryo-serializer</artifactId>
+                <version>${vertexium.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>net.sf.uadetector</groupId>
                 <artifactId>uadetector-resources</artifactId>
                 <version>${uadetector.resources.version}</version>

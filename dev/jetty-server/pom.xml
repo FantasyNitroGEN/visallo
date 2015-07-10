@@ -62,7 +62,6 @@
         <dependency>
             <groupId>org.vertexium</groupId>
             <artifactId>vertexium-kryo-serializer</artifactId>
-            <version>${vertexium.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
