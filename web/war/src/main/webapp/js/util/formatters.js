@@ -558,9 +558,16 @@ define([
                 if (/^\s*$/.test(dateStr)) {
                     return dateStr;
                 }
+
                 if (isNaN(new Date(dateStr).getTime())) {
-                    return dateStr;
+                    // Maybe this is Firefox - it requires a 'T' separator.
+                    // Safari takes this path, too, but to no avail.
+                    dateStr = dateStr.replace(/^([\w\-]+)(\s+)([\w:]+)/, '$1T$3');
+                    if (isNaN(new Date(dateStr).getTime())) {
+                        return dateStr;
+                    }
                 }
+                // NOTE: this doesn't work at all with Safari.
                 var date = new timezoneJS.Date(dateStr, timezone);
                 return date.toString('yyyy-MM-dd HH:mm', 'Etc/UTC');
             },
