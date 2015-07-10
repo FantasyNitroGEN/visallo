@@ -331,6 +331,14 @@ define(['util/formatters'], function(f) {
             }
         })
 
+        describe('for timezones', function() {
+
+            it('dateTimeStringToUtc() should return the UTC date-time as a string', function() {
+                // NOTE: this fails when run with karma without specifying a browser
+                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'EST5EDT').should.equal('2015-07-10 22:30');
+            });
+        });
+
         describe('className', function() {
 
             it('should be able to transform to and from className', function() {
