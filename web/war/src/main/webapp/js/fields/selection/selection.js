@@ -26,7 +26,14 @@ define([
             this.updatePropertiesSource();
             this.on('filterProperties', this.onFilterProperties);
 
-            this.$node.html(template({placeholder: this.attr.placeholder}));
+            if (this.attr.selectedProperty) {
+                this.currentProperty = this.attr.selectedProperty;
+            }
+
+            this.$node.html(template({
+                placeholder: this.attr.placeholder,
+                selected: this.currentProperty && this.currentProperty.displayName
+            }));
 
             if (this.attr.properties.length === 0 || this.attr.properties.length.value === 0) {
                 this.select('findPropertySelection')
