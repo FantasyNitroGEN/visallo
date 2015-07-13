@@ -122,6 +122,7 @@ public class Configuration {
         if (className == null) {
             throw new VisalloException("Could not find required property " + propertyKey);
         }
+        className = className.trim();
         try {
             LOGGER.debug("found class \"%s\" for configuration \"%s\"", className, propertyKey);
             return ClassUtil.forName(className);
