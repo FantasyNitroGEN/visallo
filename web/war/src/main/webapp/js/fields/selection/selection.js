@@ -17,7 +17,8 @@ define([
 
         this.defaultAttrs({
             findPropertySelection: 'input',
-            showAdminProperties: false
+            showAdminProperties: false,
+            rollupCompound: true
         });
 
         this.after('initialize', function() {
@@ -90,7 +91,13 @@ define([
                                         }
 
                                         if (self.attr.onlySearchable !== true &&
+                                            self.attr.rollupCompound !== false &&
                                             ~self.dependentPropertyIris.indexOf(p.title)) {
+                                            return false;
+                                        }
+
+                                        if (self.attr.rollupCompound === false &&
+                                           p.dependentPropertyIris) {
                                             return false;
                                         }
 
