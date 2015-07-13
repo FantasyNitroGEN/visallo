@@ -3,7 +3,11 @@ define([
 ], function(Privileges) {
     'use strict';
 
+    FoldersNotSupported.prototype = Object.create(Error.prototype);
+
     return withFileDrop;
+
+    function FoldersNotSupported() {}
 
     function withFileDrop() {
 
@@ -42,10 +46,14 @@ define([
                             folderCheck = (files.length) ?
                                 Promise.all(_.toArray(e.dataTransfer.files).map(function(file) {
                                     return new Promise(function(fulfill, reject) {
-                                        var reader = new FileReader();
+                                        var reader = new FileReader(),
+                                            slice = file.slice(0, 1000);
+
                                         reader.onload = fulfill;
-                                        reader.onerror = reject;
-                                        reader.readAsText(file);
+                                        reader.onerror = function() {
+                                            reject(new FoldersNotSupported());
+                                        };
+                                        reader.readAsText(slice);
                                     })
                                 })) :
                                 Promise.resolve();
@@ -58,9 +66,17 @@ define([
                                     self.handleItemsDropped(items, e);
                                 }
                             })
-                            .catch(function() {
+                            .catch(FoldersNotSupported, function(error) {
                                 self.trigger('displayInformation', {
                                     message: i18n('popovers.file_import.folder.error'),
+                                    position: [e.pageX, e.pageY]
+                                });
+                            })
+                            .catch(function(error) {
+                                console.error(error);
+
+                                self.trigger('displayInformation', {
+                                    message: i18n('popovers.file_import.general.error'),
                                     position: [e.pageX, e.pageY]
                                 });
                             })

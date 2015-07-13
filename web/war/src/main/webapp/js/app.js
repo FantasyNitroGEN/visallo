@@ -390,11 +390,11 @@ define([
             var mimeType = thing.length === 1 && thing[0].type,
                 fileImportExtensions = registry.extensionsForPoint('org.visallo.fileImport'),
                 fileImportExtensionsByMimeType = _.indexBy(fileImportExtensions, 'mimeType'),
-                handler;
+                extension;
 
             if (mimeType in fileImportExtensionsByMimeType) {
-                handler = fileImportExtensionsByMimeType[mimeType];
-                handler(thing[0], event);
+                extension = fileImportExtensionsByMimeType[mimeType];
+                extension.handler(thing[0], event);
             } else {
                 require(['util/popovers/fileImport/fileImport'], function(FileImport) {
                     FileImport.attachTo(event.target, config);
