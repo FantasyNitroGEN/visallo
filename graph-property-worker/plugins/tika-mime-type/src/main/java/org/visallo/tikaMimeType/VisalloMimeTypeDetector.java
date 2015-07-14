@@ -1,5 +1,6 @@
 package org.visallo.tikaMimeType;
 
+import org.apache.tika.io.TikaInputStream;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -45,7 +46,7 @@ public class VisalloMimeTypeDetector implements Detector {
             }
         }
 
-        return defaultDetector.detect(input, metadata);
+        return defaultDetector.detect(TikaInputStream.get(input), metadata);
     }
 
     private static Map<String, String> loadExtToMimeTypeMappingFile() {

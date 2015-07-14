@@ -24,7 +24,6 @@ module.exports = function(config) {
 
                 // Images
                 {pattern: 'img/**/*.*', included: false},
-                {pattern: 'tz/**', included: false},
                 {pattern: 'test/assets/*', included: false},
 
                 // Included libs

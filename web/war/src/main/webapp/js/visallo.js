@@ -13,7 +13,6 @@ require([
     'underscore.inflection',
     'util/visibility',
     'util/privileges',
-    'timezone-js',
     'easing',
     'jquery-scrollstop',
     'bootstrap-datepicker',
@@ -35,8 +34,7 @@ function(jQuery,
          _,
          _inflection,
          Visibility,
-         Privileges,
-         timezoneJS) {
+         Privileges) {
     'use strict';
 
     // Debug retina/non-retina by changing to 1/2
@@ -56,10 +54,6 @@ function(jQuery,
         );
     window.TRANSITION_END = 'transitionend webkitTransitionEnd MSTransitionEnd oTransitionEnd otransitionend';
     window.ANIMATION_END = 'animationend webkitAnimationEnd MSAnimationEnd oAnimationEnd oanimationend';
-
-    timezoneJS.timezone.zoneFileBasePath = 'tz';
-    timezoneJS.timezone.defaultZoneFile = ['northamerica', 'southamerica'];
-    timezoneJS.timezone.init({ async: true });
 
     var progress = 0,
         progressBar = null,

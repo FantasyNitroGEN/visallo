@@ -9,14 +9,14 @@ JAI_VERSION=1.1.3
 JAI_IMAGEIO_VERSION=1.1
 
 (cd /opt/jdk
-  curl -L http://download.java.net/media/jai/builds/release/$(echo ${JAI_VERSION} | sed -e 's/\./_/g')/jai-$(echo ${JAI_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin -O
+  curl -L http://bits.v5analytics.com/static/jai-$(echo ${JAI_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin -O
   sed -i -e 's|more <<EOF|cat > /dev/null <<EOF|' \
          -e 's/agreed=$/agreed=1/' \
          jai-$(echo ${JAI_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin
   chmod u+x jai-$(echo ${JAI_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin
   ./jai-$(echo ${JAI_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin && rm ./jai-$(echo ${JAI_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin
 
-  curl -L http://download.java.net/media/jai-imageio/builds/release/${JAI_IMAGEIO_VERSION}/jai_imageio-$(echo ${JAI_IMAGEIO_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin -O
+  curl -L http://bits.v5analytics.com/static/jai_imageio-$(echo ${JAI_IMAGEIO_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin -O
   chmod u+x jai_imageio-$(echo ${JAI_IMAGEIO_VERSION} | sed -e 's/\./_/g')-lib-linux-amd64-jdk.bin
   sed -i -e 's|more <<EOF|cat > /dev/null <<EOF|' \
          -e 's/agreed=$/agreed=1/' \

@@ -269,6 +269,27 @@ define(['util/formatters'], function(f) {
                 f.date.dateTimeString(originalTime).should.contain(noTz);
             })
 
+            it('addDaysToDate() should return a Date object N days away', function() {
+                var date = new Date('2015-07-04T12:30:40');
+                f.date.addDaysToDate(date, 0).getTime().should.equal(new Date('2015-07-04T12:30:40').getTime());
+                f.date.addDaysToDate(date, 10).getTime().should.equal(new Date('2015-07-14T12:30:40').getTime());
+                f.date.addDaysToDate(date, 30).getTime().should.equal(new Date('2015-08-03T12:30:40').getTime());
+                f.date.addDaysToDate(date, -4).getTime().should.equal(new Date('2015-06-30T12:30:40').getTime());
+            });
+
+            it('dateToDateString() should return a string containing only the date portion', function() {
+                var date = new Date('2015-07-04T12:30:40');
+                f.date.dateToDateString(date).should.equal('2015-07-04');
+            });
+
+            it('addDaysToDateString() should return a string containing only a date N days away', function() {
+                var dateString = '2015-07-04T12:30:40';
+                f.date.addDaysToDateString(dateString, 0).should.equal('2015-07-04');
+                f.date.addDaysToDateString(dateString, 10).should.equal('2015-07-14');
+                f.date.addDaysToDateString(dateString, 30).should.equal('2015-08-03');
+                f.date.addDaysToDateString(dateString, -4).should.equal('2015-06-30');
+            });
+
             shouldBeRelative({seconds: 30}, 'time.moments time.ago')
             shouldBeRelative({seconds: 59}, 'time.moments time.ago')
             shouldBeRelative({seconds: 60}, 'time.minute time.ago')
@@ -309,6 +330,32 @@ define(['util/formatters'], function(f) {
                 })
             }
         })
+
+        describe('for timezones', function() {
+
+            it('dateTimeStringToUtc() should return the UTC date-time as a string', function() {
+                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'EST5EDT').should.equal('2015-07-10 22:30')
+                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'America/New_York').should.equal('2015-07-10 22:30')
+                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'America/Chicago').should.equal('2015-07-10 23:30')
+            })
+
+            it('dateTimeStringToTimezone() should return the timezone date-time as a string', function() {
+                f.timezone.dateTimeStringToTimezone('2015-07-10 18:30', 'America/New_York', 'America/Chicago').should.equal('2015-07-10 17:30')
+                f.timezone.dateTimeStringToTimezone('2015-07-11 00:30', 'America/New_York', 'America/Chicago').should.equal('2015-07-10 23:30')
+            })
+
+            it('should be able to lookup timezones', function() {
+                var tzInfo = f.timezone.lookupTimezone('America/Chicago', new Date(2015, 6, 10));
+                tzInfo.tzOffsetDisplay.should.equal('-05:00')
+                tzInfo.tzAbbr.should.equal('CDT')
+                tzInfo.name.should.equal('America/Chicago')
+
+                tzInfo = f.timezone.lookupTimezone('America/Chicago', new Date(2015, 0, 10));
+                tzInfo.tzOffsetDisplay.should.equal('-06:00')
+                tzInfo.tzAbbr.should.equal('CST')
+            })
+
+        });
 
         describe('className', function() {
 

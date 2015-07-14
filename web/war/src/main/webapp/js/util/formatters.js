@@ -3,12 +3,12 @@ define([
     'sf',
     'chrono',
     'jstz',
-    'timezone-js',
+    'moment-timezone',
     'duration-js',
     'util/messages',
     'jquery',
     'underscore'
-], function(sf, chrono, jstz, timezoneJS, Duration, i18n) {
+], function(sf, chrono, jstz, moment, Duration, i18n) {
     'use strict';
 
     var BITS_FOR_INDEX = 12,
@@ -530,32 +530,40 @@ define([
                 }
 
                 return time;
+            },
+            addDaysToDate: function(date, numDays) {
+                var newDate = new Date(date.valueOf());
+                newDate.setDate(newDate.getDate() + numDays);
+                return newDate;
+            },
+            dateToDateString: function(date) {
+                return date.toISOString().replace(/T.*$/, '');
+            },
+            addDaysToDateString: function(dateString, numDays) {
+                return FORMATTERS.date.dateToDateString(FORMATTERS.date.addDaysToDate(new Date(dateString), numDays));
             }
         },
         timezone: {
-            dateStringToUtc: function(dateStr, timezone) {
+            dateTimeStringToTimezone: function(dateStr, srcTimezone, destTimezone) {
                 if (/^\s*$/.test(dateStr)) {
                     return dateStr;
                 }
+
                 if (isNaN(new Date(dateStr).getTime())) {
-                    return dateStr;
+                    // Maybe this is Firefox - it requires a 'T' separator.
+                    // Safari takes this path, too, but to no avail.
+                    dateStr = dateStr.replace(/^([\w\-]+)(\s+)([\w:]+)/, '$1T$3');
+                    if (isNaN(new Date(dateStr).getTime())) {
+                        return dateStr;
+                    }
                 }
-                var date = new timezoneJS.Date(dateStr, timezone);
-                return date.toString('yyyy-MM-dd', 'Etc/UTC');
+
+                return moment.tz(dateStr, srcTimezone)
+                    .tz(destTimezone)
+                    .format('YYYY-MM-DD HH:mm')
             },
-            dateTimeStringToUtc: function(dateStr, timezone) {
-                if (/^\s*$/.test(dateStr)) {
-                    return dateStr;
-                }
-                if (isNaN(new Date(dateStr).getTime())) {
-                    return dateStr;
-                }
-                var date = new timezoneJS.Date(dateStr, timezone);
-                return date.toString('yyyy-MM-dd HH:mm', 'Etc/UTC');
-            },
-            dateTimeStringToTimezone: function(millis, timezone) {
-                var date = new timezoneJS.Date(millis, timezone);
-                return date.toString('yyyy-MM-dd HH:mm Z');
+            dateTimeStringToUtc: function(millis, timezone) {
+                return FORMATTERS.timezone.dateTimeStringToTimezone(millis, timezone, 'Etc/UTC');
             },
             date: function(dateStr, timezone) {
                 if (/^\s*$/.test(dateStr)) {
@@ -564,7 +572,7 @@ define([
                 if (isNaN(new Date(dateStr).getTime())) {
                     return dateStr;
                 }
-                return new timezoneJS.Date(dateStr, timezone);
+                return moment.tz(dateStr, timezone)
             },
             offsetDisplay: function(offsetMinutes) {
                 var negative = offsetMinutes < 0,
@@ -604,13 +612,7 @@ define([
 
             lookupTimezone: function(name, withOffsetForDate) {
                 var list = FORMATTERS.timezone.list(),
-                    tz = list[name],
-                    regions = timezoneJS.timezone.getRegionForTimezone(name);
-
-                if (!_.isArray(regions)) {
-                    regions = [regions];
-                }
-                timezoneJS.timezone.loadZoneFiles(regions, { async: false });
+                    tz = list[name];
 
                 if (withOffsetForDate && withOffsetForDate.getTime) {
                     withOffsetForDate = withOffsetForDate.getTime();
@@ -620,11 +622,13 @@ define([
                     withOffsetForDate = Date.now();
                 }
 
-                var tzInfo = timezoneJS.timezone.getTzInfo(withOffsetForDate, name)
-
-                // Returns opposite of what we want
-                tzInfo.tzOffset *= -1;
-                tzInfo.tzOffsetDisplay = FORMATTERS.timezone.offsetDisplay(tzInfo.tzOffset);
+                var momentZone = moment.tz.zone(name),
+                    offset = momentZone.offset(withOffsetForDate) * -1,
+                    tzInfo = {
+                        tzOffset: offset,
+                        tzAbbr: momentZone.abbr(withOffsetForDate),
+                        tzOffsetDisplay: FORMATTERS.timezone.offsetDisplay(offset)
+                    };
 
                 return $.extend({}, tz, tzInfo);
             },
