@@ -27,8 +27,9 @@
 /*globals Promise:true self:true*/
 var self = this;
 define([
-    'bluebird'
-], function(P) {
+    'bluebird',
+    'underscore'
+], function(P, _) {
     'use strict';
 
     var Promise = P || self.Promise;
