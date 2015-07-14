@@ -2,6 +2,7 @@ package org.visallo.reindexmr;
 
 import com.beust.jcommander.Parameter;
 import com.google.inject.Inject;
+import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
@@ -11,6 +12,7 @@ import org.vertexium.ElementType;
 import org.vertexium.Graph;
 import org.vertexium.accumulo.AccumuloGraph;
 import org.vertexium.accumulo.mapreduce.AccumuloEdgeInputFormat;
+import org.vertexium.accumulo.mapreduce.AccumuloElementInputFormatBase;
 import org.vertexium.accumulo.mapreduce.AccumuloVertexInputFormat;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -22,6 +24,10 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.mapreduce.VisalloMRBase;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class ReindexMR extends VisalloMRBase {
@@ -31,6 +37,12 @@ public class ReindexMR extends VisalloMRBase {
 
     @Parameter(description = "vertex|edge")
     private List<String> type;
+
+    @Parameter(names = {"-o", "--offline"}, description = "Use offline mode (use RFiles instead of tablet servers)")
+    private boolean offline = false;
+
+    @Parameter(names = {"--noclone"}, description = "Do not clone the tables while in offline mode (tables will be unusable by Visallo)")
+    private boolean noClone = false;
 
     public static void main(String[] args) throws Exception {
         LOGGER = VisalloLoggerFactory.getLogger(ReindexMR.class);
@@ -57,11 +69,43 @@ public class ReindexMR extends VisalloMRBase {
         job.setNumReduceTasks(0);
 
         if (elementType == ElementType.VERTEX) {
+            String verticesTableName = AccumuloGraph.getVerticesTableName(getAccumuloGraphConfiguration().getTableNamePrefix());
+            if (offline) {
+                if (!noClone) {
+                    String verticesCloneTableName = verticesTableName + "_clone_reindex_" + new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date());
+                    graph.getConnector().tableOperations().clone(
+                            verticesTableName,
+                            verticesCloneTableName,
+                            true,
+                            new HashMap<String, String>(),
+                            new HashSet<String>());
+                    graph.getConnector().tableOperations().offline(verticesCloneTableName, true);
+                    verticesTableName = verticesCloneTableName;
+                }
+                AccumuloInputFormat.setOfflineTableScan(job, true);
+            }
+
             job.setInputFormatClass(AccumuloVertexInputFormat.class);
-            AccumuloVertexInputFormat.setInputInfo(job, graph, getInstanceName(), getZooKeepers(), getPrincipal(), getAuthorizationToken(), authorizations);
+            AccumuloElementInputFormatBase.setInputInfo(job, getInstanceName(), getZooKeepers(), getPrincipal(), getAuthorizationToken(), authorizations, verticesTableName);
         } else if (elementType == ElementType.EDGE) {
+            String edgesTableName = AccumuloGraph.getEdgesTableName(getAccumuloGraphConfiguration().getTableNamePrefix());
+            if (offline) {
+                if (!noClone) {
+                    String edgesCloneTableName = edgesTableName + "_clone_reindex_" + new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date());
+                    graph.getConnector().tableOperations().clone(
+                            edgesTableName,
+                            edgesCloneTableName,
+                            true,
+                            new HashMap<String, String>(),
+                            new HashSet<String>());
+                    graph.getConnector().tableOperations().offline(edgesCloneTableName, true);
+                    edgesTableName = edgesCloneTableName;
+                }
+                AccumuloInputFormat.setOfflineTableScan(job, true);
+            }
+
             job.setInputFormatClass(AccumuloEdgeInputFormat.class);
-            AccumuloEdgeInputFormat.setInputInfo(job, graph, getInstanceName(), getZooKeepers(), getPrincipal(), getAuthorizationToken(), authorizations);
+            AccumuloElementInputFormatBase.setInputInfo(job, getInstanceName(), getZooKeepers(), getPrincipal(), getAuthorizationToken(), authorizations, edgesTableName);
         } else {
             throw new VisalloException("Unhandled element type: " + elementType);
         }

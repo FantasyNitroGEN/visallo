@@ -36,6 +36,8 @@ public abstract class VisalloMRBase extends Configured implements Tool {
     private AuthenticationToken authorizationToken;
     private boolean local;
     private Timer periodicCounterOutputTimer;
+    private org.visallo.core.config.Configuration visalloConfig;
+    private AccumuloGraphConfiguration accumuloGraphConfiguration;
 
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @DynamicParameter(names = {"-job"}, description = "Set a job property. (e.g.: -job mapreduce.map.memory.mb=1024)")
@@ -48,12 +50,12 @@ public abstract class VisalloMRBase extends Configured implements Tool {
     public int run(String[] args) throws Exception {
         LOGGER = VisalloLoggerFactory.getLogger(VisalloMRBase.class);
 
-        org.visallo.core.config.Configuration visalloConfig = ConfigurationLoader.load();
+        visalloConfig = ConfigurationLoader.load();
         JobConf conf = getConfiguration(args, visalloConfig);
         if (conf == null) {
             return -1;
         }
-        AccumuloGraphConfiguration accumuloGraphConfiguration = new AccumuloGraphConfiguration(conf, "graph.");
+        accumuloGraphConfiguration = new AccumuloGraphConfiguration(conf, "graph.");
         InjectHelper.inject(this, VisalloBootstrap.bootstrapModuleMaker(visalloConfig), visalloConfig);
 
         Job job = Job.getInstance(conf, getJobName());
@@ -150,6 +152,14 @@ public abstract class VisalloMRBase extends Configured implements Tool {
 
     public String getPrincipal() {
         return principal;
+    }
+
+    public org.visallo.core.config.Configuration getVisalloConfig() {
+        return visalloConfig;
+    }
+
+    public AccumuloGraphConfiguration getAccumuloGraphConfiguration() {
+        return accumuloGraphConfiguration;
     }
 
     public AuthenticationToken getAuthorizationToken() {
