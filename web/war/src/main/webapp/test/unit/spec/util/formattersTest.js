@@ -334,9 +334,27 @@ define(['util/formatters'], function(f) {
         describe('for timezones', function() {
 
             it('dateTimeStringToUtc() should return the UTC date-time as a string', function() {
-                // NOTE: this fails when run with karma without specifying a browser
-                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'EST5EDT').should.equal('2015-07-10 22:30');
-            });
+                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'EST5EDT').should.equal('2015-07-10 22:30')
+                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'America/New_York').should.equal('2015-07-10 22:30')
+                f.timezone.dateTimeStringToUtc('2015-07-10 18:30', 'America/Chicago').should.equal('2015-07-10 23:30')
+            })
+
+            it('dateTimeStringToTimezone() should return the timezone date-time as a string', function() {
+                f.timezone.dateTimeStringToTimezone('2015-07-10 18:30', 'America/New_York', 'America/Chicago').should.equal('2015-07-10 17:30')
+                f.timezone.dateTimeStringToTimezone('2015-07-11 00:30', 'America/New_York', 'America/Chicago').should.equal('2015-07-10 23:30')
+            })
+
+            it('should be able to lookup timezones', function() {
+                var tzInfo = f.timezone.lookupTimezone('America/Chicago', new Date(2015, 6, 10));
+                tzInfo.tzOffsetDisplay.should.equal('-05:00')
+                tzInfo.tzAbbr.should.equal('CDT')
+                tzInfo.name.should.equal('America/Chicago')
+
+                tzInfo = f.timezone.lookupTimezone('America/Chicago', new Date(2015, 0, 10));
+                tzInfo.tzOffsetDisplay.should.equal('-06:00')
+                tzInfo.tzAbbr.should.equal('CST')
+            })
+
         });
 
         describe('className', function() {

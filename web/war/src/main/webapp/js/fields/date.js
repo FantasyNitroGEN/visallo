@@ -206,13 +206,13 @@ define([
                         var inputs = this.$node.find('input');
 
                         if (values && values[0] && inputs.length > 1) {
-                            date = F.timezone.date(values[0], 'Etc/UTC');
-                            inputs.eq(0).val(date.toString('yyyy-MM-dd', tz)).datepicker('update');
-                            inputs.eq(1).data('timepicker').setTime(date.toString('HH:mm', tz));
+                            date = F.timezone.date(values[0], 'Etc/UTC').tz(tz);
+                            inputs.eq(0).val(date.format('YYYY-MM-DD')).datepicker('update');
+                            inputs.eq(1).data('timepicker').setTime(date.format('HH:mm'));
                         } else if (values && values[1] && inputs.length > 3) {
-                            date = F.timezone.date(values[1], 'Etc/UTC');
-                            inputs.eq(2).val(date.toString('yyyy-MM-dd', tz)).datepicker('update');
-                            inputs.eq(3).data('timepicker').setTime(date.toString('HH:mm', tz));
+                            date = F.timezone.date(values[1], 'Etc/UTC').tz(tz);
+                            inputs.eq(2).val(date.format('YYYY-MM-DD')).datepicker('update');
+                            inputs.eq(3).data('timepicker').setTime(date.format('HH:mm'));
                         }
                     }
                     this.currentTimezone = F.timezone.lookupTimezone(tz, date.getTime());
