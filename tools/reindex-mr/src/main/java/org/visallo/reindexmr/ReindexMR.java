@@ -3,14 +3,19 @@ package org.visallo.reindexmr;
 import com.beust.jcommander.Parameter;
 import com.google.inject.Inject;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.core.client.mapreduce.AccumuloRowInputFormat;
+import org.apache.accumulo.core.util.Pair;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
 import org.vertexium.ElementType;
+import org.vertexium.FetchHint;
 import org.vertexium.Graph;
 import org.vertexium.accumulo.AccumuloGraph;
+import org.vertexium.accumulo.AccumuloVertex;
 import org.vertexium.accumulo.mapreduce.AccumuloEdgeInputFormat;
 import org.vertexium.accumulo.mapreduce.AccumuloElementInputFormatBase;
 import org.vertexium.accumulo.mapreduce.AccumuloVertexInputFormat;
@@ -25,10 +30,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.mapreduce.VisalloMRBase;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class ReindexMR extends VisalloMRBase {
     private static VisalloLogger LOGGER;
@@ -86,6 +88,7 @@ public class ReindexMR extends VisalloMRBase {
             }
 
             job.setInputFormatClass(AccumuloVertexInputFormat.class);
+            AccumuloElementInputFormatBase.setFetchHints(job,ElementType.VERTEX, EnumSet.of(FetchHint.PROPERTIES));
             AccumuloElementInputFormatBase.setInputInfo(job, getInstanceName(), getZooKeepers(), getPrincipal(), getAuthorizationToken(), authorizations, verticesTableName);
         } else if (elementType == ElementType.EDGE) {
             String edgesTableName = AccumuloGraph.getEdgesTableName(getAccumuloGraphConfiguration().getTableNamePrefix());
