@@ -158,6 +158,23 @@ define([
                     } else if (predicate === '>') {
                         values[0] += ':59';
                     }
+                } else {
+                    // append time to the day
+                    var MIDNIGHT = ' 00:00:00';
+                    var BEFORE_MIDNIGHT = ' 11:59:59';
+                    if (predicate === '=') {
+                        // turn into a range across all seconds in this day
+                        predicate = 'range';
+                        values[1] = F.date.addDaysToDateString(values[0], 1) + MIDNIGHT;
+                        values[0] += MIDNIGHT;
+                    } else if (predicate === 'range') {
+                        values[0] += MIDNIGHT;
+                        values[1] = F.date.addDaysToDateString(values[1], 1) + MIDNIGHT;
+                    } else if (predicate === '<') {
+                        values[0] += MIDNIGHT;
+                    } else if (predicate === '>') {
+                        values[0] += BEFORE_MIDNIGHT;
+                    }
                 }
             }
             this.filterUpdated(
@@ -189,13 +206,13 @@ define([
                         var inputs = this.$node.find('input');
 
                         if (values && values[0] && inputs.length > 1) {
-                            date = F.timezone.date(values[0], 'Etc/UTC');
-                            inputs.eq(0).val(date.toString('yyyy-MM-dd', tz)).datepicker('update');
-                            inputs.eq(1).data('timepicker').setTime(date.toString('HH:mm', tz));
+                            date = F.timezone.date(values[0], 'Etc/UTC').tz(tz);
+                            inputs.eq(0).val(date.format('YYYY-MM-DD')).datepicker('update');
+                            inputs.eq(1).data('timepicker').setTime(date.format('HH:mm'));
                         } else if (values && values[1] && inputs.length > 3) {
-                            date = F.timezone.date(values[1], 'Etc/UTC');
-                            inputs.eq(2).val(date.toString('yyyy-MM-dd', tz)).datepicker('update');
-                            inputs.eq(3).data('timepicker').setTime(date.toString('HH:mm', tz));
+                            date = F.timezone.date(values[1], 'Etc/UTC').tz(tz);
+                            inputs.eq(2).val(date.format('YYYY-MM-DD')).datepicker('update');
+                            inputs.eq(3).data('timepicker').setTime(date.format('HH:mm'));
                         }
                     }
                     this.currentTimezone = F.timezone.lookupTimezone(tz, date.getTime());

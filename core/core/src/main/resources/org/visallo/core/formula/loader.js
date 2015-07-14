@@ -21,6 +21,8 @@ require.config({
         'underscore': 'libs/underscore',
         'bluebird': 'libs/promise-6.0.0',
         'duration-js': 'libs/duration',
+        'moment': 'libs/moment-with-locales',
+        'moment-timezone': 'libs/moment-timezone-with-data',
 
         // MOCKS
         'jquery': 'mocks/jquery',
@@ -44,28 +46,6 @@ require.config({
         'bluebird': { exports: 'Promise' },
         'util/vertex/formatters': { deps: ['util/promise'] }
     }
-});
-
-require(['timezone-js'], function(timezoneJS) {
-    timezoneJS.timezone.zoneFileBasePath = 'tz';
-    timezoneJS.timezone.defaultZoneFile = ['northamerica'];
-    timezoneJS.timezone.loadZoneFile = function(fileName, opts) {
-        if (this.loadedZones[fileName]) return;
-        this.loadedZones[fileName] = true;
-
-        var url = 'tz/' + fileName,
-            file = readFile(url);
-
-        if (!opts || !opts.async) {
-            return this.parseZones(file);
-        }
-
-        var parsedZones = this.parseZones(file);
-        if (opts && opts.callback) {
-            ops.callback();
-        }
-    };
-    timezoneJS.timezone.init({ async: false });
 });
 
 var timerLoop = makeWindowTimer(this, function () { });

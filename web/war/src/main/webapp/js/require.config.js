@@ -33,6 +33,8 @@ var require = {
         'jscache': '../libs/jscache/cache',
         'less': 'util/requirejs/less',
         'lessc': '../libs/require-less/lessc',
+        'moment': '../libs/moment/min/moment-with-locales.min',
+        'moment-timezone': '../libs/moment-timezone/builds/moment-timezone-with-data.min',
         'normalize': '../libs/require-less/normalize',
         'openlayers': '../libs/openlayers/OpenLayers.debug',
         'pathfinding': '../libs/PathFinding.js/lib/pathfinding-browser',
@@ -45,7 +47,6 @@ var require = {
         'sf': '../libs/sf/sf',
         'text': '../libs/requirejs-text/text',
         'three': '../libs/threejs/build/three',
-        'timezone-js': '../libs/timezone-js/src/date',
         'tpl': '../libs/requirejs-ejs/rejs',
         'underscore': '../libs/underscore/underscore',
         'underscore.inflection': '../libs/underscore.inflection/lib/underscore.inflection',
@@ -78,7 +79,6 @@ var require = {
         'rangy-serializer': { deps: ['rangy-core'] },
         'jquery-scrollstop': { exports: 'jQuery', deps: ['jquery'] },
         'three': { exports: 'THREE' },
-        'timezone-js': { deps: ['jquery'] },
         'underscore': { exports: '_' },
         'videojs': { exports: 'videojs' }
     }

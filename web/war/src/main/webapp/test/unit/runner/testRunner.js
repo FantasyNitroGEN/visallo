@@ -35,19 +35,16 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
 
         deps: [
             'chai',
-            'timezone-js',
             '../libs/es5-shim/es5-shim',
             '../libs/es5-shim/es5-sham',
             '../libs/underscore/underscore'
         ],
 
-        callback: function(chai, timezoneJS) {
+        callback: function(chai) {
 
             window.visalloData = {
                 currentWorkspaceId: 'w1'
             };
-            timezoneJS.timezone.zoneFileBasePath = '/base/tz';
-            timezoneJS.timezone.init();
 
             _.templateSettings.escape = /\{([\s\S]+?)\}/g;
             _.templateSettings.evaluate = /<%([\s\S]+?)%>/g;
