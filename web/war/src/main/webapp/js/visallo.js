@@ -13,6 +13,7 @@ require([
     'underscore.inflection',
     'util/visibility',
     'util/privileges',
+    'moment',
     'easing',
     'jquery-scrollstop',
     'bootstrap-datepicker',
@@ -34,7 +35,8 @@ function(jQuery,
          _,
          _inflection,
          Visibility,
-         Privileges) {
+         Privileges,
+         moment) {
     'use strict';
 
     // Debug retina/non-retina by changing to 1/2
@@ -54,6 +56,15 @@ function(jQuery,
         );
     window.TRANSITION_END = 'transitionend webkitTransitionEnd MSTransitionEnd oTransitionEnd otransitionend';
     window.ANIMATION_END = 'animationend webkitAnimationEnd MSAnimationEnd oAnimationEnd oanimationend';
+
+    var language = 'en';
+    try {
+        var languagePref = localStorage.getItem('language');
+        if (languagePref) {
+            language = languagePref;
+        }
+    } catch(e) { /*eslint no-empty:0 */ }
+    moment.locale(language);
 
     var progress = 0,
         progressBar = null,
