@@ -161,7 +161,7 @@ define([
                 } else {
                     // append time to the day
                     var MIDNIGHT = ' 00:00:00';
-                    var BEFORE_MIDNIGHT = ' 11:59:59';
+                    var BEFORE_MIDNIGHT = ' 23:59:59';
                     if (predicate === '=') {
                         // turn into a range across all seconds in this day
                         predicate = 'range';
