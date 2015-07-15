@@ -1,15 +1,14 @@
 
 .segmented-control {
-  border: 1px solid @blue-color;
-  border-radius: 4px;
   overflow: hidden;
   width: 100%;
   font-size: 80%;
   margin-bottom: 1em;
 
   button {
+    border: 1px solid @blue-color;
+    border-width: 1px 0;
     background: inherit;
-    border: 0;
     position: relative;
     width: 50%;
     padding: 0.1em 0.25em;
@@ -19,8 +18,27 @@
     color: @blue-color;    
     .box-sizing(border-box);
 
+    &:first-child {
+      border-left-width: 1px;
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+
+    &:nth-child(2n) {
+      border-right-width: 1px;
+    }
+
     &:last-child {
-      border-left: 1px solid @blue-color;
+      border-right-width: 1px;
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+
+    &:disabled {
+      @color: mix(@blue-color, #ccc, 30%); 
+      color: @color;
+      border-color: @color;
+      cursor: default;
     }
 
     &.active {
