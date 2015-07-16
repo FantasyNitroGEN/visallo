@@ -1,9 +1,16 @@
 
 .segmented-control {
-  overflow: hidden;
   width: 100%;
   font-size: 80%;
   margin-bottom: 1em;
+
+  &:after {
+    content: '';
+    overflow: auto;
+    display: block;
+    float: none;
+    clear: left;
+  }
 
   button {
     border: 1px solid @blue-color;
