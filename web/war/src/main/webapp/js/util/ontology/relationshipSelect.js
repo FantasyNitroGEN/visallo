@@ -46,20 +46,45 @@ define([
             var self = this;
 
             this.dataRequest('ontology', 'ontology')
-                .done(function(ontology) {
+                .then(function(ontology) {
                     self.ontology = ontology;
+                    if (self.attr.sourceConcept && self.attr.targetConcept) {
+                        return self.dataRequest('ontology', 'relationshipsBetween',
+                            self.attr.sourceConcept,
+                            self.attr.targetConcept
+                        );
+                    }
+                })
+                .done(function(limitedToSourceDest) {
 
-                    var ontologyConcepts = ontology.concepts,
+                    if (limitedToSourceDest) {
+                        self.limitedToSourceDest = limitedToSourceDest;
+                    }
+
+                    var ontology = self.ontology,
+                        ontologyConcepts = ontology.concepts,
                         relationshipOntology = ontology.relationships,
-                        field = self.select('fieldSelector').attr('placeholder', self.attr.defaultText);
+                        transformed = self.transformRelationships(),
+                        placeholderForRelationships = function() {
+                            return transformed.length ?
+                                self.attr.defaultText :
+                                i18n('relationship.field.no_valid');
+                        },
+                        isPlaceholder = function(placeholder) {
+                            return placeholder === self.attr.defaultText ||
+                               placeholder === i18n('relationship.field.no_valid');
+                        },
+                        placeholder = placeholderForRelationships(transformed),
+                        field = self.select('fieldSelector').attr('placeholder', placeholder);
 
                     field.typeahead({
                         minLength: 0,
                         items: Number.MAX_VALUE,
                         source: function(query) {
-                            var relationships = self.transformRelationships();
+                            var relationships = self.transformRelationships(),
+                                placeholder = placeholderForRelationships(relationships);
 
-                            relationships.splice(0, 0, self.attr.defaultText);
+                            relationships.splice(0, 0, placeholder);
 
                             return relationships;
                         },
@@ -67,7 +92,7 @@ define([
                             if ($.trim(this.query) === '') {
                                 return true;
                             }
-                            if (relationship === self.attr.defaultText) {
+                            if (isPlaceholder(relationship)) {
                                 return false;
                             }
 
@@ -85,7 +110,7 @@ define([
                             return relationship && relationship.displayName || '';
                         },
                         highlighter: function(relationship) {
-                            return relationshipTemplate(relationship === self.attr.defaultText ?
+                            return relationshipTemplate(isPlaceholder(relationship) ?
                             {
                                 relationship: {
                                     displayName: relationship
@@ -103,12 +128,13 @@ define([
                     }
 
                     self.allowEmptyLookup(field);
+                    self.trigger('rendered');
                 });
         }
 
         this.transformRelationships = function() {
             var self = this,
-                list = this.ontology.relationships.list;
+                list = this.limitedToSourceDest || this.ontology.relationships.list;
 
             if (this.attr.limitParentConceptId) {
                 list = _.chain(this.ontology.relationships.groupedBySourceDestConcepts)
