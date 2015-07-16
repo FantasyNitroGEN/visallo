@@ -43,6 +43,7 @@
         <module>video-audio-extract</module>
         <module>audio-mp4-encoder</module>
         <module>audio-ogg-encoder</module>
+        <module>audio-metadata</module>
         <module>video-poster-frame</module>
         <module>video-frame-extract</module>
         <module>video-metadata</module>

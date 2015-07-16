@@ -327,6 +327,11 @@
                     <artifactId>visallo-gpw-audio-ogg-encoder</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-gpw-audio-metadata</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
         </profile>
         <profile>
