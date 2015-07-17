@@ -8,6 +8,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.query.*;
+import org.vertexium.util.CloseableIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
@@ -99,6 +100,10 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
 
         long endTime = System.nanoTime();
         LOGGER.info("Search found %d vertices in %dms", verticesList.size(), (endTime - startTime) / 1000 / 1000);
+
+        if (searchResults instanceof CloseableIterable) {
+            ((CloseableIterable) searchResults).close();
+        }
 
         respondWithClientApiObject(response, results);
     }
