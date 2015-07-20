@@ -327,7 +327,7 @@ define([
                 switch (count) {
                     case 0: return 'No ' + plural;
                     case 1: return '1 ' + singular;
-                    default: return count + ' ' + plural;
+                    default: return FORMATTERS.number.pretty(count) + ' ' + plural;
                 }
             },
             truncate: function(str, words) {
