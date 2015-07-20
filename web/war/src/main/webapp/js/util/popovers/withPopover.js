@@ -54,6 +54,10 @@ define([
                 .html(tpl(this.attr))
                 .appendTo(document.body);
 
+            if (this.$node.closest('.modal').length) {
+                this.dialog.css('zIndex', 1050);
+            }
+
             this.popover = this.dialog.find('.popover');
 
             this.on(this.popover, 'positionDialog', this.positionDialog);
