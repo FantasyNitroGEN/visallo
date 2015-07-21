@@ -36,6 +36,11 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-yarn-base</artifactId>
             <version>${project.version}</version>
         </dependency>

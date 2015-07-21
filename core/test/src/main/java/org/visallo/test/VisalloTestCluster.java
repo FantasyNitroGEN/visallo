@@ -69,7 +69,7 @@ public class VisalloTestCluster {
             Configuration configuration = new Configuration(new VisalloTestClusterConfigurationLoader(), configMap);
             workQueueNames = new WorkQueueNames(configuration);
             if (VisalloTestClusterConfigurationLoader.isTestServer()) {
-                FormatVisallo.deleteElasticSearchIndex(config);
+                FormatVisallo.deleteElasticSearchIndex(config, indexNames);
 
                 AccumuloSimpleOrmSession simpleOrmSession = new AccumuloSimpleOrmSession();
                 simpleOrmSession.init(configMap);

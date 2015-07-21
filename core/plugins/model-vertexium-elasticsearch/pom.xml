@@ -3,26 +3,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>visallo-tools-group</artifactId>
+        <artifactId>visallo-core-plugins-group</artifactId>
         <groupId>org.visallo</groupId>
         <version>1.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>visallo-graph-property-worker-yarn</artifactId>
-    <packaging>jar</packaging>
-    <name>Visallo: Tools: Graph Property Worker YARN</name>
+    <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
+    <name>Visallo: Core: Plugin: Model: Vertexium Elasticsearch</name>
 
     <dependencies>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-core</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-model-rabbitmq</artifactId>
-            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
@@ -30,19 +25,8 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-model-vertexium-accumulo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-yarn-base</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-elasticsearch-base</artifactId>
         </dependency>
     </dependencies>
 
@@ -67,19 +51,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${plugin.maven.shade.version}</version>
-                <configuration>
-                    <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>org.visallo.gpw.yarn.GraphPropertyWorkerYarnClient</mainClass>
-                        </transformer>
-                    </transformers>
-                </configuration>
             </plugin>
         </plugins>
     </build>

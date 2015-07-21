@@ -18,6 +18,7 @@
         <module>model-vertexium</module>
         <module>model-vertexium-accumulo</module>
         <module>model-vertexium-inmemory</module>
+        <module>model-vertexium-elasticsearch</module>
         <module>model-sql</module>
         <module>newuser-workspace-copy</module>
         <module>newuser-workspace-sharer</module>

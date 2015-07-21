@@ -126,10 +126,11 @@ public class VertexiumUserRepository extends UserRepository {
     @Override
     public User findByUsername(String username) {
         username = formatUsername(username);
-        return createFromVertex(singleOrDefault(graph.query(authorizations)
+        Iterable<Vertex> vertices = graph.query(authorizations)
                 .has(UserVisalloProperties.USERNAME.getPropertyName(), username)
                 .has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), userConceptId)
-                .vertices(), null));
+                .vertices();
+        return createFromVertex(singleOrDefault(vertices, null));
     }
 
     @Override

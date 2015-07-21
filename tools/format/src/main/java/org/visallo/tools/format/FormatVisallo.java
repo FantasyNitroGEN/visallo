@@ -2,19 +2,22 @@ package org.visallo.tools.format;
 
 import com.beust.jcommander.Parameters;
 import com.google.inject.Inject;
-import org.visallo.core.cmdline.CommandLineTool;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.ModelUtil;
+import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.vertexium.GraphBaseWithSearchIndex;
 import org.vertexium.GraphConfiguration;
+import org.vertexium.elasticsearch.ElasticSearchSearchIndexBase;
 import org.vertexium.elasticsearch.ElasticSearchSearchIndexConfiguration;
+import org.vertexium.search.SearchIndex;
+import org.visallo.core.cmdline.CommandLineTool;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.util.ModelUtil;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.Map;
 
@@ -42,18 +45,29 @@ public class FormatVisallo extends CommandLineTool {
         }
         LOGGER.debug("END remove all authorizations");
 
+        String[] indexNames = getElasticSearchIndexNames();
+
         getGraph().shutdown();
 
-        deleteElasticSearchIndex(getConfiguration().toMap());
+        deleteElasticSearchIndex(getConfiguration().toMap(), indexNames);
 
         return 0;
     }
 
-    public static void deleteElasticSearchIndex(Map configuration) {
-        // TODO refactor to pull graph. from some static reference
-        String indexName = (String) configuration.get("graph." + GraphConfiguration.SEARCH_INDEX_PROP_PREFIX + "." + ElasticSearchSearchIndexConfiguration.CONFIG_INDEX_NAME);
+    private String[] getElasticSearchIndexNames() {
+        String[] indexNames = new String[0];
+        if (getGraph() instanceof GraphBaseWithSearchIndex) {
+            SearchIndex searchIndex = ((GraphBaseWithSearchIndex) getGraph()).getSearchIndex();
+            if (searchIndex instanceof ElasticSearchSearchIndexBase) {
+                ElasticSearchSearchIndexBase es = (ElasticSearchSearchIndexBase) searchIndex;
+                indexNames = es.getIndexSelectionStrategy().getManagedIndexNames(es);
+            }
+        }
+        return indexNames;
+    }
+
+    public static void deleteElasticSearchIndex(Map configuration, String[] indexNames) {
         String[] esLocations = ((String) configuration.get("graph." + GraphConfiguration.SEARCH_INDEX_PROP_PREFIX + "." + ElasticSearchSearchIndexConfiguration.CONFIG_ES_LOCATIONS)).split(",");
-        LOGGER.debug("BEGIN deleting elastic search index: " + indexName);
         TransportClient client = new TransportClient();
         for (String esLocation : esLocations) {
             String[] locationSocket = esLocation.split(":");
@@ -61,16 +75,17 @@ public class FormatVisallo extends CommandLineTool {
             String port = locationSocket.length > 1 ? locationSocket[1] : "9300";
             client.addTransportAddress(new InetSocketTransportAddress(host, Integer.parseInt(port)));
         }
-        LOGGER.info("index %s exists?", indexName);
-        IndicesExistsRequest existsRequest = client.admin().indices().prepareExists(indexName).request();
-        if (client.admin().indices().exists(existsRequest).actionGet().isExists()) {
-            LOGGER.info("index %s exists... deleting!", indexName);
-            DeleteIndexResponse response = client.admin().indices().delete(new DeleteIndexRequest(indexName)).actionGet();
-            if (!response.isAcknowledged()) {
-                LOGGER.error("Failed to delete elastic search index named %s", indexName);
+        for (String indexName : indexNames) {
+            LOGGER.info("index %s exists?", indexName);
+            IndicesExistsRequest existsRequest = client.admin().indices().prepareExists(indexName).request();
+            if (client.admin().indices().exists(existsRequest).actionGet().isExists()) {
+                LOGGER.info("index %s exists... deleting!", indexName);
+                DeleteIndexResponse response = client.admin().indices().delete(new DeleteIndexRequest(indexName)).actionGet();
+                if (!response.isAcknowledged()) {
+                    LOGGER.error("Failed to delete elastic search index named %s", indexName);
+                }
             }
         }
-        LOGGER.debug("END deleting elastic search index: " + indexName);
         client.close();
     }
 

@@ -526,6 +526,11 @@
             </dependency>
             <dependency>
                 <groupId>org.vertexium</groupId>
+                <artifactId>vertexium-elasticsearch-base</artifactId>
+                <version>${vertexium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.vertexium</groupId>
                 <artifactId>vertexium-elasticsearch</artifactId>
                 <version>${vertexium.version}</version>
             </dependency>
