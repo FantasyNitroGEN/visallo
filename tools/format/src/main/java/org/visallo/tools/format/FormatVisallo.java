@@ -8,6 +8,7 @@ import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.vertexium.Graph;
 import org.vertexium.GraphBaseWithSearchIndex;
 import org.vertexium.GraphConfiguration;
 import org.vertexium.elasticsearch.ElasticSearchSearchIndexBase;
@@ -45,7 +46,7 @@ public class FormatVisallo extends CommandLineTool {
         }
         LOGGER.debug("END remove all authorizations");
 
-        String[] indexNames = getElasticSearchIndexNames();
+        String[] indexNames = getElasticSearchIndexNames(getGraph());
 
         getGraph().shutdown();
 
@@ -54,10 +55,10 @@ public class FormatVisallo extends CommandLineTool {
         return 0;
     }
 
-    private String[] getElasticSearchIndexNames() {
+    public static String[] getElasticSearchIndexNames(Graph graph) {
         String[] indexNames = new String[0];
-        if (getGraph() instanceof GraphBaseWithSearchIndex) {
-            SearchIndex searchIndex = ((GraphBaseWithSearchIndex) getGraph()).getSearchIndex();
+        if (graph instanceof GraphBaseWithSearchIndex) {
+            SearchIndex searchIndex = ((GraphBaseWithSearchIndex) graph).getSearchIndex();
             if (searchIndex instanceof ElasticSearchSearchIndexBase) {
                 ElasticSearchSearchIndexBase es = (ElasticSearchSearchIndexBase) searchIndex;
                 indexNames = es.getIndexSelectionStrategy().getManagedIndexNames(es);

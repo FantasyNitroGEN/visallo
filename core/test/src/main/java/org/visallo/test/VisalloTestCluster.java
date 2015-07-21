@@ -69,6 +69,11 @@ public class VisalloTestCluster {
             Configuration configuration = new Configuration(new VisalloTestClusterConfigurationLoader(), configMap);
             workQueueNames = new WorkQueueNames(configuration);
             if (VisalloTestClusterConfigurationLoader.isTestServer()) {
+                String[] indexNames = new String[0];
+                if (InjectHelper.hasInjector()) {
+                    Graph graph = InjectHelper.getInstance(Graph.class);
+                    indexNames = FormatVisallo.getElasticSearchIndexNames(graph);
+                }
                 FormatVisallo.deleteElasticSearchIndex(config, indexNames);
 
                 AccumuloSimpleOrmSession simpleOrmSession = new AccumuloSimpleOrmSession();
