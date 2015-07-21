@@ -3,6 +3,7 @@ define([
     './dropdowns/termForm/termForm',
     './dropdowns/statementForm/statementForm',
     './dropdowns/propertyForm/propForm',
+    'configuration/plugins/registry',
     'tpl!util/alert',
     'hbs!./text',
     'util/css-stylesheet',
@@ -18,6 +19,7 @@ define([
     TermForm,
     StatementForm,
     PropertyForm,
+    registry,
     alertTemplate,
     textTemplate,
     stylesheet,
@@ -42,6 +44,10 @@ define([
         ],
         DEFAULT = 2,
         useDefaultStyle = true;
+
+    registry.documentExtensionPoint('org.visallo.detail.text', 'Replace Extracted Text with custom component', function(e) {
+        return _.isFunction(e.shouldReplaceTextSectionForVertex) && _.isString(e.componentPath);
+    })
 
     return WithHighlighting;
 
@@ -919,18 +925,41 @@ define([
                 this.openTextRequest.abort();
             }
 
-            this.openTextRequest = this.dataRequest('vertex', 'highlighted-text', this.attr.data.id, propertyKey);
+            var extensions = _.filter(registry.extensionsForPoint('org.visallo.detail.text'), function(e) {
+                    return e.shouldReplaceTextSectionForVertex(self.attr.data);
+                }),
+                textPromise;
 
-            return this.openTextRequest
-                .catch(function() {
-                    return '';
-                })
-                .then(function(artifactText) {
-                    var html = self.processArtifactText(artifactText),
-                        text;
+            if (extensions.length > 1) {
+                console.warn('Multiple extensions wanting to override text', extensions);
+            }
+
+            if (extensions.length) {
+                textPromise = Promise.require(extensions[0].componentPath)
+                    .then(function(Text) {
+                        Text.attachTo($section.find('.text'), {
+                            vertex: self.attr.data,
+                            propertyKey: propertyKey
+                        });
+                    });
+            } else {
+                this.openTextRequest = this.dataRequest('vertex', 'highlighted-text', this.attr.data.id, propertyKey);
+
+                textPromise = this.openTextRequest
+                    .catch(function() {
+                        return '';
+                    })
+                    .then(function(artifactText) {
+                        var html = self.processArtifactText(artifactText);
+                        if (expand) {
+                            $section.find('.text').html(html);
+                        }
+                    });
+            }
+
+            return textPromise
+                .then(function() {
                     if (expand) {
-                        text = selection.rangeCount === 1 ? $.trim(selection.toString()) : '';
-                        $section.find('.text').html(html);
                         $section.addClass('expanded');
                         $badge.removeClass('loading');
 
