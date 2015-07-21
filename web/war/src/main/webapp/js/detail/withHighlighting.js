@@ -941,7 +941,10 @@ define([
                             vertex: self.attr.data,
                             propertyKey: propertyKey
                         });
-                    });
+                    })
+                    .catch(function() {
+                        $section.find('.text').text('Error loading text');
+                    })
             } else {
                 this.openTextRequest = this.dataRequest('vertex', 'highlighted-text', this.attr.data.id, propertyKey);
 
