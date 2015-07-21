@@ -12,11 +12,13 @@ define([
     function VisibilityEditor() {
 
         this.defaultAttrs({
-            fieldSelector: 'input'
+            fieldSelector: 'input',
+            placeholder: i18n('visibility.label')
         })
 
         this.after('initialize', function() {
             this.$node.html(formTemplate({
+                placeholder: this.attr.placeholder,
                 value: $.trim(_.isUndefined(this.attr.value) ? '' : this.attr.value),
                 readonly: this.attr.readonly
             }));
