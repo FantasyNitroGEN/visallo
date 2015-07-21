@@ -172,7 +172,6 @@ public class WorkspaceHelper {
             graph.flush();
             workQueueRepository.pushVertexDeletion(vertex);
         } else {
-            JSONArray unresolved = new JSONArray();
             VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
             visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
 
@@ -217,9 +216,6 @@ public class WorkspaceHelper {
             LOGGER.debug("unresolve terms");
             for (Vertex termMention : termMentionRepository.findResolvedTo(vertex.getId(), authorizations)) {
                 unresolveTerm(termMention, authorizations);
-                JSONObject result = new JSONObject();
-                result.put("success", true);
-                unresolved.put(result);
             }
 
             // because we store workspaces with an added visibility we need to delete them with that added authorizations.
