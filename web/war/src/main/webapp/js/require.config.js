@@ -6,7 +6,7 @@ var require = {
     paths: {
         'arbor': '../libs/cytoscape/lib/arbor',
         'async': '../libs/requirejs-plugins/src/async',
-        'atmosphere': '../libs/atmosphere/atmosphere',
+        'atmosphere': '../libs/atmosphere-javascript/modules/javascript/target/javascript-2.2.11/javascript/atmosphere-min',
         'bootstrap': '../libs/bootstrap/docs/assets/js/bootstrap',
         'bootstrap-datepicker': '../libs/bootstrap-datepicker/js/bootstrap-datepicker',
         'bootstrap-timepicker': '../libs/bootstrap-timepicker/js/bootstrap-timepicker',

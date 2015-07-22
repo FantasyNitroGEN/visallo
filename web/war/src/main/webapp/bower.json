@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "PathFinding.js": "git://github.com/qiao/PathFinding.js.git#0.4.10",
-    "atmosphere": "~2.2.5",
+    "atmosphere-javascript": "git://github.com/Atmosphere/atmosphere-javascript.git#javascript-project-2.2.11",
     "bluebird": "2.9.32",
     "bootstrap": "git://github.com/twbs/bootstrap.git#2.3.2",
     "bootstrap-datepicker": "~1.2.0",
