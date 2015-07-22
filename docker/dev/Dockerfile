@@ -1,9 +1,6 @@
 
 FROM centos:centos6
 
-# Add yum repositories
-ADD yum-repos/elasticsearch.repo /etc/yum.repos.d/elasticsearch.repo
-
 # Install RPM packages
 ADD scripts/install-rpm-packages.sh /opt/visallo/scripts/install-rpm-packages.sh
 RUN /bin/bash /opt/visallo/scripts/install-rpm-packages.sh
@@ -69,7 +66,7 @@ ADD scripts/install-elasticsearch.sh /opt/visallo/scripts/install-elasticsearch.
 ENV PATH $PATH:/opt/elasticsearch/bin
 RUN /bin/bash /opt/visallo/scripts/install-elasticsearch.sh
 ADD elasticsearch/elasticsearch.yml /opt/elasticsearch/config/elasticsearch.yml
-VOLUME ["/opt/elasticsearch-1.4.4/data/"]
+VOLUME ["/opt/elasticsearch-1.7.0/data/"]
 EXPOSE 9200 9300
 
 # Install RabbitMQ
