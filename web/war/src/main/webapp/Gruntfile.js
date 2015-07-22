@@ -36,6 +36,11 @@ module.exports = function(grunt) {
                 command: 'node ../../node/npm/bin/npm-cli.js install -q && make',
                 stdout: false,
                 cwd: 'libs/PathFinding.js'
+            },
+            buildAtmosphere: {
+                command: 'mvn clean package',
+                stdout: false,
+                cwd: 'libs/atmosphere-javascript/modules/javascript'
             }
         },
 
