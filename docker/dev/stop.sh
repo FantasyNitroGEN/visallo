@@ -15,13 +15,13 @@ stop_msg "Accumulo"
 /opt/accumulo/bin/stop-all.sh
 
 stop_msg "Hadoop"
-/opt/hadoop/sbin/stop-yarn.sh
-/opt/hadoop/sbin/stop-dfs.sh
+/opt/hadoop/sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ stop nodemanager
+/opt/hadoop/sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ stop resourcemanager
+/opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs stop datanode
+/opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs stop secondarynamenode
+/opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs stop namenode
 
 stop_msg "ZooKeeper"
 /opt/zookeeper/bin/zkServer.sh stop
-
-stop_msg "SSHD"
-service sshd stop
 
 echo ""

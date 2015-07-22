@@ -1,5 +1,5 @@
 
-FROM centos:centos6
+FROM centos:centos7
 
 # Install RPM packages
 ADD scripts/install-rpm-packages.sh /opt/visallo/scripts/install-rpm-packages.sh
@@ -37,7 +37,6 @@ RUN /bin/bash /opt/visallo/scripts/install-zookeeper.sh
 EXPOSE 2181 2888 3888
 
 # Install Hadoop
-COPY hadoop/hadoop-native-64bit.tar.gz /opt/hadoop-2.3.0/hadoop-native-64bit.tar.gz
 ENV HADOOP_PREFIX /opt/hadoop
 ENV HADOOP_COMMON_HOME /opt/hadoop
 ENV HADOOP_HDFS_HOME /opt/hadoop
@@ -47,11 +46,11 @@ ENV HADOOP_CONF_DIR /opt/hadoop/etc/hadoop
 ENV YARN_CONF_DIR /opt/hadoop/etc/hadoop
 ENV PATH $PATH:/opt/hadoop/bin
 ADD scripts/install-hadoop.sh /opt/visallo/scripts/install-hadoop.sh
-ADD hadoop/core-site.xml.template /opt/hadoop-2.3.0/etc/hadoop/core-site.xml.template
+ADD hadoop/core-site.xml.template /opt/hadoop-2.6.0/etc/hadoop/core-site.xml.template
 RUN /bin/bash /opt/visallo/scripts/install-hadoop.sh
-ADD hadoop/hdfs-site.xml /opt/hadoop-2.3.0/etc/hadoop/hdfs-site.xml
-ADD hadoop/mapred-site.xml /opt/hadoop-2.3.0/etc/hadoop/mapred-site.xml
-ADD hadoop/yarn-site.xml /opt/hadoop-2.3.0/etc/hadoop/yarn-site.xml
+ADD hadoop/hdfs-site.xml /opt/hadoop-2.6.0/etc/hadoop/hdfs-site.xml
+ADD hadoop/mapred-site.xml /opt/hadoop-2.6.0/etc/hadoop/mapred-site.xml
+ADD hadoop/yarn-site.xml /opt/hadoop-2.6.0/etc/hadoop/yarn-site.xml
 VOLUME ["/var/lib/hadoop-hdfs", "/var/local/hadoop"]
 EXPOSE 8020 8032 8088 9000 50010 50020 50030 50060 50070 50075 50090
 

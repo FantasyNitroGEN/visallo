@@ -4,12 +4,6 @@ function start_msg {
   echo -e "\n\e[32mStarting $1\n---------------------------------------------------------------\e[0m"
 }
 
-function start_sshd {
-  # from https://github.com/docker/docker/issues/5663
-  sed -ri 's/^session\s+required\s+pam_loginuid.so$/session optional pam_loginuid.so/' /etc/pam.d/sshd
-  service sshd start
-}
-
 function start_zookeeper {
   start_msg "ZooKeeper"
   /opt/zookeeper/bin/zkServer.sh start
@@ -24,8 +18,11 @@ function start_hadoop {
     echo "**************** FORMATING NAMENODE ****************"
     /opt/hadoop/bin/hdfs namenode -format
   fi
-  /opt/hadoop/sbin/start-dfs.sh
-  /opt/hadoop/sbin/start-yarn.sh
+  /opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs start namenode
+  /opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs start secondarynamenode
+  /opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs start datanode
+  /opt/hadoop/sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ start resourcemanager
+  /opt/hadoop/sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ start nodemanager
   /opt/hadoop/bin/hdfs dfsadmin -safemode wait
 }
 
@@ -74,7 +71,6 @@ function ensure_visallo_config {
   hadoop fs -chmod -R a+w /visallo/
 }
 
-start_sshd
 start_zookeeper
 start_hadoop
 start_accumulo
