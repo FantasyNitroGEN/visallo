@@ -57,6 +57,11 @@
             <version>${vertexium.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-elasticsearch-singledocument</artifactId>
+            <version>${vertexium.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.v5analytics.simpleorm</groupId>
             <artifactId>simple-orm-accumulo</artifactId>
         </dependency>

@@ -76,6 +76,11 @@
         </dependency>
         <dependency>
             <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-elasticsearch-singledocument</artifactId>
+            <version>${vertexium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.vertexium</groupId>
             <artifactId>vertexium-kryo-serializer</artifactId>
         </dependency>
         <dependency>
