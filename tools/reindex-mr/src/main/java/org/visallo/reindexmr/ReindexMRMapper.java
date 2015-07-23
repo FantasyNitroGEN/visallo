@@ -1,8 +1,6 @@
 package org.visallo.reindexmr;
 
 
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.vertexium.Authorizations;
@@ -12,6 +10,8 @@ import org.vertexium.accumulo.AccumuloAuthorizations;
 import org.vertexium.accumulo.AccumuloGraph;
 import org.vertexium.accumulo.mapreduce.VertexiumMRUtils;
 import org.vertexium.util.MapUtils;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +25,7 @@ public class ReindexMRMapper extends Mapper<Text, Element, Object, Element> {
     private Authorizations authorizations;
     private List<Element> elementCache;
     private int batchSize;
+    private int batchNumber;
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
@@ -36,6 +37,7 @@ public class ReindexMRMapper extends Mapper<Text, Element, Object, Element> {
         elementCache = new ArrayList<>(batchSize);
         this.graph = (AccumuloGraph) new GraphFactory().createGraph(MapUtils.getAllWithPrefix(configurationMap, "graph"));
         this.authorizations = new AccumuloAuthorizations(context.getConfiguration().getStrings(VertexiumMRUtils.CONFIG_AUTHORIZATIONS));
+        this.batchNumber = 0;
     }
 
     private String toString(String[] locations) {
@@ -73,13 +75,16 @@ public class ReindexMRMapper extends Mapper<Text, Element, Object, Element> {
         context.setStatus("Element Id: " + element.getId());
         elementCache.add(element);
         if (elementCache.size() >= batchSize) {
-            context.setStatus("Submitting batch: " + elementCache.size());
+            String status = "Submitting batch " + batchNumber + " of size " + elementCache.size();
+            LOGGER.debug(status);
+            context.setStatus(status);
             writeCache();
         }
         context.getCounter(ReindexCounters.ELEMENTS_PROCESSED).increment(1);
     }
 
     private void writeCache() {
+        batchNumber++;
         if (elementCache.size() == 0) {
             return;
         }
