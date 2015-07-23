@@ -848,7 +848,7 @@ define([
                                     this.append('strong')
                                     this.append('span').attr('class', 'badge')
                                 })
-                            this.append('div').attr('class', 'text').text('1')
+                            this.append('div').attr('class', 'text');
                         })
 
                     this.attr('data-key', function(p) {
