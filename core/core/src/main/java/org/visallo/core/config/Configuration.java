@@ -293,7 +293,7 @@ public class Configuration {
         if (value == null) {
             config.remove(propertyKey);
         } else {
-            config.put(propertyKey, value.toString());
+            config.put(propertyKey, value.toString().trim());
         }
     }
 
