@@ -1,6 +1,8 @@
 package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
@@ -8,18 +10,16 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiEdgeMultipleResponse;
 import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
-import org.vertexium.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.*;
 
 import static org.vertexium.util.IterableUtils.toIterable;
+import static org.vertexium.util.IterableUtils.toList;
 
 public class EdgeMultiple extends BaseRequestHandler {
     private final Graph graph;
@@ -51,17 +51,46 @@ public class EdgeMultiple extends BaseRequestHandler {
     /**
      * This is overridable so web plugins can modify the resulting set of edges.
      */
-    protected ClientApiEdgeMultipleResponse getEdges(HttpServletRequest request, String workspaceId,
-                                                   Iterable<String> edgeIds, Authorizations authorizations) {
-        Iterable<Edge> graphEdges = graph.getEdges(edgeIds, FetchHint.ALL, authorizations);
+    protected ClientApiEdgeMultipleResponse getEdges(
+            HttpServletRequest request,
+            String workspaceId,
+            Iterable<String> edgeIds,
+            Authorizations authorizations
+    ) {
+        List<Edge> graphEdges = toList(graph.getEdges(edgeIds, FetchHint.ALL, authorizations));
         ClientApiEdgeMultipleResponse edgeResult = new ClientApiEdgeMultipleResponse();
+        Set<String> vertexIds = getAllVertexIdsOnEdges(graphEdges);
+        Map<String, Vertex> vertices = verticesToMapById(graph.getVertices(vertexIds, authorizations));
         for (Edge e : graphEdges) {
-            Vertex source = e.getVertex(Direction.OUT, authorizations);
-            Vertex destination = e.getVertex(Direction.IN, authorizations);
-            edgeResult.getEdges().add((ClientApiEdgeWithVertexData) ClientApiConverter.toClientApiEdgeWithVertexData(
-                    e, source, destination, workspaceId, authorizations));
+            Vertex source = vertices.get(e.getVertexId(Direction.OUT));
+            Vertex destination = vertices.get(e.getVertexId(Direction.IN));
+            ClientApiEdgeWithVertexData clientApiEdgeWithVertexData = (ClientApiEdgeWithVertexData) ClientApiConverter.toClientApiEdgeWithVertexData(
+                    e,
+                    source,
+                    destination,
+                    workspaceId,
+                    authorizations
+            );
+            edgeResult.getEdges().add(clientApiEdgeWithVertexData);
         }
         return edgeResult;
+    }
+
+    private Map<String, Vertex> verticesToMapById(Iterable<Vertex> vertices) {
+        Map<String, Vertex> results = new HashMap<>();
+        for (Vertex vertex : vertices) {
+            results.put(vertex.getId(), vertex);
+        }
+        return results;
+    }
+
+    private Set<String> getAllVertexIdsOnEdges(List<Edge> edges) {
+        Set<String> results = new HashSet<>();
+        for (Edge edge : edges) {
+            results.add(edge.getVertexId(Direction.IN));
+            results.add(edge.getVertexId(Direction.OUT));
+        }
+        return results;
     }
 
     private GetAuthorizationsResult getAuthorizations(HttpServletRequest request, boolean fallbackToPublic, User user) {
