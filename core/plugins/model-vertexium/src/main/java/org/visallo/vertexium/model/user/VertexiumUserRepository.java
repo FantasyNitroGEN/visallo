@@ -131,6 +131,9 @@ public class VertexiumUserRepository extends UserRepository {
                 .has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), userConceptId)
                 .vertices();
         Vertex userVertex = singleOrDefault(vertices, null);
+        if (userVertex == null) {
+            return null;
+        }
         userVertexCache.put(userVertex.getId(), userVertex);
         return createFromVertex(userVertex);
     }
