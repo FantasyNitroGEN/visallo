@@ -11,10 +11,10 @@
 
 <rdf:RDF xmlns="http://visallo.org#"
      xml:base="http://visallo.org"
-     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
-     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
     <owl:Ontology rdf:about="http://visallo.org"/>
     
 
@@ -33,8 +33,8 @@
     <!-- http://visallo.org#addRelatedConceptWhiteList -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#addRelatedConceptWhiteList">
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -44,8 +44,8 @@
     <!-- http://visallo.org#addable -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#addable">
-        <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>NONE</textIndexHints>
         <rdfs:range rdf:resource="&xsd;boolean"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -55,8 +55,8 @@
     <!-- http://visallo.org#boost -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#boost">
-        <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>NONE</textIndexHints>
         <rdfs:range rdf:resource="&xsd;double"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -66,8 +66,8 @@
     <!-- http://visallo.org#color -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#color">
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -77,8 +77,8 @@
     <!-- http://visallo.org#dependentPropertyIri -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#dependentPropertyIri">
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -186,8 +186,8 @@
     <!-- http://visallo.org#subtitleFormula -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#subtitleFormula">
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -208,8 +208,8 @@
     <!-- http://visallo.org#timeFormula -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#timeFormula">
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -219,8 +219,8 @@
     <!-- http://visallo.org#titleFormula -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#titleFormula">
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
@@ -293,8 +293,8 @@
 
     <owl:ObjectProperty rdf:about="http://visallo.org#hasSource">
         <userVisible>false</userVisible>
-        <rdfs:domain rdf:resource="&owl;Thing"/>
         <rdfs:range rdf:resource="&owl;Thing"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:ObjectProperty>
     
 
@@ -320,6 +320,7 @@
     </owl:DatatypeProperty>
     
 
+
     <!-- http://visallo.org#audio-mp4 -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#audio-mp4">
@@ -328,6 +329,7 @@
         <rdfs:range rdf:resource="&xsd;hexBinary"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
+    
 
 
     <!-- http://visallo.org#audio-ogg -->
@@ -338,6 +340,7 @@
         <rdfs:range rdf:resource="&xsd;hexBinary"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
+    
 
 
     <!-- http://visallo.org#cached-image -->
@@ -389,8 +392,8 @@
     <!-- http://visallo.org#dataType -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#dataType">
-        <userVisible>false</userVisible>
         <textIndexHints>EXACT_MATCH</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -406,7 +409,7 @@
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
-
+    
 
 
     <!-- http://visallo.org#entityImageUrl -->
@@ -437,8 +440,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#fileName">
         <rdfs:label xml:lang="en">File Name</rdfs:label>
-        <textIndexHints>FULL_TEXT,EXACT_MATCH</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>FULL_TEXT,EXACT_MATCH</textIndexHints>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -449,8 +452,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#graphPropertyWorkerBlackList">
         <rdfs:label xml:lang="en">Graph Property Worker Black List</rdfs:label>
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -461,8 +464,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#graphPropertyWorkerWhiteList">
         <rdfs:label xml:lang="en">Graph Property Worker White List</rdfs:label>
-        <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>NONE</textIndexHints>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -472,8 +475,8 @@
     <!-- http://visallo.org#justification -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#justification">
-        <userVisible>false</userVisible>
         <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -483,8 +486,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#mappingJson">
         <rdfs:label xml:lang="en">Mapping JSON</rdfs:label>
-        <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>NONE</textIndexHints>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -541,8 +544,8 @@
     <!-- http://visallo.org#ontologyTitle -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#ontologyTitle">
-        <textIndexHints>EXACT_MATCH</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>EXACT_MATCH</textIndexHints>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -559,6 +562,7 @@
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
     
+
 
     <!-- http://visallo.org#raw -->
 
@@ -586,8 +590,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#rowKey">
         <rdfs:label xml:lang="en">Row Key</rdfs:label>
-        <textIndexHints>EXACT_MATCH</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>EXACT_MATCH</textIndexHints>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -609,8 +613,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#sourceUrl">
         <rdfs:label xml:lang="en">Source URL</rdfs:label>
-        <textIndexHints>FULL_TEXT,EXACT_MATCH</textIndexHints>
         <userVisible>false</userVisible>
+        <textIndexHints>FULL_TEXT,EXACT_MATCH</textIndexHints>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
@@ -633,8 +637,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#title">
         <rdfs:label xml:lang="en">Title</rdfs:label>
-        <textIndexHints>FULL_TEXT,EXACT_MATCH</textIndexHints>
         <boost>1.5</boost>
+        <textIndexHints>FULL_TEXT,EXACT_MATCH</textIndexHints>
         <userVisible>true</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
@@ -715,5 +719,5 @@
 
 
 
-<!-- Generated by the OWL API (version 3.5.0) http://owlapi.sourceforge.net -->
+<!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
 
