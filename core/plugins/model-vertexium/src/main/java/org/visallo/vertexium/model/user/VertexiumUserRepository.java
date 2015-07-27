@@ -130,7 +130,9 @@ public class VertexiumUserRepository extends UserRepository {
                 .has(UserVisalloProperties.USERNAME.getPropertyName(), username)
                 .has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), userConceptId)
                 .vertices();
-        return createFromVertex(singleOrDefault(vertices, null));
+        Vertex userVertex = singleOrDefault(vertices, null);
+        userVertexCache.put(userVertex.getId(), userVertex);
+        return createFromVertex(userVertex);
     }
 
     @Override
@@ -171,7 +173,13 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     public Vertex findByIdUserVertex(String userId) {
-        return graph.getVertex(userId, authorizations);
+        Vertex userVertex = userVertexCache.getIfPresent(userId);
+        if (userVertex != null) {
+            return userVertex;
+        }
+        userVertex = graph.getVertex(userId, authorizations);
+        userVertexCache.put(userId, userVertex);
+        return userVertex;
     }
 
     @Override
@@ -217,7 +225,7 @@ public class VertexiumUserRepository extends UserRepository {
     public void setPassword(User user, String password) {
         byte[] salt = UserPasswordUtil.getSalt();
         byte[] passwordHash = UserPasswordUtil.hashPassword(password, salt);
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.PASSWORD_SALT.setProperty(userVertex, salt, VISIBILITY.getVisibility(), authorizations);
         UserVisalloProperties.PASSWORD_HASH.setProperty(userVertex, passwordHash, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
@@ -226,7 +234,7 @@ public class VertexiumUserRepository extends UserRepository {
     @Override
     public boolean isPasswordValid(User user, String password) {
         try {
-            Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+            Vertex userVertex = findByIdUserVertex(user.getUserId());
             return UserPasswordUtil.validatePassword(password, UserVisalloProperties.PASSWORD_SALT.getPropertyValue(userVertex), UserVisalloProperties.PASSWORD_HASH.getPropertyValue(userVertex));
         } catch (Exception ex) {
             throw new RuntimeException("error validating password", ex);
@@ -235,7 +243,7 @@ public class VertexiumUserRepository extends UserRepository {
 
     @Override
     public void recordLogin(User user, String remoteAddr) {
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         ExistingElementMutation<Vertex> m = userVertex.prepareMutation();
 
         Date currentLoginDate = UserVisalloProperties.CURRENT_LOGIN_DATE.getPropertyValue(userVertex);
@@ -262,7 +270,7 @@ public class VertexiumUserRepository extends UserRepository {
     public User setCurrentWorkspace(String userId, String workspaceId) {
         User user = findById(userId);
         checkNotNull(user, "Could not find user: " + userId);
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.CURRENT_WORKSPACE.setProperty(userVertex, workspaceId, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
         return user;
@@ -272,13 +280,13 @@ public class VertexiumUserRepository extends UserRepository {
     public String getCurrentWorkspaceId(String userId) {
         User user = findById(userId);
         checkNotNull(user, "Could not find user: " + userId);
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         return UserVisalloProperties.CURRENT_WORKSPACE.getPropertyValue(userVertex);
     }
 
     @Override
     public void setUiPreferences(User user, JSONObject preferences) {
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.UI_PREFERENCES.setProperty(userVertex, preferences, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
     }
@@ -287,7 +295,7 @@ public class VertexiumUserRepository extends UserRepository {
     public User setStatus(String userId, UserStatus status) {
         VertexiumUser user = (VertexiumUser) findById(userId);
         checkNotNull(user, "Could not find user: " + userId);
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.STATUS.setProperty(userVertex, status.toString(), VISIBILITY.getVisibility(), authorizations);
         graph.flush();
         user.setUserStatus(status);
@@ -296,7 +304,7 @@ public class VertexiumUserRepository extends UserRepository {
 
     @Override
     public void internalAddAuthorization(User user, String auth, User authUser) {
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         Set<String> authorizationSet = getAuthorizations(userVertex);
         if (authorizationSet.contains(auth)) {
             return;
@@ -313,7 +321,7 @@ public class VertexiumUserRepository extends UserRepository {
 
     @Override
     public void internalRemoveAuthorization(User user, String auth, User authUser) {
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         Set<String> authorizationSet = getAuthorizations(userVertex);
         if (!authorizationSet.contains(auth)) {
             return;
@@ -341,8 +349,7 @@ public class VertexiumUserRepository extends UserRepository {
         }
         if (userAuthorizations == null) {
             LOGGER.debug("BEGIN getAuthorizations query");
-            Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
-            userVertexCache.put(user.getUserId(), userVertex);
+            Vertex userVertex = findByIdUserVertex(user.getUserId());
             userAuthorizations = getAuthorizations(userVertex);
             LOGGER.debug("END getAuthorizations query");
         }
@@ -375,14 +382,14 @@ public class VertexiumUserRepository extends UserRepository {
 
     @Override
     public void setDisplayName(User user, String displayName) {
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.DISPLAY_NAME.setProperty(userVertex, displayName, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
     }
 
     @Override
     public void setEmailAddress(User user, String emailAddress) {
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.EMAIL_ADDRESS.setProperty(userVertex, emailAddress, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
     }
@@ -402,8 +409,7 @@ public class VertexiumUserRepository extends UserRepository {
         }
         if (privileges == null) {
             LOGGER.debug("BEGIN getPrivileges query");
-            Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
-            userVertexCache.put(user.getUserId(), userVertex);
+            Vertex userVertex = findByIdUserVertex(user.getUserId());
             privileges = getPrivileges(userVertex);
             LOGGER.debug("END getPrivileges query");
         }
