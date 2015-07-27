@@ -28,7 +28,7 @@ define([
 
     function processIsIndeterminate(process) {
         var handler = handlersByType[process.type];
-        return (handler.kind === 'eventWatcher' || handler.indeterminateProgress);
+        return handler && (handler.kind === 'eventWatcher' || handler.indeterminateProgress);
     }
 
     function processIsFinished(process) {
@@ -37,12 +37,12 @@ define([
 
     function processShouldAutoDismiss(process) {
         var handler = handlersByType[process.type];
-        return handler.autoDismiss === true;
+        return handler && handler.autoDismiss === true;
     }
 
     function processAllowCancel(process) {
         var handler = handlersByType[process.type];
-        return (handler.kind === 'longRunningProcess' || handler.allowCancel === true);
+        return handler && (handler.kind === 'longRunningProcess' || handler.allowCancel === true);
     }
 
     function Activity() {
