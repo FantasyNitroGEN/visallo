@@ -10,7 +10,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.vertexium.Graph;
-import org.vertexium.GraphConfiguration;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
@@ -232,12 +233,18 @@ public class VisalloBootstrap extends AbstractModule {
             if (zookeeperConnectionString == null) {
                 throw new VisalloException("Could not find configuration item: " + Configuration.ZK_SERVERS);
             }
-            retryPolicy = new ExponentialBackoffRetry(1000, 3);
+            retryPolicy = new ExponentialBackoffRetry(1000, 6);
         }
 
         @Override
         public CuratorFramework get() {
             CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy);
+            client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
+                @Override
+                public void stateChanged(CuratorFramework client, ConnectionState newState) {
+                    LOGGER.debug("curator connection state changed to " + newState.name());
+                }
+            });
             client.start();
             return client;
         }
