@@ -82,9 +82,8 @@ public class StyleAppendableHandler implements Handler {
                     String inputLess = writer.toString();
                     String output = lessCompiler().compile(inputLess);
 
-                    try (PrintWriter outWriter = new PrintWriter(out, true)) {
-                        outWriter.println(output);
-                    }
+                    PrintWriter outWriter = new PrintWriter(out, true);
+                    outWriter.println(output);
                 }
             }
         }
