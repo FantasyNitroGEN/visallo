@@ -1,9 +1,13 @@
 package org.visallo.web;
 
+import com.google.common.base.Joiner;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.handlers.StaticResourceHandler;
+import org.vertexium.Graph;
+import org.vertexium.Traceable;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
@@ -18,7 +22,6 @@ import org.visallo.web.routes.admin.AdminUploadOntology;
 import org.visallo.web.routes.admin.PluginList;
 import org.visallo.web.routes.config.Configuration;
 import org.visallo.web.routes.edge.*;
-import org.visallo.web.routes.vertex.VertexGetCountsByConceptType;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessById;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessCancel;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessDelete;
@@ -40,7 +43,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -193,10 +198,26 @@ public class Router extends HttpServlet {
 
     @Override
     public void service(ServletRequest req, ServletResponse resp) throws ServletException, IOException {
+        Traceable traceGraph = null;
         try {
             if (req.getContentType() != null && req.getContentType().startsWith("multipart/form-data")) {
                 req.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT8, MULTI_PART_CONFIG);
                 req.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT9, MULTI_PART_CONFIG);
+            }
+
+            if (req.getParameter("graphTraceEnable") != null) {
+                Graph graph = InjectHelper.getInstance(Graph.class);
+                if (graph instanceof Traceable) {
+                    traceGraph = (Traceable) graph;
+                    String traceDescription = ((HttpServletRequest) req).getRequestURI();
+                    Map<String, String> parameters = new HashMap<>();
+                    for (Map.Entry<String, String[]> reqParameters : req.getParameterMap().entrySet()) {
+                        parameters.put(reqParameters.getKey(), Joiner.on(", ").join(reqParameters.getValue()));
+                    }
+                    traceGraph.traceOn(traceDescription, parameters);
+                } else {
+                    throw new VisalloException("Graph tracing not supported by: " + graph.getClass().getName());
+                }
             }
 
             HttpServletResponse httpResponse = (HttpServletResponse) resp;
@@ -206,6 +227,10 @@ public class Router extends HttpServlet {
             LOGGER.debug("Connection closed by client", cce);
         } catch (Exception e) {
             throw new ServletException(e);
+        } finally {
+            if (traceGraph != null) {
+                traceGraph.traceOff();
+            }
         }
     }
 
