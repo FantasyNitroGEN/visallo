@@ -10,6 +10,14 @@ define([], function() {
             window.visalloData = this.visalloData;
         });
 
+        this.after('initialize', function() {
+            this.on(document, 'setPublicApi', this.onSetPublicApi);
+        });
+
+        this.onSetPublicApi = function(event, data) {
+            this.setPublicApi(data.key, data.obj);
+        };
+
         this.setPublicApi = function(key, obj, options) {
             options = _.extend({
                     onlyIfNull: false

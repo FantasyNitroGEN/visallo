@@ -45,6 +45,14 @@ define([], function() {
         },
 
         {
+            name: 'enableGraphTracing',
+            description: 'Enable Vertexium graph performance tracing',
+            value: function(enable) {
+                $(document).trigger('setPublicApi', { key: 'graphTraceEnable', obj: enable });
+            }
+        },
+
+        {
             name: 'switchLanguage',
             description: 'Switch UI message bundle language: [en,es,de,fr,it,zh_TW] (persisted)',
             value: function(code) {

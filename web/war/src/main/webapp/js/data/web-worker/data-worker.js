@@ -191,7 +191,8 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
     if (publicData) {
         var filters = [
                 setWorkspaceHeader,
-                setCsrfHeader
+                setCsrfHeader,
+                setGraphTracing
                 // TODO: set timezone
             ], invoke = function(f) {
                 f();
@@ -213,6 +214,11 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
 
         if (eligibleForProtection && token) {
             xmlHttpRequest.setRequestHeader('Visallo-CSRF-Token', token);
+        }
+    }
+    function setGraphTracing() {
+        if (publicData.graphTraceEnable) {
+            xmlHttpRequest.setRequestHeader('graphTraceEnable', 'true');
         }
     }
 }
