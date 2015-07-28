@@ -38,7 +38,10 @@ require([
                 this.dataRequest('extensionRegistry', 'get')
             ]).done(function(results) {
                 var d3 = results.shift(),
-                    webWorkerRegistry = results.shift();
+                    webWorkerRegistry = _.mapObject(results.shift(), function(e) {
+                        e.webWorker = true;
+                        return e;
+                    })
 
                 d3.select($list.get(0))
                     .selectAll('section.collapsible')
@@ -75,7 +78,7 @@ require([
                             });
 
                         this.select('h1 strong').text(function(d) {
-                            return d[0];
+                            return d[0] + (d[1].webWorker ? ' (webworker)' : '');
                         });
                         this.select('p').html(function(d) {
                             return d[1].description;
