@@ -30,6 +30,7 @@ require.config({
         'util/withDataRequest': 'mocks/withDataRequest',
         'util/ajax': 'mocks/ajax',
         'util/memoize': 'mocks/memoize',
+        'configuration/plugins/registry': 'mocks/registry',
 
         // SRC
         'util/formatters': 'util_formatters',
