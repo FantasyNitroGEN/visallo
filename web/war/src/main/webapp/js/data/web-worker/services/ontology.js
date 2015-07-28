@@ -1,9 +1,17 @@
 
 define([
     '../util/ajax',
-    '../util/memoize'
-], function(ajax, memoize) {
+    '../util/memoize',
+    'configuration/plugins/registry'
+], function(ajax, memoize, registry) {
     'use strict';
+
+    registry.documentExtensionPoint('org.visallo.ontology',
+        'Ignore some ontology warnings',
+        function(e) {
+            return _.isArray(e.ignoreColorWarnings);
+        }
+    );
 
     var PARENT_CONCEPT = 'http://www.w3.org/2002/07/owl#Thing',
         ROOT_CONCEPT = 'http://visallo.org#root',
@@ -16,6 +24,7 @@ define([
                     });
                 });
         }),
+        extensions = registry.extensionsForPoint('org.visallo.ontology'),
         api = {
 
             ontology: memoize(function() {
@@ -119,6 +128,11 @@ define([
 
                 function buildTree(concepts, root) {
                     var groupedByParent = _.groupBy(concepts, 'parentConcept'),
+                        ignoreColorWarnings = _.chain(extensions)
+                            .pluck('ignoreColorWarnings')
+                            .flatten()
+                            .unique()
+                            .value(),
                         findChildrenForNode = function(node) {
                             node.className = 'conceptId-' + (clsIndex++);
                             node.children = groupedByParent[node.id] || [];
@@ -137,10 +151,12 @@ define([
                                             'http://visallo.org/termMention#termMention'
                                         ].indexOf(child.id) === -1
                                     ) {
-                                        console.warn(
-                                            'No color specified in concept hierarchy for conceptType:',
-                                            child.id
-                                        );
+                                        if (!_.contains(ignoreColorWarnings, child.id)) {
+                                            console.warn(
+                                                'No color specified in concept hierarchy for conceptType:',
+                                                child.id
+                                            );
+                                        }
                                         child.color = 'rgb(0, 0, 0)';
                                     }
                                 }
