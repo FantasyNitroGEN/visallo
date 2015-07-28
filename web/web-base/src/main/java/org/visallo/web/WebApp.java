@@ -1,15 +1,16 @@
 package org.visallo.web;
 
 import com.google.inject.Injector;
+import com.v5analytics.webster.App;
+import com.v5analytics.webster.Handler;
+import com.v5analytics.webster.handlers.AppendableStaticResourceHandler;
+import com.v5analytics.webster.handlers.StaticResourceHandler;
+import org.lesscss.LessCompiler;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.VisalloResourceBundleManager;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.App;
-import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.handlers.AppendableStaticResourceHandler;
-import com.v5analytics.webster.handlers.StaticResourceHandler;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -33,13 +34,16 @@ public class WebApp extends App {
     private final List<String> pluginsJsResources = new ArrayList<String>();
     private final AppendableStaticResourceHandler pluginsWebWorkerJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
     private final List<String> pluginsWebWorkerJsResources = new ArrayList<String>();
-    private final AppendableStaticResourceHandler pluginsCssResourceHandler = new No404AppendableStaticResourceHandler("text/css");
+    private final StyleAppendableHandler pluginsCssResourceHandler = new StyleAppendableHandler();
     private final List<String> pluginsCssResources = new ArrayList<String>();
     private VisalloResourceBundleManager visalloResourceBundleManager = new VisalloResourceBundleManager();
+    private LessCompiler lessCompiler;
+    private ServletContext servletContext;
 
     public WebApp(final ServletContext servletContext, final Injector injector) {
         super(servletContext);
         this.injector = injector;
+        this.servletContext = servletContext;
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = "true".equals(config.get(Configuration.DEV_MODE, "false"));
@@ -113,7 +117,17 @@ public class WebApp extends App {
             get("/" + resourcePath, new StaticResourceHandler(this.getClass(), cssResourceName, "text/css"));
             pluginsCssResources.add(resourcePath);
         } else {
-            pluginsCssResourceHandler.appendResource(cssResourceName);
+            pluginsCssResourceHandler.appendCssResource(cssResourceName);
+        }
+    }
+
+    public void registerLess(final String lessResourceName) {
+        String resourcePath = "css" + lessResourceName + ".css";
+        if (devMode) {
+            get("/" + resourcePath, new LessResourceHandler(lessResourceName));
+            pluginsCssResources.add(resourcePath);
+        } else {
+            pluginsCssResourceHandler.appendLessResource(lessResourceName);
         }
     }
 
