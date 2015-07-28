@@ -1,21 +1,18 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/web/devTools/templates/ontology-edit-property',
     'util/formatters',
-    'util/withDataRequest',
+    'util/withDataRequest'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     F,
     withDataRequest) {
     'use strict';
 
-    return defineVisalloAdminPlugin(OntologyEditProperty, {
-        mixins: [withDataRequest],
-        section: 'Ontology',
-        name: 'Properties',
-        subtitle: 'Modify ontology properties'
-    });
+    return defineComponent(OntologyEditProperty, withDataRequest, withFormHelpers);
 
     function OntologyEditProperty() {
 
@@ -121,9 +118,6 @@ require([
                     break;
                 case 'checkbox':
                     $field.prop('checked', value);
-                    break;
-                case 'color':
-                    $field.val(rgbToHex(value));
                     break;
                 default:
                     console.error('Unhandled type', type);

@@ -1,21 +1,18 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'util/withDataRequest',
+    'util/formatters',
     'hbs!admin/bundled/notifications/template'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     withDataRequest,
+    F,
     template) {
     'use strict';
 
-    var F;
-
-    return defineVisalloAdminPlugin(CreateNotification, {
-        mixins: [withDataRequest],
-        section: 'System Notifications',
-        name: 'Create',
-        subtitle: 'Create a New Notification'
-    });
+    return defineComponent(CreateNotification, withDataRequest, withFormHelpers);
 
     function CreateNotification() {
 
@@ -36,35 +33,32 @@ require([
                 buttonSelector: this.onCreate
             });
 
-            require(['util/formatters'], function(_F) {
-                F = _F;
-                if (notification) {
-                    notification.externalUrl = notification.actionPayload &&
-                        notification.actionPayload.url;
-                    notification.startDate = F.date.dateTimeString(notification.startDate)
-                    if (notification.endDate) {
-                        notification.endDate = F.date.dateTimeString(notification.endDate)
-                    }
-                } else {
-                    notification = {
-                        startDate: F.date.dateTimeString(new Date())
-                    }
+            if (notification) {
+                notification.externalUrl = notification.actionPayload &&
+                    notification.actionPayload.url;
+                notification.startDate = F.date.dateTimeString(notification.startDate)
+                if (notification.endDate) {
+                    notification.endDate = F.date.dateTimeString(notification.endDate)
                 }
+            } else {
+                notification = {
+                    startDate: F.date.dateTimeString(new Date())
+                }
+            }
 
-                self.$node
-                    .html(template({
-                        buttonText: notification.id ? 'Update' : 'Create',
-                        severity: _.map('INFORMATIONAL WARNING CRITICAL'.split(' '), function(name, i) {
-                            return {
-                                name: name,
-                                checked: notification.severity === name || i === 0
-                            }
-                        }),
-                        notification: notification
-                    }))
+            this.$node
+                .html(template({
+                    buttonText: notification.id ? 'Update' : 'Create',
+                    severity: _.map('INFORMATIONAL WARNING CRITICAL'.split(' '), function(name, i) {
+                        return {
+                            name: name,
+                            checked: notification.severity === name || i === 0
+                        }
+                    }),
+                    notification: notification
+                }))
 
-                self.checkValid();
-            })
+            this.checkValid();
         });
 
         this.checkValid = function() {

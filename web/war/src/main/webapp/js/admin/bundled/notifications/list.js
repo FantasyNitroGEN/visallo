@@ -1,19 +1,16 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'util/withDataRequest',
     'util/withCollapsibleSections'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     withDataRequest,
     withCollapsibleSections) {
     'use strict';
 
-    return defineVisalloAdminPlugin(NotificationList, {
-        mixins: [withDataRequest, withCollapsibleSections],
-        section: 'System Notifications',
-        name: 'List',
-        subtitle: 'View all Notifications'
-    });
+    return defineComponent(NotificationList, withDataRequest, withFormHelpers, withCollapsibleSections);
 
     function NotificationList() {
 

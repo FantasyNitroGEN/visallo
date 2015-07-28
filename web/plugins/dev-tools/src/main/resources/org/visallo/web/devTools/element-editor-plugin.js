@@ -1,28 +1,22 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/web/devTools/templates/element-editor',
     'util/messages',
     'd3',
-    'util/withDataRequest',
-    'less!org/visallo/web/devTools/less/element-editor'
+    'util/vertex/formatters',
+    'util/withDataRequest'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     i18n,
     d3,
-    withDataRequest,
-    less) {
+    F,
+    withDataRequest) {
     'use strict';
 
-    var F;
-
-    defineVisalloAdminPlugin(ElementEditor, {
-        less: less,
-        mixins: [withDataRequest],
-        section: i18n('admin.element.editor.section'),
-        name: i18n('admin.element.editor.name'),
-        subtitle: i18n('admin.element.editor.subtitle')
-    });
+    return defineComponent(ElementEditor, withDataRequest, withFormHelpers);
 
     function ElementEditor() {
         this.defaultAttrs({
@@ -59,15 +53,12 @@ require([
                 workspaceInputSelector: this.validate
             })
 
-            require(['util/vertex/formatters'], function(f) {
-                F = f;
-                self.$node.html(template({
-                    workspaceId: visalloData.currentWorkspaceId,
-                    elementId: ''
-                }));
+            this.$node.html(template({
+                workspaceId: visalloData.currentWorkspaceId,
+                elementId: ''
+            }));
 
-                self.onObjectsSelected(null, visalloData.selectedObjects);
-            })
+            this.onObjectsSelected(null, visalloData.selectedObjects);
         });
 
         this.validate = function() {
@@ -249,7 +240,7 @@ require([
                 addNewText = i18n('admin.element.editor.addNewProperty.label');
 
             this.currentElementId = element.id;
-            d3.select(this.node)
+            d3.select(this.$node.children('div')[0])
                 .selectAll('section')
                 .data(
                     _.chain(element.properties)

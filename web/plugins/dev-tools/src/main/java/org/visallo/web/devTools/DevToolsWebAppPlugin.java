@@ -22,29 +22,28 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
         Class<? extends Handler> authenticationHandlerClass = authenticationHandler.getClass();
         Class<? extends Handler> csrfHandlerClass = VisalloCsrfHandler.class;
 
-        app.get("/jsc/org/visallo/web/devTools/less/element-editor.less",
-                new StaticResourceHandler(getClass(), "/org/visallo/web/devTools/less/element-editor.less", "text/less"));
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/element-editor.hbs");
-        app.registerJavaScript("/org/visallo/web/devTools/element-editor-plugin.js");
-        app.registerResourceBundle("/org/visallo/web/devTools/messages.properties");
+        app.registerJavaScript("/org/visallo/web/devTools/plugin.js");
 
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/requeue.hbs");
-        app.registerJavaScript("/org/visallo/web/devTools/requeue-plugin.js");
-
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-upload.hbs");
-        app.registerJavaScript("/org/visallo/web/devTools/ontology-upload-plugin.js");
-
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-edit-concept.hbs");
-        app.registerJavaScript("/org/visallo/web/devTools/ontology-edit-concept-plugin.js");
-
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-edit-property.hbs");
-        app.registerJavaScript("/org/visallo/web/devTools/ontology-edit-property-plugin.js");
-
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/user.hbs");
-        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/user-details.hbs");
-        app.registerJavaScript("/org/visallo/web/devTools/user-plugin.js");
+        app.registerJavaScript("/org/visallo/web/devTools/element-editor-plugin.js", false);
+        app.registerJavaScript("/org/visallo/web/devTools/requeue-plugin.js", false);
+        app.registerJavaScript("/org/visallo/web/devTools/ontology-upload-plugin.js", false);
+        app.registerJavaScript("/org/visallo/web/devTools/ontology-edit-concept-plugin.js", false);
+        app.registerJavaScript("/org/visallo/web/devTools/ontology-edit-property-plugin.js", false);
+        app.registerJavaScript("/org/visallo/web/devTools/user-plugin.js", false);
 
         app.registerWebWorkerJavaScript("/org/visallo/web/devTools/web-worker/devTools-service.js");
+
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/element-editor.hbs");
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/requeue.hbs");
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-upload.hbs");
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-edit-concept.hbs");
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-edit-property.hbs");
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/user.hbs");
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/user-details.hbs");
+
+        app.registerLess("/org/visallo/web/devTools/less/element-editor.less");
+
+        app.registerResourceBundle("/org/visallo/web/devTools/messages.properties");
 
         app.post("/user/auth/add", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserAddAuthorization.class);
         app.post("/user/auth/remove", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserRemoveAuthorization.class);

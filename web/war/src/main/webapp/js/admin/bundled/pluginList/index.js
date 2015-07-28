@@ -1,21 +1,18 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'util/formatters',
     'util/withDataRequest',
     'util/withCollapsibleSections'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     F,
     withDataRequest,
     withCollapsibleSections) {
     'use strict';
 
-    return defineVisalloAdminPlugin(PluginList, {
-        mixins: [withDataRequest, withCollapsibleSections],
-        section: 'Plugin',
-        name: 'List',
-        subtitle: 'Loaded plugins'
-    });
+    return defineComponent(PluginList, withDataRequest, withFormHelpers, withCollapsibleSections);
 
     function PluginList() {
 

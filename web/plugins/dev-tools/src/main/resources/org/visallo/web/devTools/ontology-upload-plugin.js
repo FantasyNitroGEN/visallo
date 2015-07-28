@@ -1,12 +1,14 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'configuration/admin/utils/fileUpload',
     'hbs!org/visallo/web/devTools/templates/ontology-upload',
     'util/formatters',
     'util/withDataRequest',
     'd3'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     FileUpload,
     template,
     F,
@@ -15,12 +17,7 @@ require([
     ) {
     'use strict';
 
-    return defineVisalloAdminPlugin(OntologyUpload, {
-        mixins: [withDataRequest],
-        section: 'Ontology',
-        name: 'Upload',
-        subtitle: 'Upload new ontology owl'
-    });
+    return defineComponent(OntologyUpload, withDataRequest, withFormHelpers);
 
     function OntologyUpload() {
 

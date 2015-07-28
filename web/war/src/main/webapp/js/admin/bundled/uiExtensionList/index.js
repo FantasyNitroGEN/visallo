@@ -1,23 +1,20 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'util/formatters',
     'util/withDataRequest',
     'util/withCollapsibleSections',
     'configuration/plugins/registry'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     F,
     withDataRequest,
     withCollapsibleSections,
     registry) {
     'use strict';
 
-    return defineVisalloAdminPlugin(UIExtensionList, {
-        mixins: [withDataRequest, withCollapsibleSections],
-        section: 'Plugin',
-        name: 'UI Extensions',
-        subtitle: 'Extensions Available / Usages'
-    });
+    return defineComponent(UIExtensionList, withDataRequest, withFormHelpers, withCollapsibleSections);
 
     function UIExtensionList() {
 

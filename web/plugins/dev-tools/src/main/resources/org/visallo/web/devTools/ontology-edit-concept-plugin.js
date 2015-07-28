@@ -1,31 +1,28 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/web/devTools/templates/ontology-edit-concept',
     'util/formatters',
     'util/ontology/conceptSelect',
     'util/withDataRequest'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     F,
     ConceptSelector,
     withDataRequest) {
     'use strict';
 
-    return defineVisalloAdminPlugin(OntologyEdit, {
-        mixins: [withDataRequest],
-        section: 'Ontology',
-        name: 'Concepts',
-        subtitle: 'Modify ontology concepts'
-    });
+    return defineComponent(OntologyEdit, withDataRequest, withFormHelpers);
 
     function componentToHex(c) {
         var hex = c.toString(16);
-        return hex.length == 1 ? '0' + hex : hex;
+        return hex.length === 1 ? '0' + hex : hex;
     }
 
     function hexToRgb(hex) {
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        var result = (/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i).exec(hex);
         return result ? 'rgb(' +
             parseInt(result[1], 16) + ', ' +
             parseInt(result[2], 16) + ', ' +

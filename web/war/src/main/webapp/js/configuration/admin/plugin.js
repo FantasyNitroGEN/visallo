@@ -3,7 +3,7 @@
  */
 define([
     'flight/lib/component',
-    'flight/lib/registry',
+    'configuration/plugins/registry',
     'tpl!util/alert',
     'util/messages',
     'util/formatters',
@@ -27,6 +27,14 @@ define([
         var FlightComponent = defineComponent.apply(null, [Component].concat(options && options.mixins || [])),
             attachTo = FlightComponent.attachTo,
             cls = NODE_CLS_FOR_LESS_CONTAINMENT + (componentInc++);
+
+        console.warn('Admin plugin is deprecated, use registry for', options.section + '/' + options.name)
+        registry.registerExtension('org.visallo.admin', {
+            Component: FlightComponent,
+            section: options.section,
+            name: options.name,
+            subtitle: options.subtitle
+        });
 
         if (options && options.less) {
             options.less.applyStyleForClass(cls);

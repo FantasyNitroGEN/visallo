@@ -1,19 +1,16 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/web/devTools/templates/requeue',
     'util/withDataRequest'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     withDataRequest) {
     'use strict';
 
-    return defineVisalloAdminPlugin(Requeue, {
-        mixins: [withDataRequest],
-        section: 'Element',
-        name: 'Requeue',
-        subtitle: 'Requeue vertices and edges'
-    });
+    return defineComponent(Requeue, withDataRequest, withFormHelpers);
 
     function Requeue() {
 

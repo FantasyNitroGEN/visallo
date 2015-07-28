@@ -1,11 +1,13 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/web/devTools/templates/user',
     'hbs!org/visallo/web/devTools/templates/user-details',
     'util/formatters',
     'util/withDataRequest'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     userTemplate,
     F,
@@ -14,12 +16,7 @@ require([
     ) {
     'use strict';
 
-    return defineVisalloAdminPlugin(UserAdmin, {
-        mixins: [withDataRequest],
-        section: 'User',
-        name: 'Admin',
-        subtitle: 'Modify users and permissions'
-    });
+    return defineComponent(UserAdmin, withDataRequest, withFormHelpers);
 
     function UserAdmin() {
 

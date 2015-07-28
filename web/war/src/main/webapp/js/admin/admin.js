@@ -1,15 +1,23 @@
 define([
     'flight/lib/component',
-    'configuration/admin/plugin',
+    'configuration/plugins/registry',
     'hbs!./template',
     'tpl!util/alert',
     './bundled/index'
 ], function(
     defineComponent,
-    visalloAdminPlugins,
+    registry,
     template,
     alertTemplate) {
     'use strict';
+
+    registry.documentExtensionPoint('org.visallo.admin',
+        'Add admin tools to admin pane',
+        function(e) {
+            return (e.Component || e.componentPath) &&
+                e.section && e.name && e.subtitle
+        }
+    )
 
     return defineComponent(AdminList);
 
@@ -72,16 +80,23 @@ define([
                             self.trigger(document, 'paneResized');
                         }
                     }).show().find('.content'),
-                component = _.find(visalloAdminPlugins.ALL_COMPONENTS, function(c) {
-                    return c.name.toLowerCase() === data.name &&
-                        c.section.toLowerCase() === data.section;
+                component = _.find(registry.extensionsForPoint('org.visallo.admin'), function(e) {
+                    return e.name.toLowerCase() === data.name &&
+                        e.section.toLowerCase() === data.section;
                 });
 
             form.teardownAllComponents()
                 .removePrefixedClasses('admin_less_cls')
                 .empty();
             if (component) {
-                component.Component.attachTo(form, data);
+                (
+                    component.Component ?
+                        Promise.resolve(component.Component) :
+                        Promise.require(component.componentPath)
+                ).then(function(Component) {
+                    Component.attachTo(form, data);
+                    self.trigger(container, 'paneResized');
+                })
             }
 
             this.trigger(container, 'paneResized');
@@ -89,25 +104,26 @@ define([
 
         this.update = function() {
             var self = this,
-                items = [],
-                lastSection;
-
-            _.sortBy(visalloAdminPlugins.ALL_COMPONENTS, function(component) {
-                return component.section.toLowerCase() + component.name.toLowerCase();
-            }).forEach(function(component) {
-                if (lastSection !== component.section) {
-                    items.push(component.section);
-                    lastSection = component.section;
-                }
-
-                items.push(component);
-            });
+                extensions = registry.extensionsForPoint('org.visallo.admin');
 
             require(['d3'], function(d3) {
                 d3.select(self.select('listSelector').get(0))
                     .selectAll('li')
-                    .data(items)
+                    .data(
+                        _.chain(extensions)
+                        .groupBy('section')
+                        .pairs()
+                        .sortBy(function(d) {
+                            return d[0];
+                        })
+                        .each(function(d) {
+                            d[1] = _.sortBy(d[1], 'name');
+                        })
+                        .flatten()
+                        .value()
+                    )
                     .call(function() {
+                        this.exit().remove();
                         this.enter().append('li')
                             .attr('class', function(component) {
                                 if (_.isString(component)) {
@@ -147,9 +163,8 @@ define([
                                 });
                         });
                     })
-                    .exit().remove();
 
-                if (items.length === 0) {
+                if (extensions.length === 0) {
                     self.$node.prepend(alertTemplate({
                         warning: i18n('admin.plugins.none_available')
                     }));
