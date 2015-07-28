@@ -59,6 +59,7 @@ public class Router extends HttpServlet {
     private static final String JETTY_MULTIPART_CONFIG_ELEMENT8 = "org.eclipse.multipartConfig";
     private static final String JETTY_MULTIPART_CONFIG_ELEMENT9 = "org.eclipse.jetty.multipartConfig";
     private static final MultipartConfigElement MULTI_PART_CONFIG = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+    private static final String GRAPH_TRACE_ENABLE = "graphTraceEnable";
     private WebApp app;
     private org.visallo.core.config.Configuration configuration;
     private GeocoderRepository geocoderRepository;
@@ -205,7 +206,7 @@ public class Router extends HttpServlet {
                 req.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT9, MULTI_PART_CONFIG);
             }
 
-            if (req.getParameter("graphTraceEnable") != null) {
+            if (isGraphTraceEnabled(req)) {
                 Graph graph = InjectHelper.getInstance(Graph.class);
                 if (graph instanceof Traceable) {
                     traceGraph = (Traceable) graph;
@@ -232,6 +233,10 @@ public class Router extends HttpServlet {
                 traceGraph.traceOff();
             }
         }
+    }
+
+    private boolean isGraphTraceEnabled(ServletRequest req) {
+        return req.getParameter(GRAPH_TRACE_ENABLE) != null || req instanceof HttpServletRequest && ((HttpServletRequest) req).getHeader(GRAPH_TRACE_ENABLE) != null;
     }
 
     @Inject
