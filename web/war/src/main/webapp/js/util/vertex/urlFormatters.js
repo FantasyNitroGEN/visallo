@@ -1,7 +1,5 @@
 
-define([
-    'util/formatters'
-], function(F) {
+define([], function() {
     'use strict';
 
     var URL_TYPES = {
@@ -61,5 +59,5 @@ define([
             }
     };
 
-    return $.extend({}, F, { vertexUrl: V });
+    return $.extend({}, { vertexUrl: V });
 });

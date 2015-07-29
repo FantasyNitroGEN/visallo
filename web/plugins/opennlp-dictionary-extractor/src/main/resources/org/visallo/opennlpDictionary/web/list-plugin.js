@@ -1,22 +1,19 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'util/formatters',
     'd3',
     'util/withDataRequest'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     F,
     d3,
     withDataRequest
     ) {
     'use strict';
 
-    return defineVisalloAdminPlugin(DictionaryList, {
-        mixins: [withDataRequest],
-        section: 'Dictionary',
-        name: 'List',
-        subtitle: 'Current dictionary list'
-    });
+    return defineComponent(DictionaryList, withDataRequest, withFormHelpers);
 
     function DictionaryList() {
 
@@ -117,7 +114,7 @@ require([
                                     })
 
                             this.select('button.btn-danger').attr('data-row-key', function(d) {
-                                return d['rowKey'];
+                                return d.rowKey;
                             });
                             this.select('table')
                                 .selectAll('tr')

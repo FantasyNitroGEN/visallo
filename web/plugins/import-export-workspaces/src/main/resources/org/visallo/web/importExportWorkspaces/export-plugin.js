@@ -1,12 +1,14 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/web/importExportWorkspaces/export',
     'util/formatters',
     'util/messages',
     'util/withDataRequest',
     'd3'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     F,
     i18n,
@@ -15,12 +17,7 @@ require([
     ) {
     'use strict';
 
-    return defineVisalloAdminPlugin(WorkspaceExport, {
-        mixins: [withDataRequest],
-        section: i18n('admin.workspace.section'),
-        name: i18n('admin.workspace.button.export'),
-        subtitle: i18n('admin.workspace.export.subtitle')
-    });
+    return defineComponent(WorkspaceExport, withDataRequest, withFormHelpers);
 
     function WorkspaceExport() {
 

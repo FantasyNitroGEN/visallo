@@ -14,9 +14,11 @@ define([
         this.after('initialize', function() {
             var self = this;
 
-            require(['rangy-core', 'rangy-text', 'rangy-highlighter'], function(rangy) {
-                if (!rangy.initialized) rangy.init();
-            });
+            this.on('applicationReady currentUserVisalloDataUpdated', _.once(function() {
+                require(['rangy-core', 'rangy-text', 'rangy-highlighter'], function(rangy) {
+                    if (!rangy.initialized) rangy.init();
+                });
+            }));
 
             // Fullscreen view isn't loaded yet but this isn't needed
             // if it will be

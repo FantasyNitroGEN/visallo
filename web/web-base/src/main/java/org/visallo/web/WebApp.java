@@ -33,7 +33,9 @@ public class WebApp extends App {
     private final AppendableStaticResourceHandler pluginsJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
     private final List<String> pluginsJsResources = new ArrayList<String>();
     private final AppendableStaticResourceHandler pluginsWebWorkerJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
+    private final AppendableStaticResourceHandler pluginsBeforeAuthJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
     private final List<String> pluginsWebWorkerJsResources = new ArrayList<String>();
+    private final List<String> pluginsBeforeAuthJsResources = new ArrayList<String>();
     private final StyleAppendableHandler pluginsCssResourceHandler = new StyleAppendableHandler();
     private final List<String> pluginsCssResources = new ArrayList<String>();
     private VisalloResourceBundleManager visalloResourceBundleManager = new VisalloResourceBundleManager();
@@ -61,6 +63,10 @@ public class WebApp extends App {
         String pluginsWebWorkerJsRoute = "plugins-web-worker.js";
         this.get("/" + pluginsWebWorkerJsRoute, pluginsWebWorkerJsResourceHandler);
         pluginsWebWorkerJsResources.add(pluginsWebWorkerJsRoute);
+
+        String pluginsBeforeAuthJsRoute = "plugins-before-auth.js";
+        this.get("/" + pluginsBeforeAuthJsRoute, pluginsBeforeAuthJsResourceHandler);
+        pluginsBeforeAuthJsResources.add(pluginsBeforeAuthJsRoute);
     }
 
     @Override
@@ -105,6 +111,10 @@ public class WebApp extends App {
 
     public void registerWebWorkerJavaScript(String scriptResourceName) {
         pluginsWebWorkerJsResourceHandler.appendResource(scriptResourceName);
+    }
+
+    public void registerBeforeAuthenticationJavaScript(String scriptResourceName) {
+        pluginsBeforeAuthJsResourceHandler.appendResource(scriptResourceName);
     }
 
     public void registerJavaScriptTemplate(String scriptResourceName) {

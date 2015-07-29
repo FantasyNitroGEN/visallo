@@ -5,14 +5,11 @@ define([
     'flight/lib/component',
     'configuration/plugins/registry',
     'tpl!util/alert',
-    'util/messages',
-    'util/formatters',
-    'util/handlebars/helpers'
+    'util/messages'
 ], function(defineComponent,
     registry,
     alertTemplate,
-    i18n,
-    F) {
+    i18n) {
     'use strict';
 
     var NODE_CLS_FOR_LESS_CONTAINMENT = 'admin_less_cls_',
@@ -66,7 +63,9 @@ define([
 
                     if (promise.progress) {
                         promise.progress(function(v) {
-                            $button.text(F.number.percent(v) + ' ' + text);
+                            require(['util/formatters'], function(F) {
+                                $button.text(F.number.percent(v) + ' ' + text);
+                            })
                         })
                     }
 

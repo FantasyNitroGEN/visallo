@@ -6,115 +6,119 @@ define([], function() {
 
     function withWorkspaceVertexDrop() {
 
-        this.after('setupDataWorker', function() {
-            var self = this,
-                enabled = false,
-                droppable = $(document.body);
+        this.after('initialize', function() {
+            var self = this;
+            this.on('applicationReady currentUserVisalloDataUpdated', _.once(function() {
+                var enabled = false,
+                    droppable = $(document.body);
 
-            // Prevent dragging any context menu items to graph/map
-            $(document.body).on('dragstart', '.dropdown-menu', function(e) {
-                e.preventDefault();
-            });
+                // Prevent dragging any context menu items to graph/map
+                $(document.body).on('dragstart', '.dropdown-menu', function(e) {
+                    e.preventDefault();
+                });
 
-            // Other droppables might be on top of graph, listen to
-            // their over/out events and ignore drops if the user hasn't
-            // dragged outside of them. Can't use greedy option since they are
-            // absolutely positioned
-            $(document.body).on('dropover dropout', function(e, ui) {
-                var target = $(e.target),
-                    appDroppable = target.is(droppable),
-                    parentDroppables = target.parents('.ui-droppable');
+                // Other droppables might be on top of graph, listen to
+                // their over/out events and ignore drops if the user hasn't
+                // dragged outside of them. Can't use greedy option since they are
+                // absolutely positioned
+                $(document.body).on('dropover dropout', function(e, ui) {
+                    var target = $(e.target),
+                        appDroppable = target.is(droppable),
+                        parentDroppables = target.parents('.ui-droppable');
 
-                if (appDroppable) {
-                    // Ignore events from this droppable
-                    return;
-                }
-
-                // If this droppable has no parent droppables
-                if (parentDroppables.length === 1 && parentDroppables.is(droppable)) {
-                    enabled = e.type === 'dropout';
-                }
-            });
-
-            droppable.droppable({
-                tolerance: 'pointer',
-                accept: function(item) {
-                    return true;
-                },
-                over: function(event, ui) {
-                    var draggable = ui.draggable,
-                        start = true,
-                        graphVisible = $('.graph-pane-2d').is('.visible'),
-                        dashboardVisible = $('.dashboard-pane').is('.visible'),
-                        vertices,
-                        started = false,
-                        wrapper = $('.draggable-wrapper');
-
-                    // Prevent map from swallowing mousemove events by adding
-                    // this transparent full screen div
-                    if (wrapper.length === 0) {
-                        wrapper = $('<div class="draggable-wrapper"/>').appendTo(document.body);
+                    if (appDroppable) {
+                        // Ignore events from this droppable
+                        return;
                     }
 
-                    draggable.off('drag.droppable-tracking');
-                    draggable.on('drag.droppable-tracking', function handler(event, draggableUI) {
-                        if (!vertices) {
-                            if (!started) {
-                                started = true;
-                                // TODO: for non-cached vertices we need
-                                // some ui feedback that it's loading
-                                verticesFromDraggable(draggable, self.dataRequestPromise)
-                                    .done(function(v) {
-                                        vertices = v;
-                                        handler(event, draggableUI);
-                                    })
-                            }
-                            return;
-                        }
+                    // If this droppable has no parent droppables
+                    if (parentDroppables.length === 1 && parentDroppables.is(droppable)) {
+                        enabled = e.type === 'dropout';
+                    }
+                });
 
-                        if (graphVisible) {
-                            ui.helper.toggleClass('draggable-invisible', enabled);
-                        } else if (dashboardVisible) {
-                            self.trigger('menubarToggleDisplay', { name: 'graph' });
-                            dashboardVisible = false;
-                            graphVisible = true;
-                        }
+                require(['jqueryui'], function() {
+                    droppable.droppable({
+                        tolerance: 'pointer',
+                        accept: function(item) {
+                            return true;
+                        },
+                        over: function(event, ui) {
+                            var draggable = ui.draggable,
+                                start = true,
+                                graphVisible = $('.graph-pane-2d').is('.visible'),
+                                dashboardVisible = $('.dashboard-pane').is('.visible'),
+                                vertices,
+                                started = false,
+                                wrapper = $('.draggable-wrapper');
 
-                        self.trigger('toggleWorkspaceFilter', { enabled: !enabled });
-                        if (graphVisible) {
-                            if (enabled) {
-                                self.trigger('verticesHovering', {
-                                    vertices: vertices,
-                                    start: start,
-                                    position: { x: event.pageX, y: event.pageY }
-                                });
-                                start = false;
-                            } else {
-                                self.trigger('verticesHoveringEnded');
+                            // Prevent map from swallowing mousemove events by adding
+                            // this transparent full screen div
+                            if (wrapper.length === 0) {
+                                wrapper = $('<div class="draggable-wrapper"/>').appendTo(document.body);
                             }
+
+                            draggable.off('drag.droppable-tracking');
+                            draggable.on('drag.droppable-tracking', function handler(event, draggableUI) {
+                                if (!vertices) {
+                                    if (!started) {
+                                        started = true;
+                                        // TODO: for non-cached vertices we need
+                                        // some ui feedback that it's loading
+                                        verticesFromDraggable(draggable, self.dataRequestPromise)
+                                            .done(function(v) {
+                                                vertices = v;
+                                                handler(event, draggableUI);
+                                            })
+                                    }
+                                    return;
+                                }
+
+                                if (graphVisible) {
+                                    ui.helper.toggleClass('draggable-invisible', enabled);
+                                } else if (dashboardVisible) {
+                                    self.trigger('menubarToggleDisplay', { name: 'graph' });
+                                    dashboardVisible = false;
+                                    graphVisible = true;
+                                }
+
+                                self.trigger('toggleWorkspaceFilter', { enabled: !enabled });
+                                if (graphVisible) {
+                                    if (enabled) {
+                                        self.trigger('verticesHovering', {
+                                            vertices: vertices,
+                                            start: start,
+                                            position: { x: event.pageX, y: event.pageY }
+                                        });
+                                        start = false;
+                                    } else {
+                                        self.trigger('verticesHoveringEnded');
+                                    }
+                                }
+                            });
+                        },
+                        drop: function(event, ui) {
+                            $('.draggable-wrapper').remove();
+
+                            // Early exit if should leave to a different droppable
+                            if (!enabled) return;
+
+                            verticesFromDraggable(ui.draggable, self.dataRequestPromise)
+                                .done(function(vertices) {
+                                    var graphVisible = $('.graph-pane-2d').is('.visible');
+
+                                    if (visalloData.currentWorkspaceEditable) {
+                                        self.trigger('clearWorkspaceFilter');
+                                        self.trigger('verticesDropped', {
+                                            vertices: vertices,
+                                            dropPosition: { x: event.clientX, y: event.clientY }
+                                        });
+                                    }
+                                })
                         }
                     });
-                },
-                drop: function(event, ui) {
-                    $('.draggable-wrapper').remove();
-
-                    // Early exit if should leave to a different droppable
-                    if (!enabled) return;
-
-                    verticesFromDraggable(ui.draggable, self.dataRequestPromise)
-                        .done(function(vertices) {
-                            var graphVisible = $('.graph-pane-2d').is('.visible');
-
-                            if (visalloData.currentWorkspaceEditable) {
-                                self.trigger('clearWorkspaceFilter');
-                                self.trigger('verticesDropped', {
-                                    vertices: vertices,
-                                    dropPosition: { x: event.clientX, y: event.clientY }
-                                });
-                            }
-                        })
-                }
-            });
+                });
+            }));
 
             function verticesFromDraggable(draggable, dataRequestPromise) {
                 var alsoDragging = draggable.data('ui-draggable').alsoDragging,
@@ -156,6 +160,6 @@ define([], function() {
                     return dataRequest('vertex', 'store', { vertexIds: vertexIds });
                 });
             }
-        });
+        })
     }
 });

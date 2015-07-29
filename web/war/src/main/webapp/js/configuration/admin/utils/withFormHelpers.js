@@ -1,7 +1,7 @@
 define([
-    'util/formatters',
-    'tpl!util/alert'
-], function(F, alertTemplate) {
+    'tpl!util/alert',
+    'util/messages'
+], function(alertTemplate, i18n) {
     'use strict';
 
     return withFormHelpers;
@@ -27,7 +27,9 @@ define([
 
             if (promise.progress) {
                 promise.progress(function(v) {
-                    $button.text(F.number.percent(v) + ' ' + text);
+                    require(['util/formatters'], function(F) {
+                        $button.text(F.number.percent(v) + ' ' + text);
+                    });
                 })
             }
 

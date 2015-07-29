@@ -7,8 +7,10 @@ define(['util/websocket'], function(websocketUtils) {
 
         var overlayPromise = new Promise(function(fulfill, reject) {
             this.after('initialize', function() {
-                _.defer(function() {
-                    Promise.require('util/offlineOverlay').done(fulfill);
+                this.on('applicationReady currentUserVisalloDataUpdated', function() {
+                    _.defer(function() {
+                        Promise.require('util/offlineOverlay').done(fulfill);
+                    })
                 })
             })
         }.bind(this));

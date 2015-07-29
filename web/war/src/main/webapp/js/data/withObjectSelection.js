@@ -290,13 +290,11 @@ define([], function() {
                 if (vertexIds.length) {
                     Promise.all([
                         Promise.require('util/popovers/addRelated/addRelated'),
-                        Promise.require('util/vertex/formatters'),
                         self.dataRequestPromise.then(function(dataRequest) {
                             return dataRequest('vertex', 'store', { vertexIds: vertexIds })
                         })
                     ]).done(function(results) {
                         var RP = results.shift(),
-                            F = results.shift(),
                             vertex = results.shift();
 
                         RP.teardownAll();

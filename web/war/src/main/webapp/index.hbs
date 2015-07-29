@@ -35,7 +35,9 @@
       document.addEventListener('readyForPlugins', function() {
         require([
         {{#each pluginJsResources}}  '{{.}}'{{#unless @last}},{{/unless}}
-        {{/each}}]);
+        {{/each}}], function() {
+            document.dispatchEvent(new Event('pluginsLoaded'));
+        });
       }, false);
     })();
   </script>

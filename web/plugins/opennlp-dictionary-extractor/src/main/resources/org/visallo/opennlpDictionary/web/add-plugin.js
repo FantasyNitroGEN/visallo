@@ -1,11 +1,13 @@
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/opennlpDictionary/web/templates/add',
     'util/formatters',
     'util/withDataRequest',
     'd3'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     F,
     withDataRequest,
@@ -13,12 +15,7 @@ require([
     ) {
     'use strict';
 
-    return defineVisalloAdminPlugin(DictionaryAdd, {
-        mixins: [withDataRequest],
-        section: 'Dictionary',
-        name: 'Add',
-        subtitle: 'Create new dictionary entries'
-    });
+    return defineComponent(DictionaryAdd, withDataRequest, withFormHelpers);
 
     function DictionaryAdd() {
 

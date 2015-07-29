@@ -30,6 +30,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 define([], function() {
     'use strict';
 
+    console.warn('Client side less evaluation is deprecated. Use app.registerLess api in WebAppPlugin');
+
     var lessAPI = {};
 
     lessAPI.normalize = function(name, normalize) {

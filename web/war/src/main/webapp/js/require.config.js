@@ -66,7 +66,6 @@ var require = {
         'duration-js': { exports: 'Duration' },
         'easing': { init: function() { return $.easing; }, deps: ['jquery', 'jqueryui'] },
         'ejs': { exports: 'ejs' },
-        'hbs': { deps: ['util/handlebars/helpers'] },
         'intercom': { exports: 'Intercom' },
         'jquery': { exports: 'jQuery' },
         'jqueryui': { init: function() { return $.ui; }, deps: ['jquery'] },
