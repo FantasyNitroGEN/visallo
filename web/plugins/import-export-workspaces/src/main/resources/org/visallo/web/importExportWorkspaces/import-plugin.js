@@ -1,12 +1,13 @@
-
-require([
-    'configuration/admin/plugin',
+define([
+    'flight/lib/component',
+    'configuration/admin/utils/withFormHelpers',
     'hbs!org/visallo/web/importExportWorkspaces/import',
     'configuration/admin/utils/fileUpload',
     'util/messages',
     'util/withDataRequest'
 ], function(
-    defineVisalloAdminPlugin,
+    defineComponent,
+    withFormHelpers,
     template,
     FileUpload,
     i18n,
@@ -14,12 +15,7 @@ require([
 ) {
     'use strict';
 
-    defineVisalloAdminPlugin(WorkspaceImport, {
-        mixins: [withDataRequest],
-        section: i18n('admin.workspace.section'),
-        name: i18n('admin.workspace.button.import'),
-        subtitle: i18n('admin.workspace.import.subtitle')
-    });
+    return defineComponent(WorkspaceImport, withDataRequest, withFormHelpers);
 
     function WorkspaceImport() {
 

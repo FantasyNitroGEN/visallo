@@ -1,8 +1,7 @@
 define([
     'flight/lib/component',
     'require',
-    'util/messages',
-    'util/handlebars/helpers'
+    'util/messages'
 ], function(
     defineComponent,
     require,

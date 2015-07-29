@@ -1,7 +1,5 @@
 require([
     'jquery',
-    'jqueryui',
-    'bootstrap',
     'es5shim',
     'es5sham',
     'flight/lib/compose',
@@ -13,18 +11,11 @@ require([
     'underscore.inflection',
     'util/visibility',
     'util/privileges',
-    'moment',
-    'easing',
-    'jquery-scrollstop',
-    'bootstrap-datepicker',
-    'bootstrap-timepicker',
     'util/jquery.flight',
     'util/jquery.removePrefixedClasses',
     'util/promise'
 ],
 function(jQuery,
-         jQueryui,
-         bootstrap,
          es5shim,
          es5sham,
          compose,
@@ -35,9 +26,10 @@ function(jQuery,
          _,
          _inflection,
          Visibility,
-         Privileges,
-         moment) {
+         Privileges) {
     'use strict';
+
+    $.ui = { keyCode: { ENTER: 13 } };
 
     // Debug retina/non-retina by changing to 1/2
     // window.devicePixelRatio = 1;
@@ -57,19 +49,10 @@ function(jQuery,
     window.TRANSITION_END = 'transitionend webkitTransitionEnd MSTransitionEnd oTransitionEnd otransitionend';
     window.ANIMATION_END = 'animationend webkitAnimationEnd MSAnimationEnd oAnimationEnd oanimationend';
 
-    var language = 'en';
-    try {
-        var languagePref = localStorage.getItem('language');
-        if (languagePref) {
-            language = languagePref;
-        }
-    } catch(e) { /*eslint no-empty:0 */ }
-    moment.locale(language);
-
     var progress = 0,
         progressBar = null,
         progressBarText = null,
-        TOTAL_PROGRESS = 4,
+        TOTAL_PROGRESS = 5,
         MAX_RESIZE_TRIGGER_INTERVAL = 250,
         App, FullScreenApp, F, withDataRequest;
 
@@ -94,14 +77,9 @@ function(jQuery,
             _.templateSettings.evaluate = /<%([\s\S]+?)%>/g;
             _.templateSettings.interpolate = /\{-([\s\S]+?)\}/g;
 
-            // Default datepicker options
-            $.fn.datepicker.defaults.format = 'yyyy-mm-dd';
-            $.fn.datepicker.defaults.autoclose = true;
-
             Data.attachTo(document);
             Visibility.attachTo(document);
             Privileges.attachTo(document);
-            document.dispatchEvent(new Event('readyForPlugins'));
             $(window)
                 .on('hashchange', loadApplicationTypeBasedOnUrlHash)
                 .on('resize', _.throttle(function(event) {
@@ -115,7 +93,7 @@ function(jQuery,
                 'util/messages',
                 'util/vertex/urlFormatters',
                 'util/withDataRequest',
-                'util/handlebars/helpers'
+                'util/handlebars/before_auth_helpers'
             ], function(i18n, _F, _withDataRequest) {
                 updateVisalloLoadingProgress('Utilities');
                 window.i18n = i18n;
@@ -165,7 +143,7 @@ function(jQuery,
             })
 
         function attachApplication(loginRequired, message, options) {
-            updateVisalloLoadingProgress('User Interface');
+            updateVisalloLoadingProgress('Extensions');
 
             if (!event) {
                 $('html')
@@ -178,59 +156,130 @@ function(jQuery,
             visalloData.isFullscreen = false;
 
             if (loginRequired) {
-                require(['login'], function(Login) {
-                    removeVisalloLoading().then(function() {
-                        Login.teardownAll();
-                        Login.attachTo('#login', {
-                            errorMessage: message,
-                            errorMessageOptions: options,
-                            toOpen: toOpen
-                        });
-                    })
-                });
-            } else if (popoutDetails) {
-                visalloData.isFullscreen = true;
-                $('#login').remove();
-                require(['appFullscreenDetails'], function(comp) {
-                    removeVisalloLoading().then(function() {
-                        if (event) {
-                            location.reload();
-                        } else {
-                            if (App) {
-                                App.teardownAll();
-                            }
-                            FullScreenApp = comp;
-                            FullScreenApp.teardownAll();
-                            FullScreenApp.attachTo('#app', {
-                                graphVertexIds: ids,
-                                workspaceId: workspaceId
-                            });
-                        }
+                require(['../plugins-before-auth'], function() {
+                    updateVisalloLoadingProgress('User Interface');
+
+                    $(document).one('loginSuccess', function() {
+                        document.addEventListener('pluginsLoaded', function loaded() {
+                            document.removeEventListener('pluginsLoaded', loaded);
+                            loginSuccess(true);
+                        }, false);
+                        document.dispatchEvent(new Event('readyForPlugins'));
                     });
-                });
+
+                    require(['login'], function(Login) {
+                        removeVisalloLoading().then(function() {
+                            Login.teardownAll();
+                            Login.attachTo('#login', {
+                                errorMessage: message,
+                                errorMessageOptions: options,
+                                toOpen: toOpen
+                            });
+                        })
+                    });
+                })
             } else {
-                $('#login').remove();
-                require(['app'], function(comp) {
-                    removeVisalloLoading().then(function() {
-                        App = comp;
-                        if (event) {
-                            location.reload();
+                document.addEventListener('pluginsLoaded', function loaded() {
+                    updateVisalloLoadingProgress('User Interface');
+
+                    document.removeEventListener('pluginsLoaded', loaded);
+                    loginSuccess(false);
+                }, false);
+                document.dispatchEvent(new Event('readyForPlugins'));
+            }
+        }
+
+        function loginSuccess(animate) {
+            if (animate && (/^#?[a-z]+=/i).test(location.hash)) {
+                window.location.reload();
+            } else {
+                withDataRequest.dataRequest('user', 'me').then(function() {
+
+                    require([
+                        'moment',
+                        'bootstrap',
+                        'jqueryui',
+                        'easing',
+                        'jquery-scrollstop',
+                        'bootstrap-datepicker',
+                        'bootstrap-timepicker',
+                        'util/formatters',
+                        'util/handlebars/after_auth_helpers'
+                    ], function(moment) {
+                        var language = 'en';
+                        try {
+                            var languagePref = localStorage.getItem('language');
+                            if (languagePref) {
+                                language = languagePref;
+                            }
+                        } catch(langerror) { /*eslint no-empty:0 */ }
+                        moment.locale(language);
+
+                        // Default datepicker options
+                        $.fn.datepicker.defaults.format = 'yyyy-mm-dd';
+                        $.fn.datepicker.defaults.autoclose = true;
+
+                        if (popoutDetails) {
+                            visalloData.isFullscreen = true;
+                            $('#login').remove();
+                            require(['appFullscreenDetails'], function(comp) {
+                                removeVisalloLoading().then(function() {
+                                    if (event) {
+                                        location.reload();
+                                    } else {
+                                        if (App) {
+                                            App.teardownAll();
+                                        }
+                                        FullScreenApp = comp;
+                                        FullScreenApp.teardownAll();
+                                        FullScreenApp.attachTo('#app', {
+                                            graphVertexIds: ids,
+                                            workspaceId: workspaceId
+                                        });
+                                    }
+                                });
+                            });
                         } else {
-                            if (FullScreenApp) {
-                                FullScreenApp.teardownAll();
+                            if (!animate) {
+                                $('#login').remove();
                             }
-                            App.teardownAll();
-                            var appOptions = {};
-                            if (toOpen && toOpen.type === 'ADD' && ids.length) {
-                                appOptions.addVertexIds = toOpen;
-                            }
-                            if (toOpen && toOpen.type === 'ADMIN' && toOpen.section && toOpen.name) {
-                                appOptions.openAdminTool = _.pick(toOpen, 'section', 'name');
-                            }
-                            App.attachTo('#app', appOptions);
-                            _.defer(function() {
-                                // Cache login in case server goes down
-                                require(['login']);
+                            require(['app'], function(comp) {
+                                removeVisalloLoading().then(function() {
+                                    App = comp;
+                                    if (event) {
+                                        location.reload();
+                                    } else {
+                                        if (FullScreenApp) {
+                                            FullScreenApp.teardownAll();
+                                        }
+                                        App.teardownAll();
+                                        var appOptions = {};
+                                        if (toOpen && toOpen.type === 'ADD' && ids.length) {
+                                            appOptions.addVertexIds = toOpen;
+                                        }
+                                        if (toOpen && toOpen.type === 'ADMIN' && toOpen.section && toOpen.name) {
+                                            appOptions.openAdminTool = _.pick(toOpen, 'section', 'name');
+                                        }
+                                        if (animate) {
+                                            $('#login .authentication button.loading').removeClass('loading');
+                                            appOptions.animateFromLogin = true;
+                                        }
+
+                                        App.attachTo('#app', appOptions);
+                                        _.defer(function() {
+                                            // Cache login in case server goes down
+                                            require(['login']);
+                                        });
+
+                                        if (animate) {
+                                            $('#login .logo').one(TRANSITION_END, function() {
+                                                $('#login')
+                                                    .find('.authentication').teardownAllComponents()
+                                                    .end().teardownAllComponents();
+                                            });
+                                        }
+                                    }
+                                });
                             });
                         }
                     });

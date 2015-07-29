@@ -1,11 +1,13 @@
 
 define([
+    '../formatters',
     './urlFormatters',
     './formula',
     'util/messages',
     'util/requirejs/promise!../service/ontologyPromise'
 ], function(
     F,
+    vertexUrl,
     formula,
     i18n,
     ontology) {
@@ -755,7 +757,7 @@ define([
     // Legacy
     V.properties.byte = V.properties.bytes;
 
-    return $.extend({}, F, { vertex: V });
+    return $.extend({}, F, { vertex: V, vertexUrl: vertexUrl.vertexUrl });
 
     function treeLookupForConceptProperty(conceptId, propertyName) {
         var ontologyConcept = conceptId && ontology.concepts.byId[conceptId],

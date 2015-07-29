@@ -52,7 +52,8 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
 
             require([
                 'chai-datetime',
-                'util/handlebars/helpers',
+                'util/handlebars/before_auth_helpers',
+                'util/handlebars/after_auth_helpers',
                 'util/jquery.flight',
                 'mocha-flight'
             ], function(chaiDateTime) {

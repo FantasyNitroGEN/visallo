@@ -2,14 +2,15 @@
 define([
     'flight/lib/component',
     'tpl!login',
-    'configuration/plugins/authentication/authentication',
-    'util/withDataRequest'
+    'configuration/plugins/registry',
+    'util/withDataRequest',
+    'tpl!util/alert'
 ], function(
     defineComponent,
     template,
-    AuthenticationPlugin,
-    withDataRequest
-) {
+    registry,
+    withDataRequest,
+    alertTemplate) {
     'use strict';
 
     return defineComponent(Login, withDataRequest);
@@ -25,45 +26,42 @@ define([
         });
 
         this.after('initialize', function() {
-            this.$node.html(template({}));
-
-            AuthenticationPlugin.attachTo(this.select('authenticationSelector'), {
-                errorMessage: this.attr.errorMessage || ''
-            });
-
-            this.on('loginSuccess', this.onLoginSuccess);
-        });
-
-        this.onLoginSuccess = function() {
             var self = this;
 
-            if ((/^#?[a-z]+=/i).test(location.hash)) {
-                window.location.reload();
+            this.$node.html(template({}));
+
+            registry.documentExtensionPoint('org.visallo.authentication',
+                'Provides interface for authentication',
+                function(e) {
+                    return _.isString(e.componentPath);
+                }
+            );
+
+            var authPlugins = registry.extensionsForPoint('org.visallo.authentication'),
+                authNode = this.select('authenticationSelector'),
+                error = '',
+                componentPath = '';
+
+            if (authPlugins.length === 0) {
+                console.warn('No authentication extension registered, Falling back to old plugin');
+                componentPath = 'configuration/plugins/authentication/authentication';
+            } else if (authPlugins.length > 1) {
+                error = 'Multiple authentication extensions registered. (See console for more)';
+                console.error('Authentication plugins:', authPlugins);
             } else {
-                this.dataRequest('user', 'me')
-                    .then(function() {
-                        require(['app'], function(App) {
-
-                            self.select('authenticationSelector')
-                                .find('button.loading').removeClass('loading');
-
-                            App.attachTo('#app', {
-                                animateFromLogin: true,
-                                addVertexIds: self.attr.toOpen &&
-                                    self.attr.toOpen.type === 'ADD' ?
-                                    self.attr.toOpen : null,
-                                openAdminTool: self.attr.toOpen &&
-                                    self.attr.toOpen.type === 'ADMIN' ?
-                                    _.pick(self.attr.toOpen, 'section', 'name') : null
-                            });
-
-                            self.$node.find('.logo').one(TRANSITION_END, function() {
-                                self.teardown();
-                            });
-                        });
-                    });
+                componentPath = authPlugins[0].componentPath;
             }
-        };
+
+            if (error) {
+                alertTemplate({ error: 'No authentication extension registered' });
+            } else if (componentPath) {
+                require([componentPath], function(AuthenticationPlugin) {
+                    AuthenticationPlugin.attachTo(authNode, {
+                        errorMessage: self.attr.errorMessage || ''
+                    });
+                });
+            }
+        });
 
     }
 

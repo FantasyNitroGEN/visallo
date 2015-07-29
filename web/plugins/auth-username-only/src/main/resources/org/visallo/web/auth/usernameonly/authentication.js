@@ -1,16 +1,12 @@
 define([
-    'configuration/plugin',
-    'hbs!./templates/login',
-    'less!./less/login'
+    'flight/lib/component',
+    'hbs!./templates/login'
 ], function(
-    defineVisalloPlugin,
-    template,
-    less) {
+    defineComponent,
+    template) {
     'use strict';
 
-    return defineVisalloPlugin(UserNameOnlyAuthentication, {
-        less: less
-    });
+    return defineComponent(UserNameOnlyAuthentication);
 
     function UserNameOnlyAuthentication() {
 
