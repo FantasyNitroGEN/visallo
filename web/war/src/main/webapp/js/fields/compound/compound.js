@@ -70,6 +70,8 @@ define([
                     var result = self.compoundValues[iri];
                     if (_.isArray(result)) {
                         return result;
+                    } else if (_.isUndefined(result)) {
+                        return [''];
                     }
                     return [result];
                 })
