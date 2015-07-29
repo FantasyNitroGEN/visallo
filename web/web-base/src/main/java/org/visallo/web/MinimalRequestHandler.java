@@ -1,12 +1,18 @@
 package org.visallo.web;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.v5analytics.webster.App;
 import com.v5analytics.webster.Handler;
+import org.vertexium.FetchHint;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -106,6 +112,19 @@ public abstract class MinimalRequestHandler implements Handler {
         return Integer.parseInt(val);
     }
 
+    protected EnumSet<FetchHint> getOptionalParameterFetchHints(HttpServletRequest request, String parameterName, EnumSet<FetchHint> defaultFetchHints) {
+        String val = getOptionalParameter(request, parameterName);
+        if (val == null) {
+            return defaultFetchHints;
+        }
+        return EnumSet.copyOf(Lists.transform(Arrays.asList(val.split(",")), new Function<String, FetchHint>() {
+            @Nullable
+            @Override
+            public FetchHint apply(String input) {
+                return FetchHint.valueOf(input);
+            }
+        }));
+    }
 
     protected boolean getOptionalParameterBoolean(final HttpServletRequest request, final String parameterName, boolean defaultValue) {
         Boolean defaultValueBoolean = defaultValue;

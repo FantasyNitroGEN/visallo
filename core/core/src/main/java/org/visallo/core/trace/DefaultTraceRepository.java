@@ -4,7 +4,8 @@ import java.util.Map;
 
 public class DefaultTraceRepository extends TraceRepository {
     @Override
-    public void on(String description, Map<String, String> data) {
+    public TraceSpan on(String description, Map<String, String> data) {
+        return NullTraceSpan.INSTANCE;
     }
 
     @Override

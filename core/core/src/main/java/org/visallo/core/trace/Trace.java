@@ -25,8 +25,8 @@ public class Trace {
         getTraceRepository().on(description, new HashMap<String, String>());
     }
 
-    public static void on(String description, Map<String, String> data) {
-        getTraceRepository().on(description, data);
+    public static TraceSpan on(String description, Map<String, String> data) {
+        return getTraceRepository().on(description, data);
     }
 
     public static void off() {

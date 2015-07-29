@@ -10,6 +10,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
 import org.visallo.core.trace.Trace;
+import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -197,6 +198,7 @@ public class Router extends HttpServlet {
 
     @Override
     public void service(ServletRequest req, ServletResponse resp) throws ServletException, IOException {
+        TraceSpan trace = null;
         try {
             if (req.getContentType() != null && req.getContentType().startsWith("multipart/form-data")) {
                 req.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT8, MULTI_PART_CONFIG);
@@ -209,7 +211,7 @@ public class Router extends HttpServlet {
                 for (Map.Entry<String, String[]> reqParameters : req.getParameterMap().entrySet()) {
                     parameters.put(reqParameters.getKey(), Joiner.on(", ").join(reqParameters.getValue()));
                 }
-                Trace.on(traceDescription, parameters);
+                trace = Trace.on(traceDescription, parameters);
             }
 
             HttpServletResponse httpResponse = (HttpServletResponse) resp;
@@ -220,6 +222,9 @@ public class Router extends HttpServlet {
         } catch (Exception e) {
             throw new ServletException(e);
         } finally {
+            if (trace != null) {
+                trace.close();
+            }
             Trace.off();
         }
     }

@@ -32,7 +32,7 @@ public class AccumuloTraceRepository extends TraceRepository {
     }
 
     @Override
-    public void on(String description, Map<String, String> data) {
+    public TraceSpan on(String description, Map<String, String> data) {
         if (!distributedTraceEnabled) {
             try {
                 DistributedTrace.enable(connector.getInstance(), new ZooReader(connector.getInstance().getZooKeepers(), 10000), "visallo", null);
@@ -50,6 +50,7 @@ public class AccumuloTraceRepository extends TraceRepository {
         }
 
         LOGGER.info("Started trace '%s'", description);
+        return wrapSpan(span);
     }
 
     @Override
@@ -60,6 +61,10 @@ public class AccumuloTraceRepository extends TraceRepository {
     @Override
     public TraceSpan start(String description) {
         final Span span = Trace.start(description);
+        return wrapSpan(span);
+    }
+
+    private TraceSpan wrapSpan(final Span span) {
         return new TraceSpan() {
             @Override
             public TraceSpan data(String key, String value) {

@@ -18,6 +18,7 @@ import org.visallo.web.clientapi.model.ClientApiVertexEdges;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ public class VertexEdges extends BaseRequestHandler {
         int offset = getOptionalParameterInt(request, "offset", 0);
         int size = getOptionalParameterInt(request, "size", 25);
         String edgeLabel = getOptionalParameter(request, "edgeLabel");
+        EnumSet<FetchHint> vertexFetchHints = getOptionalParameterFetchHints(request, "vertexFetchHints", FetchHint.ALL);
 
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         if (vertex == null) {
@@ -64,7 +66,7 @@ public class VertexEdges extends BaseRequestHandler {
         int totalEdgeCount = edges.size();
 
         edges = edges.subList(Math.min(edges.size(), offset), Math.min(edges.size(), offset + size));
-        Map<String, Vertex> vertices = getVertices(vertex.getId(), edges, authorizations);
+        Map<String, Vertex> vertices = getVertices(vertex.getId(), edges, vertexFetchHints, authorizations);
 
         for (Edge edge : edges) {
             String otherVertexId = edge.getOtherVertexId(vertex.getId());
@@ -87,7 +89,7 @@ public class VertexEdges extends BaseRequestHandler {
         respondWithClientApiObject(response, result);
     }
 
-    private Map<String, Vertex> getVertices(final String myVertexId, List<Edge> edges, Authorizations authorizations) {
+    private Map<String, Vertex> getVertices(final String myVertexId, List<Edge> edges, EnumSet<FetchHint> fetchHints, Authorizations authorizations) {
         Iterable<String> vertexIds = Iterables.transform(
                 edges,
                 new Function<Edge, String>() {
@@ -96,7 +98,7 @@ public class VertexEdges extends BaseRequestHandler {
                         return edge.getOtherVertexId(myVertexId);
                     }
                 });
-        Iterable<Vertex> vertices = graph.getVertices(vertexIds, authorizations);
+        Iterable<Vertex> vertices = graph.getVertices(vertexIds, fetchHints, authorizations);
         vertices = Iterables.filter(vertices, Predicates.notNull());
         return Maps.uniqueIndex(vertices, new Function<Vertex, String>() {
             @Override

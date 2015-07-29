@@ -5,6 +5,7 @@ import com.v5analytics.webster.HandlerChain;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
+import org.vertexium.FetchHint;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.query.*;
@@ -67,12 +68,13 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         applyFiltersToQuery(queryAndData, filterJson);
         applyConceptTypeFilterToQuery(queryAndData, request);
 
+        EnumSet<FetchHint> fetchHints = getOptionalParameterFetchHints(request, "fetchHints", FetchHint.ALL);
         final int offset = getOptionalParameterInt(request, "offset", 0);
         final int size = getOptionalParameterInt(request, "size", defaultSearchResultCount);
         queryAndData.getQuery().limit(size);
         queryAndData.getQuery().skip(offset);
 
-        Iterable<Vertex> searchResults = getSearchResults(queryAndData);
+        Iterable<Vertex> searchResults = getSearchResults(queryAndData, fetchHints);
 
         Map<String, Double> scores = null;
         if (searchResults instanceof IterableWithScores) {
@@ -129,9 +131,9 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         return verticesList;
     }
 
-    protected Iterable<Vertex> getSearchResults(QueryAndData queryAndData) {
+    protected Iterable<Vertex> getSearchResults(QueryAndData queryAndData, EnumSet<FetchHint> fetchHints) {
         try (TraceSpan trace = Trace.start("getSearchResults")) {
-            return queryAndData.getQuery().vertices();
+            return queryAndData.getQuery().vertices(fetchHints);
         }
     }
 
