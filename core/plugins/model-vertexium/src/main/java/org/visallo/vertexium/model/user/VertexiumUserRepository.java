@@ -22,6 +22,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.trace.Traced;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -168,6 +169,7 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
+    @Traced
     public User findById(String userId) {
         if (SystemUser.USER_ID.equals(userId)) {
             return getSystemUser();
@@ -175,6 +177,7 @@ public class VertexiumUserRepository extends UserRepository {
         return createFromVertex(findByIdUserVertex(userId));
     }
 
+    @Traced
     public Vertex findByIdUserVertex(String userId) {
         Vertex userVertex = userVertexCache.getIfPresent(userId);
         if (userVertex != null) {
@@ -337,6 +340,7 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
+    @Traced
     public org.vertexium.Authorizations getAuthorizations(User user, String... additionalAuthorizations) {
         Set<String> userAuthorizations;
         if (user instanceof SystemUser) {

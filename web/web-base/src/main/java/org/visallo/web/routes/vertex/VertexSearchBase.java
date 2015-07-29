@@ -17,6 +17,8 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.trace.Trace;
+import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
@@ -128,7 +130,9 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
     }
 
     protected Iterable<Vertex> getSearchResults(QueryAndData queryAndData) {
-        return queryAndData.getQuery().vertices();
+        try (TraceSpan trace = Trace.start("getSearchResults")) {
+            return queryAndData.getQuery().vertices();
+        }
     }
 
     protected Integer getCommonCount(QueryAndData queryAndData, Vertex vertex) {

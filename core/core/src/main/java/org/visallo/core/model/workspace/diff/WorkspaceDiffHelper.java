@@ -2,19 +2,20 @@ package org.visallo.core.model.workspace.diff;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
+import org.vertexium.*;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceEntity;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.trace.Traced;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.JsonSerializer;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.SandboxStatus;
-import org.vertexium.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class WorkspaceDiffHelper {
         this.formulaEvaluator = formulaEvaluator;
     }
 
+    @Traced
     public ClientApiWorkspaceDiff diff(Workspace workspace, List<WorkspaceEntity> workspaceEntities, List<Edge> workspaceEdges, FormulaEvaluator.UserContext userContext, User user) {
         Authorizations authorizations = userRepository.getAuthorizations(user, WorkspaceRepository.VISIBILITY_STRING, workspace.getWorkspaceId());
 
@@ -58,7 +60,8 @@ public class WorkspaceDiffHelper {
         return result;
     }
 
-    private List<ClientApiWorkspaceDiff.Item> diffEdge(Workspace workspace, Edge edge, Authorizations hiddenAuthorizations) {
+    @Traced
+    protected List<ClientApiWorkspaceDiff.Item> diffEdge(Workspace workspace, Edge edge, Authorizations hiddenAuthorizations) {
         List<ClientApiWorkspaceDiff.Item> result = new ArrayList<>();
 
         SandboxStatus sandboxStatus = SandboxStatusUtil.getSandboxStatus(edge, workspace.getWorkspaceId());
@@ -99,6 +102,7 @@ public class WorkspaceDiffHelper {
         );
     }
 
+    @Traced
     public List<ClientApiWorkspaceDiff.Item> diffWorkspaceEntity(Workspace workspace, WorkspaceEntity workspaceEntity, FormulaEvaluator.UserContext userContext, Authorizations authorizations) {
         List<ClientApiWorkspaceDiff.Item> result = new ArrayList<>();
 
@@ -138,7 +142,8 @@ public class WorkspaceDiffHelper {
         );
     }
 
-    private void diffProperties(Workspace workspace, Element element, List<ClientApiWorkspaceDiff.Item> result, Authorizations hiddenAuthorizations) {
+    @Traced
+    protected void diffProperties(Workspace workspace, Element element, List<ClientApiWorkspaceDiff.Item> result, Authorizations hiddenAuthorizations) {
         List<Property> properties = toList(element.getProperties());
         SandboxStatus[] propertyStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspace.getWorkspaceId());
         for (int i = 0; i < properties.size(); i++) {

@@ -1,11 +1,11 @@
 package org.visallo.vertexium.model.workspace;
 
-import org.visallo.core.model.workspace.Workspace;
-import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.vertexium.Authorizations;
 import org.vertexium.FetchHint;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.model.workspace.WorkspaceProperties;
 
 public class VertexiumWorkspace implements Workspace {
     private static final long serialVersionUID = -1692706831716776578L;
@@ -34,5 +34,13 @@ public class VertexiumWorkspace implements Workspace {
             this.workspaceVertex = graph.getVertex(getWorkspaceId(), includeHidden ? FetchHint.ALL_INCLUDING_HIDDEN : FetchHint.ALL, authorizations);
         }
         return this.workspaceVertex;
+    }
+
+    @Override
+    public String toString() {
+        return "VertexiumWorkspace{" +
+                "workspaceId='" + workspaceId + '\'' +
+                ", displayTitle='" + displayTitle + '\'' +
+                '}';
     }
 }

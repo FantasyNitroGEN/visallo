@@ -29,6 +29,7 @@ import org.visallo.core.model.workspace.*;
 import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.trace.Traced;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -162,6 +163,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
+    @Traced
     public Workspace findById(String workspaceId, boolean includeHidden, User user) {
         LOGGER.debug("findById(workspaceId: %s, userId: %s)", workspaceId, user.getUserId());
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
@@ -229,6 +231,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
+    @Traced
     public List<WorkspaceUser> findUsersWithAccess(final String workspaceId, final User user) {
         String cacheKey = workspaceId + user.getUserId();
         List<WorkspaceUser> usersWithAccess = this.usersWithAccessCache.getIfPresent(cacheKey);
@@ -275,6 +278,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         });
     }
 
+    @Traced
     public List<WorkspaceEntity> findEntitiesNoLock(final Workspace workspace, final boolean includeHidden, User user) {
         LOGGER.debug("BEGIN findEntitiesNoLock(workspaceId: %s, includeHidden: %b, userId: %s)", workspace.getWorkspaceId(), includeHidden, user.getUserId());
         long startTime = System.currentTimeMillis();
@@ -309,7 +313,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return results;
     }
 
-    private Iterable<Edge> findEdges(final Workspace workspace, List<WorkspaceEntity> workspaceEntities, boolean includeHidden, User user) {
+    @Traced
+    protected Iterable<Edge> findEdges(final Workspace workspace, List<WorkspaceEntity> workspaceEntities, boolean includeHidden, User user) {
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
         Iterable<Vertex> vertices = WorkspaceEntity.toVertices(getGraph(), workspaceEntities, includeHidden, authorizations);
         Iterable<String> edgeIds = toSet(new VerticesToEdgeIdsIterable(vertices, authorizations));
@@ -487,6 +492,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
+    @Traced
     public boolean hasReadPermissions(String workspaceId, User user) {
         if (user instanceof SystemUser) {
             return true;
@@ -553,6 +559,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
+    @Traced
     public ClientApiWorkspaceDiff getDiff(final Workspace workspace, final User user, final Locale locale, final String timeZone) {
         if (!hasReadPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());

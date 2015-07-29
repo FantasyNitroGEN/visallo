@@ -4,14 +4,15 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
+import com.google.inject.matcher.Matchers;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.vertexium.Graph;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
@@ -29,6 +30,10 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
+import org.visallo.core.trace.DefaultTraceRepository;
+import org.visallo.core.trace.TraceRepository;
+import org.visallo.core.trace.Traced;
+import org.visallo.core.trace.TracedMethodInterceptor;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
@@ -116,6 +121,11 @@ public class VisalloBootstrap extends AbstractModule {
                 .toProvider(new CuratorFrameworkProvider(configuration))
                 .in(Scopes.SINGLETON);
 
+        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Traced.class), new TracedMethodInterceptor());
+
+        bind(TraceRepository.class)
+                .toProvider(VisalloBootstrap.<TraceRepository>getConfigurableProvider(configuration, Configuration.TRACE_REPOSITORY, DefaultTraceRepository.class))
+                .in(Scopes.SINGLETON);
         bind(Graph.class)
                 .toProvider(getGraphProvider(configuration, Configuration.GRAPH_PROVIDER))
                 .in(Scopes.SINGLETON);

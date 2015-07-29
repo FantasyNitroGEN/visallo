@@ -35,6 +35,7 @@ public class Configuration {
     public static final String HDFS_LIB_HDFS_USER = "hdfsLib.user";
     public static final String ZK_SERVERS = "zookeeper.serverNames";
     public static final String LOCK_REPOSITORY = "repository.lock";
+    public static final String TRACE_REPOSITORY = "repository.trace";
     public static final String USER_REPOSITORY = "repository.user";
     public static final String WORKSPACE_REPOSITORY = "repository.workspace";
     public static final String AUTHORIZATION_REPOSITORY = "repository.authorization";

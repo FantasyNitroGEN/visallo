@@ -211,4 +211,11 @@ public class ProxyUser implements User {
     public int hashCode() {
         return getUserId().hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "ProxyUser{" +
+                "userId='" + userId + '\'' +
+                '}';
+    }
 }
