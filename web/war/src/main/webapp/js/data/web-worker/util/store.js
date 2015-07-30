@@ -277,7 +277,7 @@ define([
                             return cacheDecisions.shouldCacheVertexAtUrl(v, url);
                         })
                         if (cacheable.length) {
-                            console.debug(request.url, 'causing ' + json.vertices.length + ' vertices to cache');
+                            console.debug(request.url, 'causing ' + cacheable.length + ' vertices to cache');
                             cacheVertices(workspaceId, cacheable, cachePriorityForUrl(request.url));
                         }
                     }
@@ -300,6 +300,16 @@ define([
                         })
                         if (cacheable.length) {
                             cacheEdges(workspaceId, cacheable);
+                        }
+                    }
+                    if (_.isArray(json.relationships) && json.relationships.length && 'vertex' in json.relationships[0]) {
+                        var vertices = _.pluck(json.relationships, 'vertex');
+                        if (resemblesVertices(vertices)) {
+                            cacheable = _.filter(vertices, function(v) {
+                                return cacheDecisions.shouldCacheVertexAtUrl(v, url);
+                            })
+                            console.debug(request.url, 'causing ' + cacheable.length + ' vertices to cache');
+                            cacheVertices(workspaceId, cacheable, cachePriorityForUrl(request.url));
                         }
                     }
                 }
