@@ -49,7 +49,7 @@ define([
             });
 
             require([
-                'configuration/plugins/visibility/visibilityEditor'
+                'util/visibility/edit'
             ], function(Visibility) {
                 Visibility.attachTo(self.$node.find('.visibility'), {
                     value: self.attr.comment &&

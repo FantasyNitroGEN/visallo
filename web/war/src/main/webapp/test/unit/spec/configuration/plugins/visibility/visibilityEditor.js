@@ -1,5 +1,5 @@
 
-describeComponent('configuration/plugins/visibility/visibilityEditor', function(VisibilityEditor) {
+describeComponent('util/visibility/default/edit', function(VisibilityEditor) {
 
     var VALUE = 'A value',
         NEW_VALUE = 'a NEW value';

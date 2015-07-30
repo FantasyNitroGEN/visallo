@@ -112,7 +112,7 @@ define([
                 this.select('helpSelector').hide();
                 this.select('visibilitySelector').show();
 
-                require(['configuration/plugins/visibility/visibilityEditor'], function(Visibility) {
+                require(['util/visibility/edit'], function(Visibility) {
                     Visibility.attachTo(self.$node.find('.visibility'), {
                         value: '',
                         readonly: self.unresolve

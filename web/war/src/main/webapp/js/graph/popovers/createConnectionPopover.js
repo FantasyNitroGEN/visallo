@@ -68,7 +68,7 @@ define([
                     );
 
                     require([
-                        'configuration/plugins/visibility/visibilityEditor',
+                        'util/visibility/edit',
                         'detail/dropdowns/propertyForm/justification'
                     ], function(Visibility, Justification) {
                         Visibility.attachTo(self.popover.find('.visibility'), {

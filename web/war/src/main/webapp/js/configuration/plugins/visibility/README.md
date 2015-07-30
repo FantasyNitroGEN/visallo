@@ -1,3 +1,4 @@
+** Deprecated **
 
 Visibility Plugin
 =================

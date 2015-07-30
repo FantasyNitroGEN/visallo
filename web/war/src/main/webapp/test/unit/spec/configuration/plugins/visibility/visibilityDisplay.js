@@ -1,5 +1,5 @@
 
-describeComponent('configuration/plugins/visibility/visibilityDisplay', function(VisibilityDisplay) {
+describeComponent('util/visibility/default/view', function(VisibilityDisplay) {
 
     var VALUE = 'A value';
 

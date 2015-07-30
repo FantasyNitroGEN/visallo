@@ -410,7 +410,7 @@ define([
             var self = this;
 
             require([
-                'configuration/plugins/visibility/visibilityDisplay'
+                'util/visibility/view'
             ], function(VisibilityDisplay) {
                 self.$node.find('.visibility').each(function() {
                     var visibility = $(this).data('visibility');

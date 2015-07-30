@@ -206,7 +206,7 @@ define([
 
                     if (relationshipsTpl.length) {
                         require([
-                            'configuration/plugins/visibility/visibilityEditor',
+                            'util/visibility/edit',
                             'detail/dropdowns/propertyForm/justification'
                         ], function(Visibility, Justification) {
 
