@@ -1,3 +1,4 @@
+**This plugin is deprecated**
 
 AUTHENTICATION Plugin
 =====================

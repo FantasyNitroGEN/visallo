@@ -53,7 +53,7 @@ define([
             }
 
             if (error) {
-                alertTemplate({ error: 'No authentication extension registered' });
+                authNode.html(alertTemplate({ error: error }));
             } else if (componentPath) {
                 require([componentPath], function(AuthenticationPlugin) {
                     AuthenticationPlugin.attachTo(authNode, {
