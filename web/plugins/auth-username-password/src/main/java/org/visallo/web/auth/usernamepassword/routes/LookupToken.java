@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class LookupToken extends BaseRequestHandler {
     public static final String TOKEN_PARAMETER_NAME = "token";
-    private static final String TEMPLATE_PATH = "/username-password/templates";
+    private static final String TEMPLATE_PATH = "/org/visallo/web/auth/usernamepassword/templates";
     private static final String TEMPLATE_NAME = "changePasswordWithToken";
     private ForgotPasswordConfiguration forgotPasswordConfiguration;
 

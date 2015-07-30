@@ -27,13 +27,11 @@ public class UsernamePasswordWebAppPlugin implements WebAppPlugin {
 
     @Override
     public void init(WebApp app, ServletContext servletContext, Handler authenticationHandler) {
-        StaticResourceHandler jsHandler = new StaticResourceHandler(this.getClass(), "/username-password/authentication.js", "application/javascript");
-        StaticResourceHandler loginTemplateHandler = new StaticResourceHandler(this.getClass(), "/username-password/templates/login.hbs", "text/plain");
-        StaticResourceHandler lessHandler = new StaticResourceHandler(this.getClass(), "/username-password/less/login.less", "text/plain");
+        app.registerBeforeAuthenticationJavaScript("/org/visallo/web/auth/usernamepassword/plugin.js");
+        app.registerJavaScriptTemplate("/org/visallo/web/auth/usernamepassword/templates/login.hbs");
+        app.registerJavaScript("/org/visallo/web/auth/usernamepassword/authentication.js", false);
 
-        app.get("/jsc/configuration/plugins/authentication/authentication.js", jsHandler);
-        app.get("/jsc/configuration/plugins/authentication/templates/login.hbs", loginTemplateHandler);
-        app.get("/jsc/configuration/plugins/authentication/less/login.less", lessHandler);
+        app.registerLess("/org/visallo/web/auth/usernamepassword/less/login.less");
 
         app.post(AuthenticationHandler.LOGIN_PATH, InjectHelper.getInstance(Login.class));
 

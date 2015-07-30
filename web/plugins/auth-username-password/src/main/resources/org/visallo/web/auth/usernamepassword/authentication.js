@@ -1,16 +1,12 @@
 define([
-    'configuration/plugin',
-    'hbs!./templates/login',
-    'less!./less/login'
+    'flight/lib/component',
+    'hbs!./templates/login'
 ], function(
-    defineVisalloPlugin,
-    template,
-    less) {
+    defineComponent,
+    template) {
     'use strict';
 
-    return defineVisalloPlugin(UserNameAndPasswordAuthentication, {
-        less: less
-    });
+    return defineComponent(UserNameAndPasswordAuthentication);
 
     function UserNameAndPasswordAuthentication() {
 
@@ -138,7 +134,7 @@ define([
                         try {
                             var json = JSON.parse(responseText);
                             error = json.username;
-                        } catch(e) { }
+                        } catch(e2) { /*eslint no-empty:0 */ }
                     }
 
                     self.$node.find('.text-error').text(

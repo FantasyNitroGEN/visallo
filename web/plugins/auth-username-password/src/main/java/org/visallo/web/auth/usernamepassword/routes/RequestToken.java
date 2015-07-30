@@ -30,7 +30,7 @@ import java.util.*;
 public class RequestToken extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RequestToken.class);
     private static final String USERNAME_PARAMETER_NAME = "username";
-    private static final String TEMPLATE_PATH = "/username-password/templates";
+    private static final String TEMPLATE_PATH = "/org/visallo/web/auth/usernamepassword/templates";
     private static final String TEMPLATE_NAME = "forgotPasswordEmail";
     private static final String CHARSET = "UTF-8";
     private ForgotPasswordConfiguration forgotPasswordConfiguration;
