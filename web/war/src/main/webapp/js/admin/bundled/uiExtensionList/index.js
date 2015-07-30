@@ -23,14 +23,12 @@ define([
         this.after('initialize', function() {
             var self = this;
 
-            this.$node.html('<ul class="nav nav-list"></ul>');
-
             this.renderPlugins();
         });
 
         this.renderPlugins = function(plugins) {
             var self = this,
-                $list = this.$node.empty();
+                $list = this.$node.empty().text('Loading...');
 
             Promise.all([
                 Promise.require('d3'),
@@ -42,7 +40,7 @@ define([
                         return e;
                     })
 
-                d3.select($list.get(0))
+                d3.select($list.empty().get(0))
                     .selectAll('section.collapsible')
                     .data(
                         _.chain({})
