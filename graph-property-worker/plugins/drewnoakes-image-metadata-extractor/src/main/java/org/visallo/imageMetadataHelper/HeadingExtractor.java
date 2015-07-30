@@ -10,11 +10,11 @@ public class HeadingExtractor {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(HeadingExtractor.class);
 
     public static Double getImageHeading(Metadata metadata) {
-        GpsDirectory gpsDir = metadata.getDirectory(GpsDirectory.class);
+        GpsDirectory gpsDir = metadata.getFirstDirectoryOfType(GpsDirectory.class);
         if (gpsDir != null) {
             //TODO. Assumes true direction for IMG_DIRECTION. Can check TAG_GPS_IMG_DIRECTION_REF to be more specific.
             try {
-                Double imageHeading = gpsDir.getDouble(GpsDirectory.TAG_GPS_IMG_DIRECTION);
+                Double imageHeading = gpsDir.getDouble(GpsDirectory.TAG_IMG_DIRECTION);
                 return imageHeading;
             } catch (MetadataException e) {
                 LOGGER.debug("getDouble(TAG_GPS_IMAGE_DIRECTION) threw MetadataException when attempting to" +

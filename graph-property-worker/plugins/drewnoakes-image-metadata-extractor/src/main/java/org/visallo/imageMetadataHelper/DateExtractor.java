@@ -18,7 +18,7 @@ public class DateExtractor {
 
         Date date = null;
 
-        ExifIFD0Directory exifDir = metadata.getDirectory(ExifIFD0Directory.class);
+        ExifIFD0Directory exifDir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
         if (exifDir != null) {
             date = exifDir.getDate(ExifIFD0Directory.TAG_DATETIME);
             if (date != null) {
@@ -26,7 +26,7 @@ public class DateExtractor {
             }
         }
 
-        ExifSubIFDDirectory subDir = metadata.getDirectory(ExifSubIFDDirectory.class);
+        ExifSubIFDDirectory subDir = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
         if (subDir != null) {
             date = subDir.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
             if (date != null) {

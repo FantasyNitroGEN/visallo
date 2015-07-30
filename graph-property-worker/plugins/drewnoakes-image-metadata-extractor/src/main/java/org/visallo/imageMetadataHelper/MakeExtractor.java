@@ -3,6 +3,7 @@ package org.visallo.imageMetadataHelper;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.xmp.XmpDirectory;
+import org.apache.commons.lang.StringUtils;
 
 public class MakeExtractor {
 
@@ -17,18 +18,18 @@ public class MakeExtractor {
 
         String makeString = null;
 
-        ExifIFD0Directory exifDir = metadata.getDirectory(ExifIFD0Directory.class);
+        ExifIFD0Directory exifDir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
         if (exifDir != null) {
             makeString = exifDir.getDescription(ExifIFD0Directory.TAG_MAKE);
-            if (makeString != null && !makeString.equals("none")) {
+            if (!StringUtils.isBlank(makeString) && !"none".equals(makeString)) {
                 return makeString;
             }
         }
 
-        XmpDirectory xmpDir = metadata.getDirectory(XmpDirectory.class);
-        if (makeString != null && !makeString.equals("none")) {
+        XmpDirectory xmpDir = metadata.getFirstDirectoryOfType(XmpDirectory.class);
+        if (xmpDir != null) {
             makeString = xmpDir.getDescription(XmpDirectory.TAG_MAKE);
-            if (makeString != null) {
+            if (!StringUtils.isBlank(makeString) && !"none".equals(makeString)) {
                 return makeString;
             }
         }

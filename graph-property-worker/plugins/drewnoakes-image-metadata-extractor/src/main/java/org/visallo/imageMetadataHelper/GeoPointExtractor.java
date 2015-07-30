@@ -9,7 +9,7 @@ import org.vertexium.type.GeoPoint;
 public class GeoPointExtractor {
 
     public static GeoPoint getGeoPoint(Metadata metadata) {
-        GpsDirectory gpsDir = metadata.getDirectory(GpsDirectory.class);
+        GpsDirectory gpsDir = metadata.getFirstDirectoryOfType(GpsDirectory.class);
         if (gpsDir != null) {
             GeoLocation geoLocation = gpsDir.getGeoLocation();
             if (geoLocation != null) {
@@ -17,7 +17,7 @@ public class GeoPointExtractor {
                 Double longitude = geoLocation.getLongitude();
                 Double altitude = null;
                 try {
-                    altitude = gpsDir.getDouble(GpsDirectory.TAG_GPS_ALTITUDE);
+                    altitude = gpsDir.getDouble(GpsDirectory.TAG_ALTITUDE);
                 } catch (MetadataException e) {
                     //No code needed. Altitude is already null.
                 }

@@ -3,6 +3,7 @@ package org.visallo.imageMetadataHelper;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.xmp.XmpDirectory;
+import org.apache.commons.lang.StringUtils;
 
 public class ModelExtractor {
 
@@ -17,18 +18,18 @@ public class ModelExtractor {
 
         String modelString = null;
 
-        ExifIFD0Directory exifDir = metadata.getDirectory(ExifIFD0Directory.class);
+        ExifIFD0Directory exifDir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
         if (exifDir != null) {
             modelString = exifDir.getDescription(ExifIFD0Directory.TAG_MODEL);
-            if (modelString != null && !modelString.equals("none")) {
+            if (!StringUtils.isBlank(modelString) && !"none".equals(modelString)) {
                 return modelString;
             }
         }
 
-        XmpDirectory xmpDir = metadata.getDirectory(XmpDirectory.class);
-        if (modelString != null && !modelString.equals("none")) {
+        XmpDirectory xmpDir = metadata.getFirstDirectoryOfType(XmpDirectory.class);
+        if (xmpDir != null) {
             modelString = xmpDir.getDescription(XmpDirectory.TAG_MODEL);
-            if (modelString != null) {
+            if (!StringUtils.isBlank(modelString) && !"none".equals(modelString)) {
                 return modelString;
             }
         }

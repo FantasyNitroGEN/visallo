@@ -1,5 +1,7 @@
 package org.visallo.imageMetadataExtractor;
 
+import com.drew.imaging.FileType;
+import com.drew.imaging.FileTypeDetector;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
@@ -18,7 +20,9 @@ import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.imageMetadataHelper.*;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,36 +71,53 @@ public class ImageMetadataGraphPropertyWorker extends GraphPropertyWorker {
 
     @Override
     public void execute(InputStream in, GraphPropertyWorkData data) throws Exception {
+        File imageFile = data.getLocalFile();
+        if (imageFile == null) {
+            return;
+        }
+
+        BufferedInputStream fileInputStream = new BufferedInputStream(new FileInputStream(imageFile));
+        FileType detectedFileType = FileTypeDetector.detectFileType(fileInputStream);
+        if(detectedFileType == null || detectedFileType == FileType.Unknown) {
+            return;
+        }
+
         org.vertexium.Metadata metadata = data.createPropertyMetadata();
         ExistingElementMutation<Vertex> mutation = data.getElement().prepareMutation();
         List<String> properties = new ArrayList<>();
 
-        File imageFile = data.getLocalFile();
-        if (imageFile != null) {
-            Metadata imageMetadata = null;
-            try {
-                imageMetadata = ImageMetadataReader.readMetadata(imageFile);
-            } catch (Exception e) {
-                LOGGER.error("Could not read metadata from imageFile: %s", imageFile, e);
-            }
-
-            if (imageMetadata != null) {
-                setProperty(dateTakenIri, DateExtractor.getDateDefault(imageMetadata), mutation, metadata, data, properties);
-                setProperty(deviceMakeIri, MakeExtractor.getMake(imageMetadata), mutation, metadata, data, properties);
-                setProperty(deviceModelIri, ModelExtractor.getModel(imageMetadata), mutation, metadata, data, properties);
-                setProperty(geoLocationIri, GeoPointExtractor.getGeoPoint(imageMetadata), mutation, metadata, data, properties);
-                setProperty(headingIri, HeadingExtractor.getImageHeading(imageMetadata), mutation, metadata, data, properties);
-                setProperty(metadataIri, LeftoverMetadataExtractor.getAsJSON(imageMetadata).toString(), mutation, metadata, data, properties);
-            }
-
-            Integer width = imageMetadata != null ? DimensionsExtractor.getWidthViaMetadata(imageMetadata) : DimensionsExtractor.getWidthViaBufferedImage(imageFile);
-            setProperty(widthIri, width, mutation, metadata, data, properties);
-
-            Integer height = imageMetadata != null ? DimensionsExtractor.getHeightViaMetadata(imageMetadata) : DimensionsExtractor.getHeightViaBufferedImage(imageFile);
-            setProperty(heightIri, height, mutation, metadata, data, properties);
-
-            setProperty(fileSizeIri, FileSizeUtil.getSize(imageFile), mutation, metadata, data, properties);
+        Metadata imageMetadata = null;
+        try {
+            imageMetadata = ImageMetadataReader.readMetadata(fileInputStream);
+        } catch (Exception e) {
+            LOGGER.error("Could not read metadata from imageFile: %s", imageFile, e);
         }
+
+        Integer width = null;
+        Integer height = null;
+        if (imageMetadata != null) {
+            setProperty(dateTakenIri, DateExtractor.getDateDefault(imageMetadata), mutation, metadata, data, properties);
+            setProperty(deviceMakeIri, MakeExtractor.getMake(imageMetadata), mutation, metadata, data, properties);
+            setProperty(deviceModelIri, ModelExtractor.getModel(imageMetadata), mutation, metadata, data, properties);
+            setProperty(geoLocationIri, GeoPointExtractor.getGeoPoint(imageMetadata), mutation, metadata, data, properties);
+            setProperty(headingIri, HeadingExtractor.getImageHeading(imageMetadata), mutation, metadata, data, properties);
+            setProperty(metadataIri, LeftoverMetadataExtractor.getAsJSON(imageMetadata).toString(), mutation, metadata, data, properties);
+
+            width = DimensionsExtractor.getWidthViaMetadata(imageMetadata);
+            height = DimensionsExtractor.getHeightViaMetadata(imageMetadata);
+        }
+
+        if(width == null) {
+            width = DimensionsExtractor.getWidthViaBufferedImage(imageFile);
+        }
+        setProperty(widthIri, width, mutation, metadata, data, properties);
+
+        if(height == null) {
+            height = DimensionsExtractor.getHeightViaBufferedImage(imageFile);
+        }
+        setProperty(heightIri, height, mutation, metadata, data, properties);
+
+        setProperty(fileSizeIri, FileSizeUtil.getSize(imageFile), mutation, metadata, data, properties);
 
         mutation.save(getAuthorizations());
         getGraph().flush();
@@ -116,10 +137,7 @@ public class ImageMetadataGraphPropertyWorker extends GraphPropertyWorker {
         }
 
         String mimeType = VisalloProperties.MIME_TYPE_METADATA.getMetadataValue(property.getMetadata(), null);
-        if (mimeType != null && (
-                mimeType.startsWith("image/png") ||
-                        mimeType.startsWith("image/jpeg") ||
-                        mimeType.startsWith("image/tiff"))) {
+        if (mimeType != null && mimeType.startsWith("image")) {
             return true;
         }
 

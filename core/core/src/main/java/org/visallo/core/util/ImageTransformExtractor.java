@@ -18,7 +18,7 @@ public class ImageTransformExtractor {
         try {
             //Attempt to retrieve the metadata from the image.
             BufferedInputStream in = new BufferedInputStream(inputStream);
-            Metadata metadata = ImageMetadataReader.readMetadata(in, true);
+            Metadata metadata = ImageMetadataReader.readMetadata(in);
             return getImageTransformFromMetadata(metadata);
         } catch (ImageProcessingException e) {
             LOGGER.error("drewnoakes metadata extractor threw ImageProcessingException when reading metadata." +
