@@ -309,7 +309,7 @@ define([
                                 return cacheDecisions.shouldCacheVertexAtUrl(v, url);
                             })
                             console.debug(request.url, 'causing ' + cacheable.length + ' vertices to cache');
-                            cacheVertices(workspaceId, cacheable, cachePriorityForUrl(request.url));
+                            cacheVertices(workspaceId, cacheable, Cache.Priority.LOW);
                         }
                     }
                 }
