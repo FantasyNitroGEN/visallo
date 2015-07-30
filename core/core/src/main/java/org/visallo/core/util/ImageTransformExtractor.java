@@ -6,7 +6,6 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
 import java.io.*;
-import java.util.Collection;
 
 public class ImageTransformExtractor {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImageTransformExtractor.class);
@@ -53,9 +52,8 @@ public class ImageTransformExtractor {
         ImageTransform imageTransform = getNoFlipNoRotationImageTransform();
 
         if (metadata != null) {
-            Collection<ExifIFD0Directory> directories = metadata.getDirectoriesOfType(ExifIFD0Directory.class);
-            if (directories != null && directories.size() > 0) {
-                ExifIFD0Directory directory = directories.iterator().next();
+            ExifIFD0Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+            if (directory != null) {
                 Integer orientationInteger = directory.getInteger(ExifIFD0Directory.TAG_ORIENTATION);
                 if (orientationInteger != null) {
                     imageTransform = convertOrientationToTransform(orientationInteger);

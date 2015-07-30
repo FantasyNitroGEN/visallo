@@ -16,7 +16,7 @@ import org.visallo.core.util.VisalloDateTime;
 import org.visallo.test.GraphPropertyWorkerTestBase;
 
 import java.io.IOException;
-import java.util.TimeZone;
+import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -72,11 +72,13 @@ public class ImageMetadataGraphPropertyWorkerTest extends GraphPropertyWorkerTes
         v1 = getGraph().getVertex("v1", getGraphAuthorizations(""));
         assertEquals(null, v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_IMAGE_HEADING));
         assertEquals(null, v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, GEO_LOCATION));
-        assertEquals(VisalloDateTime.parse("2003-12-14T12:01:44", TimeZone.getTimeZone("EST")).getJavaDate(), v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_DATE_TAKEN));
+        Date expectedTime = VisalloDateTime.parse("2003-12-14T07:01:44", null).getJavaDate(); // timezone will be local
+        Date actualTime = (Date) v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_DATE_TAKEN);
+        assertEquals(expectedTime, actualTime);
         assertEquals("Canon", v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_DEVICE_MAKE));
         assertEquals("Canon PowerShot S40", v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_DEVICE_MODEL));
-        assertEquals(2272, v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_WIDTH));
-        assertEquals(1704, v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_HEIGHT));
+        assertEquals(480, v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_WIDTH));
+        assertEquals(360, v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_HEIGHT));
         assertEquals(32764, v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_FILE_SIZE));
         String metadataData = v1.getPropertyValue(ImageMetadataGraphPropertyWorker.MULTI_VALUE_KEY, MEDIA_METADATA).toString();
         assertTrue(metadataData.contains("Top, left side (Horizontal / normal)"));
