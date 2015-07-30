@@ -1,6 +1,9 @@
 package org.visallo.core.trace;
 
 import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +22,7 @@ import java.util.Map;
  * Trace.off();
  */
 public class Trace {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Trace.class);
     private static TraceRepository traceRepository;
 
     public static void on(String description) {
@@ -43,7 +47,12 @@ public class Trace {
 
     private static TraceRepository getTraceRepository() {
         if (traceRepository == null) {
-            traceRepository = InjectHelper.getInstance(TraceRepository.class);
+            try {
+                traceRepository = InjectHelper.getInstance(TraceRepository.class);
+            } catch (VisalloException e) {
+                LOGGER.warn("TraceRepository not found through injection. Using no-op DefaultTraceRepository");
+                traceRepository = new DefaultTraceRepository();
+            }
         }
         return traceRepository;
     }
