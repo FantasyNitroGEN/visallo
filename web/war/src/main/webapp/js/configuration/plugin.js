@@ -15,6 +15,8 @@ define([
 
     function defineVisalloPlugin(Component, options) {
 
+        console.warn('This component is deprecated as less in the client is deprecated');
+
         var FlightComponent = defineComponent.apply(null, [Component].concat(options && options.mixins || [])),
             attachTo = FlightComponent.attachTo,
             cls = NODE_CLS_FOR_LESS_CONTAINMENT + componentInc;

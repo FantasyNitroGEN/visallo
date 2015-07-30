@@ -86,14 +86,20 @@ define(['underscore'], function(_) {
                         extensionPoint: point,
                         description: doc.description,
                         validator: doc.validator.toString(),
-                        registered: _.map(api.extensionsForPoint(point), function(e) {
-                            if (_.isFunction(e)) {
-                                return e.toString();
-                            }
-                            return JSON.stringify(e, null, ' ');
-                        })
+                        registered: api.extensionsForPoint(point).map(replaceFunctions)
                     };
                 });
+
+                function replaceFunctions(object) {
+                    if (_.isFunction(object)) {
+                        return 'FUNCTION' + object.toString()
+                    } else if (_.isArray(object)) {
+                        return _.map(object, replaceFunctions);
+                    } else if (_.isObject(object)) {
+                        return _.mapObject(object, replaceFunctions);
+                    }
+                    return object;
+                }
             },
 
             extensionsForPoint: function(extensionPoint) {

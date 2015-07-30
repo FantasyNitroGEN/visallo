@@ -35,7 +35,8 @@
     "jstz-detect": "~1.0.5",
     "jscache": "ba01cdcf3e8a426782e0c297832b6c81286c9e8a",
     "underscore.inflection": "jharwig/underscore.inflection#~1.2.1",
-    "moment-timezone": "0.4.0"
+    "moment-timezone": "0.4.0",
+    "js-beautify": "~1.5.10"
   },
   "devDependencies": {
     "sinon": "~1.10.3",

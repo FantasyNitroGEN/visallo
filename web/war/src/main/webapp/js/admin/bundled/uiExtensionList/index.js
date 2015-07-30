@@ -4,14 +4,16 @@ define([
     'util/formatters',
     'util/withDataRequest',
     'util/withCollapsibleSections',
-    'configuration/plugins/registry'
+    'configuration/plugins/registry',
+    'beautify'
 ], function(
     defineComponent,
     withFormHelpers,
     F,
     withDataRequest,
     withCollapsibleSections,
-    registry) {
+    registry,
+    beautify) {
     'use strict';
 
     return defineComponent(UIExtensionList, withDataRequest, withFormHelpers, withCollapsibleSections);
@@ -70,7 +72,7 @@ define([
                                     .call(function() {
                                         this.append('p')
                                         this.append('pre').style('font-size', '75%')
-                                        this.append('ol').attr('class', 'inner-list');
+                                        this.append('ol').attr('class', 'inner-list ui-extension-list');
                                     })
                             });
 
@@ -81,7 +83,11 @@ define([
                             return d[1].description;
                         })
                         this.select('pre').text(function(d) {
-                            return d[1].validator.replace(/^\s*function\s*[^(*]/, 'validator');
+                            return beautify.js_beautify(d[1].validator, {
+                                /*eslint camelcase:0 */
+                                indent_size: 2,
+                                wrap_line_length: 80
+                            })
                         })
                         this.select('.badge').text(function(d) {
                             return F.number.pretty(d[1].registered.length);
@@ -89,7 +95,17 @@ define([
                         this.select('ol.inner-list')
                             .selectAll('li')
                             .data(function(d) {
-                                return d[1].registered;
+                                return d[1].registered.map(replaceFunctions);
+                                function replaceFunctions(object) {
+                                    if (_.isString(object) && (/^FUNCTION/).test(object)) {
+                                        return beautify.js_beautify(object.substring('FUNCTION'.length).toString(), { indent_size: 2});
+                                    } else if (_.isArray(object)) {
+                                        return _.map(object, replaceFunctions);
+                                    } else if (_.isObject(object)) {
+                                        return _.mapObject(object, replaceFunctions);
+                                    }
+                                    return object;
+                                }
                             })
                             .call(function() {
                                 this.enter()
@@ -98,7 +114,7 @@ define([
 
                                 this.select('a')
                                     .text(function(d) {
-                                        return d;
+                                        return JSON.stringify(d, null, 2).replace(/\\n/g, '\n');
                                     })
                             });
 
