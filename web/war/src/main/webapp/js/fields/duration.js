@@ -3,11 +3,11 @@ define([
     'flight/lib/component',
     'tpl!./double',
     'duration-js',
-    'util/formatters',
     'util/parsers',
+    'util/vertex/formatters',
     './withPropertyField',
     './withHistogram'
-], function(defineComponent, template, Duration, F, P, withPropertyField, withHistogram) {
+], function(defineComponent, template, Duration, P, F, withPropertyField, withHistogram) {
     'use strict';
 
     return defineComponent(DurationField, withPropertyField, withHistogram);
@@ -59,9 +59,13 @@ define([
         };
 
         this.isValid = function() {
-            return !_.any(this.getValues(), function(v) {
-                return isNaN(toSeconds(v));
-            });
+            var name = this.attr.property.title,
+                values = this.getValues();
+
+            return (_.every(values, function(v) {
+                var n = toSeconds(v);
+                return !isNaN(n) && F.vertex.singlePropValid(n, name);
+            }));
         };
     }
 });

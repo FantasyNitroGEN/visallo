@@ -588,6 +588,25 @@ define([
                 return foundProperties;
             },
 
+            singlePropValid: function(value, propertyName, propertyKey) {
+                var property = {
+                        name: propertyName,
+                        key: propertyKey,
+                        value: value
+                    },
+                    vertex = {
+                        id: 'singlePropValid',
+                        properties: [property]
+                    },
+                    ontologyProperty = ontology.properties.byTitle[propertyName],
+                    formulaString = ontologyProperty.validationFormula,
+                    result = true;
+                if (formulaString) {
+                    result = formula(formulaString, vertex, V, propertyKey);
+                }
+                return Boolean(result);
+            },
+
             propValid: function(vertex, values, propertyName, propertyKey) {
                 checkVertexAndPropertyNameArguments(vertex, propertyName);
                 if (!_.isArray(values)) {
@@ -597,39 +616,43 @@ define([
                 var ontologyProperty = ontology.properties.byTitle[propertyName],
                     dependentIris = ontologyProperty.dependentPropertyIris,
                     formulaString = ontologyProperty.validationFormula,
-                    result = true;
+                    result,
+                    isEveryPropertyValid = function(vertex) {
+                        return _.every(vertex.properties, function(property) {
+                            return V.singlePropValid(property.value, property.name, property.key);
+                        });
+                    };
 
-                if (formulaString) {
-                    if (values.length) {
-                        var properties = [];
-                        if (dependentIris) {
-                            dependentIris.forEach(function(iri, i) {
-                                var property = _.findWhere(vertex.properties, {
-                                        name: iri,
-                                        key: propertyKey
-                                    }),
-                                    value = _.isArray(values[i]) && values[i].length === 1 ? values[i][0] : values[i]
+                if (values.length) {
+                    var properties = [];
+                    if (dependentIris) {
+                        dependentIris.forEach(function(iri, i) {
+                            var property = _.findWhere(vertex.properties, {
+                                    name: iri,
+                                    key: propertyKey
+                                }),
+                                value = _.isArray(values[i]) && values[i].length === 1 ? values[i][0] : values[i];
 
-                                if (property) {
-                                    property = _.extend({}, property, { value: value });
-                                    if (_.isUndefined(values[i])) {
-                                        property.value = undefined;
-                                    }
-                                } else {
-                                    property = {
-                                        name: iri,
-                                        key: propertyKey,
-                                        value: value
-                                    };
+                            if (property) {
+                                property = _.extend({}, property, { value: value });
+                                if (_.isUndefined(values[i])) {
+                                    property.value = undefined;
                                 }
-                                properties.push(property);
-                            })
-                        }
-                        vertex = _.extend({}, vertex, { properties: properties });
+                            } else {
+                                property = {
+                                    name: iri,
+                                    key: propertyKey,
+                                    value: value
+                                };
+                            }
+                            properties.push(property);
+                        })
                     }
-                    result = formula(formulaString, vertex, V, propertyKey);
+                    vertex = _.extend({}, vertex, { properties: properties });
                 }
 
+                result = isEveryPropertyValid(vertex) &&
+                    (formulaString ? Boolean(formula(formulaString, vertex, V, propertyKey)) : true);
                 return Boolean(result);
             },
 

@@ -3,17 +3,17 @@ define([
     'flight/lib/component',
     'hbs!./dateTpl',
     'hbs!./dateTimezone',
+    'util/vertex/formatters',
     './withPropertyField',
     './withHistogram',
-    'util/formatters',
     'util/popovers/withElementScrollingPositionUpdates'
 ], function(
     defineComponent,
     template,
     timezoneTemplate,
+    F,
     withPropertyField,
     withHistogram,
-    F,
     withPositionUpdates) {
     'use strict';
 
@@ -265,17 +265,17 @@ define([
             });
         };
 
-        this.isValid = function() {
-            var self = this,
-                dateRegex = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*$/,
-                dateTimeRegex = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*\d{1,2}:\d{1,2}\s*$/;
+        var DATE_REGEX = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*$/,
+            DATE_TIME_REGEX = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*\d{1,2}:\d{1,2}\s*$/;
 
-            return _.every(this.getValues(), function(v, i) {
-                if (self.displayTime) {
-                    return dateTimeRegex.test(v);
-                } else {
-                    return dateRegex.test(v);
-                }
+        this.isValid = function() {
+            var displayTime = this.displayTime,
+                name = this.attr.property.title,
+                values = this.getValues();
+
+            return _.every(values, function(v, i) {
+                return (displayTime ? DATE_TIME_REGEX.test(v) : DATE_REGEX.test(v)) &&
+                    F.vertex.singlePropValid(v, name);
             });
         };
     }

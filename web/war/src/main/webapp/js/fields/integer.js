@@ -3,9 +3,10 @@ define([
     'flight/lib/component',
     'tpl!./integer',
     'util/parsers',
+    'util/vertex/formatters',
     './withPropertyField',
     './withHistogram'
-], function(defineComponent, template, P, withPropertyField, withHistogram) {
+], function(defineComponent, template, P, F, withPropertyField, withHistogram) {
     'use strict';
 
     return defineComponent(IntegerField, withPropertyField, withHistogram);
@@ -39,11 +40,12 @@ define([
         };
 
         this.isValid = function() {
-            var values = this.getValues();
+            var name = this.attr.property.title,
+                values = this.getValues();
 
             return _.every(values, function(v) {
                 var n = makeNumber(v);
-                return v.length && _.isNumber(n) && !isNaN(n);
+                return v.length && _.isNumber(n) && !isNaN(n) && F.vertex.singlePropValid(n, name);
             });
         };
     }

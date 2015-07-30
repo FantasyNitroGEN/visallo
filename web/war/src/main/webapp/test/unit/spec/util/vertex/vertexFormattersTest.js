@@ -1,5 +1,8 @@
 
-define(['util/vertex/formatters'], function(f) {
+define([
+    'util/vertex/formatters',
+    'util/requirejs/promise!util/service/ontologyPromise'
+], function(f, ontology) {
     'use strict';
 
     var V = f.vertex,
@@ -450,6 +453,27 @@ define(['util/vertex/formatters'], function(f) {
             })
         })
 
+        describe('singlePropValid', function() {
+            var VALIDATION_FORMULA = 'propRaw("' + PROPERTY_NAME_INTEGER + '") > 1';
+
+            it('should validate property without validation formula', function() {
+                var property = propertyFactory(PROPERTY_NAME_INTEGER, 1);
+                V.singlePropValid(property.value, property.name, property.key).should.equal(true);
+            });
+
+            it('should validate property with validation formula', function() {
+                ontology.properties.byTitle[PROPERTY_NAME_INTEGER].validationFormula = VALIDATION_FORMULA;
+
+                var property = propertyFactory(PROPERTY_NAME_INTEGER, 1);
+                V.singlePropValid(property.value, property.name, property.key).should.equal(false);
+
+                property.value = 2;
+                V.singlePropValid(property.value, property.name, property.key).should.equal(true);
+
+                delete ontology.properties.byTitle[PROPERTY_NAME_INTEGER].validationFormula;
+            });
+        });
+
         describe('propValid', function() {
             it('should validate property with existing values', function() {
                 var vertex = vertexFactory([
@@ -507,6 +531,78 @@ define(['util/vertex/formatters'], function(f) {
                 expect(V.propValid(vertex, ['override last name', undefined], COMPOUND_PROPERTY_NAME)).to.be.false
                 expect(V.propValid(vertex, ['l', 'f'], COMPOUND_PROPERTY_NAME)).to.be.true
             })
+
+            describe('with validation formulas on dependent properties', function() {
+                var FIRST_NAME_VALIDATION_FORMULA = 'propRaw("' + PROPERTY_NAME_FIRST + '").length > 1',
+                    LAST_NAME_VALIDATION_FORMULA = 'propRaw("' + PROPERTY_NAME_LAST + '").length > 2',
+                    vertex;
+
+                before(function() {
+                    ontology.properties.byTitle[PROPERTY_NAME_FIRST].validationFormula = FIRST_NAME_VALIDATION_FORMULA;
+                    ontology.properties.byTitle[PROPERTY_NAME_LAST].validationFormula = LAST_NAME_VALIDATION_FORMULA;
+                });
+
+                after(function() {
+                    delete ontology.properties.byTitle[PROPERTY_NAME_FIRST].validationFormula;
+                    delete ontology.properties.byTitle[PROPERTY_NAME_LAST].validationFormula;
+                });
+
+                beforeEach(function() {
+                    vertex = vertexFactory([
+                        propertyFactory(PROPERTY_NAME_FIRST, ''),
+                        propertyFactory(PROPERTY_NAME_LAST, ''),
+                        propertyFactory(PROPERTY_NAME_CONCEPT, 'http://visallo.org/dev#person')
+                    ]);
+                });
+
+                var validateExisting = function() {
+                        V.propValid(vertex, [], COMPOUND_PROPERTY_NAME).should.equal(false);
+
+                        vertex.properties[0].value = vertex.properties[1].value = 'A';
+                        V.propValid(vertex, [], COMPOUND_PROPERTY_NAME).should.equal(false);
+
+                        vertex.properties[0].value = vertex.properties[1].value = 'AB';
+                        V.propValid(vertex, [], COMPOUND_PROPERTY_NAME).should.equal(false);
+
+                        vertex.properties[1].value = 'ABC';
+                        V.propValid(vertex, [], COMPOUND_PROPERTY_NAME).should.equal(true);
+                    },
+                    validateOverriding = function() {
+                        V.propValid(vertex, [], COMPOUND_PROPERTY_NAME).should.equal(false);
+                        V.propValid(vertex, ['A', 'A'], COMPOUND_PROPERTY_NAME).should.equal(false);
+                        V.propValid(vertex, ['AB', 'AB'], COMPOUND_PROPERTY_NAME).should.equal(false);
+                        V.propValid(vertex, ['ABC', 'AB'], COMPOUND_PROPERTY_NAME).should.equal(true);
+                    };
+
+                it('should validate existing values', function () {
+                    validateExisting();
+                });
+
+                it('should validate overriding values', function () {
+                    validateOverriding();
+                });
+
+                describe('without validation formula on compound property', function() {
+                    var compoundFormula;
+
+                    before(function() {
+                        compoundFormula = ontology.properties.byTitle[COMPOUND_PROPERTY_NAME].validationFormula;
+                        delete ontology.properties.byTitle[COMPOUND_PROPERTY_NAME].validationFormula;
+                    });
+
+                    after(function() {
+                        ontology.properties.byTitle[COMPOUND_PROPERTY_NAME].validationFormula = compoundFormula;
+                    });
+
+                    it('should validate existing values', function () {
+                        validateExisting();
+                    });
+
+                    it('should validate overriding values', function () {
+                        validateOverriding();
+                    });
+                });
+            });
         })
 
         describe('propFromAudit', function() {
