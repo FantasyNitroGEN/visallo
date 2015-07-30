@@ -1,6 +1,9 @@
 package org.visallo.web.routes.vertex;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -11,11 +14,6 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiVertexFindRelatedResponse;
-import org.vertexium.Authorizations;
-import org.vertexium.Direction;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
-import com.v5analytics.webster.HandlerChain;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,7 +53,7 @@ public class VertexFindRelated extends BaseRequestHandler {
             Set<Concept> limitConcepts = ontologyRepository.getConceptAndAllChildrenByIri(limitParentConceptId);
             if (limitConcepts == null) {
                 throw new RuntimeException("Bad 'limitParentConceptId', no concept found for id: " +
-                                           limitParentConceptId);
+                        limitParentConceptId);
             }
             for (Concept con : limitConcepts) {
                 limitConceptIds.add(con.getIRI());
@@ -78,17 +76,16 @@ public class VertexFindRelated extends BaseRequestHandler {
         Set<String> visitedIds = new HashSet<>();
         ClientApiVertexFindRelatedResponse vertexResult = new ClientApiVertexFindRelatedResponse();
         long count = visitedIds.size();
-        for (String id : graphVertexIds) {
-            Iterable<Vertex> vertices = graph.getVertex(id, authorizations)
-                    .getVertices(Direction.BOTH, limitEdgeLabel, authorizations);
-            for (Vertex vertex : vertices) {
+        Iterable<Vertex> vertices = graph.getVertices(Lists.newArrayList(graphVertexIds), FetchHint.EDGE_REFS, authorizations);
+        for (Vertex v : vertices) {
+            Iterable<Vertex> relatedVertices = v.getVertices(Direction.BOTH, limitEdgeLabel, ClientApiConverter.SEARCH_FETCH_HINTS, authorizations);
+            for (Vertex vertex : relatedVertices) {
                 if (!visitedIds.add(vertex.getId())) {
                     continue;
                 }
                 if (limitConceptIds.size() == 0 || !isLimited(vertex, limitConceptIds)) {
                     if (count < maxVerticesToReturn) {
-                        vertexResult.getVertices().add(ClientApiConverter.toClientApiVertex(vertex, workspaceId,
-                                authorizations));
+                        vertexResult.getVertices().add(ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations));
                     }
                     count++;
                 }

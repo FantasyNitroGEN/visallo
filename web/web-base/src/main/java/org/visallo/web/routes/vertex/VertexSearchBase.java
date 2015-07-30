@@ -68,7 +68,7 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         applyFiltersToQuery(queryAndData, filterJson);
         applyConceptTypeFilterToQuery(queryAndData, request);
 
-        EnumSet<FetchHint> fetchHints = getOptionalParameterFetchHints(request, "fetchHints", FetchHint.ALL);
+        EnumSet<FetchHint> fetchHints = getOptionalParameterFetchHints(request, "fetchHints", ClientApiConverter.SEARCH_FETCH_HINTS);
         final int offset = getOptionalParameterInt(request, "offset", 0);
         final int size = getOptionalParameterInt(request, "size", defaultSearchResultCount);
         queryAndData.getQuery().limit(size);

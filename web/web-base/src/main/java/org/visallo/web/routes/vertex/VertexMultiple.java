@@ -1,6 +1,10 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
@@ -8,12 +12,8 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,14 +37,14 @@ public class VertexMultiple extends BaseRequestHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        HashSet<String> vertexStringIds = new HashSet<String>(Arrays.asList(getRequiredParameterArray(request, "vertexIds[]")));
+        HashSet<String> vertexStringIds = new HashSet<>(Arrays.asList(getRequiredParameterArray(request, "vertexIds[]")));
         boolean fallbackToPublic = getOptionalParameterBoolean(request, "fallbackToPublic", false);
         User user = getUser(request);
         GetAuthorizationsResult getAuthorizationsResult = getAuthorizations(request, fallbackToPublic, user);
         String workspaceId = getWorkspaceId(request);
 
         Iterable<String> vertexIds = toIterable(vertexStringIds.toArray(new String[vertexStringIds.size()]));
-        Iterable<Vertex> graphVertices = graph.getVertices(vertexIds, getAuthorizationsResult.authorizations);
+        Iterable<Vertex> graphVertices = graph.getVertices(vertexIds, ClientApiConverter.SEARCH_FETCH_HINTS, getAuthorizationsResult.authorizations);
         ClientApiVertexMultipleResponse result = new ClientApiVertexMultipleResponse();
         result.setRequiredFallback(getAuthorizationsResult.requiredFallback);
         for (Vertex v : graphVertices) {

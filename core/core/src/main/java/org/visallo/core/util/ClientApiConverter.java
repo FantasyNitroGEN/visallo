@@ -11,11 +11,14 @@ import org.visallo.web.clientapi.model.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApiConverter {
+    public static final EnumSet<FetchHint> SEARCH_FETCH_HINTS = EnumSet.of(FetchHint.PROPERTIES, FetchHint.PROPERTY_METADATA, FetchHint.IN_EDGE_LABELS, FetchHint.OUT_EDGE_LABELS);
+
     public static ClientApiTermMentionsResponse toTermMentionsResponse(Iterable<Vertex> termMentions, String workspaceId, Authorizations authorizations) {
         ClientApiTermMentionsResponse termMentionsResponse = new ClientApiTermMentionsResponse();
         for (ClientApiElement element : toClientApi(termMentions, workspaceId, authorizations)) {
