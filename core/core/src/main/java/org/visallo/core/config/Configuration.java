@@ -3,6 +3,8 @@ package org.visallo.core.config;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
@@ -86,6 +88,16 @@ public class Configuration {
         for (Map.Entry entry : config.entrySet()) {
             if (entry.getValue() != null) {
                 set(entry.getKey().toString(), entry.getValue());
+            }
+        }
+        resolvePropertyRefereneces();
+    }
+
+    private void resolvePropertyRefereneces() {
+        for(Map.Entry<String, String> entry : config.entrySet()) {
+            String entryValue = entry.getValue();
+            if(!StringUtils.isBlank(entryValue)) {
+                entry.setValue(StrSubstitutor.replace(entryValue, config));
             }
         }
     }

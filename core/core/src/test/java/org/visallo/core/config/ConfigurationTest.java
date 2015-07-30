@@ -19,15 +19,33 @@ public class ConfigurationTest {
     @BeforeClass
     public static void setUp() {
         Map<String, String> map = new HashMap<String, String>();
-        map.put("rabbitmq.addr.0.host", "10.0.1.101");
-        map.put("rabbitmq.addr.2.host", "10.0.1.103");
-        map.put("rabbitmq.addr.1.host", "10.0.1.102");
+        map.put("rabbitmq.addr.0.host", "${ip.address.prefix}.101");
+        map.put("rabbitmq.addr.2.host", "${ip.address.prefix}.103");
+        map.put("rabbitmq.addr.1.host", "${ip.address.prefix}.102");
         map.put("foo", "A");
         map.put("bar", "B");
         map.put("bar.baz", "C");
+        map.put("ip.address.prefix", "10.0.1");
+        map.put("baz.a", "a");
+        map.put("baz.b", "${baz.a}");
+        map.put("baz.c", "${baz.b}");
+        map.put("baz.d", "${baz.c}");
+        map.put("baz.e", "${baz.d}");
+        map.put("baz.f", "${baz.e}");
+        map.put("baz.g", "${baz.f}");
 
         ConfigurationLoader configurationLoader = new HashMapConfigurationLoader(map);
         configuration = configurationLoader.createConfiguration();
+    }
+
+    @Test
+    public void testRecursiveResolution() {
+        assertEquals("a", configuration.get("baz.b", null));
+        assertEquals("a", configuration.get("baz.c", null));
+        assertEquals("a", configuration.get("baz.d", null));
+        assertEquals("a", configuration.get("baz.e", null));
+        assertEquals("a", configuration.get("baz.f", null));
+        assertEquals("a", configuration.get("baz.g", null));
     }
 
     @Test
