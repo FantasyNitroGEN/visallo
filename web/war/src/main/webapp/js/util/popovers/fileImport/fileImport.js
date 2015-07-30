@@ -2,7 +2,7 @@
 define([
     'flight/lib/component',
     '../withPopover',
-    'configuration/plugins/visibility/visibilityEditor',
+    'util/visibility/edit',
     'util/ontology/conceptSelect',
     'util/formatters',
     'util/withFormFieldErrors',

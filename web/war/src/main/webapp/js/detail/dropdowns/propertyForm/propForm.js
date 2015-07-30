@@ -185,7 +185,7 @@ define([
                         }).join('')
                     ).show();
 
-                require(['configuration/plugins/visibility/visibilityDisplay'], function(Visibility) {
+                require(['util/visibility/view'], function(Visibility) {
                     dropdown.find('.visibility').each(function() {
                         var value = $(this).data('visibility');
                         Visibility.attachTo(this, {
@@ -307,9 +307,7 @@ define([
                 var propertyDetails = properties.byTitle[propertyName];
                 self.currentPropertyDetails = propertyDetails;
                 if (propertyName === 'http://visallo.org#visibilityJson') {
-                    require([
-                        'configuration/plugins/visibility/visibilityEditor'
-                    ], function(Visibility) {
+                    require(['util/visibility/edit'], function(Visibility) {
                         var val = vertexProperty && vertexProperty.value,
                             source = (val && val.source) || (val && val.value && val.value.source);
 
@@ -340,7 +338,7 @@ define([
                     require([
                         fieldComponent,
                         'detail/dropdowns/propertyForm/justification',
-                        'configuration/plugins/visibility/visibilityEditor'
+                        'util/visibility/edit'
                     ], function(PropertyField, Justification, Visibility) {
 
                         if (isCompoundField) {

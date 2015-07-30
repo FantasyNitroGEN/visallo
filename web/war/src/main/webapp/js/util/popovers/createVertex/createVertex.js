@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'configuration/plugins/visibility/visibilityEditor',
+    'util/visibility/edit',
     '../withPopover',
     'detail/dropdowns/propertyForm/justification',
     'util/formatters',

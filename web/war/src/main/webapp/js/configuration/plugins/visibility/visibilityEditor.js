@@ -1,46 +1,8 @@
 
-define([
-    'flight/lib/component',
-    'tpl!./form'
-], function(
-    defineComponent,
-    formTemplate) {
+
+define(['util/visibility/edit'], function(VisibilityEditorContainer) {
     'use strict';
 
-    return defineComponent(VisibilityEditor);
-
-    function VisibilityEditor() {
-
-        this.defaultAttrs({
-            fieldSelector: 'input',
-            placeholder: i18n('visibility.label')
-        })
-
-        this.after('initialize', function() {
-            this.$node.html(formTemplate({
-                placeholder: this.attr.placeholder,
-                value: $.trim(_.isUndefined(this.attr.value) ? '' : this.attr.value),
-                readonly: this.attr.readonly
-            }));
-
-            this.on('visibilityclear', this.onClear);
-            this.on('change keyup paste', {
-                fieldSelector: this.onChange
-            });
-
-            this.onChange();
-        });
-
-        this.onClear = function(event, data) {
-            this.select('fieldSelector').val('');
-        };
-
-        this.onChange = function(event, data) {
-            var value = $.trim(this.select('fieldSelector').val());
-            this.trigger('visibilitychange', {
-                value: value,
-                valid: true
-            });
-        };
-    }
+    console.warn('Deprecated visibility path, use util/visibility/edit');
+    return VisibilityEditorContainer;
 });

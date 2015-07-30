@@ -204,6 +204,7 @@ function(jQuery,
                         'bootstrap-datepicker',
                         'bootstrap-timepicker',
                         'util/formatters',
+                        'util/visibility/util',
                         'util/handlebars/after_auth_helpers'
                     ], function(moment) {
                         var language = 'en';
