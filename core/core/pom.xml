@@ -120,6 +120,11 @@
             <artifactId>metadata-extractor</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-core</artifactId>
+        </dependency>
+
         <!-- Runtime Dependencies -->
         <dependency>
             <groupId>org.slf4j</groupId>
