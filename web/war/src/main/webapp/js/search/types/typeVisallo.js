@@ -8,6 +8,8 @@ define([
     F) {
     'use strict';
 
+    var SEARCH_RESULT_HEIGHT = 55;
+
     return defineComponent(SearchTypeVisallo, withSearch);
 
     function SearchTypeVisallo() {
@@ -102,6 +104,11 @@ define([
             if (this.currentRequest && this.currentRequest.cancel) {
                 this.currentRequest.cancel();
                 this.currentRequest = null;
+            }
+
+            if(paging && !paging.size) {
+                var resultPageSize = Math.ceil(this.select('resultsSelector').height() / SEARCH_RESULT_HEIGHT);
+                paging.size = resultPageSize * 2;
             }
 
             this.currentRequest = this.dataRequest.apply(
