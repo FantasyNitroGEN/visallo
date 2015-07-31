@@ -106,7 +106,7 @@ define([
                 this.currentRequest = null;
             }
 
-            if(paging && !paging.size) {
+            if (paging && !paging.size) {
                 var resultPageSize = Math.ceil(this.select('resultsSelector').height() / SEARCH_RESULT_HEIGHT);
                 paging.size = resultPageSize * 2;
             }
