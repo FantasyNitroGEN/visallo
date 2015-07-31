@@ -57,19 +57,18 @@ public class VertexEdges extends BaseRequestHandler {
             }
         }
 
-        List<Edge> edges;
-        try (TraceSpan trace = Trace.start("getEdgesFromVertex").data("graphVertexId", graphVertexId)) {
-            if (edgeLabel == null) {
-                edges = Lists.newArrayList(vertex.getEdges(Direction.BOTH, authorizations));
-            } else {
-                edges = Lists.newArrayList(vertex.getEdges(Direction.BOTH, edgeLabel, authorizations));
-            }
+        List<String> edgeIds;
+        if (edgeLabel == null) {
+            edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, authorizations));
+        } else {
+            edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, edgeLabel, authorizations));
         }
+        int totalEdgeCount = edgeIds.size();
 
         ClientApiVertexEdges result = new ClientApiVertexEdges();
-        int totalEdgeCount = edges.size();
 
-        edges = edges.subList(Math.min(edges.size(), offset), Math.min(edges.size(), offset + size));
+        edgeIds = edgeIds.subList(Math.min(edgeIds.size(), offset), Math.min(edgeIds.size(), offset + size));
+        List<Edge> edges = Lists.newArrayList(graph.getEdges(edgeIds, authorizations));
         Map<String, Vertex> vertices;
         try (TraceSpan trace = Trace.start("getConnectedVertices").data("graphVertexId", vertex.getId())) {
             vertices = getVertices(vertex.getId(), edges, authorizations);
