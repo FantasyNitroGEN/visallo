@@ -2,26 +2,33 @@
 # Configuration
 
 ## Recommended Initial Setup
+
 There are several required configuration properties that must be specified before starting Visallo.
 
-An initial configuration file with default configuration values can be found [here](../config/visallo.properties).
-Additionally, a default application logging configuration is available [here](../config/log4j.xml).
+An [example configuration file](../config/visallo.properties) with default configuration values and
+an [example logging configuration](../config/log4j.xml) are provided in the `/config` directory.
 
-These files must be present in one of the [configuration search locations](##Configuration search order).
+These files must be copied (or symlinked) into a `$VISALLO_DIR/config` directory.
 
-## Configuration search order
 
-By default Visallo will use `org.visallo.core.config.FileConfigurationLoader` to load configuration files.
-`FileConfigurationLoader` will look in the following directories:
+## Search Order for `.properties` and `.jar` Files
+
+By default Visallo will use `org.visallo.core.config.FileConfigurationLoader` to load configuration files
+and `org.visallo.core.bootstrap.lib.LibDirectoryLoader` to load additional `.jar` files.
+
+The following directories will be searched in order:
 
 * `/opt/visallo/` for Linux/OSX
 * `c:/opt/visallo/` for Windows
 * `${appdata}/Visallo`
 * `${user.home}/.visallo`
-* Directory specified by the environment variable `VISALLO_DIR`
+* a directory specified with the `VISALLO_DIR` environment variable
 
-Each of these directories will be searched in order and all files with a `.properties` extension will be
-read in alphabetic order. This allows you to override properties in various places.
+All files in `/config` subdirectories with `.properties` extensions will then be loaded alphabetically.
+allowing you to override properties in various places.
+
+All `.jar` files in `/lib` subdirectories will be added to the classpath.
+
 
 ## Docker
 
