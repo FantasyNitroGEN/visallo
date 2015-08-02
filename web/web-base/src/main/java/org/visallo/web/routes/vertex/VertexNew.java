@@ -29,6 +29,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class VertexNew extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexNew.class);
 
@@ -118,6 +120,7 @@ public class VertexNew extends BaseRequestHandler {
             properties = ClientApiConverter.toClientApi(propertiesJsonString, ClientApiAddElementProperties.class);
             for (ClientApiAddElementProperties.Property property : properties.properties) {
                 OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.propertyName);
+                checkNotNull(ontologyProperty, "Could not find ontology property '" + property.propertyName + "'");
                 Object value = ontologyProperty.convertString(property.value);
                 Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(property.metadataString, this.visibilityTranslator.getDefaultVisibility());
                 VisibilityAndElementMutation<Vertex> setPropertyResult = graphRepository.setProperty(

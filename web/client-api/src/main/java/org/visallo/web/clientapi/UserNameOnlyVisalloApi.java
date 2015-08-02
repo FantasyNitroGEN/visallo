@@ -49,7 +49,7 @@ public class UserNameOnlyVisalloApi extends VisalloApi {
             }
         }
 
-        String sessionId = logIn(basePath, username);
+        String sessionId = logIn(getBasePath(), username);
         ApiInvoker.getInstance().setJSessionId(sessionId);
     }
 

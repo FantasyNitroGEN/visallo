@@ -20,28 +20,35 @@ public class VisalloApi {
     private ClientApiUser me;
 
     public VisalloApi(String basePath) {
-        this.basePath = basePath;
+        this.basePath = cleanBasePath(basePath);
 
         userApi = new UserApiExt();
-        userApi.setBasePath(basePath);
+        userApi.setBasePath(this.basePath);
 
         workspaceApi = new WorkspaceApiExt();
-        workspaceApi.setBasePath(basePath);
+        workspaceApi.setBasePath(this.basePath);
 
         adminApi = new AdminApiExt();
-        adminApi.setBasePath(basePath);
+        adminApi.setBasePath(this.basePath);
 
         vertexApi = new VertexApiExt();
-        vertexApi.setBasePath(basePath);
+        vertexApi.setBasePath(this.basePath);
 
         edgeApi = new EdgeApiExt();
-        edgeApi.setBasePath(basePath);
+        edgeApi.setBasePath(this.basePath);
 
         ontologyApi = new OntologyApiExt();
-        ontologyApi.setBasePath(basePath);
+        ontologyApi.setBasePath(this.basePath);
 
         longRunningProcessApi = new LongRunningProcessApiExt();
-        longRunningProcessApi.setBasePath(basePath);
+        longRunningProcessApi.setBasePath(this.basePath);
+    }
+
+    private String cleanBasePath(String basePath) {
+        if (basePath.endsWith("/")) {
+            basePath = basePath.substring(0, basePath.length() - 1);
+        }
+        return basePath;
     }
 
     public UserApiExt getUserApi() {
@@ -128,5 +135,9 @@ public class VisalloApi {
 
     public void setWorkspaceId(String workspaceId) {
         ApiInvoker.getInstance().setWorkspaceId(workspaceId);
+    }
+
+    public String getBasePath() {
+        return basePath;
     }
 }

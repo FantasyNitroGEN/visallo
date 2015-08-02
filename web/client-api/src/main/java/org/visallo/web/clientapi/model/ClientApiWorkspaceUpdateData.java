@@ -52,24 +52,27 @@ public class ClientApiWorkspaceUpdateData implements ClientApiObject {
             return vertexId;
         }
 
-        public void setVertexId(String vertexId) {
+        public EntityUpdate setVertexId(String vertexId) {
             this.vertexId = vertexId;
+            return this;
         }
 
         public GraphPosition getGraphPosition() {
             return graphPosition;
         }
 
-        public void setGraphPosition(GraphPosition graphPosition) {
+        public EntityUpdate setGraphPosition(GraphPosition graphPosition) {
             this.graphPosition = graphPosition;
+            return this;
         }
 
         public String getGraphLayoutJson() {
             return graphLayoutJson;
         }
 
-        public void setGraphLayoutJson(String graphLayoutJson) {
+        public EntityUpdate setGraphLayoutJson(String graphLayoutJson) {
             this.graphLayoutJson = graphLayoutJson;
+            return this;
         }
     }
 
