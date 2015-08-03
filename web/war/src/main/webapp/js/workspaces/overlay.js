@@ -190,9 +190,6 @@ define([
             if (visalloData.currentWorkspaceId === data.workspace.workspaceId) {
                 this.updateWithNewWorkspaceData(data.workspace);
             }
-            if (data.newVertices.length) {
-                this.updateDiffBadge();
-            }
         };
 
         this.onEdgesLoaded = function(event, data) {
