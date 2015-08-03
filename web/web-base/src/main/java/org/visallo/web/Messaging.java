@@ -59,30 +59,35 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     public void onRequest(AtmosphereResource resource) throws IOException {
         ensureInitialized(resource);
 
-        Counter requestsCounter = requestsCounters.get(resource.transport());
-        if (requestsCounter == null) {
-            LOGGER.error("unexpected transport: " + resource.transport());
-        } else {
-            requestsCounter.inc();
-        }
-
-        AtmosphereRequest request = resource.getRequest();
-        BufferedReader reader = request.getReader();
-        String requestData = org.apache.commons.io.IOUtils.toString(reader);
+        CurrentUser.setUserInLogMappedDiagnosticContexts(resource.getRequest());
         try {
-            if (!StringUtils.isBlank(requestData)) {
-                processRequestData(resource, requestData);
+            Counter requestsCounter = requestsCounters.get(resource.transport());
+            if (requestsCounter == null) {
+                LOGGER.error("unexpected transport: " + resource.transport());
+            } else {
+                requestsCounter.inc();
             }
-        } catch (Exception ex) {
-            LOGGER.error("Could not handle async message: " + requestData, ex);
-        }
 
-        if (request.getMethod().equalsIgnoreCase("GET")) {
-            onOpen(resource);
-            resource.suspend();
-        } else if (request.getMethod().equalsIgnoreCase("POST")) {
-            LOGGER.debug("onRequest() POST: %s", requestData);
-            resource.getBroadcaster().broadcast(requestData);
+            AtmosphereRequest request = resource.getRequest();
+            BufferedReader reader = request.getReader();
+            String requestData = org.apache.commons.io.IOUtils.toString(reader);
+            try {
+                if (!StringUtils.isBlank(requestData)) {
+                    processRequestData(resource, requestData);
+                }
+            } catch (Exception ex) {
+                LOGGER.error("Could not handle async message: " + requestData, ex);
+            }
+
+            if (request.getMethod().equalsIgnoreCase("GET")) {
+                onOpen(resource);
+                resource.suspend();
+            } else if (request.getMethod().equalsIgnoreCase("POST")) {
+                LOGGER.debug("onRequest() POST: %s", requestData);
+                resource.getBroadcaster().broadcast(requestData);
+            }
+        } finally {
+            CurrentUser.clearUserFromLogMappedDiagnosticContexts();
         }
     }
 
@@ -219,7 +224,7 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     private void setStatus(AtmosphereResource resource, UserStatus status) {
         broadcaster = resource.getBroadcaster();
         try {
-            String authUserId = CurrentUser.get(resource.getRequest());
+            String authUserId = CurrentUser.getUserId(resource.getRequest());
             if (authUserId == null) {
                 throw new RuntimeException("Could not find user in session");
             }
@@ -253,7 +258,7 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
             return null;
         }
 
-        String userId = CurrentUser.get(resource.getRequest());
+        String userId = CurrentUser.getUserId(resource.getRequest());
         if (userId != null && userId.trim().length() > 0) {
             return userId;
         }

@@ -29,10 +29,10 @@ public class Logout extends BaseRequestHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String userId = CurrentUser.get(request);
+        String userId = CurrentUser.getUserId(request);
         String sessionId = request.getSession().getId();
         this.userSessionCounterRepository.deleteSession(userId, sessionId);
-        CurrentUser.clear(request);
+        CurrentUser.clearUserFromSession(request);
         request.getSession().invalidate();
         JSONObject json = new JSONObject();
         json.put("status", "ok");

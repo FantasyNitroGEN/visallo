@@ -33,7 +33,7 @@ public abstract class X509AuthenticationHandler extends AuthenticationHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String userId = CurrentUser.get(request);
+        String userId = CurrentUser.getUserId(request);
         if (userId == null) {
             X509Certificate cert = extractCertificate(request);
             if (isInvalid(cert)) {

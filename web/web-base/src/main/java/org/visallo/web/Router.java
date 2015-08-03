@@ -37,7 +37,10 @@ import org.visallo.web.routes.user.*;
 import org.visallo.web.routes.vertex.*;
 import org.visallo.web.routes.workspace.*;
 
-import javax.servlet.*;
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -197,8 +200,9 @@ public class Router extends HttpServlet {
     }
 
     @Override
-    public void service(ServletRequest req, ServletResponse resp) throws ServletException, IOException {
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         TraceSpan trace = null;
+        CurrentUser.setUserInLogMappedDiagnosticContexts(req);
         try {
             if (req.getContentType() != null && req.getContentType().startsWith("multipart/form-data")) {
                 req.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT8, MULTI_PART_CONFIG);
@@ -206,7 +210,7 @@ public class Router extends HttpServlet {
             }
 
             if (isGraphTraceEnabled(req)) {
-                String traceDescription = ((HttpServletRequest) req).getRequestURI();
+                String traceDescription = req.getRequestURI();
                 Map<String, String> parameters = new HashMap<>();
                 for (Map.Entry<String, String[]> reqParameters : req.getParameterMap().entrySet()) {
                     parameters.put(reqParameters.getKey(), Joiner.on(", ").join(reqParameters.getValue()));
@@ -214,9 +218,8 @@ public class Router extends HttpServlet {
                 trace = Trace.on(traceDescription, parameters);
             }
 
-            HttpServletResponse httpResponse = (HttpServletResponse) resp;
-            httpResponse.addHeader("Accept-Ranges", "bytes");
-            app.handle((HttpServletRequest) req, httpResponse);
+            resp.addHeader("Accept-Ranges", "bytes");
+            app.handle(req, resp);
         } catch (ConnectionClosedException cce) {
             LOGGER.debug("Connection closed by client", cce);
         } catch (Exception e) {
@@ -226,6 +229,7 @@ public class Router extends HttpServlet {
                 trace.close();
             }
             Trace.off();
+            CurrentUser.clearUserFromLogMappedDiagnosticContexts();
         }
     }
 

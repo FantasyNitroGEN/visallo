@@ -264,7 +264,7 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
     }
 
     protected User getUser(HttpServletRequest request) {
-        return new ProxyUser(CurrentUser.get(request), this.userRepository);
+        return new ProxyUser(CurrentUser.getUserId(request), this.userRepository);
     }
 
     private void configureResponse(final ResponseTypes type, final HttpServletResponse response, final Object responseData) {

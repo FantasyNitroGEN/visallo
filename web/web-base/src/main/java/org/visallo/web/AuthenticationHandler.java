@@ -7,13 +7,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class AuthenticationHandler implements Handler {
-
     public static final String LOGIN_PATH = "/login";
     private static final String HEADER_X_FORWARDED_FOR = "x-forwarded-for";
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        if (CurrentUser.get(request) != null) {
+        String currentUserId = CurrentUser.getUserId(request);
+        if (currentUserId != null) {
             chain.next(request, response);
         } else {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
