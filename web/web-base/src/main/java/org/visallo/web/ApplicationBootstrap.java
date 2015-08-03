@@ -3,6 +3,13 @@ package org.visallo.web;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.atmosphere.cache.UUIDBroadcasterCache;
+import org.atmosphere.cpr.AtmosphereHandler;
+import org.atmosphere.cpr.AtmosphereInterceptor;
+import org.atmosphere.cpr.AtmosphereServlet;
+import org.atmosphere.cpr.SessionSupport;
+import org.atmosphere.interceptor.HeartbeatInterceptor;
+import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.Configuration;
@@ -22,13 +29,6 @@ import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.atmosphere.cache.UUIDBroadcasterCache;
-import org.atmosphere.cpr.AtmosphereHandler;
-import org.atmosphere.cpr.AtmosphereInterceptor;
-import org.atmosphere.cpr.AtmosphereServlet;
-import org.atmosphere.cpr.SessionSupport;
-import org.atmosphere.interceptor.HeartbeatInterceptor;
-import org.vertexium.Graph;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
@@ -45,6 +45,7 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String ATMOSPHERE_SERVLET_NAME = "atmosphere";
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
+    public static final String GZIP_FILTER_NAME = "gzip";
     private UserRepository userRepository;
 
     @Override
@@ -142,6 +143,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         addAtmosphereServlet(context, config);
         addDebugFilter(context);
         addCacheFilter(context);
+        addGzipFilter(context);
         LOGGER.warn("JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
     }
 
@@ -173,6 +175,24 @@ public class ApplicationBootstrap implements ServletContextListener {
         FilterRegistration.Dynamic filter = context.addFilter(CACHE_FILTER_NAME, CacheServletFilter.class);
         filter.setAsyncSupported(true);
         String[] mappings = new String[]{"/", "*.html", "*.css", "*.js", "*.ejs", "*.less", "*.hbs", "*.map"};
+        for (String mapping : mappings) {
+            filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, mapping);
+        }
+    }
+
+    private void addGzipFilter(ServletContext context) {
+        final String GZIP_FILTER_CLASS_NAME = "org.mortbay.servlet.GzipFilter";
+        Class<? extends Filter> filterClass;
+        try {
+            //noinspection unchecked
+            filterClass = (Class<? extends Filter>) Class.forName(GZIP_FILTER_CLASS_NAME);
+        } catch (ClassNotFoundException e) {
+            LOGGER.warn("Could not find " + GZIP_FILTER_CLASS_NAME + " not using GZIP compression.", e);
+            return;
+        }
+        FilterRegistration.Dynamic filter = context.addFilter(GZIP_FILTER_NAME, filterClass);
+        filter.setInitParameter("mimeTypes", "application/json,text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml");
+        String[] mappings = new String[]{"/*"};
         for (String mapping : mappings) {
             filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, mapping);
         }
