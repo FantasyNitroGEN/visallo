@@ -24,7 +24,7 @@
 1. Confirm and Add boot2docker, python, java, and maven to $PATH in msysgit bash shell
 
         // Create or add to file "~/.profile"
-        export PATH=$PATH:[python_path]:[boot2docker_path]:[java_path]:[maven_path]
+        export PATH=[python_path]:[boot2docker_path]:[java_path]:[maven_path]:/c/Users/{your user name}/AppData/Roaming/npm:$PATH
 
 1. Source the file to get the $PATH updates
 
@@ -85,4 +85,14 @@
 1. (Optional) create war file:
 
         cd /c/Users/{your user name}/visallo
-        mvn package
+        mvn package -DskipTests
+
+Unit Tests
+-------------
+Running `mvn test` will result in certain failures on Windows. This is a known issue. The following unit tests are
+expected to fail:
+
+* `org.visallo.core.formula.FormulaEvaluatorTest`
+* `org.visallo.tesseract.TesseractGraphPropertyWorkerTest`
+* `org.visallo.opencvObjectDetector.OpenCVUtilsTest`
+* `org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorkerTest`
