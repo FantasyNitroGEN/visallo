@@ -55,6 +55,7 @@
         <module>dev</module>
         <module>integration-test</module>
         <module>common</module>
+        <module>docker</module>
     </modules>
 
     <dependencies>
