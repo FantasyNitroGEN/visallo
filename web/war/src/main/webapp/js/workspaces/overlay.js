@@ -184,7 +184,6 @@ define([
         this.onWorkspaceLoaded = function(event, data) {
             this.$node.show();
             this.updateWithNewWorkspaceData(data);
-            this.updateDiffBadge();
         };
 
         this.onWorkspaceUpdated = function(event, data) {
@@ -198,6 +197,7 @@ define([
 
         this.onEdgesLoaded = function(event, data) {
             this.updateWorkspaceTooltip(data);
+            this.updateDiffBadge();
         };
 
         this.onWorkspaceSaving = function(event, data) {
