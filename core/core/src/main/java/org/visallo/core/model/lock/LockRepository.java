@@ -52,9 +52,5 @@ public abstract class LockRepository {
         }
     }
 
-    public abstract DistributedAtomicInteger getDistributedAtomicInteger(String path, int initialValue);
-
-    public abstract void deleteDistributedAtomicInteger(String path);
-
     public abstract void shutdown();
 }
