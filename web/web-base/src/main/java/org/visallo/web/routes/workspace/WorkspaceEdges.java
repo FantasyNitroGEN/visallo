@@ -73,7 +73,8 @@ public class WorkspaceEdges extends BaseRequestHandler {
             Authorizations authorizations
     ) {
         ClientApiWorkspaceEdges edgeResult = new ClientApiWorkspaceEdges();
-        Iterable<Edge> edges = graph.getEdges(graph.findRelatedEdges(vertexIds, authorizations), authorizations);
+        Iterable<String> relatedEdges = graph.findRelatedEdges(vertexIds, authorizations);
+        Iterable<Edge> edges = graph.getEdges(relatedEdges, authorizations);
         for (Edge edge : edges) {
             ClientApiEdge e = new ClientApiEdge();
             ClientApiConverter.populateClientApiEdge(e, edge, workspaceId);
