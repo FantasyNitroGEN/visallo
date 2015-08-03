@@ -2,14 +2,9 @@ package org.visallo.core.model.lock;
 
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class LocalLockRepository extends LockRepository {
-    private Map<String, AtomicInteger> atomicIntegers = new HashMap<>();
-
     @Override
     public Lock createLock(String lockName) {
         return new Lock(null, lockName) {
@@ -38,33 +33,7 @@ public class LocalLockRepository extends LockRepository {
     }
 
     @Override
-    public DistributedAtomicInteger getDistributedAtomicInteger(String path, int initialValue) {
-        AtomicInteger ai = atomicIntegers.get(path);
-        if (ai == null) {
-            ai = new AtomicInteger(initialValue);
-            atomicIntegers.put(path, ai);
-        }
-        final AtomicInteger finalAtomicInteger = ai;
-        return new DistributedAtomicInteger() {
-            @Override
-            public int increment() {
-                return finalAtomicInteger.incrementAndGet();
-            }
-
-            @Override
-            public int decrement() {
-                return finalAtomicInteger.decrementAndGet();
-            }
-        };
-    }
-
-    @Override
-    public void deleteDistributedAtomicInteger(String path) {
-        atomicIntegers.remove(path);
-    }
-
-    @Override
     public void shutdown() {
-
+        // no implementation required
     }
 }
