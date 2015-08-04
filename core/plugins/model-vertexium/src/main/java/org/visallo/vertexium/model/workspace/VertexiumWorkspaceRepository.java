@@ -281,7 +281,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Traced
-    public List<WorkspaceEntity> findEntitiesNoLock(final Workspace workspace, final boolean includeHidden, User user) {
+    private List<WorkspaceEntity> findEntitiesNoLock(final Workspace workspace, final boolean includeHidden, User user) {
         LOGGER.debug("BEGIN findEntitiesNoLock(workspaceId: %s, includeHidden: %b, userId: %s)", workspace.getWorkspaceId(), includeHidden, user.getUserId());
         long startTime = System.currentTimeMillis();
         String cacheKey = workspace.getWorkspaceId() + includeHidden + user.getUserId();
