@@ -72,11 +72,19 @@ define([
                 return F.className.from(cyId);
             },
             toCyId = function(v) {
-                var vId = _.isString(v) ? v : v.id;
+                var vId = _.isString(v) ? v : ('id' in v) ? v.id : v.edgeId;
                 return F.className.to(vId);
             },
+            fullToSummaryEdge = function(fullEdge) {
+                return {
+                    edgeId: fullEdge.id,
+                    label: fullEdge.label,
+                    inVertexId: fullEdge.destVertexId,
+                    outVertexId: fullEdge.sourceVertexId
+                };
+            },
             generateCompoundEdgeId = function(edge) {
-                return edge.sourceVertexId + edge.destVertexId + edge.label;
+                return edge.outVertexId + edge.inVertexId + edge.label;
             },
             cyEdgeFromEdge = function(e, sourceNode, destNode, ontologyRelationships) {
                 var source = e.sourceId || (e.source && e.source.id),
@@ -548,12 +556,13 @@ define([
                             })
                             .concat(
                                 _.map(edges, function(e) {
+                                    var edge = fullToSummaryEdge(e);
                                     return [
-                                        '#' + toCyId(e.id),
+                                        '#' + toCyId(edge.edgeId),
                                         '#' + toCyId(
-                                            e.sourceVertexId +
-                                            e.destVertexId +
-                                            e.label
+                                            edge.outVertexId +
+                                            edge.inVertexId +
+                                            edge.label
                                         )
                                     ];
                                 })
@@ -672,8 +681,8 @@ define([
                                 return {
                                     id: generateCompoundEdgeId(e[0]),
                                     type: e[0].label,
-                                    sourceId: e[0].sourceVertexId,
-                                    targetId: e[0].destVertexId,
+                                    sourceId: e[0].outVertexId,
+                                    targetId: e[0].inVertexId,
                                     edges: e
                                 }
                             })
@@ -701,14 +710,15 @@ define([
         this.onEdgesUpdated = function(event, data) {
             this.cytoscapeReady(function(cy) {
                 var self = this,
-                    newEdges = _.compact(data.edges.map(function(edge) {
-                        var cyEdge = cy.getElementById(toCyId(edge.sourceVertexId + edge.destVertexId + edge.label))
+                    newEdges = _.compact(data.edges.map(function(fullEdge) {
+                        var edge = fullToSummaryEdge(fullEdge),
+                            cyEdge = cy.getElementById(toCyId(edge.outVertexId + edge.inVertexId + edge.label))
                         if (cyEdge.length) {
                             var edges = cyEdge.data('edges'),
                                 ontology = self.ontologyRelationships.byTitle[cyEdge.data('type')];
 
                             edges.push(edge);
-                            edges = _.unique(edges, false, _.property('id'));
+                            edges = _.unique(edges, false, _.property('edgeId'));
                             cyEdge.data('edges', edges);
                             cyEdge.data('label',
                                 (ontology && ontology.displayName || '') + (
@@ -718,15 +728,15 @@ define([
                                 )
                             );
                         } else {
-                            var sourceNode = cy.getElementById(toCyId(edge.sourceVertexId)),
-                                destNode = cy.getElementById(toCyId(edge.destVertexId));
+                            var sourceNode = cy.getElementById(toCyId(edge.outVertexId)),
+                                destNode = cy.getElementById(toCyId(edge.inVertexId));
 
                             if (sourceNode.length && destNode.length) {
                                 return cyEdgeFromEdge({
                                     id: generateCompoundEdgeId(edge),
                                     type: edge.label,
-                                    sourceId: edge.sourceVertexId,
-                                    targetId: edge.destVertexId,
+                                    sourceId: edge.outVertexId,
+                                    targetId: edge.inVertexId,
                                     edges: [edge]
                                 }, sourceNode, destNode, self.ontologyRelationships);
                             }
@@ -744,7 +754,7 @@ define([
                 var self = this;
                 _.each(cy.edges(), function(cyEdge) {
                     var edges = _.reject(cyEdge.data('edges'), function(e) {
-                            return e.id === data.edgeId
+                            return e.edgeId === data.edgeId
                         }),
                         ontology = self.ontologyRelationships.byTitle[cyEdge.data('type')];
 
@@ -774,7 +784,7 @@ define([
                     Popover.attachTo(self.$node, {
                         edges: edges,
                         anchorTo: {
-                            vertexId: edges[0].sourceVertexId
+                            vertexId: edges[0].outVertexId
                         }
                     });
                 })
@@ -1278,7 +1288,7 @@ define([
 
             edges.each(function(index, cyEdge) {
                 if (!cyEdge.hasClass('temp') && !cyEdge.hasClass('path-edge')) {
-                    edgeIds = edgeIds.concat(_.pluck(cyEdge.data('edges'), 'id'));
+                    edgeIds = edgeIds.concat(_.pluck(cyEdge.data('edges'), 'edgeId'));
                 }
             });
 
