@@ -7,7 +7,7 @@ define([
     return defineComponent(Keyboard);
 
     function shouldFilter(e) {
-        return $(e.target).is('input,select,textarea:not(.clipboardManager)');
+        return $(e.target).is('input,select,textarea:not(.clipboardManager),.visallo-allow-focus,.visallo-allow-focus *');
     }
 
     function eventParts(e) {

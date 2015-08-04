@@ -123,7 +123,7 @@ define([
                 this.trigger(event.target, 'focusLostByClipboard');
             }
 
-            if ($(event.target).is('input,select,textarea')) return;
+            if ($(event.target).is('input,select,textarea,.visallo-allow-focus,.visallo-allow-focus *')) return;
             if (window.getSelection().isCollapsed === false) return;
 
             this.focus();
