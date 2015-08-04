@@ -184,7 +184,9 @@ public class VertexiumUserRepository extends UserRepository {
             return userVertex;
         }
         userVertex = graph.getVertex(userId, authorizations);
-        userVertexCache.put(userId, userVertex);
+        if (userVertex != null) {
+            userVertexCache.put(userId, userVertex);
+        }
         return userVertex;
     }
 
