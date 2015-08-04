@@ -47,8 +47,10 @@ public class VertexEdges extends BaseRequestHandler {
         int offset = getOptionalParameterInt(request, "offset", 0);
         int size = getOptionalParameterInt(request, "size", 25);
         String edgeLabel = getOptionalParameter(request, "edgeLabel");
+        String relatedVertexId = getOptionalParameter(request, "relatedVertexId");
 
         Vertex vertex;
+        Vertex relatedVertex = null;
         try (TraceSpan trace = Trace.start("getOriginalVertex").data("graphVertexId", graphVertexId)) {
             vertex = graph.getVertex(graphVertexId, authorizations);
             if (vertex == null) {
@@ -58,10 +60,22 @@ public class VertexEdges extends BaseRequestHandler {
         }
 
         List<String> edgeIds;
-        if (edgeLabel == null) {
+        if (edgeLabel == null && relatedVertexId == null) {
             edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, authorizations));
-        } else {
+        } else if (relatedVertexId == null){
             edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, edgeLabel, authorizations));
+        } else {
+            relatedVertex = graph.getVertex(relatedVertexId, authorizations);
+            if (relatedVertex == null) {
+                respondWithNotFound(response);
+                return;
+            }
+
+            if (edgeLabel == null) {
+                edgeIds = Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, authorizations));
+            } else {
+                edgeIds = Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, edgeLabel, authorizations));
+            }
         }
         int totalEdgeCount = edgeIds.size();
 
@@ -75,8 +89,8 @@ public class VertexEdges extends BaseRequestHandler {
         }
 
         for (Edge edge : edges) {
-            String otherVertexId = edge.getOtherVertexId(vertex.getId());
-            Vertex otherVertex = vertices.get(otherVertexId);
+            String otherVertexId = relatedVertexId == null ? edge.getOtherVertexId(vertex.getId()) : relatedVertexId;
+            Vertex otherVertex = relatedVertex == null ? vertices.get(otherVertexId) : relatedVertex;
 
             ClientApiVertexEdges.Edge clientApiEdge = new ClientApiVertexEdges.Edge();
             clientApiEdge.setRelationship(ClientApiConverter.toClientApiEdge(edge, workspaceId));
