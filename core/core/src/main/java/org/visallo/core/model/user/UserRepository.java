@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.notification.ExpirationAge;
 import org.visallo.core.model.notification.UserNotification;
@@ -26,6 +27,7 @@ import org.visallo.web.clientapi.model.UserStatus;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -40,6 +42,7 @@ public abstract class UserRepository {
     private final UserSessionCounterRepository userSessionCounterRepository;
     private final WorkQueueRepository workQueueRepository;
     private final UserNotificationRepository userNotificationRepository;
+    private final LockRepository lockRepository;
     private LongRunningProcessRepository longRunningProcessRepository; // can't inject this because of circular dependencies
     private List<UserListener> userListeners;
 
@@ -48,12 +51,14 @@ public abstract class UserRepository {
             SimpleOrmSession simpleOrmSession,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
-            UserNotificationRepository userNotificationRepository
+            UserNotificationRepository userNotificationRepository,
+            LockRepository lockRepository
     ) {
         this.simpleOrmSession = simpleOrmSession;
         this.userSessionCounterRepository = userSessionCounterRepository;
         this.workQueueRepository = workQueueRepository;
         this.userNotificationRepository = userNotificationRepository;
+        this.lockRepository = lockRepository;
         this.defaultPrivileges = Privilege.stringToPrivileges(configuration.get(Configuration.DEFAULT_PRIVILEGES, ""));
     }
 
@@ -77,7 +82,7 @@ public abstract class UserRepository {
 
     public abstract User findById(String userId);
 
-    public abstract User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations);
+    protected abstract User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations);
 
     public abstract void setPassword(User user, String password);
 
@@ -292,12 +297,17 @@ public abstract class UserRepository {
         );
     }
 
-    public User findOrAddUser(String username, String displayName, String emailAddress, String password, String[] authorizations) {
-        User user = findByUsername(username);
-        if (user == null) {
-            user = addUser(username, displayName, emailAddress, password, authorizations);
-        }
-        return user;
+    public User findOrAddUser(final String username, final String displayName, final String emailAddress, final String password, final String[] authorizations) {
+        return lockRepository.lock("findOrAddUser", new Callable<User>() {
+            @Override
+            public User call() throws Exception {
+                User user = findByUsername(username);
+                if (user == null) {
+                    user = addUser(username, displayName, emailAddress, password, authorizations);
+                }
+                return user;
+            }
+        });
     }
 
     public Set<Privilege> getDefaultPrivileges() {

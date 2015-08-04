@@ -1,7 +1,13 @@
 package org.visallo.vertexium.model.user;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.json.JSONObject;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
@@ -10,15 +16,13 @@ import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
-import org.json.JSONObject;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
 
 import javax.inject.Inject;
 import java.util.*;
 
 public class InMemoryUserRepository extends UserRepository {
     private final Graph graph;
+    private List<User> users = new ArrayList<>();
 
     @Inject
     public InMemoryUserRepository(
@@ -27,15 +31,28 @@ public class InMemoryUserRepository extends UserRepository {
             SimpleOrmSession simpleOrmSession,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
-            UserNotificationRepository userNotificationRepository
+            UserNotificationRepository userNotificationRepository,
+            LockRepository lockRepository
     ) {
-        super(configuration, simpleOrmSession, userSessionCounterRepository, workQueueRepository, userNotificationRepository);
+        super(
+                configuration,
+                simpleOrmSession,
+                userSessionCounterRepository,
+                workQueueRepository,
+                userNotificationRepository,
+                lockRepository
+        );
         this.graph = graph;
     }
 
     @Override
-    public User findByUsername(String username) {
-        throw new RuntimeException("Not implemented");
+    public User findByUsername(final String username) {
+        return Iterables.find(this.users, new Predicate<User>() {
+            @Override
+            public boolean apply(User user) {
+                return user.getUsername().equals(username);
+            }
+        }, null);
     }
 
     @Override
@@ -44,16 +61,22 @@ public class InMemoryUserRepository extends UserRepository {
     }
 
     @Override
-    public User findById(String userId) {
-        throw new RuntimeException("Not implemented");
+    public User findById(final String userId) {
+        return Iterables.find(this.users, new Predicate<User>() {
+            @Override
+            public boolean apply(User user) {
+                return user.getUserId().equals(userId);
+            }
+        }, null);
     }
 
     @Override
-    public User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
+    protected User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
         username = formatUsername(username);
         displayName = displayName.trim();
         InMemoryUser user = new InMemoryUser(username, displayName, emailAddress, getDefaultPrivileges(), userAuthorizations, null);
         afterNewUserAdded(user);
+        users.add(user);
         return user;
     }
 

@@ -14,7 +14,7 @@ import org.vertexium.VertexBuilder;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -60,9 +60,17 @@ public class VertexiumUserRepository extends UserRepository {
             final OntologyRepository ontologyRepository,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
-            UserNotificationRepository userNotificationRepository
+            UserNotificationRepository userNotificationRepository,
+            LockRepository lockRepository
     ) {
-        super(configuration, simpleOrmSession, userSessionCounterRepository, workQueueRepository, userNotificationRepository);
+        super(
+                configuration,
+                simpleOrmSession,
+                userSessionCounterRepository,
+                workQueueRepository,
+                userNotificationRepository,
+                lockRepository
+        );
         this.authorizationRepository = authorizationRepository;
         this.graph = graph;
 
@@ -191,14 +199,9 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
-    public User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
+    protected User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
         username = formatUsername(username);
         displayName = displayName.trim();
-        User existingUser = findByUsername(username);
-        if (existingUser != null) {
-            throw new VisalloException("duplicate username");
-        }
-
         String authorizationsString = StringUtils.join(userAuthorizations, ",");
 
         byte[] salt = UserPasswordUtil.getSalt();

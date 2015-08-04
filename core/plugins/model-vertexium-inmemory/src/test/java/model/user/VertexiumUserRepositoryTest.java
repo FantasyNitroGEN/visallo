@@ -1,8 +1,19 @@
 package model.user;
 
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.vertexium.id.UUIDIdGenerator;
+import org.vertexium.inmemory.InMemoryGraph;
+import org.vertexium.inmemory.InMemoryGraphConfiguration;
+import org.vertexium.search.DefaultSearchIndex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
+import org.visallo.core.model.lock.LockRepository;
+import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -14,15 +25,6 @@ import org.visallo.core.security.VisalloVisibility;
 import org.visallo.vertexium.model.user.InMemoryAuthorizationRepository;
 import org.visallo.vertexium.model.user.VertexiumUser;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.id.UUIDIdGenerator;
-import org.vertexium.inmemory.InMemoryGraph;
-import org.vertexium.inmemory.InMemoryGraphConfiguration;
-import org.vertexium.search.DefaultSearchIndex;
 
 import java.util.HashMap;
 
@@ -53,6 +55,8 @@ public class VertexiumUserRepositoryTest {
     @Mock
     private UserNotificationRepository userNotificationRepository;
 
+    private LockRepository lockRepository = new NonLockingLockRepository();
+
     @Before
     public void setup() {
         InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap());
@@ -70,13 +74,14 @@ public class VertexiumUserRepositoryTest {
                 ontologyRepository,
                 userSessionCounterRepository,
                 workQueueRepository,
-                userNotificationRepository
+                userNotificationRepository,
+                lockRepository
         );
     }
 
     @Test
-    public void testAddUser() {
-        vertexiumUserRepository.addUser("12345", "testUser", null, "testPassword", new String[]{"auth1", "auth2"});
+    public void testFindOrAddUser() {
+        vertexiumUserRepository.findOrAddUser("12345", "testUser", null, "testPassword", new String[]{"auth1", "auth2"});
 
         VertexiumUser vertexiumUser = (VertexiumUser) vertexiumUserRepository.findByUsername("12345");
         assertEquals("testUser", vertexiumUser.getDisplayName());

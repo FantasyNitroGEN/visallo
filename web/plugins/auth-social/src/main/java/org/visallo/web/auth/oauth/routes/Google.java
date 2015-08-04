@@ -1,5 +1,8 @@
 package org.visallo.web.auth.oauth.routes;
 
+import com.v5analytics.webster.Handler;
+import com.v5analytics.webster.HandlerChain;
+import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
@@ -9,12 +12,9 @@ import org.visallo.http.HttpConnection;
 import org.visallo.http.HttpGetMethod;
 import org.visallo.http.HttpPostMethod;
 import org.visallo.http.URLBuilder;
-import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.AuthenticationHandler;
 import org.visallo.web.CurrentUser;
 import org.visallo.web.auth.oauth.OAuthConfiguration;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -123,7 +123,7 @@ public class Google implements Handler {
         User user = userRepository.findByUsername(username);
         if (user == null) {
             String randomPassword = UserRepository.createRandomPassword();
-            user = userRepository.addUser(username, displayName, email, randomPassword, new String[0]);
+            user = userRepository.findOrAddUser(username, displayName, email, randomPassword, new String[0]);
         }
         userRepository.recordLogin(user, AuthenticationHandler.getRemoteAddr(httpRequest));
 

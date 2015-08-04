@@ -1,18 +1,6 @@
 package org.visallo.sql.model.user;
 
 import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.config.HashMapConfigurationLoader;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.notification.UserNotificationRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserPasswordUtil;
-import org.visallo.core.model.user.UserSessionCounterRepository;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.user.User;
-import org.visallo.sql.model.HibernateSessionManager;
-import org.visallo.sql.model.workspace.SqlWorkspace;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.hibernate.Session;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.service.ServiceRegistry;
@@ -24,6 +12,20 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.config.HashMapConfigurationLoader;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.lock.LockRepository;
+import org.visallo.core.model.lock.NonLockingLockRepository;
+import org.visallo.core.model.notification.UserNotificationRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserPasswordUtil;
+import org.visallo.core.model.user.UserSessionCounterRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.user.User;
+import org.visallo.sql.model.HibernateSessionManager;
+import org.visallo.sql.model.workspace.SqlWorkspace;
+import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +55,8 @@ public class SqlUserRepositoryTest {
     @Mock
     private UserNotificationRepository userNotificationRepository;
 
+    private LockRepository lockRepository = new NonLockingLockRepository();
+
     @Before
     public void setup() {
         graph = InMemoryGraph.create();
@@ -70,7 +74,8 @@ public class SqlUserRepositoryTest {
                 graph,
                 userSessionCounterRepository,
                 workQueueRepository,
-                userNotificationRepository
+                userNotificationRepository,
+                lockRepository
         );
     }
 
@@ -100,12 +105,6 @@ public class SqlUserRepositoryTest {
         assertEquals("ghi", sqlUser3.getUsername());
         assertEquals("test user3", sqlUser3.getDisplayName());
         assertEquals(UserStatus.OFFLINE, sqlUser3.getUserStatus());
-    }
-
-    @Test(expected = VisalloException.class)
-    public void testAddUserWithExisitingUsername() {
-        sqlUserRepository.addUser("123", "test user1", null, "&gdja81", new String[0]);
-        sqlUserRepository.addUser("123", "test user1", null, null, new String[0]);
     }
 
     @Test
