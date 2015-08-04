@@ -4,14 +4,17 @@ import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 
 import java.util.concurrent.Callable;
 
-public class NonLockingLockRepository extends LockRepository {
+public class SingleJvmLockRepository extends LockRepository {
     @Override
     public Lock createLock(String lockName) {
+        final Object synchronizationObject = getSynchronizationObject(lockName);
         return new Lock(null, lockName) {
             @Override
             public <T> T run(Callable<T> callable) {
                 try {
-                    return callable.call();
+                    synchronized (synchronizationObject) {
+                        return callable.call();
+                    }
                 } catch (Exception ex) {
                     throw new RuntimeException("Failed to run in lock", ex);
                 }
@@ -21,13 +24,16 @@ public class NonLockingLockRepository extends LockRepository {
 
     @Override
     public void leaderElection(String lockName, final LeaderLatchListener listener) {
+        final Object synchronizationObject = getSynchronizationObject(lockName);
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                listener.isLeader();
+                synchronized (synchronizationObject) {
+                    listener.isLeader();
+                }
             }
         });
-        t.setName(NonLockingLockRepository.class.getSimpleName() + "-LeaderElection-" + lockName);
+        t.setName(SingleJvmLockRepository.class.getSimpleName() + "-LeaderElection-" + lockName);
         t.setDaemon(true);
         t.start();
     }

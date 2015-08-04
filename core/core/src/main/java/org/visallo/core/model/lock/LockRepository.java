@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 
 public abstract class LockRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LockRepository.class);
-    private final Map<String, Object> synchronizationObjects = new HashMap<>();
+    protected final Map<String, Object> synchronizationObjects = new HashMap<>();
 
     public void lock(String lockName, final Runnable runnable) {
         lock(lockName, new Callable<Object>() {
@@ -23,20 +23,22 @@ public abstract class LockRepository {
     }
 
     public <T> T lock(String lockName, Callable<T> callable) {
-        LOGGER.debug("starting lock: %s", lockName);
+        LOGGER.debug("[thread: %s] acquiring lock: %s", Thread.currentThread().getName(), lockName);
         try {
             Object synchronizationObject = getSynchronizationObject(lockName);
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (synchronizationObject) {
+                LOGGER.debug("[thread: %s] creating lock: %s", Thread.currentThread().getName(), lockName);
                 Lock lock = createLock(lockName);
+                LOGGER.debug("[thread: %s] running lock: %s", Thread.currentThread().getName(), lockName);
                 return lock.run(callable);
             }
         } finally {
-            LOGGER.debug("ending lock: %s", lockName);
+            LOGGER.debug("[thread: %s] released lock: %s", Thread.currentThread().getName(), lockName);
         }
     }
 
-    private Object getSynchronizationObject(String lockName) {
+    protected Object getSynchronizationObject(String lockName) {
         synchronized (synchronizationObjects) {
             Object synchronizationObject = synchronizationObjects.get(lockName);
             if (synchronizationObject == null) {
