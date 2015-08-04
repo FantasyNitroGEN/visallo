@@ -1,14 +1,12 @@
 package org.visallo.core.formula;
 
+import org.junit.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
@@ -28,14 +26,14 @@ import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public class FormulaEvaluatorTest {
 
-    private static FormulaEvaluator evaluator;
-    private static FormulaEvaluator.UserContext userContext;
+    private FormulaEvaluator evaluator;
+    private FormulaEvaluator.UserContext userContext;
 
     @Mock
-    private static OntologyRepository ontologyRepository;
+    private OntologyRepository ontologyRepository;
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         Map<String, String> map = new HashMap<>();
         ConfigurationLoader configurationLoader = new HashMapConfigurationLoader(map);
         Configuration configuration = configurationLoader.createConfiguration();
@@ -66,8 +64,8 @@ public class FormulaEvaluatorTest {
         };
     }
 
-    @AfterClass
-    public static void teardown() {
+    @After
+    public void teardown() {
         evaluator.close();
     }
 
@@ -115,9 +113,6 @@ public class FormulaEvaluatorTest {
                             System.out.println(Thread.currentThread().getName() + " - " + i);
                             assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, null));
                         }
-                        System.out.println(Thread.currentThread().getName() + " - closing evaluator");
-                        evaluator.close();
-                        System.out.println(Thread.currentThread().getName() + " - evaluator closed");
                     } catch (Exception ex) {
                         throw new RuntimeException("Could not run", ex);
                     }

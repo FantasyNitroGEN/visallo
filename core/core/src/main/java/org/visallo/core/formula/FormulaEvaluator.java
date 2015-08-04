@@ -2,6 +2,13 @@ package org.visallo.core.formula;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
+import org.apache.commons.io.IOUtils;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+import org.vertexium.Authorizations;
+import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -11,49 +18,40 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
-import org.apache.commons.io.IOUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
-import org.vertexium.Authorizations;
-import org.vertexium.Vertex;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.concurrent.*;
 
 public class FormulaEvaluator {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FormulaEvaluator.class);
+    public static final String CONFIGURATION_PARAMETER_MAX_THREADS = FormulaEvaluator.class.getName() + ".max.threads";
+    public static final int CONFIGURATION_DEFAULT_MAX_THREADS = 1;
+
     private Configuration configuration;
     private OntologyRepository ontologyRepository;
-    private static final ThreadLocal<Map<String, ScriptableObject>> threadLocalScope = new ThreadLocal<>();
+
+    private ExecutorService executorService;
+
+    private static final ThreadLocal<Map<String, Scriptable>> threadLocalScope = new ThreadLocal<Map<String, Scriptable>>() {
+        @Override protected Map<String, Scriptable> initialValue() {
+            return new HashMap<>();
+        }
+    };
 
     @Inject
     public FormulaEvaluator(Configuration configuration, OntologyRepository ontologyRepository) {
         this.configuration = configuration;
         this.ontologyRepository = ontologyRepository;
-    }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        if (Context.getCurrentContext() != null) {
-            LOGGER.warn("close() method not called to clean up JavaScript Context");
-        }
+        executorService = Executors.newFixedThreadPool(configuration.getInt(CONFIGURATION_PARAMETER_MAX_THREADS, CONFIGURATION_DEFAULT_MAX_THREADS));
     }
 
     public void close() {
-        synchronized (threadLocalScope) {
-            if (Context.getCurrentContext() != null) {
-                Context.exit();
-                threadLocalScope.remove();
-            }
-        }
+        executorService.shutdown();
     }
 
     public String evaluateTitleFormula(Vertex vertex, UserContext userContext, Authorizations authorizations) {
@@ -69,42 +67,36 @@ public class FormulaEvaluator {
     }
 
     private String evaluateFormula(String type, Vertex vertex, UserContext userContext, Authorizations authorizations) {
-        checkNotNull(userContext, "userContext cannot be null");
-        Scriptable scope = getScriptable(userContext.getLocale(), userContext.getTimeZone());
+        FormulaEvaluatorCallable evaluationCallable = new FormulaEvaluatorCallable(type, vertex, userContext, authorizations);
 
-        String json = toJson(vertex, userContext.getWorkspaceId(), authorizations);
-        Function function = (Function) scope.get("evaluate" + type + "FormulaJson", scope);
-        Object result = function.call(Context.getCurrentContext(), scope, scope, new Object[]{json});
+        try {
+            return executorService.submit(evaluationCallable).get();
+        } catch (InterruptedException e) {
+            LOGGER.error(type + " evaluation interrupted", e);
+        } catch (ExecutionException e) {
+            LOGGER.error("Error encountered during " + type + " evaluation", e);
+        }
 
-        return (String) Context.jsToJava(result, String.class);
+        return "Unable to Evaluate " + type;
     }
 
-    protected Scriptable getScriptable(Locale locale, String timeZone) {
-        synchronized (threadLocalScope) {
-            Map<String, ScriptableObject> map = threadLocalScope.get();
-            if (map == null) {
-                map = new HashMap<>();
-                threadLocalScope.set(map);
-            }
-            String mapKey = locale.toString() + timeZone;
-            ScriptableObject scope = map.get(mapKey);
-            if (scope == null) {
-                scope = setupContext(getOntologyJson(), getConfigurationJson(locale), timeZone);
-                map.put(mapKey, scope);
-            }
-            return scope;
+    public Scriptable getScriptable(UserContext userContext) {
+        Map<String, Scriptable> scopes = threadLocalScope.get();
+
+        String mapKey = userContext.locale.toString() + userContext.timeZone;
+        Scriptable scope = scopes.get(mapKey);
+        if (scope == null) {
+            scope = setupContext(getOntologyJson(), getConfigurationJson(userContext.locale), userContext.timeZone);
+            scopes.put(mapKey, scope);
         }
+        return scope;
     }
 
-    protected static ScriptableObject setupContext(String ontologyJson, String configurationJson, String timeZone) {
-        if (Context.getCurrentContext() != null) {
-            Context.exit();
-            threadLocalScope.remove();
-        }
+    private Scriptable setupContext(String ontologyJson, String configurationJson, String timeZone) {
         Context context = Context.enter();
         context.setLanguageVersion(Context.VERSION_1_6);
 
-        final RequireJsSupport browserSupport = new RequireJsSupport();
+        RequireJsSupport browserSupport = new RequireJsSupport();
 
         ScriptableObject scope = context.initStandardObjects(browserSupport, true);
 
@@ -128,7 +120,7 @@ public class FormulaEvaluator {
         return scope;
     }
 
-    private static void loadJavaScript(ScriptableObject scope) {
+    private void loadJavaScript(ScriptableObject scope) {
         evaluateFile(scope, "libs/underscore.js");
         evaluateFile(scope, "libs/r.js");
         evaluateFile(scope, "libs/windowTimers.js");
@@ -148,7 +140,7 @@ public class FormulaEvaluator {
         return configuration.toJSON(locale).toString();
     }
 
-    private static Object evaluateFile(ScriptableObject scope, String filename) {
+    private Object evaluateFile(ScriptableObject scope, String filename) {
         InputStream is = FormulaEvaluator.class.getResourceAsStream(filename);
         if (is != null) {
             try {
@@ -186,6 +178,30 @@ public class FormulaEvaluator {
 
         public String getWorkspaceId() {
             return workspaceId;
+        }
+    }
+
+    private class FormulaEvaluatorCallable implements Callable<String> {
+        private UserContext userContext;
+        private String fieldName;
+        private Vertex vertex;
+        private Authorizations authorizations;
+
+        public FormulaEvaluatorCallable(String fieldName, Vertex vertex, UserContext userContext, Authorizations authorizations) {
+            this.fieldName = fieldName;
+            this.vertex = vertex;
+            this.userContext = userContext;
+            this.authorizations = authorizations;
+        }
+
+        @Override
+        public String call() throws Exception {
+            Scriptable scope = getScriptable(userContext);
+            String json = toJson(vertex, userContext.getWorkspaceId(), authorizations);
+            Function function = (Function) scope.get("evaluate" + fieldName + "FormulaJson", scope);
+            Object result = function.call(Context.getCurrentContext(), scope, scope, new Object[]{json});
+
+            return (String) Context.jsToJava(result, String.class);
         }
     }
 }
