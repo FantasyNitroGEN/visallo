@@ -38,12 +38,12 @@ public abstract class LockRepository {
 
     private Object getSynchronizationObject(String lockName) {
         synchronized (synchronizationObjects) {
-            Object localLock = synchronizationObjects.get(lockName);
-            if (localLock == null) {
-                localLock = new Object();
-                synchronizationObjects.put(lockName, localLock);
+            Object synchronizationObject = synchronizationObjects.get(lockName);
+            if (synchronizationObject == null) {
+                synchronizationObject = new Object();
+                synchronizationObjects.put(lockName, synchronizationObject);
             }
-            return localLock;
+            return synchronizationObject;
         }
     }
 
