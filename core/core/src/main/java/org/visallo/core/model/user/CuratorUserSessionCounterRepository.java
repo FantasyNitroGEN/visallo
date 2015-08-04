@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import org.apache.commons.lang.SerializationException;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.visallo.core.config.Configuration;
@@ -88,12 +89,11 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
     public void deleteSessions(String userId) {
         checkNotNull(userId, "userId cannot be null");
         try {
-            List<String> sessionIds = curator.getChildren().forPath(userPath(userId));
-            for (String sessionId : sessionIds) {
-                deleteSession(userId, sessionId);
-            }
+            ZKPaths.deleteChildren(curator.getZookeeperClient().getZooKeeper(), userPath(userId), true);
+        } catch(KeeperException.NoNodeException nne) {
+            LOGGER.warn("there were no sessions to delete for user: %s [%s : %s]", userId, nne.getPath(), nne.getMessage());
         } catch (Exception e) {
-            throw new VisalloException("failed to delete user sessions " + userId, e);
+            throw new VisalloException("failed to delete sessions for user: " + userId, e);
         }
     }
 
@@ -103,20 +103,24 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
         checkNotNull(sessionId, "sessionId cannot be null");
         String sessionPath = sessionPath(userId, sessionId);
         LOGGER.debug("deleting user session %s", sessionPath);
+        int count = 0;
         try {
             Stat sessionStat = curator.checkExists().forPath(sessionPath);
             if (sessionStat != null) {
                 curator.delete().forPath(sessionPath); // must be synchronous so count is accurate
             }
-            int count = countUserSessions(userId);
+            count = countUserSessions(userId);
             LOGGER.debug("user session count for %s is %d", userId, count);
             if (count < 1) {
                 LOGGER.debug("deleting user %s with no remaining sessions", userId);
                 deleteInBackground(userPath(userId));
             }
             return count;
+        } catch (KeeperException.NoNodeException nne) {
+            LOGGER.warn("there was no session: %s and/or user: %s to delete [%s : %s]", sessionId, userId, nne.getPath(), nne.getMessage());
+            return count;
         } catch (Exception e) {
-            throw new VisalloException("failed to delete user session " + userId, e);
+            throw new VisalloException("failed to delete session: " + sessionId + " for user: " + userId, e);
         }
     }
 
