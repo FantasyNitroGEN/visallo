@@ -22,13 +22,9 @@ public class CuratorLockRepository extends LockRepository {
         this.pathPrefix = configuration.get(Configuration.LOCK_REPOSITORY_PATH_PREFIX, Configuration.DEFAULT_LOCK_REPOSITORY_PATH_PREFIX);
     }
 
-    private String getPath(String lockName) {
-        return this.pathPrefix + "/" + lockName;
-    }
-
     public Lock createLock(String lockName) {
-        InterProcessLock l = new InterProcessMutex(this.curatorFramework, getPath(lockName));
-        return new Lock(l, lockName);
+        InterProcessLock interProcessLock = new InterProcessMutex(this.curatorFramework, getPath(lockName));
+        return new Lock(interProcessLock, lockName);
     }
 
     public void leaderElection(String lockName, LeaderLatchListener listener) {
@@ -45,5 +41,9 @@ public class CuratorLockRepository extends LockRepository {
     @Override
     public void shutdown() {
         this.curatorFramework.close();
+    }
+
+    private String getPath(String lockName) {
+        return this.pathPrefix + "/" + lockName;
     }
 }

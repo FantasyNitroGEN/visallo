@@ -61,7 +61,7 @@ public class AnalystsNotebookExporter {
         Iterable<String> vertexIds = getVisibleWorkspaceEntityIds(workspaceEntities);
         Iterable<Vertex> vertices = graph.getVertices(vertexIds, authorizations);
         Map<Vertex, WorkspaceEntity> vertexWorkspaceEntityMap = createVertexWorkspaceEntityMap(vertices, workspaceEntities);
-        List<Edge> edges = toList(graph.getEdges(graph.findRelatedEdges(vertexIds, authorizations), authorizations));
+        List<Edge> edges = toList(graph.getEdges(graph.findRelatedEdgeIds(vertexIds, authorizations), authorizations));
 
         Chart chart = new Chart();
         chart.setAttributeClassCollection(createAttributeClassCollection(vertices));

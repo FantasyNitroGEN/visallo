@@ -2,6 +2,7 @@ package org.visallo.core.model.workspace;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,10 +30,7 @@ import org.visallo.web.clientapi.model.*;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
@@ -119,12 +117,13 @@ public abstract class WorkspaceRepository {
     public Workspace copyTo(Workspace workspace, User destinationUser, User user) {
         Workspace newWorkspace = add("Copy of " + workspace.getDisplayTitle(), destinationUser);
         List<WorkspaceEntity> entities = findEntities(workspace, user);
-        Iterable<Update> updates = new ConvertingIterable<WorkspaceEntity, Update>(entities) {
+        List<Update> updates = Lists.transform(entities, new Function<WorkspaceEntity, Update>() {
+            @Nullable
             @Override
-            protected Update convert(WorkspaceEntity entity) {
+            public Update apply(WorkspaceEntity entity) {
                 return new Update(entity.getEntityVertexId(), entity.isVisible(), new GraphPosition(entity.getGraphPositionX(), entity.getGraphPositionY()));
             }
-        };
+        });
         updateEntitiesOnWorkspace(newWorkspace, updates, destinationUser);
         return newWorkspace;
     }
@@ -295,7 +294,7 @@ public abstract class WorkspaceRepository {
         return graph;
     }
 
-    public abstract void updateEntitiesOnWorkspace(Workspace workspace, Iterable<Update> updates, User user);
+    public abstract void updateEntitiesOnWorkspace(Workspace workspace, Collection<Update> updates, User user);
 
     public void updateEntityOnWorkspace(Workspace workspace, Update update, User user) {
         List<Update> updates = new ArrayList<>();

@@ -16,6 +16,8 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.lock.LockRepository;
+import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -72,6 +74,8 @@ public class SqlWorkspaceRepositoryTest {
     @Mock
     private OntologyRepository ontologyRepository;
 
+    private LockRepository lockRepository = new NonLockingLockRepository();
+
     @Before
     public void setUp() throws Exception {
         InMemoryGraph graph = InMemoryGraph.create();
@@ -89,7 +93,8 @@ public class SqlWorkspaceRepositoryTest {
                 graph,
                 userSessionCounterRepository,
                 workQueueRepository,
-                userNotificationRepository
+                userNotificationRepository,
+                lockRepository
         );
         sqlWorkspaceRepository = new SqlWorkspaceRepository(
                 sqlUserRepository,
@@ -100,7 +105,7 @@ public class SqlWorkspaceRepositoryTest {
                 ontologyRepository,
                 workQueueRepository
         );
-        testUser = (SqlUser) sqlUserRepository.addUser("123", "user 1", null, null, new String[0]);
+        testUser = (SqlUser) sqlUserRepository.findOrAddUser("123", "user 1", null, null, new String[0]);
     }
 
     @After
@@ -224,7 +229,7 @@ public class SqlWorkspaceRepositoryTest {
         assertTrue(workspaceUsers.size() == 1);
         assertEquals(workspaceUsers.get(0).getWorkspaceAccess(), WorkspaceAccess.WRITE);
 
-        SqlUser testUser2 = (SqlUser) sqlUserRepository.addUser("456", "qwe", null, "", new String[0]);
+        SqlUser testUser2 = (SqlUser) sqlUserRepository.findOrAddUser("456", "qwe", null, "", new String[0]);
         sqlWorkspaceRepository.updateUserOnWorkspace(sqlWorkspace, "2", WorkspaceAccess.READ, testUser2);
         workspaceUsers = sqlWorkspaceRepository.findUsersWithAccess(sqlWorkspace.getWorkspaceId(), testUser2);
         assertTrue(workspaceUsers.size() == 2);

@@ -61,7 +61,7 @@ public class Export extends BaseRequestHandler {
 
         Vertex workspaceVertex = this.workspaceRepository.getVertex(workspace.getWorkspaceId(), user);
         Iterable<Vertex> vertices = graph.getVertices(workspaceEntityIds, authorizations);
-        Iterable<Edge> edges = graph.getEdges(graph.findRelatedEdges(workspaceEntityIdsAndWorkspaceId, authorizations), authorizations);
+        Iterable<Edge> edges = graph.getEdges(graph.findRelatedEdgeIds(workspaceEntityIdsAndWorkspaceId, authorizations), authorizations);
 
         response.addHeader("Content-Disposition", "attachment; filename=" + workspace.getDisplayTitle() + ".visalloWorkspace");
 

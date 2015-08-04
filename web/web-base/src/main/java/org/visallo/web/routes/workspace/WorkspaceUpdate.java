@@ -1,7 +1,7 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import org.json.JSONObject;
@@ -123,7 +123,7 @@ public class WorkspaceUpdate extends BaseRequestHandler {
     }
 
     private void updateEntities(Workspace workspace, List<ClientApiWorkspaceUpdateData.EntityUpdate> entityUpdates, User authUser) {
-        Iterable<WorkspaceRepository.Update> updates = Iterables.transform(entityUpdates, new Function<ClientApiWorkspaceUpdateData.EntityUpdate, WorkspaceRepository.Update>() {
+        List<WorkspaceRepository.Update> updates = Lists.transform(entityUpdates, new Function<ClientApiWorkspaceUpdateData.EntityUpdate, WorkspaceRepository.Update>() {
             @Nullable
             @Override
             public WorkspaceRepository.Update apply(ClientApiWorkspaceUpdateData.EntityUpdate u) {

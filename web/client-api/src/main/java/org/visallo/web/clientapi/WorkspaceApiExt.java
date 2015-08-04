@@ -13,7 +13,7 @@ public class WorkspaceApiExt extends WorkspaceApi {
     }
 
     public ClientApiWorkspacePublishResponse publishAll(List<ClientApiWorkspaceDiff.Item> diffItems) throws ApiException {
-        List<ClientApiPublishItem> publishItems = new ArrayList<ClientApiPublishItem>();
+        List<ClientApiPublishItem> publishItems = new ArrayList<>();
         for (ClientApiWorkspaceDiff.Item diffItem : diffItems) {
             publishItems.add(workspaceDiffItemToPublishItem(diffItem));
         }
@@ -50,7 +50,7 @@ public class WorkspaceApiExt extends WorkspaceApi {
     }
 
     public ClientApiWorkspaceUndoResponse undoAll(List<ClientApiWorkspaceDiff.Item> diffItems) throws ApiException {
-        List<ClientApiUndoItem> undoItems = new ArrayList<ClientApiUndoItem>();
+        List<ClientApiUndoItem> undoItems = new ArrayList<>();
         for (ClientApiWorkspaceDiff.Item diffItem : diffItems) {
             undoItems.add(workspaceDiffItemToUndoItem(diffItem));
         }

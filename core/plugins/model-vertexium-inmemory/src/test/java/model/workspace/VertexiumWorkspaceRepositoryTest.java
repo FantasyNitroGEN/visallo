@@ -18,7 +18,7 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
-import org.visallo.core.model.lock.LocalLockRepository;
+import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -101,7 +101,7 @@ public class VertexiumWorkspaceRepositoryTest {
         authorizationRepository = new InMemoryAuthorizationRepository();
 
         Configuration visalloConfiguration = new HashMapConfigurationLoader(new HashMap()).createConfiguration();
-        LockRepository lockRepository = new LocalLockRepository();
+        LockRepository lockRepository = new NonLockingLockRepository();
 
         InMemoryUserRepository userRepository = new InMemoryUserRepository(
                 graph,
@@ -109,12 +109,13 @@ public class VertexiumWorkspaceRepositoryTest {
                 simpleOrmSession,
                 userSessionCounterRepository,
                 workQueueRepository,
-                userNotificationRepository
+                userNotificationRepository,
+                lockRepository
         );
-        user1 = (InMemoryUser) userRepository.addUser("user2", "user2", null, "none", new String[0]);
+        user1 = (InMemoryUser) userRepository.findOrAddUser("user1", "user1", null, "none", new String[0]);
         graph.addVertex(user1.getUserId(), visibility, defaultAuthorizations);
 
-        user2 = (InMemoryUser) userRepository.addUser("user2", "user2", null, "none", new String[0]);
+        user2 = (InMemoryUser) userRepository.findOrAddUser("user2", "user2", null, "none", new String[0]);
         graph.addVertex(user2.getUserId(), visibility, defaultAuthorizations);
 
         workspaceRepository = new VertexiumWorkspaceRepository(

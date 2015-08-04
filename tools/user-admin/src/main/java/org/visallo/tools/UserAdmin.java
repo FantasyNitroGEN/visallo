@@ -2,6 +2,8 @@ package org.visallo.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
+import org.apache.commons.lang.StringUtils;
+import org.vertexium.Authorizations;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.user.User;
@@ -10,8 +12,6 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.tools.args.*;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
-import org.apache.commons.lang.StringUtils;
-import org.vertexium.Authorizations;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -116,7 +116,7 @@ public class UserAdmin extends CommandLineTool {
             privileges = Privilege.stringToPrivileges(args.privileges);
         }
 
-        getUserRepository().addUser(args.userName, args.userName, null, args.password, authorizations.toArray(new String[authorizations.size()]));
+        getUserRepository().findOrAddUser(args.userName, args.userName, null, args.password, authorizations.toArray(new String[authorizations.size()]));
 
         User user = getUserRepository().findByUsername(args.userName);
 

@@ -107,7 +107,7 @@ public class Twitter implements Handler {
         if (user == null) {
             // For form based authentication, username and displayName will be the same
             String randomPassword = UserRepository.createRandomPassword();
-            user = userRepository.addUser(username, displayName, null, randomPassword, new String[0]);
+            user = userRepository.findOrAddUser(username, displayName, null, randomPassword, new String[0]);
         }
         userRepository.recordLogin(user, AuthenticationHandler.getRemoteAddr(httpRequest));
 

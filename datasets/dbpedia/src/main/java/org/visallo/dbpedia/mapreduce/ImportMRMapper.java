@@ -3,7 +3,7 @@ package org.visallo.dbpedia.mapreduce;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.lock.LocalLockRepository;
+import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.security.DirectVisibilityTranslator;
@@ -56,7 +56,7 @@ public class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text>
         this.authorizations = new AccumuloAuthorizations();
         AccumuloAuthorizationRepository authorizationRepository = new AccumuloAuthorizationRepository();
         authorizationRepository.setGraph(getGraph());
-        authorizationRepository.setLockRepository(new LocalLockRepository());
+        authorizationRepository.setLockRepository(new NonLockingLockRepository());
         try {
             Map configurationMap = VertexiumMRUtils.toMap(context.getConfiguration());
             Configuration config = HashMapConfigurationLoader.load(configurationMap);

@@ -208,7 +208,7 @@ public class UploadRdfIntegrationTest extends TestBase {
         additionalIds.add(artifactVertexId);
         ClientApiWorkspaceEdges edges = visalloApi.getWorkspaceApi().getEdges(additionalIds);
         LOGGER.info("workspace edges: %s", edges.toString());
-        assertEquals(5, edges.getEdges().size());
+        assertEquals(5, edges.edges.size());
     }
 
     private void assertGetEdgesWithVisibilities() throws ApiException {

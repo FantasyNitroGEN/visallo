@@ -30,6 +30,7 @@ import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -245,8 +246,11 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
-    public void updateEntitiesOnWorkspace(Workspace workspace, Iterable<Update> updates, User user) {
+    public void updateEntitiesOnWorkspace(Workspace workspace, Collection<Update> updates, User user) {
         checkNotNull(workspace, "Workspace cannot be null");
+        if (updates.size() == 0) {
+            return;
+        }
 
         if (!hasCommentPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());

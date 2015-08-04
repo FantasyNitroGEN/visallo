@@ -117,6 +117,12 @@ ${SUDO} cp ${DIR}/../config/log4j.xml ${LOCAL_PERSISTENT_DIR}/opt/visallo/config
   -p 50075:50075 `# Hadoop: Data Node: Web UI` \
   -p 50090:50090 `# Hadoop: Secondary Name Node` \
   -p 50095:50095 `# Accumulo: Web UI` \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  -p 10003:10003 \
+  -p 10004:10004 \
+  -p 10005:10005 \
+  -p 10006:10006 \
   -i \
   -t \
   -h visallo-dev \

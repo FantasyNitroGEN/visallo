@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserPasswordUtil;
@@ -49,9 +50,17 @@ public class SqlUserRepository extends UserRepository {
             final Graph graph,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
-            UserNotificationRepository userNotificationRepository
+            UserNotificationRepository userNotificationRepository,
+            LockRepository lockRepository
     ) {
-        super(configuration, simpleOrmSession, userSessionCounterRepository, workQueueRepository, userNotificationRepository);
+        super(
+                configuration,
+                simpleOrmSession,
+                userSessionCounterRepository,
+                workQueueRepository,
+                userNotificationRepository,
+                lockRepository
+        );
         this.sessionManager = sessionManager;
         this.authorizationRepository = authorizationRepository;
         this.graph = graph;
@@ -114,16 +123,13 @@ public class SqlUserRepository extends UserRepository {
     }
 
     @Override
-    public User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
+    protected User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
         username = formatUsername(username);
         displayName = displayName.trim();
         Session session = sessionManager.getSession();
-        if (findByUsername(username) != null) {
-            throw new VisalloException("User already exists");
-        }
 
         Transaction transaction = null;
-        SqlUser newUser = null;
+        SqlUser newUser;
         try {
             transaction = session.beginTransaction();
             newUser = new SqlUser();
