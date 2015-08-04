@@ -10,9 +10,7 @@ import java.util.concurrent.Callable;
 
 public abstract class LockRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LockRepository.class);
-    private final Map<String, Object> localLocks = new HashMap<>();
-
-    public abstract Lock createLock(String lockName);
+    private final Map<String, Object> synchronizationObjects = new HashMap<>();
 
     public void lock(String lockName, final Runnable runnable) {
         lock(lockName, new Callable<Object>() {
@@ -24,15 +22,12 @@ public abstract class LockRepository {
         });
     }
 
-    public abstract void leaderElection(String lockName, LeaderLatchListener listener);
-
     public <T> T lock(String lockName, Callable<T> callable) {
         LOGGER.debug("starting lock: %s", lockName);
         try {
-            Object localLock = getLocalLock(lockName);
-            // localLock comes from a field so we can synchronized
+            Object synchronizationObject = getSynchronizationObject(lockName);
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (localLock) {
+            synchronized (synchronizationObject) {
                 Lock lock = createLock(lockName);
                 return lock.run(callable);
             }
@@ -41,16 +36,20 @@ public abstract class LockRepository {
         }
     }
 
-    private Object getLocalLock(String lockName) {
-        synchronized (localLocks) {
-            Object localLock = localLocks.get(lockName);
+    private Object getSynchronizationObject(String lockName) {
+        synchronized (synchronizationObjects) {
+            Object localLock = synchronizationObjects.get(lockName);
             if (localLock == null) {
                 localLock = new Object();
-                localLocks.put(lockName, localLock);
+                synchronizationObjects.put(lockName, localLock);
             }
             return localLock;
         }
     }
+
+    public abstract Lock createLock(String lockName);
+
+    public abstract void leaderElection(String lockName, LeaderLatchListener listener);
 
     public abstract void shutdown();
 }
