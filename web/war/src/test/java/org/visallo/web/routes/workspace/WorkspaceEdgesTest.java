@@ -59,7 +59,7 @@ public class WorkspaceEdgesTest extends RouteTestBase {
         when(workspaceRepository.findEntities(workspace, user)).thenReturn(workspaceEntities);
 
         ClientApiWorkspaceEdges edges = handle(workspaceEdges, ClientApiWorkspaceEdges.class);
-        assertEquals(0, edges.getEdges().size());
+        assertEquals(0, edges.edges.size());
     }
 
     @Test
@@ -70,6 +70,6 @@ public class WorkspaceEdgesTest extends RouteTestBase {
         when(workspaceRepository.findEntityVertexIds(workspace, user)).thenReturn(workspaceEntityVertexIds);
 
         ClientApiWorkspaceEdges edges = handle(workspaceEdges, ClientApiWorkspaceEdges.class);
-        assertEquals(1, edges.getEdges().size());
+        assertEquals(1, edges.edges.size());
     }
 }
