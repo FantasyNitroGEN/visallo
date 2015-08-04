@@ -10,25 +10,25 @@ import java.util.concurrent.TimeUnit;
 
 public class Lock {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Lock.class);
-    private final InterProcessLock lock;
+    private final InterProcessLock interProcessLock;
     private final String lockName;
 
-    public Lock(InterProcessLock lock, String lockName) {
-        this.lock = lock;
+    public Lock(InterProcessLock interProcessLock, String lockName) {
+        this.interProcessLock = interProcessLock;
         this.lockName = lockName;
     }
 
-    public <T> T run(Callable<T> runnable) {
+    public <T> T run(Callable<T> callable) {
         try {
             LOGGER.debug("acquire lock: %s", this.lockName);
-            if (!this.lock.acquire(30, TimeUnit.SECONDS)) {
+            if (!this.interProcessLock.acquire(30, TimeUnit.SECONDS)) {
                 throw new VisalloException("Could not acquire lock " + lockName);
             }
             LOGGER.debug("acquired lock: %s", this.lockName);
             try {
-                return runnable.call();
+                return callable.call();
             } finally {
-                this.lock.release();
+                this.interProcessLock.release();
                 LOGGER.debug("released lock: %s", this.lockName);
             }
         } catch (Exception ex) {

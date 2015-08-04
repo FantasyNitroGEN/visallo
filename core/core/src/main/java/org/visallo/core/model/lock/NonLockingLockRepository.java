@@ -4,14 +4,14 @@ import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 
 import java.util.concurrent.Callable;
 
-public class LocalLockRepository extends LockRepository {
+public class NonLockingLockRepository extends LockRepository {
     @Override
     public Lock createLock(String lockName) {
         return new Lock(null, lockName) {
             @Override
-            public <T> T run(Callable<T> runnable) {
+            public <T> T run(Callable<T> callable) {
                 try {
-                    return runnable.call();
+                    return callable.call();
                 } catch (Exception ex) {
                     throw new RuntimeException("Failed to run in lock", ex);
                 }

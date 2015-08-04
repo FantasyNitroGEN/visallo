@@ -23,8 +23,8 @@ public class CuratorLockRepository extends LockRepository {
     }
 
     public Lock createLock(String lockName) {
-        InterProcessLock l = new InterProcessMutex(this.curatorFramework, getPath(lockName));
-        return new Lock(l, lockName);
+        InterProcessLock interProcessLock = new InterProcessMutex(this.curatorFramework, getPath(lockName));
+        return new Lock(interProcessLock, lockName);
     }
 
     public void leaderElection(String lockName, LeaderLatchListener listener) {
