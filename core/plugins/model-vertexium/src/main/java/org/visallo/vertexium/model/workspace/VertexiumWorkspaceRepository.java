@@ -40,9 +40,11 @@ import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -275,13 +277,13 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return lockRepository.lock(getLockName(workspace), new Callable<List<WorkspaceEntity>>() {
             @Override
             public List<WorkspaceEntity> call() throws Exception {
-                return findEntitiesNoLock(workspace, false, user);
+                return findEntitiesNoLock(workspace, false, false, user);
             }
         });
     }
 
     @Traced
-    private List<WorkspaceEntity> findEntitiesNoLock(final Workspace workspace, final boolean includeHidden, User user) {
+    private List<WorkspaceEntity> findEntitiesNoLock(final Workspace workspace, final boolean includeHidden, final boolean fetchVertices, User user) {
         LOGGER.debug("BEGIN findEntitiesNoLock(workspaceId: %s, includeHidden: %b, userId: %s)", workspace.getWorkspaceId(), includeHidden, user.getUserId());
         long startTime = System.currentTimeMillis();
         String cacheKey = workspace.getWorkspaceId() + includeHidden + user.getUserId();
@@ -293,7 +295,15 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
         Vertex workspaceVertex = getVertexFromWorkspace(workspace, includeHidden, authorizations);
-        Iterable<Edge> entityEdges = workspaceVertex.getEdges(Direction.BOTH, WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI, authorizations);
+        List<Edge> entityEdges = toList(workspaceVertex.getEdges(Direction.BOTH, WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI, authorizations));
+
+        final Map<String, Vertex> workspaceVertices;
+        if (fetchVertices) {
+            workspaceVertices = getWorkspaceVertices(workspace, entityEdges, authorizations);
+        } else {
+            workspaceVertices = null;
+        }
+
         results = Lists.newArrayList(Iterables.filter(Iterables.transform(entityEdges, new Function<Edge, WorkspaceEntity>() {
             @Override
             public WorkspaceEntity apply(Edge edge) {
@@ -307,12 +317,35 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     return null;
                 }
 
-                return new WorkspaceEntity(entityVertexId, visible, graphPositionX, graphPositionY, graphLayoutJson);
+                Vertex workspaceVertex = null;
+                if (fetchVertices) {
+                    workspaceVertex = workspaceVertices.get(entityVertexId);
+                }
+                return new WorkspaceEntity(entityVertexId, visible, graphPositionX, graphPositionY, graphLayoutJson, workspaceVertex);
             }
         }), Predicates.notNull()));
         workspaceEntitiesCached.put(cacheKey, results);
         LOGGER.debug("END findEntitiesNoLock (found: %d entities, time: %dms)", results.size(), System.currentTimeMillis() - startTime);
         return results;
+    }
+
+    protected Map<String, Vertex> getWorkspaceVertices(final Workspace workspace, List<Edge> entityEdges, Authorizations authorizations) {
+        Map<String, Vertex> workspaceVertices;
+        Iterable<String> workspaceVertexIds = Iterables.transform(entityEdges, new Function<Edge, String>() {
+            @Nullable
+            @Override
+            public String apply(Edge edge) {
+                return edge.getOtherVertexId(workspace.getWorkspaceId());
+            }
+        });
+        workspaceVertices = Maps.uniqueIndex(getGraph().getVertices(workspaceVertexIds, FetchHint.ALL_INCLUDING_HIDDEN, authorizations), new Function<Vertex, String>() {
+            @Nullable
+            @Override
+            public String apply(Vertex v) {
+                return v.getId();
+            }
+        });
+        return workspaceVertices;
     }
 
     @Traced
@@ -577,8 +610,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return lockRepository.lock(getLockName(workspace), new Callable<ClientApiWorkspaceDiff>() {
             @Override
             public ClientApiWorkspaceDiff call() throws Exception {
-                List<WorkspaceEntity> workspaceEntities = findEntitiesNoLock(workspace, true, user);
-                List<Edge> workspaceEdges = toList(findEdges(workspace, workspaceEntities, true, user));
+                List<WorkspaceEntity> workspaceEntities = findEntitiesNoLock(workspace, true, true, user);
+                Iterable<Edge> workspaceEdges = findEdges(workspace, workspaceEntities, true, user);
 
                 FormulaEvaluator.UserContext userContext = new FormulaEvaluator.UserContext(locale, timeZone, workspace.getWorkspaceId());
                 return workspaceDiff.diff(workspace, workspaceEntities, workspaceEdges, userContext, user);

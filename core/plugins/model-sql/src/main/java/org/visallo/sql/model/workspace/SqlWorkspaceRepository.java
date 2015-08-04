@@ -7,6 +7,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
+import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.exception.VisalloAccessDeniedException;
@@ -199,6 +200,7 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
 
+        final Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
         Session session = sessionManager.getSession();
         SqlWorkspace sqlWorkspace = (SqlWorkspace) session.get(SqlWorkspace.class, workspace.getWorkspaceId());
         List<WorkspaceEntity> workspaceEntities;
@@ -213,7 +215,7 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
                 boolean visible = sqlWorkspaceVertex.isVisible();
 
                 // TODO implement graphLayoutJson in sql
-                return new WorkspaceEntity(vertexId, visible, graphPositionX, graphPositionY, null);
+                return new WorkspaceEntity(vertexId, visible, graphPositionX, graphPositionY, null, null);
             }
         });
         return workspaceEntities;

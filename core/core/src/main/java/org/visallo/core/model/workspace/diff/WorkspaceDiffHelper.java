@@ -39,7 +39,7 @@ public class WorkspaceDiffHelper {
     }
 
     @Traced
-    public ClientApiWorkspaceDiff diff(Workspace workspace, List<WorkspaceEntity> workspaceEntities, List<Edge> workspaceEdges, FormulaEvaluator.UserContext userContext, User user) {
+    public ClientApiWorkspaceDiff diff(Workspace workspace, Iterable<WorkspaceEntity> workspaceEntities, Iterable<Edge> workspaceEdges, FormulaEvaluator.UserContext userContext, User user) {
         Authorizations authorizations = userRepository.getAuthorizations(user, WorkspaceRepository.VISIBILITY_STRING, workspace.getWorkspaceId());
 
         ClientApiWorkspaceDiff result = new ClientApiWorkspaceDiff();
@@ -106,7 +106,7 @@ public class WorkspaceDiffHelper {
     public List<ClientApiWorkspaceDiff.Item> diffWorkspaceEntity(Workspace workspace, WorkspaceEntity workspaceEntity, FormulaEvaluator.UserContext userContext, Authorizations authorizations) {
         List<ClientApiWorkspaceDiff.Item> result = new ArrayList<>();
 
-        Vertex entityVertex = this.graph.getVertex(workspaceEntity.getEntityVertexId(), FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
+        Vertex entityVertex = workspaceEntity.getVertex();
 
         // vertex can be null if the user doesn't have access to the entity
         if (entityVertex == null) {

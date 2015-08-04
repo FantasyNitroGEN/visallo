@@ -3,6 +3,7 @@ package org.visallo.core.model.workspace;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
