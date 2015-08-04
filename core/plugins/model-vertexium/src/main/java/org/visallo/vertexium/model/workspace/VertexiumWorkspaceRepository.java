@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.vertexium.mutation.ExistingEdgeMutation;
+import org.vertexium.search.IndexHint;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
 import org.vertexium.util.VerticesToEdgeIdsIterable;
@@ -39,6 +40,7 @@ import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
@@ -330,6 +332,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
     @Override
     public void softDeleteEntitiesFromWorkspace(Workspace workspace, List<String> entityIdsToDelete, User user) {
+        if (entityIdsToDelete.size() == 0) {
+            return;
+        }
         if (!hasWritePermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
@@ -360,7 +365,10 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
-    public void updateEntitiesOnWorkspace(final Workspace workspace, final Iterable<Update> updates, final User user) {
+    public void updateEntitiesOnWorkspace(final Workspace workspace, final Collection<Update> updates, final User user) {
+        if (updates.size() == 0) {
+            return;
+        }
         if (!hasCommentPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
@@ -415,6 +423,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         if (visible != null) {
             WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.setProperty(edgeBuilder, visible, VISIBILITY.getVisibility());
         }
+        edgeBuilder.setIndexHint(IndexHint.DO_NOT_INDEX);
         edgeBuilder.save(authorizations);
     }
 
