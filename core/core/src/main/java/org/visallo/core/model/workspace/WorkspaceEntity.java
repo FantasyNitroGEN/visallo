@@ -1,8 +1,5 @@
 package org.visallo.core.model.workspace;
 
-import org.vertexium.Authorizations;
-import org.vertexium.FetchHint;
-import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.util.ConvertingIterable;
 
@@ -54,16 +51,11 @@ public class WorkspaceEntity {
         return vertex;
     }
 
-    public static Iterable<Vertex> toVertices(Graph graph, Iterable<WorkspaceEntity> workspaceEntities, boolean includeHidden, Authorizations authorizations) {
-        Iterable<String> vertexIds = toVertexIds(workspaceEntities);
-        return graph.getVertices(vertexIds, includeHidden ? FetchHint.ALL_INCLUDING_HIDDEN : FetchHint.ALL, authorizations);
-    }
-
-    public static Iterable<String> toVertexIds(Iterable<WorkspaceEntity> workspaceEntities) {
-        return new ConvertingIterable<WorkspaceEntity, String>(workspaceEntities) {
+    public static Iterable<Vertex> toVertices(Iterable<WorkspaceEntity> workspaceEntities) {
+        return new ConvertingIterable<WorkspaceEntity, Vertex>(workspaceEntities) {
             @Override
-            protected String convert(WorkspaceEntity o) {
-                return o.getEntityVertexId();
+            protected Vertex convert(WorkspaceEntity o) {
+                return o.getVertex();
             }
         };
     }
