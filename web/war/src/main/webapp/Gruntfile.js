@@ -33,7 +33,7 @@ module.exports = function(grunt) {
                 cwd: 'libs/openlayers/build'
             },
             buildPathFinding: {
-                command: 'node ../../node/npm/bin/npm-cli.js install -q && make',
+                command: 'npm install -q && make',
                 stdout: false,
                 cwd: 'libs/PathFinding.js'
             },
