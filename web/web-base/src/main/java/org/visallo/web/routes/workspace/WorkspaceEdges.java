@@ -3,18 +3,16 @@ package org.visallo.web.routes.workspace;
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import org.vertexium.Authorizations;
-import org.vertexium.Edge;
 import org.vertexium.Graph;
+import org.vertexium.RelatedEdge;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.clientapi.model.ClientApiEdge;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceEdges;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,7 +56,7 @@ public class WorkspaceEdges extends BaseRequestHandler {
         ClientApiWorkspaceEdges results = getEdges(request, workspaceId, vertexIds, authorizations);
 
         long endTime = System.nanoTime();
-        LOGGER.debug("Retrieved %d in %dms", results.getEdges().size(), (endTime - startTime) / 1000 / 1000);
+        LOGGER.debug("Retrieved in %dms", (endTime - startTime) / 1000 / 1000);
 
         respondWithClientApiObject(response, results);
     }
@@ -73,12 +71,9 @@ public class WorkspaceEdges extends BaseRequestHandler {
             Authorizations authorizations
     ) {
         ClientApiWorkspaceEdges edgeResult = new ClientApiWorkspaceEdges();
-        Iterable<String> relatedEdges = graph.findRelatedEdges(vertexIds, authorizations);
-        Iterable<Edge> edges = graph.getEdges(relatedEdges, authorizations);
-        for (Edge edge : edges) {
-            ClientApiEdge e = new ClientApiEdge();
-            ClientApiConverter.populateClientApiEdge(e, edge, workspaceId);
-            edgeResult.getEdges().add(e);
+        Iterable<RelatedEdge> relatedEdges = graph.findRelatedEdgeSummary(vertexIds, authorizations);
+        for (RelatedEdge relatedEdge : relatedEdges) {
+            edgeResult.add(relatedEdge.getEdgeId(), relatedEdge.getLabel(), relatedEdge.getOutVertexId(), relatedEdge.getInVertexId());
         }
         return edgeResult;
     }
