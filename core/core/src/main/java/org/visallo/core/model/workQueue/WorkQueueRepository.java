@@ -1,5 +1,6 @@
 package org.visallo.core.model.workQueue;
 
+import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
 import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONArray;
@@ -150,9 +151,9 @@ public abstract class WorkQueueRepository {
         checkNotNull(element);
         JSONObject data = new JSONObject();
         if (element instanceof Vertex) {
-            data.put(GraphPropertyRunner.GRAPH_VERTEX_ID, element.getId());
+            data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, element.getId());
         } else if (element instanceof Edge) {
-            data.put(GraphPropertyRunner.GRAPH_EDGE_ID, element.getId());
+            data.put(GraphPropertyMessage.GRAPH_EDGE_ID, element.getId());
         } else {
             throw new VisalloException("Unexpected element type: " + element.getClass().getName());
         }

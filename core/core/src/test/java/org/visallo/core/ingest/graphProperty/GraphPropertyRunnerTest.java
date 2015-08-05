@@ -27,86 +27,124 @@ public class GraphPropertyRunnerTest {
     private static final String VERTEX_ID = "vertexID";
     private static final String EDGE_ID = "edgeID";
 
+    private static final String PROP_NAME = "propName";
+    private static final String PROP_KEY = "propKey";
+    private static final String PROP_VALUE = "propValue";
+
     private GraphPropertyRunner _testSubject;
     private Graph _graph;
-    private WorkQueueRepository _workQueueRepository;
 
     @Before
     public void before(){
         _testSubject = new GraphPropertyRunner();
         _graph = mock(Graph.class);
         _testSubject.setGraph(_graph);
-        _workQueueRepository = mock(WorkQueueRepository.class);
-        _testSubject.setWorkQueueRepository(_workQueueRepository);
+        _testSubject.setWorkQueueRepository(mock(WorkQueueRepository.class));
     }
 
     @Test(expected = VisalloException.class)
-    public void testUnknownProcessingMessageThrowsExceptions() throws Exception {
+    public void testUnknownProcessingMessageThrowsException() throws Exception {
         JSONObject obj = createTestJSONGPWMessage();
         _testSubject.process(MESSAGE_ID, obj);
     }
 
     @Test
-    public void testAllPropertiesGetAddedIfVertexMessageGetsReceived() throws Exception {
-        Property[] props = createNumProperties(2);
-
-        Vertex v = createMockedVertex(VERTEX_ID, props);
-        registerVertexWithGraph(VERTEX_ID, v);
-
-        JSONObject obj = createVertexIdJSONGPWMessage(VERTEX_ID);
-
-        _testSubject.process(MESSAGE_ID, obj);
-
-        verify(_workQueueRepository, times(props.length)).pushGraphPropertyQueue(any(Vertex.class), any(Property.class), anyString(), anyString(), any(Priority.class));
-    }
-
-    @Test
-    public void testHandlePropertyIsHandledByGPWS() throws Exception {
+    public void testHandlePropertyOnVertexIsHandledByGPWS() throws Exception {
         CountingGPWStub countingGPWStub = new CountingGPWStub();
-        GraphPropertyThreadedWrapper stubGraphPropertyThreadedWrapper = new GraphPropertyThreadedWrapper(countingGPWStub);
-        MetricsManager manager = mock(MetricsManager.class);
-        when(manager.counter(anyString())).thenReturn(mock(Counter.class));
-        when(manager.timer(anyString())).thenReturn(mock(com.codahale.metrics.Timer.class));
 
-        stubGraphPropertyThreadedWrapper.setMetricsManager(manager);
-        Thread thread = new Thread(stubGraphPropertyThreadedWrapper);
-        thread.start();
+        JSONObject message = createVertexPropertyGPWMessage(VERTEX_ID, PROP_NAME + "0", PROP_KEY + "0");
+        inflateVertexAndAddToGraph(VERTEX_ID, 1L);
+        runTests(countingGPWStub, message);
 
-        String propName = "propName";
-        String propKey = "propKey";
-        String propValue = "propValue";
-
-        JSONObject obj = createVertexPropertyGPWMessage(VERTEX_ID, propName, propKey);
-        Property[] props = createNumProperties(1);
-        when(props[0].getName()).thenReturn(propName);
-        when(props[0].getKey()).thenReturn(propKey);
-        when(props[0].getValue()).thenReturn(propValue);
-
-        Vertex mockedVertex = createMockedVertex(VERTEX_ID, props);
-        registerVertexWithGraph(VERTEX_ID, mockedVertex);
-        _testSubject.addGraphPropertyThreadedWrappers(Lists.newArrayList(stubGraphPropertyThreadedWrapper));
-
-        _testSubject.process(MESSAGE_ID, obj);
-
-        Thread.sleep(50L);
-        stubGraphPropertyThreadedWrapper.stop();
-        Thread.sleep(50L);
         assertThat(countingGPWStub.isExecutingCount.get(), is(1L));
         assertThat(countingGPWStub.isHandledCount.get(), is(1L));
     }
 
     @Test
-    public void testAllPropertiesGetAddedIfEdgeMessageGetsReceived() throws Exception {
-        Property[] props = createNumProperties(2);
+    public void testAllPropertiesOnVertexAreProcessedByGraphPropertyWorkers() throws Exception {
+        CountingGPWStub countingGPWStub = new CountingGPWStub();
 
-        Edge e = createMockedEdge(EDGE_ID, props);
-        registerEdgeWithGraph(EDGE_ID, e);
+        JSONObject message = createVertexIdJSONGPWMessage(VERTEX_ID);
+        inflateVertexAndAddToGraph(VERTEX_ID, 11L);
+        runTests(countingGPWStub, message);
 
-        JSONObject obj = createEdgeIdJSONGPWMessage(EDGE_ID);
+        assertThat(countingGPWStub.isExecutingCount.get(), is(11L));
+        assertThat(countingGPWStub.isHandledCount.get(), is(11L));
+    }
 
-        _testSubject.process(MESSAGE_ID, obj);
+    @Test
+    public void testHandlePropertyOnEdgeIsHandledByGPWS() throws Exception {
+        CountingGPWStub countingGPWStub = new CountingGPWStub();
 
-        verify(_workQueueRepository, times(props.length)).pushGraphPropertyQueue(any(Edge.class), any(Property.class), anyString(), anyString(), any(Priority.class));
+        JSONObject message = createEdgeIdJSONGPWMessage(EDGE_ID, PROP_NAME + "0", PROP_KEY + "0");
+        inflateEdgeAndAddToGraph(EDGE_ID, 1L);
+        runTests(countingGPWStub, message);
+
+        assertThat(countingGPWStub.isExecutingCount.get(), is(1L));
+        assertThat(countingGPWStub.isHandledCount.get(), is(1L));
+    }
+
+    @Test
+    public void testAllPropertiesOnEdgeAreProcessedByGraphPropertyWorkers() throws Exception {
+        CountingGPWStub countingGPWStub = new CountingGPWStub();
+
+        JSONObject message = createEdgeIdJSONGPWMessage(EDGE_ID);
+        inflateEdgeAndAddToGraph(EDGE_ID, 14L);
+        runTests(countingGPWStub, message);
+
+        assertThat(countingGPWStub.isExecutingCount.get(), is(14L));
+        assertThat(countingGPWStub.isHandledCount.get(), is(14L));
+    }
+
+    private void runTests(GraphPropertyWorker worker, JSONObject message) throws Exception {
+        GraphPropertyThreadedWrapper graphPropertyThreadedWrapper = startInThread(worker);
+
+        _testSubject.addGraphPropertyThreadedWrappers(graphPropertyThreadedWrapper);
+
+        _testSubject.process(MESSAGE_ID, message);
+
+        stopInThread(graphPropertyThreadedWrapper);
+    }
+
+    private void inflateVertexAndAddToGraph(String vertexId, long numProperties){
+        Property[] props = createNumProperties(numProperties);
+        Vertex mockedVertex = createMockedVertex(vertexId, props);
+        registerVertexWithGraph(vertexId, mockedVertex);
+    }
+
+    private void inflateEdgeAndAddToGraph(String edgeId, long numProperties){
+        Property[] props = createNumProperties(numProperties);
+        Edge mockedEdge = createMockedEdge(edgeId, props);
+        registerEdgeWithGraph(edgeId, mockedEdge);
+    }
+
+    private GraphPropertyThreadedWrapper createTestGPWThreadedWrapper(GraphPropertyWorker worker){
+        GraphPropertyThreadedWrapper stubGraphPropertyThreadedWrapper = new GraphPropertyThreadedWrapper(worker);
+        MetricsManager manager = mock(MetricsManager.class);
+        when(manager.counter(anyString())).thenReturn(mock(Counter.class));
+        when(manager.timer(anyString())).thenReturn(mock(com.codahale.metrics.Timer.class));
+
+        stubGraphPropertyThreadedWrapper.setMetricsManager(manager);
+        return stubGraphPropertyThreadedWrapper;
+    }
+
+    private GraphPropertyThreadedWrapper startInThread(GraphPropertyWorker worker) throws InterruptedException {
+        GraphPropertyThreadedWrapper testGPWThreadedWrapper = createTestGPWThreadedWrapper(worker);
+        Thread thread = new Thread(testGPWThreadedWrapper);
+        thread.start();
+        return testGPWThreadedWrapper;
+    }
+
+    private void stopInThread(GraphPropertyThreadedWrapper... wrappers) throws InterruptedException {
+        for (GraphPropertyThreadedWrapper wrapper : wrappers) {
+            sleep();
+            wrapper.stop();
+            sleep();
+        }
+    }
+
+    private void sleep() throws InterruptedException {
+        Thread.sleep(50L);
     }
 
     private class CountingGPWStub extends GraphPropertyWorker{
@@ -133,10 +171,15 @@ public class GraphPropertyRunnerTest {
         return e;
     }
 
-    private Property[] createNumProperties(int num){
+    private Property[] createNumProperties(long num){
         List<Property> props = Lists.newArrayList();
-        for(int i = 0; i < num; i++){
-            props.add(mock(Property.class));
+
+        for(long i = 0; i < num; i++){
+            Property prop = mock(Property.class);
+            when(prop.getName()).thenReturn(PROP_NAME + i);
+            when(prop.getKey()).thenReturn(PROP_KEY + i);
+            when(prop.getValue()).thenReturn(PROP_VALUE + i);
+            props.add(prop);
         }
 
         return props.toArray(new Property[0]);
@@ -149,12 +192,11 @@ public class GraphPropertyRunnerTest {
         when(v.getProperties()).thenReturn(propList);
         for(Property property : properties) {
             when(v.getProperty(property.getKey(), property.getName())).thenReturn(property);
+            when(v.getProperty(property.getName())).thenReturn(property);
         }
 
         return v;
     }
-
-
 
     private void registerVertexWithGraph(String id, Vertex v){
         when(_graph.getVertex(eq(id), any(Authorizations.class))).thenReturn(v);
@@ -165,18 +207,23 @@ public class GraphPropertyRunnerTest {
     }
 
     private static JSONObject createVertexPropertyGPWMessage(String vertexId, String propertyName, String propertyKey){
-        return createVertexIdJSONGPWMessage(vertexId).put(GraphPropertyRunner.PROPERTY_KEY, propertyKey).put(GraphPropertyRunner.PROPERTY_NAME, propertyName);
+        return createVertexIdJSONGPWMessage(vertexId).put(GraphPropertyMessage.PROPERTY_KEY, propertyKey).put(GraphPropertyMessage.PROPERTY_NAME, propertyName);
+    }
+
+
+    private static JSONObject createEdgeIdJSONGPWMessage(String edgeId, String propertyName, String propertyKey){
+        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_EDGE_ID, edgeId);
     }
 
     private static JSONObject createVertexIdJSONGPWMessage(String vertexId){
-        return createTestJSONGPWMessage().put(GraphPropertyRunner.GRAPH_VERTEX_ID, vertexId);
+        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_VERTEX_ID, vertexId);
     }
 
     private static JSONObject createEdgeIdJSONGPWMessage(String edgeId){
-        return createTestJSONGPWMessage().put(GraphPropertyRunner.GRAPH_EDGE_ID, edgeId);
+        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_EDGE_ID, edgeId);
     }
 
     private static JSONObject createTestJSONGPWMessage(){
-        return new JSONObject().put(GraphPropertyRunner.PRIORITY, "1").put(GraphPropertyRunner.VISIBILITY_SOURCE, "").put(GraphPropertyRunner.WORKSPACE_ID, "wsId");
+        return new JSONObject().put(GraphPropertyMessage.PRIORITY, "1").put(GraphPropertyMessage.VISIBILITY_SOURCE, "").put(GraphPropertyMessage.WORKSPACE_ID, "wsId");
     }
 }
