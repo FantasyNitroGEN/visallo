@@ -338,7 +338,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 return edge.getOtherVertexId(workspace.getWorkspaceId());
             }
         });
-        workspaceVertices = Maps.uniqueIndex(getGraph().getVertices(workspaceVertexIds, FetchHint.ALL_INCLUDING_HIDDEN, authorizations), new Function<Vertex, String>() {
+        Iterable<Vertex> vertices = getGraph().getVertices(workspaceVertexIds, FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
+        workspaceVertices = Maps.uniqueIndex(vertices, new Function<Vertex, String>() {
             @Nullable
             @Override
             public String apply(Vertex v) {
