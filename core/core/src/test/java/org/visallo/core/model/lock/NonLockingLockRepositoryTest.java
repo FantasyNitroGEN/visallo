@@ -7,8 +7,8 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class SingleJvmLockRepositoryTest extends LockRepositoryTestBase {
-    private LockRepository lockRepository = new SingleJvmLockRepository();
+public class NonLockingLockRepositoryTest extends LockRepositoryTestBase {
+    private LockRepository lockRepository = new NonLockingLockRepository();
 
     @Test
     public void testCreateLock() throws Exception {
@@ -41,6 +41,6 @@ public class SingleJvmLockRepositoryTest extends LockRepositoryTestBase {
             t.start();
         }
         Thread.sleep(1000);
-        assertEquals(2, messages.size());
+        assertEquals(5, messages.size()); // this isn't what we really want but it is expected for this implementation
     }
 }
