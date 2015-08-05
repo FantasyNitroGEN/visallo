@@ -2,15 +2,16 @@ package org.visallo.core.model.notification;
 
 import com.google.inject.Inject;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
+import org.json.JSONObject;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.commons.lang.time.DateUtils;
-import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,7 +21,7 @@ public class SystemNotificationRepository extends NotificationRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SystemNotificationRepository.class);
     private static final String LOCK_NAME = SystemNotificationRepository.class.getName();
     private static final String VISIBILITY_STRING = "";
-    private boolean shutdown;
+    private boolean enabled;
 
     @Inject
     public SystemNotificationRepository(
@@ -116,24 +117,43 @@ public class SystemNotificationRepository extends NotificationRepository {
     }
 
     protected void startBackgroundThread(final LockRepository lockRepository, final UserRepository userRepository, final WorkQueueRepository workQueueRepository) {
-        lockRepository.leaderElection(LOCK_NAME, new LeaderLatchListener() {
+        Thread t = new Thread(new Runnable() {
             @Override
-            public void isLeader() {
-                LOGGER.debug("using successfully acquired lock");
-                runPeriodically(userRepository, workQueueRepository);
-            }
+            public void run() {
+                enabled = false;
+                lockRepository.leaderElection(LOCK_NAME, new LeaderLatchListener() {
+                    @Override
+                    public void isLeader() {
+                        LOGGER.debug("using successfully acquired lock (%s)", Thread.currentThread().getName());
+                        enabled = true;
+                    }
 
-            @Override
-            public void notLeader() {
-                LOGGER.debug("lost leadership");
-                shutdown();
+                    @Override
+                    public void notLeader() {
+                        LOGGER.debug("lost leadership (%s)", Thread.currentThread().getName());
+                        disable();
+                    }
+                });
+
+                while (true) {
+                    try {
+                        Thread.sleep(10 * 1000);
+                    } catch (InterruptedException e) {
+                        LOGGER.error("Failed to sleep", e);
+                        throw new VisalloException("Failed to sleep", e);
+                    }
+                    runPeriodically(userRepository, workQueueRepository);
+                }
             }
         });
+        t.setDaemon(true);
+        t.setName(SystemNotificationRepository.class.getSimpleName() + "-background");
+        t.start();
     }
 
     private void runPeriodically(UserRepository userRepository, WorkQueueRepository workQueueRepository) {
         try {
-            while (!shutdown) {
+            while (enabled) {
                 LOGGER.debug("running periodically");
                 Date now = new Date();
                 Date nowPlusOneMinute = DateUtils.addMinutes(now, 1);
@@ -156,7 +176,7 @@ public class SystemNotificationRepository extends NotificationRepository {
         }
     }
 
-    public void shutdown() {
-        shutdown = true;
+    public void disable() {
+        enabled = false;
     }
 }

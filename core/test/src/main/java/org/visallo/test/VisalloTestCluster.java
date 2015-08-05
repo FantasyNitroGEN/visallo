@@ -172,7 +172,7 @@ public class VisalloTestCluster {
             LOGGER.info("shutdown: Graph");
             if (InjectHelper.hasInjector()) {
                 SystemNotificationRepository systemNotificationRepository = InjectHelper.getInstance(SystemNotificationRepository.class);
-                systemNotificationRepository.shutdown();
+                systemNotificationRepository.disable();
             }
 
             LOGGER.info("shutdown: Graph");
