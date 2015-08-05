@@ -165,6 +165,20 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
+    public void broadcastLongRunningProcessDeleted(JSONObject longRunningProcessQueueItem) {
+        String userId = longRunningProcessQueueItem.optString("userId");
+        checkNotNull(userId, "userId cannot be null");
+        JSONObject json = new JSONObject();
+        json.put("type", "longRunningProcessDeleted");
+        JSONObject permissions = new JSONObject();
+        JSONArray users = new JSONArray();
+        users.put(userId);
+        permissions.put("users", users);
+        json.put("permissions", permissions);
+        json.put("data", longRunningProcessQueueItem.get("id"));
+        broadcastJson(json);
+    }
+
     public void broadcastLongRunningProcessChange(JSONObject longRunningProcessQueueItem) {
         String userId = longRunningProcessQueueItem.optString("userId");
         checkNotNull(userId, "userId cannot be null");

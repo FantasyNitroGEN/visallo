@@ -148,8 +148,16 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     public void delete(String longRunningProcessId, User authUser) {
         Authorizations authorizations = getAuthorizations(authUser);
         Vertex vertex = this.graph.getVertex(longRunningProcessId, authorizations);
+        JSONObject json = null;
+        if (vertex != null) {
+            json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
+        }
         this.graph.softDeleteVertex(vertex, authorizations);
         this.graph.flush();
+
+        if (json != null) {
+            workQueueRepository.broadcastLongRunningProcessDeleted(json);
+        }
     }
 
     private Visibility getVisibility() {

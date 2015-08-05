@@ -161,6 +161,14 @@ define([
                     })
                 }
             },
+            longRunningProcessDeleted: function(processId) {
+                dispatchMain('rebroadcastEvent', {
+                    eventName: 'longRunningProcessDeleted',
+                    data: {
+                        processId: processId
+                    }
+                });
+            },
             longRunningProcessChange: function(process) {
                 dispatchMain('rebroadcastEvent', {
                     eventName: 'longRunningProcessChanged',

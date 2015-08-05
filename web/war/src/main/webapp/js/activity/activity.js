@@ -90,6 +90,7 @@ define([
 
             this.on(document, 'menubarToggleDisplay', this.onToggleDisplay);
             this.on(document, 'longRunningProcessChanged', this.onLongRunningProcessChanged);
+            this.on(document, 'longRunningProcessDeleted', this.onLongRunningProcessDeleted);
             this.on(document, 'showActivityDisplay', this.onShowActivityDisplay);
             this.on(document, 'extensionsChanged', this.onExtensionsChanged);
             this.on(document, 'verticesUpdated', this.onVerticesUpdated);
@@ -127,22 +128,6 @@ define([
                     .finally(function() {
                         $button.removeClass('loading');
                     })
-                    .done(function() {
-                        self.removedTasks[processId] = true;
-                        var task = self.tasksById[processId];
-                        delete self.tasksById[processId];
-                        self.tasks.splice(self.tasks.indexOf(task), 1);
-                        self.update().then(function() {
-                            if (self.currentTaskCount === 0 && name === 'delete') {
-                                _.delay(function() {
-                                    var visible = self.$node.closest('.visible').length > 0;
-                                    if (visible) {
-                                        self.trigger('menubarToggleDisplay', { name: 'activity' });
-                                    }
-                                }, 250)
-                            }
-                        })
-                    });
             }
         };
 
@@ -151,6 +136,24 @@ define([
 
             this.addOrUpdateTask(task);
             this.update();
+        };
+
+        this.onLongRunningProcessDeleted = function(event, data) {
+            var self = this,
+                processId = data.processId;
+
+            this.removeTask(processId);
+            Promise.resolve(this.update())
+                .then(function() {
+                    if (self.currentTaskCount === 0) {
+                        _.delay(function() {
+                            var visible = self.$node.closest('.visible').length > 0;
+                            if (visible) {
+                                self.trigger('menubarToggleDisplay', { name: 'activity' });
+                            }
+                        }, 250)
+                    }
+                })
         };
 
         this.onVerticesUpdated = function(event, data) {
@@ -183,6 +186,13 @@ define([
                     self.onActivityHandlerEnd.bind(self, activityHandler)
                 );
             });
+        };
+
+        this.removeTask = function(taskId) {
+            this.removedTasks[taskId] = true;
+            var task = this.tasksById[taskId];
+            delete this.tasksById[taskId];
+            this.tasks.splice(this.tasks.indexOf(task), 1);
         };
 
         this.addOrUpdateTask = function(task) {
