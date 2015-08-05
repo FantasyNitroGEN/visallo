@@ -43,7 +43,6 @@ public class LessResourceHandler implements Handler {
         if (lessCompiler == null) {
             lessCompiler = new LessCompiler();
             lessCompiler.setCompress(true);
-            lessCompiler.setEncoding("UTF-8");
         }
         return lessCompiler;
     }
