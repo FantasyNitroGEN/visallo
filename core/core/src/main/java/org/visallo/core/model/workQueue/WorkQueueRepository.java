@@ -237,7 +237,7 @@ public abstract class WorkQueueRepository {
 
     public void pushElements(Iterable<? extends Element> elements, Priority priority) {
         for (Element element : elements) {
-            pushGraphPropertyQueue(element, null, null, priority);
+            pushElement(element, priority);
         }
     }
 

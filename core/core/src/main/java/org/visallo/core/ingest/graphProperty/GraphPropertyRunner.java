@@ -13,13 +13,11 @@ import org.vertexium.util.IterableUtils;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.GraphPropertyRunnerStatus;
@@ -61,6 +59,70 @@ public class GraphPropertyRunner extends WorkerBase {
         PROPERTY,
         ELEMENT,
         UNKNOWN
+    }
+
+    private static class MessageProperties {
+        private JSONObject _obj;
+
+        public MessageProperties(JSONObject obj) {
+            _obj = obj;
+        }
+
+        public String getWorkspaceId() {
+            return _obj.optString(WORKSPACE_ID, null);
+        }
+
+        public String getVisibilitySource(){
+            return _obj.optString(VISIBILITY_SOURCE, null);
+        }
+
+        public Priority getPriority(){
+            String priorityString = _obj.optString(PRIORITY, null);
+            return Priority.safeParse(priorityString);
+        }
+
+        public String getPropertyKey(){
+            return _obj.optString(PROPERTY_KEY, "");
+        }
+
+        public String getPropertyName() {
+            return _obj.optString(PROPERTY_NAME, "");
+        }
+
+        public String getVertexId() {
+            return _obj.optString(GRAPH_VERTEX_ID);
+        }
+
+        public String getEdgeId(){
+            return _obj.optString(GRAPH_EDGE_ID);
+        }
+
+        public boolean canHandleVertex(){
+            return canHandleElementById(getVertexId());
+        }
+
+        public boolean canHandleEdge(){
+            return canHandleElementById(getEdgeId());
+        }
+
+        public boolean handleByProperty(){
+            return _obj.has(PROPERTY_KEY) || this._obj.has(PROPERTY_NAME);
+        }
+
+        public ProcessingType findProcessingType(){
+            if(handleByProperty()){
+                return ProcessingType.PROPERTY;
+            }
+            else if(canHandleVertex() || canHandleEdge()) {
+                return ProcessingType.ELEMENT;
+            }
+
+            return ProcessingType.UNKNOWN;
+        }
+
+        private static boolean canHandleElementById(String id){
+            return StringUtils.isNotEmpty(id);
+        }
     }
 
     public void prepare(User user) {
@@ -175,65 +237,54 @@ public class GraphPropertyRunner extends WorkerBase {
         };
     }
 
-    public ProcessingType findProcessingType(JSONObject json){
-        if(json.has(PROPERTY_KEY) || json.has(PROPERTY_NAME)){
-            return ProcessingType.PROPERTY;
-        }
-        else if(canHandleByVertex(json)) {
-            return ProcessingType.ELEMENT;
-        }
-        else if(canHandleByEdge(json)){
-            return ProcessingType.ELEMENT;
-        }
-
-        return ProcessingType.UNKNOWN;
-    }
-
     @Override
     public void process(Object messageId, JSONObject json) throws Exception {
-        switch(findProcessingType(json)){
+        MessageProperties message = new MessageProperties(json);
+        switch(message.findProcessingType()){
             case PROPERTY:
-                safeExecuteProperty(messageId, json);
+                safeExecuteProperty(message);
                 break;
             case ELEMENT:
-                safeExecuteElement(messageId, json);
+                safeExecuteElement(message);
                 break;
             case UNKNOWN:
                 throw new VisalloException(String.format("Cannot process unknown type of gpw message %s", json));
         }
     }
 
-    private void safeExecuteElement(Object messageId, JSONObject json) {
-        MessageProperties message = new MessageProperties(json);
-
-        if(canHandleByVertex(json)){
-            safeExecuteExpandElement(getVertexFromJSONObject(json), message);
+    private void safeExecuteElement(MessageProperties message) throws Exception {
+        if(message.canHandleVertex()){
+            safeExecuteHandleElement(getVertexFromMessage(message), message);
         }
-        else if(canHandleByEdge(json)){
-            safeExecuteExpandElement(getEdgeFromJSONObject(json), message);
+        else if(message.canHandleEdge()){
+            safeExecuteHandleElement(getEdgeFromMessage(message), message);
         }
         else {
             throw new VisalloException(String.format("Could not find %s or %s", GRAPH_VERTEX_ID, GRAPH_EDGE_ID));
         }
     }
 
+    private void safeExecuteHandleElement(Element element, MessageProperties message) throws Exception {
+        for (Property property : element.getProperties()) {
+            safeExecute(element, property, message);
+        }
+
+        LOGGER.info("Ran through all properties in element %s", element.getId());
+    }
+
     private void safeExecuteExpandElement(Element element, MessageProperties message) {
         for (Property property : element.getProperties()) {
             getWorkQueueRepository().pushGraphPropertyQueue(element, property, message.getWorkspaceId(), message.getVisibilitySource(), message.getPriority());
         }
-
-        LOGGER.info("Pushed all properties from element %s back onto the graph property queue", element.getId());
     }
 
-    private void safeExecuteProperty(Object messageId, JSONObject json) throws Exception {
-        MessageProperties message = new MessageProperties(json);
-
-        if (canHandleByVertex(json)) {
-            Vertex vertex = getVertexFromJSONObject(json);
+    private void safeExecuteProperty(MessageProperties message) throws Exception {
+        if (message.canHandleVertex()) {
+            Vertex vertex = getVertexFromMessage(message);
             safeExecute(vertex, message);
         }
-        else if(canHandleByEdge(json)){
-            Edge edge = getEdgeFromJSONObject(json);
+        else if(message.canHandleEdge()){
+            Edge edge = getEdgeFromMessage(message);
             safeExecute(edge, message);
         }
         else {
@@ -241,59 +292,18 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    private static class MessageProperties {
-        private JSONObject obj;
-
-        public MessageProperties(JSONObject obj) {
-            this.obj = obj;
-        }
-
-        public String getWorkspaceId() {
-            return this.obj.optString(WORKSPACE_ID, null);
-        }
-
-        public String getVisibilitySource(){
-            return this.obj.optString(VISIBILITY_SOURCE, null);
-        }
-
-        public Priority getPriority(){
-            String priorityString = this.obj.optString(PRIORITY, null);
-            return Priority.safeParse(priorityString);
-        }
-
-        public String getPropertyKey(){
-            return this.obj.optString(PROPERTY_KEY, "");
-        }
-
-        public String getPropertyName() {
-            return this.obj.optString(PROPERTY_NAME, "");
-        }
-    }
-
-    private Vertex getVertexFromJSONObject(JSONObject json){
-        String graphVertexId = json.optString(GRAPH_VERTEX_ID);
-        Vertex vertex = graph.getVertex(graphVertexId, this.authorizations);
-        ensureExists(vertex, "vertex", graphVertexId);
+    private Vertex getVertexFromMessage(MessageProperties message){
+        String vertexId = message.getVertexId();
+        Vertex vertex = graph.getVertex(vertexId, this.authorizations);
+        ensureExists(vertex, "vertex", vertexId);
         return vertex;
     }
 
-    private Edge getEdgeFromJSONObject(JSONObject json){
-        String graphEdgeId = json.optString(GRAPH_EDGE_ID);
-        Edge edge = graph.getEdge(graphEdgeId, this.authorizations);
-        ensureExists(edge, "edge", graphEdgeId);
+    private Edge getEdgeFromMessage(MessageProperties message){
+        String edgeId = message.getEdgeId();
+        Edge edge = graph.getEdge(edgeId, this.authorizations);
+        ensureExists(edge, "edge", edgeId);
         return edge;
-    }
-
-    private boolean canHandleByVertex(JSONObject json){
-        return canHandleElementById(json.optString(GRAPH_VERTEX_ID));
-    }
-
-    private boolean canHandleByEdge(JSONObject json){
-        return canHandleElementById(json.optString(GRAPH_EDGE_ID));
-    }
-
-    private boolean canHandleElementById(String id){
-        return StringUtils.isNotEmpty(id);
     }
 
     private void ensureExists(Element element, String type, String id){
