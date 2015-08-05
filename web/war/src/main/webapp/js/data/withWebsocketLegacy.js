@@ -48,7 +48,10 @@ define([], function() {
 
             this.around('pushSocket', function(push, message) {
                 atmospherePromise.then(function(socket) {
-                    socket.push(message);
+                    var string = JSON.stringify(_.extend({}, message, {
+                        sourceGuid: visalloData.socketSourceGuid
+                    }));
+                    socket.push(string);
                 })
             });
 
