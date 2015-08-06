@@ -2,8 +2,6 @@ package org.visallo.yarn;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.*;
@@ -14,6 +12,8 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -201,7 +201,9 @@ public abstract class ApplicationMasterBase implements AMRMClientAsync.CallbackH
         ctx.setCommands(Collections.singletonList(command));
         ctx.getEnvironment().putAll(System.getenv());
 
-        LOGGER.info("Launching container " + container.getId());
+        String message = String.format("Launching container %s (nodeId: %s nodeHttpAddress: %s)", container.getId(), container.getNodeId(), container.getNodeHttpAddress());
+        LOGGER.info(message);
+        System.out.println(message);
         nmClient.startContainer(container, ctx);
     }
 
