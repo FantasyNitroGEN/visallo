@@ -930,9 +930,8 @@ define([
                 paths.forEach(function(path, i) {
                     var vertexIds = _.chain(path)
                                 .filter(function(v) {
-                                    return v.id !== sourceId && v.id !== targetId;
+                                    return v !== sourceId && v !== targetId;
                                 })
-                                .pluck('id')
                                 .value(),
                         end = colorjs('#0088cc').shiftHue(i * (360 / paths.length)).toCSSHex(),
                         lastNode = cy.getElementById(toCyId(sourceId)),

@@ -80,7 +80,7 @@ define([
             this.updateButton($button, visalloData.currentWorkspaceId);
 
             this.$node.empty().append($button);
-        }
+        };
 
         this.onFocusPaths = function(event, data) {
             // FIXME: if multiple paths using same src, dest it doesn't reset
@@ -98,7 +98,7 @@ define([
         this.onAddVertices = function(event) {
             var self = this,
                 vertexIds = [],
-                vertices = _.map(this.toAdd, function(vertex, vertexId) {
+                vertices = _.map(this.toAdd, function(vertexId) {
                     vertexIds.push(vertexId);
                     return {
                         vertexId: vertexId,
@@ -132,11 +132,7 @@ define([
                         workspaceVertices = results.shift(),
                         paths = process.results && process.results.paths || [],
                         allVertices = _.flatten(paths),
-                        verticesById = _.chain(allVertices)
-                            .indexBy('id')
-                            .value(),
                         vertices = _.chain(allVertices)
-                            .map(_.property('id'))
                             .unique()
                             .reject(function(vertexId) {
                                 return vertexId in workspaceVertices;
@@ -147,13 +143,13 @@ define([
                     for (var i = 0; i < vertices.length; i++) {
                         pathLoop: for (var j = 0; j < paths.length; j++) {
                             for (var x = 0; x < paths[j].length; x++) {
-                                if (paths[j][x].id === vertices[i]) {
+                                if (paths[j][x] === vertices[i]) {
                                     // If first or last in path the source/dest
                                     // aren't in the graph
                                     if (x !== 0 || x !== (paths[j].length - 1)) {
                                         map[vertices[i]] = {
-                                            sourceId: paths[j][x - 1].id,
-                                            targetId: paths[j][x + 1].id
+                                            sourceId: paths[j][x - 1],
+                                            targetId: paths[j][x + 1]
                                         };
                                     }
                                     break pathLoop;
@@ -162,7 +158,7 @@ define([
                         }
                     }
 
-                    self.toAdd = _.pick(verticesById, vertices);
+                    self.toAdd = vertices;
                     self.toAddLayout = map;
 
                     self.trigger('focusPaths', {
@@ -173,7 +169,7 @@ define([
 
                     $target.hide();
 
-                    var $addButton = $('<button>').addClass('btn btn-mini btn-primary add-vertices')
+                    var $addButton = $('<button>').addClass('btn btn-mini btn-primary add-vertices');
 
                     if (vertices.length === 0) {
                         $addButton.attr('disabled', true);
