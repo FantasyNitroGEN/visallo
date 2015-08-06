@@ -1,13 +1,10 @@
 package org.visallo.core;
 
-import org.visallo.core.model.termMention.TermMentionBuilder;
-import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.textHighlighting.OffsetItem;
-import org.visallo.core.model.textHighlighting.VertexOffsetItem;
-import org.visallo.core.security.DirectVisibilityTranslator;
-import org.visallo.core.security.VisibilityTranslator;
-import org.visallo.core.user.User;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +15,13 @@ import org.vertexium.Vertex;
 import org.vertexium.Visibility;
 import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.inmemory.InMemoryGraph;
+import org.visallo.core.model.termMention.TermMentionBuilder;
+import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.textHighlighting.OffsetItem;
+import org.visallo.core.model.textHighlighting.VertexOffsetItem;
+import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.user.User;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,9 +62,25 @@ public class EntityHighlighterTest {
         terms.add(createTermMention(sourceVertex, "joe ferner", PERSON_IRI, 18, 28));
         terms.add(createTermMention(sourceVertex, "jeff kunkle", PERSON_IRI, 33, 44, "uniq1"));
         List<OffsetItem> termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", authorizations);
-        String highlightText = EntityHighlighter.getHighlightedText("Test highlight of Joe Ferner and Jeff Kunkle.", termAndTermMetadata);
-        assertEquals("Test highlight of <span class=\"vertex\" title=\"joe ferner\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_--18-28-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:18,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:28}\">Joe Ferner</span> and <span class=\"vertex\" title=\"jeff kunkle\" data-info=\"{&quot;process&quot;:&quot;uniq1&quot;,&quot;id&quot;:&quot;TM_--33-44-uniq1&quot;,&quot;title&quot;:&quot;jeff kunkle&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:33,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:44}\">Jeff Kunkle</span>.",
-                highlightText);
+        String highlightedText = EntityHighlighter.getHighlightedText("Test highlight of Joe Ferner and Jeff Kunkle.", termAndTermMetadata);
+        String expectedText = "Test highlight of <span class=\"vertex\" title=\"joe ferner\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_--18-28-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:18,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:28}\">Joe Ferner</span> and <span class=\"vertex\" title=\"jeff kunkle\" data-info=\"{&quot;process&quot;:&quot;uniq1&quot;,&quot;id&quot;:&quot;TM_--33-44-uniq1&quot;,&quot;title&quot;:&quot;jeff kunkle&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:33,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:44}\">Jeff Kunkle</span>.";
+        Elements expectedElements = Jsoup.parseBodyFragment(expectedText).getAllElements();
+        Elements highlightedElements = Jsoup.parseBodyFragment(highlightedText).getAllElements();
+        assertEquals(expectedElements.size(), highlightedElements.size());
+        for (int i = 0; i < expectedElements.size(); i++) {
+            Element expectedElement = expectedElements.get(i);
+            Element highlightedElement = highlightedElements.get(i);
+            assertEquals(expectedElement.attributes().size(), highlightedElement.attributes().size());
+            for (Attribute expectedAttr : expectedElement.attributes()) {
+                String expectedAttrValue = expectedAttr.getValue();
+                String highlightedAttrValue = highlightedElement.attr(expectedAttr.getKey());
+                if (expectedAttr.getKey().equals("data-info")) {
+                    assertEquals(new JSONObject(expectedAttrValue).toString(), new JSONObject(highlightedAttrValue).toString());
+                } else {
+                    assertEquals(expectedAttrValue, highlightedAttrValue);
+                }
+            }
+        }
     }
 
     private Vertex createTermMention(Vertex sourceVertex, String sign, String conceptIri, int start, int end) {
