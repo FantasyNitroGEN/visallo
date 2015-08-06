@@ -163,12 +163,12 @@ public class UploadRdfIntegrationTest extends TestBase {
         assertEquals(2, paths.getPaths().size());
         boolean foundV5Analytics = false;
         boolean foundRdfDocument = false;
-        for (List<ClientApiVertex> path : paths.getPaths()) {
+        for (List<String> path : paths.getPaths()) {
             assertEquals(3, path.size());
-            if (path.get(1).getId().equals(v5AnalyticsVertexId)) {
+            if (path.get(1).equals(v5AnalyticsVertexId)) {
                 foundV5Analytics = true;
             }
-            if (path.get(1).getId().equals(artifactVertexId)) {
+            if (path.get(1).equals(artifactVertexId)) {
                 foundRdfDocument = true;
             }
         }
