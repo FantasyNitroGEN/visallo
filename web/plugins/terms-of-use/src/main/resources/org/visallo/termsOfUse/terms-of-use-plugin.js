@@ -14,14 +14,15 @@ require([
                     terms.date = new Date(terms.date);
                 }
 
-                if (json.status.current != true) {
+                if (json.status.current !== true) {
                     require([
                         'flight/lib/component',
+                        'util/withDataRequest',
                         'hbs!org/visallo/termsOfUse/terms-of-use'
-                    ], function(defineComponent, tpl) {
+                    ], function(defineComponent, withDataRequest, tpl) {
                         template = tpl;
 
-                        var Terms = defineComponent(TermsOfUse);
+                        var Terms = defineComponent(TermsOfUse, withDataRequest);
                         Terms.attachTo($('#app'), {
                             terms: terms
                         });
@@ -79,19 +80,18 @@ require([
             event.stopPropagation();
             event.preventDefault();
 
-            var button = $(event.target)
-                .addClass('loading')
-                .attr('disabled', true);
+            var self = this,
+                button = $(event.target)
+                    .addClass('loading')
+                    .attr('disabled', true);
 
-            $.post('logout')
-                .fail(this.showButtonError.bind(
-                    this,
-                    button,
-                    i18n('termsOfUse.button.decline.error'))
-                )
-                .done(function() {
+            this.dataRequest('user', 'logout')
+                .then(function() {
                     location.reload();
-                });
+                })
+                .catch(function() {
+                    self.showButtonError(button, i18n('termsOfUse.button.decline.error'));
+                })
         };
 
         this.showButtonError = function(button, errorText) {

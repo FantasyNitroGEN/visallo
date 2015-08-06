@@ -48,7 +48,7 @@ define([
             if (event.which === $.ui.keyCode.ENTER) {
                 event.preventDefault();
                 event.stopPropagation();
-                if (isValid()) {
+                if (isValid() && event.type === 'keyup') {
                     return _.defer(this.login.bind(this));
                 }
             }
