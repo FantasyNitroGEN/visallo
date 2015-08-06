@@ -37,9 +37,6 @@ require([
                     .on('switchWorkspace', function(e, data) {
                         send('feature', 'switchWorkspace', data.workspaceId);
                      })
-                    .on('toggleGraphDimensions', function(e, data) {
-                        send('feature', 'toggleGraphDimensions');
-                    })
                     .on('mapShow', function(e, data) {
                         send('feature', 'mapShow');
                     })
