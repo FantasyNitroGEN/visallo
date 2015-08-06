@@ -23,6 +23,7 @@ require.config({
         'duration-js': 'libs/duration',
         'moment': 'libs/moment-with-locales',
         'moment-timezone': 'libs/moment-timezone-with-data',
+        'duration-js': 'libs/duration-js',
 
         // MOCKS
         'jquery': 'mocks/jquery',
