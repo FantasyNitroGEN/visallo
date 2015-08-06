@@ -15,7 +15,6 @@ import org.vertexium.mutation.ExistingEdgeMutation;
 import org.vertexium.search.IndexHint;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
-import org.vertexium.util.VerticesToEdgeIdsIterable;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.formula.FormulaEvaluator;
@@ -50,7 +49,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
-import static org.vertexium.util.IterableUtils.toSet;
 
 @Singleton
 public class VertexiumWorkspaceRepository extends WorkspaceRepository {
@@ -350,12 +348,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Traced
-    protected Iterable<Edge> findEdges(final Workspace workspace, List<WorkspaceEntity> workspaceEntities, boolean includeHidden, User user) {
+    protected Iterable<Edge> findModifiedEdges(final Workspace workspace, List<WorkspaceEntity> workspaceEntities, boolean includeHidden, User user) {
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
 
         Iterable<Vertex> vertices = WorkspaceEntity.toVertices(workspaceEntities);
-
-        Iterable<String> edgeIds = new VerticesToEdgeIdsIterable(vertices, authorizations);
+        Iterable<String> edgeIds = getGraph().findRelatedEdgeIdsForVertices(vertices, authorizations);
         edgeIds = getGraph().filterEdgeIdsByAuthorization(edgeIds, workspace.getWorkspaceId(), ElementFilter.ALL, authorizations);
 
         return getGraph().getEdges(edgeIds, includeHidden ? FetchHint.ALL_INCLUDING_HIDDEN : FetchHint.ALL, authorizations);
@@ -616,7 +613,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             @Override
             public ClientApiWorkspaceDiff call() throws Exception {
                 List<WorkspaceEntity> workspaceEntities = findEntitiesNoLock(workspace, true, true, user);
-                Iterable<Edge> workspaceEdges = findEdges(workspace, workspaceEntities, true, user);
+                Iterable<Edge> workspaceEdges = findModifiedEdges(workspace, workspaceEntities, true, user);
 
                 FormulaEvaluator.UserContext userContext = new FormulaEvaluator.UserContext(locale, timeZone, workspace.getWorkspaceId());
                 return workspaceDiff.diff(workspace, workspaceEntities, workspaceEdges, userContext, user);
