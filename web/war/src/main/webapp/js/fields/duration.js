@@ -14,7 +14,7 @@ define([
 
     function toSeconds(v) {
         try {
-            var allValid = _.every(v.split(/\s/), function(n) {
+            var allValid = _.every(v.trim().split(/\s+/), function(n) {
                 return P.number.isValidWithUnits(n);
             });
 
