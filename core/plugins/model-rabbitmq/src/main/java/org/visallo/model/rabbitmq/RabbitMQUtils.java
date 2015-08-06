@@ -1,12 +1,11 @@
 package org.visallo.model.rabbitmq;
 
 import com.beust.jcommander.internal.Lists;
-import com.rabbitmq.client.Address;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RabbitMQUtils {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RabbitMQUtils.class);
     private static final String RABBITMQ_ADDR_PREFIX = "rabbitmq.addr";
     private static final int DEFAULT_PORT = 5672;
 
@@ -28,7 +28,17 @@ public class RabbitMQUtils {
             throw new VisalloException("Could not configure RabbitMQ. No addresses specified. expecting configuration parameter 'rabbitmq.addr.0.host'.");
         }
 
-        return new ConnectionFactory().newConnection(addresses);
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setAutomaticRecoveryEnabled(true);
+        final Connection connection = connectionFactory.newConnection(addresses);
+        ((Recoverable) connection).addRecoveryListener(new RecoveryListener() {
+            @Override
+            public void handleRecovery(Recoverable recoverable) {
+                Connection recoveredConnection = (Connection) recoverable;
+                LOGGER.warn("recovered RabbitMQ connection to %s:%d", recoveredConnection.getAddress(), recoveredConnection.getPort());
+            }
+        });
+        return connection;
     }
 
     public static Connection openConnection(Configuration configuration) throws IOException {
