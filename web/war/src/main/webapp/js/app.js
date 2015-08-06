@@ -55,8 +55,7 @@ define([
     }
 
     function App() {
-        var Graph3D,
-            DATA_MENUBAR_NAME = 'menubar-name';
+        var DATA_MENUBAR_NAME = 'menubar-name';
 
         this.onError = function(evt, err) {
             console.error('Error: ' + err.message); // TODO better error handling
@@ -93,10 +92,6 @@ define([
                 Detail,
                 Help
             ], 'teardownAll');
-
-            if (Graph3D) {
-                Graph3D.teardownAll();
-            }
 
             this.$node.empty();
             document.removeEventListener('mousewheel', preventPinchToZoom);
@@ -143,7 +138,6 @@ define([
             this.on(document, 'menubarToggleDisplay', this.toggleDisplay);
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'paneResized', this.onInternalPaneResize);
-            this.on(document, 'toggleGraphDimensions', this.onToggleGraphDimensions);
             this.on(document, 'resizestart', this.onResizeStart);
             this.on(document, 'resizestop', this.onResizeStop);
             this.on(document, 'windowResize', this.onWindowResize);
@@ -455,31 +449,6 @@ define([
             } else {
                 console.log('View ' + data.view + " isn't supported");
             }
-        };
-
-        this.onToggleGraphDimensions = function() {
-            var self = this,
-                node2d = this.$node.find('.graph-pane-2d'),
-                node3d = this.$node.find('.graph-pane-3d'),
-                reloadWorkspace = !this._graphDimensions;
-
-            require(['graph/3d/graph'], function(graph3d) {
-                Graph3D = graph3d;
-
-                if (!self._graphDimensions || self._graphDimensions === 2) {
-                    node2d.removeClass('visible').trigger('hidePanel');
-                    Graph3D.attachTo(node3d.addClass('visible').trigger('showPanel'));
-                    self._graphDimensions = 3;
-                } else {
-                    node3d.removeClass('visible').trigger('hidePanel');
-                    node2d.addClass('visible').trigger('showPanel');
-                    self._graphDimensions = 2;
-                    self.triggerPaneResized();
-                }
-
-                self.trigger('selectObjects');
-                if (reloadWorkspace) self.trigger('reloadWorkspace');
-            });
         };
 
         this.onSessionExpiration = function() {

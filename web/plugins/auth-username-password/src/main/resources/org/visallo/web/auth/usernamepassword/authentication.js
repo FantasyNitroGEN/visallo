@@ -153,6 +153,10 @@ define([
             event.stopPropagation();
             event.target.blur();
 
+            if (this.submitting) {
+                return;
+            }
+
             this.enableButton(false, true);
             this.submitting = true;
             $error.empty();
@@ -160,9 +164,8 @@ define([
             $.post('login', {
                 username: $username.val(),
                 password: $password.val()
-            }).always(function() {
-                self.submitting = false;
             }).fail(function(xhr, status, error) {
+                self.submitting = false;
                 if (xhr.status === 403) {
                     error = 'Invalid Username / Password';
                 }

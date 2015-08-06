@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!./double',
+    'tpl!./integer',
     'util/parsers',
     './withPropertyField',
     './withHistogram'

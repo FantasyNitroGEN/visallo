@@ -11,9 +11,7 @@ define([
     var BUTTONS = 'dashboard graph map search workspaces admin activity logout'.split(' '),
         TOOLTIPS = {
             dashboard: i18n('menubar.icons.dashboard.tooltip'),
-            graph: { html: i18n('menubar.icons.graph') +
-                ' <span class="subtitle">' +
-                i18n('menubar.icons.graph.tooltip.suffix') + '</span>' },
+            graph: i18n('menubar.icons.graph'),
             map: i18n('menubar.icons.map.tooltip'),
             search: i18n('menubar.icons.search.tooltip'),
             workspaces: i18n('menubar.icons.workspaces.tooltip'),
@@ -64,16 +62,7 @@ define([
                 icon.tooltip('hide');
             }
             if (isSwitch && icon.hasClass('active')) {
-
                 icon.toggleClass('toggled');
-
-                // Special case to toggle 2d/3d graph
-                if (name === 'graph') {
-                    requestAnimationFrame(function() {
-                        self.trigger(document, 'toggleGraphDimensions');
-                    });
-                }
-                return;
             } else {
                 requestAnimationFrame(function() {
                     var data = { name: name };

@@ -39,6 +39,7 @@
     <owl:ObjectProperty rdf:about="http://visallo.org/longRunningProcess#hasLongRunningProcess">
         <rdfs:range rdf:resource="http://visallo.org/longRunningProcess#longRunningProcess"/>
         <rdfs:domain rdf:resource="http://visallo.org/user#user"/>
+        <visallo:userVisible>false</visallo:userVisible>
     </owl:ObjectProperty>
     
 
