@@ -24,20 +24,22 @@ define(['util/promise'], function() {
                         !currentType ||
                         currentType !== searchType) {
                         return new Promise(function(f) {
-                            $(document).on('searchtypeloaded', function loadedHandler() {
+                            $(document).on('searchtypeloaded', function loadedHandler(event) {
                                     $(this).off('searchtypeloaded', loadedHandler);
-                                    f();
+                                    f(event.target);
                                 })
                                 .trigger('switchSearchType', searchType);
                         })
                     }
                 })
-                .then(function() {
+                .then(function(node) {
                     if (options && options.clearSearch === true) {
                         $searchPane
                             .find('.search-type-' + searchType.toLowerCase())
                             .trigger('clearSearch');
                     }
+
+                    return node;
                 })
         }
     }

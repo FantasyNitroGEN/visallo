@@ -307,7 +307,8 @@ define([
         };
 
         this.onSwitchSearchType = function(event, data) {
-            if (data !== 'Visallo' && data !== 'Workspace') {
+            if (data !== 'Visallo' && data !== 'Workspace' &&
+               !_.isObject(data) && !data.advancedSearch) {
                 throw new Error('Only Visallo/Workspace types supported');
             }
             this.switchSearchType(data);
@@ -363,7 +364,10 @@ define([
                         AdvancedSearchExtension.attachTo($container, {
                             resultsSelector: cls
                         });
+                        self.trigger($container, 'searchtypeloaded', { type: newSearchType });
                     })
+                } else {
+                    self.trigger($container, 'searchtypeloaded', { type: newSearchType });
                 }
 
                 return;
@@ -392,7 +396,7 @@ define([
             require(['./types/type' + newSearchType], function(SearchType) {
                 var alreadyAttached = node.lookupComponent(SearchType);
                 if (alreadyAttached) {
-                    self.trigger('searchtypeloaded', { type: newSearchType });
+                    self.trigger(node, 'searchtypeloaded', { type: newSearchType });
                 } else {
                     SearchType.attachTo(node);
                 }
