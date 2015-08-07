@@ -1,5 +1,6 @@
 package org.visallo.core.model.workQueue;
 
+import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -134,6 +135,36 @@ public abstract class WorkQueueRepository {
         }
     }
 
+    public void pushGraphPropertyQueue(final Element element, Priority priority){
+        pushGraphPropertyQueue(element, null, null, priority, FlushFlag.DEFAULT);
+    }
+
+    public void pushGraphPropertyQueue(
+            final Element element,
+            String workspaceId,
+            String visibilitySource,
+            Priority priority,
+            FlushFlag flushFlag
+    ) {
+        getGraph().flush();
+        checkNotNull(element);
+        JSONObject data = new JSONObject();
+        if (element instanceof Vertex) {
+            data.put(GraphPropertyRunner.GRAPH_VERTEX_ID, element.getId());
+        } else if (element instanceof Edge) {
+            data.put(GraphPropertyRunner.GRAPH_EDGE_ID, element.getId());
+        } else {
+            throw new VisalloException("Unexpected element type: " + element.getClass().getName());
+        }
+
+        if (workspaceId != null && !workspaceId.equals("")) {
+            data.put("workspaceId", workspaceId);
+            data.put("visibilitySource", visibilitySource);
+        }
+
+        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+    }
+
     protected boolean shouldBroadcastGraphPropertyChange(Element element, String propertyKey, String propertyName, String workspaceId, Priority priority) {
         return shouldBroadcast(priority);
     }
@@ -202,6 +233,12 @@ public abstract class WorkQueueRepository {
 
     public void pushElement(Element element, Priority priority) {
         pushGraphPropertyQueue(element, null, null, priority);
+    }
+
+    public void pushElements(Iterable<? extends Element> elements, Priority priority) {
+        for (Element element : elements) {
+            pushGraphPropertyQueue(element, null, null, priority);
+        }
     }
 
     public void pushElement(Element element) {

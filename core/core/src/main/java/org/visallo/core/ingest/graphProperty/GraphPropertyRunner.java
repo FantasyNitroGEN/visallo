@@ -1,8 +1,10 @@
 package org.visallo.core.ingest.graphProperty;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -11,11 +13,13 @@ import org.vertexium.util.IterableUtils;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.GraphPropertyRunnerStatus;
@@ -38,12 +42,26 @@ public class GraphPropertyRunner extends WorkerBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
     private Graph graph;
     private Authorizations authorizations;
-    private List<GraphPropertyThreadedWrapper> workerWrappers;
+    private List<GraphPropertyThreadedWrapper> workerWrappers = Lists.newArrayList();
     private User user;
     private UserRepository userRepository;
     private WorkQueueNames workQueueNames;
     private Configuration configuration;
     private VisibilityTranslator visibilityTranslator;
+
+    public static final String PROPERTY_KEY = "propertyKey";
+    public static final String PROPERTY_NAME = "propertyName";
+    public static final String GRAPH_VERTEX_ID = "graphVertexId";
+    public static final String GRAPH_EDGE_ID = "graphEdgeId";
+    public static final String WORKSPACE_ID = "workspaceId";
+    public static final String VISIBILITY_SOURCE = "visibilitySource";
+    public static final String PRIORITY = "priority";
+
+    private enum ProcessingType {
+        PROPERTY,
+        ELEMENT,
+        UNKNOWN
+    }
 
     public void prepare(User user) {
         this.user = user;
@@ -64,7 +82,6 @@ public class GraphPropertyRunner extends WorkerBase {
                 this.authorizations,
                 InjectHelper.getInjector());
         Collection<GraphPropertyWorker> workers = InjectHelper.getInjectedServices(GraphPropertyWorker.class, configuration);
-        this.workerWrappers = new ArrayList<>(workers.size());
         for (GraphPropertyWorker worker : workers) {
             try {
                 LOGGER.debug("verifying: %s", worker.getClass().getName());
@@ -81,6 +98,7 @@ public class GraphPropertyRunner extends WorkerBase {
         }
 
         boolean failedToPrepareAtLeastOneGraphPropertyWorker = false;
+        List<GraphPropertyThreadedWrapper> wrappers = Lists.newArrayList();
         for (GraphPropertyWorker worker : workers) {
             try {
                 LOGGER.debug("preparing: %s", worker.getClass().getName());
@@ -92,15 +110,34 @@ public class GraphPropertyRunner extends WorkerBase {
 
             GraphPropertyThreadedWrapper wrapper = new GraphPropertyThreadedWrapper(worker);
             InjectHelper.inject(wrapper);
-            workerWrappers.add(wrapper);
+            wrappers.add(wrapper);
             Thread thread = new Thread(wrapper);
             String workerName = worker.getClass().getName();
             thread.setName("graphPropertyWorker-" + workerName);
             thread.start();
         }
+
+        this.addGraphPropertyThreadedWrappers(wrappers);
+
         if (failedToPrepareAtLeastOneGraphPropertyWorker) {
             throw new VisalloException("Failed to initialize at least one graph property worker. See the log for more details.");
         }
+    }
+
+    private FileSystem getFileSystem() {
+        FileSystem hdfsFileSystem;
+        org.apache.hadoop.conf.Configuration conf = configuration.toHadoopConfiguration();
+        try {
+            String hdfsRootDir = configuration.get(Configuration.HADOOP_URL, null);
+            hdfsFileSystem = FileSystem.get(new URI(hdfsRootDir), conf, "hadoop");
+        } catch (Exception e) {
+            throw new VisalloException("Could not open hdfs filesystem", e);
+        }
+        return hdfsFileSystem;
+    }
+
+    public void addGraphPropertyThreadedWrappers(List<GraphPropertyThreadedWrapper> wrappers) {
+        this.workerWrappers.addAll(wrappers);
     }
 
     private List<TermMentionFilter> loadTermMentionFilters(FileSystem hdfsFileSystem) {
@@ -138,58 +175,154 @@ public class GraphPropertyRunner extends WorkerBase {
         };
     }
 
-    @Override
-    public void process(Object messageId, JSONObject json) throws Exception {
-        String propertyKey = json.optString("propertyKey", "");
-        String propertyName = json.optString("propertyName", "");
-        String workspaceId = json.optString("workspaceId", null);
-        String visibilitySource = json.optString("visibilitySource", null);
-        String priorityString = json.optString("priority", null);
-        Priority priority = Priority.safeParse(priorityString);
-
-        String graphVertexId = json.optString("graphVertexId");
-        if (graphVertexId != null && graphVertexId.length() > 0) {
-            Vertex vertex = graph.getVertex(graphVertexId, this.authorizations);
-            if (vertex == null) {
-                throw new VisalloException("Could not find vertex with id " + graphVertexId);
-            }
-            safeExecute(vertex, propertyKey, propertyName, workspaceId, visibilitySource, priority);
-            return;
+    public ProcessingType findProcessingType(JSONObject json){
+        if(json.has(PROPERTY_KEY) || json.has(PROPERTY_NAME)){
+            return ProcessingType.PROPERTY;
+        }
+        else if(canHandleByVertex(json)) {
+            return ProcessingType.ELEMENT;
+        }
+        else if(canHandleByEdge(json)){
+            return ProcessingType.ELEMENT;
         }
 
-        String graphEdgeId = json.optString("graphEdgeId");
-        if (graphEdgeId != null && graphEdgeId.length() > 0) {
-            Edge edge = graph.getEdge(graphEdgeId, this.authorizations);
-            if (edge == null) {
-                throw new VisalloException("Could not find edge with id " + graphEdgeId);
-            }
-            safeExecute(edge, propertyKey, propertyName, workspaceId, visibilitySource, priority);
-            return;
-        }
-
-        throw new VisalloException("Could not find graphVertexId or graphEdgeId");
+        return ProcessingType.UNKNOWN;
     }
 
-    private void safeExecute(Element element, String propertyKey, String propertyName, String workspaceId, String visibilitySource, Priority priority) throws Exception {
-        Property property;
-        if ((propertyKey == null || propertyKey.length() == 0) && (propertyName == null || propertyName.length() == 0)) {
-            property = null;
-        } else {
-            if (propertyKey == null) {
-                property = element.getProperty(propertyName);
-            } else {
-                property = element.getProperty(propertyKey, propertyName);
+    @Override
+    public void process(Object messageId, JSONObject json) throws Exception {
+        switch(findProcessingType(json)){
+            case PROPERTY:
+                safeExecuteProperty(messageId, json);
+                break;
+            case ELEMENT:
+                safeExecuteElement(messageId, json);
+                break;
+            case UNKNOWN:
+                throw new VisalloException(String.format("Cannot process unknown type of gpw message %s", json));
+        }
+    }
+
+    private void safeExecuteElement(Object messageId, JSONObject json) {
+        MessageProperties message = new MessageProperties(json);
+
+        if(canHandleByVertex(json)){
+            safeExecuteExpandElement(getVertexFromJSONObject(json), message);
+        }
+        else if(canHandleByEdge(json)){
+            safeExecuteExpandElement(getEdgeFromJSONObject(json), message);
+        }
+        else {
+            throw new VisalloException(String.format("Could not find %s or %s", GRAPH_VERTEX_ID, GRAPH_EDGE_ID));
+        }
+    }
+
+    private void safeExecuteExpandElement(Element element, MessageProperties message) {
+        for (Property property : element.getProperties()) {
+            getWorkQueueRepository().pushGraphPropertyQueue(element, property, message.getWorkspaceId(), message.getVisibilitySource(), message.getPriority());
+        }
+
+        LOGGER.info("Pushed all properties from element %s back onto the graph property queue", element.getId());
+    }
+
+    private void safeExecuteProperty(Object messageId, JSONObject json) throws Exception {
+        MessageProperties message = new MessageProperties(json);
+
+        if (canHandleByVertex(json)) {
+            Vertex vertex = getVertexFromJSONObject(json);
+            safeExecute(vertex, message);
+        }
+        else if(canHandleByEdge(json)){
+            Edge edge = getEdgeFromJSONObject(json);
+            safeExecute(edge, message);
+        }
+        else {
+            throw new VisalloException(String.format("Could not find %s or %s", GRAPH_VERTEX_ID, GRAPH_EDGE_ID));
+        }
+    }
+
+    private static class MessageProperties {
+        private JSONObject obj;
+
+        public MessageProperties(JSONObject obj) {
+            this.obj = obj;
+        }
+
+        public String getWorkspaceId() {
+            return this.obj.optString(WORKSPACE_ID, null);
+        }
+
+        public String getVisibilitySource(){
+            return this.obj.optString(VISIBILITY_SOURCE, null);
+        }
+
+        public Priority getPriority(){
+            String priorityString = this.obj.optString(PRIORITY, null);
+            return Priority.safeParse(priorityString);
+        }
+
+        public String getPropertyKey(){
+            return this.obj.optString(PROPERTY_KEY, "");
+        }
+
+        public String getPropertyName() {
+            return this.obj.optString(PROPERTY_NAME, "");
+        }
+    }
+
+    private Vertex getVertexFromJSONObject(JSONObject json){
+        String graphVertexId = json.optString(GRAPH_VERTEX_ID);
+        Vertex vertex = graph.getVertex(graphVertexId, this.authorizations);
+        ensureExists(vertex, "vertex", graphVertexId);
+        return vertex;
+    }
+
+    private Edge getEdgeFromJSONObject(JSONObject json){
+        String graphEdgeId = json.optString(GRAPH_EDGE_ID);
+        Edge edge = graph.getEdge(graphEdgeId, this.authorizations);
+        ensureExists(edge, "edge", graphEdgeId);
+        return edge;
+    }
+
+    private boolean canHandleByVertex(JSONObject json){
+        return canHandleElementById(json.optString(GRAPH_VERTEX_ID));
+    }
+
+    private boolean canHandleByEdge(JSONObject json){
+        return canHandleElementById(json.optString(GRAPH_EDGE_ID));
+    }
+
+    private boolean canHandleElementById(String id){
+        return StringUtils.isNotEmpty(id);
+    }
+
+    private void ensureExists(Element element, String type, String id){
+        if (element == null) {
+            throw new VisalloException(String.format("Could not find %s with id %s", type, id));
+        }
+    }
+
+    private void safeExecute(Element element, MessageProperties message) throws Exception {
+        Property property = null;
+        if (StringUtils.isNotEmpty(message.getPropertyKey()) || StringUtils.isNotEmpty(message.getPropertyName())) {
+           if (message.getPropertyKey() == null) {
+                property = element.getProperty(message.getPropertyName());
             }
+            else {
+                property = element.getProperty(message.getPropertyKey(), message.getPropertyName());
+            }
+
             if (property == null) {
-                LOGGER.error("Could not find property [%s]:[%s] on vertex with id %s", propertyKey, propertyName, element.getId());
+                LOGGER.error("Could not find property [%s]:[%s] on vertex with id %s", message.getPropertyKey(), message.getPropertyName(), element.getId());
                 return;
             }
         }
-        safeExecute(element, property, workspaceId, visibilitySource, priority);
+
+        safeExecute(element, property, message);
     }
 
-    private void safeExecute(Element element, Property property, String workspaceId, String visibilitySource, Priority priority) throws Exception {
-        String propertyText = property == null ? "[none]" : (property.getKey() + ":" + property.getName());
+    private void safeExecute(Element element, Property property, MessageProperties message) throws Exception {
+        String propertyText = getPropertyText(property);
 
         List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property);
         if (interestedWorkerWrappers.size() == 0) {
@@ -206,22 +339,27 @@ public class GraphPropertyRunner extends WorkerBase {
                 visibilityTranslator,
                 element,
                 property,
-                workspaceId,
-                visibilitySource,
-                priority
+                message.getWorkspaceId(),
+                message.getVisibilitySource(),
+                message.getPriority()
         );
 
         LOGGER.debug("Begin work on element %s property %s", element.getId(), propertyText);
         if (property != null && property.getValue() instanceof StreamingPropertyValue) {
             StreamingPropertyValue spb = (StreamingPropertyValue) property.getValue();
             safeExecuteStreamingPropertyValue(interestedWorkerWrappers, workData, spb);
-        } else {
+        }
+        else {
             safeExecuteNonStreamingProperty(interestedWorkerWrappers, workData);
         }
 
         this.graph.flush();
 
         LOGGER.debug("Completed work on %s", propertyText);
+    }
+
+    private String getPropertyText(Property property){
+        return property == null ? "[none]" : (property.getKey() + ":" + property.getName());
     }
 
     private void safeExecuteNonStreamingProperty(List<GraphPropertyThreadedWrapper> interestedWorkerWrappers, GraphPropertyWorkData workData) throws Exception {
