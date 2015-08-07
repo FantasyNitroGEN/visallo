@@ -146,7 +146,7 @@ public class VertexNew extends BaseRequestHandler {
 
         LOGGER.debug("Created new empty vertex with id: %s", vertex.getId());
 
-        workQueueRepository.pushElement(vertex, Priority.HIGH);
+        workQueueRepository.broadcastElement(vertex, workspaceId);
         workQueueRepository.pushGraphPropertyQueue(
                 vertex,
                 null,

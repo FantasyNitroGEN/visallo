@@ -123,7 +123,7 @@ public class FileImport {
             LOGGER.warn("vertex already exists with hash %s", hash);
             if (queueDuplicates) {
                 LOGGER.debug("pushing %s on to %s queue", vertex.getId(), workQueueNames.getGraphPropertyQueueName());
-                this.workQueueRepository.pushElement(vertex);
+                this.workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
                 if (workspace != null) {
                     this.workQueueRepository.pushGraphPropertyQueue(
                             vertex,
@@ -193,13 +193,15 @@ public class FileImport {
 
             graph.flush();
 
+            String workspaceId = null;
             if (workspace != null) {
                 workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), null, null, user);
+                workspaceId = workspace.getWorkspaceId();
             }
 
             LOGGER.debug("File %s imported. vertex id: %s", f.getAbsolutePath(), vertex.getId());
             LOGGER.debug("pushing %s on to %s queue", vertex.getId(), workQueueNames.getGraphPropertyQueueName());
-            this.workQueueRepository.pushElement(vertex);
+            this.workQueueRepository.broadcastElement(vertex, workspaceId);
             this.workQueueRepository.pushGraphVisalloPropertyQueue(
                     vertex,
                     changedProperties, workspace == null ? null : workspace.getWorkspaceId(),

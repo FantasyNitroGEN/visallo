@@ -51,7 +51,7 @@ public class QueueEdges extends BaseRequestHandler {
                     if (finalLabel != null && !finalLabel.equals(edge.getLabel())) {
                         continue;
                     }
-                    workQueueRepository.pushElement(edge);
+                    workQueueRepository.broadcastElement(edge, null);
                 }
                 workQueueRepository.flush();
                 LOGGER.info("requeue all edges complete");

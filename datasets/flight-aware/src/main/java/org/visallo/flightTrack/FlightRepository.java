@@ -132,7 +132,7 @@ public class FlightRepository {
             }
             Edge e = graph.addEdge(toDestinationEdgeId(airplaneVertex, destinationVertex), airplaneVertex, destinationVertex, FlightTrackOntology.EDGE_LABEL_HAS_DESTINATION, visibility, authorizations);
             graph.flush();
-            workQueueRepository.pushElement(e);
+            workQueueRepository.broadcastElement(e, null);
             return true;
         }
         return false;
@@ -147,7 +147,7 @@ public class FlightRepository {
             }
             Edge e = graph.addEdge(toOriginEdgeId(airplaneVertex, originVertex), airplaneVertex, originVertex, FlightTrackOntology.EDGE_LABEL_HAS_ORIGIN, visibility, authorizations);
             graph.flush();
-            workQueueRepository.pushElement(e);
+            workQueueRepository.broadcastElement(e, null);
             return true;
         }
         return false;
@@ -183,7 +183,7 @@ public class FlightRepository {
 
         graph.flush();
 
-        workQueueRepository.pushElement(v);
+        workQueueRepository.broadcastElement(v, null);
         workQueueRepository.pushGraphPropertyQueue(v, MULTI_VALUE_PROPERTY_KEY, FlightTrackOntology.AIRPORT_CODE.getPropertyName(), priority);
 
         return v;
@@ -212,7 +212,7 @@ public class FlightRepository {
         identToVertex.put(ident, airplaneVertex);
         graph.flush();
 
-        workQueueRepository.pushElement(airplaneVertex);
+        workQueueRepository.broadcastElement(airplaneVertex, null);
         workQueueRepository.pushGraphPropertyQueue(airplaneVertex, MULTI_VALUE_PROPERTY_KEY, FlightTrackOntology.IDENT.getPropertyName(), priority);
 
         Vertex airlineVertex = findAirlineVertexFromIdent(ident, visibility, priority, authorizations);
@@ -224,7 +224,7 @@ public class FlightRepository {
             if (graph.getEdge(airlineHasAirplaneId, authorizations) == null) {
                 Edge e = graph.addEdge(airlineHasAirplaneId, airlineVertex, airplaneVertex, FlightTrackOntology.EDGE_LABEL_HAS_AIRPLANE, visibility, authorizations);
                 graph.flush();
-                workQueueRepository.pushElement(e);
+                workQueueRepository.broadcastElement(e, null);
             }
         }
 
@@ -261,8 +261,8 @@ public class FlightRepository {
 
         graph.flush();
 
-        workQueueRepository.pushElement(v);
-        workQueueRepository.pushGraphPropertyQueue(v, MULTI_VALUE_PROPERTY_KEY, FlightTrackOntology.AIRLINE_NAME.getPropertyName(), priority);
+        workQueueRepository.broadcastElement(v, null);
+        workQueueRepository.pushGraphPropertyQueue(v, MULTI_VALUE_PROPERTY_KEY, VisalloProperties.TITLE.getPropertyName(), priority);
         workQueueRepository.pushGraphPropertyQueue(v, MULTI_VALUE_PROPERTY_KEY, FlightTrackOntology.AIRLINE_PREFIX.getPropertyName(), priority);
 
         return v;

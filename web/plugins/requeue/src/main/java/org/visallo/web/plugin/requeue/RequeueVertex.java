@@ -60,7 +60,7 @@ public class RequeueVertex extends BaseRequestHandler {
     }
 
     private void requeueVertex(Vertex vertex) {
-        workQueueRepository.pushElement(vertex, Priority.HIGH);
+        workQueueRepository.broadcastElement(vertex, null);
         for (Property property : vertex.getProperties()) {
             workQueueRepository.pushGraphPropertyQueue(vertex, property, Priority.HIGH);
         }

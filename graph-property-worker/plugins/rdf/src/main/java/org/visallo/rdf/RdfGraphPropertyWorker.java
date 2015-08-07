@@ -78,6 +78,10 @@ public class RdfGraphPropertyWorker extends GraphPropertyWorker {
     }
 
     private void importRdf(Graph graph, InputStream in, File baseDir, GraphPropertyWorkData data, Visibility visibility, Priority priority, Authorizations authorizations) {
+        String workspaceId = null;
+        if (data != null) {
+            workspaceId = data.getWorkspaceId();
+        }
         if (rdfConceptTypeIri != null && data != null) {
             VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), rdfConceptTypeIri, data.createPropertyMetadata(), visibility, getAuthorizations());
         }
@@ -92,7 +96,7 @@ public class RdfGraphPropertyWorker extends GraphPropertyWorker {
 
         LOGGER.debug("pushing vertices from RDF import on to work queue");
         for (Vertex vertex : results.getVertices()) {
-            getWorkQueueRepository().pushElement(vertex);
+            getWorkQueueRepository().broadcastElement(vertex, workspaceId);
             for (Property prop : vertex.getProperties()) {
                 getWorkQueueRepository().pushGraphPropertyQueue(vertex, prop, priority);
             }
@@ -100,7 +104,7 @@ public class RdfGraphPropertyWorker extends GraphPropertyWorker {
 
         LOGGER.debug("pushing edges from RDF import on to work queue");
         for (Edge edge : results.getEdges()) {
-            getWorkQueueRepository().pushElement(edge);
+            getWorkQueueRepository().broadcastElement(edge, workspaceId);
             for (Property prop : edge.getProperties()) {
                 getWorkQueueRepository().pushGraphPropertyQueue(edge, prop, priority);
             }

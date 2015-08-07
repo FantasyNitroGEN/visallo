@@ -53,7 +53,7 @@ public class QueueVertices extends BaseRequestHandler {
                 Iterable<Vertex> vertices = graph.getVertices(authorizations);
                 for (Vertex vertex : vertices) {
                     if (finalPropertyName == null) {
-                        workQueueRepository.pushElement(vertex);
+                        workQueueRepository.broadcastElement(vertex, null);
                         pushedCount++;
                     } else {
                         Iterable<Property> properties = vertex.getProperties(finalPropertyName);
