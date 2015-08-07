@@ -14,6 +14,7 @@ import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.externalResource.ExternalResourceRunner;
 import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.ingest.video.VideoFrameInfo;
@@ -50,26 +51,31 @@ public class ApplicationBootstrap implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        final ServletContext context = sce.getServletContext();
-        System.out.println("Servlet context initialized...");
+        try {
+            final ServletContext context = sce.getServletContext();
+            System.out.println("Servlet context initialized...");
 
-        if (context == null) {
-            throw new RuntimeException("Failed to initialize context. Visallo is not running.");
+            if (context == null) {
+                throw new RuntimeException("Failed to initialize context. Visallo is not running.");
+            }
+            VisalloLoggerFactory.setProcessType("web");
+
+            final Configuration config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), getInitParametersAsMap(context));
+            config.setDefaults(WebConfiguration.DEFAULTS);
+            LOGGER = VisalloLoggerFactory.getLogger(ApplicationBootstrap.class);
+            LOGGER.info("Running application with configuration:\n%s", config);
+
+            setupInjector(context, config);
+            verifyGraphVersion();
+            setupGraphAuthorizations();
+            setupWebApp(context, config);
+            setupLongRunningProcessRunner(config);
+            setupGraphPropertyWorkerRunner(config);
+            setupExternalResourceWorkers(config);
+        } catch (Throwable ex) {
+            LOGGER.error("Could not startup context", ex);
+            throw new VisalloException("Could not startup context", ex);
         }
-        VisalloLoggerFactory.setProcessType("web");
-
-        final Configuration config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), getInitParametersAsMap(context));
-        config.setDefaults(WebConfiguration.DEFAULTS);
-        LOGGER = VisalloLoggerFactory.getLogger(ApplicationBootstrap.class);
-        LOGGER.info("Running application with configuration:\n%s", config);
-
-        setupInjector(context, config);
-        verifyGraphVersion();
-        setupGraphAuthorizations();
-        setupWebApp(context, config);
-        setupLongRunningProcessRunner(config);
-        setupGraphPropertyWorkerRunner(config);
-        setupExternalResourceWorkers(config);
     }
 
     private void verifyGraphVersion() {

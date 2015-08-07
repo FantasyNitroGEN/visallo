@@ -795,6 +795,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     @Override
     public void writePackage(File file, IRI documentIRI, Authorizations authorizations) throws Exception {
+        if (!file.exists()) {
+            throw new VisalloException("OWL file does not exist: " + file.getAbsolutePath());
+        }
+        if (!file.isFile()) {
+            throw new VisalloException("OWL file is not a file: " + file.getAbsolutePath());
+        }
         ZipFile zipped = new ZipFile(file);
         if (zipped.isValidZipFile()) {
             File tempDir = Files.createTempDir();
