@@ -35,7 +35,7 @@ public abstract class TaskBase {
             LOGGER.info("END Run");
             System.exit(ContainerExitStatus.SUCCESS);
         } catch (Throwable ex) {
-            LOGGER.info("FAILED Run", ex);
+            LOGGER.error("FAILED Run", ex);
             System.exit(1);
         }
     }
