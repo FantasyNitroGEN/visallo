@@ -29,6 +29,7 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.*;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
