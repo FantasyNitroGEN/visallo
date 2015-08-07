@@ -125,6 +125,9 @@ define([
             if (processId) {
                 $button.addClass('loading');
                 this.dataRequest('longRunningProcess', name, processId)
+                    .then(function() {
+                        $(event.target).closest('li').remove();
+                    })
                     .finally(function() {
                         $button.removeClass('loading');
                     })
