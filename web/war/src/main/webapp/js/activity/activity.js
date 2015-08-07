@@ -32,7 +32,7 @@ define([
     }
 
     function processIsFinished(process) {
-        return process.cancelled || process.endTime;
+        return process.canceled || process.endTime;
     }
 
     function processShouldAutoDismiss(process) {
@@ -135,7 +135,7 @@ define([
             var task = data.process;
 
             this.addOrUpdateTask(task);
-            this.update();
+            this.update(true);
         };
 
         this.onLongRunningProcessDeleted = function(event, data) {
@@ -143,17 +143,7 @@ define([
                 processId = data.processId;
 
             this.removeTask(processId);
-            Promise.resolve(this.update())
-                .then(function() {
-                    if (self.currentTaskCount === 0) {
-                        _.delay(function() {
-                            var visible = self.$node.closest('.visible').length > 0;
-                            if (visible) {
-                                self.trigger('menubarToggleDisplay', { name: 'activity' });
-                            }
-                        }, 250)
-                    }
-                })
+            this.update(true);
         };
 
         this.onVerticesUpdated = function(event, data) {
@@ -267,7 +257,7 @@ define([
             }
         }
 
-        this.update = function() {
+        this.update = function(closeIfEmpty) {
             var self = this,
                 tasks = _.chain(this.tasks)
                     .filter(function(p) {
@@ -322,6 +312,16 @@ define([
             return Promise.require.apply(Promise, uniqueTypes)
                 .then(function(deps) {
                     self.updateWithDependencies.apply(self, [data, uniqueTypes].concat(deps))
+                })
+                .then(function() {
+                    if (closeIfEmpty && self.currentTaskCount === 0) {
+                        _.delay(function() {
+                            var visible = self.$node.closest('.visible').length > 0;
+                            if (visible) {
+                                self.trigger('menubarToggleDisplay', { name: 'activity' });
+                            }
+                        }, 250)
+                    }
                 })
         };
 

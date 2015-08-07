@@ -124,8 +124,11 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         checkNotNull(vertex, "Could not find long running process vertex: " + longRunningProcessId);
         JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
         json.put("canceled", true);
+        json.put("id", longRunningProcessId);
         LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(vertex, json, getVisibility(), getAuthorizations(user));
         this.graph.flush();
+
+        workQueueRepository.broadcastLongRunningProcessChange(json);
     }
 
     @Override
@@ -138,6 +141,7 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
         json.put("progress", progressPercent);
         json.put("progressMessage", message);
+        json.put("id", longRunningProcessGraphVertexId);
         LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(vertex, json, getVisibility(), authorizations);
         this.graph.flush();
 
