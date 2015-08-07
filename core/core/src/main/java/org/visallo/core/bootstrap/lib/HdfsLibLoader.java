@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 
-@Name("HDFS lib Directory")
-@Description("Loads LIBs from a HDFS directory")
+@Name("HDFS Lib Directory")
+@Description("Loads .jar files from a HDFS directory")
 public class HdfsLibLoader extends LibLoader {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(HdfsLibLoader.class);
 

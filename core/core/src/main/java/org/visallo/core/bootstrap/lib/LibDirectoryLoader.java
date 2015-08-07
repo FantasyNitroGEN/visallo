@@ -10,8 +10,8 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import java.io.File;
 import java.util.List;
 
-@Name("lib Directory")
-@Description("Loads LIBs from a local file system directory")
+@Name("Lib Directory")
+@Description("Loads .jar files from a directory on the local file system")
 public class LibDirectoryLoader extends LibLoader {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LibDirectoryLoader.class);
 
