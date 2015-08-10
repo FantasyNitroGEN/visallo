@@ -27,10 +27,6 @@ public abstract class HttpRepository {
 
     protected HttpRepository(Configuration configuration) {
         String proxyUrlString = configuration.get("http.proxy.url", null);
-        Proxy.Type proxyType;
-        SocketAddress proxyAddress;
-        String proxyUsername;
-        String proxyPassword;
         if (proxyUrlString != null) {
             try {
                 URL proxyUrl = new URL(proxyUrlString);
@@ -46,16 +42,13 @@ public abstract class HttpRepository {
 
             proxyUsername = configuration.get("http.proxy.username", null);
             proxyPassword = configuration.get("http.proxy.password", null);
+            LOGGER.info("configured to use proxy (type: %s, address: %s, username: %s, w/password: %s)", proxyType, proxyAddress, proxyUsername, proxyPassword != null);
         } else {
             proxyType = null;
             proxyAddress = null;
             proxyUsername = null;
             proxyPassword = null;
         }
-        this.proxyType = proxyType;
-        this.proxyAddress = proxyAddress;
-        this.proxyUsername = proxyUsername;
-        this.proxyPassword = proxyPassword;
     }
 
     public byte[] get(String urlString) {
@@ -63,7 +56,6 @@ public abstract class HttpRepository {
     }
 
     public byte[] get(String urlString, int retryCount) {
-        LOGGER.trace("getting %s with retry count %d", urlString, retryCount);
         try {
             URL url = new URL(urlString);
             HttpURLConnection connection;
@@ -75,8 +67,10 @@ public abstract class HttpRepository {
                     String authString = "Basic " + new BASE64Encoder().encode(uname_pwd.getBytes());
                     connection.setRequestProperty("Proxy-Authorization", authString);
                 }
+                LOGGER.trace("getting (via proxy) %s with retry count %d", urlString, retryCount);
             } else {
                 connection = (HttpURLConnection) url.openConnection();
+                LOGGER.trace("getting %s with retry count %d", urlString, retryCount);
             }
             connection.setRequestProperty("Accept-Encoding", "gzip");
             int responseCode = connection.getResponseCode();
