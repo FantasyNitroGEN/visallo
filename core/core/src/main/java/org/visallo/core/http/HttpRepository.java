@@ -13,6 +13,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.Date;
 import java.util.Map;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 public abstract class HttpRepository {
@@ -43,6 +47,30 @@ public abstract class HttpRepository {
                 LOGGER.info("configured to use proxy (type: %s, address: %s, username: %s, w/password: %s)", proxyType, proxyAddress, proxyUsername, proxyPassword != null);
             } catch (MalformedURLException e) {
                 throw new VisalloException("Failed to parse url: " + proxyUrlString, e);
+            }
+
+            if (LOGGER.isTraceEnabled()) {
+                String packageName = "sun.net.www.protocol.http";
+                LOGGER.trace("configuring JUL -> Log4J logging for: %s", packageName);
+                Handler handler = new Handler() {
+                    @Override
+                    public void publish(LogRecord record) {
+                        LOGGER.trace("%s.%s [%s] %s",record.getSourceClassName(), record.getSourceMethodName(), record.getLevel(), record.getMessage());
+                    }
+
+                    @Override
+                    public void flush() {
+                        // do nothing
+                    }
+
+                    @Override
+                    public void close() throws SecurityException {
+                        // do nothing
+                    }
+                };
+                Logger logger = Logger.getLogger(packageName);
+                logger.addHandler(handler);
+                logger.setLevel(Level.ALL);
             }
         } else {
             proxyType = null;
@@ -160,8 +188,10 @@ public abstract class HttpRepository {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             if(getRequestingHost().equals(proxyHost) && getRequestingPort() == proxyPort) {
+                LOGGER.trace("ProxyAuthenticator.getPasswordAuthentication() Responding to proxy authentication request");
                 return new PasswordAuthentication(username, password);
             }
+            LOGGER.trace("ProxyAuthenticator.getPasswordAuthentication() Ignoring authentication request for: %s:%d", getRequestingHost(), getRequestingPort());
             return null;
         }
     }
