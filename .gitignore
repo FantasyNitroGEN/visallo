@@ -16,3 +16,4 @@ npm-debug.log
 /web/src/main/webapp/libs
 catalog-v001.xml
 _site
+docs/_book/
