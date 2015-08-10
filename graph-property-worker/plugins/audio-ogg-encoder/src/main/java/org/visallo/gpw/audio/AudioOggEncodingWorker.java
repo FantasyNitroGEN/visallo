@@ -16,6 +16,7 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,7 +50,7 @@ public class AudioOggEncodingWorker extends GraphPropertyWorker {
             try (InputStream mp4FileIn = new FileInputStream(mp4File)) {
                 StreamingPropertyValue spv = new StreamingPropertyValue(mp4FileIn, byte[].class);
                 spv.searchIndex(false);
-                Metadata metadata = new Metadata();
+                Metadata metadata = data.createPropertyMetadata();
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), MediaVisalloProperties.MIME_TYPE_AUDIO_OGG, getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.AUDIO_OGG.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());

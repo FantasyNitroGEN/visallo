@@ -15,7 +15,6 @@ import org.visallo.core.model.Name;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.types.DoubleSingleValueVisalloProperty;
 import org.visallo.core.model.properties.types.DoubleVisalloProperty;
 import org.visallo.core.model.properties.types.IntegerVisalloProperty;
 import org.visallo.core.security.VisalloVisibility;
@@ -23,6 +22,7 @@ import org.visallo.core.util.FFprobeVideoFiltersUtil;
 import org.visallo.core.util.ProcessRunner;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -67,7 +67,7 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
             if (videoDuration != null && videoDuration <= ArtifactThumbnailRepository.FRAMES_PER_PREVIEW) {
                 defaultFPSToExtract = (double)ArtifactThumbnailRepository.FRAMES_PER_PREVIEW / videoDuration;
             }
-            extractFrames(data.getLocalFile(), tempDir, data, defaultFPSToExtract, videoRotation);
+            extractFrames(data.getLocalFile(), tempDir, defaultFPSToExtract, videoRotation);
 
             List<String> propertyKeys = new ArrayList<>();
             for (File frameFile : tempDir.listFiles()) {
@@ -82,6 +82,7 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
                     StreamingPropertyValue frameValue = new StreamingPropertyValue(frameFileIn, byte[].class);
                     frameValue.searchIndex(false);
                     String key = String.format("%08d", Math.max(0L, frameStartTime));
+
                     Metadata metadata = data.createPropertyMetadata();
                     metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), "image/png", getVisibilityTranslator().getDefaultVisibility());
                     metadata.add(MediaVisalloProperties.METADATA_VIDEO_FRAME_START_TIME, frameStartTime, getVisibilityTranslator().getDefaultVisibility());
@@ -92,7 +93,7 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
                 }
             }
 
-            generateAndSaveVideoPreviewImage((Vertex) data.getElement(), videoRotation);
+            generateAndSaveVideoPreviewImage(data, (Vertex) data.getElement(), videoRotation);
 
             getGraph().flush();
 
@@ -104,8 +105,8 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
         }
     }
 
-    private void extractFrames(File videoFileName, File outDir, GraphPropertyWorkData data, double framesPerSecondToExtract, int videoRotation) throws IOException, InterruptedException {
-        String[] ffmpegOptionsArray = prepareFFMPEGOptions(videoFileName, outDir, data, framesPerSecondToExtract, videoRotation);
+    private void extractFrames(File videoFileName, File outDir, double framesPerSecondToExtract, int videoRotation) throws IOException, InterruptedException {
+        String[] ffmpegOptionsArray = prepareFFMPEGOptions(videoFileName, outDir, framesPerSecondToExtract, videoRotation);
         processRunner.execute(
                 "ffmpeg",
                 ffmpegOptionsArray,
@@ -114,7 +115,7 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
         );
     }
 
-    private String[] prepareFFMPEGOptions(File videoFileName, File outDir, GraphPropertyWorkData data, double framesPerSecondToExtract, int videoRotation) {
+    private String[] prepareFFMPEGOptions(File videoFileName, File outDir, double framesPerSecondToExtract, int videoRotation) {
 
         ArrayList<String> ffmpegOptionsList = new ArrayList<>();
         ffmpegOptionsList.add("-i");
@@ -149,14 +150,14 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
         return true;
     }
 
-    private void generateAndSaveVideoPreviewImage(Vertex artifactVertex, int videoRotation) {
+    private void generateAndSaveVideoPreviewImage(GraphPropertyWorkData data, Vertex artifactVertex, int videoRotation) {
         LOGGER.info("Generating video preview for %s", artifactVertex.getId());
 
         try {
             Iterable<Property> videoFrames = getVideoFrameProperties(artifactVertex);
             List<Property> videoFramesForPreview = getFramesForPreview(videoFrames);
             BufferedImage previewImage = createPreviewImage(videoFramesForPreview, videoRotation);
-            saveImage(artifactVertex, previewImage);
+            saveImage(data, artifactVertex, previewImage);
         } catch (IOException e) {
             throw new RuntimeException("Could not create preview image for artifact: " + artifactVertex.getId(), e);
         }
@@ -164,12 +165,13 @@ public class VideoFrameExtractGraphPropertyWorker extends GraphPropertyWorker {
         LOGGER.debug("Finished creating preview for: %s", artifactVertex.getId());
     }
 
-    private void saveImage(Vertex artifactVertex, BufferedImage previewImage) throws IOException {
+    private void saveImage(GraphPropertyWorkData data, Vertex artifactVertex, BufferedImage previewImage) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ImageIO.write(previewImage, "png", out);
         StreamingPropertyValue spv = new StreamingPropertyValue(new ByteArrayInputStream(out.toByteArray()), byte[].class);
         spv.searchIndex(false);
-        MediaVisalloProperties.VIDEO_PREVIEW_IMAGE.setProperty(artifactVertex, spv, artifactVertex.getVisibility(), getAuthorizations());
+        Metadata metadata = data.createPropertyMetadata();
+        MediaVisalloProperties.VIDEO_PREVIEW_IMAGE.setProperty(artifactVertex, spv, metadata, artifactVertex.getVisibility(), getAuthorizations());
         getGraph().flush();
     }
 

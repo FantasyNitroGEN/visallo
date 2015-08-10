@@ -116,8 +116,7 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
         BufferedImage bImage = artifactThumbnailRepository.getTransformedImage(originalImage, artifactVertex, data.getProperty().getKey());
         List<ArtifactDetectedObject> detectedObjects = detectObjects(bImage);
 
-        Metadata metadata = new Metadata();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, data.getVisibilityJson(), data.getVisibility());
+        Metadata metadata = data.createPropertyMetadata();
         saveDetectedObjects((Vertex) data.getElement(), metadata, detectedObjects, data.getPriority());
     }
 

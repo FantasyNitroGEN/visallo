@@ -20,6 +20,7 @@ import org.visallo.core.util.FFprobeVideoFiltersUtil;
 import org.visallo.core.util.ProcessRunner;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -89,7 +90,7 @@ public class VideoMp4EncodingWorker extends GraphPropertyWorker {
             try (InputStream mp4RelocatedFileIn = new FileInputStream(mp4RelocatedFile)) {
                 StreamingPropertyValue spv = new StreamingPropertyValue(mp4RelocatedFileIn, byte[].class);
                 spv.searchIndex(false);
-                Metadata metadata = new Metadata();
+                Metadata metadata = data.createPropertyMetadata();
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), MediaVisalloProperties.MIME_TYPE_VIDEO_MP4, getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.VIDEO_MP4.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());

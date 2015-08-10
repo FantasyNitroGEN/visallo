@@ -21,6 +21,7 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,7 +66,7 @@ public class VideoPosterFrameWorker extends GraphPropertyWorker {
 
                 StreamingPropertyValue spv = new StreamingPropertyValue(videoPosterFrameFileIn, byte[].class);
                 spv.searchIndex(false);
-                Metadata metadata = new Metadata();
+                Metadata metadata = data.createPropertyMetadata();
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), "image/png", getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.RAW_POSTER_FRAME.addPropertyValue(m, PROPERTY_KEY, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
