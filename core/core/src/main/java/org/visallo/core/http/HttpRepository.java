@@ -1,11 +1,10 @@
 package org.visallo.core.http;
 
+import org.apache.commons.io.IOUtils;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.commons.io.IOUtils;
-import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,8 +21,6 @@ public abstract class HttpRepository {
     private static final int DEFAULT_RETRY_COUNT = 2;
     private final Proxy.Type proxyType;
     private final SocketAddress proxyAddress;
-    private final String proxyUsername;
-    private final String proxyPassword;
 
     protected HttpRepository(Configuration configuration) {
         String proxyUrlString = configuration.get("http.proxy.url", null);
@@ -36,18 +33,20 @@ public abstract class HttpRepository {
                     throw new MalformedURLException("Expected port");
                 }
                 proxyAddress = new InetSocketAddress(proxyUrl.getHost(), port);
+
+                String proxyUsername = configuration.get("http.proxy.username", null);
+                String proxyPassword = configuration.get("http.proxy.password", null);
+                if(proxyUsername != null && proxyPassword != null) {
+                    Authenticator.setDefault(new ProxyAuthenticator(proxyUrl.getHost(), proxyUrl.getPort(), proxyUsername, proxyPassword));
+                }
+
+                LOGGER.info("configured to use proxy (type: %s, address: %s, username: %s, w/password: %s)", proxyType, proxyAddress, proxyUsername, proxyPassword != null);
             } catch (MalformedURLException e) {
                 throw new VisalloException("Failed to parse url: " + proxyUrlString, e);
             }
-
-            proxyUsername = configuration.get("http.proxy.username", null);
-            proxyPassword = configuration.get("http.proxy.password", null);
-            LOGGER.info("configured to use proxy (type: %s, address: %s, username: %s, w/password: %s)", proxyType, proxyAddress, proxyUsername, proxyPassword != null);
         } else {
             proxyType = null;
             proxyAddress = null;
-            proxyUsername = null;
-            proxyPassword = null;
         }
     }
 
@@ -62,11 +61,6 @@ public abstract class HttpRepository {
             if (proxyType != null) {
                 Proxy proxy = new Proxy(proxyType, proxyAddress);
                 connection = (HttpURLConnection) url.openConnection(proxy);
-                if (proxyUsername != null) {
-                    String uname_pwd = proxyUsername + ":" + proxyPassword;
-                    String authString = "Basic " + new BASE64Encoder().encode(uname_pwd.getBytes());
-                    connection.setRequestProperty("Proxy-Authorization", authString);
-                }
                 LOGGER.trace("getting (via proxy) %s with retry count %d", urlString, retryCount);
             } else {
                 connection = (HttpURLConnection) url.openConnection();
@@ -148,5 +142,27 @@ public abstract class HttpRepository {
         }
         String completeUrl = url + "?" + query.toString();
         return get(completeUrl);
+    }
+
+    private class ProxyAuthenticator extends Authenticator {
+        private String proxyHost;
+        private int proxyPort;
+        private String username;
+        private char[] password;
+
+        public ProxyAuthenticator(String proxyHost, int proxyPort, String username, String password) {
+            this.proxyHost = proxyHost;
+            this.proxyPort = proxyPort;
+            this.username = username;
+            this.password = password.toCharArray();
+        }
+
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+            if(getRequestingHost().equals(proxyHost) && getRequestingPort() == proxyPort) {
+                return new PasswordAuthentication(username, password);
+            }
+            return null;
+        }
     }
 }
