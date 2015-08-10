@@ -193,7 +193,7 @@ public class GraphPropertyRunner extends WorkerBase {
 
         List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property);
         if (interestedWorkerWrappers.size() == 0) {
-            LOGGER.info("Could not find interested workers for element %s property %s", element.getId(), propertyText);
+            LOGGER.debug("Could not find interested workers for element %s property %s", element.getId(), propertyText);
             return;
         }
         if (LOGGER.isDebugEnabled()) {
