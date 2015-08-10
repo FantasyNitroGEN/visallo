@@ -40,7 +40,7 @@ public abstract class HttpRepository {
 
                 String proxyUsername = configuration.get("http.proxy.username", null);
                 String proxyPassword = configuration.get("http.proxy.password", null);
-                if(proxyUsername != null && proxyPassword != null) {
+                if (proxyUsername != null && proxyPassword != null) {
                     Authenticator.setDefault(new ProxyAuthenticator(proxyUrl.getHost(), proxyUrl.getPort(), proxyUsername, proxyPassword));
                 }
 
@@ -55,7 +55,7 @@ public abstract class HttpRepository {
                 Handler handler = new Handler() {
                     @Override
                     public void publish(LogRecord record) {
-                        LOGGER.trace("%s.%s [%s] %s",record.getSourceClassName(), record.getSourceMethodName(), record.getLevel(), record.getMessage());
+                        LOGGER.trace("%s.%s [%s] %s", record.getSourceClassName(), record.getSourceMethodName(), record.getLevel(), record.getMessage());
                     }
 
                     @Override
@@ -187,7 +187,7 @@ public abstract class HttpRepository {
 
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
-            if(getRequestingHost().equals(proxyHost) && getRequestingPort() == proxyPort) {
+            if (getRequestingHost().equals(proxyHost) && getRequestingPort() == proxyPort) {
                 LOGGER.trace("ProxyAuthenticator.getPasswordAuthentication() Responding to proxy authentication request");
                 return new PasswordAuthentication(username, password);
             }
