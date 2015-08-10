@@ -226,25 +226,34 @@ define([
 
             $(document.body).toggleClass('animatelogin', !!this.attr.animateFromLogin);
 
-            this.trigger(document, 'menubarToggleDisplay', { name: graphPane.data(DATA_MENUBAR_NAME) });
 
             this.triggerPaneResized();
+            this.dataRequest('config', 'properties')
+                .done(function(properties) {
+                    var name = graphPane.data(DATA_MENUBAR_NAME),
+                        defaultKey = 'menubar.default.selected';
 
-            if (this.attr.animateFromLogin) {
-                $(document.body).on(TRANSITION_END, function(e) {
-                    var oe = e.originalEvent;
-                    if (oe.propertyName === 'opacity' && $(oe.target).is(graphPane)) {
-                        $(document.body).off(TRANSITION_END);
-                        self.applicationLoaded();
-                        graphPane.focus();
+                    if (properties[defaultKey]) {
+                        name = properties[defaultKey];
                     }
-                });
-                _.defer(function() {
-                    $(document.body).addClass('animateloginstart');
+                    self.trigger(document, 'menubarToggleDisplay', { name: name });
+
+                    if (self.attr.animateFromLogin) {
+                        $(document.body).on(TRANSITION_END, function(e) {
+                            var oe = e.originalEvent;
+                            if (oe.propertyName === 'opacity' && $(oe.target).is(graphPane)) {
+                                $(document.body).off(TRANSITION_END);
+                                self.applicationLoaded();
+                                graphPane.focus();
+                            }
+                        });
+                        _.defer(function() {
+                            $(document.body).addClass('animateloginstart');
+                        })
+                    } else {
+                        self.applicationLoaded();
+                    }
                 })
-            } else {
-                this.applicationLoaded();
-            }
         });
 
         this.onPrivilegesReady = function() {
@@ -511,25 +520,35 @@ define([
             var self = this,
                 SLIDE_OUT = 'search workspaces admin',
                 pane = this.select(data.name + 'Selector'),
-                deferred = $.Deferred();
+                deferred = $.Deferred(),
+                menubarExtensions = registry.extensionsForPoint('org.visallo.menubar'),
+                extension;
+
+            if (data && data.name) {
+                extension = _.findWhere(menubarExtensions, { identifier: data.name });
+                if (extension) {
+                    data = extension;
+                }
+            }
 
             if (data.action) {
-                pane = this.$node.find('.' + data.name + '-pane');
+                var name = data.name || data.identifier;
+                pane = this.$node.find('.' + name + '-pane');
 
                 if (data.action.type === 'pane') {
-                    SLIDE_OUT += (' ' + data.name);
+                    SLIDE_OUT += (' ' + name);
                 }
 
                 if (pane.length) {
                     deferred.resolve();
                 } else {
                     pane = $('<div>')
-                        .data('widthPreference', data.name)
+                        .data('widthPreference', name)
                         .addClass((data.action.type === 'full' ? 'fullscreen' : 'plugin') +
                                   '-pane ' +
-                                  data.name + '-pane')
+                                  name + '-pane')
                         .appendTo(this.$node)
-                        .data(DATA_MENUBAR_NAME, data.name);
+                        .data(DATA_MENUBAR_NAME, name);
 
                     if (data.action.type === 'pane') {
                         $('<div class="content">').appendTo(pane);
