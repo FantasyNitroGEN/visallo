@@ -2,18 +2,19 @@ package org.visallo.core.ingest.graphProperty;
 
 import com.codahale.metrics.Counter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.vertexium.*;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.MetricsManager;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -50,7 +51,8 @@ public class GraphPropertyRunnerTest {
 
     @Test
     public void testHandlePropertyOnVertexIsHandledByGPWS() throws Exception {
-        CountingGPWStub countingGPWStub = new CountingGPWStub();
+        TestCountingGPWStub countingGPWStub = new TestCountingGPWStub();
+        
         JSONObject message = createVertexPropertyGPWMessage(VERTEX_ID, PROP_NAME + "0", PROP_KEY + "0");
         inflateVertexAndAddToGraph(VERTEX_ID, 1L);
         runTests(countingGPWStub, message);
@@ -61,7 +63,7 @@ public class GraphPropertyRunnerTest {
 
     @Test
     public void testAllPropertiesOnVertexAreProcessedByGraphPropertyWorkers() throws Exception {
-        CountingGPWStub countingGPWStub = new CountingGPWStub();
+        TestCountingGPWStub countingGPWStub = new TestCountingGPWStub();
 
         JSONObject message = createVertexIdJSONGPWMessage(VERTEX_ID);
         inflateVertexAndAddToGraph(VERTEX_ID, 11L);
@@ -73,7 +75,7 @@ public class GraphPropertyRunnerTest {
 
     @Test
     public void testHandlePropertyOnEdgeIsHandledByGPWS() throws Exception {
-        CountingGPWStub countingGPWStub = new CountingGPWStub();
+        TestCountingGPWStub countingGPWStub = new TestCountingGPWStub();
 
         JSONObject message = createEdgeIdJSONGPWMessage(EDGE_ID, PROP_NAME + "0", PROP_KEY + "0");
         inflateEdgeAndAddToGraph(EDGE_ID, 1L);
@@ -85,7 +87,7 @@ public class GraphPropertyRunnerTest {
 
     @Test
     public void testAllPropertiesOnEdgeAreProcessedByGraphPropertyWorkers() throws Exception {
-        CountingGPWStub countingGPWStub = new CountingGPWStub();
+        TestCountingGPWStub countingGPWStub = new TestCountingGPWStub();
 
         JSONObject message = createEdgeIdJSONGPWMessage(EDGE_ID);
         inflateEdgeAndAddToGraph(EDGE_ID, 14L);
@@ -94,6 +96,74 @@ public class GraphPropertyRunnerTest {
         assertThat(countingGPWStub.isExecutingCount.get(), is(14L));
         assertThat(countingGPWStub.isHandledCount.get(), is(14L));
     }
+
+    @Test
+    public void testMultipleEdgesAreProcessedInMultiEdgeMessage() throws Exception {
+        int numMessages = 5;
+        int numProperties = 11;
+        String[] ids = new String[numMessages];
+
+        for(int i = 0; i < numMessages; i++) {
+            ids[i] = EDGE_ID + "_" + i;
+            inflateEdgeAndAddToGraph(ids[i], numProperties);
+        }
+
+        JSONObject message = createMultiEdgeIdJSONGPWMessage(ids);
+
+        testMultiElementMessage(numMessages, numProperties, message);
+    }
+
+    @Test
+    public void testMultipleVerticesAreProcessedInMultiVertexMessage() throws Exception {
+        int numMessages = 5;
+        int numProperties = 11;
+        String[] ids = new String[numMessages];
+
+        for(int i = 0; i < numMessages; i++) {
+            ids[i] = VERTEX_ID + "_" + i;
+            inflateVertexAndAddToGraph(ids[i], numProperties);
+        }
+
+        testMultiElementMessage(numMessages, numProperties, createMultiVertexIdJSONGPWMessage(ids));
+    }
+
+    @Test
+    public void testMultipleElementsOnSinglePropertyRunsOnPropertyOnAllElements() throws Exception {
+        int numElements = 5;
+        Property prop = createProperty(PROP_NAME, PROP_KEY, PROP_VALUE);
+        String[] ids = new String[numElements];
+
+        for(int i = 0; i < numElements; i++) {
+            ids[i] = VERTEX_ID + "_" + i;
+            inflateVertexAndAddToGraph(ids[i], prop);
+        }
+
+        JSONObject message = createMultiVertexPropertyMessage(ids, prop);
+        TestCountingGPWStub countingGPWStub = new TestCountingGPWStub();
+        runTests(countingGPWStub, message);
+
+        long expectedNumProperties = (long) (numElements);
+
+        assertThat(countingGPWStub.isExecutingCount.get(), is(expectedNumProperties));
+        assertThat(countingGPWStub.isHandledCount.get(), is(expectedNumProperties));
+        assertThat(countingGPWStub.workedOnProperties.size(), is(1));
+        Property next = countingGPWStub.workedOnProperties.iterator().next();
+        assertThat(next.getName(), is(prop.getName()));
+        assertThat(next.getName(), is(prop.getName()));
+        assertThat(next.getKey(), is(prop.getKey()));
+        assertThat(next.getValue(), is(prop.getValue()));
+    }
+
+    private void testMultiElementMessage(int numMessages, int numProperties, JSONObject message) throws Exception {
+        TestCountingGPWStub countingGPWStub = new TestCountingGPWStub();
+        runTests(countingGPWStub, message);
+
+        long expectedNumProperties = (long) (numMessages * numProperties);
+
+        assertThat(countingGPWStub.isExecutingCount.get(), is(expectedNumProperties));
+        assertThat(countingGPWStub.isHandledCount.get(), is(expectedNumProperties));
+    }
+
 
     private void runTests(GraphPropertyWorker worker, JSONObject message) throws Exception {
         GraphPropertyThreadedWrapper graphPropertyThreadedWrapper = startInThread(worker);
@@ -106,8 +176,11 @@ public class GraphPropertyRunnerTest {
     }
 
     private void inflateVertexAndAddToGraph(String vertexId, long numProperties){
-        Property[] props = createNumProperties(numProperties);
-        Vertex mockedVertex = createMockedVertex(vertexId, props);
+        inflateVertexAndAddToGraph(vertexId, createNumProperties(numProperties));
+    }
+
+    private void inflateVertexAndAddToGraph(String vertexId, Property... properties){
+        Vertex mockedVertex = createMockedVertex(vertexId, properties);
         registerVertexWithGraph(vertexId, mockedVertex);
     }
 
@@ -146,9 +219,10 @@ public class GraphPropertyRunnerTest {
         Thread.sleep(50L);
     }
 
-    private class CountingGPWStub extends GraphPropertyWorker{
+    private class TestCountingGPWStub extends GraphPropertyWorker{
         public AtomicLong isHandledCount = new AtomicLong(0);
         public AtomicLong isExecutingCount = new AtomicLong(0);
+        public Set<Property> workedOnProperties = Sets.newHashSet();
 
         @Override
         public void execute(InputStream in, GraphPropertyWorkData data) throws Exception {
@@ -158,6 +232,7 @@ public class GraphPropertyRunnerTest {
         @Override
         public boolean isHandled(Element element, Property property) {
             isHandledCount.incrementAndGet();
+            workedOnProperties.add(property);
             return true;
         }
     }
@@ -174,14 +249,18 @@ public class GraphPropertyRunnerTest {
         List<Property> props = Lists.newArrayList();
 
         for(long i = 0; i < num; i++){
-            Property prop = mock(Property.class);
-            when(prop.getName()).thenReturn(PROP_NAME + i);
-            when(prop.getKey()).thenReturn(PROP_KEY + i);
-            when(prop.getValue()).thenReturn(PROP_VALUE + i);
-            props.add(prop);
+            props.add(createProperty(PROP_NAME +  i, PROP_KEY + i, PROP_VALUE + i));
         }
 
         return props.toArray(new Property[0]);
+    }
+
+    private Property createProperty(String name, String key, String value){
+        Property prop = mock(Property.class);
+        when(prop.getName()).thenReturn(name);
+        when(prop.getKey()).thenReturn(key);
+        when(prop.getValue()).thenReturn(value);
+        return prop;
     }
 
     private Vertex createMockedVertex(String id, Property... properties){
@@ -205,10 +284,21 @@ public class GraphPropertyRunnerTest {
         when(_graph.getEdge(eq(edgeId), any(Authorizations.class))).thenReturn(e);
     }
 
+    private static JSONObject createMultiEdgeIdJSONGPWMessage(String... edgeIds) {
+        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_EDGE_ID, createStringJSONArray(edgeIds));
+    }
+
+    private static JSONObject createMultiVertexPropertyMessage(String[] vertexIds, Property property) {
+        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_VERTEX_ID, createStringJSONArray(vertexIds)).put(GraphPropertyMessage.PROPERTY_KEY, property.getKey()).put(GraphPropertyMessage.PROPERTY_NAME, property.getName());
+    }
+
+    private static JSONObject createMultiVertexIdJSONGPWMessage(String... vertexIds) {
+        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_VERTEX_ID, createStringJSONArray(vertexIds));
+    }
+
     private static JSONObject createVertexPropertyGPWMessage(String vertexId, String propertyName, String propertyKey){
         return createVertexIdJSONGPWMessage(vertexId).put(GraphPropertyMessage.PROPERTY_KEY, propertyKey).put(GraphPropertyMessage.PROPERTY_NAME, propertyName);
     }
-
 
     private static JSONObject createEdgeIdJSONGPWMessage(String edgeId, String propertyName, String propertyKey){
         return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_EDGE_ID, edgeId);
@@ -224,5 +314,14 @@ public class GraphPropertyRunnerTest {
 
     private static JSONObject createTestJSONGPWMessage(){
         return new JSONObject().put(GraphPropertyMessage.PRIORITY, "1").put(GraphPropertyMessage.VISIBILITY_SOURCE, "").put(GraphPropertyMessage.WORKSPACE_ID, "wsId");
+    }
+
+    private static JSONArray createStringJSONArray(String... strs){
+        JSONArray arr = new JSONArray();
+        for(String str : strs){
+            arr.put(str);
+        }
+
+        return arr;
     }
 }

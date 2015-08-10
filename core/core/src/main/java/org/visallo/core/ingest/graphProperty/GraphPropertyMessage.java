@@ -1,9 +1,15 @@
 package org.visallo.core.ingest.graphProperty;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.util.JSONUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GraphPropertyMessage {
     public static final String PROPERTY_KEY = "propertyKey";
@@ -50,20 +56,20 @@ public class GraphPropertyMessage {
         return _obj.optString(PROPERTY_NAME, "");
     }
 
-    public String getVertexId() {
-        return _obj.optString(GRAPH_VERTEX_ID);
+    public List<String> getVertexIds() {
+        return getListOfItemsFromJSONKey(_obj, GRAPH_VERTEX_ID);
     }
 
-    public String getEdgeId(){
-        return _obj.optString(GRAPH_EDGE_ID);
+    public List<String> getEdgeIds(){
+        return getListOfItemsFromJSONKey(_obj, GRAPH_EDGE_ID);
     }
 
     public boolean canHandleVertex(){
-        return canHandleElementById(getVertexId());
+        return canHandleElementById(getVertexIds());
     }
 
     public boolean canHandleEdge(){
-        return canHandleElementById(getEdgeId());
+        return canHandleElementById(getEdgeIds());
     }
 
     public boolean canHandleByProperty(){
@@ -81,7 +87,24 @@ public class GraphPropertyMessage {
         throw new VisalloException(String.format("Unable to determine processing type from invalid message %s", _obj.toString()));
     }
 
-    private static boolean canHandleElementById(String id){
-        return StringUtils.isNotEmpty(id);
+    private static boolean canHandleElementById(List<String> id){
+        return id != null && !id.isEmpty();
+    }
+
+    private static List<String> getListOfItemsFromJSONKey(JSONObject obj, String key){
+        Object edges = obj.opt(key);
+
+        if(edges == null){
+            return Lists.newArrayList();
+        }
+        if(edges instanceof JSONArray){
+            return JSONUtil.toStringList((JSONArray) edges);
+        }
+        else if(edges instanceof String){
+            return Lists.newArrayList((String)edges);
+        }
+        else{
+            throw new VisalloException("unknown format to parse messages");
+        }
     }
 }

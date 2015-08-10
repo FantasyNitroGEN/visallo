@@ -56,10 +56,10 @@ public class GraphPropertyRunner extends WorkerBase {
             throw new VisalloException(String.format("Cannot process unknown type of gpw message %s", json.toString()));
         }
         else if(message.canHandleByProperty()){
-            safeExecuteHandlePropertyOnElement(message);
+            safeExecuteHandlePropertyOnElements(message);
         }
         else{
-            safeExecuteHandleEntireElement(message);
+            safeExecuteHandleAllEntireElements(message);
         }
     }
 
@@ -186,51 +186,73 @@ public class GraphPropertyRunner extends WorkerBase {
         };
     }
 
-    private void safeExecuteHandleEntireElement(GraphPropertyMessage message) throws Exception {
-        Element element = getElement(message);
-        safeExecuteHandlePropertyOnElement(element, null, message);
+    private void safeExecuteHandleAllEntireElements(GraphPropertyMessage message) throws Exception {
+        List<Element> elements = getElement(message);
+        for(Element element : elements){
+            safeExecuteHandleEntireElement(element, message);
+        }
+    }
+
+    private void safeExecuteHandleEntireElement(Element element, GraphPropertyMessage message) throws Exception {
         for (Property property : element.getProperties()) {
             safeExecuteHandlePropertyOnElement(element, property, message);
         }
     }
 
-    private Vertex getVertexFromMessage(GraphPropertyMessage message){
-        String vertexId = message.getVertexId();
-        Vertex vertex = graph.getVertex(vertexId, this.authorizations);
-        ensureExists(vertex, "vertex", vertexId);
-        return vertex;
-    }
+    private List<Element> getVerticesFromMessage(GraphPropertyMessage message){
+        List<Element> vertices = Lists.newLinkedList();
 
-    private Edge getEdgeFromMessage(GraphPropertyMessage message) {
-        String edgeId = message.getEdgeId();
-        Edge edge = graph.getEdge(edgeId, this.authorizations);
-        ensureExists(edge, "edge", edgeId);
-        return edge;
-    }
-
-    private void ensureExists(Element element, String type, String id) {
-        if (element == null) {
-            throw new VisalloException(String.format("Could not find %s with id %s", type, id));
-        }
-    }
-
-    private void safeExecuteHandlePropertyOnElement(GraphPropertyMessage message) throws Exception {
-        Element element = getElement(message);
-        Property property = null;
-        if (StringUtils.isNotEmpty(message.getPropertyKey()) || StringUtils.isNotEmpty(message.getPropertyName())) {
-            if (message.getPropertyKey() == null) {
-                property = element.getProperty(message.getPropertyName());
-            } else {
-                property = element.getProperty(message.getPropertyKey(), message.getPropertyName());
+        for(String vertexId : message.getVertexIds()) {
+            Vertex vertex = graph.getVertex(vertexId, this.authorizations);
+            if (doesExist(vertex)) {
+                vertices.add(vertex);
             }
-
-            if (property == null) {
-                LOGGER.error("Could not find property [%s]:[%s] on vertex with id %s", message.getPropertyKey(), message.getPropertyName(), element.getId());
-                return;
+            else {
+                LOGGER.warn("Could not find vertex with id %s", vertexId);
             }
         }
+        return vertices;
+    }
 
-        safeExecuteHandlePropertyOnElement(element, property, message);
+    private List<Element> getEdgesFromMessage(GraphPropertyMessage message){
+        List<Element> edges = Lists.newLinkedList();
+
+        for(String edgeId : message.getEdgeIds()) {
+            Edge edge = graph.getEdge(edgeId, this.authorizations);
+            if (doesExist(edge)) {
+                edges.add(edge);
+            }
+            else {
+                LOGGER.warn("Could not find vertex with id %s", edgeId);
+            }
+        }
+        return edges;
+    }
+
+    private boolean doesExist(Element element){
+        return element != null;
+
+    }
+
+    private void safeExecuteHandlePropertyOnElements(GraphPropertyMessage message) throws Exception {
+        List<Element> elements = getElement(message);
+        for(Element element : elements) {
+            Property property = null;
+            if (StringUtils.isNotEmpty(message.getPropertyKey()) || StringUtils.isNotEmpty(message.getPropertyName())) {
+                if (message.getPropertyKey() == null) {
+                    property = element.getProperty(message.getPropertyName());
+                } else {
+                    property = element.getProperty(message.getPropertyKey(), message.getPropertyName());
+                }
+
+                if (property == null) {
+                    LOGGER.error("Could not find property [%s]:[%s] on vertex with id %s", message.getPropertyKey(), message.getPropertyName(), element.getId());
+                    continue;
+                }
+            }
+
+            safeExecuteHandlePropertyOnElement(element, property, message);
+        }
     }
 
     private void safeExecuteHandlePropertyOnElement(Element element, Property property, GraphPropertyMessage message) throws Exception {
@@ -370,13 +392,15 @@ public class GraphPropertyRunner extends WorkerBase {
         return names;
     }
 
-    private Element getElement(GraphPropertyMessage message) {
+    private List<Element> getElement(GraphPropertyMessage message){
         if (message.canHandleVertex()) {
-            return getVertexFromMessage(message);
-        } else if (message.canHandleEdge()) {
-            return getEdgeFromMessage(message);
-        } else {
-            throw new VisalloException(String.format("Could not find %s or %s", GraphPropertyMessage.GRAPH_VERTEX_ID, GraphPropertyMessage.GRAPH_EDGE_ID));
+            return getVerticesFromMessage(message);
+        }
+        else if(message.canHandleEdge()){
+            return getEdgesFromMessage(message);
+        }
+        else {
+            throw new VisalloException(String.format("Could not find %s or %s", GraphPropertyMessage.GRAPH_VERTEX_ID,  GraphPropertyMessage.GRAPH_EDGE_ID));
         }
     }
 
