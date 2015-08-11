@@ -119,7 +119,9 @@ define([
         this.after('initialize', function() {
             var self = this;
 
-            this.$node.html(template({}));
+            this.$node.html(template({
+                isAdmin: visalloData.currentUser.privilegesHelper.ADMIN
+            }));
             this.extensions = extensions;
 
             _.each(this.extensions, function(item, cls) {
