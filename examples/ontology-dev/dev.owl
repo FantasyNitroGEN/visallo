@@ -608,6 +608,7 @@
         <visallo:intent>media.duration</visallo:intent>
         <visallo:intent>audioDuration</visallo:intent>
         <visallo:displayType xml:lang="en">duration</visallo:displayType>
+        <visallo:validationFormula>propRaw(&apos;http://visallo.org/dev#duration&apos;) &gt;= 0</visallo:validationFormula>
         <rdfs:domain rdf:resource="http://visallo.org/dev#audio"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#phoneCall"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
@@ -1000,6 +1001,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/media#fileSize">
         <rdfs:label xml:lang="en">File Size</rdfs:label>
         <visallo:displayType xml:lang="en">bytes</visallo:displayType>
+        <visallo:validationFormula>propRaw(&apos;http://visallo.org/media#fileSize&apos;) &gt;= 0</visallo:validationFormula>
         <visallo:intent>media.fileSize</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#audio"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#image"/>
@@ -1014,6 +1016,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/media#height">
         <rdfs:label xml:lang="en">Height</rdfs:label>
         <visallo:intent>media.height</visallo:intent>
+        <visallo:validationFormula>propRaw(&apos;http://visallo.org/media#height&apos;) &gt; 0</visallo:validationFormula>
         <rdfs:domain rdf:resource="http://visallo.org/dev#image"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
         <rdfs:range rdf:resource="&xsd;integer"/>
@@ -1051,6 +1054,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/media#width">
         <rdfs:label xml:lang="en">Width</rdfs:label>
         <visallo:intent>media.width</visallo:intent>
+        <visallo:validationFormula>propRaw(&apos;http://visallo.org/media#width&apos;) &gt; 0</visallo:validationFormula>
         <rdfs:domain rdf:resource="http://visallo.org/dev#image"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
         <rdfs:range rdf:resource="&xsd;integer"/>

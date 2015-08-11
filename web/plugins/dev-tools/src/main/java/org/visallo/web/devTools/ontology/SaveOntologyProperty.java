@@ -39,6 +39,7 @@ public class SaveOntologyProperty extends BaseRequestHandler {
         Boolean addable = getOptionalParameterBoolean(request, "addable", true);
         Boolean userVisible = getOptionalParameterBoolean(request, "userVisible", true);
         String displayFormula = getRequiredParameter(request, "displayFormula");
+        String validationFormula = getRequiredParameter(request, "validationFormula");
         String possibleValues = getRequiredParameter(request, "possibleValues");
 
         User user = getUser(request);
@@ -70,9 +71,8 @@ public class SaveOntologyProperty extends BaseRequestHandler {
             property.setProperty(OntologyProperties.POSSIBLE_VALUES.getPropertyName(), possibleValues, authorizations);
         }
 
-        if (displayFormula.length() != 0) {
-            property.setProperty(OntologyProperties.DISPLAY_FORMULA.getPropertyName(), displayFormula, authorizations);
-        }
+        property.setProperty(OntologyProperties.DISPLAY_FORMULA.getPropertyName(), displayFormula, authorizations);
+        property.setProperty(OntologyProperties.VALIDATION_FORMULA.getPropertyName(), validationFormula, authorizations);
 
         ontologyRepository.clearCache();
 

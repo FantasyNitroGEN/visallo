@@ -3,9 +3,10 @@ define([
     'flight/lib/component',
     'tpl!./geoLocation',
     'util/parsers',
+    'util/vertex/formatters',
     './withPropertyField',
     'util/withDataRequest'
-], function(defineComponent, template, P, withPropertyField, withDataRequest) {
+], function(defineComponent, template, P, F, withPropertyField, withDataRequest) {
     'use strict';
 
     return defineComponent(GeoLocationField, withPropertyField, withDataRequest);
@@ -79,7 +80,10 @@ define([
                 hasDescriptionField = self.select('descriptionSelector').length,
                 hasRadiusField = self.select('radiusSelector').length,
                 expected = 2,
-                values = this.getValues();
+                name = this.attr.property.title,
+                values = this.getValues(),
+                lat,
+                lon;
 
             if (hasDescriptionField) {
                 expected++;
@@ -88,7 +92,7 @@ define([
                 expected++;
             }
 
-            return (values.length === expected) &&
+            var valid = (values.length === expected) &&
                 _.every(values, function(v, i) {
                     var valIsValid = false,
                         n = makeNumber(v);
@@ -102,15 +106,19 @@ define([
                         var latLonElement;
                         valIsValid = v.length > 0 && _.isNumber(n) && !isNaN(n);
                         if (i === (hasDescriptionField ? 1 : 0)) {
+                            lat = n;
                             latLonElement = self.select('latSelector');
-                            valIsValid = valIsValid && (n >= -90 && n <= 90);
+                            valIsValid = valIsValid && (lat >= -90 && lat <= 90);
                         } else {
+                            lon = n;
                             latLonElement = self.select('lonSelector');
                         }
                         latLonElement.toggleClass('invalid', !valIsValid);
                     }
                     return valIsValid;
                 });
+
+            return valid && F.vertex.singlePropValid({ latitude: lat, longitude: lon }, name);
         };
 
         this.hasGeocoder = function() {

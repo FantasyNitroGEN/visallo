@@ -63,6 +63,7 @@ define([
                     searchable: this.$node.find('.searchable').is(':checked'),
                     userVisible: this.$node.find('.userVisible').is(':checked'),
                     displayFormula: this.$node.find('.displayFormula').val(),
+                    validationFormula: this.$node.find('.validationFormula').val(),
                     possibleValues: this.$node.find('.possibleValues').val(),
                     dependentPropertyIris: this.$node.find('.dependentPropertyIris')
                         .val().split(/[\n\s,]+/)
