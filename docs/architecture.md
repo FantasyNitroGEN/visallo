@@ -9,17 +9,7 @@ The diagram below shows the major software components used by Visallo. Visallo-s
 these layers, but is not shown in the diagram. There are numerous other libraries not listed. Take a look at the parent
 [POM file](../pom.xml) or run `mvn dependency:tree` to get a feel for all the libraries involved.
 
-    /---------+--------+--------+-----------+------------+--------+---------\
-    | OpenNLP | CLAVIN | OpenCV | tesseract | CMU Sphinx | FFmpeg | more... |
-    +---------+--------+--------+-----------+------------+--------+---------+
-    |                               YARN                                    |
-    +------------------------------------------------------+----------------+
-    |                   Vertexium                          |                |
-    +----------------------------------+-------------------+                |
-    |            Accumulo              |                   |    RabbitMQ    |
-    +----------------------------------+   Elasticsearch   |                |
-    |           Hadoop CDH             |                   |                |
-    \----------------------------------+-------------------+----------------/
+![Visallo Software Stack](img/visallo-software-stack.png)
 
 ## Ingestion Pipeline
 

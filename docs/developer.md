@@ -1,6 +1,6 @@
-# Developer Guide
+# Developing Visallo
 
-This guide is intended for those who wish to:
+This section is intended for those who wish to:
 
 * Contribute code to Visallo
 * Create their own Visallo plugins
@@ -39,7 +39,7 @@ section will help you understand the options.
 Visallo uses OWL files to define what type of entities you can create, what properties they can have and what they
 can connect to.
 
-## Section 6: Set up your [IDE](ide.md)
+## Section 6: Set up your [Development Environment](development-environment.md)
 
 Debugging and developing for Visallo is easiest using an IDE. These instructions will help you get that setup.
 
