@@ -1,32 +1,30 @@
 # Development Docker Image
 
-The development docker image is the fastest and easiest way to get a development environment up and running. In fact, it's what the core Visallo development team primarily uses for day to day development. 
+The development docker image is the fastest and easiest way to get a development environment up and running. In fact, it's what the core Visallo development team primarily uses for day to day development.
 
 ## Running
 
 The dev docker image contains all the backend services needed for development. To get started run:
 
-        ./build-dev.sh
+        docker/build-dev.sh
 
-This will build an image by downloading and installing all the necessary components into the docker image. After
-this completes run:
+This will build an image by downloading and installing all the necessary components into the docker image. After this completes run:
 
-        ./run-dev.sh
+        docker/run-dev.sh
 
-This will start the docker image and leave you in a bash shell within the image. This will also map all the internal
-ports to external ports so that you can run the web server against the services.
+This will start the docker image and leave you in a bash shell within the image. This will also map all the internal ports to external ports so that you can access the web interface for Visallo and all the dependent components.
 
-There are helper scripts within the image `/opt/start.sh` and `/opt/stop.sh` to start and stop all the services.
+There are helper scripts within the dev Docker container (`/opt/start.sh` and `/opt/stop.sh`) to start and stop all the services.
 
-It is also helpful to add the following to your `/etc/hosts` file:
+## Source Directory Mapping
 
-        127.0.0.1       visallo-dev
+The Visallo source code you cloned is exposed to the dev Docker container at `/opt/visallo-source`. Any file changes are simultaneously available between the cloned source directory on your host OS and the `/opt/visallo-source` directory in the developer Docker container. We encourage you to do as much as possible within the dev Docker container shell.
 
 ## Formatting
 
-To format your dev image, you can run the format script.
+To format (or re-format) your dev image, you can run the format script. Please note that this will delete all of your Visallo data.
 
-        ./format-dev.sh
+        docker/format-dev.sh
 
 ## Docker Web Server
 
@@ -39,7 +37,7 @@ To format your dev image, you can run the format script.
       If you get bower ESUDO error you need to create a ~/.bowerrc in the root folder and add this code
 
         {
-          allow-root:true
+          "allow-root": true
         }
 
 1. Copy the war file:

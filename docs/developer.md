@@ -14,34 +14,34 @@ In order to work with Visallo as a developer, it's recommended that:
 
 If that sounds like you, then continue reading to get started.
 
-## Section 1: Get the [Source Code](source-code.md)
-
-Before you can get started, you'll need to get a copy of the Visallo source code. This section explains how to do that
-and a little about the source code structure.
-
-## Section 2: Understand the [Architecture](architecture.md)
+## Section 1: Understand the [Architecture](architecture.md)
 
 Visallo has a lot of components but an easy to understand architecture. Learning a little about the core components
 discussed in this section will help you better understand the project.
 
-## Section 3: Install [Dependencies](dependencies.md)
+## Section 2: Get the [Source Code](source-code.md)
+
+Before you can get started, you'll need to get a copy of the Visallo source code. This section explains how to do that
+and a little about the source code structure.
+
+## Section 3: Set up your [Development Environment](development-environment.md)
+
+Debugging and developing for Visallo is easiest using an IDE. These instructions will help you get that setup.
+
+## Section 4: Install [Dependencies](dependencies.md)
 
 Visallo has a lot of dependencies, some of which are required while others are not. This section will help you decide
 which dependencies you need to install for the features you want.
 
-## Section 4: Learn the [Build Options](build.md)
+## Section 5: Learn the [Build Options](build.md)
 
 Visallo uses Maven as the build system. There are a number of build options depending on what you want to run. This
 section will help you understand the options.
 
-## Section 5: Create an [Ontology](ontology.md)
+## Section 6: Create an [Ontology](ontology.md)
 
 Visallo uses OWL files to define what type of entities you can create, what properties they can have and what they
 can connect to.
-
-## Section 6: Set up your [Development Environment](development-environment.md)
-
-Debugging and developing for Visallo is easiest using an IDE. These instructions will help you get that setup.
 
 ## Section 7: [Getting Help](help.md)
 
