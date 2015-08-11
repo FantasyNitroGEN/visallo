@@ -2,20 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
-        <artifactId>visallo</artifactId>
+        <artifactId>visallo-core-group</artifactId>
         <groupId>org.visallo</groupId>
         <version>1.1-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>visallo-core-group</artifactId>
-    <name>Visallo: Core Group</name>
-    <packaging>pom</packaging>
+    <artifactId>visallo-messages</artifactId>
 
-    <modules>
-        <module>core</module>
-        <module>messages</module>
-        <module>plugins</module>
-        <module>test</module>
-    </modules>
+    <name>Visallo: Messages</name>
+
 </project>

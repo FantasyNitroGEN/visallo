@@ -27,6 +27,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-messages</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.v5analytics.simpleorm</groupId>
             <artifactId>simple-orm-jetty-session-manager</artifactId>
         </dependency>
