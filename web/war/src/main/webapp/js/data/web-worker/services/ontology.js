@@ -116,7 +116,10 @@ define([
                                 .map(addFlattenedTitles.bind(null, ontology.conceptsById, true))
                                 .sortBy('flattenedDisplayName')
                                 .value(),
-                            byId: _.indexBy(ontology.concepts, 'id'),
+                            byId: _.chain(ontology.concepts)
+                                .map(addFlattenedTitles.bind(null, ontology.conceptsById, false))
+                                .indexBy('id')
+                                .value(),
                             byClassName: _.indexBy(ontology.concepts, 'className'),
                             byTitle: _.chain(ontology.concepts)
                                 .filter(onlyEntityConcepts.bind(null, ontology.conceptsById, false))
@@ -215,6 +218,7 @@ define([
 
                     return _.extend({}, concept, {
                         flattenedDisplayName: flattenedDisplayName,
+                        ancestors: _.pluck(parents, 'id'),
                         indent: indent
                     });
                 }
