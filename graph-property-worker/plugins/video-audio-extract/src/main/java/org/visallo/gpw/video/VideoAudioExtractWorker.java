@@ -16,6 +16,7 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +53,7 @@ public class VideoAudioExtractWorker extends GraphPropertyWorker {
             try (InputStream mp3FileIn = new FileInputStream(mp3File)) {
                 StreamingPropertyValue spv = new StreamingPropertyValue(mp3FileIn, byte[].class);
                 spv.searchIndex(false);
-                Metadata metadata = new Metadata();
+                Metadata metadata = data.createPropertyMetadata();
                 metadata.add(VisalloProperties.MIME_TYPE.getPropertyName(), MediaVisalloProperties.MIME_TYPE_AUDIO_MP3, getVisibilityTranslator().getDefaultVisibility());
                 MediaVisalloProperties.AUDIO_MP3.setProperty(m, spv, metadata, data.getProperty().getVisibility());
                 m.save(getAuthorizations());
