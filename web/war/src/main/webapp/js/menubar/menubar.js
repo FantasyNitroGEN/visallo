@@ -124,33 +124,7 @@ define([
             }));
             this.extensions = extensions;
 
-            _.each(this.extensions, function(item, cls) {
-                var options = $.extend({
-                        placementHint: 'top',
-                        tooltip: item.title,
-                        anchorCss: {}
-                    }, item.options),
-                    newItem = $('<li>')
-                        .addClass(cls)
-                        .append(
-                            $('<a>')
-                            .text(item.title)
-                            .css(
-                                $.extend({
-                                    'background-image': 'url("' + item.icon + '")'
-                                }, options.anchorCss)
-                            )
-                        ),
-                    container = self.$node.find('.menu-' + options.placementHint);
-
-                if (options.placementHintAfter) {
-                    newItem.insertAfter(container.find('.' + options.placementHintAfter));
-                } else if (options.placementHintBefore) {
-                    newItem.insertBefore(container.find('.' + options.placementHintBefore));
-                } else {
-                    newItem.insertBefore(container.find('.divider:last-child'));
-                }
-            })
+            this.insertExtensions();
 
             Object.keys(TOOLTIPS).forEach(function(selectorClass) {
                 self.$node.find('.' + selectorClass).tooltip({
@@ -168,6 +142,79 @@ define([
             this.on(document, 'menubarToggleDisplay', this.onMenubarToggle);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
         });
+
+        this.insertExtensions = function() {
+            var self = this,
+                identifiers = _.pluck(this.extensions, 'identifier'),
+                dependenciesForId = {},
+                sorted = _.chain(this.extensions)
+                    .each(function(e) {
+                        var placementHint = e.options && (e.options.placementHintAfter || e.options.placementHintBefore || '');
+                        if (placementHint && _.contains(identifiers, placementHint)) {
+                            if (!dependenciesForId[placementHint]) {
+                                dependenciesForId[placementHint] = [];
+                            }
+                            if (dependenciesForId[e.identifier] && _.contains(dependenciesForId[e.identifier], placementHint)) {
+                                console.warn('Circular dependency between menubar extensions. Deleting placement hint:', placementHint, 'from:', e.identifier);
+                                delete e.options.placementHintAfter;
+                                delete e.options.placementHintBefore;
+                            } else {
+                                dependenciesForId[placementHint].push(e.identifier);
+                            }
+                        }
+                    })
+                    .values()
+                    .value()
+                    .sort(function(e1, e2) {
+                        var deps1 = dependenciesForId[e1.identifier] || [],
+                            deps2 = dependenciesForId[e2.identifier] || [];
+
+                        if (_.contains(deps1, e2.identifier)) return -1;
+                        if (_.contains(deps2, e1.identifier)) return 1;
+
+                        var vals = _.flatten(_.values(dependenciesForId));
+                        if (_.contains(vals, e1.identifier)) return 1;
+                        if (_.contains(vals, e2.identifier)) return -1;
+                        return 0;
+                    })
+
+            _.each(sorted, function(item) {
+                var cls = item.identifier,
+                    options = $.extend({
+                        placementHint: 'top',
+                        tooltip: item.title,
+                        anchorCss: {}
+                    }, item.options),
+                    newItem = $('<li>')
+                        .addClass(cls)
+                        .append(
+                            $('<a>')
+                            .text(item.title)
+                            .css(
+                                $.extend({
+                                    'background-image': 'url("' + item.icon + '")'
+                                }, options.anchorCss)
+                            )
+                        ),
+                    container = self.$node.find('.menu-' + options.placementHint),
+                    placementHint = options.placementHintAfter || options.placementHintBefore,
+                    $placement = placementHint && container.find('.' + placementHint)
+
+                if ($placement) {
+                    if ($placement.length) {
+                        if (options.placementHintAfter) {
+                            return newItem.insertAfter($placement);
+                        } else if (options.placementHintBefore) {
+                            return newItem.insertBefore($placement);
+                        }
+                    } else {
+                        console.warn('Unable to find menubar item placementHint:', placementHint, 'identifier:', item.identifier);
+                    }
+                }
+
+                newItem.insertBefore(container.find('.divider:last-child'));
+            })
+        }
 
         this.onGraphPaddingUpdated = function(event, data) {
             var len = this.$node.find('a').length,
