@@ -362,6 +362,51 @@ define([
                 }
             },
 
+            sortByProperties: function(vertices, name, options) {
+                var verticesWithValues = _.partition(vertices, function(vertex) {
+                        var propRaw = V.propRaw(vertex, name, undefined, { defaultValue: ' ' });
+                        if (_.isString(propRaw)) {
+                            propRaw = propRaw.trim();
+                        }
+                        if (_.isUndefined(propRaw)) return false;
+                        if (_.isString(propRaw) && _.isEmpty(propRaw)) return false;
+                        return true;
+                    }),
+                    sortedNoValue = _.sortBy(verticesWithValues[1], function(vertex) {
+                        return V.title(vertex);
+                    }),
+                    sorted = _.sortBy(verticesWithValues[0], function(vertex) {
+                        var ontologyProperty = propertiesByTitle[V.propName(name)],
+                            propRaw = V.propRaw(vertex, name, undefined, { defaultValue: ' ' });
+
+                        if (_.isString(propRaw)) {
+                            propRaw = propRaw.trim();
+                        }
+
+                        if (ontologyProperty) {
+                            switch (ontologyProperty.dataType) {
+                                case 'string':
+                                    return propRaw.toLowerCase();
+
+                                case 'boolean':
+                                    return propRaw === true ? 1 : -1;
+
+                                case 'date':
+                                case 'integer':
+                                case 'currency':
+                                case 'number':
+                                case 'double':
+                                    return propRaw
+                            }
+                        }
+                        return propRaw;
+                    });
+                if (options && options.order === 'DESC') {
+                    sorted.reverse();
+                }
+                return sorted.concat(sortedNoValue);
+            },
+
             propName: function(name) {
                 var autoExpandedName = (/^http:\/\/visallo.org/).test(name) ?
                         name : ('http://visallo.org#' + name),
