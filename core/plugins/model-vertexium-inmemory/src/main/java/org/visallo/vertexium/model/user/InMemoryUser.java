@@ -118,6 +118,16 @@ public class InMemoryUser implements User {
         return authorizations.toArray(new String[this.authorizations.size()]);
     }
 
+    public void addAuthorization(String authorization) {
+        if (!authorizations.contains(authorization)) {
+            authorizations.add(authorization);
+        }
+    }
+
+    public void removeAuthorization(String authorization) {
+        authorizations.remove(authorization);
+    }
+
     public void setPrivileges(Set<Privilege> privileges) {
         this.privileges = privileges;
     }

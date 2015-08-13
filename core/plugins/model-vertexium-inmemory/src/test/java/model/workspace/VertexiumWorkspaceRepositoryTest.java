@@ -1,46 +1,17 @@
 package model.workspace;
 
 import com.google.common.collect.Lists;
-import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.*;
-import org.vertexium.id.QueueIdGenerator;
 import org.vertexium.inmemory.InMemoryAuthorizations;
-import org.vertexium.inmemory.InMemoryGraph;
-import org.vertexium.inmemory.InMemoryGraphConfiguration;
-import org.vertexium.search.DefaultSearchIndex;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
-import org.visallo.core.model.lock.NonLockingLockRepository;
-import org.visallo.core.model.lock.LockRepository;
-import org.visallo.core.model.notification.UserNotificationRepository;
-import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.user.UserSessionCounterRepository;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
-import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
-import org.visallo.core.security.DirectVisibilityTranslator;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.security.VisibilityTranslator;
-import org.visallo.vertexium.model.ontology.InMemoryOntologyProperty;
-import org.visallo.vertexium.model.user.InMemoryAuthorizationRepository;
-import org.visallo.vertexium.model.user.InMemoryUser;
-import org.visallo.vertexium.model.user.InMemoryUserRepository;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
 import org.visallo.web.clientapi.model.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -50,102 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.vertexium.util.IterableUtils.count;
 import static org.vertexium.util.IterableUtils.toList;
 
-@RunWith(MockitoJUnitRunner.class)
-public class VertexiumWorkspaceRepositoryTest {
-    public static final String PROP1_IRI = "prop1";
-    private InMemoryGraph graph;
-
-    @Mock
-    private WorkspaceDiffHelper workspaceDiff;
-
-    private InMemoryUser user1;
-
-    private InMemoryUser user2;
-
-    private QueueIdGenerator idGenerator;
-
-    private WorkspaceRepository workspaceRepository;
-    private AuthorizationRepository authorizationRepository;
-    private Vertex entity1Vertex;
-    private GraphRepository graphRepository;
-
-    @Mock
-    private SimpleOrmSession simpleOrmSession;
-
-    @Mock
-    private UserSessionCounterRepository userSessionCounterRepository;
-
-    @Mock
-    private WorkQueueRepository workQueueRepository;
-
-    @Mock
-    private UserNotificationRepository userNotificationRepository;
-
-    private VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
-
-    @Mock
-    private TermMentionRepository termMentionRepository;
-
-    @Mock
-    private OntologyRepository ontologyRepository;
-
-    private InMemoryAuthorizations defaultAuthorizations;
-
-    @Before
-    public void setup() throws Exception {
-        Visibility visibility = new Visibility("");
-        defaultAuthorizations = new InMemoryAuthorizations();
-        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap());
-        idGenerator = new QueueIdGenerator();
-        graph = InMemoryGraph.create(config, idGenerator, new DefaultSearchIndex(config));
-        authorizationRepository = new InMemoryAuthorizationRepository();
-
-        Configuration visalloConfiguration = new HashMapConfigurationLoader(new HashMap()).createConfiguration();
-        LockRepository lockRepository = new NonLockingLockRepository();
-
-        InMemoryUserRepository userRepository = new InMemoryUserRepository(
-                graph,
-                visalloConfiguration,
-                simpleOrmSession,
-                userSessionCounterRepository,
-                workQueueRepository,
-                userNotificationRepository,
-                lockRepository
-        );
-        user1 = (InMemoryUser) userRepository.findOrAddUser("user1", "user1", null, "none", new String[0]);
-        graph.addVertex(user1.getUserId(), visibility, defaultAuthorizations);
-
-        user2 = (InMemoryUser) userRepository.findOrAddUser("user2", "user2", null, "none", new String[0]);
-        graph.addVertex(user2.getUserId(), visibility, defaultAuthorizations);
-
-        workspaceRepository = new VertexiumWorkspaceRepository(
-                graph,
-                userRepository,
-                authorizationRepository,
-                workspaceDiff,
-                lockRepository,
-                visibilityTranslator,
-                termMentionRepository,
-                ontologyRepository,
-                workQueueRepository
-        );
-
-        graphRepository = new GraphRepository(
-                graph,
-                visibilityTranslator,
-                termMentionRepository
-        );
-
-        InMemoryOntologyProperty prop1 = new InMemoryOntologyProperty();
-        prop1.setUserVisible(true);
-        when(ontologyRepository.getPropertyByIRI(PROP1_IRI)).thenReturn(prop1);
-
-        String entity1VertexId = "entity1Id";
-        entity1Vertex = graph.prepareVertex(entity1VertexId, new VisalloVisibility().getVisibility())
-                .addPropertyValue("key1", "prop1", "value1", new Metadata(), new VisalloVisibility().getVisibility())
-                .save(defaultAuthorizations);
-    }
-
+public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceRepositoryTestBase {
     @Test
     public void testAddWorkspace() {
         Authorizations allAuths = graph.createAuthorizations(WorkspaceRepository.VISIBILITY_STRING);
@@ -162,7 +38,7 @@ public class VertexiumWorkspaceRepositoryTest {
         assertEquals(startingVertexCount + 1, count(graph.getVertices(allAuths))); // +1 = the workspace vertex
         assertEquals(startingEdgeCount + 1, count(graph.getEdges(allAuths))); // +1 = the edge between workspace and user1
 
-        assertNull("Should not have access", graph.getVertex(workspace.getWorkspaceId(), defaultAuthorizations));
+        assertNull("Should not have access", graph.getVertex(workspace.getWorkspaceId(), NO_AUTHORIZATIONS));
         InMemoryAuthorizations authorizations = new InMemoryAuthorizations(WorkspaceRepository.VISIBILITY_STRING, workspace.getWorkspaceId());
         assertNotNull("Should have access", graph.getVertex(workspace.getWorkspaceId(), authorizations));
 
@@ -288,7 +164,7 @@ public class VertexiumWorkspaceRepositoryTest {
         assertEquals(startingEdgeCount + 1, count(graph.getEdges(allAuths))); // +1 = the edges between workspaces and users
 
         try {
-            workspaceRepository.updateEntityOnWorkspace(workspace, entity1Vertex.getId(), true, new GraphPosition(100, 100), user2);
+            workspaceRepository.updateEntityOnWorkspace(workspace, entity1Vertex.getId(), true, GRAPH_POSITION, user2);
             fail("user2 should not have write access to workspace");
         } catch (VisalloAccessDeniedException ex) {
             assertEquals(user2, ex.getUser());
@@ -354,7 +230,7 @@ public class VertexiumWorkspaceRepositoryTest {
             setName("prop1");
             setVertexId(entity1Vertex.getId());
         }};
-        ClientApiWorkspacePublishResponse response = workspaceRepository.publish(publishDate, workspace.getWorkspaceId(), defaultAuthorizations);
+        ClientApiWorkspacePublishResponse response = workspaceRepository.publish(publishDate, workspace.getWorkspaceId(), NO_AUTHORIZATIONS);
         assertEquals(1, response.getFailures().size());
         assertEquals(ClientApiPublishItem.Action.addOrUpdate, response.getFailures().get(0).getAction());
         assertEquals("property", response.getFailures().get(0).getType());

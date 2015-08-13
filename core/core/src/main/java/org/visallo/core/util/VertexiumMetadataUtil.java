@@ -17,12 +17,13 @@ public class VertexiumMetadataUtil {
         return metadata;
     }
 
-    public static void mergeMetadata(Metadata metadata, Metadata additionalMetadata) {
-        if (additionalMetadata == null) {
-            return;
+    public static Metadata mergeMetadata(Metadata... metadatas) {
+        Metadata mergedMetadata = new Metadata();
+        for (Metadata metadata : metadatas) {
+            for (Metadata.Entry entry : metadata.entrySet()) {
+                mergedMetadata.add(entry.getKey(), entry.getValue(), entry.getVisibility());
+            }
         }
-        for (Metadata.Entry entry : additionalMetadata.entrySet()) {
-            metadata.add(entry.getKey(), entry.getValue(), entry.getVisibility());
-        }
+        return mergedMetadata;
     }
 }

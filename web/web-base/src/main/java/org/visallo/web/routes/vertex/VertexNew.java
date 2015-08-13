@@ -129,6 +129,7 @@ public class VertexNew extends BaseRequestHandler {
                         property.propertyKey,
                         value,
                         metadata,
+                        null,
                         property.visibilitySource,
                         workspaceId,
                         justificationText,

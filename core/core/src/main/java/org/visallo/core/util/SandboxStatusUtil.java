@@ -36,9 +36,9 @@ public class SandboxStatusUtil {
                 }
 
                 if (sandboxStatuses[j] == SandboxStatus.PUBLIC &&
-                        property.getName().equals(p.getName()) &&
+                        sandboxStatuses[i] == SandboxStatus.PRIVATE &&
                         property.getKey().equals(p.getKey()) &&
-                        (propertyVisibilityJson == null || pVisibilityJson == null || (propertyVisibilityJson.getSource().equals(pVisibilityJson.getSource())))) {
+                        property.getName().equals(p.getName())) {
                     sandboxStatuses[i] = SandboxStatus.PUBLIC_CHANGED;
                 }
             }
