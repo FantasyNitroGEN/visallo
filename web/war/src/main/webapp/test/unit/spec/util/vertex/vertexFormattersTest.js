@@ -185,6 +185,10 @@ define([
                 expect(prop('k1')).to.equal('boolean.true')
                 expect(prop('k2')).to.equal('boolean.false')
             })
+            it('should return blank for missing properties', function() {
+                var vertex = vertexFactory();
+                V.prop(vertex, PROPERTY_NAME_BOOLEAN).should.equal('');
+            })
             it('should get display values for numbers', function() {
                 var vertex = vertexFactory([
                         propertyFactory(PROPERTY_NAME_DOUBLE, 'k1', 22 / 7),
