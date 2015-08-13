@@ -192,6 +192,8 @@ define([
 
             it('should sort geolocations somehow')
             it('should sort booleans')
+            it('should sort compound properties')
+            it('should sort blank compound properties last')
             
         })
 
