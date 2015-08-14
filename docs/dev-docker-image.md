@@ -2,7 +2,7 @@
 
 The development docker image is the fastest and easiest way to get a development environment up and running. In fact, it's what the core Visallo development team primarily uses for day to day development.
 
-## Running
+## Creating and Starting the Container
 
 The dev docker image contains all the backend services needed for development. To get started run:
 
@@ -26,36 +26,13 @@ To format (or re-format) your dev image, you can run the format script. Please n
 
         docker/format-dev.sh
 
-## Docker Web Server
+## Running
 
-1. Create a war file:<br/>
-      _NOTE: Run from the host machine in the root of your clone._<br/>
-      _NOTE: Requires Oracle JDK._
+Run the commands below to start the Visallo web application. These steps must be run from the development Docker container shell resulting from running the `docker/run-dev.sh` script.
 
-        mvn package -pl web/war -am -DskipTests -Dsource.skip=true
+        cd /opt/visallo-source/web/war
+        mvn -P queue-rabbitmq,search-elasticsearch,storage-accumulo,web-admin,web-auth-username-only jetty:run
 
-      If you get bower ESUDO error you need to create a ~/.bowerrc in the root folder and add this code
+The preceding `mvn` command will start the Visallo web application with a minimum number of features running. The `-P` option to the Maven command above specifies which profiles are included when starting Jetty. A profile groups a set of dependencies that make up a feature. Running the following command will list all of the available profiles that can be run.
 
-        {
-          "allow-root": true
-        }
-
-1. Copy the war file:
-
-        cp web/war/target/visallo-web-war*.war \
-           docker/visallo-dev-persistent/opt/jetty/webapps/root.war
-
-1. Package an auth plugin:
-
-        mvn package -pl ./web/plugins/auth-username-only -am -DskipTests
-
-1. Copy the auth plugin for use in the docker image:
-
-        cp web/plugins/auth-username-only/target/visallo-web-auth-username-only-*[0-9T].jar \
-           docker/visallo-dev-persistent/opt/visallo/lib
-
-1. Inside the docker image run Jetty:
-
-        /opt/jetty/bin/jetty.sh start
-
-1. Open a browser and go to: `http://visallo-dev:8080/`
+        mvn help:all-profiles

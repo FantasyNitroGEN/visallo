@@ -171,6 +171,7 @@ define([
 
         boolean: {
             pretty: function(bool) {
+                if (_.isUndefined(bool) || (_.isString(bool) && _.isEmpty(bool))) return '';
                 return bool && bool !== 'false' ?
                     i18n('boolean.true') :
                     i18n('boolean.false');

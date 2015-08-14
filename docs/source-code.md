@@ -4,7 +4,7 @@ Visallo is hosted at [GitHub](http://www.github.com) and uses [Git](http://git-s
 obtain the source code, you must first install Git on your system. Instructions for installing and setting up Git can be
 found at https://help.github.com/articles/set-up-git.
 
-To get started, clone the main repository using this command:
+To get started, clone the main repository using this command. You must clone it to a subdirectory of your home directory for the development Docker container to work. It does not need to be an immediate child of your home directory, but your home directory must be an ancestor of the directory to which you clone it.
 
     git clone git://github.com/v5analytics/visallo.git
 

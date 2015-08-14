@@ -528,27 +528,27 @@ define([
                 extension = _.findWhere(menubarExtensions, { identifier: data.name });
                 if (extension) {
                     data = extension;
+                    data.name = data.identifier;
                 }
             }
 
             if (data.action) {
-                var name = data.name || data.identifier;
-                pane = this.$node.find('.' + name + '-pane');
+                pane = this.$node.find('.' + data.name + '-pane');
 
                 if (data.action.type === 'pane') {
-                    SLIDE_OUT += (' ' + name);
+                    SLIDE_OUT += (' ' + data.name);
                 }
 
                 if (pane.length) {
                     deferred.resolve();
                 } else {
                     pane = $('<div>')
-                        .data('widthPreference', name)
+                        .data('widthPreference', data.name)
                         .addClass((data.action.type === 'full' ? 'fullscreen' : 'plugin') +
                                   '-pane ' +
-                                  name + '-pane')
+                                  data.name + '-pane')
                         .appendTo(this.$node)
-                        .data(DATA_MENUBAR_NAME, name);
+                        .data(DATA_MENUBAR_NAME, data.name);
 
                     if (data.action.type === 'pane') {
                         $('<div class="content">').appendTo(pane);
