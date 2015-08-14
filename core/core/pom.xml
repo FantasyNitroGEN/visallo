@@ -155,16 +155,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <!-- Use this profile to build when deploying to a clustered environment. -->
-        <profile>
-            <id>cluster</id>
-            <properties>
-                <cluster.dependency.scope>provided</cluster.dependency.scope>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>

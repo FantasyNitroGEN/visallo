@@ -13,16 +13,6 @@
     <name>Visallo: Dev: GraphPropertyWorker: Local</name>
     <description>This project is only here to create a good classpath with the plugins for your IDE</description>
 
-    <profiles>
-        <!-- Use this profile to build when deploying to a clustered environment. -->
-        <profile>
-            <id>cluster</id>
-            <properties>
-                <cluster.dependency.scope>provided</cluster.dependency.scope>
-            </properties>
-        </profile>
-    </profiles>
-
     <dependencies>
         <dependency>
             <groupId>org.visallo</groupId>

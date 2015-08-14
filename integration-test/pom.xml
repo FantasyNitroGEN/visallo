@@ -165,7 +165,7 @@
 
     <profiles>
         <profile>
-            <id>ITest</id>
+            <id>test-integration</id>
             <build>
                 <plugins>
                     <plugin>

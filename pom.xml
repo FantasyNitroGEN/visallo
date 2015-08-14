@@ -101,7 +101,7 @@
     <profiles>
         <!-- Disable JDK8 doclint in javadoc plugin -->
         <profile>
-            <id>no-doclint</id>
+            <id>build-doclint-none</id>
             <activation>
                 <jdk>[1.8,]</jdk>
             </activation>
@@ -121,7 +121,7 @@
             </build>
         </profile>
         <profile>
-            <id>coverage</id>
+            <id>test-coverage</id>
             <build>
                 <plugins>
                     <plugin>

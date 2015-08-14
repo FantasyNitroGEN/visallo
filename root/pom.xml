@@ -32,7 +32,6 @@
     <properties>
         <!-- General -->
         <classpath.filename>${project.build.directory}/.classpath.${user.name}</classpath.filename>
-        <cluster.dependency.scope>compile</cluster.dependency.scope>
         <java.compiler.showWarnings>true</java.compiler.showWarnings>
         <java.source.version>1.7</java.source.version>
         <java.target.version>1.7</java.target.version>

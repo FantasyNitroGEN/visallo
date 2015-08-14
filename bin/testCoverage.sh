@@ -28,9 +28,9 @@ done
 
 #Test
 if [ -z "${ITEST_SERVER}" ]; then
-  mvn -PITest -Drepository.ontology=org.visallo.vertexium.model.ontology.InMemoryOntologyRepository test
+  mvn -P test-integration -Drepository.ontology=org.visallo.vertexium.model.ontology.InMemoryOntologyRepository test
 else
-  mvn -PITest -Drepository.ontology=org.visallo.vertexium.model.ontology.InMemoryOntologyRepository -DtestServer=${ITEST_SERVER} test
+  mvn -P test-integration -Drepository.ontology=org.visallo.vertexium.model.ontology.InMemoryOntologyRepository -DtestServer=${ITEST_SERVER} test
 fi
 
 # Merge

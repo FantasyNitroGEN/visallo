@@ -184,7 +184,7 @@
 
     <profiles>
         <profile>
-            <id>grunt-windows</id>
+            <id>build-grunt-windows</id>
             <activation>
                 <os>
                     <family>windows</family>
@@ -216,7 +216,7 @@
             </build>
         </profile>
         <profile>
-            <id>grunt-unix</id>
+            <id>build-grunt-unix</id>
             <activation>
                 <os>
                     <family>!windows</family>
