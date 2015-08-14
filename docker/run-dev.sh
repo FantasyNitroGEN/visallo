@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 DIR=$(cd $(dirname "$0") && pwd)
 
@@ -30,15 +30,15 @@ else
   SUDO=
 fi
 
-VM_NAME='boot2docker-vm'
+VM_NAME='visallo-dev'
 
 while [ $# -gt 1 ]
 do
   key="$1"
 
   case ${key} in
-    --boot2docker)
-      USE_BOOT2DOCKER='true'
+    --windows)
+      USE_VM='true'
       ;;
     --vm)
       VM_NAME="$2"
@@ -50,26 +50,26 @@ do
   shift
 done
 
-if [ $(uname) = 'Darwin' -o "${USE_BOOT2DOCKER}" = 'true' ]; then
+if [ $(uname) = 'Darwin' -o "${USE_VM}" = 'true' ]; then
   SPLIT_PERSISTENT_DIR='true'
 
-  which boot2docker > /dev/null
+  which docker-machine > /dev/null
   if [ $? -eq 0 ]; then
-    BOOT2DOCKER_SSH="boot2docker --vm=${VM_NAME} ssh"
+    VM_SSH="docker-machine ssh ${VM_NAME}"
   else
-    BOOT2DOCKER_SSH=
+    VM_SSH=
   fi
 fi
 
 if [ $(uname) = 'Darwin' -o "${SPLIT_PERSISTENT_DIR}" = 'true' ]; then
-  dev=$(${BOOT2DOCKER_SSH} blkid -L boot2docker-data)
-  mnt=$(echo "$(${BOOT2DOCKER_SSH} mount)" | awk -v dev=${dev} '$1 == dev && !seen {print $3; seen = 1}')
-  uid=$(${BOOT2DOCKER_SSH} id -u)
-  gid=$(${BOOT2DOCKER_SSH} id -g)
+  dev=$(${VM_SSH} "blkid -L boot2docker-data")
+  mnt=$(echo "$(${VM_SSH} mount)" | awk -v dev=${dev} '$1 == dev && !seen {print $3; seen = 1}')
+  uid=$(${VM_SSH} "id -u")
+  gid=$(${VM_SSH} "id -g")
   PERSISTENT_DIR=${mnt}/visallo-dev-persistent
-  ${BOOT2DOCKER_SSH} sudo mkdir -p ${PERSISTENT_DIR}
-  ${BOOT2DOCKER_SSH} sudo chown -R ${uid}:${gid} ${PERSISTENT_DIR}
-  ${BOOT2DOCKER_SSH} mkdir -p $(dir_list ${PERSISTENT_DIR})
+  ${VM_SSH} "sudo mkdir -p ${PERSISTENT_DIR}"
+  ${VM_SSH} "sudo chown -R ${uid}:${gid} ${PERSISTENT_DIR}"
+  ${VM_SSH} "mkdir -p $(dir_list ${PERSISTENT_DIR})"
   LOCAL_PERSISTENT_DIR=${DIR}/visallo-dev-persistent
   mkdir -p $(dir_list ${LOCAL_PERSISTENT_DIR})
   touch ${LOCAL_PERSISTENT_DIR}/NOT_ALL_OF_YOUR_FILES_ARE_HERE

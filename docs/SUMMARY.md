@@ -3,11 +3,6 @@
 This is the summary of my book.
 
 * [Getting Started](getting-started.md)
-    * [Installation](installation.md)
-    * [Configuration](configuration.md)
-    * [Running](running.md)
-    * [Next Steps](next-steps.md)
-* [Developing](developer.md)
     * [Architecture](architecture.md)
     * [Source Code](source-code.md)
     * [Development Environment](development-environment.md)

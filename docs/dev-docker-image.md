@@ -4,7 +4,7 @@ The development docker image is the fastest and easiest way to get a development
 
 ## Creating and Starting the Container
 
-The dev docker image contains all the backend services needed for development. To get started run:
+The dev docker image contains all the backend services needed for development. To get started run the following command and go grab a cup of coffee. It will take a while the first time you run it.:
 
         docker/build-dev.sh
 
