@@ -25,9 +25,11 @@ RUN /bin/bash /opt/visallo/scripts/install-java.sh
 
 # Install Maven
 ADD scripts/install-maven.sh /opt/visallo/scripts/install-maven.sh
+ADD maven/settings.xml /root/.m2/settings.xml
 ENV PATH $PATH:/opt/maven/bin
 ENV MVN_HOME /opt/maven
 RUN /bin/bash /opt/visallo/scripts/install-maven.sh
+VOLUME ["/opt/maven/repository"]
 
 # Install ZooKeeper
 ADD scripts/install-zookeeper.sh /opt/visallo/scripts/install-zookeeper.sh
@@ -90,6 +92,9 @@ ENV PATH $PATH:/opt/jetty/bin
 VOLUME ["/opt/jetty/webapps"]
 EXPOSE 8080 8443
 
+# Install .bowerrc
+ADD bower/dot-bowerrc /root/.bowerrc
+
 # add scripts
 ADD docker-entrypoint.sh /opt/docker-entrypoint.sh
 ADD start.sh /opt/start.sh
@@ -104,6 +109,6 @@ RUN \
 
 # Set working environment
 VOLUME ["/tmp", "/var/log", "/opt/visallo", "/opt/visallo-source"]
-WORKDIR /home/root/visallo
+WORKDIR /opt/visallo-source
 ENTRYPOINT ["/opt/docker-entrypoint.sh"]
 CMD ["start"]
