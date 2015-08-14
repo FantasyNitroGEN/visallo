@@ -241,10 +241,9 @@ define([
                     if (self.attr.animateFromLogin) {
                         $(document.body).on(TRANSITION_END, function(e) {
                             var oe = e.originalEvent;
-                            if (oe.propertyName === 'opacity' && $(oe.target).is(graphPane)) {
+                            if (oe.propertyName === 'left' && $(oe.target).is('.menubar-pane')) {
                                 $(document.body).off(TRANSITION_END);
                                 self.applicationLoaded();
-                                graphPane.focus();
                             }
                         });
                         _.defer(function() {
