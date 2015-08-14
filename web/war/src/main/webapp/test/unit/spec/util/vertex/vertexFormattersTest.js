@@ -130,6 +130,71 @@ define([
             })
         })
 
+        describe('sortByProperties', function() {
+            it('should have sortByProperties', function() {
+                V.sortByProperties.should.be.a.function
+            })
+
+            it('should sort string properties by lowercase', function() {
+                var v1 = vertexFactory([propertyFactory(PROPERTY_NAME_TITLE, 'a')]),
+                    v2 = vertexFactory([propertyFactory(PROPERTY_NAME_TITLE, 'Z')]),
+                    v3 = vertexFactory(),
+                    vertices = [v3, v2, v1],
+                    sorted = V.sortByProperties(vertices, PROPERTY_NAME_TITLE)
+                vertices.indexOf(v1).should.equal(2)
+                vertices.indexOf(v2).should.equal(1)
+                vertices.indexOf(v3).should.equal(0)
+
+                sorted.indexOf(v1).should.equal(0)
+                sorted.indexOf(v2).should.equal(1)
+                sorted.indexOf(v3).should.equal(2)
+
+                sorted = V.sortByProperties(vertices, PROPERTY_NAME_TITLE, { order: 'DESC' })
+                vertices.indexOf(v1).should.equal(2)
+                vertices.indexOf(v2).should.equal(1)
+                vertices.indexOf(v3).should.equal(0)
+
+                sorted.indexOf(v1).should.equal(1)
+                sorted.indexOf(v2).should.equal(0)
+                sorted.indexOf(v3).should.equal(2)
+            })
+
+            it('should sort date properties correctly', function() {
+                var t1 = new Date().getTime(),
+                    v1 = vertexFactory([propertyFactory(PROPERTY_NAME_DATE, t1 - 1)]),
+                    v2 = vertexFactory([propertyFactory(PROPERTY_NAME_DATE, t1)]),
+                    v3 = vertexFactory(),
+                    vertices = [v3, v2, v1],
+                    sorted = V.sortByProperties(vertices, PROPERTY_NAME_DATE)
+                vertices.indexOf(v1).should.equal(2)
+                vertices.indexOf(v2).should.equal(1)
+                vertices.indexOf(v3).should.equal(0)
+
+                sorted.indexOf(v1).should.equal(0)
+                sorted.indexOf(v2).should.equal(1)
+                sorted.indexOf(v3).should.equal(2)
+            })
+
+            it('should sort double properties correctly', function() {
+                var v1 = vertexFactory([propertyFactory(PROPERTY_NAME_DOUBLE, 1.2)]),
+                    v2 = vertexFactory([propertyFactory(PROPERTY_NAME_DOUBLE, 1.3)]),
+                    v3 = vertexFactory(),
+                    vertices = [v3, v2, v1],
+                    sorted = V.sortByProperties(vertices, PROPERTY_NAME_DOUBLE)
+                vertices.indexOf(v1).should.equal(2)
+                vertices.indexOf(v2).should.equal(1)
+                vertices.indexOf(v3).should.equal(0)
+
+                sorted.indexOf(v1).should.equal(0)
+                sorted.indexOf(v2).should.equal(1)
+                sorted.indexOf(v3).should.equal(2)
+            })
+
+            it('should sort geolocations somehow')
+            it('should sort booleans')
+            
+        })
+
         describe('properties', function() {
             it('should support legacy byte displayType', function() {
                 V.properties.bytes.should.equal(V.properties.byte);
@@ -184,6 +249,10 @@ define([
                 expect(prop()).to.equal('boolean.false')
                 expect(prop('k1')).to.equal('boolean.true')
                 expect(prop('k2')).to.equal('boolean.false')
+            })
+            it('should return blank for missing properties', function() {
+                var vertex = vertexFactory();
+                V.prop(vertex, PROPERTY_NAME_BOOLEAN).should.equal('');
             })
             it('should get display values for numbers', function() {
                 var vertex = vertexFactory([

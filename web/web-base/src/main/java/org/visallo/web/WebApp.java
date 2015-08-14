@@ -88,7 +88,7 @@ public class WebApp extends App {
     }
 
     private void register(String name, String type, String pathPrefix, Boolean includeInPage) {
-        String resourcePath = pathPrefix + name;
+        String resourcePath = (pathPrefix + name).replaceAll("^/", "");
         if (devMode || !includeInPage) {
             get("/" + resourcePath, new StaticResourceHandler(this.getClass(), name, type));
             if (includeInPage) {
@@ -119,6 +119,10 @@ public class WebApp extends App {
 
     public void registerJavaScriptTemplate(String scriptResourceName) {
         register(scriptResourceName, "text/plain", "jsc", false);
+    }
+
+    public void registerFile(String resourceName, String mimeType) {
+        register(resourceName, mimeType, "", false);
     }
 
     public void registerCss(String cssResourceName) {
