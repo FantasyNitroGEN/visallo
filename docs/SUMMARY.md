@@ -1,6 +1,4 @@
-# Summary
-
-This is the summary of my book.
+# Documentation Table of Contents
 
 * [Getting Started](getting-started.md)
     * [Architecture](architecture.md)

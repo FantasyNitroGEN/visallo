@@ -2,5 +2,6 @@
   "title": "Visallo Developer Guide",
   "description": "Developer guide to Visallo, the open source big data platform for analytical tools and visualizations that help PEOPLE solve ambiguous problems.",
   "language": "en",
-  "direction": "ltr"
+  "direction": "ltr",
+  "gitbook": ">=2.2.0"
 }
