@@ -8,6 +8,7 @@ build: install
 
 install:
 	@npm install gitbook-cli -g
+	@gitbook install .
 
 clean:
 	@rm -rf _book
