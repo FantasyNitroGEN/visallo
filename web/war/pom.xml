@@ -180,6 +180,10 @@
                     <jettyXml>${basedir}/etc/jetty.xml,${basedir}/etc/jetty-ssl.xml,${basedir}/etc/jetty-http.xml,${basedir}/etc/jetty-https.xml</jettyXml>
                     <systemProperties>
                         <systemProperty>
+                            <name>jetty.base</name>
+                            <value>${basedir}</value>
+                        </systemProperty>
+                        <systemProperty>
                             <name>jetty.port</name>
                             <value>${jetty.port}</value>
                         </systemProperty>
