@@ -67,14 +67,15 @@ public class VisalloTestClusterConfigurationLoader extends ConfigurationLoader {
                 props.setProperty("simpleOrm.accumulo.zookeeperServerNames", testServer);
                 props.setProperty("simpleOrm.accumulo.username", "root");
                 props.setProperty("simpleOrm.accumulo.password", "password");
+                props.setProperty("simpleOrm.tablePrefix", "visallo_test_");
 
                 props.setProperty("graph.accumuloInstanceName", "visallo");
                 props.setProperty("graph.username", "root");
                 props.setProperty("graph.password", "password");
-                props.setProperty("graph.tableNamePrefix", "visallo_vertexium");
+                props.setProperty("graph.tableNamePrefix", "visallo_vertexium_test");
                 props.setProperty("graph.zookeeperServers", testServer);
                 props.setProperty("graph.search.locations", testServer);
-                props.setProperty("graph.search.indexName", "vertexium");
+                props.setProperty("graph.search.indexName", "vertexium_test");
                 props.setProperty("graph.hdfs.rootDir", "hdfs://" + testServer);
 
                 props.setProperty("objectdetection.classifier.face.path", props.getProperty("objectdetection.classifier.face.path").replace("/tmp/visallo-integration-test", ""));

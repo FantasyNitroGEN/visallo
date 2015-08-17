@@ -149,7 +149,6 @@ define([], function() {
                         }
 
                         if (!vertexId) {
-                            console.error('No data-vertex-id attribute for draggable element found', a[0]);
                             return;
                         }
                     }

@@ -50,6 +50,11 @@ define([
             });
         },
 
+        current: function(workspaceId) {
+            var workspace = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspace');
+            return Promise.resolve(workspace);
+        },
+
         store: function(workspaceId) {
             var workspace = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspace');
             return Promise.resolve(workspace && workspace.vertices || []);

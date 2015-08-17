@@ -364,12 +364,12 @@ define([
 
             sortByProperties: function(vertices, name, options) {
                 var verticesWithValues = _.partition(vertices, function(vertex) {
-                        var propRaw = V.propRaw(vertex, name, undefined, { defaultValue: ' ' });
-                        if (_.isString(propRaw)) {
-                            propRaw = propRaw.trim();
+                        var prop = V.prop(vertex, name, undefined, { defaultValue: ' ' });
+                        if (_.isString(prop)) {
+                            prop = prop.trim();
                         }
-                        if (_.isUndefined(propRaw)) return false;
-                        if (_.isString(propRaw) && _.isEmpty(propRaw)) return false;
+                        if (_.isUndefined(prop)) return false;
+                        if (_.isString(prop) && _.isEmpty(prop)) return false;
                         return true;
                     }),
                     sortedNoValue = _.sortBy(verticesWithValues[1], function(vertex) {
@@ -384,6 +384,9 @@ define([
                         }
 
                         if (ontologyProperty) {
+                            if (ontologyProperty.dependentPropertyIris) {
+                                propRaw = V.prop(vertex, name, undefined, { defaultValue: ' ' });
+                            }
                             switch (ontologyProperty.dataType) {
                                 case 'string':
                                     return propRaw.toLowerCase();
