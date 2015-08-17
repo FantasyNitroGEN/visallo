@@ -1,6 +1,6 @@
 # Development Environment
 
-The Visallo development environment is very similar across Mac OSX, Windows, and Linux platforms and requires only a few dependencies to get started. In general, the only required dependencies are a Java SDK and Docker. An installation of VirtualBox is also required on Mac OSX and Windows but will be installed by Docker Tools if it's not already present on your system. Please see the section below for platform-specific instructions on installing the required dependencies.
+The Visallo development environment is very similar across Mac OSX, Windows, and Linux platforms and requires only a few dependencies to get started. In general, the only required dependencies are a [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) and [Docker](https://www.docker.com/). An installation of [VirtualBox](https://www.virtualbox.org/) is also required on Mac OSX and Windows but will be installed by Docker Tools if it's not already present on your system. Please see the section below for platform-specific instructions on installing the required dependencies.
 
 ## Mac OSX
 
