@@ -1,5 +1,7 @@
 # Developing Visallo on Windows
 
+**THESE INSTRUCTIONS ARE OUT OF DATE. PROCEED WITH CAUTION**
+
 1. Install Docker per their instructions: [https://docs.docker.com/installation](https://docs.docker.com/installation/#installation)
 
 1. Install node and npm per their instructions: [http://nodejs.org/](http://nodejs.org/)

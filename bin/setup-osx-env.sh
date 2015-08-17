@@ -26,10 +26,15 @@ docker-machine create \
   --virtualbox-boot2docker-url https://github.com/boot2docker/boot2docker/releases/download/v1.8.1/boot2docker.iso \
   visallo-dev
 
-echo ">> Configuring docker-machine VM."
+eval "$(docker-machine env visallo-dev)"
+
+echo ">> Configuring docker-machine VM"
 vm_ip=$(docker-machine ssh visallo-dev ip addr show eth1 | awk '/inet / {print $2}' | awk -F / '{print $1}')
 docker-machine ssh visallo-dev "sudo sed -i -e 's/visallo-dev localhost/localhost/' -e '2i ${vm_ip} visallo-dev' /etc/hosts"
 
+$(cd ${DIR}/../docker; pwd)/build-dev.sh
+
+echo ">> Building the development Docker container"
 RUN_SCRIPT_PATH=$(cd ${DIR}/../docker; pwd)/run-dev.sh
 
 echo ""

@@ -28,7 +28,7 @@ and a little about the source code structure.
 
 Debugging and developing for Visallo is easiest using an IDE. These instructions will help you get that setup.
 
-## Section 4: Install [Dependencies](dependencies.md)
+## Section 4: Get the Web Server [Running](running.md)
 
 Visallo has a lot of dependencies, some of which are required while others are not. This section will help you decide
 which dependencies you need to install for the features you want.

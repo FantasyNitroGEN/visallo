@@ -25,65 +25,6 @@
 
     <profiles>
         <profile>
-            <id>storage-accumulo</id>
-            <dependencies>
-                <dependency>
-                    <groupId>com.v5analytics.simpleorm</groupId>
-                    <artifactId>simple-orm-accumulo</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-model-vertexium-accumulo</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-accumulo</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-kryo-serializer</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>queue-rabbitmq</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-model-rabbitmq</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>search-elasticsearch</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-elasticsearch</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-elasticsearch-parentchild</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-elasticsearch-singledocument</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
             <id>web-admin</id>
             <dependencies>
                 <dependency>
