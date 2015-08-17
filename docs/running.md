@@ -7,10 +7,10 @@ This guide covers running Visallo within the development Docker container. The s
 An ontology must be loaded prior to running Visallo. The source code for the project comes with sample ontologies to use as a starting point. The following command will load the minimal ontology to get you up and running quickly. It's important to note that the minimal ontology is very sparse, and you won't be able to do too much in Visallo with it. When you're ready to dig into Visallo a little deeper, you'll want to read the [section on ontologies](ontology.md). Run the following command from the `/opt/visallo-source` directory within the development Docker container.
 
         mvn -P storage-accumulo,queue-rabbitmq,search-elasticsearch \
-            -f tools/owl/pom.xml \
-            exec:java \
-            -Dexec.mainClass="org.visallo.core.cmdline.OwlImport" \
-            -Dexec.args="--in examples/ontology-minimal/minimal.owl"
+            -f tools/cli/pom.xml \
+            exec:exec \
+            -Dexec.executable="java" \
+            -Dexec.args="-classpath %classpath org.visallo.core.cmdline.OwlImport --in /opt/visallo-source/examples/ontology-minimal/minimal.owl"
 
 ## Run the Web Application
 
