@@ -4,7 +4,7 @@ The development Docker image is the fastest and easiest way to get a development
 
 ## Creating and Starting the Container
 
-The [platform specific installation instructions]() and referenced scripts should have already created the development Docker container. Run the following command to start the Docker container and leave you in a bash shell within the container. This will also map all the internal ports to external ports so that you can access the web interface for Visallo and all the dependent components.
+The [platform specific installation instructions](development-environment.md) and referenced scripts should have already created the development Docker container. Run the following command to start the Docker container and leave you in a bash shell within the container. This will also map all the internal ports to external ports so that you can access the web interface for Visallo and all the dependent components.
 
         docker/run-dev.sh
 

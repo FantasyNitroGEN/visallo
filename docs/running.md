@@ -16,19 +16,21 @@ An ontology must be loaded prior to running Visallo. The source code for the pro
 
 Run the following command from the `/opt/visallo-source` directory within the development Docker container:
 
-        mvn -P storage-accumulo,search-elasticsearch,queue-rabbitmq \
-            -f tools/cli/pom.xml \
+        mvn -f tools/cli \
+            -P storage-accumulo,search-elasticsearch,queue-rabbitmq \
             exec:exec \
-            -Dexec.executable="java" \
-            -Dexec.args="-classpath %classpath org.visallo.core.cmdline.OwlImport --in /opt/visallo-source/examples/ontology-minimal/minimal.owl"
+            -Dexec.executable=java \
+            -Dexec.args='-classpath %classpath org.visallo.core.cmdline.OwlImport --in /opt/visallo-source/examples/ontology-minimal/minimal.owl'
 
 ## Run the Web Application
 
 Run the commands below to start the Visallo web application. These steps must be run from the development Docker container shell resulting from running the `docker/run-dev.sh` script.
 
-        cd /opt/visallo-source/web/war
-        mvn -P torage-accumulo,search-elasticsearch,queue-rabbitmq,web-admin,web-auth-username-only jetty:run
+        mvn -f web/war \
+            -P storage-accumulo,search-elasticsearch,queue-rabbitmq,web-admin,web-auth-username-only \
+            jetty:run
 
 The preceding `mvn` command will start the Visallo web application with a minimum number of features running. The `-P` option to the Maven command above specifies which profiles are included when starting Jetty. A profile groups a set of dependencies that make up a feature. Running the following command will list all of the available profiles that can be run.
 
-        mvn help:all-profiles
+        mvn -f web/war \
+            help:all-profiles
