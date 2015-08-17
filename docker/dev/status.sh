@@ -23,7 +23,7 @@ function status_zookeeper {
 
 function status_hadoop {
     _status_begin "Hadoop"
-    if [[ $(/opt/hadoop/bin/hdfs dfsadmin -report 2>&1) =~ "Datanodes available: 1" ]]; then
+    if [[ $(/opt/hadoop/bin/hdfs dfsadmin -report 2>&1) =~ "Live datanodes (1):" ]]; then
         _status_good "Hadoop"
     else
         _status_fail "Hadoop"
