@@ -177,6 +177,21 @@
                     <webApp>
                         <contextPath>/</contextPath>
                     </webApp>
+                    <jettyXml>${basedir}/etc/jetty.xml,${basedir}/etc/jetty-ssl.xml,${basedir}/etc/jetty-http.xml,${basedir}/etc/jetty-https.xml</jettyXml>
+                    <systemProperties>
+                        <systemProperty>
+                            <name>jetty.port</name>
+                            <value>${jetty.port}</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <name>https.port</name>
+                            <value>${jetty.ssl.port}</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <name>jetty.secure.port</name>
+                            <value>${jetty.ssl.port}</value>
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
             </plugin>
         </plugins>
