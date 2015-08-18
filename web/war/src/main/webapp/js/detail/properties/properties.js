@@ -343,12 +343,13 @@ define([
             var vertexId = data.vertexId || this.attr.data.id;
 
             if (data.property.name === 'http://visallo.org#visibilityJson') {
+                var visibilitySource = data.property.visibilitySource || '';
                 if (data.isEdge) {
-                    this.dataRequest('edge', 'setVisibility', vertexId, data.property.visibilitySource)
+                    this.dataRequest('edge', 'setVisibility', vertexId, visibilitySource)
                         .then(this.closePropertyForm.bind(this))
                         .catch(this.requestFailure.bind(this))
                 } else {
-                    this.dataRequest('vertex', 'setVisibility', vertexId, data.property.visibilitySource)
+                    this.dataRequest('vertex', 'setVisibility', vertexId, visibilitySource)
                         .then(this.closePropertyForm.bind(this))
                         .catch(this.requestFailure.bind(this));
                 }
