@@ -30,12 +30,12 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-dev-tools</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-requeue</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -45,7 +45,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-import-export-workspaces</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -55,7 +55,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-google-analytics</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -65,7 +65,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-opennlp-dictionary-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -75,7 +75,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-terms-of-use</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -85,7 +85,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-auth-username-only</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -95,7 +95,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-auth-username-password</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -105,7 +105,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-auth-x509</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -115,7 +115,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-auth-x509ldap</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -125,7 +125,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-zip-code-boundaries</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -135,17 +135,17 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-newuser-workspace-copy</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-newuser-workspace-sharer</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-import-export-workspaces</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -155,7 +155,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-change-email</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -165,7 +165,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-analysts-notebook-export</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -175,7 +175,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-geocoder-bing</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -185,7 +185,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-geoip</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -195,7 +195,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-clavin</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -205,7 +205,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-opencv-object-detector</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -215,7 +215,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-tesseract</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -225,7 +225,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-opennlp-me-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -235,7 +235,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-java-code-ingest</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -245,17 +245,17 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-mime-type-ontology-mapper</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-tika-mime-type</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-tika-text-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -265,7 +265,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-sphinx</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -275,12 +275,12 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-web-opennlp-dictionary-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-opennlp-dictionary-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -290,42 +290,42 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-video-mp4-encoder</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-video-webm-encoder</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-video-audio-extract</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-video-poster-frame</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-video-frame-extract</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-video-metadata</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-youtube-transcript</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-subrip-transcript</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -335,17 +335,17 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-audio-mp4-encoder</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-audio-ogg-encoder</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-audio-metadata</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -355,7 +355,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-ccextractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -365,7 +365,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-drewnoakes-image-metadata-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -375,12 +375,12 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-translate</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-translator-bing</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -390,7 +390,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-zipcode-resolver</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -400,7 +400,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-zipcode-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -410,7 +410,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-rdf</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -420,7 +420,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-phone-number-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -430,7 +430,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-email-extractor</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -440,7 +440,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-csv</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -450,7 +450,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-reindex</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -460,7 +460,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-tools-import</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>

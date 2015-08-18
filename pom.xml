@@ -163,7 +163,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-model-vertexium-accumulo</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.vertexium</groupId>
@@ -183,7 +183,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-model-rabbitmq</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -193,7 +193,7 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
-                    <version>${project.version}</version>
+                    <version>${v5.visallo.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.vertexium</groupId>

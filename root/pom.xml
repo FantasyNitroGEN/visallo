@@ -30,6 +30,8 @@
     </scm>
 
     <properties>
+        <v5.visallo.version>1.1-SNAPSHOT</v5.visallo.version>
+
         <!-- General -->
         <classpath.filename>${project.build.directory}/.classpath.${user.name}</classpath.filename>
         <java.compiler.showWarnings>true</java.compiler.showWarnings>
