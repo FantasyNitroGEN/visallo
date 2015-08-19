@@ -1,14 +1,14 @@
 .PHONY: serve build install clean clone push
 
 serve: install
-	@gitbook serve
+	@./node_modules/.bin/gitbook serve
 
 build: install
-	@gitbook build
+	@./node_modules/.bin/gitbook build
 
 install:
-	@npm install gitbook-cli -g
-	@gitbook install .
+	@npm install gitbook-cli
+	@./node_modules/.bin/gitbook install .
 
 clean:
 	@rm -rf _book
