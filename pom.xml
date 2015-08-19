@@ -56,6 +56,7 @@
         <module>integration-test</module>
         <module>common</module>
         <module>docker</module>
+        <module>plugin-toggle</module>
     </modules>
 
     <dependencies>
@@ -152,65 +153,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-        <profile>
-            <id>storage-accumulo</id>
-            <dependencies>
-                <dependency>
-                    <groupId>com.v5analytics.simpleorm</groupId>
-                    <artifactId>simple-orm-accumulo</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-model-vertexium-accumulo</artifactId>
-                    <version>${v5.visallo.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-accumulo</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-kryo-serializer</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>queue-rabbitmq</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-model-rabbitmq</artifactId>
-                    <version>${v5.visallo.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>search-elasticsearch</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
-                    <version>${v5.visallo.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-elasticsearch</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-elasticsearch-parentchild</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.vertexium</groupId>
-                    <artifactId>vertexium-elasticsearch-singledocument</artifactId>
-                    <version>${vertexium.version}</version>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 </project>

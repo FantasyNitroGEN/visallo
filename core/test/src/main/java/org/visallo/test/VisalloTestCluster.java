@@ -5,26 +5,37 @@ import com.v5analytics.simpleorm.AccumuloSimpleOrmContext;
 import com.v5analytics.simpleorm.AccumuloSimpleOrmSession;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.visallo.core.model.WorkQueueNames;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.commons.io.FileUtils;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.JSONObject;
 import org.vertexium.Graph;
+import org.vertexium.GraphBaseWithSearchIndex;
+import org.vertexium.GraphConfiguration;
+import org.vertexium.elasticsearch.ElasticSearchSearchIndexBase;
+import org.vertexium.elasticsearch.ElasticSearchSearchIndexConfiguration;
+import org.vertexium.search.SearchIndex;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.VisalloTestClusterConfigurationLoader;
 import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.notification.SystemNotificationRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.util.ModelUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.tools.format.FormatVisallo;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,18 +80,12 @@ public class VisalloTestCluster {
             Configuration configuration = new Configuration(new VisalloTestClusterConfigurationLoader(), configMap);
             workQueueNames = new WorkQueueNames(configuration);
             if (VisalloTestClusterConfigurationLoader.isTestServer()) {
-                String[] indexNames = new String[0];
-                if (InjectHelper.hasInjector()) {
-                    Graph graph = InjectHelper.getInstance(Graph.class);
-                    indexNames = FormatVisallo.getElasticSearchIndexNames(graph);
-                }
-                FormatVisallo.deleteElasticSearchIndex(config, indexNames);
-
-                AccumuloSimpleOrmSession simpleOrmSession = new AccumuloSimpleOrmSession();
-                simpleOrmSession.init(configMap);
-                SimpleOrmContext simpleOrmContext = new AccumuloSimpleOrmContext(new Authorizations(VisalloVisibility.SUPER_USER_VISIBILITY_STRING));
-                SystemUser user = new SystemUser(simpleOrmContext);
-                ModelUtil.deleteTables(simpleOrmSession, user);
+                SimpleOrmSession simpleOrmSession = InjectHelper.getInstance(SimpleOrmSession.class);
+                SystemUser user = new SystemUser(simpleOrmSession.createContext(VisalloVisibility.SUPER_USER_VISIBILITY_STRING));
+                Graph graph = InjectHelper.getInstance(Graph.class);
+                WorkQueueRepository workQueueRepository = InjectHelper.getInstance(WorkQueueRepository.class);
+                AuthorizationRepository authorizationRepository = InjectHelper.getInstance(AuthorizationRepository.class);
+                ModelUtil.drop(graph, simpleOrmSession, workQueueRepository, authorizationRepository, user);
             } else {
                 setupHdfsFiles();
                 startAccumulo();
