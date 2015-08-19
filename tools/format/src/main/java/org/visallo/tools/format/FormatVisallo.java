@@ -13,7 +13,6 @@ import org.visallo.core.util.VisalloLoggerFactory;
 public class FormatVisallo extends CommandLineTool {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FormatVisallo.class);
     private AuthorizationRepository authorizationRepository;
-    private SimpleOrmSession simpleOrmSession;
 
     public static void main(String[] args) throws Exception {
         CommandLineTool.main(new FormatVisallo(), args);
@@ -21,13 +20,8 @@ public class FormatVisallo extends CommandLineTool {
 
     @Override
     protected int run() throws Exception {
-        ModelUtil.drop(getGraph(), simpleOrmSession, getWorkQueueRepository(), authorizationRepository, getUser());
+        ModelUtil.drop(getGraph(), getSimpleOrmSession(), getWorkQueueRepository(), authorizationRepository, getUser());
         return 0;
-    }
-
-    @Inject
-    public void setSimpleOrmSession(SimpleOrmSession simpleOrmSession) {
-        this.simpleOrmSession = simpleOrmSession;
     }
 
     @Inject

@@ -4,6 +4,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.inject.Inject;
+import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.FileSystem;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -36,6 +38,8 @@ public abstract class CommandLineTool {
     private WorkQueueRepository workQueueRepository;
     private OntologyRepository ontologyRepository;
     private VisibilityTranslator visibilityTranslator;
+    private SimpleOrmSession simpleOrmSession;
+    private CuratorFramework curatorFramework;
 
     @Parameter(names = {"--help", "-h"}, description = "Print help", help = true)
     private boolean help;
@@ -110,6 +114,14 @@ public abstract class CommandLineTool {
             LOGGER.debug("shutting down %s", this.workQueueRepository.getClass().getName());
             this.workQueueRepository.shutdown();
         }
+        if (this.simpleOrmSession != null) {
+            LOGGER.debug("shutting down %s", this.simpleOrmSession.getClass().getName());
+            this.simpleOrmSession.close();
+        }
+        if (this.curatorFramework != null) {
+            LOGGER.debug("shutting down %s", this.curatorFramework.getClass().getName());
+            this.curatorFramework.close();
+        }
     }
 
     protected abstract int run() throws Exception;
@@ -171,6 +183,24 @@ public abstract class CommandLineTool {
     @Inject
     public final void setOntologyRepository(OntologyRepository ontologyRepository) {
         this.ontologyRepository = ontologyRepository;
+    }
+
+    @Inject
+    public final void setSimpleOrmSession(SimpleOrmSession simpleOrmSession) {
+        this.simpleOrmSession = simpleOrmSession;
+    }
+
+    public CuratorFramework getCuratorFramework() {
+        return curatorFramework;
+    }
+
+    @Inject
+    public final void setCuratorFramework(CuratorFramework curatorFramework) {
+        this.curatorFramework = curatorFramework;
+    }
+
+    public SimpleOrmSession getSimpleOrmSession() {
+        return simpleOrmSession;
     }
 
     public Graph getGraph() {

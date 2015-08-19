@@ -5,7 +5,6 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.QueueingConsumer;
-import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -15,6 +14,7 @@ import org.visallo.core.externalResource.ExternalResourceWorker;
 import org.visallo.core.externalResource.QueueExternalResourceWorker;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.model.FlushFlag;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.util.VisalloLogger;
@@ -99,10 +99,14 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
         try {
             LOGGER.debug("Closing RabbitMQ channel");
             this.channel.close();
+        } catch (Throwable e) {
+            LOGGER.error("Could not close RabbitMQ channel", e);
+        }
+        try {
             LOGGER.debug("Closing RabbitMQ connection");
             this.connection.close();
-        } catch (IOException e) {
-            LOGGER.error("Could not close RabbitMQ channel", e);
+        } catch (Throwable e) {
+            LOGGER.error("Could not close RabbitMQ connection", e);
         }
     }
 
