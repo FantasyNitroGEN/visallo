@@ -27,12 +27,12 @@
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-model-vertexium-accumulo</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
