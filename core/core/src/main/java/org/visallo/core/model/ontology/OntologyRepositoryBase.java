@@ -654,6 +654,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         if ("http://www.w3.org/2001/XMLSchema#positiveInteger".equals(iri)) {
             return PropertyType.INTEGER;
         }
+        if ("http://www.w3.org/2001/XMLSchema#unsignedLong".equals(iri)) {
+            return PropertyType.INTEGER;
+        }
+        if ("http://www.w3.org/2001/XMLSchema#unsignedByte".equals(iri)) {
+            return PropertyType.INTEGER;
+        }
         throw new VisalloException("Unhandled property type " + iri);
     }
 
