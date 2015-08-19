@@ -2,12 +2,12 @@ package org.visallo.core.cmdline;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import org.visallo.core.cmdline.converters.IRIConverter;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.OntologyRepositoryBase;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.EntitySearcher;
+import org.visallo.core.cmdline.converters.IRIConverter;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.ontology.OntologyRepositoryBase;
 import org.visallo.core.model.properties.types.*;
 
 import java.util.Map;
@@ -109,8 +109,8 @@ public class OwlToJava extends CommandLineTool {
 
     private void exportDataProperty(SortedMap<String, String> sortedValues, SortedMap<String, String> sortedIntents, IRI documentIri, OWLOntology o, OWLDataProperty dataProperty) {
         String iri = dataProperty.getIRI().toString();
-        String label = OntologyRepositoryBase.getLabel(o, dataProperty);
-        String javaConstName = toJavaConst(label);
+        String iriPartAfterHash = getIriPartAfterHash(iri);
+        String javaConstName = toJavaConst(iriPartAfterHash);
         if (!iri.startsWith(documentIri.toString())) {
             String lastIriPart = getLastIriPart(iri);
             javaConstName = toJavaConst(lastIriPart) + "_" + javaConstName;
@@ -121,10 +121,15 @@ public class OwlToJava extends CommandLineTool {
         addIntents(sortedIntents, OntologyRepositoryBase.getIntents(o, dataProperty));
 
         String type;
-        if ("http://www.w3.org/2001/XMLSchema#double".equals(rangeIri)) {
+        if ("http://www.w3.org/2001/XMLSchema#double".equals(rangeIri)
+                || "http://www.w3.org/2001/XMLSchema#float".equals(rangeIri)) {
             type = DoubleVisalloProperty.class.getSimpleName();
-        } else if ("http://www.w3.org/2001/XMLSchema#int".equals(rangeIri) || "http://www.w3.org/2001/XMLSchema#integer".equals(rangeIri)) {
+        } else if ("http://www.w3.org/2001/XMLSchema#int".equals(rangeIri)
+                || "http://www.w3.org/2001/XMLSchema#integer".equals(rangeIri)
+                || "http://www.w3.org/2001/XMLSchema#unsignedByte".equals(rangeIri)) {
             type = IntegerVisalloProperty.class.getSimpleName();
+        } else if ("http://www.w3.org/2001/XMLSchema#unsignedLong".equals(rangeIri)) {
+            type = LongVisalloProperty.class.getSimpleName();
         } else if ("http://visallo.org#geolocation".equals(rangeIri)) {
             type = GeoPointVisalloProperty.class.getSimpleName();
         } else if ("http://www.w3.org/2001/XMLSchema#string".equals(rangeIri)) {
@@ -142,6 +147,14 @@ public class OwlToJava extends CommandLineTool {
         }
 
         sortedValues.put(javaConstName, String.format("    public static final %s %s = new %s(\"%s\");", type, javaConstName, type, iri));
+    }
+
+    private String getIriPartAfterHash(String iri) {
+        int lastHash = iri.lastIndexOf('#');
+        if (lastHash > 0) {
+            return iri.substring(lastHash + 1);
+        }
+        return iri;
     }
 
     private void addIntents(SortedMap<String, String> sortedIntents, String[] intents) {
@@ -165,10 +178,23 @@ public class OwlToJava extends CommandLineTool {
     }
 
     private String toJavaConst(String label) {
-        return label
-                .toUpperCase()
-                .replaceAll(" ", "_")
-                .replaceAll("\\.", "_")
-                .replaceAll("-", "_");
+        boolean lastCharLower = false;
+        StringBuilder result = new StringBuilder();
+        for (char c : label.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                if (lastCharLower) {
+                    result.append('_');
+                }
+                lastCharLower = false;
+            } else if (Character.isLowerCase(c)) {
+                lastCharLower = true;
+            }
+            if (Character.isLetterOrDigit(c)) {
+                result.append(Character.toUpperCase(c));
+            } else {
+                result.append('_');
+            }
+        }
+        return result.toString();
     }
 }
