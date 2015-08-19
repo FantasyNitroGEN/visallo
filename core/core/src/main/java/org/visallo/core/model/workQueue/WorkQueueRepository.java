@@ -1,13 +1,14 @@
 package org.visallo.core.model.workQueue;
 
-import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.WorkerSpout;
+import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
 import org.visallo.core.model.FlushFlag;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.notification.SystemNotification;
 import org.visallo.core.model.notification.UserNotification;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
@@ -26,9 +27,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkQueueRepository {
     protected static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkQueueRepository.class);
-    private final Graph graph;
     protected final Configuration configuration;
     protected final WorkQueueNames workQueueNames;
+    private final Graph graph;
 
     protected WorkQueueRepository(Graph graph, WorkQueueNames workQueueNames, Configuration configuration) {
         this.graph = graph;
@@ -134,6 +135,36 @@ public abstract class WorkQueueRepository {
         }
     }
 
+    public void pushGraphPropertyQueue(final Element element, Priority priority) {
+        pushGraphPropertyQueue(element, null, null, priority, FlushFlag.DEFAULT);
+    }
+
+    public void pushGraphPropertyQueue(
+            final Element element,
+            String workspaceId,
+            String visibilitySource,
+            Priority priority,
+            FlushFlag flushFlag
+    ) {
+        getGraph().flush();
+        checkNotNull(element);
+        JSONObject data = new JSONObject();
+        if (element instanceof Vertex) {
+            data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, element.getId());
+        } else if (element instanceof Edge) {
+            data.put(GraphPropertyMessage.GRAPH_EDGE_ID, element.getId());
+        } else {
+            throw new VisalloException("Unexpected element type: " + element.getClass().getName());
+        }
+
+        if (workspaceId != null && !workspaceId.equals("")) {
+            data.put("workspaceId", workspaceId);
+            data.put("visibilitySource", visibilitySource);
+        }
+
+        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+    }
+
     protected boolean shouldBroadcastGraphPropertyChange(Element element, String propertyKey, String propertyName, String workspaceId, Priority priority) {
         return shouldBroadcast(priority);
     }
@@ -200,8 +231,18 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
+    public void broadcastElement(Element element, String workspaceId) {
+        broadcastPropertyChange(element, null, null, workspaceId);
+    }
+
     public void pushElement(Element element, Priority priority) {
         pushGraphPropertyQueue(element, null, null, priority);
+    }
+
+    public void pushElements(Iterable<? extends Element> elements, Priority priority) {
+        for (Element element : elements) {
+            pushElement(element, priority);
+        }
     }
 
     public void pushElement(Element element) {
@@ -604,10 +645,6 @@ public abstract class WorkQueueRepository {
         return json;
     }
 
-    public static abstract class BroadcastConsumer {
-        public abstract void broadcastReceived(JSONObject json);
-    }
-
     private enum PublishType {
         TO_PUBLIC("toPublic"),
         DELETE("delete"),
@@ -623,5 +660,9 @@ public abstract class WorkQueueRepository {
         public String getJsonString() {
             return jsonString;
         }
+    }
+
+    public static abstract class BroadcastConsumer {
+        public abstract void broadcastReceived(JSONObject json);
     }
 }

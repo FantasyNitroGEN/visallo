@@ -3,12 +3,15 @@ package org.visallo.core.model;
 import com.google.inject.Inject;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.WorkerTuple;
+import org.visallo.core.ingest.graphProperty.GraphPropertyThreadedWrapper;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.json.JSONObject;
+
+import java.util.List;
 
 public abstract class WorkerBase {
     private WorkQueueRepository workQueueRepository;
@@ -82,4 +85,6 @@ public abstract class WorkerBase {
     public CuratorFramework getCuratorFramework() {
         return curatorFramework;
     }
+
+
 }

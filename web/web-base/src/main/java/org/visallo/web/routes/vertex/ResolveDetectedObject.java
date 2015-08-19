@@ -154,7 +154,7 @@ public class ResolveDetectedObject extends BaseRequestHandler {
 
         graph.flush();
 
-        workQueueRepository.pushElement(edge, Priority.HIGH);
+        workQueueRepository.broadcastElement(edge, workspaceId);
         workQueueRepository.pushGraphPropertyQueue(artifactVertex, propertyKey, VisalloProperties.DETECTED_OBJECT.getPropertyName(), Priority.HIGH);
 
         ClientApiElement result = ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);

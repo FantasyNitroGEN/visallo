@@ -1,5 +1,6 @@
 package org.visallo.core;
 
+import com.google.common.collect.Sets;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
@@ -23,11 +24,10 @@ import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +64,10 @@ public class EntityHighlighterTest {
         List<OffsetItem> termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", authorizations);
         String highlightedText = EntityHighlighter.getHighlightedText("Test highlight of Joe Ferner and Jeff Kunkle.", termAndTermMetadata);
         String expectedText = "Test highlight of <span class=\"vertex\" title=\"joe ferner\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_--18-28-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:18,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:28}\">Joe Ferner</span> and <span class=\"vertex\" title=\"jeff kunkle\" data-info=\"{&quot;process&quot;:&quot;uniq1&quot;,&quot;id&quot;:&quot;TM_--33-44-uniq1&quot;,&quot;title&quot;:&quot;jeff kunkle&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:33,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:44}\">Jeff Kunkle</span>.";
+        assertHighlightedTextSame(highlightedText, expectedText);
+    }
+
+    private void assertHighlightedTextSame(String highlightedText, String expectedText) {
         Elements expectedElements = Jsoup.parseBodyFragment(expectedText).getAllElements();
         Elements highlightedElements = Jsoup.parseBodyFragment(highlightedText).getAllElements();
         assertEquals(expectedElements.size(), highlightedElements.size());
@@ -75,12 +79,40 @@ public class EntityHighlighterTest {
                 String expectedAttrValue = expectedAttr.getValue();
                 String highlightedAttrValue = highlightedElement.attr(expectedAttr.getKey());
                 if (expectedAttr.getKey().equals("data-info")) {
-                    assertEquals(new JSONObject(expectedAttrValue).toString(), new JSONObject(highlightedAttrValue).toString());
+                    assertJSONEquals(new JSONObject(expectedAttrValue), new JSONObject(highlightedAttrValue));
                 } else {
                     assertEquals(expectedAttrValue, highlightedAttrValue);
                 }
             }
         }
+    }
+
+    private void assertJSONEquals(JSONObject obj1, JSONObject obj2){
+        Set<String> obj1Set = setToString(obj1.keySet());
+        Set<String> obj2Set = setToString(obj2.keySet());
+
+        Sets.SetView<String> difference = Sets.difference(obj1Set, obj2Set);
+
+        assertTrue(difference.isEmpty());
+
+        for(String obj1Key : obj1Set){
+            Object val = obj1.get(obj1Key);
+            if(val instanceof JSONObject){
+                assertJSONEquals((JSONObject)val, (JSONObject)obj2.get(obj1Key));
+            }
+            else {
+                assertTrue(obj1.get(obj1Key).equals(obj2.get(obj1Key)));
+            }
+        }
+    }
+
+    private Set<String> setToString(Set set){
+        Set<String> str = Sets.newHashSet();
+        for(Object obj : set){
+            str.add(obj.toString());
+        }
+
+        return str;
     }
 
     private Vertex createTermMention(Vertex sourceVertex, String sign, String conceptIri, int start, int end) {
@@ -182,9 +214,11 @@ public class EntityHighlighterTest {
         ArrayList<Vertex> terms = new ArrayList<>();
         terms.add(createTermMention(sourceVertex, "US", LOCATION_IRI, 48, 50));
         List<OffsetItem> termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", authorizations);
+
         String highlightText = EntityHighlighter.getHighlightedText("Ejército de Liberación Nacional® partnered with US on peace treaty", termAndTermMetadata);
-        assertEquals("Ej&eacute;rcito de Liberaci&oacute;n Nacional&reg; partnered with <span class=\"vertex\" title=\"US\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_--48-50-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;US&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:48,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/location&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:50}\">US</span> on peace treaty",
-                highlightText);
+        String expectedText = "Ej&eacute;rcito de Liberaci&oacute;n Nacional&reg; partnered with <span class=\"vertex\" title=\"US\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_--48-50-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;US&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:48,&quot;sourceVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/location&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:50}\">US</span> on peace treaty";
+
+        assertHighlightedTextSame(highlightText, expectedText);
     }
 
     private List<String> asList(String[] strings) {

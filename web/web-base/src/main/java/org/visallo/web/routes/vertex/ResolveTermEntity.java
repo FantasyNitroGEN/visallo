@@ -11,7 +11,6 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionBuilder;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -144,7 +143,7 @@ public class ResolveTermEntity extends BaseRequestHandler {
         this.graph.flush();
         workQueueRepository.pushTextUpdated(artifactId);
 
-        workQueueRepository.pushElement(edge, Priority.HIGH);
+        workQueueRepository.broadcastElement(edge, workspaceId);
 
         respondWithSuccessJson(response);
     }

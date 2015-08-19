@@ -65,7 +65,7 @@ public class Requeue extends CommandLineTool {
 
     private void pushVertex(Vertex vertex, AtomicInteger pushedCount) {
         if (propertyName == null) {
-            getWorkQueueRepository().pushElement(vertex);
+            getWorkQueueRepository().broadcastElement(vertex, null);
             pushedCount.incrementAndGet();
         } else {
             Iterable<Property> properties = vertex.getProperties(propertyName);

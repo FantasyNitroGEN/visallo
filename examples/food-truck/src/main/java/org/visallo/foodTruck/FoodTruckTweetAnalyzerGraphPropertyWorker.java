@@ -69,7 +69,9 @@ public class FoodTruckTweetAnalyzerGraphPropertyWorker extends GraphPropertyWork
                 .save(getGraph(), getVisibilityTranslator(), getAuthorizations());
         getGraph().flush();
 
-        getWorkQueueRepository().pushElement(edge);
+        for (String workspaceId : visibilityJson.getWorkspaces()) {
+            getWorkQueueRepository().broadcastElement(edge, workspaceId);
+        }
 
         return edge;
     }
