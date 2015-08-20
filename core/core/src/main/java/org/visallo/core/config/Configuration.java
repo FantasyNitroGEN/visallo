@@ -90,10 +90,10 @@ public class Configuration {
                 set(entry.getKey().toString(), entry.getValue());
             }
         }
-        resolvePropertyRefereneces();
+        resolvePropertyReferences();
     }
 
-    private void resolvePropertyRefereneces() {
+    private void resolvePropertyReferences() {
         for(Map.Entry<String, String> entry : config.entrySet()) {
             String entryValue = entry.getValue();
             if(!StringUtils.isBlank(entryValue)) {
