@@ -118,7 +118,7 @@ define([
                 'Add vertex context menu items',
                 function(e) {
                     return e === 'DIVIDER' || (
-                        ('event' in e) && ('label' in e)
+                        ('event' in e || 'submenu' in e) && ('label' in e)
                     );
                 }
             );

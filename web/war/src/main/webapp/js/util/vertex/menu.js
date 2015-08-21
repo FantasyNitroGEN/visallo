@@ -117,7 +117,7 @@ define([
                 args = anchor.data('args'),
                 eventName = anchor.data('event');
 
-            if (anchor.closest('li.disabled').length) {
+            if (anchor.closest('li.disabled').length || !eventName) {
                 return;
             }
 
@@ -126,13 +126,21 @@ define([
             );
         };
 
-        this.appendMenuExtensions = function(items) {
-            var menuExtensions = registry.extensionsForPoint('org.visallo.vertex.menu');
+        this.appendMenuExtensions = function(vertex, items) {
+            var self = this,
+                menuExtensions = registry.extensionsForPoint('org.visallo.vertex.menu');
             if (!menuExtensions.length) {
                 return items;
             }
 
             menuExtensions.forEach(function(item) {
+                var currentSelection = visalloData.selectedObjects.vertexIds,
+                    canHandle = _.isFunction(item.canHandle) ? item.canHandle(currentSelection, vertex) : true;
+
+                if (!canHandle) {
+                    return;
+                }
+
                 if (item.options && _.isFunction(item.options.insertIntoMenuItems)) {
                     item.options.insertIntoMenuItems(item, items);
                 } else {
@@ -153,7 +161,7 @@ define([
             }
 
             this.$node.append(template({
-                items: this.appendMenuExtensions(createItems()),
+                items: this.appendMenuExtensions(vertex, createItems()),
                 vertex: vertex,
                 shouldDisable: function(item) {
                     var currentSelection = visalloData.selectedObjects.vertexIds,
