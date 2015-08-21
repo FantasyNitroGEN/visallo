@@ -35,6 +35,7 @@ VOLUME ["/opt/maven/repository"]
 ADD scripts/install-zookeeper.sh /opt/visallo/scripts/install-zookeeper.sh
 ENV PATH $PATH:/opt/zookeeper/bin
 ENV ZOOKEEPER_HOME /opt/zookeeper
+ENV ZOO_LOG_DIR /var/log/zookeeper
 RUN /bin/bash /opt/visallo/scripts/install-zookeeper.sh
 EXPOSE 2181 2888 3888
 
