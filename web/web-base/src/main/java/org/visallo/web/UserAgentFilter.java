@@ -4,6 +4,7 @@ import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.HandlerChain;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.v5analytics.webster.RequestResponseHandler;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import net.sf.uadetector.ReadableUserAgent;
@@ -18,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class UserAgentFilter implements Handler {
+public class UserAgentFilter implements RequestResponseHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserAgentFilter.class);
 
     private static final Map<String, VersionNumber> MINIMUM_VERSION_BROWSERS = new HashMap<String, VersionNumber>();

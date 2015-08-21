@@ -4,11 +4,11 @@ import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.web.devTools.ontology.SaveOntologyProperty;
 import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.handlers.StaticResourceHandler;
 import org.visallo.web.VisalloCsrfHandler;
 import org.visallo.web.WebApp;
 import org.visallo.web.WebAppPlugin;
 import org.visallo.web.devTools.ontology.SaveOntologyConcept;
+import org.visallo.web.devTools.routes.*;
 import org.visallo.web.devTools.user.*;
 import org.visallo.web.privilegeFilters.AdminPrivilegeFilter;
 
@@ -52,6 +52,7 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
 
         app.post("/workspace/shareWithMe", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, WorkspaceShareWithMe.class);
 
+        app.get("/admin/routeRunner", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, VisalloRouteRunner.class);
         app.post("/admin/queueVertices", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, QueueVertices.class);
         app.post("/admin/queueEdges", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, QueueEdges.class);
         app.post("/admin/deleteVertex", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, DeleteVertex.class);

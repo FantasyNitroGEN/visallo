@@ -2,11 +2,12 @@ package org.visallo.web;
 
 import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.RequestResponseHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class AuthenticationHandler implements Handler {
+public class AuthenticationHandler implements RequestResponseHandler {
     public static final String LOGIN_PATH = "/login";
     private static final String HEADER_X_FORWARDED_FOR = "x-forwarded-for";
 

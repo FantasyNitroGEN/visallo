@@ -1,5 +1,6 @@
 package org.visallo.web.auth.oauth.routes;
 
+import com.v5analytics.webster.RequestResponseHandler;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -21,7 +22,7 @@ import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class Twitter implements Handler {
+public class Twitter implements RequestResponseHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Twitter.class);
     private static final String OAUTH_REQUEST_TOKEN = "oauth_token";
     public static final String OAUTH_TOKEN_PARAM_NAME = "oauth_token";

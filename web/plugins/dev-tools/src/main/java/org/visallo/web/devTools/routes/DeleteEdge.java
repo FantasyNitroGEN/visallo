@@ -1,11 +1,10 @@
-package org.visallo.web.devTools;
+package org.visallo.web.devTools.routes;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
-import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;

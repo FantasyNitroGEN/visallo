@@ -2,6 +2,7 @@ package org.visallo.web.auth.oauth.routes;
 
 import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.RequestResponseHandler;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
@@ -24,7 +25,7 @@ import java.net.URL;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class Google implements Handler {
+public class Google implements RequestResponseHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Google.class);
     private static final String OAUTH_STATE_ATTR_NAME = "oauth.state";
     private static final String DISCOVERY_DOC_URL = "https://accounts.google.com/.well-known/openid-configuration";

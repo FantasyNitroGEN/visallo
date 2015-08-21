@@ -1,4 +1,4 @@
-package org.visallo.web.devTools;
+package org.visallo.web.devTools.routes;
 
 import com.google.inject.Inject;
 import org.visallo.core.config.Configuration;

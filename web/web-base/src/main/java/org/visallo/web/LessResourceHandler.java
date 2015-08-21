@@ -2,6 +2,7 @@ package org.visallo.web;
 
 import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.RequestResponseHandler;
 import org.apache.commons.io.IOUtils;
 import org.lesscss.LessCompiler;
 
@@ -13,7 +14,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
 
-public class LessResourceHandler implements Handler {
+public class LessResourceHandler implements RequestResponseHandler {
     private static LessCompiler lessCompiler;
 
     private String lessResourceName;

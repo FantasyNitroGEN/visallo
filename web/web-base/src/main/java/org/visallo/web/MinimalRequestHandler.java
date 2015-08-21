@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.v5analytics.webster.App;
 import com.v5analytics.webster.Handler;
+import com.v5analytics.webster.RequestResponseHandler;
 import org.vertexium.FetchHint;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
@@ -20,7 +21,7 @@ import java.util.ResourceBundle;
  * This is a handler that provides common helper methods, and only depends on {@link Configuration}
  * to be injected.
  */
-public abstract class MinimalRequestHandler implements Handler {
+public abstract class MinimalRequestHandler implements RequestResponseHandler {
     private static final String LOCALE_LANGUAGE_PARAMETER = "localeLanguage";
     private static final String LOCALE_COUNTRY_PARAMETER = "localeCountry";
     private static final String LOCALE_VARIANT_PARAMETER = "localeVariant";

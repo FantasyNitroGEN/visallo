@@ -1,7 +1,7 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.RequestResponseHandler;
 import org.apache.commons.io.IOUtils;
 import org.lesscss.LessCompiler;
 import org.visallo.core.util.VisalloLogger;
@@ -16,13 +16,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class StyleAppendableHandler implements Handler {
+public class StyleAppendableHandler implements RequestResponseHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Router.class);
 
     private LessCompiler lessCompiler;
     private final List<Resource> resources = new ArrayList();
 
-
+    @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
         response.setContentType("text/css");
         try (ServletOutputStream out = response.getOutputStream()) {
@@ -33,7 +33,7 @@ public class StyleAppendableHandler implements Handler {
                 try {
                     resource.handle(out);
                     out.write("\n".getBytes());
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LOGGER.error("Unable to process style resource: " + resource.getPath(), e);
                 }
             }
@@ -59,6 +59,7 @@ public class StyleAppendableHandler implements Handler {
 
     private interface Resource {
         public void handle(OutputStream out) throws Exception;
+
         public String getPath();
     }
 
