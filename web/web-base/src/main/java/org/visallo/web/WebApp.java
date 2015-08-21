@@ -11,6 +11,10 @@ import org.visallo.core.config.VisalloResourceBundleManager;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.parameterProviders.ActiveWorkspaceIdParameterProviderFactory;
+import org.visallo.web.parameterProviders.AuthorizationsParameterProviderFactory;
+import org.visallo.web.parameterProviders.UserParameterProviderFactory;
+import org.visallo.web.parameterProviders.VisalloResponseParameterProviderFactory;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +50,11 @@ public class WebApp extends App {
         super(servletContext);
         this.injector = injector;
         this.servletContext = servletContext;
+
+        App.registeredParameterProviderFactory(injector.getInstance(ActiveWorkspaceIdParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(AuthorizationsParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(VisalloResponseParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(UserParameterProviderFactory.class));
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = "true".equals(config.get(Configuration.DEV_MODE, "false"));

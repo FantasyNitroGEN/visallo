@@ -3,6 +3,13 @@ package org.visallo.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.v5analytics.webster.Handler;
+import com.v5analytics.webster.HandlerChain;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
@@ -10,16 +17,9 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
-import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.HandlerChain;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.vertexium.Authorizations;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,7 +38,7 @@ import java.util.TimeZone;
  */
 public abstract class BaseRequestHandler extends MinimalRequestHandler {
     protected static final int EXPIRES_1_HOUR = 60 * 60;
-    private static final String VISALLO_WORKSPACE_ID_HEADER_NAME = "Visallo-Workspace-Id";
+    public static final String VISALLO_WORKSPACE_ID_HEADER_NAME = "Visallo-Workspace-Id";
     private static final String VISALLO_TIME_ZONE_HEADER_NAME = "Visallo-TimeZone";
     private static final String TIME_ZONE_ATTRIBUTE_NAME = "timeZone";
     private static final String TIME_ZONE_PARAMETER_NAME = "timeZone";
@@ -267,7 +267,7 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
         return new ProxyUser(CurrentUser.getUserId(request), this.userRepository);
     }
 
-    private void configureResponse(final ResponseTypes type, final HttpServletResponse response, final Object responseData) {
+    public static void configureResponse(final ResponseTypes type, final HttpServletResponse response, final Object responseData) {
         Preconditions.checkNotNull(response, "The provided response was invalid");
         Preconditions.checkNotNull(responseData, "The provided data was invalid");
 
@@ -294,14 +294,14 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
                     response.getWriter().write(responseData.toString());
                     break;
                 default:
-                    throw new RuntimeException("Unsupported response type encountered");
+                    throw new VisalloException("Unsupported response type encountered");
             }
 
             if (response.getWriter().checkError()) {
                 throw new ConnectionClosedException();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error occurred while writing response", e);
+            throw new VisalloException("Error occurred while writing response", e);
         }
     }
 
