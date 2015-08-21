@@ -1,9 +1,6 @@
 package org.visallo.core.bootstrap;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.Scopes;
+import com.google.inject.*;
 import com.google.inject.matcher.Matchers;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.apache.curator.RetryPolicy;
@@ -35,6 +32,7 @@ import org.visallo.core.trace.TraceRepository;
 import org.visallo.core.trace.Traced;
 import org.visallo.core.trace.TracedMethodInterceptor;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ClassUtil;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -257,6 +255,16 @@ public class VisalloBootstrap extends AbstractModule {
             });
             client.start();
             return client;
+        }
+    }
+
+    public static <T> void bind(Binder binder, Configuration configuration, String propertyKey, Class<T> type, Class<? extends T> defaultClass) {
+        String className = configuration.get(propertyKey, defaultClass.getName());
+        try {
+            Class<? extends T> klass = ClassUtil.forName(className);
+            binder.bind(type).to(klass).in(Scopes.SINGLETON);
+        } catch (Exception ex) {
+            throw new VisalloException("Failed to bind " + className + " as singleton instance of " + type.getName() + "(configure with " + propertyKey + ")", ex);
         }
     }
 
