@@ -13,10 +13,11 @@
       <%= shouldDisable(item) ? 'disabled' : '' %>">
   <a 
     data-args="<%= JSON.stringify(item.args || {}) %>"
-    data-event="<%= item.event %>" 
+    <% if (item.event) { %>data-event="<%= item.event %>"<% } %>
     class="
       <%= item.shortcut ? 'has-shortcut' : '' %>
       <%= item.subtitle ? 'has-subtitle' : '' %>
+      <%= hasSubmenu ? 'has-submenu' : '' %>
     "
     tabindex="-1" 
     href="#"><%- processLabel(item) %><%- hasSubmenu ? '&hellip;' : '' %>
