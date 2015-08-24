@@ -1,60 +1,52 @@
 package org.visallo.web.routes.resource;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.http.HttpRepository;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.core.util.ImageUtils;
-import org.visallo.web.BaseRequestHandler;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
-import com.v5analytics.webster.HandlerChain;
+import org.visallo.core.http.HttpRepository;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.ImageUtils;
+import org.visallo.web.VisalloResponse;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class ResourceExternalGet extends BaseRequestHandler {
+public class ResourceExternalGet implements ParameterizedHandler {
     private final Graph graph;
     private final HttpRepository httpRepository;
 
     @Inject
     public ResourceExternalGet(
             final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration,
             final HttpRepository httpRepository
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.httpRepository = httpRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String vertexId = getRequiredParameter(request, "vId");
-        final String url = getRequiredParameter(request, "url");
-        final int maxWidth = getRequiredParameterAsInt(request, "maxWidth");
-        final int maxHeight = getRequiredParameterAsInt(request, "maxHeight");
-        final int jpegQuality = getOptionalParameterInt(request, "jpegQuality", 80);
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-
+    @Handle
+    public void handle(
+            Authorizations authorizations,
+            @Required(name = "vId") String vertexId,
+            @Required(name = "url") String url,
+            @Required(name = "maxWidth") int maxWidth,
+            @Required(name = "maxHeight") int maxHeight,
+            @Optional(name = "jpegQuality", defaultValue = "80") int jpegQuality,
+            VisalloResponse response
+    ) throws Exception {
         String propertyKey = getPropertyKey(url, maxWidth, maxHeight, jpegQuality);
         Vertex vertex = this.graph.getVertex(vertexId, authorizations);
         if (vertex == null) {
-            respondWithNotFound(response, "Could not find vertex: " + vertexId);
+            response.respondWithNotFound("Could not find vertex: " + vertexId);
             return;
         }
 
@@ -75,11 +67,9 @@ public class ResourceExternalGet extends BaseRequestHandler {
 
         response.setContentType(imageMimeType);
         response.addHeader("Content-Disposition", "inline; filename=thumbnail-" + maxWidth + "x" + maxHeight + ".jpg");
-        setMaxAge(response, EXPIRES_1_HOUR);
+        response.setMaxAge(VisalloResponse.EXPIRES_1_HOUR);
 
-        ServletOutputStream out = response.getOutputStream();
-        IOUtils.copy(imageFormat.getPushBackIn(), out);
-        out.close();
+        response.write(imageFormat.getPushBackIn());
     }
 
     private byte[] createAndSaveCachedImage(Vertex vertex, String propertyKey, String url, int maxWidth, int maxHeight, int jpegQuality, Authorizations authorizations) throws IOException {

@@ -2,17 +2,19 @@ package org.visallo.core.model.notification;
 
 import com.google.inject.Inject;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class UserNotificationRepository extends NotificationRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserNotificationRepository.class);
@@ -67,6 +69,7 @@ public class UserNotificationRepository extends NotificationRepository {
         Collection<UserNotification> toSave = new ArrayList<>();
         for (String notificationId : notificationIds) {
             UserNotification notification = getNotification(notificationId, user);
+            checkNotNull(notification, "Could not find notification with id " + notificationId);
             if (notification.getUserId().equals(user.getUserId())) {
                 notification.setMarkedRead(true);
                 toSave.add(notification);

@@ -6,10 +6,10 @@ import com.github.jknack.handlebars.io.ServletContextTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
 import org.apache.commons.io.IOUtils;
 import org.visallo.core.config.Configuration;
-import org.visallo.web.MinimalRequestHandler;
 import org.visallo.web.WebApp;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,10 +19,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class Index extends MinimalRequestHandler {
+public class Index implements ParameterizedHandler {
     private static final String PLUGIN_JS_RESOURCES_PARAM = "pluginJsResources";
     private static final String PLUGIN_CSS_RESOURCES_PARAM = "pluginCssResources";
     private static final String LOGO_IMAGE_DATA_URI = "logoDataUri";
@@ -37,26 +38,28 @@ public class Index extends MinimalRequestHandler {
 
     @Inject
     protected Index(Configuration configuration) {
-        super(configuration);
-
         devMode = "true".equals(configuration.get(Configuration.DEV_MODE, "false"));
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+    @Handle
+    public void handle(
+            WebApp webApp,
+            ResourceBundle resourceBundle,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws Exception {
         response.setContentType("text/html");
-        response.getWriter().write(getIndexHtml(request));
+        response.getWriter().write(getIndexHtml(request, webApp, resourceBundle));
     }
 
-    private String getIndexHtml(HttpServletRequest request) throws IOException {
+    private String getIndexHtml(HttpServletRequest request, WebApp app, ResourceBundle resourceBundle) throws IOException {
         if (indexHtml == null || devMode) {
-            WebApp app = getWebApp(request);
             Map<String, Object> context = new HashMap<>();
             context.put(PLUGIN_JS_RESOURCES_PARAM, app.getPluginsJsResources());
             context.put(PLUGIN_CSS_RESOURCES_PARAM, app.getPluginsCssResources());
-            context.put(LOGO_IMAGE_DATA_URI, getLogoImageDataUri(request));
+            context.put(LOGO_IMAGE_DATA_URI, getLogoImageDataUri(request, resourceBundle));
             for (Map.Entry<String, String> param : MESSAGE_BUNDLE_PARAMS.entrySet()) {
-                context.put(param.getKey(), getString(request, param.getValue()));
+                context.put(param.getKey(), resourceBundle.getString(param.getValue()));
             }
             TemplateLoader templateLoader = new ServletContextTemplateLoader(request.getServletContext(), "/", ".hbs");
             Handlebars handlebars = new Handlebars(templateLoader);
@@ -66,8 +69,8 @@ public class Index extends MinimalRequestHandler {
         return indexHtml;
     }
 
-    private String getLogoImageDataUri(HttpServletRequest request) throws IOException {
-        String logoPathBundleKey = getString(request, LOGO_PATH_BUNDLE_KEY);
+    private String getLogoImageDataUri(HttpServletRequest request, ResourceBundle resourceBundle) throws IOException {
+        String logoPathBundleKey = resourceBundle.getString(LOGO_PATH_BUNDLE_KEY);
         checkNotNull(logoPathBundleKey, LOGO_PATH_BUNDLE_KEY + " configuration not found");
         try (InputStream is = getResourceAsStream(request, logoPathBundleKey)) {
             checkNotNull(is, logoPathBundleKey + " resource not found");

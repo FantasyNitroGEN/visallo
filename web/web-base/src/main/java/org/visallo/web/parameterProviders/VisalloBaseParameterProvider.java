@@ -1,6 +1,7 @@
 package org.visallo.web.parameterProviders;
 
 import com.google.common.base.Preconditions;
+import com.v5analytics.webster.App;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
@@ -8,11 +9,16 @@ import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.CurrentUser;
+import org.visallo.web.WebApp;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<T> {
     private static final String VISALLO_WORKSPACE_ID_HEADER_NAME = BaseRequestHandler.VISALLO_WORKSPACE_ID_HEADER_NAME;
+    private static final String LOCALE_LANGUAGE_PARAMETER = "localeLanguage";
+    private static final String LOCALE_COUNTRY_PARAMETER = "localeCountry";
+    private static final String LOCALE_VARIANT_PARAMETER = "localeVariant";
     private final UserRepository userRepository;
 
     public VisalloBaseParameterProvider(UserRepository userRepository) {
@@ -68,6 +74,21 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         user = new ProxyUser(CurrentUser.getUserId(request), getUserRepository());
         request.setAttribute("user", user);
         return user;
+    }
+
+    protected WebApp getWebApp(HttpServletRequest request) {
+        return (WebApp) App.getApp(request);
+    }
+
+    protected Locale getLocale(HttpServletRequest request) {
+        String language = getOptionalParameter(request, LOCALE_LANGUAGE_PARAMETER);
+        String country = getOptionalParameter(request, LOCALE_COUNTRY_PARAMETER);
+        String variant = getOptionalParameter(request, LOCALE_VARIANT_PARAMETER);
+
+        if (language != null) {
+            return WebApp.getLocal(language, country, variant);
+        }
+        return request.getLocale();
     }
 
     public UserRepository getUserRepository() {

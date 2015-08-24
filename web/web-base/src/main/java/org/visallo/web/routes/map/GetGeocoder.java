@@ -1,39 +1,32 @@
 package org.visallo.web.routes.map;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.geocoding.GeocodeResult;
 import org.visallo.core.geocoding.GeocoderRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiMapGeocodeResponse;
-import com.v5analytics.webster.HandlerChain;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
-public class GetGeocoder extends BaseRequestHandler {
+public class GetGeocoder implements ParameterizedHandler {
     private final GeocoderRepository geocoderRepository;
 
     @Inject
-    public GetGeocoder(
-            UserRepository userRepository,
-            WorkspaceRepository workspaceRepository,
-            Configuration configuration,
-            GeocoderRepository geocoderRepository
-    ) {
-        super(userRepository, workspaceRepository, configuration);
+    public GetGeocoder(GeocoderRepository geocoderRepository) {
         this.geocoderRepository = geocoderRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String query = getRequiredParameter(request, "q");
+    @Handle
+    public void handle(
+            @Required(name = "q") String query,
+            VisalloResponse response
+    ) throws Exception {
         List<GeocodeResult> geocoderResults = this.geocoderRepository.find(query);
         ClientApiMapGeocodeResponse result = toClientApi(geocoderResults);
-        respondWithClientApiObject(response, result);
+        response.respondWithClientApiObject(result);
     }
 
     private ClientApiMapGeocodeResponse toClientApi(List<GeocodeResult> geocoderResults) {

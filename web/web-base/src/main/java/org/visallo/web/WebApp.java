@@ -9,12 +9,11 @@ import org.lesscss.LessCompiler;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.VisalloResourceBundleManager;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.notification.SystemNotificationSeverity;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.parameterProviders.ActiveWorkspaceIdParameterProviderFactory;
-import org.visallo.web.parameterProviders.AuthorizationsParameterProviderFactory;
-import org.visallo.web.parameterProviders.UserParameterProviderFactory;
-import org.visallo.web.parameterProviders.VisalloResponseParameterProviderFactory;
+import org.visallo.web.parameterProviders.*;
+import org.visallo.web.routes.notification.SystemNotificationSeverityValueConverter;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -55,6 +54,10 @@ public class WebApp extends App {
         App.registeredParameterProviderFactory(injector.getInstance(AuthorizationsParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(VisalloResponseParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(UserParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(ResourceBundleParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(WebAppParameterProviderFactory.class));
+
+        App.registerParameterValueConverter(SystemNotificationSeverity.class, new SystemNotificationSeverityValueConverter());
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = "true".equals(config.get(Configuration.DEV_MODE, "false"));

@@ -14,7 +14,7 @@ public class VisalloResponseParameterProviderFactory extends ParameterProviderFa
     private static final ParameterProvider<VisalloResponse> PARAMETER_PROVIDER = new ParameterProvider<VisalloResponse>() {
         @Override
         public VisalloResponse getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-            return new VisalloResponse(response);
+            return new VisalloResponse(request, response);
         }
     };
 

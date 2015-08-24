@@ -1,31 +1,24 @@
 package org.visallo.web.routes.config;
 
 import com.google.inject.Inject;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
 import org.json.JSONObject;
+import org.visallo.web.VisalloResponse;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ResourceBundle;
 
-public class Configuration extends BaseRequestHandler {
+public class Configuration implements ParameterizedHandler {
+    private final org.visallo.core.config.Configuration configuration;
 
     @Inject
-    public Configuration(
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final org.visallo.core.config.Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public Configuration(final org.visallo.core.config.Configuration configuration) {
+        this.configuration = configuration;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        ResourceBundle resourceBundle = getBundle(request);
-        JSONObject configuration = getConfiguration().toJSON(resourceBundle);
-
-        respondWithJson(response, configuration);
+    @Handle
+    public void handle(ResourceBundle resourceBundle, VisalloResponse response) throws Exception {
+        JSONObject configuration = this.configuration.toJSON(resourceBundle);
+        response.respondWithJson(configuration);
     }
 }

@@ -133,42 +133,8 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
         response.setHeader("Cache-Control", "max-age=" + numberOfSeconds);
     }
 
-    public static String generateETag(byte[] data) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
-            byte[] md5 = digest.digest(data);
-            return Hex.encodeHexString(md5);
-        } catch (NoSuchAlgorithmException e) {
-            throw new VisalloException("Could not find MD5", e);
-        }
-    }
-
-    public static void addETagHeader(final HttpServletResponse response, String eTag) {
-        response.setHeader("ETag", "\"" + eTag + "\"");
-    }
-
-    public boolean testEtagHeaders(HttpServletRequest request, HttpServletResponse response, String eTag) throws IOException {
-        String ifNoneMatch = request.getHeader("If-None-Match");
-        if (ifNoneMatch != null) {
-            if (ifNoneMatch.startsWith("\"") && ifNoneMatch.length() > 2) {
-                ifNoneMatch = ifNoneMatch.substring(1, ifNoneMatch.length() - 1);
-            }
-            if (eTag.equalsIgnoreCase(ifNoneMatch)) {
-                addETagHeader(response, eTag);
-                respondWithNotModified(response);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     protected void respondWithNotFound(final HttpServletResponse response) throws IOException {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
-    }
-
-    protected void respondWithNotModified(final HttpServletResponse response) throws IOException {
-        response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
     }
 
     protected void respondWithNotFound(final HttpServletResponse response, String message) throws IOException {

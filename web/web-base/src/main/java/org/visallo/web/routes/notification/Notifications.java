@@ -1,61 +1,50 @@
 package org.visallo.web.routes.notification;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import org.apache.commons.lang.time.DateUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.visallo.core.model.notification.SystemNotification;
 import org.visallo.core.model.notification.SystemNotificationRepository;
 import org.visallo.core.model.notification.UserNotification;
 import org.visallo.core.model.notification.UserNotificationRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
-import org.apache.commons.lang.time.DateUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.visallo.web.VisalloResponse;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
-public class Notifications extends BaseRequestHandler {
-    private static final String FUTURE_DAYS_PARAMETER_NAME = "futureDays";
-    private static final int DEFAULT_FUTURE_DAYS = 10;
+public class Notifications implements ParameterizedHandler {
     private final SystemNotificationRepository systemNotificationRepository;
     private final UserNotificationRepository userNotificationRepository;
 
     @Inject
     public Notifications(
             final SystemNotificationRepository systemNotificationRepository,
-            final UserNotificationRepository userNotificationRepository,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration
+            final UserNotificationRepository userNotificationRepository
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.systemNotificationRepository = systemNotificationRepository;
         this.userNotificationRepository = userNotificationRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
+    @Handle
+    public void handle(
+            User user,
+            @Optional(name = "futureDays", defaultValue = "10") int futureDays,
+            VisalloResponse response
+    ) throws Exception {
         JSONObject notifications = new JSONObject();
 
         JSONObject systemNotifications = new JSONObject();
 
         JSONArray activeNotifications = new JSONArray();
-        for (SystemNotification notification : systemNotificationRepository.getActiveNotifications(getUser(request))) {
+        for (SystemNotification notification : systemNotificationRepository.getActiveNotifications(user)) {
             activeNotifications.put(notification.toJSONObject());
         }
         systemNotifications.put("active", activeNotifications);
 
-        int futureDays = DEFAULT_FUTURE_DAYS;
-        String futureDaysParameter = getOptionalParameter(request, FUTURE_DAYS_PARAMETER_NAME);
-        if (futureDaysParameter != null) {
-            futureDays = Integer.parseInt(futureDaysParameter);
-        }
         Date maxDate = DateUtils.addDays(new Date(), futureDays);
         JSONArray futureNotifications = new JSONArray();
         for (SystemNotification notification : systemNotificationRepository.getFutureNotifications(maxDate, user)) {
@@ -70,6 +59,6 @@ public class Notifications extends BaseRequestHandler {
 
         notifications.put("system", systemNotifications);
         notifications.put("user", userNotifications);
-        respondWithJson(response, notifications);
+        response.respondWithJson(notifications);
     }
 }

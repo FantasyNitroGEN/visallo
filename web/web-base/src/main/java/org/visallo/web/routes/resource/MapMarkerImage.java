@@ -3,22 +3,19 @@ package org.visallo.web.routes.resource;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.VisalloResponse;
 
 import javax.imageio.ImageIO;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -29,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class MapMarkerImage extends BaseRequestHandler {
+public class MapMarkerImage implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MapMarkerImage.class);
 
     private final OntologyRepository ontologyRepository;
@@ -41,22 +38,22 @@ public class MapMarkerImage extends BaseRequestHandler {
     @Inject
     public MapMarkerImage(
             final OntologyRepository ontologyRepository,
-            final UserRepository userRepository,
-            final Configuration configuration,
-            final WorkspaceRepository workspaceRepository,
-            final ArtifactThumbnailRepository artifactThumbnailRepository) {
-        super(userRepository, workspaceRepository, configuration);
+            final ArtifactThumbnailRepository artifactThumbnailRepository
+    ) {
         this.ontologyRepository = ontologyRepository;
         this.artifactThumbnailRepository = artifactThumbnailRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-        String typeStr = getAttributeString(request, "type");
-        long scale = getOptionalParameterLong(request, "scale", 1L);
-        int heading = roundHeadingAngle(getOptionalParameterDouble(request, "heading", 0.0));
-        boolean selected = getOptionalParameter(request, "selected") != null;
+    @Handle
+    public void handle(
+            User user,
+            @Required(name = "type") String typeStr,
+            @Optional(name = "scale", defaultValue = "1") long scale,
+            @Optional(name = "heading", defaultValue = "0.0") double headingParam,
+            @Optional(name = "selected", defaultValue = "false") boolean selected,
+            VisalloResponse response
+    ) throws Exception {
+        int heading = roundHeadingAngle(headingParam);
 
         String cacheKey = typeStr + scale + heading + (selected ? "selected" : "unselected");
         byte[] imageData = imageCache.getIfPresent(cacheKey);
@@ -75,7 +72,7 @@ public class MapMarkerImage extends BaseRequestHandler {
             } else {
                 glyphIcon = getGlyphIcon(concept, user);
                 if (glyphIcon == null) {
-                    respondWithNotFound(response);
+                    response.respondWithNotFound();
                     return;
                 }
             }
@@ -85,9 +82,7 @@ public class MapMarkerImage extends BaseRequestHandler {
         }
 
         response.setHeader("Cache-Control", "max-age=" + (5 * 60));
-        ServletOutputStream out = response.getOutputStream();
-        out.write(imageData);
-        out.close();
+        response.write(imageData);
     }
 
     private int roundHeadingAngle(double heading) {

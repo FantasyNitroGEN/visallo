@@ -1,35 +1,28 @@
 package org.visallo.web.routes.notification;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.notification.UserNotificationRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.core.user.User;
+import org.visallo.web.VisalloResponse;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class UserNotificationMarkRead extends BaseRequestHandler {
+public class UserNotificationMarkRead implements ParameterizedHandler {
     private final UserNotificationRepository userNotificationRepository;
-    private static final String IDS_PARAMETER_NAME = "notificationIds[]";
 
     @Inject
-    public UserNotificationMarkRead(
-            final UserNotificationRepository userNotificationRepository,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration
-    ) {
-        super(userRepository, workspaceRepository, configuration);
+    public UserNotificationMarkRead(final UserNotificationRepository userNotificationRepository) {
         this.userNotificationRepository = userNotificationRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String[] notificationIds = getRequiredParameterArray(request, IDS_PARAMETER_NAME);
-        userNotificationRepository.markRead(notificationIds, getUser(request));
-        respondWithSuccessJson(response);
+    @Handle
+    public void handle(
+            User user,
+            @Required(name = "notificationIds[]") String[] notificationIds,
+            VisalloResponse response
+    ) throws Exception {
+        userNotificationRepository.markRead(notificationIds, user);
+        response.respondWithSuccessJson();
     }
 }
