@@ -117,12 +117,12 @@ public class InMemoryUserRepository extends UserRepository {
 
     @Override
     public void internalAddAuthorization(User user, String auth, User authUser) {
-        throw new RuntimeException("Not implemented");
+        ((InMemoryUser) user).addAuthorization(auth);
     }
 
     @Override
     public void internalRemoveAuthorization(User user, String auth, User authUser) {
-        throw new RuntimeException("Not implemented");
+        ((InMemoryUser) user).removeAuthorization(auth);
     }
 
     @Override

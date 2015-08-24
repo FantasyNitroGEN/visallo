@@ -115,6 +115,7 @@ public class SetEdgeProperty extends BaseRequestHandler {
                 propertyKey,
                 value,
                 metadata,
+                null,
                 visibilitySource,
                 workspaceId,
                 justificationText,

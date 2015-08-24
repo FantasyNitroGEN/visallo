@@ -534,15 +534,22 @@ public abstract class WorkspaceRepository {
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
         boolean foundProperty = false;
         Property publicProperty = null;
-        for (int propertyIndex = 0; propertyIndex < properties.size(); propertyIndex++) {
-            Property property = properties.get(propertyIndex);
+
+        for (Property property : properties) {
+            if (WorkspaceDiffHelper.isPublicDelete(property, authorizations) &&
+                    WorkspaceDiffHelper.isPublicPropertyEdited(properties, sandboxStatuses, property)) {
+                publicProperty = property;
+                break;
+            }
+        }
+
+        for (int i = 0; i < properties.size(); i++) {
+            Property property = properties.get(i);
             Visibility propertyVisibility = property.getVisibility();
-            SandboxStatus sandboxStatus = sandboxStatuses[propertyIndex];
+            SandboxStatus sandboxStatus = sandboxStatuses[i];
 
             if (WorkspaceDiffHelper.isPublicDelete(property, authorizations)) {
-                if (WorkspaceDiffHelper.isPublicPropertyEdited(properties, sandboxStatuses, property)) {
-                    publicProperty = property;
-                } else {
+                if (publicProperty == null) {
                     element.softDeleteProperty(key, name, new Visibility(workspaceId), authorizations);
                     graph.flush();
                     workQueueRepository.broadcastPublishPropertyDelete(element, key, name);
@@ -552,7 +559,21 @@ public abstract class WorkspaceRepository {
                 element.softDeleteProperty(key, name, propertyVisibility, authorizations);
                 if (publicProperty != null) {
                     element.markPropertyVisible(publicProperty, new Visibility(workspaceId), authorizations);
-                    element.addPropertyValue(key, name, property.getValue(), publicProperty.getVisibility(), authorizations);
+
+                    Visibility publicVisibility = publicProperty.getVisibility();
+
+                    Metadata metadata = property.getMetadata();
+                    VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(metadata);
+                    VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
+                    VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
+                    Visibility newVisibility = visibilityTranslator.toVisibility(visibilityJson).getVisibility();
+
+                    if (!publicVisibility.equals(newVisibility)) {
+                        element.softDeleteProperty(key, name, publicVisibility, authorizations);
+                    } else {
+                        newVisibility = publicVisibility;
+                    }
+                    element.addPropertyValue(key, name, property.getValue(), metadata, newVisibility, authorizations);
                 }
                 graph.flush();
                 workQueueRepository.broadcastPublishProperty(element, key, name);

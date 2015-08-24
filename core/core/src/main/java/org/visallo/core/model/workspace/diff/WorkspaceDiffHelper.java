@@ -106,7 +106,7 @@ public class WorkspaceDiffHelper {
     public List<ClientApiWorkspaceDiff.Item> diffWorkspaceEntity(Workspace workspace, WorkspaceEntity workspaceEntity, FormulaEvaluator.UserContext userContext, Authorizations authorizations) {
         List<ClientApiWorkspaceDiff.Item> result = new ArrayList<>();
 
-        Vertex entityVertex = workspaceEntity.getVertex();
+        Vertex entityVertex = this.graph.getVertex(workspaceEntity.getEntityVertexId(), FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
 
         // vertex can be null if the user doesn't have access to the entity
         if (entityVertex == null) {
