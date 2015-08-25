@@ -1,6 +1,10 @@
 
-To run integration tests faster you can set the following system properties...
+Use the following command to execute all integration tests, using a locally running development docker instance:
 
 ```
--DtestServer=visallo-dev -Drepository.ontology=InMemoryOntologyRepository
+mvn -am -pl integration-test test -PITest \
+    -Dtest=*IntegrationTest \
+    -DfailIfNoTests=false \
+    -DtestServer=visallo-dev \
+    -Drepository.ontology=org.visallo.vertexium.model.ontology.InMemoryOntologyRepository
 ```
