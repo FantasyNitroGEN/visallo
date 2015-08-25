@@ -1,73 +1,17 @@
-# Visallo
+![Visallo Logo](http://docs.visallo.org/img/visallo-banner.png)
 
-![Visallo Logo](web/war/src/main/webapp/img/visallo-logo.png?raw=true)
+As the volume of data we collect has continued to grow, so too has the challenge of figuring out how best to leverage it. The problem has shifted from not having enough data to having too much. A whole "big data" industry has sprung up in record time to help customers deal with this problem. Dozens to hundreds of libraries, tools, and products have sprung up to fulfill the promise of fixing your data problem. While some are very good, it's unlikely that any are built specifically for your business problems. That's why we built Visallo.
 
-Visallo is an open source big data analysis and visualization platform. Please see [http://visallo.org](http://visallo.org) for more details and videos.
+[Get started with Visallo](http://docs.visallo.org/getting-started.html)
 
-## Quick Start
+## How is Visallo different?
 
-1. Install Docker per their instructions: [https://docs.docker.com/installation](https://docs.docker.com/installation/#installation)
-    - On Windows and OSX you may want to increase the amount of memory given to the boot2docker VM. 
+Visallo is an **open source** big data **platform** for analytical tools and visualizations to help **people** solve **ambiguous problems**. The foundational motivations behind Visallo are
 
-        ```sh
-        boot2docker stop
-        VBoxManage modifyvm boot2docker-vm --memory 8192
-        boot2docker start
-        ```
-
-1. Install node and npm per their instructions: [http://nodejs.org/](http://nodejs.org/)
-
-1. Clone the Visallo repo:
-    ```sh
-    git clone https://github.com/v5analytics/visallo.git
-    ```
-    **_This will clone the repo to a `visallo` directory in your current working directory.  This absolute path will be referred to as `<cloned_repo_dir>` for the remainder of these steps._**
-
-1. Install the Visallo npm dependencies:
-    ```sh
-    cd <cloned_repo_dir>/web/war/src/main/webapp
-    npm install -g inherits bower grunt
-    npm install -g grunt-cli
-    ```
-
-1. Update your hosts file:
-    - Linux
-
-        ```sh
-        echo '127.0.0.1 visallo-dev' >> /etc/hosts
-        ```
-    - OS X
-
-        ```sh
-        echo "$(boot2docker ip 2>/dev/null) visallo-dev" >> /etc/hosts
-        ```
-
-1. Create the docker image:
-    ```sh
-    cd <cloned_repo_dir>
-    docker/build-dev.sh
-    ```
-
-1. Run the docker image: (This will start ZooKeeper, HDFS, YARN, ElasticSearch, and RabbitMQ)
-    ```sh
-    docker/run-dev.sh
-    ```
-
-1. Run the web server. Choose one of the following:
-   * [Run in the docker image](docker/README.md#docker-web-server)
-   * [Run locally in an IDE](docs/ide.md#development-jetty-web-server)
-
-See [docker/README.md](docker/) for more information on the docker dev image.
-
-See [docs/developer.md](docs/developer.md) for more information on developing for Visallo.
-
-See [datasets](datasets) for sample datasets to get started.
-
-## Developing / Contributing
-
-If you're a system administrator or developer looking to install your own instance of Visallo or do custom development,
-please read our [Developer Guide](docs/developer.md).
-
+* **Designed and Built as a Platform** - Companies don't build products to solve your exact problems. They build products to solve a certain class of problems that are hopefully similar enough to yours. Visallo is different. Visallo is built as a big data platform underpinning a suite of analytic and visualization plugins exposed through a clean, fast, web-based interface. Many plugins are available out of the box, but the real value is derived from the extensibility and customizability of the platform. It can truly be tailored to solve **your** problems.
+* **Built for People** - We recognize that the best analysis continues to be done by people. People are still better than computers at making analytical judgements in ambiguous situations, but can't handle the massive amounts of data we're accumulating. That's where Visallo comes in, helping people leverage huge quantities of data to analyze and solve problems.
+* **Tailored for Ambiguous Problems** - Visallo is best-suited for helping people solve problems where there's no straightforward solution. For many problems, there is no "correct" answer and you may not even know what you're looking for when you start. Visallo will help you organize and understand your data and the hidden connections embedded within it.
+* **Released as Open Source** - The core of Visallo is freely available as open source software. We released Visallo as Open Source Software (OSS) to relieve customers of any fears of proprietary vendor lock-in and to provide insight into the code base.
 
 ## License
 
