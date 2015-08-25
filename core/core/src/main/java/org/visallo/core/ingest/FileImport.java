@@ -5,11 +5,13 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
-import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.ontology.OntologyProperty;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.PropertyMetadata;
+import org.visallo.core.model.properties.types.VisalloProperty;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -22,16 +24,16 @@ import org.visallo.core.util.RowKeyHelper;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiImportProperty;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.text.ParseException;
+import java.util.*;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 
 public class FileImport {
@@ -42,6 +44,7 @@ public class FileImport {
     private final WorkQueueRepository workQueueRepository;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueNames workQueueNames;
+    private final OntologyRepository ontologyRepository;
     private final Configuration configuration;
     private List<FileImportSupportingFileHandler> fileImportSupportingFileHandlers;
     private List<PostFileImportHandler> postFileImportHandlers;
@@ -53,6 +56,7 @@ public class FileImport {
             WorkQueueRepository workQueueRepository,
             WorkspaceRepository workspaceRepository,
             WorkQueueNames workQueueNames,
+            OntologyRepository ontologyRepository,
             Configuration configuration
     ) {
         this.visibilityTranslator = visibilityTranslator;
@@ -60,6 +64,7 @@ public class FileImport {
         this.workQueueRepository = workQueueRepository;
         this.workspaceRepository = workspaceRepository;
         this.workQueueNames = workQueueNames;
+        this.ontologyRepository = ontologyRepository;
         this.configuration = configuration;
     }
 
@@ -86,7 +91,7 @@ public class FileImport {
 
                 LOGGER.debug("Importing file (%d/%d): %s", fileCount + 1, totalFileCount, f.getAbsolutePath());
                 try {
-                    importFile(f, queueDuplicates, conceptTypeIRI, visibilitySource, workspace, priority, user, authorizations);
+                    importFile(f, queueDuplicates, conceptTypeIRI, null, visibilitySource, workspace, priority, user, authorizations);
                     importedFileCount++;
                 } catch (Exception ex) {
                     LOGGER.error("Could not import %s", f.getAbsolutePath(), ex);
@@ -110,10 +115,10 @@ public class FileImport {
     }
 
     public Vertex importFile(File f, boolean queueDuplicates, String visibilitySource, Workspace workspace, Priority priority, User user, Authorizations authorizations) throws Exception {
-        return importFile(f, queueDuplicates, null, visibilitySource, workspace, priority, user, authorizations);
+        return importFile(f, queueDuplicates, null, null, visibilitySource, workspace, priority, user, authorizations);
     }
 
-    public Vertex importFile(File f, boolean queueDuplicates, String conceptId, String visibilitySource, Workspace workspace, Priority priority, User user, Authorizations authorizations) throws Exception {
+    public Vertex importFile(File f, boolean queueDuplicates, String conceptId, ClientApiImportProperty[] properties, String visibilitySource, Workspace workspace, Priority priority, User user, Authorizations authorizations) throws Exception {
         ensureInitialized();
 
         String hash = calculateFileHash(f);
@@ -177,6 +182,9 @@ public class FileImport {
             if (conceptId != null) {
                 VisalloProperties.CONCEPT_TYPE.updateProperty(changedProperties, null, vertexBuilder, conceptId, propertyMetadata, visibility);
             }
+            if (properties != null) {
+                addProperties(properties, changedProperties, vertexBuilder, visibilityJson, workspace, user);
+            }
 
             for (FileImportSupportingFileHandler fileImportSupportingFileHandler : this.fileImportSupportingFileHandlers) {
                 FileImportSupportingFileHandler.AddSupportingFilesResult addSupportingFilesResult = fileImportSupportingFileHandler.addSupportingFiles(vertexBuilder, f, visibility);
@@ -216,6 +224,23 @@ public class FileImport {
         }
     }
 
+    private void addProperties(ClientApiImportProperty[] properties, List<VisalloPropertyUpdate> changedProperties, VertexBuilder vertexBuilder, VisibilityJson visibilityJson, Workspace workspace, User user) throws ParseException {
+        for (ClientApiImportProperty property : properties) {
+            OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName());
+            checkNotNull(ontologyProperty, "Could not find " + OntologyProperty.class.getName() + " for property named " + property.getName());
+            Object value = ontologyProperty.convertString(property.getValue());
+            VisalloProperty prop = ontologyProperty.getVisalloProperty();
+            VisibilityJson propertyVisibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, property.getVisibilitySource(), workspace == null ? null : workspace.getWorkspaceId());
+            VisalloVisibility propertyVisibility = visibilityTranslator.toVisibility(propertyVisibilityJson);
+            PropertyMetadata propMetadata = new PropertyMetadata(user, visibilityJson, visibilityTranslator.getDefaultVisibility());
+            for (Map.Entry<String, Object> metadataEntry : property.getMetadata().entrySet()) {
+                propMetadata.add(metadataEntry.getKey(), metadataEntry.getValue(), propertyVisibility.getVisibility());
+            }
+            //noinspection unchecked
+            prop.updateProperty(changedProperties, null, vertexBuilder, property.getKey(), value, propMetadata, propertyVisibility.getVisibility());
+        }
+    }
+
     public List<Vertex> importVertices(Workspace workspace, List<FileOptions> files, Priority priority, User user, Authorizations authorizations) throws Exception {
         ensureInitialized();
 
@@ -226,7 +251,7 @@ public class FileImport {
                 continue;
             }
             LOGGER.debug("Processing file: %s", file.getFile().getAbsolutePath());
-            vertices.add(importFile(file.getFile(), true, file.getConceptId(), file.getVisibilitySource(), workspace, priority, user, authorizations));
+            vertices.add(importFile(file.getFile(), true, file.getConceptId(), file.getProperties(), file.getVisibilitySource(), workspace, priority, user, authorizations));
         }
         return vertices;
     }
@@ -281,6 +306,7 @@ public class FileImport {
         private File file;
         private String visibilitySource;
         private String conceptId;
+        private ClientApiImportProperty[] properties;
 
         public File getFile() {
             return file;
@@ -304,6 +330,14 @@ public class FileImport {
 
         public void setVisibilitySource(String visibilitySource) {
             this.visibilitySource = visibilitySource;
+        }
+
+        public void setProperties(ClientApiImportProperty[] properties) {
+            this.properties = properties;
+        }
+
+        public ClientApiImportProperty[] getProperties() {
+            return properties;
         }
     }
 }
