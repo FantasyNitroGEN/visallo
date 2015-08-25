@@ -164,7 +164,6 @@ public class GraphPropertyRunner extends WorkerBase {
 
         List<TermMentionFilter> termMentionFilters = toList(ServiceLoaderUtil.load(TermMentionFilter.class, configuration));
         for (TermMentionFilter termMentionFilter : termMentionFilters) {
-            InjectHelper.inject(termMentionFilter);
             try {
                 termMentionFilter.prepare(termMentionFilterPrepareData);
             } catch (Exception ex) {

@@ -244,18 +244,20 @@ public class FileImport {
 
     private void ensureInitialized() {
         if (fileImportSupportingFileHandlers == null) {
-            fileImportSupportingFileHandlers = toList(ServiceLoaderUtil.load(FileImportSupportingFileHandler.class, this.configuration));
-            for (FileImportSupportingFileHandler fileImportSupportingFileHandler : fileImportSupportingFileHandlers) {
-                InjectHelper.inject(fileImportSupportingFileHandler);
-            }
+            fileImportSupportingFileHandlers = getFileImportSupportingFileHandlers();
         }
 
         if (postFileImportHandlers == null) {
-            postFileImportHandlers = toList(ServiceLoaderUtil.load(PostFileImportHandler.class, this.configuration));
-            for (PostFileImportHandler postFileImportHandler : postFileImportHandlers) {
-                InjectHelper.inject(postFileImportHandler);
-            }
+            postFileImportHandlers = getPostFileImportHandlers();
         }
+    }
+
+    protected List<PostFileImportHandler> getPostFileImportHandlers() {
+        return toList(ServiceLoaderUtil.load(PostFileImportHandler.class, this.configuration));
+    }
+
+    protected List<FileImportSupportingFileHandler> getFileImportSupportingFileHandlers() {
+        return toList(ServiceLoaderUtil.load(FileImportSupportingFileHandler.class, this.configuration));
     }
 
     private Vertex findExistingVertexWithHash(String hash, Authorizations authorizations) {

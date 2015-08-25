@@ -178,7 +178,6 @@ public class Router extends HttpServlet {
             for (WebAppPlugin webAppPlugin : webAppPlugins) {
                 LOGGER.info("Loading webapp plugin: %s", webAppPlugin.getClass().getName());
                 try {
-                    injector.injectMembers(webAppPlugin);
                     webAppPlugin.init(app, servletContext, authenticatorInstance);
                 } catch (Exception e) {
                     throw new VisalloException("Could not initialize webapp plugin: " + webAppPlugin.getClass().getName(), e);

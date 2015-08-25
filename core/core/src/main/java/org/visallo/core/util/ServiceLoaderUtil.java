@@ -2,6 +2,7 @@ package org.visallo.core.util;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 
@@ -23,6 +24,23 @@ public class ServiceLoaderUtil {
     public static final String CONFIG_DISABLE_PREFIX = "disable.";
 
     public static <T> Iterable<T> load(Class<T> clazz, Configuration configuration) {
+        Iterable<Class<? extends T>> classes = loadClasses(clazz, configuration);
+        return Iterables.transform(classes, new Function<Class<? extends T>, T>() {
+            @Nullable
+            @Override
+            public T apply(Class<? extends T> serviceClass) {
+                try {
+                    return InjectHelper.getInstance(serviceClass);
+                } catch (Exception ex) {
+                    String errorMessage = String.format("Failed to load %s", serviceClass.getName());
+                    LOGGER.error("%s", errorMessage, ex);
+                    throw new VisalloException(errorMessage, ex);
+                }
+            }
+        });
+    }
+
+    public static <T> Iterable<T> loadWithoutInjecting(Class<T> clazz, Configuration configuration) {
         Iterable<Class<? extends T>> classes = loadClasses(clazz, configuration);
         return Iterables.transform(classes, new Function<Class<? extends T>, T>() {
             @Nullable

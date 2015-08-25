@@ -75,7 +75,7 @@ public class InjectHelper {
     private static void ensureInjectorCreated(ModuleMaker moduleMaker, Configuration configuration) {
         if (injector == null) {
             LOGGER.info("Loading libs...");
-            for (LibLoader libLoader : ServiceLoaderUtil.load(LibLoader.class, configuration)) {
+            for (LibLoader libLoader : ServiceLoaderUtil.loadWithoutInjecting(LibLoader.class, configuration)) {
                 libLoader.loadLibs(moduleMaker.getConfiguration());
             }
             injector = Guice.createInjector(moduleMaker.createModule(), new ObjectMapperModule());
