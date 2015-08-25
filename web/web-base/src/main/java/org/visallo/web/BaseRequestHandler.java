@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.HandlerChain;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,8 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -271,13 +268,13 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
         }
     }
 
-    protected void copyPartToOutputStream(Part part, OutputStream out) throws IOException {
+    public static void copyPartToOutputStream(Part part, OutputStream out) throws IOException {
         try (InputStream in = part.getInputStream()) {
             IOUtils.copy(in, out);
         }
     }
 
-    protected void copyPartToFile(Part part, File outFile) throws IOException {
+    public static void copyPartToFile(Part part, File outFile) throws IOException {
         try (FileOutputStream out = new FileOutputStream(outFile)) {
             copyPartToOutputStream(part, out);
         }

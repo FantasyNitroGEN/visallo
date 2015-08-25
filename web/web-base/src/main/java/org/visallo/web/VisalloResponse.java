@@ -3,6 +3,7 @@ package org.visallo.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.web.clientapi.model.ClientApiObject;
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VisalloResponse {
     public static final int EXPIRES_1_HOUR = 60 * 60;
@@ -45,6 +48,37 @@ public class VisalloResponse {
 
     public void respondWithNotFound(String message) throws IOException {
         response.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+    }
+
+    public void respondWithBadRequest(final String parameterName, final String errorMessage, final String invalidValue) throws IOException {
+        List<String> values = null;
+        if (invalidValue != null) {
+            values = new ArrayList<>();
+            values.add(invalidValue);
+        }
+        respondWithBadRequest(parameterName, errorMessage, values);
+    }
+
+    public void respondWithBadRequest(final String parameterName, final String errorMessage, final List<String> invalidValues) throws IOException {
+        JSONObject error = new JSONObject();
+        error.put(parameterName, errorMessage);
+        if (invalidValues != null) {
+            JSONArray values = new JSONArray();
+            for (String v : invalidValues) {
+                values.put(v);
+            }
+            error.put("invalidValues", values);
+        }
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        respondWithJson(error);
+    }
+
+    public void respondWithBadRequest(final String parameterName, final String errorMessage) throws IOException {
+        respondWithBadRequest(parameterName, errorMessage, new ArrayList<String>());
+    }
+
+    public HttpServletResponse getHttpServletResponse() {
+        return response;
     }
 
     public void respondWithJson(JSONObject jsonObject) {
