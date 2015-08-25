@@ -3,8 +3,8 @@ package org.visallo.core.model.properties.types;
 import org.vertexium.Element;
 
 public class IntegerVisalloProperty extends IdentityVisalloProperty<Integer> {
-    public IntegerVisalloProperty(String key) {
-        super(key);
+    public IntegerVisalloProperty(String propertyName) {
+        super(propertyName);
     }
 
     public Integer getPropertyValue(Element element, String propertyKey, Integer defaultValue) {

@@ -3,8 +3,8 @@ package org.visallo.core.model.properties.types;
 import org.vertexium.Property;
 
 public class StringVisalloProperty extends VisalloProperty<String, String> {
-    public StringVisalloProperty(final String key) {
-        super(key);
+    public StringVisalloProperty(final String propertyName) {
+        super(propertyName);
     }
 
     @Override

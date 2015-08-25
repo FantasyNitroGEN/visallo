@@ -1,15 +1,16 @@
 package org.visallo.core.model.ontology;
 
 import com.google.common.collect.ImmutableList;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.web.clientapi.model.ClientApiOntology;
-import org.visallo.web.clientapi.model.PropertyType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.type.GeoCircle;
 import org.vertexium.type.GeoPoint;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.properties.types.*;
+import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.PropertyType;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -30,6 +31,10 @@ public abstract class OntologyProperty {
         DATE_FORMAT.setTimeZone(utc);
         DATE_TIME_FORMAT.setTimeZone(utc);
         DATE_TIME_WITH_SECONDS_FORMAT.setTimeZone(utc);
+    }
+
+    public String getIri() {
+        return getTitle();
     }
 
     public abstract String getTitle();
@@ -184,6 +189,29 @@ public abstract class OntologyProperty {
             } catch (ParseException ex2) {
                 return DATE_FORMAT.parse(valueStr);
             }
+        }
+    }
+
+    public VisalloProperty getVisalloProperty() {
+        switch (getDataType()) {
+            case IMAGE:
+            case BINARY:
+                return new StreamingVisalloProperty(getIri());
+            case BOOLEAN:
+                return new BooleanVisalloProperty(getIri());
+            case DATE:
+                return new DateVisalloProperty(getIri());
+            case CURRENCY:
+            case DOUBLE:
+                return new DoubleVisalloProperty(getIri());
+            case GEO_LOCATION:
+                return new GeoPointVisalloProperty(getIri());
+            case INTEGER:
+                return new IntegerVisalloProperty(getIri());
+            case STRING:
+                return new StringVisalloProperty(getIri());
+            default:
+                throw new VisalloException("Could not get " + VisalloProperty.class.getName() + " for data type " + getDataType());
         }
     }
 }
