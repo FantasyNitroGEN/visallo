@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 
 public class FileImport {
@@ -226,7 +225,10 @@ public class FileImport {
 
     private void addProperties(ClientApiImportProperty[] properties, List<VisalloPropertyUpdate> changedProperties, VertexBuilder vertexBuilder, VisibilityJson visibilityJson, Workspace workspace, User user) throws ParseException {
         for (ClientApiImportProperty property : properties) {
-            OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIntent(property.getName());
+            OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName());
+            if (ontologyProperty == null) {
+                ontologyProperty = ontologyRepository.getRequiredPropertyByIntent(property.getName());
+            }
             Object value = ontologyProperty.convertString(property.getValue());
             VisalloProperty prop = ontologyProperty.getVisalloProperty();
             VisibilityJson propertyVisibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, property.getVisibilitySource(), workspace == null ? null : workspace.getWorkspaceId());
