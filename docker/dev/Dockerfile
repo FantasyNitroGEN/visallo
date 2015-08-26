@@ -68,7 +68,7 @@ ADD scripts/install-elasticsearch.sh /opt/visallo/scripts/install-elasticsearch.
 ENV PATH $PATH:/opt/elasticsearch/bin
 RUN /bin/bash /opt/visallo/scripts/install-elasticsearch.sh
 ADD elasticsearch/elasticsearch.yml /opt/elasticsearch/config/elasticsearch.yml
-VOLUME ["/opt/elasticsearch-1.7.0/data/"]
+VOLUME ["/opt/elasticsearch/data/"]
 EXPOSE 9200 9300
 
 # Install RabbitMQ
@@ -76,7 +76,7 @@ ADD scripts/install-rabbitmq.sh /opt/visallo/scripts/install-rabbitmq.sh
 ENV PATH $PATH:/opt/rabbitmq/sbin
 RUN /bin/bash /opt/visallo/scripts/install-rabbitmq.sh
 ADD rabbitmq/etc/rabbitmq/rabbitmq.config /opt/rabbitmq_server-3.5.0/etc/rabbitmq/rabbitmq.config
-VOLUME ["/opt/rabbitmq_server-3.5.0/var"]
+VOLUME ["/opt/rabbitmq/var"]
 EXPOSE 5672 5673 15672
 
 # Install Jetty
