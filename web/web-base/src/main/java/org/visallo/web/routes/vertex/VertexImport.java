@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class VertexImport implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexImport.class);
@@ -76,7 +77,7 @@ public class VertexImport implements ParameterizedHandler {
 
         File tempDir = Files.createTempDir();
         try {
-            List<FileImport.FileOptions> files = getFilesConceptsVisibilities(request, response, tempDir, resourceBundle, authorizations, user);
+            List<FileImport.FileOptions> files = getFiles(request, response, tempDir, resourceBundle, authorizations, user);
             if (files == null) {
                 return;
             }
@@ -99,7 +100,7 @@ public class VertexImport implements ParameterizedHandler {
         return response;
     }
 
-    private List<FileImport.FileOptions> getFilesConceptsVisibilities(
+    protected List<FileImport.FileOptions> getFiles(
             HttpServletRequest request,
             VisalloResponse response,
             File tempDir,
@@ -109,28 +110,29 @@ public class VertexImport implements ParameterizedHandler {
     ) throws Exception {
         List<String> invalidVisibilities = new ArrayList<>();
         List<FileImport.FileOptions> files = new ArrayList<>();
-        int visibilitySourceIndex = 0;
-        int conceptIndex = 0;
-        int fileIndex = 0;
-        int propertiesIndex = 0;
+        AtomicInteger visibilitySourceIndex = new AtomicInteger(0);
+        AtomicInteger conceptIndex = new AtomicInteger(0);
+        AtomicInteger fileIndex = new AtomicInteger(0);
+        AtomicInteger propertiesIndex = new AtomicInteger(0);
         for (Part part : request.getParts()) {
             if (part.getName().equals("file")) {
                 String fileName = getFilename(part);
                 File outFile = new File(tempDir, fileName);
                 BaseRequestHandler.copyPartToFile(part, outFile);
-                addFileToFilesList(files, fileIndex++, outFile);
+                addFileToFilesList(files, fileIndex.getAndIncrement(), outFile);
             } else if (part.getName().equals("conceptId")) {
                 String conceptId = IOUtils.toString(part.getInputStream(), "UTF8");
-                addConceptIdToFilesList(files, conceptIndex++, conceptId);
+                addConceptIdToFilesList(files, conceptIndex.getAndIncrement(), conceptId);
             } else if (part.getName().equals("properties")) {
-                JSONArray properties = new JSONArray(IOUtils.toString(part.getInputStream(), "UTF8"));
-                addPropertiesToFilesList(files, propertiesIndex++, properties);
+                String propertiesString = IOUtils.toString(part.getInputStream(), "UTF8");
+                ClientApiImportProperty[] properties = convertPropertiesStringToClientApiImportProperties(propertiesString);
+                addPropertiesToFilesList(files, propertiesIndex.getAndIncrement(), properties);
             } else if (part.getName().equals("visibilitySource")) {
                 String visibilitySource = IOUtils.toString(part.getInputStream(), "UTF8");
                 if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
                     invalidVisibilities.add(visibilitySource);
                 }
-                addVisibilityToFilesList(files, visibilitySourceIndex++, visibilitySource);
+                addVisibilityToFilesList(files, visibilitySourceIndex.getAndIncrement(), visibilitySource);
             }
         }
 
@@ -143,36 +145,41 @@ public class VertexImport implements ParameterizedHandler {
         return files;
     }
 
-    private void addPropertiesToFilesList(List<FileImport.FileOptions> files, int index, JSONArray properties) {
-        ensureFilesSize(files, index);
-        if (properties != null && properties.length() > 0) {
-            ClientApiImportProperty[] clientApiProperties = new ClientApiImportProperty[properties.length()];
-            for (int i = 0; i < properties.length(); i++) {
-                String propertyString;
-                try {
-                    propertyString = properties.getJSONObject(i).toString();
-                } catch (JSONException e) {
-                    throw new VisalloException("Could not parse properties json", e);
-                }
-                clientApiProperties[i] = ClientApiConverter.toClientApi(propertyString, ClientApiImportProperty.class);
+    protected ClientApiImportProperty[] convertPropertiesStringToClientApiImportProperties(String propertiesString) throws Exception {
+        JSONArray properties = new JSONArray(propertiesString);
+        ClientApiImportProperty[] clientApiProperties = new ClientApiImportProperty[properties.length()];
+        for (int i = 0; i < properties.length(); i++) {
+            String propertyString;
+            try {
+                propertyString = properties.getJSONObject(i).toString();
+            } catch (JSONException e) {
+                throw new VisalloException("Could not parse properties json", e);
             }
-            files.get(index).setProperties(clientApiProperties);
+            clientApiProperties[i] = ClientApiConverter.toClientApi(propertyString, ClientApiImportProperty.class);
+        }
+        return clientApiProperties;
+    }
+
+    protected void addPropertiesToFilesList(List<FileImport.FileOptions> files, int index, ClientApiImportProperty[] properties) {
+        ensureFilesSize(files, index);
+        if (properties != null && properties.length > 0) {
+            files.get(index).setProperties(properties);
         }
     }
 
-    private void addConceptIdToFilesList(List<FileImport.FileOptions> files, int index, String conceptId) {
+    protected void addConceptIdToFilesList(List<FileImport.FileOptions> files, int index, String conceptId) {
         ensureFilesSize(files, index);
         if (conceptId != null && conceptId.length() > 0) {
             files.get(index).setConceptId(conceptId);
         }
     }
 
-    private void addVisibilityToFilesList(List<FileImport.FileOptions> files, int index, String visibilitySource) {
+    protected void addVisibilityToFilesList(List<FileImport.FileOptions> files, int index, String visibilitySource) {
         ensureFilesSize(files, index);
         files.get(index).setVisibilitySource(visibilitySource);
     }
 
-    private void addFileToFilesList(List<FileImport.FileOptions> files, int index, File file) {
+    protected void addFileToFilesList(List<FileImport.FileOptions> files, int index, File file) {
         ensureFilesSize(files, index);
         files.get(index).setFile(file);
     }
@@ -183,7 +190,7 @@ public class VertexImport implements ParameterizedHandler {
         }
     }
 
-    private static String getFilename(Part part) {
+    protected static String getFilename(Part part) {
         String fileName = UNKNOWN_FILENAME;
 
         final ParameterParser parser = new ParameterParser();
@@ -203,5 +210,9 @@ public class VertexImport implements ParameterizedHandler {
         }
 
         return fileName;
+    }
+
+    public Graph getGraph() {
+        return graph;
     }
 }

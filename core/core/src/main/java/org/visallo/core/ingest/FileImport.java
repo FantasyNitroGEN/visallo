@@ -226,8 +226,7 @@ public class FileImport {
 
     private void addProperties(ClientApiImportProperty[] properties, List<VisalloPropertyUpdate> changedProperties, VertexBuilder vertexBuilder, VisibilityJson visibilityJson, Workspace workspace, User user) throws ParseException {
         for (ClientApiImportProperty property : properties) {
-            OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName());
-            checkNotNull(ontologyProperty, "Could not find " + OntologyProperty.class.getName() + " for property named " + property.getName());
+            OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIntent(property.getName());
             Object value = ontologyProperty.convertString(property.getValue());
             VisalloProperty prop = ontologyProperty.getVisalloProperty();
             VisibilityJson propertyVisibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, property.getVisibilitySource(), workspace == null ? null : workspace.getWorkspaceId());

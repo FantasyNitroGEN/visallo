@@ -76,7 +76,7 @@ public class FileImportTest {
         visibilityTranslator = new DirectVisibilityTranslator();
         authorizations = graph.createAuthorizations();
 
-        when(ontologyRepository.getPropertyByIRI(PROP1_NAME)).thenReturn(ontologyProperty);
+        when(ontologyRepository.getRequiredPropertyByIntent(PROP1_NAME)).thenReturn(ontologyProperty);
         when(ontologyProperty.getVisalloProperty()).thenReturn(new IntegerVisalloProperty(PROP1_NAME));
 
         fileImport = new FileImport(
