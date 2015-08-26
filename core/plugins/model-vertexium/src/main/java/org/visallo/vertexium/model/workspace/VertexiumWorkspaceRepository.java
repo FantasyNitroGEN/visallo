@@ -351,7 +351,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     protected Iterable<Edge> findModifiedEdges(final Workspace workspace, List<WorkspaceEntity> workspaceEntities, boolean includeHidden, User user) {
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
 
-        Iterable<Vertex> vertices = WorkspaceEntity.toVertices(workspaceEntities);
+        Iterable<Vertex> vertices = Iterables.filter(WorkspaceEntity.toVertices(workspaceEntities, getGraph(), authorizations), Predicates.notNull());
         Iterable<String> edgeIds = getGraph().findRelatedEdgeIdsForVertices(vertices, authorizations);
         edgeIds = getGraph().filterEdgeIdsByAuthorization(edgeIds, workspace.getWorkspaceId(), ElementFilter.ALL, authorizations);
 
