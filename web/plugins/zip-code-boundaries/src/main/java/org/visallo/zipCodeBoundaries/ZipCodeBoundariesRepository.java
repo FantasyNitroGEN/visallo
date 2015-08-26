@@ -14,6 +14,7 @@ import org.opengis.feature.GeometryAttribute;
 import org.opengis.geometry.BoundingBox;
 import org.vertexium.type.GeoPoint;
 import org.vertexium.type.GeoRect;
+import org.vertexium.util.ArrayUtils;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
@@ -98,18 +99,19 @@ public class ZipCodeBoundariesRepository {
         return results;
     }
 
-    public Features.Feature findZipCode(String zipCode) {
+    public List<Features.Feature> findZipCodes(String[] zipCodes) {
+        List<Features.Feature> results = new ArrayList<>();
         try (FeatureIterator iterator = collection.features()) {
             while (iterator.hasNext()) {
                 Feature feature = iterator.next();
-                if (zipCode.equals(Features.Feature.getZipCode(feature))) {
+                if(ArrayUtils.contains(zipCodes, Features.Feature.getZipCode(feature))) {
                     Features.Feature f = Features.Feature.create(feature);
                     if (f != null) {
-                        return f;
+                        results.add(f);
                     }
                 }
             }
         }
-        return null;
+        return results;
     }
 }
