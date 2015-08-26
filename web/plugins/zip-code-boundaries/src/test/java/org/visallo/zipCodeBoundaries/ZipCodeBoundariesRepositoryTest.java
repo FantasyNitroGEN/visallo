@@ -82,7 +82,8 @@ public class ZipCodeBoundariesRepositoryTest {
 
     @Test
     public void testFindZipCode() {
-        Features.Feature feature = zipCodeBoundariesRepository.findZipCode("20147");
-        assertEquals(2, feature.getCoordinates().size());
+        List<Features.Feature> features = zipCodeBoundariesRepository.findZipCodes(new String[]{"20147"});
+        assertEquals(1, features.size());
+        assertEquals(2, features.get(0).getCoordinates().size());
     }
 }

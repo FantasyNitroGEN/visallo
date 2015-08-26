@@ -30,10 +30,14 @@ public class GetZipCodeBoundaries extends BaseRequestHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
         String zipCode = getOptionalParameter(request, "zipCode");
-        if (zipCode != null) {
-            Features.Feature feature = this.zipCodeBoundariesRepository.findZipCode(zipCode);
-            respondWithClientApiObject(response, feature);
-            return;
+        String[] zipCodes = zipCode != null ? new String[]{zipCode} : getOptionalParameterAsStringArray(request, "zipCode[]");
+
+        if (zipCodes != null) {
+            List<Features.Feature> features = this.zipCodeBoundariesRepository.findZipCodes(zipCodes);
+            if (!features.isEmpty()) {
+                respondWithClientApiObject(response, features.size() == 1 ? features.get(0) : new Features(features));
+                return;
+            }
         }
 
         GeoPoint northWest = GeoPoint.parse(getRequiredParameter(request, "northWest"));
