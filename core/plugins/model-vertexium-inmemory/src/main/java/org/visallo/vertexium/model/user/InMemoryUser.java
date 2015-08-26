@@ -1,11 +1,11 @@
 package org.visallo.vertexium.model.user;
 
+import com.v5analytics.simpleorm.SimpleOrmContext;
+import org.json.JSONObject;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
-import org.json.JSONObject;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 
 import java.util.*;
 
@@ -149,5 +149,35 @@ public class InMemoryUser implements User {
     @Override
     public Date getPasswordResetTokenExpirationDate() {
         return passwordResetTokenExpirationDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        InMemoryUser that = (InMemoryUser) o;
+
+        if (!userId.equals(that.userId)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return userId.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "InMemoryUser{" +
+                "userId='" + userId + '\'' +
+                '}';
     }
 }
