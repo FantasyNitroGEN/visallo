@@ -1,14 +1,14 @@
 package org.visallo.core.model.ontology;
 
-import org.visallo.core.model.properties.types.VisalloProperty;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.vertexium.Authorizations;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.vertexium.Authorizations;
+import org.visallo.core.model.properties.types.VisalloProperty;
+import org.visallo.core.security.VisalloVisibility;
+import org.visallo.web.clientapi.model.ClientApiOntology;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -57,6 +57,8 @@ public interface OntologyRepository {
     OWLOntologyManager createOwlOntologyManager(OWLOntologyLoaderConfiguration config, IRI excludeDocumentIRI) throws Exception;
 
     void resolvePropertyIds(JSONArray filterJson) throws JSONException;
+
+    void importResourceOwl(Class baseClass, String fileName, String iri, Authorizations authorizations);
 
     void importFile(File inFile, IRI documentIRI, Authorizations authorizations) throws Exception;
 

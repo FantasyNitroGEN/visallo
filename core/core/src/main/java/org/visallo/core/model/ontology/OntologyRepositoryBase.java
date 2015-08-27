@@ -107,14 +107,19 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     private void importResourceOwl(String fileName, String iri, Authorizations authorizations) {
+        importResourceOwl(OntologyRepositoryBase.class, fileName, iri, authorizations);
+    }
+
+    @Override
+    public void importResourceOwl(Class baseClass, String fileName, String iri, Authorizations authorizations) {
         if (isOntologyDefined(iri)) {
             LOGGER.debug("Ontology %s (iri: %s) is already defined", fileName, iri);
             return;
         }
 
         LOGGER.debug("importResourceOwl %s (iri: %s)", fileName, iri);
-        InputStream owlFileIn = OntologyRepositoryBase.class.getResourceAsStream(fileName);
-        checkNotNull(owlFileIn, "Could not load resource " + OntologyRepositoryBase.class.getResource(fileName));
+        InputStream owlFileIn = baseClass.getResourceAsStream(fileName);
+        checkNotNull(owlFileIn, "Could not load resource " + baseClass.getResource(fileName));
 
         try {
             IRI documentIRI = IRI.create(iri);
