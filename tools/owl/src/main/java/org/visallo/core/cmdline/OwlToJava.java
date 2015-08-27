@@ -195,6 +195,8 @@ public class OwlToJava extends CommandLineTool {
                 result.append('_');
             }
         }
-        return result.toString();
+        String stringResult = result.toString();
+        stringResult = stringResult.replaceAll("_+", "_");
+        return stringResult;
     }
 }
