@@ -7,8 +7,8 @@ define(['util/parsers'], function(P) {
             var VALID_INTEGERS = [['0', 0], ['42', 42], ['42.3', 42], ['+123', 123], ['-654.2', -654]],
                 VALID_FLOATS = [['67.89', 67.89], ['-543.21', -543.21], ['99.', 99], ['88', 88]],
                 VALID_NUMBERS = VALID_INTEGERS.concat(VALID_FLOATS),
-                VALID_INTEGERS_WITH_UNITS = [['24', 24], ['42s', 42], ['42.3xyz', 42], ['+123abc', 123], ['-654.9i', -654]],
-                VALID_FLOATS_WITH_UNITS = [['9.99', 9.99], ['10.80s', 10.8], ['+77.7xyz', 77.7], ['-654.9i', -654.9]],
+                VALID_INTEGERS_WITH_UNITS = [['42s', 42], ['42.3xyz', 42], ['+123abc', 123], ['-654.9i', -654]],
+                VALID_FLOATS_WITH_UNITS = [['10.80s', 10.8], ['+77.7xyz', 77.7], ['-654.9i', -654.9]],
                 VALID_NUMBERS_WITH_UNITS = VALID_INTEGERS_WITH_UNITS.concat(VALID_FLOATS_WITH_UNITS),
 
                 INVALID_NUMBERS_WITH_UNITS = ['.99', '-.88', 's42', '12 ms', '$678.29', '', '++4', '--3', '', ' ', 42, 12.34, NaN],
