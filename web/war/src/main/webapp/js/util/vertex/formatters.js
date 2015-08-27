@@ -364,6 +364,8 @@ define([
 
             sortByProperties: function(vertices, name, options) {
                 var verticesWithValues = _.partition(vertices, function(vertex) {
+                        var allProps = V.props(vertex, name);
+                        if (allProps.length === 0) return false;
                         var prop = V.prop(vertex, name, undefined, { defaultValue: ' ' });
                         if (_.isString(prop)) {
                             prop = prop.trim();
