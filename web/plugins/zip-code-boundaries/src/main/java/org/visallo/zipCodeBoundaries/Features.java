@@ -29,6 +29,7 @@ public class Features implements ClientApiObject {
             double[][] bbox = feature.getBoundingBox();
             envelope.expandToInclude(new ReferencedEnvelope(bbox[0][1], bbox[1][1], bbox[0][0], bbox[1][0], feature.coordinateSystem));
         }
+        envelope.expandBy(0.01);
     }
 
     public List<Feature> getFeatures() {
