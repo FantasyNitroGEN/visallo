@@ -1,0 +1,1 @@
+This graph property worker will act on properties with the `location` intent and try to resolve their geo-coordinates. If found, it will set the geo-coords on the vertex.

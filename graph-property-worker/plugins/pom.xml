@@ -48,5 +48,6 @@
         <module>video-frame-extract</module>
         <module>video-metadata</module>
         <module>geoip</module>
+        <module>geo-location-resolver</module>
     </modules>
 </project>
