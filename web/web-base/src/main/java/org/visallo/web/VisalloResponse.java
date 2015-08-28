@@ -81,14 +81,22 @@ public class VisalloResponse {
         return response;
     }
 
-    public void respondWithJson(JSONObject jsonObject) {
-        BaseRequestHandler.configureResponse(ResponseTypes.JSON_OBJECT, response, jsonObject);
-    }
-
     public void respondWithSuccessJson() {
         JSONObject result = new JSONObject();
         result.put("success", true);
         respondWithJson(result);
+    }
+
+    public void respondWithJson(JSONObject jsonObject) {
+        BaseRequestHandler.configureResponse(ResponseTypes.JSON_OBJECT, response, jsonObject);
+    }
+
+    public void respondWithPlaintext(final String plaintext) {
+        BaseRequestHandler.configureResponse(ResponseTypes.PLAINTEXT, response, plaintext);
+    }
+
+    public void respondWithHtml(final String html) {
+        BaseRequestHandler.configureResponse(ResponseTypes.HTML, response, html);
     }
 
     public String generateETag(byte[] data) {
