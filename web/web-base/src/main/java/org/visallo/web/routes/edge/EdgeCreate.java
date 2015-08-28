@@ -6,6 +6,7 @@ import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
@@ -83,6 +84,7 @@ public class EdgeCreate extends BaseRequestHandler {
         }
 
         workQueueRepository.broadcastElement(edge, workspaceId);
+        workQueueRepository.pushElement(edge, Priority.HIGH);
         respondWithClientApiObject(response, ClientApiConverter.toClientApi(edge, workspaceId, authorizations));
     }
 }
