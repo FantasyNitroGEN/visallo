@@ -7,8 +7,8 @@ This guide covers running Visallo within the development Docker container. The s
 Run the following commands in the `/opt/visallo-source` directory within the development Docker container:
 
         mvn compile -pl docker
-        /opt/stop.sh
-        /opt/start.sh
+        /opt/accumulo/bin/stop-all.sh
+        /opt/accumulo/bin/start-all.sh
 
 ## Deploy an Ontology
 
@@ -18,7 +18,7 @@ Run the following command from the `/opt/visallo-source` directory within the de
 
         mvn compile -am -pl tools/cli \
             -P run-cli \
-            -Dexec.args='OwlImport --in /opt/visallo-source/examples/ontology-minimal/minimal.owl'
+            -Dexec.args='OwlImport --in examples/ontology-minimal/minimal.owl'
 
 
 ## Run the Web Application
@@ -27,6 +27,7 @@ Run the commands below to start the Visallo web application. These steps must be
 
         mvn -am -pl web/war \
             -P web-admin,web-auth-username-only,jetty-run \
+            -Dgrunt.target=development \
             compile
 
 The preceding `mvn` command will start the Visallo web application with a minimum number of features running. The `-P` option to the Maven command above specifies which profiles are included when starting Jetty. A profile groups a set of dependencies that make up a feature. Running the following command will list all of the available profiles that can be run.
