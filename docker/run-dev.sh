@@ -80,7 +80,8 @@ else
   LOCAL_PERSISTENT_DIR=${DIR}/visallo-dev-persistent
 fi
 
-MVN_REPO=$(mvn help:effective-settings | grep localRepository | sed 's/[^>]*>\([^<]*\).*/\1/')
+MVN_REPO=${HOME}/.m2/repository
+mkdir -p ${MVN_REPO}
 
 ${SUDO} cp ${DIR}/../config/visallo.properties ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/visallo.properties
 ${SUDO} cp ${DIR}/../config/log4j.xml ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/log4j.xml
