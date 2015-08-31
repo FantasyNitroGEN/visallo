@@ -99,8 +99,7 @@ public abstract class WorkspaceRepository {
     public abstract Workspace add(String workspaceId, String title, User user);
 
     public Workspace add(String title, User user) {
-        String workspaceId = WORKSPACE_ID_PREFIX + graph.getIdGenerator().nextId();
-        return add(workspaceId, title, user);
+        return add(null, title, user);
     }
 
     public abstract Iterable<Workspace> findAllForUser(User user);
@@ -109,7 +108,11 @@ public abstract class WorkspaceRepository {
 
     public abstract List<WorkspaceUser> findUsersWithAccess(String workspaceId, User user);
 
-    public abstract List<WorkspaceEntity> findEntities(Workspace workspace, User user);
+    public List<WorkspaceEntity> findEntities(Workspace workspace, User user) {
+        return findEntities(workspace, false, user);
+    }
+
+    public abstract List<WorkspaceEntity> findEntities(Workspace workspace, boolean fetchVertices, User user);
 
     public Workspace copy(Workspace workspace, User user) {
         return copyTo(workspace, user, user);

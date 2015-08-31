@@ -9,6 +9,7 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
+import org.vertexium.Vertex;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
@@ -107,6 +108,10 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
 
     @Override
     public Workspace add(String workspaceId, String title, User user) {
+        if (workspaceId == null) {
+            workspaceId = WORKSPACE_ID_PREFIX + getGraph().getIdGenerator().nextId();
+        }
+
         Session session = sessionManager.getSession();
 
         Transaction transaction = null;
@@ -195,7 +200,7 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
-    public List<WorkspaceEntity> findEntities(Workspace workspace, User user) {
+    public List<WorkspaceEntity> findEntities(Workspace workspace, final boolean fetchVertices, User user) {
         if (!hasReadPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
@@ -209,13 +214,19 @@ public class SqlWorkspaceRepository extends WorkspaceRepository {
             @Override
             protected WorkspaceEntity convert(SqlWorkspaceVertex sqlWorkspaceVertex) {
                 String vertexId = sqlWorkspaceVertex.getVertexId();
+                Vertex vertex;
+                if (fetchVertices) {
+                    vertex = getGraph().getVertex(vertexId, authorizations);
+                } else {
+                    vertex = null;
+                }
 
                 Integer graphPositionX = sqlWorkspaceVertex.getGraphPositionX();
                 Integer graphPositionY = sqlWorkspaceVertex.getGraphPositionY();
                 boolean visible = sqlWorkspaceVertex.isVisible();
 
                 // TODO implement graphLayoutJson in sql
-                return new WorkspaceEntity(vertexId, visible, graphPositionX, graphPositionY, null, null);
+                return new WorkspaceEntity(vertexId, visible, graphPositionX, graphPositionY, null, vertex);
             }
         });
         return workspaceEntities;

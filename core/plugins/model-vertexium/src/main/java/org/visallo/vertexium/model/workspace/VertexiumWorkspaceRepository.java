@@ -181,18 +181,27 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
     @Override
     public Workspace add(String workspaceId, String title, User user) {
+        if (workspaceId == null) {
+            workspaceId = WORKSPACE_ID_PREFIX + getGraph().getIdGenerator().nextId();
+        }
+
         authorizationRepository.addAuthorizationToGraph(workspaceId);
 
         Authorizations authorizations = userRepository.getAuthorizations(user, UserRepository.VISIBILITY_STRING, VISIBILITY_STRING, workspaceId);
-        Vertex userVertex = getGraph().getVertex(user.getUserId(), authorizations);
-        checkNotNull(userVertex, "Could not find user: " + user.getUserId());
+        Vertex userVertex = null;
+        if (!user.getUserId().equals(userRepository.getSystemUser().getUserId())) {
+            userVertex = getGraph().getVertex(user.getUserId(), authorizations);
+            checkNotNull(userVertex, "Could not find user: " + user.getUserId());
+        }
 
         VertexBuilder workspaceVertexBuilder = getGraph().prepareVertex(workspaceId, VISIBILITY.getVisibility());
         VisalloProperties.CONCEPT_TYPE.setProperty(workspaceVertexBuilder, WORKSPACE_CONCEPT_IRI, VISIBILITY.getVisibility());
         WorkspaceProperties.TITLE.setProperty(workspaceVertexBuilder, title, VISIBILITY.getVisibility());
         Vertex workspaceVertex = workspaceVertexBuilder.save(authorizations);
 
-        addWorkspaceToUser(workspaceVertex, userVertex, authorizations);
+        if (userVertex != null) {
+            addWorkspaceToUser(workspaceVertex, userVertex, authorizations);
+        }
 
         getGraph().flush();
         return new VertexiumWorkspace(workspaceVertex);
@@ -267,7 +276,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
-    public List<WorkspaceEntity> findEntities(final Workspace workspace, final User user) {
+    public List<WorkspaceEntity> findEntities(final Workspace workspace, final boolean fetchVertices, final User user) {
         if (!hasReadPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
@@ -275,7 +284,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return lockRepository.lock(getLockName(workspace), new Callable<List<WorkspaceEntity>>() {
             @Override
             public List<WorkspaceEntity> call() throws Exception {
-                return findEntitiesNoLock(workspace, false, false, user);
+                return findEntitiesNoLock(workspace, false, fetchVertices, user);
             }
         });
     }
