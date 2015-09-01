@@ -1,5 +1,5 @@
 build/
-node/*
+node_modules/
 libs/*
 css/*
 js/plugin-development

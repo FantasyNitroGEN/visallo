@@ -16,7 +16,8 @@ dir_list() {
        $1/var/local/hadoop \
        $1/opt/elasticsearch/data \
        $1/opt/rabbitmq/var \
-       $1/opt/jetty/webapps
+       $1/opt/jetty/webapps \
+       $1/opt/maven/repository
 }
 
 if [ $(uname) = 'Linux' ]; then
@@ -80,8 +81,8 @@ else
   LOCAL_PERSISTENT_DIR=${DIR}/visallo-dev-persistent
 fi
 
-MVN_REPO=${HOME}/.m2/repository
-mkdir -p ${MVN_REPO}
+#MVN_REPO=${HOME}/.m2/repository
+#mkdir -p ${MVN_REPO}
 
 ${SUDO} cp ${DIR}/../config/visallo.properties ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/visallo.properties
 ${SUDO} cp ${DIR}/../config/log4j.xml ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/log4j.xml
@@ -94,7 +95,7 @@ ${SUDO} cp ${DIR}/../config/log4j.xml ${LOCAL_PERSISTENT_DIR}/opt/visallo/config
   -v ${PERSISTENT_DIR}/var/lib/hadoop-hdfs:/var/lib/hadoop-hdfs \
   -v ${PERSISTENT_DIR}/var/local/hadoop:/var/local/hadoop \
   -v ${PERSISTENT_DIR}/opt/elasticsearch/data:/opt/elasticsearch/data \
-  -v ${MVN_REPO}:/opt/maven/repository \
+  -v ${PERSISTENT_DIR}/opt/maven/repository:/opt/maven/repository \
   -v ${LOCAL_PERSISTENT_DIR}/opt/visallo:/opt/visallo \
   -v ${LOCAL_PERSISTENT_DIR}/opt/jetty/webapps:/opt/jetty/webapps \
   -p 2181:2181 `# ZooKeeper` \

@@ -8,8 +8,11 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 
-WEBAPP=$DIR/../webapp
-export PATH=$WEBAPP/node:$WEBAPP/node_modules/bower/bin:$WEBAPP/node_modules/grunt-cli/bin:$PATH
+WEBAPP=$DIR
+NODE=$WEBAPP/../../../node
+NODE_MODULES=$WEBAPP/node_modules
+
+export PATH=$NODE:$NODE_MODULES/bower/bin:$NODE_MODULES/grunt-cli/bin:$PATH
 cd $WEBAPP >/dev/null
 
 # Run `bower list` for previous `bower list` output
@@ -22,9 +25,9 @@ mv $filename $filename_previous
 bower list --offline > $filename
 
 if diff $filename $filename_previous >/dev/null ; then
-  grunt $1
+  grunt "$@"
 else
-  grunt deps $1
+  grunt deps "$@"
 fi
 
 cd - >/dev/null
