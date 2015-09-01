@@ -20,10 +20,18 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.VersionUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public abstract class CommandLineTool {
     protected VisalloLogger LOGGER;
@@ -43,6 +51,9 @@ public abstract class CommandLineTool {
 
     @Parameter(names = {"--help", "-h"}, description = "Print help", help = true)
     private boolean help;
+
+    @Parameter(names = {"--version"}, description = "Print version")
+    private boolean version;
 
     public int run(String[] args) throws Exception {
         return run(args, DEFAULT_INIT_FRAMEWORK);
@@ -70,6 +81,10 @@ public abstract class CommandLineTool {
             }
             if (help) {
                 printHelp(j);
+                return -1;
+            }
+            if (version) {
+                VersionUtil.printVersion();
                 return -1;
             }
         } catch (ParameterException ex) {

@@ -17,6 +17,7 @@ import org.vertexium.accumulo.mapreduce.ElementMapper;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.ConfigurationLoader;
+import org.visallo.core.util.VersionUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -45,6 +46,9 @@ public abstract class VisalloMRBase extends Configured implements Tool {
 
     @Parameter(names = {"--help", "-h"}, description = "Print help", help = true)
     private boolean help;
+
+    @Parameter(names = {"--version"}, description = "Print version")
+    private boolean version;
 
     @Override
     public int run(String[] args) throws Exception {
@@ -128,6 +132,10 @@ public abstract class VisalloMRBase extends Configured implements Tool {
         j.setProgramName("hadoop jar <jar>");
         if (help) {
             j.usage();
+            return null;
+        }
+        if (version) {
+            VersionUtil.printVersion();
             return null;
         }
         processArgs(result, args);
