@@ -1,100 +1,144 @@
-# Developing Visallo on Windows
+# Developing Visallo on Windows (x64 only)
 
-**THESE INSTRUCTIONS ARE OUT OF DATE. PROCEED WITH CAUTION**
+**Please use a Windows user account which does not have spaces in its home directory.**
 
-1. Install Docker per their instructions: [https://docs.docker.com/installation](https://docs.docker.com/installation/#installation)
+## Environment Setup
 
-1. Install node and npm per their instructions: [http://nodejs.org/](http://nodejs.org/)
+1. Install Google Chrome browser: https://www.google.com/chrome/
 
-1. Install Python v2.x per their instructions: [https://www.python.org/downloads/](https://www.python.org/downloads/)
+1. Install Docker Toolbox: [http://docs.docker.com/windows/started/](http://docs.docker.com/windows/started/). Select the full installation and let the installer add the executables to the system PATH variable.
 
-1. Install JDK 7 or 8 per their instructions if not already installed: [http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+1. Install MinGW: [http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe/download](http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe/download). Use the default `C:\MinGW` directory. When the MinGW Installation Manager appears, select "All Packages" and install only the the `mingw32-make` bin package.
 
-1. Install Maven 3.2.X per their instructions if not already installed: [http://maven.apache.org/guides/getting-started/windows-prerequisites.html] (http://maven.apache.org/guides/getting-started/windows-prerequisites.html)
+1. Install Python v2.7.x: [https://www.python.org/downloads/](https://www.python.org/downloads/). Install it to the default location, e.g. `C:\Python27`.
 
-1. Install Hadoop 2.2.0
+1. Install JDK 8: [http://www.oracle.com/technetwork/java/javase/downloads/index.html](http://www.oracle.com/technetwork/java/javase/downloads/index.htmll). Change the JDK installation directory to a path with no spaces, e.g. `C:\jdk1.8.0_60`. Use the default installation directory for the subsequent JRE installation.
 
-     - Install the binaries (choose one):
-          - Compile install from source: [http://www.srccodes.com/p/article/38/build-install-configure-run-apache-hadoop-2.2.0-microsoft-windows-os](http://www.srccodes.com/p/article/38/build-install-configure-run-apache-hadoop-2.2.0-microsoft-windows-os)
-          - Install pre-compiled binaries: [http://bits.v5analytics.com/static/](http://bits.v5analytics.com/static/)
-     - Set the `HADOOP_PATH` environment variable `c:\hadoop-2.2.0`
-     - Append the `PATH` environment variable with `c:\hadoop-2.2.0\bin`
+1. Install Maven 3.3.x: [http://maven.apache.org/guides/getting-started/windows-prerequisites.html] (http://maven.apache.org/guides/getting-started/windows-prerequisites.html). Download the binary ZIP archive and extract it to a path with no spaces, e.g. `C:\apache-maven-3.3.3`.
 
-1. Install msysgit via the netinstall option: [https://github.com/msysgit/msysgit/releases](https://github.com/msysgit/msysgit/releases).
-**All commands from this point forward are assumed to be running from the msysgit shell, if you need to open the window, run the command c:\mysysgit\msys.bat**
+1. Install Hadoop 2.6.0 from the pre-compiled binaries: [http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip](http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip). Extract the archive to a path with no spaces, e.g. `C:\hadoop-2.6.0`
 
-1. Confirm and Add boot2docker, python, java, and maven to $PATH in msysgit bash shell
+1. Open up a Git Bash window. (This was installed by Docker Toolbox.) Your current directory will be your Windows home directory. The remaining commands in these instructions should be run from within this window.
 
-        // Create or add to file "~/.profile"
-        export PATH=[python_path]:[boot2docker_path]:[java_path]:[maven_path]:/c/Users/{your user name}/AppData/Roaming/npm:$PATH
+1. Copy the MinGW make command so it's found later by the grunt tasks:
 
-1. Source the file to get the $PATH updates
+         cp /c/MinGW/bin/mingw32-make.exe /c/MinGW/bin/make.exe
 
-        source ~/.profile
+1. Add the following lines to the file `.bash_profile` in your home directory. Use `vim` to create and edit this file. Adjust the installation directories accordingly if you selected any different locations.
 
-1. Find the boot2docker VM IP address:
+        export JAVA_HOME=/c/jdk1.8.0_60
+        export HADOOP_HOME=/c/hadoop-2.6.0
+        export PATH=$JAVA_HOME/bin:/c/apache-maven-3.3.3/bin:$HADOOP_HOME/bin:/c/Python27:/c/MinGW/bin:$PATH
 
-        boot2docker ip
+        alias grunt="$HOME/visallo-private/web/war/node/node $HOME/visallo-private/web/war/src/main/webapp/node_modules/grunt-cli/bin/grunt"
 
-1. Edit `%windir%\system32\drivers\etc\hosts` as an administrator, adding a new line with the IP address from the previous command + space + `visallo-dev`
+1. Exit the Git Bash window and open a new one. The above variables should be set. Verify by typing `env`.
 
-1. Ensure the Visallo git repo is cloned under your home directory:
+1. Create the Docker Machine VM:
 
-        cd /c/Users/{your user name}
+        docker-machine create  \
+            --driver virtualbox \
+            --virtualbox-memory 8192 \
+            --virtualbox-boot2docker-url https://github.com/boot2docker/boot2docker/releases/download/v1.8.1/boot2docker.iso \
+            visallo-dev
+
+1. Get the VM IP address:
+
+        docker-machine ip visallo-dev
+
+1. Edit `C:\Windows\System32\drivers\etc\hosts` as an administrator, adding a new line with the VM IP address:
+
+        [docker machine ip] visallo-dev
+
+1. Clone the Visallo git repo under your home directory:
+
+   *Before doing this, it would be a good idea to read about the [`core.autocrlf`](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration) configuration setting, and determine what will work best for your environment.*
+
+        cd $HOME
         git clone git@github.com:v5analytics/visallo.git
 
-1. Always use Unix-style line-endings:
+# Building Visallo
 
-        git config --global core.autocrlf false
+Always run build commands from the project home directory:
 
-1. SSH into the boot2docker VM:
+    cd $HOME/visallo
 
-        boot2docker ssh
+Install the root POM. This should be run whenever you pull the latest Visallo source code:
 
-1. (Inside of the boot2docker VM) Change directory to your visallo repository:
+    mvn -f root/pom.xml install
 
-        cd /c/Users/{your user name}/visallo
+Compile all modules, building the web app resources for development (which is faster):
 
-1. (Inside of the boot2docker VM) Build the docker image:
+    mvn compile -Dgrunt.target=development
 
-        docker/build-dev.sh
+Run all unit tests, continuing on failures and without failing the build:
 
-1. (Inside of the boot2docker VM) Run the docker image (this will start ZooKeeper, HDFS, YARN, ElasticSearch, and RabbitMQ):
+    mvn test -fn -Dgrunt.target=development
 
-        docker/run-dev.sh
-
-1. Make an npm directory in your roaming profile:
-
-        mkdir -p /c/Users/{your user name}/AppData/Roaming/npm
-
-1. Change to the webapp directory:
-
-        cd /c/Users/{your user name}/visallo/web/war/src/main/webapp
-
-1. Install npm dependencies:
-
-        npm install -g inherits bower grunt-cli
-        npm install
-
-1. Install grunt and bower dependencies:
-
-        grunt deps
-
-1. Start watching and recompiling:
-
-        grunt
-
-1. (Optional) create war file:
-
-        cd /c/Users/{your user name}/visallo
-        mvn package -DskipTests
-
-Unit Tests
--------------
-Running `mvn test` will result in certain failures on Windows. This is a known issue. The following unit tests are
-expected to fail:
-
+It is a known issue that some unit tests fail on Windows. The following are expected to fail:
 * `org.visallo.core.formula.FormulaEvaluatorTest`
 * `org.visallo.tesseract.TesseractGraphPropertyWorkerTest`
 * `org.visallo.opencvObjectDetector.OpenCVUtilsTest`
 * `org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorkerTest`
+
+# Starting the Docker Container
+
+1. SSH into the docker-machine VM:
+
+        docker-machine ssh visallo-dev
+
+1. (Inside of the docker-machine VM) Change directory to your Visallo repository:
+
+        cd /c/Users/[username]/visallo
+
+1. (Inside of the docker-machine VM) Build the docker image:
+
+   *This only needs to be run the first time, or when a the docker configuration changes (files in the `docker` directory).*
+
+        docker/build-dev.sh
+
+1. (Inside of the docker-machine VM) Run the docker image (this will start ZooKeeper, HDFS, YARN, ElasticSearch, and RabbitMQ):
+
+        docker/run-dev.sh
+
+Don't exit the docker container until you want to stop these services.
+
+# Running Visallo
+
+Maven can be used to execute various command-line tools and the Visallo web application. Always run from the project directory:
+
+    cd $HOME/visallo
+
+## Format
+
+Run this the first time, and whenever you need to clear all data or load a new ontology.
+
+    mvn compile -am -pl tools/cli \
+        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq \
+        -Dexec.args='FormatVisallo'
+
+## Ontology
+
+The following command loads an ontology that works well for general development:
+
+    mvn compile -am -pl tools/cli \
+        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq \
+        -Dexec.args='OwlImport --in examples/ontology-dev/dev.owl'
+
+## Web Server
+
+This command runs Visallo using the Jetty web server, with a username-only login, and with the backed services provided by the development docker container:
+
+    mvn compile -am -pl web/war \
+        -P jetty-run,web-admin,web-auth-username-only,storage-accumulo,search-elasticsearch,queue-rabbitmq \
+        -Dgrunt.target=development
+
+Use Chrome or Firefox to browse to `http://127.0.0.1:8443`. Internet Explorer is not currently supported.
+
+If you want to modify JavaScript and CSS/Less without recompiling and restarting the web server each time, run the following commands in another Git Bash window:
+
+    cd $HMOME/visallo/web/war/src/main/webapp
+    grunt
+
+Refresh the Visallo web page to reload any changes.
+
