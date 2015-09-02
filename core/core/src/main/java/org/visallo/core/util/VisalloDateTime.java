@@ -171,4 +171,34 @@ public class VisalloDateTime implements Comparable<VisalloDateTime> {
     public int compareTo(VisalloDateTime o) {
         return this.getJavaDate().compareTo(o.getJavaDate());
     }
+
+    public static String getHumanTimeAgo(Date now, Date date) {
+        long ago = now.getTime() - date.getTime();
+        return getHumanTimeAgo(ago);
+    }
+
+    public static String getHumanTimeAgo(long agoMillis) {
+        String agoUnits = "ms ago";
+        if (agoMillis >= 1000) {
+            agoMillis = agoMillis / 1000;
+            agoUnits = "seconds ago";
+            if (agoMillis >= 60) {
+                agoMillis = agoMillis / 60;
+                agoUnits = "minutes ago";
+                if (agoMillis >= 60) {
+                    agoMillis = agoMillis / 60;
+                    agoUnits = "hours ago";
+                    if (agoMillis >= 24) {
+                        agoMillis = agoMillis / 24;
+                        agoUnits = "days ago";
+                    }
+                }
+            }
+        }
+        return String.format("%d %s", agoMillis, agoUnits);
+    }
+
+    public static String getHumanTimeAgo(Date date) {
+        return getHumanTimeAgo(new Date(), date);
+    }
 }

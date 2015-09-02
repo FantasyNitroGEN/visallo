@@ -54,7 +54,8 @@ public class VersionUtil {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 for (VersionData versionData : versionDatas) {
                     String buildOnDateString = sdf.format(versionData.getBuildOnDate());
-                    System.out.println(String.format("%-" + maxPathWidth + "s: %s", versionData.getPath(), buildOnDateString));
+                    String ago = VisalloDateTime.getHumanTimeAgo(versionData.getBuildOnDate());
+                    System.out.println(String.format("%-" + maxPathWidth + "s: %s (%s)", versionData.getPath(), buildOnDateString, ago));
                 }
             }
         } catch (IOException ex) {
