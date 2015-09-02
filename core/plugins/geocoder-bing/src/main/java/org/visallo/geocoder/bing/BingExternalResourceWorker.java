@@ -1,6 +1,9 @@
 package org.visallo.geocoder.bing;
 
 import com.google.inject.Inject;
+import org.json.JSONObject;
+import org.vertexium.*;
+import org.vertexium.type.GeoPoint;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.externalResource.QueueExternalResourceWorker;
@@ -11,9 +14,6 @@ import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.properties.types.GeoPointVisalloProperty;
 import org.visallo.core.model.workQueue.Priority;
-import org.json.JSONObject;
-import org.vertexium.*;
-import org.vertexium.type.GeoPoint;
 
 import java.util.List;
 
@@ -79,8 +79,17 @@ public class BingExternalResourceWorker extends QueueExternalResourceWorker {
             Authorizations authorizations
     ) {
         List<GeocodeResult> results = InjectHelper.getInstance(GeocoderRepository.class).find(locationString);
-        if (results.size() != 1) {
+        if (results.size() == 0) {
             return;
+        }
+        GeocodeResult result;
+        if (results.size() > 1) {
+            result = tryAverageResults(results);
+            if (result == null) {
+                return;
+            }
+        } else {
+            result = results.get(0);
         }
 
         Element element;
@@ -92,7 +101,6 @@ public class BingExternalResourceWorker extends QueueExternalResourceWorker {
             throw new VisalloException("Unhandled element type: " + elementType);
         }
 
-        GeocodeResult result = results.get(0);
         double latitude = result.getLatitude();
         double longitude = result.getLongitude();
         String description = result.getName();
@@ -100,6 +108,17 @@ public class BingExternalResourceWorker extends QueueExternalResourceWorker {
         property.addPropertyValue(element, propertyKey, value, visibility, authorizations);
         graph.flush();
         getWorkQueueRepository().pushGraphPropertyQueue(element, property.getProperty(element, propertyKey), priority);
+    }
+
+    private GeocodeResult tryAverageResults(List<GeocodeResult> results) {
+        GeocodeResult firstResult = results.get(0);
+        for (GeocodeResult result : results) {
+            double distanceKm = GeoPoint.distanceBetween(firstResult.getLatitude(), firstResult.getLongitude(), result.getLatitude(), result.getLongitude());
+            if (distanceKm > 5.0) {
+                return null;
+            }
+        }
+        return firstResult;
     }
 
     @Override
