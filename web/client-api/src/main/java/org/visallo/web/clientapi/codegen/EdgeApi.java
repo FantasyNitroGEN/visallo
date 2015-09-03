@@ -1,17 +1,15 @@
 package org.visallo.web.clientapi.codegen;
 
-import org.visallo.web.clientapi.codegen.ApiException;
-import org.visallo.web.clientapi.ApiInvoker;
-
-import org.visallo.web.clientapi.model.ClientApiEdgesExistsResponse;
-import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
-import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyValues;
 import com.sun.jersey.multipart.FormDataMultiPart;
+import org.visallo.web.clientapi.ApiInvoker;
+import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
+import org.visallo.web.clientapi.model.ClientApiEdgesExistsResponse;
+import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyValues;
 
 import javax.ws.rs.core.MediaType;
-
-import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EdgeApi {
   protected String basePath = "http://visallo-dev:8889";
@@ -132,7 +130,7 @@ public class EdgeApi {
       }
     }
   }
-  public ClientApiEdgeWithVertexData create (String sourceGraphVertexId, String destGraphVertexId, String predicateLabel, String visibilitySource, String justificationText, String sourceInfo) throws ApiException {
+  public ClientApiEdgeWithVertexData create (String sourceGraphVertexId, String destGraphVertexId, String predicateLabel, String visibilitySource, String justificationText, String sourceInfo, String edgeId) throws ApiException {
     Object postBody = null;
     // verify required params are set
     if(sourceGraphVertexId == null || destGraphVertexId == null || predicateLabel == null || visibilitySource == null ) {
@@ -158,6 +156,8 @@ public class EdgeApi {
       queryParams.put("justificationText", String.valueOf(justificationText));
     if(!"null".equals(String.valueOf(sourceInfo)))
       queryParams.put("sourceInfo", String.valueOf(sourceInfo));
+    if(!"null".equals(String.valueOf(edgeId)))
+      queryParams.put("edgeId", String.valueOf(edgeId));
     String[] contentTypes = {
       "application/json"};
 
