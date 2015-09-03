@@ -2,6 +2,8 @@ package org.visallo.web.routes.admin;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.visallo.core.bootstrap.lib.LibLoader;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.FileImportSupportingFileHandler;
@@ -12,15 +14,13 @@ import org.visallo.core.model.user.UserListener;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.status.StatusServer;
+import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.WebAppPlugin;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.util.ServiceLoader;
 
 public class PluginList extends BaseRequestHandler {
     @Inject
@@ -49,43 +49,43 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getUserListenersJson() {
         JSONArray json = new JSONArray();
-        for (UserListener userListener : ServiceLoader.load(UserListener.class)) {
-            json.put(getUserListenerJson(userListener));
+        for (Class<? extends UserListener> userListenerClass : ServiceLoaderUtil.loadClasses(UserListener.class, getConfiguration())) {
+            json.put(getUserListenerJson(userListenerClass));
         }
         return json;
     }
 
-    private JSONObject getUserListenerJson(UserListener userListener) {
+    private JSONObject getUserListenerJson(Class<? extends UserListener> userListenerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, userListener.getClass());
+        StatusServer.getGeneralInfo(json, userListenerClass);
         return json;
     }
 
     private JSONArray getGraphPropertyWorkersJson() {
         JSONArray json = new JSONArray();
-        for (GraphPropertyWorker graphPropertyWorker : ServiceLoader.load(GraphPropertyWorker.class)) {
-            json.put(getGraphPropertyWorkerJson(graphPropertyWorker));
+        for (Class<? extends GraphPropertyWorker> graphPropertyWorkerClass : ServiceLoaderUtil.loadClasses(GraphPropertyWorker.class, getConfiguration())) {
+            json.put(getGraphPropertyWorkerJson(graphPropertyWorkerClass));
         }
         return json;
     }
 
-    private JSONObject getGraphPropertyWorkerJson(GraphPropertyWorker graphPropertyWorker) {
+    private JSONObject getGraphPropertyWorkerJson(Class<? extends GraphPropertyWorker> graphPropertyWorkerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, graphPropertyWorker.getClass());
+        StatusServer.getGeneralInfo(json, graphPropertyWorkerClass);
         return json;
     }
 
     private JSONArray getPostMimeTypeWorkersJson() {
         JSONArray json = new JSONArray();
-        for (PostMimeTypeWorker postMimeTypeWorker : ServiceLoader.load(PostMimeTypeWorker.class)) {
-            json.put(getPostMimeTypeWorkerJson(postMimeTypeWorker));
+        for (Class<? extends PostMimeTypeWorker> postMimeTypeWorkerClass : ServiceLoaderUtil.loadClasses(PostMimeTypeWorker.class, getConfiguration())) {
+            json.put(getPostMimeTypeWorkerJson(postMimeTypeWorkerClass));
         }
         return json;
     }
 
-    private JSONObject getPostMimeTypeWorkerJson(PostMimeTypeWorker postMimeTypeWorker) {
+    private JSONObject getPostMimeTypeWorkerJson(Class<? extends PostMimeTypeWorker> postMimeTypeWorkerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, postMimeTypeWorker.getClass());
+        StatusServer.getGeneralInfo(json, postMimeTypeWorkerClass);
         return json;
     }
 
@@ -105,57 +105,57 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getLibLoadersJson() {
         JSONArray json = new JSONArray();
-        for (LibLoader libLoader : ServiceLoader.load(LibLoader.class)) {
-            json.put(getLibLoaderJson(libLoader));
+        for (Class<? extends LibLoader> libLoaderClass : ServiceLoaderUtil.loadClasses(LibLoader.class, getConfiguration())) {
+            json.put(getLibLoaderJson(libLoaderClass));
         }
         return json;
     }
 
-    private JSONObject getLibLoaderJson(LibLoader libLoader) {
+    private JSONObject getLibLoaderJson(Class<? extends LibLoader> libLoaderClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, libLoader.getClass());
+        StatusServer.getGeneralInfo(json, libLoaderClass);
         return json;
     }
 
     private JSONArray getFileImportSupportingFileHandlersJson() {
         JSONArray json = new JSONArray();
-        for (FileImportSupportingFileHandler fileImportSupportingFileHandler : ServiceLoader.load(FileImportSupportingFileHandler.class)) {
-            json.put(getFileImportSupportingFileHandlerJson(fileImportSupportingFileHandler));
+        for (Class<? extends FileImportSupportingFileHandler> fileImportSupportingFileHandlerClass : ServiceLoaderUtil.loadClasses(FileImportSupportingFileHandler.class, getConfiguration())) {
+            json.put(getFileImportSupportingFileHandlerJson(fileImportSupportingFileHandlerClass));
         }
         return json;
     }
 
-    private JSONObject getFileImportSupportingFileHandlerJson(FileImportSupportingFileHandler fileImportSupportingFileHandler) {
+    private JSONObject getFileImportSupportingFileHandlerJson(Class<? extends FileImportSupportingFileHandler> fileImportSupportingFileHandlerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, fileImportSupportingFileHandler.getClass());
+        StatusServer.getGeneralInfo(json, fileImportSupportingFileHandlerClass);
         return json;
     }
 
     private JSONArray getTermMentionFiltersJson() {
         JSONArray json = new JSONArray();
-        for (TermMentionFilter termMentionFilter : ServiceLoader.load(TermMentionFilter.class)) {
-            json.put(getTermMentionFilterJson(termMentionFilter));
+        for (Class<? extends TermMentionFilter> termMentionFilterClass : ServiceLoaderUtil.loadClasses(TermMentionFilter.class, getConfiguration())) {
+            json.put(getTermMentionFilterJson(termMentionFilterClass));
         }
         return json;
     }
 
-    private JSONObject getTermMentionFilterJson(TermMentionFilter termMentionFilter) {
+    private JSONObject getTermMentionFilterJson(Class<? extends TermMentionFilter> termMentionFilterClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, termMentionFilter.getClass());
+        StatusServer.getGeneralInfo(json, termMentionFilterClass);
         return json;
     }
 
     private JSONArray getWebAppPluginsJson() {
         JSONArray json = new JSONArray();
-        for (WebAppPlugin webAppPlugin : ServiceLoader.load(WebAppPlugin.class)) {
-            json.put(getWebAppPluginJson(webAppPlugin));
+        for (Class<? extends WebAppPlugin> webAppPluginClass : ServiceLoaderUtil.loadClasses(WebAppPlugin.class, getConfiguration())) {
+            json.put(getWebAppPluginJson(webAppPluginClass));
         }
         return json;
     }
 
-    private JSONObject getWebAppPluginJson(WebAppPlugin webAppPlugin) {
+    private JSONObject getWebAppPluginJson(Class<? extends WebAppPlugin> webAppPluginClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, webAppPlugin.getClass());
+        StatusServer.getGeneralInfo(json, webAppPluginClass);
         return json;
     }
 }
