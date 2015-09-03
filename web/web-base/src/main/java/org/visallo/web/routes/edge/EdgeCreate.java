@@ -50,6 +50,7 @@ public class EdgeCreate extends BaseRequestHandler {
         final String visibilitySource = getRequiredParameter(request, "visibilitySource");
         final String justificationText = routeHelper.getJustificationText(request);
         final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
+        final String edgeId = getOptionalParameter(request, "edgeId");
 
         String workspaceId = getActiveWorkspaceId(request);
 
@@ -66,6 +67,7 @@ public class EdgeCreate extends BaseRequestHandler {
         }
 
         Edge edge = graphRepository.addEdge(
+                edgeId,
                 sourceVertex,
                 destVertex,
                 predicateLabel,

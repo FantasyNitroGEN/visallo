@@ -39,7 +39,7 @@ public class WorkspaceUndoIntegrationTest extends TestBase {
         ClientApiElement jeffKunkleVertex = visalloApi.getVertexApi().create(TestOntology.CONCEPT_PERSON, "", "justification");
         visalloApi.getVertexApi().setProperty(jeffKunkleVertex.getId(), TEST_MULTI_VALUE_KEY, VisalloProperties.TITLE.getPropertyName(), "Jeff Kunkle", "", "test", null, null);
 
-        visalloApi.getEdgeApi().create(susanFengVertex.getId(), jeffKunkleVertex.getId(), TestOntology.EDGE_LABEL_WORKS_FOR, "");
+        visalloApi.getEdgeApi().create(susanFengVertex.getId(), jeffKunkleVertex.getId(), TestOntology.EDGE_LABEL_WORKS_FOR, "", null);
         visalloApi.getEdgeApi().setProperty(susanFengVertex.getId(), "key1", "http://visallo.org/test#firstName", "edge property value", "", "");
         ClientApiVertexEdges edges = visalloApi.getVertexApi().getEdges(susanFengVertex.getId(), null, null, null);
         assertEquals(1, edges.getRelationships().size());

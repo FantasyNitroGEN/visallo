@@ -158,7 +158,7 @@ public class WorkspaceSandboxingIntegrationTest extends TestBase {
     private void addEdge() throws ApiException {
         VisalloApi visalloApi = login(USERNAME_TEST_USER_1);
 
-        ClientApiEdgeWithVertexData edge = visalloApi.getEdgeApi().create(artifactVertexId, susanFengVertexId, "http://visallo.org/test#artifactHasEntity", "");
+        ClientApiEdgeWithVertexData edge = visalloApi.getEdgeApi().create(artifactVertexId, susanFengVertexId, "http://visallo.org/test#artifactHasEntity", "", null);
         visalloApi.getEdgeApi().setProperty(edge.getId(), "key1", "http://visallo.org/test#firstName", "edge property value", "", "");
 
         assertPublishAll(visalloApi, 2);

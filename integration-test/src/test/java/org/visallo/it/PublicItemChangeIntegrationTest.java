@@ -47,7 +47,7 @@ public class PublicItemChangeIntegrationTest extends TestBase {
 
         v2 = visalloApi.getVertexApi().create(TestOntology.CONCEPT_PERSON, "auth1", "justification");
 
-        e1 = visalloApi.getEdgeApi().create(v1.getId(), v2.getId(), TestOntology.EDGE_LABEL_WORKS_FOR, "auth1");
+        e1 = visalloApi.getEdgeApi().create(v1.getId(), v2.getId(), TestOntology.EDGE_LABEL_WORKS_FOR, "auth1", null);
 
         List<ClientApiWorkspaceDiff.Item> diffItems = visalloApi.getWorkspaceApi().getDiff().getDiffs();
         visalloApi.getWorkspaceApi().publishAll(diffItems);
