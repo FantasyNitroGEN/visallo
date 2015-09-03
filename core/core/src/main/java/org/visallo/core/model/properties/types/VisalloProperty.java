@@ -70,6 +70,14 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         return getFirst(element.getProperties(getPropertyName()), null);
     }
 
+    public TRaw getFirstPropertyValue(Element element) {
+        Property property = getFirstProperty(element);
+        if (property == null) {
+            return null;
+        }
+        return getPropertyValue(property);
+    }
+
     public Iterable<Property> getProperties(Element element) {
         return element.getProperties(getPropertyName());
     }
