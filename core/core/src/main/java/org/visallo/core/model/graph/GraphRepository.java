@@ -235,6 +235,7 @@ public class GraphRepository {
     }
 
     public Edge addEdge(
+            String edgeId,
             Vertex sourceVertex,
             Vertex destVertex,
             String predicateLabel,
@@ -248,7 +249,12 @@ public class GraphRepository {
         Date now = new Date();
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspaceId);
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
-        ElementBuilder<Edge> edgeBuilder = graph.prepareEdge(sourceVertex, destVertex, predicateLabel, visalloVisibility.getVisibility());
+        ElementBuilder<Edge> edgeBuilder;
+        if (edgeId == null) {
+            edgeBuilder = graph.prepareEdge(sourceVertex, destVertex, predicateLabel, visalloVisibility.getVisibility());
+        } else{
+            edgeBuilder = graph.prepareEdge(edgeId, sourceVertex, destVertex, predicateLabel, visalloVisibility.getVisibility());
+        }
         VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visalloVisibility.getVisibility());
         VisalloProperties.CONCEPT_TYPE.setProperty(edgeBuilder, OntologyRepository.TYPE_RELATIONSHIP, visalloVisibility.getVisibility());
         VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, now, visalloVisibility.getVisibility());
