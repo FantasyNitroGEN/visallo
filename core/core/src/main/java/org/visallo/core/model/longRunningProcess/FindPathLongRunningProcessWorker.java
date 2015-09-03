@@ -30,6 +30,7 @@ public class FindPathLongRunningProcessWorker extends LongRunningProcessWorker {
         FindPathLongRunningProcessQueueItem findPath = ClientApiConverter.toClientApi(longRunningProcessQueueItem.toString(), FindPathLongRunningProcessQueueItem.class);
 
         Authorizations authorizations = getAuthorizations(findPath.getAuthorizations());
+        String[] labels = findPath.getLabels();
         int hops = findPath.getHops();
 
         ClientApiVertexFindPathResponse results = new ClientApiVertexFindPathResponse();
@@ -39,7 +40,7 @@ public class FindPathLongRunningProcessWorker extends LongRunningProcessWorker {
                 longRunningProcessRepository.reportProgress(longRunningProcessQueueItem, progressPercent, step.formatMessage(edgeIndex, vertexCount));
             }
         };
-        Iterable<Path> paths = graph.findPaths(findPath.getSourceVertexId(), findPath.getDestVertexId(), hops, progressCallback, authorizations);
+        Iterable<Path> paths = graph.findPaths(findPath.getSourceVertexId(), findPath.getDestVertexId(), labels, hops, progressCallback, authorizations);
         for (Path path : paths) {
             List<String> clientApiVertexPath = new ArrayList<>();
             for (String s : path) {

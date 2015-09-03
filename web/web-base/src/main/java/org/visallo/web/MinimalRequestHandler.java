@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.v5analytics.webster.App;
-import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.RequestResponseHandler;
 import org.vertexium.FetchHint;
 import org.visallo.core.config.Configuration;
