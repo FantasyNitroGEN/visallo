@@ -68,7 +68,7 @@ public abstract class VertextTestBase extends TestBase {
     }
 
     protected void createEdge(String sourceVertexId, String destVertexId, String edgeLabel) throws ApiException {
-        setupEdgeApi.create(sourceVertexId, destVertexId, edgeLabel, "", "ok", "{}");
+        setupEdgeApi.create(sourceVertexId, destVertexId, edgeLabel, "", "ok", "{}", null);
     }
 
     protected void assertVertexIds(List<String> expectedVertexIds, List<ClientApiVertex> actualVertices) {
