@@ -84,13 +84,17 @@ public class Cli extends CommandLineTool {
         return ServiceLoaderUtil.loadClasses(CommandLineTool.class, getConfiguration());
     }
 
-    private Class<? extends CommandLineTool> findToolClass(List<Class<? extends CommandLineTool>> commandLineToolClasses, String classname) throws ClassNotFoundException {
+    private Class<? extends CommandLineTool> findToolClass(List<Class<? extends CommandLineTool>> commandLineToolClasses, String classname) {
         for (Class<? extends CommandLineTool> commandLineToolClass : commandLineToolClasses) {
             if (commandLineToolClass.getName().equalsIgnoreCase(classname) || commandLineToolClass.getSimpleName().equalsIgnoreCase(classname)) {
                 return commandLineToolClass;
             }
         }
-        printHelp(commandLineToolClasses, "Could not find command line tool: " + classname);
-        return null;
+        try {
+            return Class.forName(classname).asSubclass(CommandLineTool.class);
+        } catch (ClassNotFoundException e) {
+            printHelp(commandLineToolClasses, "Could not find command line tool: " + classname);
+            return null;
+        }
     }
 }
