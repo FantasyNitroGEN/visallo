@@ -30,7 +30,7 @@
         export HADOOP_HOME=/c/hadoop-2.6.0
         export PATH=$JAVA_HOME/bin:/c/apache-maven-3.3.3/bin:$HADOOP_HOME/bin:/c/Python27:/c/MinGW/bin:$PATH
 
-        alias grunt="$HOME/visallo-private/web/war/node/node $HOME/visallo-private/web/war/src/main/webapp/node_modules/grunt-cli/bin/grunt"
+        alias grunt="$HOME/visallo/web/war/node/node $HOME/visallo/web/war/src/main/webapp/node_modules/grunt-cli/bin/grunt"
 
 1. Exit the Git Bash window and open a new one. The above variables should be set. Verify by typing `env`.
 
