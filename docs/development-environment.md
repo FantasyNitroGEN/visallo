@@ -8,4 +8,4 @@ The `bin/setup-osx-env.sh` script automates much of the development environment 
 
 ## Windows
 
-## Linux
+See [Windows Development](windows-development.md)
