@@ -194,6 +194,7 @@ public class GraphPropertyRunner extends WorkerBase {
     }
 
     private void safeExecuteHandleEntireElement(Element element, GraphPropertyMessage message) throws Exception {
+        safeExecuteHandlePropertyOnElement(element, null, message);
         for (Property property : element.getProperties()) {
             safeExecuteHandlePropertyOnElement(element, property, message);
         }
@@ -231,7 +232,6 @@ public class GraphPropertyRunner extends WorkerBase {
 
     private boolean doesExist(Element element){
         return element != null;
-
     }
 
     private void safeExecuteHandlePropertyOnElements(GraphPropertyMessage message) throws Exception {
