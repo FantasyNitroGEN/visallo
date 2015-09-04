@@ -68,8 +68,8 @@ public class GraphPropertyRunnerTest {
         inflateVertexAndAddToGraph(VERTEX_ID, 11L);
         runTests(countingGPWStub, message);
 
-        assertThat(countingGPWStub.isExecutingCount.get(), is(11L));
-        assertThat(countingGPWStub.isHandledCount.get(), is(11L));
+        assertThat(countingGPWStub.isExecutingCount.get(), is(12L));
+        assertThat(countingGPWStub.isHandledCount.get(), is(12L));
     }
 
     @Test
@@ -80,8 +80,8 @@ public class GraphPropertyRunnerTest {
         inflateEdgeAndAddToGraph(EDGE_ID, 1L);
         runTests(countingGPWStub, message);
 
-        assertThat(countingGPWStub.isExecutingCount.get(), is(1L));
-        assertThat(countingGPWStub.isHandledCount.get(), is(1L));
+        assertThat(countingGPWStub.isExecutingCount.get(), is(2L));
+        assertThat(countingGPWStub.isHandledCount.get(), is(2L));
     }
 
     @Test
@@ -92,8 +92,8 @@ public class GraphPropertyRunnerTest {
         inflateEdgeAndAddToGraph(EDGE_ID, 14L);
         runTests(countingGPWStub, message);
 
-        assertThat(countingGPWStub.isExecutingCount.get(), is(14L));
-        assertThat(countingGPWStub.isHandledCount.get(), is(14L));
+        assertThat(countingGPWStub.isExecutingCount.get(), is(15L));
+        assertThat(countingGPWStub.isHandledCount.get(), is(15L));
     }
 
     private void runTests(GraphPropertyWorker worker, JSONObject message) throws Exception {
