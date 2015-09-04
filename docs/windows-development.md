@@ -12,7 +12,7 @@
 
 1. Install Python v2.7.x: [https://www.python.org/downloads/](https://www.python.org/downloads/). Install it to the default location, e.g. `C:\Python27`.
 
-1. Install JDK 8: [http://www.oracle.com/technetwork/java/javase/downloads/index.html](http://www.oracle.com/technetwork/java/javase/downloads/index.htmll). Change the JDK installation directory to a path with no spaces, e.g. `C:\jdk1.8.0_60`. Use the default installation directory for the subsequent JRE installation.
+1. Install JDK 8: [http://www.oracle.com/technetwork/java/javase/downloads/index.html](http://www.oracle.com/technetwork/java/javase/downloads/index.html). Change the JDK installation directory to a path with no spaces, e.g. `C:\jdk1.8.0_60`. Use the default installation directory for the subsequent JRE installation.
 
 1. Install Maven 3.3.x: [http://maven.apache.org/guides/getting-started/windows-prerequisites.html] (http://maven.apache.org/guides/getting-started/windows-prerequisites.html). Download the binary ZIP archive and extract it to a path with no spaces, e.g. `C:\apache-maven-3.3.3`.
 
