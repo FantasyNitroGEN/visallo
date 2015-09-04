@@ -6,17 +6,17 @@
 
 1. Install Google Chrome browser: https://www.google.com/chrome/
 
-1. Install Docker Toolbox: [http://docs.docker.com/windows/started/](http://docs.docker.com/windows/started/). Select the full installation and let the installer add the executables to the system PATH variable.
+1. Install Docker Toolbox: [http://docs.docker.com/windows/started/](http://docs.docker.com/windows/started/). Select the full installation and let the installer add the executables to the system PATH variable. Please follow Step 1 and Step 2 of the window docker toolbox instructions.
 
 1. Install MinGW: [http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe/download](http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe/download). Use the default `C:\MinGW` directory. When the MinGW Installation Manager appears, select "All Packages" and install only the the `mingw32-make` bin package.
 
-1. Install Python v2.7.x: [https://www.python.org/downloads/](https://www.python.org/downloads/). Install it to the default location, e.g. `C:\Python27`.
+1. Install Python v2.7.x: [https://www.python.org/downloads/](https://www.python.org/downloads/). Install it to `C:\Python27`.
 
-1. Install JDK 8: [http://www.oracle.com/technetwork/java/javase/downloads/index.html](http://www.oracle.com/technetwork/java/javase/downloads/index.html). Change the JDK installation directory to a path with no spaces, e.g. `C:\jdk1.8.0_60`. Use the default installation directory for the subsequent JRE installation.
+1. Install JDK 8: [http://www.oracle.com/technetwork/java/javase/downloads/index.html](http://www.oracle.com/technetwork/java/javase/downloads/index.html). Change the JDK installation directory to `C:\jdk1.8.0_60`. Use the default installation directory for the subsequent JRE installation.
 
-1. Install Maven 3.3.x: [http://maven.apache.org/guides/getting-started/windows-prerequisites.html] (http://maven.apache.org/guides/getting-started/windows-prerequisites.html). Download the binary ZIP archive and extract it to a path with no spaces, e.g. `C:\apache-maven-3.3.3`.
+1. Install Maven 3.3.x: [http://maven.apache.org/guides/getting-started/windows-prerequisites.html] (http://maven.apache.org/guides/getting-started/windows-prerequisites.html). Download the binary ZIP archive and extract it to `C:\apache-maven-3.3.3`.
 
-1. Install Hadoop 2.6.0 from the pre-compiled binaries: [http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip](http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip). Extract the archive to a path with no spaces, e.g. `C:\hadoop-2.6.0`
+1. Install Hadoop 2.6.0 from the pre-compiled binaries: [http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip](http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip). Extract the archive to `C:\hadoop-2.6.0`
 
 1. Open up a Git Bash window. (This was installed by Docker Toolbox.) Your current directory will be your Windows home directory. The remaining commands in these instructions should be run from within this window.
 
@@ -55,7 +55,7 @@
    *Before doing this, it would be a good idea to read about the [`core.autocrlf`](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration) configuration setting, and determine what will work best for your environment.*
 
         cd $HOME
-        git clone git@github.com:v5analytics/visallo.git
+        git clone https://github.com/v5analytics/visallo.git
 
 # Building Visallo
 
