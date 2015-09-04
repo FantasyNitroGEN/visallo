@@ -194,28 +194,34 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
 
     private void updateQueryWithFilter(Query graphQuery, JSONObject obj) throws ParseException {
         String predicateString = obj.optString("predicate");
-        JSONArray values = obj.getJSONArray("values");
-        PropertyType propertyDataType = PropertyType.convert(obj.optString("propertyDataType"));
         String propertyName = obj.getString("propertyName");
-        Object value0 = jsonValueToObject(values, propertyDataType, 0);
-
-        if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "~".equals(predicateString) || "".equals(predicateString))) {
-            graphQuery.has(propertyName, TextPredicate.CONTAINS, value0);
-        } else if (PropertyType.BOOLEAN.equals(propertyDataType) && (predicateString == null || "".equals(predicateString))) {
-            graphQuery.has(propertyName, Compare.EQUAL, value0);
-        } else if ("<".equals(predicateString)) {
-            graphQuery.has(propertyName, Compare.LESS_THAN, value0);
-        } else if (">".equals(predicateString)) {
-            graphQuery.has(propertyName, Compare.GREATER_THAN, value0);
-        } else if ("range".equals(predicateString)) {
-            graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, value0);
-            graphQuery.has(propertyName, Compare.LESS_THAN_EQUAL, jsonValueToObject(values, propertyDataType, 1));
-        } else if ("=".equals(predicateString) || "equal".equals(predicateString)) {
-            graphQuery.has(propertyName, Compare.EQUAL, value0);
-        } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
-            graphQuery.has(propertyName, GeoCompare.WITHIN, value0);
+        if ("has".equals(predicateString)) {
+            graphQuery.has(propertyName);
+        } else if ("hasNot".equals(predicateString)) {
+            graphQuery.hasNot(propertyName);
         } else {
-            throw new VisalloException("unhandled query\n" + obj.toString(2));
+            PropertyType propertyDataType = PropertyType.convert(obj.optString("propertyDataType"));
+            JSONArray values = obj.getJSONArray("values");
+            Object value0 = jsonValueToObject(values, propertyDataType, 0);
+
+            if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "~".equals(predicateString) || "".equals(predicateString))) {
+                graphQuery.has(propertyName, TextPredicate.CONTAINS, value0);
+            } else if (PropertyType.BOOLEAN.equals(propertyDataType) && (predicateString == null || "".equals(predicateString))) {
+                graphQuery.has(propertyName, Compare.EQUAL, value0);
+            } else if ("<".equals(predicateString)) {
+                graphQuery.has(propertyName, Compare.LESS_THAN, value0);
+            } else if (">".equals(predicateString)) {
+                graphQuery.has(propertyName, Compare.GREATER_THAN, value0);
+            } else if ("range".equals(predicateString)) {
+                graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, value0);
+                graphQuery.has(propertyName, Compare.LESS_THAN_EQUAL, jsonValueToObject(values, propertyDataType, 1));
+            } else if ("=".equals(predicateString) || "equal".equals(predicateString)) {
+                graphQuery.has(propertyName, Compare.EQUAL, value0);
+            } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
+                graphQuery.has(propertyName, GeoCompare.WITHIN, value0);
+            } else {
+                throw new VisalloException("unhandled query\n" + obj.toString(2));
+            }
         }
     }
 
