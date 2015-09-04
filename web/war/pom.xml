@@ -82,7 +82,7 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>0.0.23</version>
+                <version>0.0.25</version>
                 <configuration>
                     <workingDirectory>src/main/webapp</workingDirectory>
                 </configuration>
@@ -106,6 +106,25 @@
                         <phase>generate-resources</phase>
                         <configuration>
                             <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${plugin.maven.exec.version}</version>
+                <executions>
+                    <!-- Install all webapp dependencies -->
+                    <execution>
+                        <id>WebApp Dependencies and Minification</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <commandlineArgs>${basedir}/src/main/webapp/grunt.sh ${grunt.target}</commandlineArgs>
                         </configuration>
                     </execution>
                 </executions>
@@ -173,38 +192,6 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>build-grunt-unix</id>
-            <activation>
-                <os>
-                    <family>!windows</family>
-                </os>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>${plugin.maven.exec.version}</version>
-                        <executions>
-                            <!-- Install all webapp dependencies -->
-                            <execution>
-                                <id>WebApp Dependencies and Minification</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>${basedir}/src/main/scripts/grunt.sh</executable>
-                                    <commandlineArgs>${grunt.target}</commandlineArgs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
         <profile>
             <id>jetty-run</id>
             <build>
