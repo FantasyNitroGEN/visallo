@@ -11,6 +11,7 @@ import org.visallo.core.util.ProcessUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -53,6 +54,9 @@ public class FileConfigurationLoader extends ConfigurationLoader {
 
     public static List<File> getVisalloDirectoriesFromLeastPriority(String subDirectory) {
         List<File> results = new ArrayList<>();
+
+        String currentDir = Paths.get(".").toAbsolutePath().normalize().toString();
+        addVisalloSubDirectory(results, currentDir, subDirectory);
 
         if (ProcessUtil.isWindows()) {
             addVisalloSubDirectory(results, DEFAULT_WINDOWS_LOCATION, subDirectory);
