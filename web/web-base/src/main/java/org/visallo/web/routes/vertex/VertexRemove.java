@@ -13,7 +13,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.SandboxStatus;
-import org.visallo.web.routes.workspace.WorkspaceHelper;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

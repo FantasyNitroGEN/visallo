@@ -1,9 +1,7 @@
-package org.visallo.web.routes.workspace;
+package org.visallo.core.model.workspace;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -11,7 +9,6 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;

@@ -20,7 +20,7 @@ import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
-import org.visallo.web.routes.workspace.WorkspaceHelper;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

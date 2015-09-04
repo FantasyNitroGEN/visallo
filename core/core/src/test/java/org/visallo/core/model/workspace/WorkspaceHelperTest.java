@@ -1,4 +1,4 @@
-package org.visallo.web.routes.workspace;
+package org.visallo.core.model.workspace;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +15,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.web.clientapi.model.VisibilityJson;
 

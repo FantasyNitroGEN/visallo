@@ -11,6 +11,7 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
 import org.visallo.core.user.User;
