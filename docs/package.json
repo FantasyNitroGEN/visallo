@@ -1,0 +1,6 @@
+{
+  "name": "visallo-docs",
+  "dependencies": {
+    "gitbook-cli": "^0.3.6"
+  }
+}

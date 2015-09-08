@@ -7,7 +7,7 @@ build: install
 	@./node_modules/.bin/gitbook build
 
 install:
-	@npm install gitbook-cli
+	@npm install
 	@./node_modules/.bin/gitbook install .
 
 clean:
