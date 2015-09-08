@@ -7,10 +7,11 @@ import com.google.inject.Module;
 import org.visallo.core.bootstrap.lib.LibLoader;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.ServiceLoaderUtil;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class InjectHelper {
     }
 
     public static <T> T getInstance(Class<? extends T> clazz) {
+        LOGGER.debug("getInstance of class: " + clazz.getSimpleName());
         if (injector == null) {
             throw new VisalloException("Could not find injector");
         }
@@ -51,11 +53,12 @@ public class InjectHelper {
     }
 
     public static <T> Collection<T> getInjectedServices(Class<T> clazz, Configuration configuration) {
-        List<T> workers = toList(ServiceLoaderUtil.load(clazz, configuration));
-        for (T worker : workers) {
-            inject(worker);
+        List<Class<? extends T>> serviceClasses = toList(ServiceLoaderUtil.loadClasses(clazz, configuration));
+        Collection<T> results = new ArrayList<>();
+        for (Class<? extends T> serviceClass : serviceClasses) {
+            results.add(getInstance(serviceClass));
         }
-        return workers;
+        return results;
     }
 
     public static void shutdown() {
