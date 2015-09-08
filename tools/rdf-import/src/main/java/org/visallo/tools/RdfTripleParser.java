@@ -1,4 +1,4 @@
-package org.visallo.rdfTripleImport;
+package org.visallo.tools;
 
 import org.visallo.core.exception.VisalloException;
 

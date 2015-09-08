@@ -25,6 +25,12 @@
             <artifactId>visallo-gpw-rdf</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-inmemory</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
