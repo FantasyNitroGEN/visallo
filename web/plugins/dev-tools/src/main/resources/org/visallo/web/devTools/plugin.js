@@ -7,6 +7,13 @@ require([
     var adminExtensionPoint = 'org.visallo.admin';
 
     registry.registerExtension(adminExtensionPoint, {
+        componentPath: 'org/visallo/web/devTools/route-runner-plugin',
+        section: i18n('admin.dev.section'),
+        name: i18n('admin.route.runner.name'),
+        subtitle: i18n('admin.route.runner.subtitle')
+    });
+
+    registry.registerExtension(adminExtensionPoint, {
         componentPath: 'org/visallo/web/devTools/element-editor-plugin',
         section: i18n('admin.element.section'),
         name: i18n('admin.element.editor.name'),
