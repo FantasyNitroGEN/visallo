@@ -127,8 +127,8 @@ public class FileImport {
             LOGGER.warn("vertex already exists with hash %s", hash);
             if (queueDuplicates) {
                 LOGGER.debug("pushing %s on to %s queue", vertex.getId(), workQueueNames.getGraphPropertyQueueName());
-                this.workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
                 if (workspace != null) {
+                    this.workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
                     this.workQueueRepository.pushGraphPropertyQueue(
                             vertex,
                             MULTI_VALUE_KEY,
