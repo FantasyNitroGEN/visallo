@@ -42,8 +42,8 @@ _message 'Configuring Docker virtual machine'
 vm_ip=$(docker-machine ssh visallo-dev ip addr show eth1 | awk '/inet / {print $2}' | awk -F / '{print $1}')
 docker-machine ssh visallo-dev "sudo sed -i -e 's/visallo-dev localhost/localhost/' -e '2i ${vm_ip} visallo-dev' /etc/hosts"
 
-_message 'Building the Visallo development Docker image'
-$(cd ${DIR}/../docker; pwd)/build-dev.sh
+_message 'Pulling the latest Visallo development Docker image'
+docker pull visallo/dev
 
 _message 'You can now start your Visallo development environment Docker container by running the following commands:'
 _message '1) eval $(docker-machine env visallo-dev)'

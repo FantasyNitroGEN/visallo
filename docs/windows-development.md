@@ -91,11 +91,11 @@ It is a known issue that some unit tests fail on Windows. The following are expe
 
         cd /c/Users/[username]/visallo
 
-1. (Inside of the docker-machine VM) Build the docker image:
+1. (Inside of the docker-machine VM) Pull the docker image:
 
    *This only needs to be run the first time, or when a the docker configuration changes (files in the `docker` directory).*
 
-        docker/build-dev.sh
+        docker pull visallo/dev
 
 1. (Inside of the docker-machine VM) Run the docker image (this will start ZooKeeper, HDFS, YARN, ElasticSearch, and RabbitMQ):
 
