@@ -52,11 +52,13 @@ public class GraphPropertyRunner extends WorkerBase {
     @Override
     public void process(Object messageId, JSONObject json) throws Exception {
         GraphPropertyMessage message = new GraphPropertyMessage(json);
-        if (!message.isValid()) {
+        if(!message.isValid()){
             throw new VisalloException(String.format("Cannot process unknown type of gpw message %s", json.toString()));
-        } else if (message.canHandleByProperty()) {
+        }
+        else if(message.canHandleByProperty()){
             safeExecuteHandlePropertyOnElement(message);
-        } else {
+        }
+        else{
             safeExecuteHandleEntireElement(message);
         }
     }
@@ -192,7 +194,7 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    private Vertex getVertexFromMessage(GraphPropertyMessage message) {
+    private Vertex getVertexFromMessage(GraphPropertyMessage message){
         String vertexId = message.getVertexId();
         Vertex vertex = graph.getVertex(vertexId, this.authorizations);
         ensureExists(vertex, "vertex", vertexId);
@@ -384,7 +386,7 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    public UserRepository getUserRepository() {
+    public UserRepository getUserRepository(){
         return this.userRepository;
     }
 
@@ -413,19 +415,20 @@ public class GraphPropertyRunner extends WorkerBase {
         this.visibilityTranslator = visibilityTranslator;
     }
 
-    public void setAuthorizations(Authorizations authorizations) {
+
+    public void setAuthorizations(Authorizations authorizations){
         this.authorizations = authorizations;
     }
 
-    public long getLastProcessedTime() {
+    public long getLastProcessedTime(){
         return this.lastProcessedPropertyTime.get();
     }
 
-    public void setUser(User user) {
+    public void setUser(User user){
         this.user = user;
     }
 
-    public User getUser() {
+    public User getUser(){
         return this.user;
     }
 

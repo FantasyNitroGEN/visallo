@@ -1,5 +1,9 @@
 package org.visallo.core.model.workQueue;
 
+
+import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
+import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
+import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
