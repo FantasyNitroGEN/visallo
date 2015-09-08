@@ -15,16 +15,16 @@ import java.io.OutputStream;
 import java.util.Set;
 
 public interface OntologyRepository {
-    public static final String ENTITY_CONCEPT_IRI = "http://www.w3.org/2002/07/owl#Thing";
-    public static final String ROOT_CONCEPT_IRI = "http://visallo.org#root";
-    public static final String TYPE_RELATIONSHIP = "relationship";
-    public static final String TYPE_CONCEPT = "concept";
-    public static final String TYPE_PROPERTY = "property";
-    public static final String VISIBILITY_STRING = "ontology";
-    public static final String CONFIG_INTENT_CONCEPT_PREFIX = "ontology.intent.concept.";
-    public static final String CONFIG_INTENT_RELATIONSHIP_PREFIX = "ontology.intent.relationship.";
-    public static final String CONFIG_INTENT_PROPERTY_PREFIX = "ontology.intent.property.";
-    public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
+    String ENTITY_CONCEPT_IRI = "http://www.w3.org/2002/07/owl#Thing";
+    String ROOT_CONCEPT_IRI = "http://visallo.org#root";
+    String TYPE_RELATIONSHIP = "relationship";
+    String TYPE_CONCEPT = "concept";
+    String TYPE_PROPERTY = "property";
+    String VISIBILITY_STRING = "ontology";
+    String CONFIG_INTENT_CONCEPT_PREFIX = "ontology.intent.concept.";
+    String CONFIG_INTENT_RELATIONSHIP_PREFIX = "ontology.intent.relationship.";
+    String CONFIG_INTENT_PROPERTY_PREFIX = "ontology.intent.property.";
+    VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
 
     void clearCache();
 
@@ -53,6 +53,8 @@ public interface OntologyRepository {
     Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir);
 
     Relationship getOrCreateRelationshipType(Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, String displayName, String[] intents, boolean userVisible);
+
+    OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition);
 
     OWLOntologyManager createOwlOntologyManager(OWLOntologyLoaderConfiguration config, IRI excludeDocumentIRI) throws Exception;
 

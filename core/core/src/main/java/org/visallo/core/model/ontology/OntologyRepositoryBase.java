@@ -521,6 +521,33 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
+    @Override
+    public OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition) {
+        OntologyProperty property = getPropertyByIRI(ontologyPropertyDefinition.getPropertyIri());
+        if (property != null) {
+            return property;
+        }
+        return addPropertyTo(
+                ontologyPropertyDefinition.getConcepts(),
+                ontologyPropertyDefinition.getPropertyIri(),
+                ontologyPropertyDefinition.getDisplayName(),
+                ontologyPropertyDefinition.getDataType(),
+                ontologyPropertyDefinition.getPossibleValues(),
+                ontologyPropertyDefinition.getTextIndexHints(),
+                ontologyPropertyDefinition.isUserVisible(),
+                ontologyPropertyDefinition.isSearchable(),
+                ontologyPropertyDefinition.isAddable(),
+                ontologyPropertyDefinition.isSortable(),
+                ontologyPropertyDefinition.getDisplayType(),
+                ontologyPropertyDefinition.getPropertyGroup(),
+                ontologyPropertyDefinition.getBoost(),
+                ontologyPropertyDefinition.getValidationFormula(),
+                ontologyPropertyDefinition.getDisplayFormula(),
+                ontologyPropertyDefinition.getDependentPropertyIris(),
+                ontologyPropertyDefinition.getIntents()
+        );
+    }
+
     protected abstract OntologyProperty addPropertyTo(
             List<Concept> concepts,
             String propertyIri,
