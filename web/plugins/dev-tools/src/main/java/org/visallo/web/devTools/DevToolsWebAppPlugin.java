@@ -24,6 +24,7 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
 
         app.registerJavaScript("/org/visallo/web/devTools/plugin.js");
 
+        app.registerJavaScript("/org/visallo/web/devTools/route-runner-plugin.js", false);
         app.registerJavaScript("/org/visallo/web/devTools/element-editor-plugin.js", false);
         app.registerJavaScript("/org/visallo/web/devTools/requeue-plugin.js", false);
         app.registerJavaScript("/org/visallo/web/devTools/ontology-upload-plugin.js", false);
