@@ -11,6 +11,8 @@ import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.email.EmailRepository;
+import org.visallo.core.email.SmtpEmailRepository;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
@@ -160,7 +162,9 @@ public class VisalloBootstrap extends AbstractModule {
         bind(GeocoderRepository.class)
                 .toProvider(VisalloBootstrap.<GeocoderRepository>getConfigurableProvider(configuration, Configuration.GEOCODER_REPOSITORY, DefaultGeocoderRepository.class))
                 .in(Scopes.SINGLETON);
-
+        bind(EmailRepository.class)
+                .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY, SmtpEmailRepository.class))
+                .in(Scopes.SINGLETON);
         injectProviders();
     }
 
