@@ -1,11 +1,11 @@
 package org.visallo.vertexium.model.ontology;
 
+import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.util.JSONUtil;
-import org.vertexium.Authorizations;
 
 import java.util.ArrayList;
 import java.util.HashMap;

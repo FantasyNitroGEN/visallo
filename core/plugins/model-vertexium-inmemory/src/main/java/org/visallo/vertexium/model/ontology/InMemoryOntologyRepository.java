@@ -2,12 +2,6 @@ package org.visallo.vertexium.model.ontology;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.*;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.PropertyType;
 import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
@@ -17,6 +11,12 @@ import org.vertexium.Graph;
 import org.vertexium.TextIndexHint;
 import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.util.ConvertingIterable;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.ontology.*;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.PropertyType;
 
 import java.io.*;
 import java.util.*;
@@ -129,6 +129,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             boolean userVisible,
             boolean searchable,
             boolean addable,
+            boolean sortable,
             String displayType,
             String propertyGroup,
             Double boost,
@@ -147,6 +148,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 userVisible,
                 searchable,
                 addable,
+                sortable,
                 displayType,
                 propertyGroup,
                 boost,
@@ -180,6 +182,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             boolean userVisible,
             boolean searchable,
             boolean addable,
+            boolean sortable,
             String displayType,
             String propertyGroup,
             Double boost,
@@ -191,13 +194,14 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         InMemoryOntologyProperty property = (InMemoryOntologyProperty) getPropertyByIRI(propertyIri);
         if (property == null) {
             searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
-            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost);
+            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
 
             property = new InMemoryOntologyProperty();
             property.setDataType(dataType);
             property.setUserVisible(userVisible);
             property.setSearchable(searchable);
             property.setAddable(addable);
+            property.setSortable(sortable);
             property.setTitle(propertyIri);
             property.setBoost(boost);
             property.setDisplayType(displayType);
@@ -205,8 +209,10 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             property.setValidationFormula(validationFormula);
             property.setDisplayFormula(displayFormula);
             property.setDependentPropertyIris(dependentPropertyIris);
-            for (String intent : intents) {
-                property.addIntent(intent);
+            if (intents != null) {
+                for (String intent : intents) {
+                    property.addIntent(intent);
+                }
             }
             if (displayName != null && !displayName.trim().isEmpty()) {
                 property.setDisplayName(displayName);

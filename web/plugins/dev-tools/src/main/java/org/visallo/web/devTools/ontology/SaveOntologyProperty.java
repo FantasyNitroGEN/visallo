@@ -37,6 +37,7 @@ public class SaveOntologyProperty extends BaseRequestHandler {
         HashSet<String> dependentPropertyIris = new HashSet<>(Arrays.asList(getRequiredParameterArray(request, "dependentPropertyIris[]")));
         Boolean searchable = getOptionalParameterBoolean(request, "searchable", true);
         Boolean addable = getOptionalParameterBoolean(request, "addable", true);
+        Boolean sortable = getOptionalParameterBoolean(request, "sortable", false);
         Boolean userVisible = getOptionalParameterBoolean(request, "userVisible", true);
         String displayFormula = getRequiredParameter(request, "displayFormula");
         String validationFormula = getRequiredParameter(request, "validationFormula");
@@ -64,6 +65,7 @@ public class SaveOntologyProperty extends BaseRequestHandler {
         property.setProperty(OntologyProperties.DISPLAY_TYPE.getPropertyName(), displayType, authorizations);
         property.setProperty(OntologyProperties.DATA_TYPE.getPropertyName(), dataType, authorizations);
         property.setProperty(OntologyProperties.SEARCHABLE.getPropertyName(), searchable, authorizations);
+        property.setProperty(OntologyProperties.SORTABLE.getPropertyName(), sortable, authorizations);
         property.setProperty(OntologyProperties.ADDABLE.getPropertyName(), addable, authorizations);
         property.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), userVisible, authorizations);
         if (possibleValues != null && possibleValues.trim().length() > 0) {

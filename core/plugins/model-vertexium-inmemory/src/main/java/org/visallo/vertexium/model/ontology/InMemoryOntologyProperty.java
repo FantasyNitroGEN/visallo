@@ -1,11 +1,11 @@
 package org.visallo.vertexium.model.ontology;
 
 import com.google.common.collect.ImmutableList;
+import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.PropertyType;
-import org.vertexium.Authorizations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +15,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private String title;
     private boolean userVisible;
     private boolean searchable;
+    private boolean sortable;
     private boolean addable;
     private String displayName;
     private String propertyGroup;
@@ -24,7 +25,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private Double boost;
     private String validationFormula;
     private String displayFormula;
-    private ImmutableList<String> dependentPropertyIris = ImmutableList.<String>of();
+    private ImmutableList<String> dependentPropertyIris = ImmutableList.of();
     private List<String> intents = new ArrayList<>();
 
     @Override
@@ -73,6 +74,11 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     }
 
     @Override
+    public boolean getSortable() {
+        return sortable;
+    }
+
+    @Override
     public String getValidationFormula() {
         return validationFormula;
     }
@@ -101,6 +107,10 @@ public class InMemoryOntologyProperty extends OntologyProperty {
 
     public void setAddable(boolean addable) {
         this.addable = addable;
+    }
+
+    public void setSortable(boolean sortable) {
+        this.sortable = sortable;
     }
 
     public void setTitle(String title) {
@@ -162,6 +172,12 @@ public class InMemoryOntologyProperty extends OntologyProperty {
                 this.searchable = (Boolean) value;
             } else {
                 this.searchable = Boolean.parseBoolean((String) value);
+            }
+        } else if (OntologyProperties.SORTABLE.getPropertyName().equals(name)) {
+            if (value instanceof Boolean) {
+                this.sortable = (Boolean) value;
+            } else {
+                this.sortable = Boolean.parseBoolean((String) value);
             }
         } else if (OntologyProperties.ADDABLE.getPropertyName().equals(name)) {
             if (value instanceof Boolean) {

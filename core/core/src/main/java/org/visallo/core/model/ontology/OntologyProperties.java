@@ -19,6 +19,7 @@ public class OntologyProperties {
     public static final JsonArraySingleValueVisalloProperty ADD_RELATED_CONCEPT_WHITE_LIST = new JsonArraySingleValueVisalloProperty("http://visallo.org#addRelatedConceptWhiteList");
     public static final StringVisalloProperty INTENT = new StringVisalloProperty("http://visallo.org#intent");
     public static final BooleanSingleValueVisalloProperty SEARCHABLE = new BooleanSingleValueVisalloProperty("http://visallo.org#searchable");
+    public static final BooleanSingleValueVisalloProperty SORTABLE = new BooleanSingleValueVisalloProperty("http://visallo.org#sortable");
     public static final BooleanSingleValueVisalloProperty ADDABLE = new BooleanSingleValueVisalloProperty("http://visallo.org#addable");
     public static final StringSingleValueVisalloProperty DISPLAY_FORMULA = new StringSingleValueVisalloProperty("http://visallo.org#displayFormula");
     public static final StringSingleValueVisalloProperty PROPERTY_GROUP = new StringSingleValueVisalloProperty("http://visallo.org#propertyGroup");
