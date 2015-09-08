@@ -39,6 +39,7 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
     private static final String VISALLO_TIME_ZONE_HEADER_NAME = "Visallo-TimeZone";
     private static final String TIME_ZONE_ATTRIBUTE_NAME = "timeZone";
     private static final String TIME_ZONE_PARAMETER_NAME = "timeZone";
+    public static final String WORKSPACE_ID_ATTRIBUTE_NAME = "workspaceId";
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
     private final ObjectMapper objectMapper = ObjectMapperFactory.getInstance();
@@ -54,8 +55,8 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
     @Override
     public abstract void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception;
 
-    protected String getBaseUrl(HttpServletRequest request) {
-        String configuredBaseUrl = getConfiguration().get(Configuration.BASE_URL, null);
+    public static String getBaseUrl(HttpServletRequest request, Configuration configuration) {
+        String configuredBaseUrl = configuration.get(Configuration.BASE_URL, null);
         if (configuredBaseUrl != null && configuredBaseUrl.trim().length() > 0) {
             return configuredBaseUrl;
         }
@@ -74,6 +75,10 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
         return sb.toString();
     }
 
+    public String getBaseUrl(HttpServletRequest request) {
+        return getBaseUrl(request, getConfiguration());
+    }
+
     protected String getActiveWorkspaceId(final HttpServletRequest request) {
         String workspaceId = getWorkspaceIdOrDefault(request);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
@@ -83,11 +88,11 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
     }
 
     protected String getWorkspaceIdOrDefault(final HttpServletRequest request) {
-        String workspaceId = (String) request.getAttribute("workspaceId");
+        String workspaceId = (String) request.getAttribute(WORKSPACE_ID_ATTRIBUTE_NAME);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
             workspaceId = request.getHeader(VISALLO_WORKSPACE_ID_HEADER_NAME);
             if (workspaceId == null || workspaceId.trim().length() == 0) {
-                workspaceId = getOptionalParameter(request, "workspaceId");
+                workspaceId = getOptionalParameter(request, WORKSPACE_ID_ATTRIBUTE_NAME);
                 if (workspaceId == null || workspaceId.trim().length() == 0) {
                     return null;
                 }
@@ -190,8 +195,13 @@ public abstract class BaseRequestHandler extends MinimalRequestHandler {
     }
 
     protected void respondWithSuccessJson(HttpServletResponse response) {
+        respondWithSuccessJson(response, null);
+    }
+
+    protected void respondWithSuccessJson(HttpServletResponse response, String id) {
         JSONObject result = new JSONObject();
         result.put("success", true);
+        result.put("id", id);
         respondWithJson(response, result);
     }
 

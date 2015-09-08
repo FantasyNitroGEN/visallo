@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class VisalloDateTime implements Comparable<VisalloDateTime> {
-    private static final String DATE_TIME_NO_TIME_ZONE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String DATE_TIME_NO_TIME_ZONE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     private static final TimeZone GMT = TimeZone.getTimeZone("GMT");
     private final VisalloTime time;
     private final VisalloDate date;

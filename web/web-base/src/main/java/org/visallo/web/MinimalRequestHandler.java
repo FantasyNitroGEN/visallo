@@ -78,17 +78,13 @@ public abstract class MinimalRequestHandler implements RequestResponseHandler {
     protected String[] getOptionalParameterArray(HttpServletRequest request, String parameterName) {
         Preconditions.checkNotNull(request, "The provided request was invalid");
 
-        return request.getParameterValues(parameterName);
+        return getParameterValues(request, parameterName, true);
     }
 
     protected String[] getRequiredParameterArray(HttpServletRequest request, String parameterName) {
         Preconditions.checkNotNull(request, "The provided request was invalid");
 
-        String[] value = request.getParameterValues(parameterName);
-        if (value == null) {
-            throw new VisalloException(String.format("Parameter: '%s' is required in the request", parameterName));
-        }
-        return value;
+        return getParameterValues(request, parameterName, false);
     }
 
     protected Long getOptionalParameterLong(final HttpServletRequest request, final String parameterName, long defaultValue) {
@@ -211,7 +207,14 @@ public abstract class MinimalRequestHandler implements RequestResponseHandler {
     }
 
     protected String[] getParameterValues(final HttpServletRequest request, final String parameterName, final boolean optional) {
-        final String[] paramValues = request.getParameterValues(parameterName);
+        String[] paramValues = request.getParameterValues(parameterName);
+
+        if (paramValues == null) {
+            Object value = request.getAttribute(parameterName);
+            if (value instanceof String[]) {
+                paramValues = (String[]) value;
+            }
+        }
 
         if (paramValues == null) {
             if (!optional) {
@@ -224,16 +227,19 @@ public abstract class MinimalRequestHandler implements RequestResponseHandler {
     }
 
     private String getParameter(final HttpServletRequest request, final String parameterName, final boolean optional) {
-        final String paramValue = request.getParameter(parameterName);
-
+        String paramValue = request.getParameter(parameterName);
         if (paramValue == null) {
-            if (!optional) {
-                throw new VisalloException(String.format("Parameter: '%s' is required in the request", parameterName));
+            Object paramValueObject = request.getAttribute(parameterName);
+            if (paramValueObject != null) {
+                paramValue = paramValueObject.toString();
             }
-
-            return null;
+            if (paramValue == null) {
+                if (!optional) {
+                    throw new VisalloException(String.format("Parameter: '%s' is required in the request", parameterName));
+                }
+                return null;
+            }
         }
-
         return paramValue;
     }
 

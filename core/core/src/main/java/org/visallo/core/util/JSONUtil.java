@@ -2,12 +2,12 @@ package org.visallo.core.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.exception.VisalloJsonParseException;
-import org.visallo.web.clientapi.util.ObjectMapperFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloJsonParseException;
+import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -107,5 +107,12 @@ public class JSONUtil {
             json.put(e.getKey(), e.getValue());
         }
         return json;
+    }
+
+    public static Long getOptionalLong(JSONObject json, String fieldName) {
+        if (!json.has(fieldName) || json.isNull(fieldName)) {
+            return null;
+        }
+        return json.getLong(fieldName);
     }
 }

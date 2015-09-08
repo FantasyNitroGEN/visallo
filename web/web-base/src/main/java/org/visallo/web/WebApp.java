@@ -5,6 +5,7 @@ import com.v5analytics.webster.App;
 import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.handlers.AppendableStaticResourceHandler;
 import com.v5analytics.webster.handlers.StaticResourceHandler;
+import org.json.JSONObject;
 import org.lesscss.LessCompiler;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.VisalloResourceBundleManager;
@@ -13,6 +14,7 @@ import org.visallo.core.model.notification.SystemNotificationSeverity;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.parameterProviders.*;
+import org.visallo.web.parameterValueConverters.JSONObjectParameterValueConverter;
 import org.visallo.web.routes.notification.SystemNotificationSeverityValueConverter;
 
 import javax.servlet.ServletContext;
@@ -34,13 +36,13 @@ public class WebApp extends App {
     private final Injector injector;
     private final boolean devMode;
     private final AppendableStaticResourceHandler pluginsJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
-    private final List<String> pluginsJsResources = new ArrayList<String>();
+    private final List<String> pluginsJsResources = new ArrayList<>();
     private final AppendableStaticResourceHandler pluginsWebWorkerJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
     private final AppendableStaticResourceHandler pluginsBeforeAuthJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
-    private final List<String> pluginsWebWorkerJsResources = new ArrayList<String>();
-    private final List<String> pluginsBeforeAuthJsResources = new ArrayList<String>();
+    private final List<String> pluginsWebWorkerJsResources = new ArrayList<>();
+    private final List<String> pluginsBeforeAuthJsResources = new ArrayList<>();
     private final StyleAppendableHandler pluginsCssResourceHandler = new StyleAppendableHandler();
-    private final List<String> pluginsCssResources = new ArrayList<String>();
+    private final List<String> pluginsCssResources = new ArrayList<>();
     private VisalloResourceBundleManager visalloResourceBundleManager = new VisalloResourceBundleManager();
     private LessCompiler lessCompiler;
     private ServletContext servletContext;
@@ -51,13 +53,17 @@ public class WebApp extends App {
         this.servletContext = servletContext;
 
         App.registeredParameterProviderFactory(injector.getInstance(ActiveWorkspaceIdParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(BaseUrlParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(AuthorizationsParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(VisalloResponseParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(UserParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(FormulaEvaluatorUserContextParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(ResourceBundleParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(WebAppParameterProviderFactory.class));
 
         App.registerParameterValueConverter(SystemNotificationSeverity.class, new SystemNotificationSeverityValueConverter());
+
+        App.registerParameterValueConverter(JSONObject.class, new JSONObjectParameterValueConverter());
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = "true".equals(config.get(Configuration.DEV_MODE, "false"));
