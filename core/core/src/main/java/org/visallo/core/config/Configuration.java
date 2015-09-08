@@ -57,6 +57,7 @@ public class Configuration {
     public static final boolean WEB_APP_EMBEDDED_EXTERNAL_RESOURCE_WORKERS_ENABLED_DEFAULT = true;
     public static final String HTTP_REPOSITORY = "repository.http";
     public static final String GEOCODER_REPOSITORY = "repository.geocoder";
+    public static final String EMAIL_REPOSITORY = "repository.email";
     public static final String ONTOLOGY_REPOSITORY_OWL = "repository.ontology.owl";
     public static final String GRAPH_PROVIDER = "graph";
     public static final String VISIBILITY_TRANSLATOR = "security.visibilityTranslator";
