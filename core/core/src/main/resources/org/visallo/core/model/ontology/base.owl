@@ -183,6 +183,17 @@
     
 
 
+    <!-- http://visallo.org#sortable -->
+
+    <owl:AnnotationProperty rdf:about="http://visallo.org#sortable">
+        <userVisible>false</userVisible>
+        <textIndexHints>NONE</textIndexHints>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:AnnotationProperty>
+    
+
+
     <!-- http://visallo.org#subtitleFormula -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#subtitleFormula">

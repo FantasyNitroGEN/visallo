@@ -182,6 +182,7 @@ public class ClientApiOntology implements ClientApiObject {
         private boolean userVisible;
         private boolean searchable;
         private boolean addable;
+        private boolean sortable;
         private PropertyType dataType;
         private String displayType;
         private String propertyGroup;
@@ -229,6 +230,14 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setAddable(boolean addable) {
             this.addable = addable;
+        }
+
+        public boolean isSortable() {
+            return sortable;
+        }
+
+        public void setSortable(boolean sortable) {
+            this.sortable = sortable;
         }
 
         public PropertyType getDataType() {

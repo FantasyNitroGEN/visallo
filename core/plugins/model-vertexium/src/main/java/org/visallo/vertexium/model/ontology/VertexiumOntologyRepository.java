@@ -9,17 +9,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.*;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.util.JSONUtil;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.TimingCallable;
-import org.visallo.web.clientapi.model.ClientApiOntology;
-import org.visallo.web.clientapi.model.PropertyType;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -27,6 +16,17 @@ import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.ontology.*;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.TimingCallable;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.PropertyType;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -429,6 +429,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             boolean userVisible,
             boolean searchable,
             boolean addable,
+            boolean sortable,
             String displayType,
             String propertyGroup,
             Double boost,
@@ -447,6 +448,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 userVisible,
                 searchable,
                 addable,
+                sortable,
                 displayType,
                 propertyGroup,
                 boost,
@@ -545,6 +547,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             boolean userVisible,
             boolean searchable,
             boolean addable,
+            boolean sortable,
             String displayType,
             String propertyGroup,
             Double boost,
@@ -556,7 +559,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         OntologyProperty typeProperty = getPropertyByIRI(propertyIri);
         if (typeProperty == null) {
             searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
-            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost);
+            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
 
             String propertyVertexId = ID_PREFIX_PROPERTY + propertyIri;
             VertexBuilder builder = graph.prepareVertex(propertyVertexId, VISIBILITY.getVisibility());
@@ -565,6 +568,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             OntologyProperties.DATA_TYPE.setProperty(builder, dataType.toString(), VISIBILITY.getVisibility());
             OntologyProperties.USER_VISIBLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
             OntologyProperties.SEARCHABLE.setProperty(builder, searchable, VISIBILITY.getVisibility());
+            OntologyProperties.SORTABLE.setProperty(builder, sortable, VISIBILITY.getVisibility());
             OntologyProperties.ADDABLE.setProperty(builder, addable, VISIBILITY.getVisibility());
             if (boost != null) {
                 OntologyProperties.BOOST.setProperty(builder, boost, VISIBILITY.getVisibility());
@@ -599,8 +603,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 }
                 // TODO: if the list of dependent property iris gets smaller they will not get cleaned up.
             }
-            for (String intent : intents) {
-                OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
+            if (intents != null) {
+                for (String intent : intents) {
+                    OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
+                }
             }
             Vertex propertyVertex = builder.save(getAuthorizations());
             typeProperty = createOntologyProperty(propertyVertex, dependentPropertyIris);

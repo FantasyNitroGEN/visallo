@@ -22,9 +22,11 @@ import org.visallo.core.trace.Trace;
 import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.clientapi.model.ClientApiSearchResponse;
 import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
 import org.visallo.web.clientapi.model.PropertyType;
@@ -67,6 +69,7 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         QueryAndData queryAndData = getQuery(request, authorizations);
         applyFiltersToQuery(queryAndData, filterJson);
         applyConceptTypeFilterToQuery(queryAndData, request);
+        applySortToQuery(queryAndData, request);
 
         EnumSet<FetchHint> fetchHints = getOptionalParameterFetchHints(request, "fetchHints", ClientApiConverter.SEARCH_FETCH_HINTS);
         final int offset = getOptionalParameterInt(request, "offset", 0);
@@ -85,8 +88,6 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         List<ClientApiVertex> verticesList = convertVerticesToClientApi(queryAndData, searchResults, scores, workspaceId, authorizations);
         long retrievalEndTime = System.nanoTime();
 
-        sortVertices(verticesList);
-
         long totalEndTime = System.nanoTime();
 
         ClientApiVertexSearchResponse results = new ClientApiVertexSearchResponse();
@@ -95,12 +96,7 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         results.setRetrievalTime(retrievalEndTime - retrievalStartTime);
         results.setTotalTime(totalEndTime - totalStartTime);
 
-        if (searchResults instanceof IterableWithTotalHits) {
-            results.setTotalHits(((IterableWithTotalHits) searchResults).getTotalHits());
-        }
-        if (searchResults instanceof IterableWithSearchTime) {
-            results.setSearchTime(((IterableWithSearchTime) searchResults).getSearchTimeNanoSeconds());
-        }
+        addSearchResultsDataToResults(results, queryAndData, searchResults);
 
         long endTime = System.nanoTime();
         LOGGER.info("Search found %d vertices in %dms", verticesList.size(), (endTime - startTime) / 1000 / 1000);
@@ -110,6 +106,34 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         }
 
         respondWithClientApiObject(response, results);
+    }
+
+    private void addSearchResultsDataToResults(ClientApiVertexSearchResponse results, QueryAndData queryAndData, Iterable<Vertex> searchResults) {
+        if (searchResults instanceof IterableWithTotalHits) {
+            results.setTotalHits(((IterableWithTotalHits) searchResults).getTotalHits());
+        }
+        if (searchResults instanceof IterableWithSearchTime) {
+            results.setSearchTime(((IterableWithSearchTime) searchResults).getSearchTimeNanoSeconds());
+        }
+    }
+
+    protected void applySortToQuery(QueryAndData queryAndData, HttpServletRequest request) {
+        String[] sorts = getOptionalParameterAsStringArray(request, "sort[]");
+        if (sorts == null) {
+            return;
+        }
+        for (String sort : sorts) {
+            String propertyName = sort;
+            SortDirection direction = SortDirection.ASCENDING;
+            if (propertyName.toUpperCase().endsWith(":ASCENDING")) {
+                direction = SortDirection.ASCENDING;
+                propertyName = propertyName.substring(0, propertyName.length() - ":ASCENDING".length());
+            } else if (propertyName.toUpperCase().endsWith(":DESCENDING")) {
+                direction = SortDirection.DESCENDING;
+                propertyName = propertyName.substring(0, propertyName.length() - ":DESCENDING".length());
+            }
+            queryAndData.getQuery().sort(propertyName, direction);
+        }
     }
 
     protected List<ClientApiVertex> convertVerticesToClientApi(
@@ -139,17 +163,6 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
 
     protected Integer getCommonCount(QueryAndData queryAndData, Vertex vertex) {
         return null;
-    }
-
-    protected void sortVertices(List<ClientApiVertex> verticesList) {
-        Collections.sort(verticesList, new Comparator<ClientApiVertex>() {
-            @Override
-            public int compare(ClientApiVertex o1, ClientApiVertex o2) {
-                double score1 = o1.getScore(0.0);
-                double score2 = o2.getScore(0.0);
-                return -Double.compare(score1, score2);
-            }
-        });
     }
 
     protected abstract QueryAndData getQuery(HttpServletRequest request, Authorizations authorizations);

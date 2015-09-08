@@ -60,6 +60,7 @@ define([
                     dataType: this.$node.find('.dataType').val(),
                     displayType: this.$node.find('.displayType').val(),
                     addable: this.$node.find('.addable').is(':checked'),
+                    sortable: this.$node.find('.sortable').is(':checked'),
                     searchable: this.$node.find('.searchable').is(':checked'),
                     userVisible: this.$node.find('.userVisible').is(':checked'),
                     displayFormula: this.$node.find('.displayFormula').val(),
@@ -88,6 +89,7 @@ define([
                 data.property.userVisible = data.property.userVisible !== false;
                 data.property.searchable = data.property.searchable !== false;
                 data.property.addable = data.property.addable !== false;
+                data.property.sortable = data.property.sortable !== false;
 
                 this.$node.find('*').not('.property-container *').val('').removeAttr('checked');
                 _.each(data.property, function(value, key) {

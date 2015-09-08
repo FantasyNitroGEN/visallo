@@ -378,6 +378,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 continue;
             }
 
+            if (annotationIri.equals(OntologyProperties.SORTABLE.getPropertyName())) {
+                boolean sortable = Boolean.parseBoolean(valueString);
+                result.setProperty(OntologyProperties.SORTABLE.getPropertyName(), sortable, authorizations);
+                continue;
+            }
+
             if (annotationIri.equals(OntologyProperties.ADDABLE.getPropertyName())) {
                 boolean searchable = Boolean.parseBoolean(valueString);
                 result.setProperty(OntologyProperties.ADDABLE.getPropertyName(), searchable, authorizations);
@@ -464,6 +470,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean userVisible = getUserVisible(o, dataTypeProperty);
             boolean searchable = getSearchable(o, dataTypeProperty);
             boolean addable = getAddable(o, dataTypeProperty);
+            boolean sortable = getSortable(o, dataTypeProperty);
             String displayType = getDisplayType(o, dataTypeProperty);
             String propertyGroup = getPropertyGroup(o, dataTypeProperty);
             String validationFormula = getValidationFormula(o, dataTypeProperty);
@@ -500,6 +507,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     userVisible,
                     searchable,
                     addable,
+                    sortable,
                     displayType,
                     propertyGroup,
                     boost,
@@ -523,13 +531,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean userVisible,
             boolean searchable,
             boolean addable,
+            boolean sortable,
             String displayType,
             String propertyGroup,
             Double boost,
             String validationFormula,
             String displayFormula,
             ImmutableList<String> dependentPropertyIris,
-            String[] intents);
+            String[] intents
+    );
 
     protected void importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty) {
         String iri = objectProperty.getIRI().toString();
@@ -754,6 +764,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected boolean getAddable(OWLOntology o, OWLEntity owlEntity) {
         String val = getAnnotationValueByUri(o, owlEntity, "http://visallo.org#addable");
+        return val == null || Boolean.parseBoolean(val);
+    }
+
+    protected boolean getSortable(OWLOntology o, OWLEntity owlEntity) {
+        String val = getAnnotationValueByUri(o, owlEntity, "http://visallo.org#sortable");
         return val == null || Boolean.parseBoolean(val);
     }
 
@@ -1176,8 +1191,8 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return configuration;
     }
 
-    protected void definePropertyOnGraph(Graph graph, String propertyIri, PropertyType dataType, Collection<TextIndexHint> textIndexHints, Double boost) {
-        DefinePropertyBuilder definePropertyBuilder = graph.defineProperty(propertyIri);
+    protected void definePropertyOnGraph(Graph graph, String propertyIri, PropertyType dataType, Collection<TextIndexHint> textIndexHints, Double boost, boolean sortable) {
+        DefinePropertyBuilder definePropertyBuilder = graph.defineProperty(propertyIri).sortable(sortable);
         definePropertyBuilder.dataType(PropertyType.getTypeClass(dataType));
         if (dataType == PropertyType.STRING) {
             definePropertyBuilder.textIndexHint(textIndexHints);

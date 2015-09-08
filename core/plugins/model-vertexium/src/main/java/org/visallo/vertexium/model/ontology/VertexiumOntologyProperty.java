@@ -74,6 +74,14 @@ public class VertexiumOntologyProperty extends OntologyProperty {
         return b;
     }
 
+    public boolean getSortable() {
+        Boolean b = OntologyProperties.SORTABLE.getPropertyValue(vertex);
+        if (b == null) {
+            return true;
+        }
+        return b;
+    }
+
     @Override
     public boolean getAddable() {
         Boolean b = OntologyProperties.ADDABLE.getPropertyValue(vertex);
