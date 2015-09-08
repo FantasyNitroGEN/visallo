@@ -70,6 +70,7 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         applyFiltersToQuery(queryAndData, filterJson);
         applyConceptTypeFilterToQuery(queryAndData, request);
         applySortToQuery(queryAndData, request);
+        applyAggregationsToQuery(queryAndData, request);
 
         EnumSet<FetchHint> fetchHints = getOptionalParameterFetchHints(request, "fetchHints", ClientApiConverter.SEARCH_FETCH_HINTS);
         final int offset = getOptionalParameterInt(request, "offset", 0);
@@ -114,6 +115,99 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         }
         if (searchResults instanceof IterableWithSearchTime) {
             results.setSearchTime(((IterableWithSearchTime) searchResults).getSearchTimeNanoSeconds());
+        }
+        if (searchResults instanceof IterableWithTermsResults) {
+            for (String termsAggregateName : queryAndData.getTermAggregationNames()) {
+                TermsResult agg = ((IterableWithTermsResults) searchResults).getTermsResults(termsAggregateName);
+                results.getAggregates().put(termsAggregateName, toClientApiTermsAggregateResult(agg));
+            }
+        }
+        if (searchResults instanceof IterableWithGeohashResults) {
+            for (String geoHashAggregateName : queryAndData.getGeohashAggregationNames()) {
+                GeohashResult agg = ((IterableWithGeohashResults) searchResults).getGeohashResults(geoHashAggregateName);
+                results.getAggregates().put(geoHashAggregateName, toClientApiGeohashResult(agg));
+            }
+        }
+        if (searchResults instanceof IterableWithHistogramResults) {
+            for (String histogramAggregateName : queryAndData.getHistogramAggregationNames()) {
+                HistogramResult agg = ((IterableWithHistogramResults) searchResults).getHistogramResults(histogramAggregateName);
+                results.getAggregates().put(histogramAggregateName, toClientApiHistogramResult(agg));
+            }
+        }
+    }
+
+    private ClientApiSearchResponse.AggregateResult toClientApiHistogramResult(HistogramResult agg) {
+        ClientApiSearchResponse.HistographAggregateResult result = new ClientApiSearchResponse.HistographAggregateResult();
+        for (HistogramBucket histogramBucket : agg.getBuckets()) {
+            result.getBuckets().put(histogramBucket.getKey().toString(), histogramBucket.getCount());
+        }
+        return result;
+    }
+
+    private ClientApiSearchResponse.AggregateResult toClientApiGeohashResult(GeohashResult agg) {
+        ClientApiSearchResponse.GeohashAggregateResult result = new ClientApiSearchResponse.GeohashAggregateResult();
+        result.setMaxCount(agg.getMaxCount());
+        for (GeohashBucket geohashBucket : agg.getBuckets()) {
+            ClientApiSearchResponse.GeohashAggregateResult.Bucket b = new ClientApiSearchResponse.GeohashAggregateResult.Bucket(
+                    ClientApiConverter.toClientApiGeoRect(geohashBucket.getGeoCell()),
+                    ClientApiConverter.toClientApiGeoPoint(geohashBucket.getGeoPoint()),
+                    geohashBucket.getCount()
+            );
+            result.getBuckets().put(geohashBucket.getKey(), b);
+        }
+        return result;
+    }
+
+    private ClientApiSearchResponse.TermsAggregateResult toClientApiTermsAggregateResult(TermsResult agg) {
+        ClientApiSearchResponse.TermsAggregateResult result = new ClientApiSearchResponse.TermsAggregateResult();
+        for (TermsBucket termsBucket : agg.getBuckets()) {
+            result.getBuckets().put(termsBucket.getKey().toString(), termsBucket.getCount());
+        }
+        return result;
+    }
+
+    private void applyAggregationsToQuery(QueryAndData queryAndData, HttpServletRequest request) {
+        Query query = queryAndData.getQuery();
+        String[] aggregates = getOptionalParameterAsStringArray(request, "aggregations[]");
+        if (aggregates == null) {
+            return;
+        }
+        for (String aggregate : aggregates) {
+            JSONObject aggregateJson = new JSONObject(aggregate);
+            String field;
+            String aggregationName = aggregateJson.getString("name");
+            String type = aggregateJson.getString("type");
+            switch (type) {
+                case "term":
+                    if (!(query instanceof GraphQueryWithTermsAggregation)) {
+                        throw new VisalloException("Query does not support: " + GraphQueryWithTermsAggregation.class.getName());
+                    }
+                    field = aggregateJson.getString("field");
+                    ((GraphQueryWithTermsAggregation) query).addTermsAggregation(aggregationName, field);
+                    queryAndData.addTermAggregationName(aggregationName);
+                    break;
+                case "geohash":
+                    if (!(query instanceof GraphQueryWithGeohashAggregation)) {
+                        throw new VisalloException("Query does not support: " + GraphQueryWithGeohashAggregation.class.getName());
+                    }
+                    field = aggregateJson.getString("field");
+                    int precision = aggregateJson.getInt("precision");
+                    ((GraphQueryWithGeohashAggregation) query).addGeohashAggregation(aggregationName, field, precision);
+                    queryAndData.addGeohashAggregationName(aggregationName);
+                    break;
+                case "histogram":
+                    if (!(query instanceof GraphQueryWithHistogramAggregation)) {
+                        throw new VisalloException("Query does not support: " + GraphQueryWithHistogramAggregation.class.getName());
+                    }
+                    field = aggregateJson.getString("field");
+                    String interval = aggregateJson.getString("interval");
+                    Long minDocumentCount = JSONUtil.getOptionalLong(aggregateJson, "minDocumentCount");
+                    ((GraphQueryWithHistogramAggregation) query).addHistogramAggregation(aggregationName, field, interval, minDocumentCount);
+                    queryAndData.addHistogramAggregationName(aggregationName);
+                    break;
+                default:
+                    throw new VisalloException("Invalid aggregation type: " + type);
+            }
         }
     }
 
@@ -248,6 +342,9 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
 
     protected static class QueryAndData {
         private final Query query;
+        private List<String> termAggregationNames = new ArrayList<>();
+        private List<String> geohashAggregationNames = new ArrayList<>();
+        private List<String> histogramAggregationNames = new ArrayList<>();
 
         public QueryAndData(Query query) {
             this.query = query;
@@ -255,6 +352,30 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
 
         public Query getQuery() {
             return query;
+        }
+
+        public void addTermAggregationName(String aggregationName) {
+            this.termAggregationNames.add(aggregationName);
+        }
+
+        public List<String> getTermAggregationNames() {
+            return termAggregationNames;
+        }
+
+        public List<String> getGeohashAggregationNames() {
+            return geohashAggregationNames;
+        }
+
+        public List<String> getHistogramAggregationNames() {
+            return histogramAggregationNames;
+        }
+
+        public void addGeohashAggregationName(String aggregationName) {
+            this.geohashAggregationNames.add(aggregationName);
+        }
+
+        public void addHistogramAggregationName(String aggregationName) {
+            this.histogramAggregationNames.add(aggregationName);
         }
     }
 }
