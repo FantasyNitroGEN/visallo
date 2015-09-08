@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 @AtmosphereHandlerService(
-        path = "/messaging",
+        path = Messaging.PATH,
         broadcasterCache = UUIDBroadcasterCache.class,
         interceptors = {
                 AtmosphereResourceLifecycleInterceptor.class,
@@ -42,6 +42,8 @@ import java.util.Map;
                 JavaScriptProtocol.class
         })
 public class Messaging implements AtmosphereHandler { //extends AbstractReflectorAtmosphereHandler {
+    public static final String PATH = "/messaging";
+
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Messaging.class);
 
     private UserRepository userRepository;

@@ -156,7 +156,7 @@ public class ApplicationBootstrap implements ServletContextListener {
     private void addAtmosphereServlet(ServletContext context, Configuration config) {
         ServletRegistration.Dynamic servlet = context.addServlet(ATMOSPHERE_SERVLET_NAME, AtmosphereServlet.class);
         context.addListener(SessionSupport.class);
-        servlet.addMapping("/messaging/*");
+        servlet.addMapping(Messaging.PATH + "/*");
         servlet.setAsyncSupported(true);
         servlet.setLoadOnStartup(0);
         servlet.setInitParameter(AtmosphereHandler.class.getName(), Messaging.class.getName());
@@ -187,17 +187,9 @@ public class ApplicationBootstrap implements ServletContextListener {
     }
 
     private void addGzipFilter(ServletContext context) {
-        final String GZIP_FILTER_CLASS_NAME = "org.mortbay.servlet.GzipFilter";
-        Class<? extends Filter> filterClass;
-        try {
-            //noinspection unchecked
-            filterClass = (Class<? extends Filter>) Class.forName(GZIP_FILTER_CLASS_NAME);
-        } catch (ClassNotFoundException e) {
-            LOGGER.warn("Could not find " + GZIP_FILTER_CLASS_NAME + " not using GZIP compression.", e);
-            return;
-        }
-        FilterRegistration.Dynamic filter = context.addFilter(GZIP_FILTER_NAME, filterClass);
+        FilterRegistration.Dynamic filter = context.addFilter(GZIP_FILTER_NAME, ApplicationGzipFilter.class);
         filter.setInitParameter("mimeTypes", "application/json,text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml");
+        filter.setAsyncSupported(true);
         String[] mappings = new String[]{"/*"};
         for (String mapping : mappings) {
             filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, mapping);
