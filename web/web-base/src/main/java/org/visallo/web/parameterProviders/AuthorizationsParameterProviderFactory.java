@@ -5,6 +5,7 @@ import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
 import org.vertexium.Authorizations;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -21,9 +22,10 @@ public class AuthorizationsParameterProviderFactory extends ParameterProviderFac
     @Inject
     public AuthorizationsParameterProviderFactory(
             final WorkspaceRepository workspaceRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            Configuration configuration
     ) {
-        parameterProvider = new VisalloBaseParameterProvider<Authorizations>(userRepository) {
+        parameterProvider = new VisalloBaseParameterProvider<Authorizations>(userRepository, configuration) {
             @Override
             public Authorizations getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 String workspaceId = getWorkspaceIdOrDefault(request);

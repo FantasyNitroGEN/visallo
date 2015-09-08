@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.WebApp;
 
@@ -17,8 +18,8 @@ public class WebAppParameterProviderFactory extends ParameterProviderFactory<Web
     private ParameterProvider<WebApp> parameterProvider;
 
     @Inject
-    public WebAppParameterProviderFactory(UserRepository userRepository) {
-        parameterProvider = new VisalloBaseParameterProvider<WebApp>(userRepository) {
+    public WebAppParameterProviderFactory(UserRepository userRepository, Configuration configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<WebApp>(userRepository, configuration) {
             @Override
             public WebApp getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 return getWebApp(request);

@@ -3,6 +3,7 @@ package org.visallo.web.parameterProviders;
 import com.google.common.base.Preconditions;
 import com.v5analytics.webster.App;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.ProxyUser;
@@ -13,16 +14,22 @@ import org.visallo.web.WebApp;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<T> {
     private static final String VISALLO_WORKSPACE_ID_HEADER_NAME = BaseRequestHandler.VISALLO_WORKSPACE_ID_HEADER_NAME;
     private static final String LOCALE_LANGUAGE_PARAMETER = "localeLanguage";
     private static final String LOCALE_COUNTRY_PARAMETER = "localeCountry";
     private static final String LOCALE_VARIANT_PARAMETER = "localeVariant";
+    private static final String VISALLO_TIME_ZONE_HEADER_NAME = "Visallo-TimeZone";
+    private static final String TIME_ZONE_ATTRIBUTE_NAME = "timeZone";
+    private static final String TIME_ZONE_PARAMETER_NAME = "timeZone";
     private final UserRepository userRepository;
+    private final Configuration configuration;
 
-    public VisalloBaseParameterProvider(UserRepository userRepository) {
+    public VisalloBaseParameterProvider(UserRepository userRepository, Configuration configuration) {
         this.userRepository = userRepository;
+        this.configuration = configuration;
     }
 
     protected String getWorkspaceIdOrDefault(final HttpServletRequest request) {
@@ -89,6 +96,20 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             return WebApp.getLocal(language, country, variant);
         }
         return request.getLocale();
+    }
+
+    protected String getTimeZone(final HttpServletRequest request) {
+        String timeZone = (String) request.getAttribute(TIME_ZONE_ATTRIBUTE_NAME);
+        if (timeZone == null || timeZone.trim().length() == 0) {
+            timeZone = request.getHeader(VISALLO_TIME_ZONE_HEADER_NAME);
+            if (timeZone == null || timeZone.trim().length() == 0) {
+                timeZone = getOptionalParameter(request, TIME_ZONE_PARAMETER_NAME);
+                if (timeZone == null || timeZone.trim().length() == 0) {
+                    timeZone = this.configuration.get(Configuration.DEFAULT_TIME_ZONE, TimeZone.getDefault().getDisplayName());
+                }
+            }
+        }
+        return timeZone;
     }
 
     public UserRepository getUserRepository() {
