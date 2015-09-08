@@ -1,4 +1,4 @@
-package org.visallo.rdfTripleImport;
+package org.visallo.tools;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

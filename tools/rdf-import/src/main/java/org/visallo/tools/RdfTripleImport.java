@@ -1,4 +1,4 @@
-package org.visallo.rdfTripleImport;
+package org.visallo.tools;
 
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
@@ -47,6 +47,18 @@ public class RdfTripleImport {
         this.defaultVisibility = defaultVisibility;
         this.timeZone = timeZone;
         this.authorizations = authorizations;
+    }
+
+    public void importRdf(File inputFile, Metadata metadata) throws IOException {
+        importRdf(new FileInputStream(inputFile), metadata);
+    }
+
+    private void importRdf(InputStream inputStream, Metadata metadata) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            importRdfLine(line, metadata);
+        }
     }
 
     public void importRdfLine(String line, Metadata metadata) {

@@ -12,6 +12,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.tools.RdfTripleImport;
 import org.visallo.vertexium.mapreduce.VisalloElementMapperBase;
 import org.visallo.vertexium.mapreduce.VisalloMRBase;
 import org.visallo.web.clientapi.model.VisibilityJson;
