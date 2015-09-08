@@ -14,7 +14,7 @@
 
 1. Install JDK 8: [http://www.oracle.com/technetwork/java/javase/downloads/index.html](http://www.oracle.com/technetwork/java/javase/downloads/index.html). Change the JDK installation directory to `C:\jdk1.8.0_60`. Use the default installation directory for the subsequent JRE installation.
 
-1. Install Maven 3.3.x: [http://maven.apache.org/guides/getting-started/windows-prerequisites.html] (http://maven.apache.org/guides/getting-started/windows-prerequisites.html). Download the binary ZIP archive and extract it to `C:\apache-maven-3.3.3`.
+1. Install Maven 3.3.x: [http://maven.apache.org/guides/getting-started/windows-prerequisites.html](http://maven.apache.org/guides/getting-started/windows-prerequisites.html). Download the binary ZIP archive and extract it to `C:\apache-maven-3.3.3`.
 
 1. Install Hadoop 2.6.0 from the pre-compiled binaries: [http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip](http://bits.v5analytics.com/static/hadoop-windows-x64-2.6.0.zip). Extract the archive to `C:\hadoop-2.6.0`
 
