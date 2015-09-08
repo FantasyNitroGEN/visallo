@@ -19,10 +19,7 @@ import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
-import org.visallo.web.clientapi.model.ClientApiUser;
-import org.visallo.web.clientapi.model.ClientApiUsers;
-import org.visallo.web.clientapi.model.Privilege;
-import org.visallo.web.clientapi.model.UserStatus;
+import org.visallo.web.clientapi.model.*;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;

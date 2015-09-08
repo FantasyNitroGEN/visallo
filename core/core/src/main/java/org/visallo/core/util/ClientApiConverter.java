@@ -1,5 +1,7 @@
 package org.visallo.core.util;
 
+import org.vertexium.type.GeoPoint;
+import org.vertexium.type.GeoRect;
 import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.ingest.video.VideoPropertyHelper;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -197,5 +199,16 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         }
         result.value = toClientApiValue(hpv.getValue());
         return result;
+    }
+
+    public static ClientApiGeoPoint toClientApiGeoPoint(GeoPoint geoPoint) {
+        return new ClientApiGeoPoint(geoPoint.getLatitude(), geoPoint.getLongitude());
+    }
+
+    public static ClientApiGeoRect toClientApiGeoRect(GeoRect rect) {
+        return new ClientApiGeoRect(
+                toClientApiGeoPoint(rect.getNorthWest()),
+                toClientApiGeoPoint(rect.getSouthEast())
+        );
     }
 }

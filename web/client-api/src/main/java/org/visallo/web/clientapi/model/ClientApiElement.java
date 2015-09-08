@@ -17,9 +17,37 @@ import java.util.List;
 })
 public abstract class ClientApiElement implements ClientApiObject {
     private String id;
-    private List<ClientApiProperty> properties = new ArrayList<ClientApiProperty>();
+    private List<ClientApiProperty> properties = new ArrayList<>();
     private SandboxStatus sandboxStatus;
     private String visibilitySource;
+    private Double score;
+    private Integer commonCount;
+
+    /**
+     * search score
+     */
+    public Double getScore() {
+        return score;
+    }
+
+    public void setScore(Double score) {
+        this.score = score;
+    }
+
+    public double getScore(double defaultValue) {
+        if (this.score == null) {
+            return defaultValue;
+        }
+        return this.score;
+    }
+
+    public Integer getCommonCount() {
+        return commonCount;
+    }
+
+    public void setCommonCount(Integer commonCount) {
+        this.commonCount = commonCount;
+    }
 
     public String getId() {
         return id;
