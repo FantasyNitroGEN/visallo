@@ -1,7 +1,8 @@
 package org.visallo.core.model.ontology;
 
-import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.json.JSONException;
+import org.vertexium.Authorizations;
+import org.visallo.web.clientapi.model.ClientApiOntology;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +35,8 @@ public abstract class Relationship {
     public abstract boolean getUserVisible();
 
     public abstract String[] getIntents();
+
+    public abstract void setProperty(String name, Object value, Authorizations authorizations);
 
     public ClientApiOntology.Relationship toClientApi() {
         try {
