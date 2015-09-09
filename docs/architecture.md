@@ -11,6 +11,18 @@ these layers, but is not shown in the diagram. There are numerous other librarie
 
 ![Visallo Software Stack](img/visallo-software-stack.png)
 
+## Security
+
+Visallo implements a security mechanism known as cell-level security. Every vertex, property, and relationship has its own security label stored in both Accumulo and Elasticsearch, which is used to determine whether a given user meets the security requirements to view the value. This enables data of various security levels to be stored within the same vertex or edge and users of varying degrees of access to query the same graph, while preserving data confidentiality.
+
+## External Integration
+
+Visallo provides a REST API to access and manipulate the graph while keeping your data secure. The REST API can be secured using a number of pluggable authentication and authorization providers. If your enterprise needs low-level access, Vertexium can also be used to integrate Visallo graph data into other applications and services.
+
+## Extensibility
+
+Visallo has many extension points, from the underlying data store to data processing algorithms to UI plugins. As data is added to the system these extension points are used to analyze and transform the data into usable intelligence. Visallo Enterprise relies on the open extension points provided by Visallo open source to enhance your experience in meaningful and actionable ways, giving you more insight into your data.
+
 ## Ingestion Pipeline
 
 The ingestion pipeline is primarily implemented using Apache YARN, although you can also ingest data using map reduce.
