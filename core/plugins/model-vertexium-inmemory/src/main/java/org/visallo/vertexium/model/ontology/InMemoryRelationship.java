@@ -1,7 +1,9 @@
 package org.visallo.vertexium.model.ontology;
 
-import org.visallo.core.model.ontology.Relationship;
+import org.vertexium.Authorizations;
 import org.vertexium.util.ConvertingIterable;
+import org.visallo.core.model.ontology.OntologyProperties;
+import org.visallo.core.model.ontology.Relationship;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +52,13 @@ public class InMemoryRelationship extends Relationship {
     @Override
     public String[] getIntents() {
         return this.intents.toArray(new String[this.intents.size()]);
+    }
+
+    @Override
+    public void setProperty(String name, Object value, Authorizations authorizations) {
+        if (OntologyProperties.DISPLAY_NAME.getPropertyName().equals(name)) {
+            this.displayName = (String) value;
+        }
     }
 
     public void addInverseOf(Relationship inverseOfRelationship) {

@@ -1,54 +1,53 @@
 package org.visallo.web.devTools.ontology;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.json.JSONArray;
 import org.mortbay.util.ajax.JSON;
 import org.vertexium.Authorizations;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.VisalloResponse;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class SaveOntologyProperty extends BaseRequestHandler {
+public class SaveOntologyProperty implements ParameterizedHandler {
     private OntologyRepository ontologyRepository;
 
     @Inject
-    public SaveOntologyProperty(UserRepository userRepository, WorkspaceRepository workspaceRepository, Configuration configuration, OntologyRepository ontologyRepository) {
-        super(userRepository, workspaceRepository, configuration);
+    public SaveOntologyProperty(OntologyRepository ontologyRepository) {
         this.ontologyRepository = ontologyRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain handlerChain) throws Exception {
-        String propertyIri = getRequiredParameter(request, "property");
-        String displayName = getRequiredParameter(request, "displayName");
-        String dataType = getRequiredParameter(request, "dataType");
-        String displayType = getRequiredParameter(request, "displayType");
-        HashSet<String> dependentPropertyIris = new HashSet<>(Arrays.asList(getRequiredParameterArray(request, "dependentPropertyIris[]")));
-        Boolean searchable = getOptionalParameterBoolean(request, "searchable", true);
-        Boolean addable = getOptionalParameterBoolean(request, "addable", true);
-        Boolean sortable = getOptionalParameterBoolean(request, "sortable", false);
-        Boolean userVisible = getOptionalParameterBoolean(request, "userVisible", true);
-        String displayFormula = getRequiredParameter(request, "displayFormula");
-        String validationFormula = getRequiredParameter(request, "validationFormula");
-        String possibleValues = getRequiredParameter(request, "possibleValues");
-
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
+    @Handle
+    public void handle(
+            @Required(name = "property") String propertyIri,
+            @Required(name = "displayName") String displayName,
+            @Required(name = "dataType") String dataType,
+            @Required(name = "displayType") String displayType,
+            @Required(name = "displayFormula") String displayFormula,
+            @Required(name = "validationFormula") String validationFormula,
+            @Required(name = "possibleValues") String possibleValues,
+            @Required(name = "dependentPropertyIris[]") String[] dependentPropertyIrisArg,
+            @Optional(name = "searchable", defaultValue = "true") boolean searchable,
+            @Optional(name = "addable", defaultValue = "true") boolean addable,
+            @Optional(name = "sortable", defaultValue = "true") boolean sortable,
+            @Optional(name = "userVisible", defaultValue = "true") boolean userVisible,
+            User user,
+            Authorizations authorizations,
+            VisalloResponse response
+    ) throws Exception {
+        HashSet<String> dependentPropertyIris = new HashSet<>(Arrays.asList(dependentPropertyIrisArg));
 
         OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyIri);
         if (property == null) {
-            respondWithNotFound(response, "property " + propertyIri + " not found");
+            response.respondWithNotFound("property " + propertyIri + " not found");
             return;
         }
 
@@ -78,6 +77,6 @@ public class SaveOntologyProperty extends BaseRequestHandler {
 
         ontologyRepository.clearCache();
 
-        respondWithHtml(response, "OK");
+        response.respondWithSuccessJson();
     }
 }

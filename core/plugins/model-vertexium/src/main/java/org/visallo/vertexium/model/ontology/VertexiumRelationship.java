@@ -1,6 +1,8 @@
 package org.visallo.vertexium.model.ontology;
 
+import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.OntologyProperties;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.vertexium.Vertex;
 import org.vertexium.util.IterableUtils;
@@ -20,6 +22,11 @@ public class VertexiumRelationship extends Relationship {
     @Override
     public String[] getIntents() {
         return IterableUtils.toArray(OntologyProperties.INTENT.getPropertyValues(vertex), String.class);
+    }
+
+    @Override
+    public void setProperty(String name, Object value, Authorizations authorizations) {
+        getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
     }
 
     public String getIRI() {

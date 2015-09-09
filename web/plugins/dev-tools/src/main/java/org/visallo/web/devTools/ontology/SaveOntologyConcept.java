@@ -1,52 +1,51 @@
 package org.visallo.web.devTools.ontology;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
+import org.json.JSONArray;
+import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
-import org.json.JSONArray;
-import org.vertexium.Authorizations;
+import org.visallo.web.VisalloResponse;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class SaveOntologyConcept extends BaseRequestHandler {
+public class SaveOntologyConcept implements ParameterizedHandler {
     private OntologyRepository ontologyRepository;
 
     @Inject
-    public SaveOntologyConcept(UserRepository userRepository, WorkspaceRepository workspaceRepository, Configuration configuration, OntologyRepository ontologyRepository) {
-        super(userRepository, workspaceRepository, configuration);
+    public SaveOntologyConcept(OntologyRepository ontologyRepository) {
         this.ontologyRepository = ontologyRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain handlerChain) throws Exception {
-        String conceptIRI = getRequiredParameter(request, "concept");
-        String displayName = getRequiredParameter(request, "displayName");
-        String color = getRequiredParameter(request, "color");
-        String displayType = getRequiredParameter(request, "displayType");
-        HashSet<String> addRelatedConceptWhiteList = new HashSet<String>(Arrays.asList(getRequiredParameterArray(request, "addRelatedConceptWhiteList[]")));
-        Boolean searchable = getOptionalParameterBoolean(request, "searchable", true);
-        Boolean addable = getOptionalParameterBoolean(request, "addable", true);
-        Boolean userVisible = getOptionalParameterBoolean(request, "userVisible", true);
-        String titleFormula = getRequiredParameter(request, "titleFormula");
-        String subtitleFormula = getRequiredParameter(request, "subtitleFormula");
-        String timeFormula = getRequiredParameter(request, "timeFormula");
-
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
+    @Handle
+    public void handle(
+            @Required(name = "concept") String conceptIRI,
+            @Required(name = "displayName") String displayName,
+            @Required(name = "color") String color,
+            @Required(name = "displayType") String displayType,
+            @Required(name = "titleFormula") String titleFormula,
+            @Required(name = "subtitleFormula") String subtitleFormula,
+            @Required(name = "timeFormula") String timeFormula,
+            @Required(name = "addRelatedConceptWhiteList[]") String[] addRelatedConceptWhiteListArg,
+            @Optional(name = "searchable", defaultValue = "true") boolean searchable,
+            @Optional(name = "addable", defaultValue = "true") boolean addable,
+            @Optional(name = "userVisible", defaultValue = "true") boolean userVisible,
+            User user,
+            Authorizations authorizations,
+            VisalloResponse response
+    ) throws Exception {
+        HashSet<String> addRelatedConceptWhiteList = new HashSet<>(Arrays.asList(addRelatedConceptWhiteListArg));
 
         Concept concept = ontologyRepository.getConceptByIRI(conceptIRI);
         if (concept == null) {
-            respondWithNotFound(response, "concept " + conceptIRI + " not found");
+            response.respondWithNotFound("concept " + conceptIRI + " not found");
             return;
         }
 
@@ -89,6 +88,6 @@ public class SaveOntologyConcept extends BaseRequestHandler {
 
         ontologyRepository.clearCache();
 
-        respondWithHtml(response, "OK");
+        response.respondWithSuccessJson();
     }
 }

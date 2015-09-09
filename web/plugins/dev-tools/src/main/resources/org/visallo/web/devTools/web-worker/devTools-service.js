@@ -8,6 +8,10 @@ define('data/web-worker/services/io-visallo-web-devTools', [
 
           ontologyEditProperty: function(options) {
               return ajax('POST->HTML', '/org/visallo/web/devTools/saveOntologyProperty', options);
+          },
+
+          ontologyEditRelationship: function(options) {
+            return ajax('POST->HTML', '/org/visallo/web/devTools/saveOntologyRelationship', options);
           }
 
     }

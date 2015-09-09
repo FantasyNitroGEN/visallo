@@ -8,6 +8,7 @@ import org.visallo.web.VisalloCsrfHandler;
 import org.visallo.web.WebApp;
 import org.visallo.web.WebAppPlugin;
 import org.visallo.web.devTools.ontology.SaveOntologyConcept;
+import org.visallo.web.devTools.ontology.SaveOntologyRelationship;
 import org.visallo.web.devTools.routes.*;
 import org.visallo.web.devTools.user.*;
 import org.visallo.web.privilegeFilters.AdminPrivilegeFilter;
@@ -30,6 +31,7 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
         app.registerJavaScript("/org/visallo/web/devTools/ontology-upload-plugin.js", false);
         app.registerJavaScript("/org/visallo/web/devTools/ontology-edit-concept-plugin.js", false);
         app.registerJavaScript("/org/visallo/web/devTools/ontology-edit-property-plugin.js", false);
+        app.registerJavaScript("/org/visallo/web/devTools/ontology-edit-relationship-plugin.js", false);
         app.registerJavaScript("/org/visallo/web/devTools/user-plugin.js", false);
 
         app.registerWebWorkerJavaScript("/org/visallo/web/devTools/web-worker/devTools-service.js");
@@ -39,6 +41,7 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
         app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-upload.hbs");
         app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-edit-concept.hbs");
         app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-edit-property.hbs");
+        app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/ontology-edit-relationship.hbs");
         app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/user.hbs");
         app.registerJavaScriptTemplate("/org/visallo/web/devTools/templates/user-details.hbs");
 
@@ -61,5 +64,6 @@ public class DevToolsWebAppPlugin implements WebAppPlugin {
 
         app.post("/org/visallo/web/devTools/saveOntologyConcept", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, SaveOntologyConcept.class);
         app.post("/org/visallo/web/devTools/saveOntologyProperty", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, SaveOntologyProperty.class);
+        app.post("/org/visallo/web/devTools/saveOntologyRelationship", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, SaveOntologyRelationship.class);
     }
 }

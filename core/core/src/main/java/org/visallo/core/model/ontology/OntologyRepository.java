@@ -36,6 +36,8 @@ public interface OntologyRepository {
 
     OntologyProperty getPropertyByIRI(String propertyIRI);
 
+    Relationship getRelationshipByIRI(String propertyIRI);
+
     boolean hasRelationshipByIRI(String relationshipIRI);
 
     Iterable<Concept> getConceptsWithProperties();

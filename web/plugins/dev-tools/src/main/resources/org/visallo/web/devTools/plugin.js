@@ -42,6 +42,13 @@ require([
     });
 
     registry.registerExtension(adminExtensionPoint, {
+        componentPath: 'org/visallo/web/devTools/ontology-edit-relationship-plugin',
+        section: i18n('admin.ontology.section'),
+        name: i18n('admin.ontology.relationships'),
+        subtitle: i18n('admin.ontology.relationships.subtitle')
+    });
+
+    registry.registerExtension(adminExtensionPoint, {
         componentPath: 'org/visallo/web/devTools/ontology-upload-plugin',
         section: i18n('admin.ontology.section'),
         name: i18n('admin.ontology.upload'),
