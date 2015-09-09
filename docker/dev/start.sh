@@ -1,15 +1,39 @@
 #!/bin/bash
 
+INIT_D=/opt/visallo-source/docker/init.d
+
+function _msg {
+  echo -e "\n\e[32m$1\n---------------------------------------------------------------\e[0m"
+}
+
 function start_msg {
-  echo -e "\n\e[32mStarting $1\n---------------------------------------------------------------\e[0m"
+  _msg "Starting $1"
+}
+
+function _initd {
+  local dir=${INIT_D}/$1
+  if [ -d "${dir}" ]; then
+    _msg "running scripts in ${dir}..."
+    for script in ${dir}/*; do
+      if [ -x "${script}" ]; then
+        echo ${script}
+        script=$(readlink -f ${script})
+        ${script}
+      fi
+    done
+    echo
+  fi
 }
 
 function start_zookeeper {
+  _initd before-zookeeper
   start_msg "ZooKeeper"
   /opt/zookeeper/bin/zkServer.sh start
+  _initd after-zookeeper
 }
 
 function start_hadoop {
+  _initd before-hdfs
   start_msg "Hadoop"
   sed s/HOSTNAME/$HOSTNAME/ /opt/hadoop/etc/hadoop/core-site.xml.template > /opt/hadoop/etc/hadoop/core-site.xml
   mkdir -p /var/log/hadoop
@@ -21,12 +45,16 @@ function start_hadoop {
   /opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs start namenode
   /opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs start secondarynamenode
   /opt/hadoop/sbin/hadoop-daemon.sh --config /opt/hadoop/etc/hadoop/ --script /opt/hadoop/sbin/hdfs start datanode
+  _initd after-hdfs
+  _initd before-yarn
   /opt/hadoop/sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ start resourcemanager
   /opt/hadoop/sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ start nodemanager
+  _initd after-yarn
   /opt/hadoop/bin/hdfs dfsadmin -safemode wait
 }
 
 function start_accumulo {
+  _initd before-accumulo
   start_msg "Accumulo"
   echo $HOSTNAME > /opt/accumulo/conf/masters
   echo $HOSTNAME > /opt/accumulo/conf/slaves
@@ -46,19 +74,24 @@ function start_accumulo {
     /opt/accumulo/bin/accumulo init --instance-name visallo --password password --clear-instance-name
   fi
   /opt/accumulo/bin/start-all.sh
+  _initd after-accumulo
 }
 
 function start_elasticsearch {
+  _initd before-elasticsearch
   start_msg "Elasticsearch"
   mkdir -p /var/log/elasticsearch
 
   /opt/elasticsearch/bin/elasticsearch > /dev/null &
+  _initd after-elasticsearch
 }
 
 function start_rabbitmq {
+  _initd before-rabbitmq
   start_msg "RabbitMQ"
   /opt/rabbitmq/sbin/rabbitmq-plugins --offline enable rabbitmq_management
   /opt/rabbitmq/sbin/rabbitmq-server > /dev/null &
+  _initd after-rabbitmq
 }
 
 function ensure_visallo_config {
