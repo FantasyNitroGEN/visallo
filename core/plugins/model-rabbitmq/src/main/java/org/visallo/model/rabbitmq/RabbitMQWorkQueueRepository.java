@@ -25,7 +25,8 @@ import java.util.*;
 
 public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RabbitMQWorkQueueRepository.class);
-    private static final String BROADCAST_EXCHANGE_NAME = "exBroadcast";
+    private static final String DEFAULT_BROADCAST_EXCHANGE_NAME = "exBroadcast";
+
     private final Connection connection;
     private final Channel channel;
     private Set<String> declaredQueues = new HashSet<>();
@@ -36,14 +37,14 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
         super(graph, workQueueNames, configuration);
         this.connection = RabbitMQUtils.openConnection(configuration);
         this.channel = RabbitMQUtils.openChannel(this.connection);
-        this.channel.exchangeDeclare(BROADCAST_EXCHANGE_NAME, "fanout");
+        this.channel.exchangeDeclare(getExchangeName(), "fanout");
     }
 
     @Override
     protected void broadcastJson(JSONObject json) {
         try {
-            LOGGER.debug("publishing message to broadcast exchange [%s]: %s", BROADCAST_EXCHANGE_NAME, json.toString());
-            channel.basicPublish(BROADCAST_EXCHANGE_NAME, "", null, json.toString().getBytes());
+            LOGGER.debug("publishing message to broadcast exchange [%s]: %s", getExchangeName(), json.toString());
+            channel.basicPublish(getExchangeName(), "", null, json.toString().getBytes());
         } catch (IOException ex) {
             throw new VisalloException("Could not broadcast json", ex);
         }
@@ -136,7 +137,7 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
     public void subscribeToBroadcastMessages(final BroadcastConsumer broadcastConsumer) {
         try {
             String queueName = this.channel.queueDeclare().getQueue();
-            this.channel.queueBind(queueName, BROADCAST_EXCHANGE_NAME, "");
+            this.channel.queueBind(queueName, getExchangeName(), "");
 
             final QueueingConsumer callback = new QueueingConsumer(this.channel);
             this.channel.basicConsume(queueName, true, callback);
@@ -150,7 +151,7 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
                             QueueingConsumer.Delivery delivery = callback.nextDelivery();
                             try {
                                 JSONObject json = new JSONObject(new String(delivery.getBody()));
-                                LOGGER.debug("received message from broadcast exchange [%s]: %s", BROADCAST_EXCHANGE_NAME, json.toString());
+                                LOGGER.debug("received message from broadcast exchange [%s]: %s", getExchangeName(), json.toString());
                                 broadcastConsumer.broadcastReceived(json);
                             } catch (Throwable ex) {
                                 LOGGER.error("problem in broadcast thread", ex);
@@ -172,5 +173,9 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
     @Override
     public WorkerSpout createWorkerSpout(String queueName) {
         return InjectHelper.inject(new RabbitMQWorkQueueSpout(queueName));
+    }
+
+    private String getExchangeName(){
+        return this.configuration.get(Configuration.BROADCAST_EXCHANGE_NAME_CONFIGURATION, DEFAULT_BROADCAST_EXCHANGE_NAME);
     }
 }
