@@ -78,6 +78,7 @@ public class Configuration {
     public static final String DEFAULT_STATUS_PORT_RANGE = "40000-41000";
     public static final String STATUS_REFRESH_INTERVAL = "status.refreshInterval";
     public static final int DEFAULT_STATUS_REFRESH_INTERVAL = 10;
+    public static final String BROADCAST_EXCHANGE_NAME_CONFIGURATION = "rabbitmq.broadcastExchangeName";
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
 
