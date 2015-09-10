@@ -32,6 +32,7 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
     private static final Visibility SECRET_VISIBILITY =
             VISIBILITY_TRANSLATOR.toVisibility(new VisibilityJson(SECRET_VISIBILITY_SOURCE)).getVisibility();
     private static final String OTHER_VISIBILITY_SOURCE = "other";
+
     private Workspace workspace;
     private InMemoryAuthorizations workspaceAuthorizations;
     private String initialVisibilitySource;
@@ -234,7 +235,7 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
 
     @Test
     public void publishWithChangedPublicPropertyValueSucceeds() {
-        markPublicPropertyHiddenOnWorkspace(); // TODO: why is this necessary?
+        markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueOnWorkspace();
         publishWorkspace();
         assertChangedPropertyValuePublished();
@@ -242,7 +243,7 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
 
     @Test
     public void publishWithChangedPublicPropertyVisibilitySucceeds() {
-        markPublicPropertyHiddenOnWorkspace(); // TODO: why is this necessary?
+        markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyVisibilityOnWorkspace();
         publishWorkspace();
         assertChangedPropertyVisibilityPublished();
@@ -250,7 +251,7 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
 
     @Test
     public void publishWithChangedPublicPropertyValueAndVisibilitySucceeds() {
-        markPublicPropertyHiddenOnWorkspace(); // TODO: why is this necessary?
+        markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueAndVisibilityOnWorkspace();
         publishWorkspace();
         assertChangedPropertyValueAndVisibilityPublished();
