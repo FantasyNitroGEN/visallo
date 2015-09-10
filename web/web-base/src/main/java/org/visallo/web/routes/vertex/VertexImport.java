@@ -48,6 +48,7 @@ public class VertexImport implements ParameterizedHandler {
     private final Graph graph;
     private final FileImport fileImport;
     private final WorkspaceRepository workspaceRepository;
+    private Authorizations authorizations;
 
     @Inject
     public VertexImport(
@@ -58,6 +59,28 @@ public class VertexImport implements ParameterizedHandler {
         this.graph = graph;
         this.fileImport = fileImport;
         this.workspaceRepository = workspaceRepository;
+    }
+
+    protected static String getFilename(Part part) {
+        String fileName = UNKNOWN_FILENAME;
+
+        final ParameterParser parser = new ParameterParser();
+        parser.setLowerCaseNames(true);
+
+        final Map params = parser.parse(part.getHeader(FileUploadBase.CONTENT_DISPOSITION), ';');
+        if (params.containsKey(PARAMS_FILENAME)) {
+            final String name = (String) params.get(PARAMS_FILENAME);
+            if (name != null) {
+                try {
+                    fileName = URLDecoder.decode(name, "utf8").trim();
+                } catch (UnsupportedEncodingException ex) {
+                    LOGGER.error("Failed to url decode: " + name, ex);
+                    fileName = name.trim();
+                }
+            }
+        }
+
+        return fileName;
     }
 
     @Handle
@@ -75,6 +98,8 @@ public class VertexImport implements ParameterizedHandler {
             return;
         }
 
+        this.authorizations = authorizations;
+        
         File tempDir = Files.createTempDir();
         try {
             List<FileImport.FileOptions> files = getFiles(request, response, tempDir, resourceBundle, authorizations, user);
@@ -92,7 +117,7 @@ public class VertexImport implements ParameterizedHandler {
         }
     }
 
-    private ClientApiArtifactImportResponse toArtifactImportResponse(List<Vertex> vertices) {
+    protected ClientApiArtifactImportResponse toArtifactImportResponse(List<Vertex> vertices) {
         ClientApiArtifactImportResponse response = new ClientApiArtifactImportResponse();
         for (Vertex vertex : vertices) {
             response.getVertexIds().add(vertex.getId());
@@ -190,29 +215,11 @@ public class VertexImport implements ParameterizedHandler {
         }
     }
 
-    protected static String getFilename(Part part) {
-        String fileName = UNKNOWN_FILENAME;
-
-        final ParameterParser parser = new ParameterParser();
-        parser.setLowerCaseNames(true);
-
-        final Map params = parser.parse(part.getHeader(FileUploadBase.CONTENT_DISPOSITION), ';');
-        if (params.containsKey(PARAMS_FILENAME)) {
-            final String name = (String) params.get(PARAMS_FILENAME);
-            if (name != null) {
-                try {
-                    fileName = URLDecoder.decode(name, "utf8").trim();
-                } catch (UnsupportedEncodingException ex) {
-                    LOGGER.error("Failed to url decode: " + name, ex);
-                    fileName = name.trim();
-                }
-            }
-        }
-
-        return fileName;
-    }
-
     public Graph getGraph() {
         return graph;
+    }
+
+    protected Authorizations getAuthorizations() {
+        return authorizations;
     }
 }

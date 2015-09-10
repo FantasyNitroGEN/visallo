@@ -92,7 +92,7 @@ public class VertexNew extends BaseRequestHandler {
         respondWithClientApiObject(response, element);
     }
 
-    private ClientApiElement handle(
+    protected ClientApiElement handle(
             String vertexId,
             String conceptType,
             String visibilitySource,
