@@ -31,11 +31,6 @@
             <version>${vertexium.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.vertexium</groupId>
-            <artifactId>vertexium-elasticsearch-plugin</artifactId>
-            <version>${vertexium.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-model-vertexium-inmemory</artifactId>
             <version>${project.version}</version>
