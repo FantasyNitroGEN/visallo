@@ -10,6 +10,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.VertexiumUtil;
 import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiEdgeMultipleResponse;
 import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
@@ -59,8 +60,8 @@ public class EdgeMultiple extends BaseRequestHandler {
     ) {
         List<Edge> graphEdges = toList(graph.getEdges(edgeIds, FetchHint.ALL, authorizations));
         ClientApiEdgeMultipleResponse edgeResult = new ClientApiEdgeMultipleResponse();
-        Set<String> vertexIds = getAllVertexIdsOnEdges(graphEdges);
-        Map<String, Vertex> vertices = verticesToMapById(graph.getVertices(vertexIds, authorizations));
+        Set<String> vertexIds = VertexiumUtil.getAllVertexIdsOnEdges(graphEdges);
+        Map<String, Vertex> vertices = VertexiumUtil.verticesToMapById(graph.getVertices(vertexIds, authorizations));
         for (Edge e : graphEdges) {
             Vertex source = vertices.get(e.getVertexId(Direction.OUT));
             Vertex destination = vertices.get(e.getVertexId(Direction.IN));
@@ -74,23 +75,6 @@ public class EdgeMultiple extends BaseRequestHandler {
             edgeResult.getEdges().add(clientApiEdgeWithVertexData);
         }
         return edgeResult;
-    }
-
-    private Map<String, Vertex> verticesToMapById(Iterable<Vertex> vertices) {
-        Map<String, Vertex> results = new HashMap<>();
-        for (Vertex vertex : vertices) {
-            results.put(vertex.getId(), vertex);
-        }
-        return results;
-    }
-
-    private Set<String> getAllVertexIdsOnEdges(List<Edge> edges) {
-        Set<String> results = new HashSet<>();
-        for (Edge edge : edges) {
-            results.add(edge.getVertexId(Direction.IN));
-            results.add(edge.getVertexId(Direction.OUT));
-        }
-        return results;
     }
 
     private GetAuthorizationsResult getAuthorizations(HttpServletRequest request, boolean fallbackToPublic, User user) {
