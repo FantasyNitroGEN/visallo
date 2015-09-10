@@ -2,8 +2,7 @@ package org.visallo.web.clientapi.model;
 
 import org.visallo.web.clientapi.util.ClientApiConverter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ClientApiSearchResponse implements ClientApiObject {
     private Integer nextOffset = null;
@@ -123,5 +122,38 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
         public Map<String, Long> getBuckets() {
             return buckets;
         }
+    }
+
+    public static ClientApiSearchResponse listToClientApiSearchResponse(List<List<Object>> rows) {
+        ClientApiSearchResponse results;
+        if (rows == null || rows.size() == 0) {
+            results = new ClientApiVertexSearchResponse();
+        } else if (rows.get(0).size() == 1 && rows.get(0).get(0) instanceof ClientApiVertex) {
+            results = new ClientApiVertexSearchResponse();
+            ((ClientApiVertexSearchResponse) results).getVertices().addAll(toClientApiVertex(rows));
+        } else if (rows.get(0).size() == 1 && rows.get(0).get(0) instanceof ClientApiEdge) {
+            results = new ClientApiEdgeSearchResponse();
+            ((ClientApiEdgeSearchResponse) results).getResults().addAll(toClientApiEdge(rows));
+        } else {
+            results = new ClientApiScalarSearchResponse();
+            ((ClientApiScalarSearchResponse) results).getResults().addAll(rows);
+        }
+        return results;
+    }
+
+    private static Collection<ClientApiVertex> toClientApiVertex(List<List<Object>> rows) {
+        List<ClientApiVertex> results = new ArrayList<>();
+        for (List<Object> row : rows) {
+            results.add((ClientApiVertex) row.get(0));
+        }
+        return results;
+    }
+
+    private static Collection<ClientApiEdge> toClientApiEdge(List<List<Object>> rows) {
+        List<ClientApiEdge> results = new ArrayList<>();
+        for (List<Object> row : rows) {
+            results.add((ClientApiEdge) row.get(0));
+        }
+        return results;
     }
 }
