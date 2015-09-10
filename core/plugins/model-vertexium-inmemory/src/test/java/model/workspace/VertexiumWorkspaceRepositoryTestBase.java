@@ -27,8 +27,10 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
+import org.visallo.core.model.workspace.WorkspaceDiffHelper;
+import org.visallo.core.model.workspace.WorkspaceUndoHelper;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.vertexium.model.ontology.InMemoryOntologyProperty;
@@ -56,6 +58,8 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
     protected QueueIdGenerator idGenerator;
     protected Vertex entity1Vertex;
     protected WorkspaceRepository workspaceRepository;
+    protected WorkspaceHelper workspaceHelper;
+    protected WorkspaceUndoHelper workspaceUndoHelper;
     protected AuthorizationRepository authorizationRepository;
     protected GraphRepository graphRepository;
     protected UserRepository userRepository;
@@ -124,6 +128,21 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
                 VISIBILITY_TRANSLATOR,
                 termMentionRepository,
                 ontologyRepository,
+                workQueueRepository
+        );
+
+        workspaceHelper = new WorkspaceHelper(
+                termMentionRepository,
+                userRepository,
+                workQueueRepository,
+                graph,
+                ontologyRepository,
+                workspaceRepository
+        );
+
+        workspaceUndoHelper = new WorkspaceUndoHelper(
+                graph,
+                workspaceHelper,
                 workQueueRepository
         );
 

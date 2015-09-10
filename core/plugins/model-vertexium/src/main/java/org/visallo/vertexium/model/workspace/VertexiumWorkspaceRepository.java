@@ -26,7 +26,7 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
-import org.visallo.core.model.workspace.diff.WorkspaceDiffHelper;
+import org.visallo.core.model.workspace.WorkspaceDiffHelper;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
