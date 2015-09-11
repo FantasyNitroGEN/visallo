@@ -15,5 +15,6 @@
 
     <modules>
         <module>food-truck</module>
+        <module>example-cli</module>
     </modules>
 </project>
