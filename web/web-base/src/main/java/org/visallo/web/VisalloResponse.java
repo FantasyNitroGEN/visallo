@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -159,5 +160,13 @@ public class VisalloResponse {
 
     public void setMaxAge(int numberOfSeconds) {
         response.setHeader("Cache-Control", "max-age=" + numberOfSeconds);
+    }
+
+    public OutputStream getOutputStream() {
+        try {
+            return response.getOutputStream();
+        } catch (IOException e) {
+            throw new VisalloException("Could not get response output stream", e);
+        }
     }
 }

@@ -1,30 +1,27 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import org.visallo.core.EntityHighlighter;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.ingest.video.VideoTranscript;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.MediaVisalloProperties;
-import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.core.util.JsonSerializer;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.EntityHighlighter;
+import org.visallo.core.ingest.video.VideoTranscript;
+import org.visallo.core.model.properties.MediaVisalloProperties;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.user.User;
+import org.visallo.core.util.JsonSerializer;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class VertexHighlightedText extends BaseRequestHandler {
+public class VertexHighlightedText implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexHighlightedText.class);
     private final Graph graph;
     private final EntityHighlighter entityHighlighter;
@@ -33,30 +30,28 @@ public class VertexHighlightedText extends BaseRequestHandler {
     @Inject
     public VertexHighlightedText(
             final Graph graph,
-            final UserRepository userRepository,
             final EntityHighlighter entityHighlighter,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration,
-            final TermMentionRepository termMentionRepository) {
-        super(userRepository, workspaceRepository, configuration);
+            final TermMentionRepository termMentionRepository
+    ) {
         this.graph = graph;
         this.entityHighlighter = entityHighlighter;
         this.termMentionRepository = termMentionRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
+    @Handle
+    public void handle(
+            @Required(name = "graphVertexId") String graphVertexId,
+            @Required(name = "propertyKey") String propertyKey,
+            @ActiveWorkspaceId String workspaceId,
+            User user,
+            Authorizations authorizations,
+            VisalloResponse response
+    ) throws Exception {
         Authorizations authorizationsWithTermMention = termMentionRepository.getAuthorizations(authorizations);
-        String workspaceId = getActiveWorkspaceId(request);
-
-        String graphVertexId = getRequiredParameter(request, "graphVertexId");
-        String propertyKey = getRequiredParameter(request, "propertyKey");
 
         Vertex artifactVertex = graph.getVertex(graphVertexId, authorizations);
         if (artifactVertex == null) {
-            respondWithNotFound(response);
+            response.respondWithNotFound();
             return;
         }
 
@@ -72,7 +67,7 @@ public class VertexHighlightedText extends BaseRequestHandler {
                 highlightedText = entityHighlighter.getHighlightedText(text, termMentions, workspaceId, authorizationsWithTermMention);
             }
 
-            respondWithHtml(response, highlightedText);
+            response.respondWithHtml(highlightedText);
             return;
         }
 
@@ -81,7 +76,7 @@ public class VertexHighlightedText extends BaseRequestHandler {
             LOGGER.debug("returning video transcript for vertexId:%s property:%s", artifactVertex.getId(), propertyKey);
             Iterable<Vertex> termMentions = termMentionRepository.findBySourceGraphVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
             VideoTranscript highlightedVideoTranscript = entityHighlighter.getHighlightedVideoTranscript(videoTranscript, termMentions, workspaceId, authorizations);
-            respondWithJson(response, highlightedVideoTranscript.toJson());
+            response.respondWithJson(highlightedVideoTranscript.toJson());
             return;
         }
 
@@ -90,10 +85,10 @@ public class VertexHighlightedText extends BaseRequestHandler {
             LOGGER.debug("returning synthesised video transcript for vertexId:%s property:%s", artifactVertex.getId(), propertyKey);
             Iterable<Vertex> termMentions = termMentionRepository.findBySourceGraphVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
             VideoTranscript highlightedVideoTranscript = entityHighlighter.getHighlightedVideoTranscript(videoTranscript, termMentions, workspaceId, authorizationsWithTermMention);
-            respondWithJson(response, highlightedVideoTranscript.toJson());
+            response.respondWithJson(highlightedVideoTranscript.toJson());
             return;
         }
 
-        respondWithNotFound(response);
+        response.respondWithNotFound();
     }
 }
