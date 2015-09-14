@@ -21,10 +21,10 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
- * This test class covers workspace diff and publish functionality.
+ * This test class covers workspace diff, publish, and undo functionality.
  */
 @RunWith(Parameterized.class)
-public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspaceRepositoryTestBase {
+public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceRepositoryTestBase {
     private static final Locale LOCALE = Locale.US;
     private static final String TIME_ZONE = Calendar.getInstance().getTimeZone().getID();
     private static final String WORKSPACE_ID = "testWorkspaceId";
@@ -49,7 +49,7 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
         });
     }
 
-    public VertexiumWorkspaceRepositorySandboxingTest(String initialVisibilitySource) {
+    public VertexiumWorkspaceSandboxingTest(String initialVisibilitySource) {
         this.initialVisibilitySource = initialVisibilitySource;
         this.initialVisibility = VISIBILITY_TRANSLATOR.toVisibility(new VisibilityJson(initialVisibilitySource)).getVisibility();
     }
@@ -70,13 +70,13 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
 
         VisibilityJson initialVisibilityJson = new VisibilityJson(initialVisibilitySource);
         initialVisibilityJson.addWorkspace(workspaceId);
-        initialWorkspaceViz = VISIBILITY_TRANSLATOR.toVisibility(initialVisibilityJson).getVisibility();
+        initialWorkspaceViz = VISIBILITY_TRANSLATOR.toVisibilityNoSuperUser(initialVisibilityJson);
         initialMetadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(initialMetadata, initialVisibilityJson, DEFAULT_VISIBILITY);
 
         VisibilityJson secretVisibilityJson = new VisibilityJson(SECRET_VISIBILITY_SOURCE);
         secretVisibilityJson.addWorkspace(workspaceId);
-        secretWorkspaceViz = VISIBILITY_TRANSLATOR.toVisibility(secretVisibilityJson).getVisibility();
+        secretWorkspaceViz = VISIBILITY_TRANSLATOR.toVisibilityNoSuperUser(secretVisibilityJson);
         secretMetadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(secretMetadata, secretVisibilityJson, DEFAULT_VISIBILITY);
 
@@ -85,11 +85,14 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
         when(termMentionRepository.findByVertexIdAndProperty(anyString(), anyString(), anyString(),
                 any(Visibility.class), any(Authorizations.class)))
                 .thenReturn(Collections.<Vertex>emptySet());
+
+        when(termMentionRepository.findResolvedTo(anyString(), any(Authorizations.class)))
+                .thenReturn(Collections.<Vertex>emptySet());
     }
 
     @Test
-    public void getDiffWithNoChangesReturnsEmptyDiffs() {
-        assertTrue(getPropertyDiffsFromWorkspace().isEmpty());
+    public void getDiffWithNoChangesReturnsZeroDiffs() {
+        assertEquals(0, getPropertyDiffsFromWorkspace().size());
     }
 
     @Test
@@ -234,6 +237,111 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
     }
 
     @Test
+    public void undoWithNoChangesResultsInNoDiffs() {
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithChangedPublicPropertyValueResultsInNoDiffs() {
+        changePublicPropertyValueOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithChangedPublicPropertyVisibilityResultsInNoDiffs() {
+        changePublicPropertyVisibilityOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithChangedPublicPropertyValueAndVisibilityResultsInNoDiffs() {
+        changePublicPropertyValueAndVisibilityOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithChangedPublicPropertySameValueTwiceResultsInNoDiffs() {
+        changePublicPropertyValueOnWorkspace();
+        changePublicPropertyValueOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithChangedPublicPropertySameVisibilityTwiceResultsInNoDiffs() {
+        changePublicPropertyVisibilityOnWorkspace();
+        changePublicPropertyVisibilityOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithChangedPublicPropertySameValueAndVisibilityTwiceResultsInNoDiffs() {
+        changePublicPropertyValueAndVisibilityOnWorkspace();
+        changePublicPropertyValueAndVisibilityOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithHiddenPublicPropertyAndChangedPublicPropertyValueResultsInNoDiffs() {
+        markPublicPropertyHiddenOnWorkspace();
+        changePublicPropertyValueOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithHiddenPublicPropertyAndChangedPublicPropertyVisibilityResultsInNoDiffs() {
+        markPublicPropertyHiddenOnWorkspace();
+        changePublicPropertyVisibilityOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithHiddenPublicPropertyAndChangedPublicPropertyValueAndVisibilityResultsInNoDiffs() {
+        markPublicPropertyHiddenOnWorkspace();
+        changePublicPropertyValueAndVisibilityOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithChangedPublicPropertyValueAndVisibilityInTwoStepsResultsInNoDiffs() {
+        changePublicPropertyValueOnWorkspace();
+        changeNonPublicPropertyVisibilityOnWorkspace(); // changes only the visibility for the current property
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithNewPropertyResultsInNoDiffs() {
+        addNewPropertyOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithDeletedPropertyResultsInNoDiffs() {
+        deletePublicPropertyOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
+    public void undoWithThreeDifferentPropertyActionsResultsInNoDiffs() {
+        changePublicPropertyValueAndVisibilityOnWorkspace();
+        addNewPropertyOnWorkspace();
+        deletePublicPropertyOnWorkspace();
+
+        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+    }
+
+    @Test
     public void publishWithChangedPublicPropertyValueSucceeds() {
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueOnWorkspace();
@@ -277,7 +385,7 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
                 workspaceRepository.publish(publishItems, workspace.getWorkspaceId(), workspaceAuthorizations);
 
         assertTrue(response.isSuccess());
-        assertTrue(getPropertyDiffsFromWorkspace().isEmpty());
+        assertEquals(0, getPropertyDiffsFromWorkspace().size());
         entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
     }
 
@@ -288,6 +396,29 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
             diffs.add((PropertyItem) diff);
         }
         return diffs;
+    }
+
+    private void undoPropertyDiffs(List<PropertyItem> diffs) {
+        List<ClientApiUndoItem> undoItems = new ArrayList<>(diffs.size());
+        for (PropertyItem diff : diffs) {
+            ClientApiPropertyUndoItem item = new ClientApiPropertyUndoItem();
+            item.setElementId(diff.getElementId());
+            item.setVertexId(diff.getElementId());
+            item.setKey(diff.getKey());
+            item.setName(diff.getName());
+            item.setVisibilityString(diff.getVisibilityString());
+            item.setAction(diff.isDeleted() ? ClientApiUndoItem.Action.delete : ClientApiUndoItem.Action.addOrUpdate);
+            undoItems.add(item);
+        }
+        ClientApiWorkspaceUndoResponse workspaceUndoResponse = new ClientApiWorkspaceUndoResponse();
+        workspaceUndoHelper.undo(undoItems, workspaceUndoResponse, workspace.getWorkspaceId(), user1,
+                workspaceAuthorizations);
+        assertTrue(workspaceUndoResponse.isSuccess());
+    }
+
+    private void undoPropertyDiffsAndAssertNoDiffs(List<PropertyItem> diffs) {
+        undoPropertyDiffs(diffs);
+        assertEquals(0, getPropertyDiffsFromWorkspace().size());
     }
 
     private void markPublicPropertyHiddenOnWorkspace() {
@@ -387,7 +518,7 @@ public class VertexiumWorkspaceRepositorySandboxingTest extends VertexiumWorkspa
     }
 
     private void deletePublicPropertyOnWorkspace() {
-        entity1Vertex.markPropertyHidden("key9", "prop9", initialVisibility, initialWorkspaceViz,
+        entity1Vertex.markPropertyHidden("key9", "prop9", initialVisibility, new Visibility(workspace.getWorkspaceId()),
                 workspaceAuthorizations);
     }
 
