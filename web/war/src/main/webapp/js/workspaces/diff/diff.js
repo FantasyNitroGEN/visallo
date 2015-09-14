@@ -497,6 +497,10 @@ define([
                             .alert();
                         self.updateHeader();
                     }
+
+                    if (type === 'undo') {
+                        self.trigger('loadCurrentWorkspace');
+                    }
                 })
                 .catch(function(errorText) {
                     var error = $('<div>')
