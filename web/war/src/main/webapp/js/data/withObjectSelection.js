@@ -92,10 +92,10 @@ define([], function() {
                                 toSelect = _.chain(edges)
                                     .map(function(e) {
                                         return selected.map(function(v) {
-                                            return e.sourceVertexId === v ?
-                                                e.destVertexId :
-                                                e.destVertexId === v ?
-                                                e.sourceVertexId :
+                                            return e.outVertexId === v ?
+                                                e.inVertexId :
+                                                e.inVertexId === v ?
+                                                e.outVertexId :
                                                 null
                                         })
                                     })
