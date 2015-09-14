@@ -58,12 +58,12 @@ public class ZipCodeBoundariesRepository {
     protected File copyShapeFileLocally(Configuration configuration) throws IOException {
         FileSystem hdfsFileSystem = configuration.getFileSystem();
         String pathPrefix = configuration.get(CONFIG_HDFS_PATH_PREFIX, CONFIG_HDFS_PATH_PREFIX_DEFAULT);
-        File tempShapeFile = copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2013_us_zcta510_500k.shp");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2013_us_zcta510_500k.shx");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2013_us_zcta510_500k.dbf");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2013_us_zcta510_500k.prj");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2013_us_zcta510_500k.shp.iso.xml");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2013_us_zcta510_500k.shp.xml");
+        File tempShapeFile = copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shp");
+        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shx");
+        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.dbf");
+        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.prj");
+        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shp.iso.xml");
+        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shp.xml");
         return tempShapeFile;
     }
 

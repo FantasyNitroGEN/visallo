@@ -41,11 +41,11 @@ public class ZipCodeBoundariesRepositoryTest {
             @Override
             protected File copyShapeFileLocally(Configuration configuration) throws IOException {
                 File tempDir = new File(System.getProperty("java.io.tmpdir"));
-                File dir = new File(tempDir, "cb_2013_us_zcta510_500k");
-                File file = new File(dir, "cb_2013_us_zcta510_500k.shp");
+                File dir = new File(tempDir, "cb_2014_us_zcta510_500k");
+                File file = new File(dir, "cb_2014_us_zcta510_500k.shp");
                 if (!file.exists()) {
-                    File zipFile = new File(tempDir, "cb_2013_us_zcta510_500k.zip");
-                    downloadFile(new URL("http://www2.census.gov/geo/tiger/GENZ2013/cb_2013_us_zcta510_500k.zip"), zipFile);
+                    File zipFile = new File(tempDir, "cb_2014_us_zcta510_500k.zip");
+                    downloadFile(new URL("http://www2.census.gov/geo/tiger/GENZ2014/shp/cb_2014_us_zcta510_500k.zip"), zipFile);
                     unzip(zipFile, dir);
                 }
                 return file;
