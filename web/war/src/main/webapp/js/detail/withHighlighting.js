@@ -737,18 +737,22 @@ define([
         this.updateEntityAndArtifactDraggables = function() {
             var self = this,
                 scrollNode = this.scrollNode,
-                words = this.select('draggablesSelector');
+                words = this.select('draggablesSelector'),
+                validWords = words.filter('.generic-draggable, .artifact');
 
-            if (words.length === 0 || !scrollNode || scrollNode.length === 0) {
+            // Filter list to those in visible scroll area
+            if (scrollNode && scrollNode.length) {
+                validWords = validWords.add(words.filter('.vertex.resolved').withinScrollable(scrollNode));
+            }
+
+            if (validWords.length === 0) {
                 return;
             }
 
             this.dataRequest('ontology', 'concepts')
                 .done(function(concepts) {
 
-                    // Filter list to those in visible scroll area
-                    words
-                        .withinScrollable(scrollNode)
+                    validWords
                         .each(function() {
                             var $this = $(this),
                                 info = $this.data('info'),
