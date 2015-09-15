@@ -97,6 +97,12 @@ define([
             })
         },
 
+        exists: function(vertexIds) {
+            return ajax(vertexIds.length > 1 ? 'POST' : 'GET', '/vertex/exists', {
+                vertexIds: vertexIds
+            });
+        },
+
         deleteProperty: function(vertexId, property) {
             return ajax('DELETE', '/vertex/property', {
                 graphVertexId: vertexId,
