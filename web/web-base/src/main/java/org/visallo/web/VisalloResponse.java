@@ -169,4 +169,8 @@ public class VisalloResponse {
             throw new VisalloException("Could not get response output stream", e);
         }
     }
+
+    public void setContentLength(int length) {
+        response.setContentLength(length);
+    }
 }
