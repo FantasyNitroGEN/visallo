@@ -366,7 +366,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     @Test
-    public void recreateVertexWithSameIdAfterUndo() {
+    public void recreatedVertexWithSameIdAfterUndoShouldNotHaveOldProperties() {
         String workspaceId = workspace.getWorkspaceId();
         Authorizations workspaceAuthorizations = new InMemoryAuthorizations(workspaceId, OTHER_VISIBILITY_SOURCE);
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, initialVisibilitySource, workspaceId);
