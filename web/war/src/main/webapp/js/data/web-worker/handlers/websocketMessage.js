@@ -105,9 +105,11 @@ define([
                         );
                     if (storeObjects.length) {
                         require(['../services/vertex'], function(vertex) {
-                            vertex.multiple({ vertexIds: _.pluck(storeObjects, 'id') })
-                                .then(function(vertices) {
-                                    var deleted = _.without(data.vertexIds, _.pluck(vertices, 'id'));
+                            vertex.exists(_.pluck(storeObjects, 'id'))
+                                .then(function(existsResponse) {
+                                    var deleted = _.keys(_.pick(existsResponse.exists, function(exists) {
+                                        return !exists;
+                                    }));
                                     if (deleted.length) {
                                         store.removeWorkspaceVertexIds(publicData.currentWorkspaceId, deleted);
                                         dispatchMain('rebroadcastEvent', {
