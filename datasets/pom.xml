@@ -14,12 +14,13 @@
     <name>Visallo: Datasets</name>
 
     <modules>
-        <module>wikipedia</module>
-        <module>flight-aware</module>
-        <module>twitter</module>
-        <module>world-factbook</module>
-        <module>gdelt</module>
-        <module>the-movie-db</module>
         <module>dbpedia</module>
+        <module>flight-aware</module>
+        <module>gdelt</module>
+        <module>marvel</module>
+        <module>the-movie-db</module>
+        <module>twitter</module>
+        <module>wikipedia</module>
+        <module>world-factbook</module>
     </modules>
 </project>
