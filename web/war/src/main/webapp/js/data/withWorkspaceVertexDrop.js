@@ -27,7 +27,7 @@ define([], function() {
                         parentDroppables = target.parents('.ui-droppable');
 
                     if (appDroppable) {
-                        // Ignore events from this droppable
+                        enabled = true;
                         return;
                     }
 
@@ -67,6 +67,7 @@ define([], function() {
                                         // some ui feedback that it's loading
                                         verticesFromDraggable(draggable, self.dataRequestPromise)
                                             .done(function(v) {
+                                                if (!v.length) return;
                                                 vertices = v;
                                                 handler(event, draggableUI);
                                             })
@@ -77,9 +78,19 @@ define([], function() {
                                 if (graphVisible) {
                                     ui.helper.toggleClass('draggable-invisible', enabled);
                                 } else if (dashboardVisible) {
+                                    $('.dialog-popover').hide();
+                                    var count = 0;
+                                    self.on(document, 'didToggleDisplay', function didToggle(event, data) {
+                                        count++;
+                                        if (count >= 2) {
+                                            self.off(document, 'didToggleDisplay', didToggle);
+                                            dashboardVisible = false;
+                                            graphVisible = true;
+                                            handler(event, draggableUI);
+                                        }
+                                    })
                                     self.trigger('menubarToggleDisplay', { name: 'graph' });
-                                    dashboardVisible = false;
-                                    graphVisible = true;
+                                    return;
                                 }
 
                                 self.trigger('toggleWorkspaceFilter', { enabled: !enabled });

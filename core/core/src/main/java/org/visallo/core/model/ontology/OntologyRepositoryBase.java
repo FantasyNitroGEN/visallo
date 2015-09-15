@@ -31,6 +31,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
 import org.visallo.core.model.properties.types.VisalloProperty;
+import org.visallo.core.model.search.SearchProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -72,6 +73,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         importResourceOwl("termMention.owl", TermMentionRepository.OWL_IRI, authorizations);
         importResourceOwl("workspace.owl", WorkspaceRepository.OWL_IRI, authorizations);
         importResourceOwl("comment.owl", COMMENT_OWL_IRI, authorizations);
+        importResourceOwl("search.owl", SearchProperties.IRI, authorizations);
         importResourceOwl("longRunningProcess.owl", LongRunningProcessProperties.OWL_IRI, authorizations);
 
         for (Map.Entry<String, Map<String, String>> owlGroup : config.getMultiValue(Configuration.ONTOLOGY_REPOSITORY_OWL).entrySet()) {

@@ -4,8 +4,13 @@
 
 width: 215px;
 
+@invalid: #ec2f23;
+
 .hasError .search-filters {
   top: 9.5em;
+}
+.hasError .search-hits {
+  display: none;
 }
 
 .search-query-validation button {
@@ -19,9 +24,17 @@ width: 215px;
   margin: 1em;
   .box-sizing(border-box);
 
-  .advanced-search {
+  .search-dropdowns {
     text-align: right;
     width: 100%;
+    .saved {
+      float: left;
+      &.loading:before {
+        left: -12px;
+        background-size: 12px;
+      }
+    }
+    .disable-text-selection;
     .dropdown-menu {
       right: 0;
       left: auto;
@@ -35,15 +48,12 @@ width: 215px;
 
   .search-hits {
     font-size: 95%;
-    margin: 0 1em;
+    margin: 0;
     color: #999;
     text-align: right;
     text-shadow: 0 1px 0 white;
     font-style: italic;
     text-align: right;
-    &:empty {
-      display: none;
-    }
   }
 
   .search-query-container {
@@ -264,7 +274,7 @@ width: 215px;
     li { margin-bottom: 0; }
   }
 
-  .add-property {
+  .property-selector {
     input {
       @color: #0088cc;
 
@@ -289,61 +299,144 @@ width: 215px;
   }
   
   .entity-filter-row, .extension-filter-row {
-    .add-property input {
+    .current-property label {
+      font-size: 11px;
+      font-weight: bold;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
       color: #999999;
+      padding: 0.4ex 0;
     }
   }
 
-  .newrow .remove { display:none; }
   button.remove {
     outline: none;
-    position: absolute;
-    top: 0;
-    right: 0;
+    float: right;
+    margin: 0 0 0 0.5em;
+    padding: 0;
     border: none;
-    color: red;
+    color: @invalid;
     font-variant: small-caps;
     text-transform: lowercase;
     text-shadow: none;
     font-size: 100%;
-    margin: 0;
-    padding: 0;
     background: #F9F9F9;
     padding-left: 0.5em;
     line-height: 2em;
   }
- 
-  li { margin-bottom: 0.5em; position: relative; }
-  li.nav-header { margin-bottom: 0; }
-  li.invalid .add-property input {
-    color: red;
+
+  .current-property {
+    margin-top: 0.5em;
+    .clearfix;
+
+    .header {
+      position: relative;
+      .clearfix;
+    }
   }
 
-  table td { vertical-align:top; }
-  table, tr { width: 100%; }
-  .predicate-row { 
-    //width: auto; 
+  .current-property .header label {
+    cursor: default;
   }
-  .input-row {
-    width: 100%;
 
-    &.input-row-select {
-      display: table;
-      select {
-        width: 100%;
-        display: table-cell;
+  .current-property .header label,
+  .current-property .header button.remove,
+  .current-property .header .dropdown {
+    line-height: 1em;
+    display: inline;
+    margin-bottom: 0.5em;
+  }
+
+  .current-property .header label,
+  .current-property .header .dropdown {
+    float: left;    
+  }
+  .current-property .header label {
+    margin-right: 0.5em;
+  }
+  .current-property .header .dropdown {
+    position: static;
+  }
+  .current-property .header .dropdown .dropdown-menu {
+    left: 0;
+    right: 0;
+    width: auto;
+    min-width: 0;
+    a {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  .current-property .header .dropdown > a {
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 90%;
+    font-style: italic;
+    text-decoration: none;
+  }
+  .current-property .configuration {
+    clear: left;
+    display: block;
+    input[type=checkbox] {
+      vertical-align: baseline;
+    }
+
+    .date-field-filter-wrap {
+      .date-field input, .date-field .input-append {
+        margin-bottom: 0;
+      }
+      .switch-relative,
+      .switch-absolute {
+        padding: 0;
+        margin: 0 0 0.5em 0;
+        display: none;
+      }
+      .switch-relative {
+        display: block;
+      }
+      &.relative {
+        .switch-relative {
+          display: none;
+        }
+        .switch-absolute {
+          display: block;
+        }
+
+        .date-field {
+          display: flex;
+          & > * {
+            min-width: 0;
+            display: inline-block;
+            margin: 0 0.5em 0 0;    
+            .box-sizing(border-box);
+          }
+          input {
+            flex: 1 2.5 auto;
+          }
+          .unit, .past-or-present {
+            flex: 1 2 auto;
+          }
+          .past-or-present {
+            margin: 0;
+          }
+        }
       }
     }
   }
 
-  .controls-row.range-only {
-    position: relative;
-    top: 1.2ex;
+  li.invalid {
+    .dropdown-toggle {
+      color: @invalid;
+      b.caret {    
+        border-top-color: @invalid;
+        border-bottom-color: @invalid;
+      }
+    }
   }
-  .range-only {
-    display: block;
-    margin-top: 0.5em;
-  }
+
+ 
+  & > li { margin-bottom: 0.5em; position: relative; }
+  li.nav-header { margin-bottom: 0; }
 
   .property-filters {
     .appearance(none);

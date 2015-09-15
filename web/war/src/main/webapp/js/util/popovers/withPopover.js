@@ -109,14 +109,21 @@ define([
 
         this.onPositionChange = function(event, data) {
             clearTimeout(this.positionChangeErrorCheck);
-            this.dialogPosition = data.position;
-            this.positionDialog();
+            var allBlank = _.every(data.position, function(val) {
+                    return val === 0;
+                });
 
-            if (!this.throttledPositionDialog) {
-                this.throttledPositionDialog = true;
-                _.delay(function() {
-                    this.positionDialog = _.throttle(this.positionDialog.bind(this), 1000 / 60);
-                }.bind(this), 500);
+            if (allBlank) {
+                this.teardown();
+            } else {
+                this.dialogPosition = data.position;
+                this.positionDialog();
+                if (!this.throttledPositionDialog) {
+                    this.throttledPositionDialog = true;
+                    _.delay(function() {
+                        this.positionDialog = _.throttle(this.positionDialog.bind(this), 1000 / 60);
+                    }.bind(this), 500);
+                }
             }
         };
 

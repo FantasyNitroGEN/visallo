@@ -3,10 +3,19 @@
   <div class="popover-content">
     <div class="errors"></div>
     <div class="form find-path-form">
-      <span class="path"></span>
-      <button data-hops="2" class="btn"><%= i18n('popovers.find_path.hops.option', 2) %></button>
-      <button data-hops="3" class="btn"><%= i18n('popovers.find_path.hops.option', 3) %></button>
-      <button data-hops="4" class="btn"><%= i18n('popovers.find_path.hops.option', 4) %></button>
+      <select class="edgeLabel">
+        <option>Loading...</option>
+      </select>
+      <ul></ul>
+
+      <select class="hops">
+        <option value="2"><%= i18n('popovers.find_path.hops.option', 2) %></option>
+        <option value="3" selected><%= i18n('popovers.find_path.hops.option', 3) %></option>
+        <option value="4"><%= i18n('popovers.find_path.hops.option', 4) %></option>
+        <option value="5"><%= i18n('popovers.find_path.hops.option', 5) %></option>
+      </select>
+
+      <button class="btn btn-primary find-path">Find Path</button>
     </div>
   </div>
 </div>

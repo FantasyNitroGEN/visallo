@@ -38,6 +38,7 @@ define(['util/promise'], function() {
         for (key in params) {
             if (typeof params[key] !== 'undefined') {
 
+                // TODO: support fixing nested arrays
                 if (_.isArray(params[key])) {
                     str += _.map(params[key], _.partial(paramPair, key + '[]')).join('&') + '&';
                 } else if (_.isObject(params[key])) {

@@ -196,12 +196,10 @@ define([
                     }
                     if (self.fromPaste) {
                         self.fromPaste = false;
-                        animationWrap.removeClass('pop-fast');
-                        requestAnimationFrame(function() {
-                            animationWrap.addClass('pop-fast')
-                        });
+                        animationWrap.animatePop().then(function() {
+                            self.trigger('justificationanimationend');
+                        })
                     }
-                    self.trigger('justificationanimationend');
                 });
                 node.css({
                     height: toHeight + 'px'

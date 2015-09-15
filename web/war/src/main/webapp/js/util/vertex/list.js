@@ -98,6 +98,8 @@ define([
                             F: F
                         }));
 
+                    self.trigger('renderFinished');
+
                     self.attachEvents();
 
                     self.loadVisibleResultPreviews();

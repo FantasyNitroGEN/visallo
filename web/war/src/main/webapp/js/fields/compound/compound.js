@@ -10,6 +10,10 @@ define([
 
     function CompoundField() {
 
+        this.before('initialize', function(node, config) {
+            config.asyncRender = true;
+        });
+
         this.after('initialize', function() {
             var self = this;
 
@@ -22,9 +26,21 @@ define([
                 .done(function(ontologyProperties) {
                     self.ontologyProperties = ontologyProperties;
                     self.render();
-                    self.triggerFieldUpdated();
                 });
         });
+
+        this.triggerFieldUpdated = function() {
+            if (this.isValid()) {
+                this.trigger('propertychange', {
+                    propertyId: this.attr.property.title,
+                    values: this.getValues()
+                });
+            } else {
+                this.trigger('propertyinvalid', {
+                    propertyId: this.attr.property.title
+                });
+            }
+        }
 
         this.onDependentPropertyChange = function(event, data) {
             if ($(event.target).is(this.$node)) {
@@ -33,25 +49,10 @@ define([
 
             event.stopPropagation();
 
-            this.compoundValues[data.propertyId] = data.values;
+            this.compoundValues[data.propertyId] = data.value;
 
             this.triggerFieldUpdated();
         };
-
-        this.triggerFieldUpdated = function() {
-            if (this.isValid()) {
-                this.trigger('propertychange', {
-                    id: this.attr.id,
-                    propertyId: this.attr.property.title,
-                    values: this.getValues()
-                });
-            } else {
-                this.trigger('propertyinvalid', {
-                    id: this.attr.id,
-                    propertyId: this.attr.property.title
-                });
-            }
-        }
 
         this.onDependentPropertyInvalid = function(event, data) {
             if ($(event.target).is(this.$node)) {
@@ -59,7 +60,7 @@ define([
             }
 
             event.stopPropagation();
-            this.compoundValues[data.propertyId] = data.values;
+            this.compoundValues[data.propertyId] = data.value;
             this.triggerFieldUpdated();
         };
 
@@ -96,7 +97,7 @@ define([
                 fields = $(),
                 names = _.indexBy(this.attr.values, 'name');
 
-            this.attr.property.dependentPropertyIris.forEach(function(propertyIri, i) {
+            Promise.all(this.attr.property.dependentPropertyIris.map(function(propertyIri, i) {
                 var ontologyProperty = self.ontologyProperties.byTitle[propertyIri],
                     fieldContainer = $('<div>').addClass('compound-field'),
                     property = names[propertyIri],
@@ -104,26 +105,31 @@ define([
 
                 self.compoundValues[propertyIri] = previousValue;
 
-                require([
+                return Promise.require(
                     ontologyProperty.possibleValues ?
-                        '../restrictValues' :
-                        '../' + ontologyProperty.dataType
-                ], function(PropertyField) {
+                        'fields/restrictValues' :
+                        'fields/' + ontologyProperty.dataType
+                ).then(function(PropertyField) {
                     PropertyField.attachTo(fieldContainer, {
                         property: ontologyProperty,
                         newProperty: !property,
+                        tooltip: {
+                            title: ontologyProperty.displayName,
+                            placement: 'left',
+                            trigger: 'focus'
+                        },
                         vertexProperty: property,
                         value: previousValue,
                         predicates: self.attr.predicates,
                         composite: true,
                         focus: i === 0
                     });
-                    self.trigger('compoundReady');
+                    fields = fields.add(fieldContainer);
                 })
-                fields = fields.add(fieldContainer);
+            })).done(function() {
+                self.$node.empty().append(fields);
+                self.trigger('fieldRendered');
             })
-
-            this.$node.empty().append(fields);
         };
     }
 });

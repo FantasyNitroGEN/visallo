@@ -1,46 +1,40 @@
 
 .configuration {
-  table, tr {
-      width: 100%;
-  }
-  
-  tr.input-prepend, tr.input-append {
-    display: table-row;
+  input.invalid, textarea.invalid, select.invalid,
+  input.invalid:focus, textarea.invalid:focus, select.invalid:focus {
+    color: #b94a48;
+    border-color: #ee5f5b;
+    &:focus {
+      border-color: darken(#ee5f5b, 10%);
+      @shadow: 0 0 6px lighten(#ee5f5b, 20%);
+      .box-shadow(@shadow);
+    }
   }
 
-  .input-row {
+  select {
     width: 100%;
-    position: relative;
+  }
 
-    input, .controls-row {
+  .dateField {
+    display: flex;
+    .date {
+      flex: 2;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      margin: 0;
+      min-width: 0;
+      .box-sizing(border-box);
+    }
+    .timepicker {
+      flex: 1;
+      border-radius: 0;
+      margin: 0;
       margin-left: -1px;
+      min-width: 0;
+      .box-sizing(border-box);
     }
-
-    input.invalid:focus,
-    textarea.invalid:focus,
-    select.invalid:focus {
-      color: #b94a48;
-      border-color: #ee5f5b;
-      &:focus {
-        border-color: darken(#ee5f5b, 10%);
-        @shadow: 0 0 6px lighten(#ee5f5b, 20%);
-        .box-shadow(@shadow);
-      }
-    }
-  }
-
-  .predicate-row:last-child span.timezone {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;    
-      border-top-right-radius: 4px;
-      border-bottom-right-radius: 4px;    
-  }
-
-  .predicate-row span {
-    width: 100%;    
-    text-align: right;
-
-    &.timezone {
+    .timezone {
+      /*flex: 0;*/
       font-variant: small-caps;
       text-transform: uppercase;
       cursor: pointer;
@@ -59,78 +53,20 @@
     }
   }
 
-  .input-row > *, .predicate-row span {
-    margin-top: 10px;
-  }
-  
-  &.desc-focus {
-    .input-row {
-      
-      position: static !important;
-      
-      input.description {        
-        left: 0;
-        position: absolute;
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;        
-      }
-    } 
-    .input-prepend, .input-append {
-      position: relative;
-    }
-  }
-  
-  .selection {
-    position: absolute;
-    right: 1em;
-    left: 1em;
-    padding: 0;
-    margin: 0.4em 2px 0px 0;
-  }
-
-  .add-on .icon-calendar {
-    margin-right: 0;
-    margin-left: 1px;
-  }
-
-  .field-type-boolean {
-    .input-prepend {
-      font-size: 100%;
-      cursor: pointer;
-    }
-
+  label.boolean {
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 0.25em;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    .box-sizing(border-box);
+    .box-shadow(~"inset 0 1px 1px rgba(0, 0, 0, 0.075)");
+    .disable-text-selection;
     input {
-      vertical-align: top;
-      position: relative;
-      top: 0;
-      margin-top: -0.5em;
-    }
-
-    .input-row {
-      .disable-text-selection;
-
-      div.display {
-        background: white;
-        border: 1px solid #ccc;
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 5px;
-        height: 100%;
-        width: 100%;
-        line-height: 2em;
-        padding: 0 0.5em;
-        .box-sizing(border-box);
-        .box-shadow(~"inset 0 1px 1px rgba(0, 0, 0, 0.075)");
-      }
+      margin: 0 0.25em;
     }
   }
 }
-
-/* 
-.underneath .configuration .field-type-boolean input {
-  margin-top: 0.3em;
-  margin-left: 0.2em;
-}
-*/
 
 .typeahead {
   .active .subtitle {
@@ -190,42 +126,3 @@
   }
 }
 
-.underneath .configuration {
-
-  .predicate-row span {
-    .box-sizing(border-box);
-    padding: 1em 0.5em;
-    line-height: 0.2em;
-  }
-  .predicate-row .add-on i {
-    margin-top: -0.5em;
-  }
-  
-  .input-row > *, .predicate-row span {
-    margin-top: 0;
-    margin-bottom: 0.75em;
-  }
-
-
-  .field-type-boolean {
-      td.predicate-row {
-        box-sizing: content-box;
-        font-size: 100%;
-        line-height: 1em;
-        span {
-            padding: 0 0.5em;
-            box-sizing: border-box;
-            margin-bottom: 0.75em;
-            width: 100%;
-            height: 100%;
-            line-height: 2em;
-            display: block;
-            input {
-              margin: 0.5em 0 0 0px;
-              width: 12px;
-            }
-        }
-    }
-  }
-
-}

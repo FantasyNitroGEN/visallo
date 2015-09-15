@@ -2,19 +2,17 @@
 define(['util/withTeardown'], function(withTeardown) {
     'use strict';
 
+    var ENTER = 13;
+
     return function() {
 
         withTeardown.call(this);
 
         this.defaultAttrs({
-            predicateSelector: 'select.predicate',
-            visibleInputsSelector: 'input:visible,select:not(.predicate):visible',
             inputSelector: 'input,textarea,select',
             value: '',
             composite: false,
-            predicates: false,
-            newProperty: false,
-            defaultPredicate: '='
+            newProperty: false
         });
 
         this.after('teardown', function() {
@@ -23,139 +21,141 @@ define(['util/withTeardown'], function(withTeardown) {
             this.$node.empty();
         });
 
+
+        this.before('initialize', function(node, config) {
+            config.placeholder = config.onlySearchable ? (
+                    i18n(true, 'field.' + config.property.dataType + '.displaytype.' + config.property.displayType + '.placeholder') ||
+                    i18n(true, 'field.' + config.property.dataType + '.placeholder') ||
+                    config.property.displayName
+                ) : config.property.displayName;
+        })
+
         this.after('initialize', function() {
-            var self = this,
-                inputs = this.select('visibleInputsSelector'),
-                inputsNoSelects = inputs.not('select');
+            var self = this;
 
-            this.$node.find('input:not([type=checkbox])').each(function() {
-                var $this = $(this);
-                if ($this.data('optional') !== true) {
-                    $this.attr('required', true)
-                }
-            });
-
-            if (inputsNoSelects.length && this.attr.tooltip &&
-                this.attr.disableTooltip !== true &&
-                this.$node.find('.input-prepend').length === 0) {
-
-                inputsNoSelects.eq(0)
-                    .tooltip($.extend({ container: 'body' }, this.attr.tooltip))
-                    .data('tooltip').tip().addClass('field-tooltip');
-            }
-
-            if (this.attr.focus !== false) {
-                inputs.eq(0).focus();
-            }
-
-            if (!_.isFunction(this.triggerFieldUpdated)) {
-                throw new Error('triggerFieldUpdated is required function for fields');
-            }
-
-            if (!_.isUndefined(this.attr.value)) {
-                var predicate = this.$node.find('.predicate');
-
-                predicate.find('option')
-                    .toArray()
-                    .forEach(function(option) {
-                        var matched = false;
-                        if (self.attr.predicateType) {
-                            if (self.attr.predicateType === option.value) {
-                                predicate.val(option.value);
-                            }
-                        } else if (option.value === self.attr.defaultPredicate) {
-                            predicate.val(option.value);
+            if (this.attr.preventChangeHandler !== true) {
+                this.on('change keyup', {
+                    inputSelector: function(event) {
+                        if (event.type === 'change' || event.which === ENTER) {
+                            this.triggerFieldUpdated();
                         }
-                    });
+                    }
+                });
+            }
 
-                this.triggerFieldUpdated();
+            this.on('focusPropertyField', function() {
+                _.defer(function() {
+                    self.select('inputSelector').eq(0).focus().select();
+                })
+            })
+
+            if (!_.isFunction(this.getValue)) {
+                throw new Error('getValue is required function for fields');
+            }
+
+            if (!_.isFunction(this.setValue)) {
+                throw new Error('setValue is required function for fields');
+            }
+
+            this.on('fieldRendered', function handler() {
+                this.off('fieldRendered', handler);
+                rendered();
+            })
+            if (this.attr.asyncRender !== true) {
+                this.trigger('fieldRendered');
+            }
+
+            function rendered() {
+                var inputs = self.select('inputSelector'),
+                    inputsNoSelects = inputs.not('select');
+
+                self.$node.find('input:not([type=checkbox])').each(function() {
+                    var $this = $(this);
+                    if ($this.data('optional') !== true) {
+                        $this.attr('required', true)
+                    }
+                });
+
+                if (inputsNoSelects.length && self.attr.tooltip && self.attr.disableTooltip !== true) {
+                    var delayedShow = _.debounce(function() {
+                            inputsNoSelects.eq(0).tooltip('show');
+                        }, 1000),
+                        delayedTimer,
+                        hide = function() {
+                            clearTimeout(delayedTimer);
+                            var tooltip = inputsNoSelects.eq(0).data('tooltip');
+                            if (tooltip) {
+                                if (tooltip.tip().is(':visible')) {
+                                    tooltip.hide();
+                                    delayedTimer = delayedShow();
+                                }
+                            }
+                        };
+
+                    inputsNoSelects.eq(0)
+                        .tooltip($.extend({ container: 'body' }, self.attr.tooltip))
+                        .data('tooltip').tip().addClass('field-tooltip');
+                    inputsNoSelects.eq(0).one('shown', function() {
+                        self.on(document, 'graphPaddingUpdated', hide);
+                        $(this).scrollParent().on('scroll', hide);
+                    })
+                }
+
+                if (self.attr.focus !== false) {
+                    _.defer(function() {
+                        inputs.eq(0).focus().select();
+                    })
+                }
+
+                self.setValue(self.attr.value);
+                self.triggerFieldUpdated();
             }
         });
 
-        this.filterUpdated = function(values, predicate, options) {
-            if (!_.isFunction(this.isValid) || this.isValid()) {
-                values = $.isArray(values) ? values : [values];
-                if (
-                    (!this._previousValues ||
-                        (this._previousValues && !_.isEqual(this._previousValues, values))) ||
-
-                    (!this._previousPredicate ||
-                         (this._previousPredicate && !_.isEqual(this._previousPredicate, predicate)))
-                ) {
-
-                    this.trigger('propertychange', {
-                        id: this.attr.id,
-                        propertyId: this.attr.property.title,
-                        values: values,
-                        predicate: predicate,
-                        metadata: options && options.metadata,
-                        options: options
-                    });
-                }
-
-                this._previousValues = values;
-                this._previousPredicate = predicate;
-                this._markedInvalid = false;
-            } else if (!this._markedInvalid) {
-                this._markedInvalid = true;
-                this.trigger('propertyinvalid', {
-                    id: this.attr.id,
-                    propertyId: this.attr.property.title
-                });
-                this._previousPredicate = null;
-                this._previousValues = null;
-            }
+        this.triggerFieldUpdated = function() {
+            this.fieldUpdated(this.getValue());
         };
 
-        this.setValues = function(val1, val2, options) {
-            var inputs = this.$node.find('.input-row input'),
-                values = ['', ''];
+        this.fieldUpdated = function(value, options) {
+            var self = this,
+                result;
 
-            if (val1 && _.isDate(val1)) {
-                if (inputs.length === 4) {
-                    inputs.eq(0).datepicker('setDate', val1);
-                    inputs.eq(1).timepicker('setTime', val1);
-                    inputs.eq(2).datepicker('setDate', val2);
-                    inputs.eq(3).timepicker('setTime', val2);
+            if (!_.isFunction(this.isValid) || (result = this.isValid(value))) {
+                if (_.isFunction(result.then)) {
+                    result.then(handle);
                 } else {
-                    inputs.eq(0).datepicker('setDate', val1);
-                    inputs.eq(1).datepicker('setDate', val2);
+                    handle(true);
                 }
-                values = this.getValues();
-            } else {
-                if (val1) {
-                    values = [val1.toFixed(2), val2.toFixed(2)];
-                }
-                inputs.eq(0).val(values[0]);
-                inputs.eq(1).val(values[1]);
+            } else if (!this._markedInvalid) {
+                handle(false);
             }
 
-            this.filterUpdated(
-                values,
-                this.select('predicateSelector').val(),
-                options
-            );
-        };
-
-        this.getValues = function() {
-            var inputs = this.$node.hasClass('alternate') ?
-                this.$node.find('.input-row input') :
-                this.select('visibleInputsSelector');
-
-            return inputs.map(function() {
-                var $this = $(this);
-                if ($this.is('input[type=checkbox]')) {
-                    return $this.prop('checked');
+            function handle(isValid) {
+                var inputs = self.select('inputSelector');
+                if (isValid) {
+                    if (!self._previousValue || (self._previousValue && !_.isEqual(self._previousValue, value))) {
+                        self.trigger('propertychange', {
+                            propertyId: self.attr.property.title,
+                            value: value,
+                            metadata: _.isFunction(self.getMetadata) && self.getMetadata() || {},
+                            options: options
+                        });
+                        self.setValue(value);
+                    }
+                    inputs.removeClass('invalid');
+                    self._previousValue = value;
+                    self._markedInvalid = false;
+                } else {
+                    self._markedInvalid = true;
+                    self.trigger('propertyinvalid', {
+                        propertyId: self.attr.property.title
+                    });
+                    if (inputs.length === 1) {
+                        inputs.addClass('invalid');
+                    }
+                    self._previousValue = null;
                 }
-                return $(this).val();
-            }).toArray();
+            }
         };
-
-        this.updateRangeVisibility = function() {
-            var v = this.select('predicateSelector').val();
-
-            this.$node.find('.range-only').toggle(v === 'range');
-        };
-
     };
 });

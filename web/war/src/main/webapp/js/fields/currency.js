@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!./currency',
+    'hbs!./currencyTpl',
     'util/parsers',
     'util/vertex/formatters',
     './withHistogram',
@@ -19,34 +19,19 @@ define([
 
         this.after('initialize', function() {
             this.$node.html(template(this.attr));
-
-            this.updateRangeVisibility();
-
-            this.on('change keyup', {
-                inputSelector: function() {
-                    this.updateRangeVisibility();
-                    this.triggerFieldUpdated();
-                }
-            });
         });
 
-        this.triggerFieldUpdated = function() {
-            this.filterUpdated(
-                this.getValues().map(function(v) {
-                    return makeNumber(v);
-                }),
-                this.select('predicateSelector').val()
-            );
+        this.setValue = function(value) {
+            this.select('inputSelector').val(value);
         };
 
-        this.isValid = function() {
-            var name = this.attr.property.title,
-                values = this.getValues();
+        this.getValue = function() {
+            return makeNumber(this.select('inputSelector').val().trim());
+        };
 
-            return _.every(values, function(v) {
-                var n = makeNumber(v);
-                return v.length && _.isNumber(n) && !isNaN(n) && F.vertex.singlePropValid(v, name);
-            });
+        this.isValid = function(value) {
+            var name = this.attr.property.title;
+            return _.isNumber(value) && !isNaN(value) && F.vertex.singlePropValid(value, name);
         };
     }
 });

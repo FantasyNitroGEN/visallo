@@ -593,12 +593,17 @@ define([
                     .forEach(function(updatedVertex) {
                         var cyNode = cy.nodes().filter('#' + toCyId(updatedVertex));
                         if (cyNode.length) {
+                            cyNode = cyNode[0];
                             var newData = self.updateCyNodeData(cyNode.data(), updatedVertex);
                             cyNode.data(newData);
-                            if (cyNode._private.classes) {
-                                cyNode._private.classes.length = 0;
+
+                            _.each(cyNode._private.classes, function(enabled, name) {
+                                cyNode.removeClass(name);
+                            });
+                            var classes = self.classesForVertex(updatedVertex);
+                            if (classes.length) {
+                                cyNode.addClass(classes);
                             }
-                            cyNode.addClass(self.classesForVertex(updatedVertex));
                         }
                     });
             });
@@ -1324,7 +1329,17 @@ define([
 
             var cy = vertices[0].cy(),
                 updateData = {},
-                verticesMoved = [];
+                verticesMoved = [],
+                snapCoordinate = function(value, snap) {
+                    var diff = (value % snap),
+                        which = snap / 2;
+
+                    if (value < 0 && Math.abs(diff) < which) return value - diff;
+                    if (value < 0) return value - (snap + diff);
+                    if (diff < which) return value - diff;
+
+                    return value + (snap - diff)
+                };
 
             vertices.each(function(i, vertex) {
                 var p = retina.pixelsToPoints(vertex.position()),
@@ -1333,6 +1348,12 @@ define([
                         x: Math.round(p.x),
                         y: Math.round(p.y)
                     };
+
+                if (window.DEBUG_GRAPH_SNAP_TO_GRID) {
+                    pCopy.x = snapCoordinate(pCopy.x, window.DEBUG_GRAPH_SNAP_TO_GRID);
+                    pCopy.y = snapCoordinate(pCopy.y, window.DEBUG_GRAPH_SNAP_TO_GRID_Y || window.DEBUG_GRAPH_SNAP_TO_GRID) +
+                        ((100 - retina.pixelsToPoints({w: 0, h: vertex.height()}).h) / 2);
+                }
 
                 if (!vertex.data('freed')) {
                     dup = false;
@@ -2046,6 +2067,9 @@ define([
                         }
                     }
                     self.cytoscapeMarkReady(this);
+                    self.trigger('cytoscapeReady', {
+                        cy: this
+                    });
 
                     if (self.$node.is('.visible')) {
                         setTimeout(function() {

@@ -3,23 +3,21 @@ define([
     'flight/lib/component',
     'flight/lib/registry',
     'hbs!./filtersTpl',
-    'tpl!./item',
+    './filterItem',
     'tpl!./entityItem',
     'util/vertex/formatters',
     'util/ontology/conceptSelect',
     'util/withDataRequest',
-    'fields/selection/selection',
     'configuration/plugins/registry'
 ], function(
     defineComponent,
     flightRegistry,
     template,
-    itemTemplate,
+    FilterItem,
     entityItemTemplate,
     F,
     ConceptSelector,
     withDataRequest,
-    FieldSelection,
     registry) {
     'use strict';
 
@@ -33,11 +31,10 @@ define([
         this.filterId = 0;
 
         this.defaultAttrs({
-            fieldSelectionSelector: '.newrow .add-property',
             removeEntityRowSelector: '.entity-filters button.remove',
             removeExtensionRowSelector: '.extension-filters button.remove',
             extensionsSelector: '.extension-filters',
-            removeRowSelector: '.prop-filters button.remove',
+            filterItemsSelector: '.prop-filters .filter',
             conceptDropdownSelector: '.concepts-dropdown'
         });
 
@@ -54,14 +51,13 @@ define([
                     self.trigger('filtersLoaded');
                 });
 
-            this.on('propertychange', this.onPropertyFieldItemChanged);
-            this.on('propertyselected', this.onPropertySelected);
-            this.on('propertyinvalid', this.onPropertyInvalid);
+            this.on('filterItemChanged', this.onFilterItemChanged);
+
+            this.on('savedQuerySelected', this.onSavedQuerySelected);
             this.on('clearfilters', this.onClearFilters);
             this.on('click', {
-                removeEntityRowSelector: this.onRemoveEntityRow,
                 removeExtensionRowSelector: this.onRemoveExtensionRow,
-                removeRowSelector: this.onRemoveRow
+                removeEntityRowSelector: this.onRemoveExtensionRow
             });
             this.on('change keyup', {
                 extensionsSelector: function(e) {
@@ -77,6 +73,26 @@ define([
             this.loadPropertyFilters();
             this.loadConcepts();
         });
+
+        this.onFilterItemChanged = function(event, data) {
+            var $li = $(event.target).removeClass('newrow'),
+                filterId = $li.data('filterId');
+
+            if (_.isUndefined(filterId)) {
+                console.error('Something is wrong, filter doesn\'t have id', $li[0]);
+            }
+
+            if (data.valid) {
+                this.propertyFilters[filterId] = data.filter;
+            } else {
+                delete this.propertyFilters[filterId];
+                if (data.removed) {
+                    $li.remove();
+                }
+            }
+            this.notifyOfFilters();
+            this.createNewRowIfNeeded();
+        };
 
         this.addSearchFilterExtensions = function() {
             var filterSearchType = this.attr.searchType,
@@ -106,7 +122,9 @@ define([
 
                                 C.attachTo($li, {
                                     configurationSelector: '.configuration',
-                                    changedEventName: 'filterExtensionChanged'
+                                    changedEventName: 'filterExtensionChanged',
+                                    loadSavedQueryEvent: 'loadSavedQuery',
+                                    savedQueryLoadedEvent: 'savedQueryLoaded'
                                 });
 
                                 if (extension.initHidden) {
@@ -124,7 +142,7 @@ define([
             var options = data && data.options,
                 newFilters = _.omit(data, 'options');
 
-            if (options && options.clearOtherFilters) {
+            if (options && options.clearOtherFilters && !this.disableNotify) {
                 this.onClearFilters();
             }
             _.extend(this.otherFilters, newFilters);
@@ -137,26 +155,34 @@ define([
 
             event.stopPropagation();
 
-            this.onClearFilters();
-
             this.dataRequest('ontology', 'properties')
                 .done(function(ontologyProperties) {
                     var properties = data.properties || _.compact([data.property]);
 
+                    self.onClearFilters();
+                    self.disableNotify = true;
+
                     Promise.resolve(properties)
                         .each(function(property) {
-                            return self.addPropertyRow({
-                                property: ontologyProperties.byTitle[property.name],
-                                value: property.value,
-                                values: property.values,
-                                predicate: property.predicate
-                            });
+                            var ontologyProperty = ontologyProperties.byTitle[property.name];
+                            if (ontologyProperty &&
+                                ontologyProperty.dataType === 'geoLocation' &&
+                                _.isObject(property.value) &&
+                                !('radius' in property.value)) {
+                                property.value.radius = 1;
+                            }
+                            return self.addFilterItem({
+                                propertyId: property.name,
+                                values: property.values || [property.value],
+                                predicate: property.predicate || '='
+                            }, { hide: true });
+                        })
+                        .then(function() {
+                            return self.setConceptFilter(data.conceptId);
                         })
                         .done(function() {
-                            self.conceptFilter = data.conceptId || '';
-                            self.trigger(self.select('conceptDropdownSelector'), 'selectConceptId', {
-                                conceptId: data.conceptId || ''
-                            });
+                            self.disableNotify = false;
+                            self.$node.find('.filter').show();
                             self.notifyOfFilters();
                         });
                 });
@@ -165,63 +191,69 @@ define([
         this.onSearchByRelatedEntity = function(event, data) {
             event.stopPropagation();
             var self = this;
-            this.dataRequest('vertex', 'store', { vertexIds: data.vertexIds })
+
+            this.onClearFilters();
+
+            Promise.resolve(this.setConceptFilter(data.conceptId))
+                .then(function() {
+                    self.setRelatedToEntityFilter(data.vertexIds);
+                })
+        };
+
+        this.setRelatedToEntityFilter = function(vertexIds) {
+            var self = this;
+
+            return this.dataRequest('vertex', 'store', { vertexIds: vertexIds })
                 .done(function(vertices) {
                     var single = vertices[0],
                         title = vertices.length > 1 ? i18n('search.filters.title_multiple', vertices.length)
                                                     : single && F.vertex.title(single) || single.id;
-                    self.onClearFilters();
 
                     self.otherFilters.relatedToVertexIds = _.pluck(vertices, 'id');
-                    self.conceptFilter = data.conceptId || '';
-                    self.trigger(self.select('conceptDropdownSelector'), 'selectConceptId', {
-                        conceptId: data.conceptId || ''
-                    });
                     self.$node.find('.entity-filters')
                         .append(entityItemTemplate({title: title})).show();
                     self.notifyOfFilters();
                 });
         };
 
-        this.onConceptChange = function(event, data) {
-            var self = this,
-                deferred = $.Deferred().done(function(properties) {
-                    self.filteredPropertiesList = properties && properties.list;
-                    self.select('fieldSelectionSelector').each(function() {
-                        self.trigger(this, 'filterProperties', {
-                            properties: properties && properties.list
-                        });
-                    });
-                });
+        this.setConceptFilter = function(conceptId) {
+            var self = this;
 
-            this.conceptFilter = data.concept && data.concept.id || '';
+            this.conceptFilter = conceptId || '';
+            this.trigger(this.select('conceptDropdownSelector'), 'selectConceptId', { conceptId: conceptId });
 
-            // Publish change to filter properties typeaheads
             if (this.conceptFilter) {
-                this.dataRequest('ontology', 'propertiesByConceptId', this.conceptFilter)
-                    .done(deferred.resolve);
+                return this.dataRequest('ontology', 'propertiesByConceptId', this.conceptFilter)
+                    .then(function(properties) {
+                        self.filteredPropertiesList = _.reject(properties && properties.list || [], function(property) {
+                            return !_.isEmpty(property.dependentPropertyIris);
+                        });
+                        self.select('filterItemsSelector').trigger('filterProperties', {
+                            properties: self.filteredPropertiesList
+                        })
+                        self.notifyOfFilters();
+                    })
             } else {
-                deferred.resolve();
+                this.filteredPropertiesList = null;
+                this.select('filterItemsSelector').trigger('filterProperties', {
+                    properties: this.properties
+                })
+                this.notifyOfFilters();
             }
+        };
 
-            this.notifyOfFilters();
+        this.onConceptChange = function(event, data) {
+            this.setConceptFilter(data.concept && data.concept.id || '');
         };
 
         this.onClearFilters = function(event, data) {
             var self = this,
-                nodes = this.$node.find('.configuration').filter(function() {
-                    return $(this).closest('.extension-filters').length === 0;
-                });
+                filterItems = this.$node.find('.prop-filters .filter');
 
-            nodes.each(function() {
-                self.teardownField($(this));
-            }).closest('li:not(.newrow)').remove();
+            filterItems.teardownAllComponents();
 
-            this.trigger(this.select('conceptDropdownSelector'), 'clearSelectedConcept');
-            this.conceptFilter = '';
-
+            this.setConceptFilter()
             this.createNewRowIfNeeded();
-
             this.otherFilters = {};
             this.$node.find('.entity-filters').hide().empty();
             this.$node.find('.extension-filter-row').hide();
@@ -239,6 +271,8 @@ define([
         }
 
         this.notifyOfFilters = function(options) {
+            if (this.disableNotify) return;
+
             var ontologyProperties = this.ontologyProperties,
                 filters = {
                     otherFilters: this.otherFilters,
@@ -277,23 +311,10 @@ define([
             this.trigger('filterschange', filters);
         };
 
-        this.onRemoveEntityRow = function(event, data) {
-            var target = $(event.target),
-                row = target.closest('.entity-filter-row'),
-                section = row.closest('.entity-filters'),
-                key = row.data('filterKey');
-
-            row.remove();
-            section.hide();
-            delete this.otherFilters[key];
-            this.notifyOfFilters();
-        };
-
         this.onRemoveExtensionRow = function(event, data) {
             var self = this,
                 target = $(event.target),
-                row = target.closest('.extension-filter-row'),
-                section = row.closest('.extension-filters'),
+                row = target.closest('.extension-filter-row,.entity-filter-row'),
                 keys = row.data('filterKey');
 
             row.hide();
@@ -306,112 +327,82 @@ define([
             this.notifyOfFilters();
         };
 
-        this.onRemoveRow = function(event, data) {
-            var target = $(event.target);
-            this.teardownField(target.next('.configuration'));
-            target.closest('li').remove();
-            this.createNewRowIfNeeded();
-        };
-
-        this.onPropertySelected = function(event, data) {
-            this.addPropertyRow(data, event.target);
-        };
-
-        this.addPropertyRow = function(data, optionalRow) {
-            var self = this,
-                $dropdown = this.$node.find('.newrow .dropdown input'),
-                target = optionalRow && $(optionalRow) || $dropdown,
-                li = target.closest('li').addClass('fId' + self.filterId),
-                property = data.property,
-                isCompoundField = property.dependentPropertyIris && property.dependentPropertyIris.length,
-                fieldComponent;
-
-            if (property.title === 'http://visallo.org#text') {
-                property.dataType = 'boolean';
-            }
-
-            if (('value' in data) || ('values' in data)) {
-                $dropdown.val(property.displayName);
-            }
-
-            if (isCompoundField) {
-                fieldComponent = 'fields/compound/compound';
-            } else if (property.displayType === 'duration') {
-                fieldComponent = 'fields/duration';
-            } else {
-                fieldComponent = property.possibleValues ? 'fields/restrictValues' : 'fields/' + property.dataType;
-            }
-
-            return Promise.require(fieldComponent).then(function(PropertyFieldItem) {
-                var node = li.find('.configuration').removeClass('alternate');
-
-                self.teardownField(node);
-
-                if (isCompoundField) {
-                    PropertyFieldItem.attachTo(node, {
-                        id: self.filterId++,
-                        property: property,
-                        vertex: null,
-                        predicates: true,
-                        predicateType: data.predicate,
-                        values: data.values,
-                        supportsHistogram: false
-                    });
-                } else {
-                    PropertyFieldItem.attachTo(node, {
-                        property: property,
-                        id: self.filterId++,
-                        predicates: true,
-                        predicateType: data.predicate,
-                        value: data.value,
-                        supportsHistogram: self.attr.supportsHistogram
-                    });
-                }
-
-                li.removeClass('newrow');
-
-                self.createNewRowIfNeeded();
-            });
-        };
-
-        this.onPropertyInvalid = function(event, data) {
-            var li = this.$node.find('li.fId' + data.id);
-            li.addClass('invalid');
-
-            delete this.propertyFilters[data.id];
-            this.notifyOfFilters();
-        };
-
-        this.createFieldSelection = function() {
-            FieldSelection.attachTo(this.select('fieldSelectionSelector'), {
-                properties: this.filteredPropertiesList || this.properties,
-                unsupportedProperties: this.attr.supportsHistogram ?
-                    [] :
-                    ['http://visallo.org#text'],
-                onlySearchable: true,
-                placeholder: i18n('search.filters.add_filter.placeholder')
-            });
-        }
-
         this.createNewRowIfNeeded = function() {
             if (!this.properties) {
                 return;
             }
             if (this.$node.find('.newrow').length === 0) {
-                this.$node.find('.prop-filters').append(itemTemplate({properties: this.properties}));
-                this.createFieldSelection();
+                this.addFilterItem();
             }
         };
 
-        this.onPropertyFieldItemChanged = function(event, data) {
-            this.$node.find('li.fId' + data.id).removeClass('invalid');
-            this.propertyFilters[data.id] = data;
-            if (data && data.options && data.options.isScrubbing === true) {
-                this.throttledNotifyOfFilters(data.options);
-            } else {
-                this.notifyOfFilters();
-            }
-            event.stopPropagation();
+        this.onSavedQuerySelected = function(event, data) {
+            var self = this,
+                filters = JSON.parse(data.query.parameters.filter);
+
+            this.dataRequest('ontology', 'properties')
+                .then(function(ontologyProperties) {
+                    self.onClearFilters();
+
+                    self.disableNotify = true;
+                    if (data.query.parameters['relatedToVertexIds[]']) {
+                        return self.setRelatedToEntityFilter(data.query.parameters['relatedToVertexIds[]']);
+                    }
+                })
+                .then(function() {
+                    var matching = self.$node.find('.extension-filter-row').filter(function() {
+                        var keys = $(this).data('filterKey');
+                        if (!_.isArray(keys)) {
+                            keys = [keys];
+                        }
+                        if (_.some(data.query.parameters, function(val, key) {
+                            return _.contains(keys, key.replace(/\[\]$/, ''));
+                        })) {
+                            return true;
+                        }
+                    });
+                    return Promise.resolve(matching.toArray())
+                        .each(function(extensionLi) {
+                            var $extensionLi = $(extensionLi),
+                                keys = $extensionLi.data('filterKey'),
+                                delaySecondsBeforeTimeout = 6;
+
+                            if (!_.isArray(keys)) {
+                                keys = [keys];
+                            }
+                            return new Promise(function(fulfill) {
+                                var newFilters = _.chain(data.query.parameters)
+                                    .map(function(val, key) {
+                                        return [key.replace(/\[\]$/, ''), val];
+                                    })
+                                    .filter(function(pair) {
+                                        return _.contains(keys, pair[0]);
+                                    })
+                                    .object()
+                                    .value()
+
+                                $extensionLi
+                                    .on('savedQueryLoaded', function loaded() {
+                                        $extensionLi.off('savedQueryLoaded', loaded);
+                                        fulfill();
+                                    })
+                                    .trigger('loadSavedQuery', newFilters);
+                            }).timeout(delaySecondsBeforeTimeout * 1000, 'savedQueryLoaded not fired for extension that uses keys:' + keys);
+                        })
+                })
+                .then(function() {
+                    return self.setConceptFilter(data.query.parameters.conceptType);
+                })
+                .then(function() {
+                    return Promise.resolve(filters).map(function(filter) {
+                        return self.addFilterItem(filter, { hide: true });
+                    }, { concurrency: 1 });
+                })
+                .done(function() {
+                    self.disableNotify = false;
+                    self.$node.find('.filter').show();
+                    self.notifyOfFilters({ fromSavedSearch: true });
+                });
         };
 
         this.teardownField = function(node) {
@@ -438,13 +429,52 @@ define([
         this.loadPropertyFilters = function() {
             var self = this;
 
-            this.dataRequest('ontology', 'properties')
-                .done(function(properties) {
+            this.ontologyPromise = this.dataRequest('ontology', 'properties')
+                .then(function(properties) {
                     self.ontologyProperties = properties;
-                    self.properties = properties.list;
-                    self.$node.find('.prop-filter-header').after(itemTemplate({}));
-                    self.createFieldSelection();
+                    self.properties = _.reject(properties.list, function(property) {
+                        return !_.isEmpty(property.dependentPropertyIris);
+                    });
+                    self.addFilterItem();
                 })
         };
+
+        this.addFilterItem = function(filter, options) {
+            var self = this,
+                $li = $('<li>').data('filterId', this.filterId++),
+                attributes = filter ? {
+                    property: this.ontologyProperties.byTitle[
+                        filter.propertyId
+                    ],
+                    predicate: filter.predicate,
+                    values: filter.values
+                } : {
+                    properties: this.filteredPropertiesList || this.properties,
+                    supportsHistogram: this.attr.supportsHistogram
+                },
+                $newRow = this.$node.find('.newrow');
+
+            if (filter) {
+                $li.addClass('filter')
+                    .toggle(!options || !options.hide)
+
+                if ($newRow.length) {
+                    $li.insertBefore($newRow);
+                } else {
+                    $li.appendTo(this.$node.find('.prop-filters'));
+                }
+            } else {
+                $li.addClass('filter newrow')
+                    .appendTo(this.$node.find('.prop-filters'));
+            }
+
+            return new Promise(function(fulfill) {
+                self.on($li, 'fieldRendered', function rendered() {
+                    self.off($li, 'fieldRendered', rendered);
+                    fulfill();
+                });
+                FilterItem.attachTo($li, attributes);
+            })
+        }
     }
 });

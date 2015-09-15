@@ -29,6 +29,12 @@ define([], function() {
                         width = $target.outerWidth(),
                         height = $target.outerHeight();
 
+                    if ((width === 0 || height === 0) && _.isFunction(event.target.getBBox)) {
+                        var box = event.target.getBBox();
+                        width = box.width;
+                        height = box.height;
+                    }
+
                     self.trigger(event.target, 'positionChanged', {
                         position: {
                             x: position.left + width / 2,

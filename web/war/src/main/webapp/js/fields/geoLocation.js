@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!./geoLocation',
+    'hbs!./geoLocationTpl',
     'util/parsers',
     'util/vertex/formatters',
     './withPropertyField',
@@ -18,9 +18,20 @@ define([
     function splitLatLon(latLonStr) {
         var parts = latLonStr.split(',');
         if (parts.length === 2) {
-            return [ $.trim(parts[0]), $.trim(parts[1]) ];
+            var lat = makeNumber(parts[0].trim()),
+                lon = makeNumber(parts[1].trim());
+
+            if (_.isNumber(lat) && _.isNumber(lon)) {
+                return {
+                    latitude: lat,
+                    longitude: lon
+                };
+            }
         }
-        return null;
+    }
+
+    function invalidRange(coord, val) {
+        return isNaN(coord) || coord < (val * -1) || coord > val;
     }
 
     function GeoLocationField() {
@@ -32,33 +43,70 @@ define([
             radiusSelector: '.radius'
         });
 
+        this.before('initialize', function(node, config) {
+            config.asyncRender = true;
+        });
+
         this.after('initialize', function() {
             var self = this;
 
-            this.hasGeocoder().done(function(enabled) {
-                self.attr.hasGeocoder = enabled;
-                self.$node.html(template(self.attr));
-                self.setupDescriptionTypeahead();
-                self.on(self.select('descriptionSelector'), 'focus blur', self.onFocusDescription);
-                self.on('change keyup', {
-                    inputSelector: function(event) {
-                        var latLon = splitLatLon(self.getValues()[1]);
-                        if (latLon) {
-                            var latInput = self.$node.find('input.lat'),
-                                lonInput = self.$node.find('input.lon');
-                            latInput.val(latLon[0]);
-                            lonInput.val(latLon[1]);
-                            lonInput.focus();
-                        }
+            this.rendered = new Promise(function(fulfill) {
+                self.hasGeocoder().done(function(enabled) {
+                    self.attr.hasGeocoder = enabled;
+                    self.$node.html(template(self.attr));
+                    self.setValue(self.attr.value);
+                    self.setupDescriptionTypeahead();
+                    self.on(self.select('descriptionSelector'), 'focus blur', self.onFocusDescription);
+                    fulfill();
+                    self.trigger('fieldRendered')
 
-                        self.triggerFieldUpdated();
-                    }
+                    self.on('paste', {
+                        latSelector: function(event) {
+                            _.defer(function() {
+                                var pastedValue = $(event.target).val();
+                                if (pastedValue.length) {
+                                    self.setValue(pastedValue);
+                                    self.triggerFieldUpdated();
+
+                                    self.select('latSelector')
+                                        .add(self.select('lonSelector'))
+                                        .animatePop();
+                                }
+                            })
+                        }
+                    })
                 });
-            });
+            })
         });
 
+        this.setValue = function(value) {
+            if (_.isString(value)) {
+                var parsedValue = splitLatLon(value);
+                if (parsedValue) {
+                    value = parsedValue;
+                }
+            }
+            this.select('descriptionSelector').val(value.description || '');
+            this.select('latSelector').val(value.latitude || '');
+            this.select('lonSelector').val(value.longitude || '');
+            this.select('radiusSelector').val(value.radius || '');
+        };
+
+        this.getValue = function() {
+            var value = {
+                description: $.trim(this.select('descriptionSelector').val()),
+                latitude: makeNumber($.trim(this.select('latSelector').val())),
+                longitude: makeNumber($.trim(this.select('lonSelector').val()))
+            };
+
+            if (this.attr.onlySearchable) {
+                value.radius = makeNumber($.trim(this.select('radiusSelector').val()));
+            }
+            return value;
+        };
+
         this.onFocusDescription = function(event) {
-            if (!this.attr.predicates || !this.attr.hasGeocoder) {
+            if (!this.attr.hasGeocoder) {
                 return;
             }
 
@@ -75,50 +123,26 @@ define([
             }));
         };
 
-        this.isValid = function() {
-            var self = this,
-                hasDescriptionField = self.select('descriptionSelector').length,
-                hasRadiusField = self.select('radiusSelector').length,
-                expected = 2,
-                name = this.attr.property.title,
-                values = this.getValues(),
-                lat,
-                lon;
+        this.isValid = function(value) {
+            var self = this;
 
-            if (hasDescriptionField) {
-                expected++;
-            }
-            if (hasRadiusField) {
-                expected++;
-            }
+            return this.rendered.then(function() {
+                var descField = self.select('descriptionSelector').length,
+                    radiusField = self.select('radiusSelector'),
+                    latitudeField = self.select('latSelector'),
+                    longitudeField = self.select('lonSelector'),
+                    name = self.attr.property.title,
+                    radiusInvalid = radiusField.length && (isNaN(value.radius) || value.radius <= 0),
+                    latitudeInvalid = invalidRange(value.latitude, 90),
+                    longitudeInvalid = invalidRange(value.longitude, 180),
+                    valid = !radiusInvalid && !latitudeInvalid && !longitudeInvalid;
 
-            var valid = (values.length === expected) &&
-                _.every(values, function(v, i) {
-                    var valIsValid = false,
-                        n = makeNumber(v);
-                    if (hasDescriptionField && i === 0) {
-                        valIsValid = true;
-                    } else if (hasRadiusField && i === (expected - 1)) {
-                        var radiusElement = self.select('radiusSelector');
-                        valIsValid = n > 0;
-                        (valIsValid ? radiusElement.removeClass : radiusElement.addClass)('invalid');
-                    } else {
-                        var latLonElement;
-                        valIsValid = v.length > 0 && _.isNumber(n) && !isNaN(n);
-                        if (i === (hasDescriptionField ? 1 : 0)) {
-                            lat = n;
-                            latLonElement = self.select('latSelector');
-                            valIsValid = valIsValid && (lat >= -90 && lat <= 90);
-                        } else {
-                            lon = n;
-                            latLonElement = self.select('lonSelector');
-                        }
-                        latLonElement.toggleClass('invalid', !valIsValid);
-                    }
-                    return valIsValid;
-                });
+                radiusField.toggleClass('invalid', radiusInvalid);
+                latitudeField.toggleClass('invalid', latitudeInvalid);
+                longitudeField.toggleClass('invalid', longitudeInvalid);
 
-            return valid && F.vertex.singlePropValid({ latitude: lat, longitude: lon }, name);
+                return valid && F.vertex.singlePropValid(value, name);
+            })
         };
 
         this.hasGeocoder = function() {
@@ -158,23 +182,12 @@ define([
                         updater: function(item) {
                             var result = savedResults[item];
                             if (result) {
-                                var lat = self.$node.find('.lat').val(result.latitude)
-                                        .parent().removePrefixedClasses('pop-'),
-                                    lon = self.$node.find('.lon').val(result.longitude)
-                                        .parent().removePrefixedClasses('pop-');
-
-                                requestAnimationFrame(function() {
-                                    lat.addClass('pop-fast');
-                                    _.delay(function() {
-                                        lon.addClass('pop-fast');
-                                    }, 250)
-                                });
-
-                                if (self.isValid()) {
-                                    self.triggerFieldUpdated();
-                                } else {
-                                    self.$node.find('.radius').focus();
-                                }
+                                self.select('latSelector').val(result.latitude)
+                                    .add(self.select('lonSelector').val(result.longitude))
+                                    .animatePop().done(function() {
+                                        self.$node.find('.radius').focus();
+                                        self.triggerFieldUpdated();
+                                    })
 
                                 return result.name;
                             }

@@ -8,9 +8,12 @@ define([
     F) {
     'use strict';
 
-    var SEARCH_RESULT_HEIGHT = 55;
+    var SEARCH_RESULT_HEIGHT = 55,
+        SearchComponent = defineComponent(SearchTypeVisallo, withSearch);
 
-    return defineComponent(SearchTypeVisallo, withSearch);
+    SearchComponent.savedSearchUrl = '/vertex/search';
+
+    return SearchComponent;
 
     function SearchTypeVisallo() {
 
@@ -20,10 +23,13 @@ define([
         });
 
         this.after('initialize', function() {
+            this.currentFilters = {};
+
             this.on('filterschange', function(event, data) {
                 data.setAsteriskSearchOnEmpty = true;
             })
             this.on('querysubmit', this.onQuerySubmit);
+            this.on('queryupdated', this.onQueryUpdated);
             this.on('clearSearch', this.onClearSearch);
             this.on('infiniteScrollRequest', this.onInfiniteScrollRequest);
         });
@@ -33,22 +39,16 @@ define([
                 this.currentRequest.cancel();
                 this.currentRequest = null;
             }
+            this.trigger('setCurrentSearchForSaving');
         };
 
-        this.onQuerySubmit = function(event, data) {
-            var self = this,
-                otherFilters = data.filters.otherFilters,
-                query = data.value;
-
-            this.currentQuery = data.value;
-            this.currentFilters = data.filters;
-
+        this.processPropertyFilters = function() {
             var propertyFilters = this.currentFilters.propertyFilters,
                 promise = propertyFilters && propertyFilters.length ?
                     this.dataRequest('ontology', 'properties') :
                     Promise.resolve();
 
-            promise.done(function(ontologyProperties) {
+            return promise.then(function(ontologyProperties) {
                 if (ontologyProperties) {
                     // Coerce currency properties to strings
                     propertyFilters.forEach(function(f) {
@@ -60,10 +60,54 @@ define([
                         }
                     })
                 }
+            });
+        };
+
+        this.onQueryUpdated = function(event, data) {
+            var self = this;
+            this.currentQuery = data.value;
+            this.currentFilters = data.filters;
+            this.processPropertyFilters().done(function() {
+                var options = {
+                    query: data.value,
+                    conceptFilter: data.filters.conceptFilter,
+                    propertyFilters: data.filters.propertyFilters,
+                    otherFilters: data.filters.otherFilters
+                };
+                self.triggerUpdatedSavedSearchQuery(options);
+            })
+        };
+
+        this.triggerUpdatedSavedSearchQuery = function(options) {
+            var self = this;
+
+            return this.dataRequest('vertex', 'queryForOptions', options)
+                .then(function(query) {
+                    var parameters = _.omit(query.parameters, 'size', 'offset');
+                    if (parameters.q && parameters.filter) {
+                        self.trigger('setCurrentSearchForSaving', {
+                            url: query.originalUrl,
+                            parameters: parameters
+                        });
+                    } else {
+                        self.trigger('setCurrentSearchForSaving');
+                    }
+                });
+        }
+
+        this.onQuerySubmit = function(event, data) {
+            var self = this,
+                otherFilters = data.filters.otherFilters,
+                query = data.value;
+
+            this.currentQuery = data.value;
+            this.currentFilters = data.filters;
+
+            this.processPropertyFilters().then(function() {
                 self.trigger('searchRequestBegan');
                 self.triggerRequest(
                     query,
-                    propertyFilters,
+                    self.currentFilters.propertyFilters,
                     self.currentFilters.conceptFilter,
                     otherFilters,
                     { offset: 0 }
@@ -111,15 +155,18 @@ define([
                 paging.size = resultPageSize * 2;
             }
 
-            this.currentRequest = this.dataRequest.apply(
-                this,
-                ['vertex', 'search'].concat([{
+            var self = this,
+                options = {
                     query: query,
                     propertyFilters: propertyFilters,
                     conceptFilter: conceptFilter,
                     otherFilters: otherFilters,
                     paging: paging
-                }])
+                };
+
+            this.triggerUpdatedSavedSearchQuery(options);
+            this.currentRequest = this.dataRequest.apply(
+                this, ['vertex', 'search'].concat([options])
             )
             return this.currentRequest;
         };

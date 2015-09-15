@@ -159,7 +159,7 @@ define([
                 ][Math.round(inRange / 45) % 8]) + ' ' + FORMATTERS.number.pretty(inRange) + '°';
             },
             duration: function(value) {
-                if (value === undefined) {
+                if (!$.trim(value).length) {
                     return '';
                 } else if (value === 0) {
                     return '0s';
@@ -546,34 +546,20 @@ define([
         },
         timezone: {
             dateTimeStringToTimezone: function(dateStr, srcTimezone, destTimezone) {
-                if (/^\s*$/.test(dateStr)) {
-                    return dateStr;
-                }
+                var dateTz = FORMATTERS.timezone.date(dateStr, srcTimezone);
 
-                if (isNaN(new Date(dateStr).getTime())) {
-                    // Maybe this is Firefox - it requires a 'T' separator.
-                    // Safari takes this path, too, but to no avail.
-                    dateStr = dateStr.replace(/^([\w\-]+)(\s+)([\w:]+)/, '$1T$3');
-                    if (isNaN(new Date(dateStr).getTime())) {
-                        return dateStr;
-                    }
-                }
-
-                return moment.tz(dateStr, srcTimezone)
-                    .tz(destTimezone)
-                    .format('YYYY-MM-DD HH:mm')
+                return dateTz.tz(destTimezone).format('YYYY-MM-DD HH:mm');
             },
-            dateTimeStringToUtc: function(millis, timezone) {
-                return FORMATTERS.timezone.dateTimeStringToTimezone(millis, timezone, 'Etc/UTC');
+            dateTimeStringToUtc: function(dateStr, timezone) {
+                return FORMATTERS.timezone.dateTimeStringToTimezone(dateStr, timezone, 'Etc/UTC');
             },
             date: function(dateStr, timezone) {
                 if (/^\s*$/.test(dateStr)) {
                     return dateStr;
                 }
-                if (isNaN(new Date(dateStr).getTime())) {
-                    return dateStr;
-                }
-                return moment.tz(dateStr, timezone)
+                return _.isNumber(dateStr) ?
+                    moment.tz(dateStr, timezone) :
+                    moment.tz(dateStr, 'YYYY-MM-DD HH:mm', timezone);
             },
             offsetDisplay: function(offsetMinutes) {
                 var negative = offsetMinutes < 0,

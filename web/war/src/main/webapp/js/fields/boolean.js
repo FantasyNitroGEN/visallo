@@ -15,56 +15,33 @@ define([
 
     function BooleanField() {
 
-        this.defaultAttrs({
-            booleanSelector: '.input-prepend'
-        });
+        this.before('initialize', function(node, config) {
+            config.disableTooltip = true;
+        })
 
         this.after('initialize', function() {
-            this.$node.html(template(this.attr));
-
-            this.on('click', {
-                booleanSelector: this.onClick
-            });
-
-            this.on('change', {
-                inputSelector: this.onToggle
-            });
-
-            this.triggerFieldUpdated();
+            this.$node.html(template({
+                value: this.attr.value,
+                display: i18n(true, 'field.boolean.' + this.attr.value + '.' + this.attr.property.title) || F.boolean.pretty(this.attr.value)
+            }));
         });
 
-        this.onToggle = function(event) {
-            this.triggerFieldUpdated();
+        this.getValue = function() {
+            return this.select('inputSelector').prop('checked') ? 'true' : 'false';
         };
 
-        this.onClick = function(event) {
-            if ($(event.target).is('input')) {
-                return;
-            }
-
-            var input = this.select('inputSelector'),
-                val = !input.prop('checked');
-
-            input.prop('checked', val);
-
-            this.triggerFieldUpdated();
+        this.setValue = function(value) {
+            this.select('inputSelector').prop('checked', value === true || value === 'true');
+            this.update(value);
         };
 
-        this.triggerFieldUpdated = function() {
-            var input = this.select('inputSelector'),
-                val = input.prop('checked');
-
-            this.$node.find('.input-row .display').text(
-                i18n(true, 'field.boolean.' + val + '.' + this.attr.property.title) ||
-                F.boolean.pretty(val)
+        this.update = function(value) {
+            this.$node.find('span').text(
+                i18n(true, 'field.boolean.' + value + '.' + this.attr.property.title) ||
+                (!this.attr.onlySearchable && this.attr.property.displayName) ||
+                F.boolean.pretty(value)
             );
-
-            this.filterUpdated(
-                this.getValues().map(function(v) {
-                    return v ? 'true' : 'false';
-                })
-            );
-        }
+        };
 
         this.isValid = function() {
             return true;

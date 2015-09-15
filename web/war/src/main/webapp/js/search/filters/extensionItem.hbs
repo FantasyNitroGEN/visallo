@@ -1,8 +1,8 @@
 <li class="extension-filter-row" data-filter-key="{{ filterKey }}">
-  <div class="add-property">
-    <input type="text" value="{{ sectionHeader }}" readonly style="cursor:default;"/>
+  <div class="current-property">
+    <label>{{ sectionHeader }}</label>
+    <button class="remove">{{ i18n 'search.filters.button.remove' }}</button>
   </div>
-  <button class="remove">{{ i18n 'search.filters.button.remove' }}</button>
   <div class="configuration"></div>
 </li>
 

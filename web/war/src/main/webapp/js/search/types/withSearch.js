@@ -32,6 +32,7 @@ define([
 
             this.on(document, 'menubarToggleDisplay', this.onToggleDisplay);
 
+            this.on('savedQuerySelected', this.onSavedQuerySelected);
             this.on('searchRequestCompleted', function(event, data) {
                 if (data.success && data.result) {
                     var self = this,
@@ -77,6 +78,13 @@ define([
             if (data.name === 'search' && this.$node.closest('.visible').length === 0) {
                 this.hideSearchResults();
             }
+        };
+
+        this.onSavedQuerySelected = function(event, data) {
+            var filtersNode = this.select('filtersSelector').find('.content')
+            event.stopPropagation();
+            if ($(event.target).is(filtersNode)) return;
+            filtersNode.trigger(event.type, data);
         };
 
         this.render = function() {

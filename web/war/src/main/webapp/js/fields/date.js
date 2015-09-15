@@ -23,7 +23,8 @@ define([
 
         this.defaultAttrs({
             timeFieldSelector: '.timepicker',
-            timezoneSelector: '.timezone'
+            timezoneSelector: '.timezone',
+            preventChangeHandler: true
         });
 
         this.before('initialize', function(node, config) {
@@ -37,77 +38,47 @@ define([
 
             this.displayTime = this.attr.property.displayType !== 'dateOnly';
 
-            if (this.attr.value) {
-                var millis = _.isNumber(this.attr.value) ? this.attr.value : undefined;
-
-                if (_.isUndefined(millis)) {
-                    var date = F.date.looslyParseDate(this.attr.value);
-                    if (date) {
-                        millis = date.getTime();
-                    }
-                } else if (isNaN(new Date(millis).getTime())) {
-                    millis = null;
-                }
-
-                if (millis) {
-                    dateString = F.date.dateStringUtc(millis);
-                    timeString = F.date.timeString(millis);
-                } else {
-                    this.attr.value = '';
-                }
-
-            }
-
             this.$node.html(template({
                 dateString: dateString,
                 timeString: timeString,
                 today: F.date.dateString(new Date()),
                 todayTime: F.date.timeString(new Date()),
-                displayTime: this.displayTime,
-                predicates: this.attr.predicates
+                displayTime: this.displayTime
             }));
 
-            this.updateRangeVisibility();
             this.updateTimezone();
-
-            this.getValues = function() {
-                var inputs = this.$node.hasClass('alternate') ?
-                        this.$node.find('.input-row input') :
-                        this.select('visibleInputsSelector'),
-                    values = inputs.map(function() {
-                        return $(this).val();
-                    }).toArray();
-
-                if (this.displayTime && values.length > 1) {
-                    var newValues = [], i;
-                    for (i = 0; i < values.length; i += 2) {
-                        newValues.push(values[i] + ' ' + values[i + 1]);
-                    }
-                    values = newValues;
-                }
-
-                return values.map(function(v) {
-                    if (self.displayTime) {
-                        return F.timezone.dateTimeStringToUtc(v, self.currentTimezone.name);
-                    }
-                    return v;
-                });
-            };
+            this.disableEvents = false;
 
             this.select('timeFieldSelector').timepicker({
                 template: false,
                 showInputs: false,
+                showSeconds: false,
                 minuteStep: 15,
+                maxHours: 23,
                 defaultTime: timeString || false,
-                showMeridian: false
+                showMeridian: false,
+                disableMousewheel: true
+            }).on('changeTime.timepicker', function() {
+                if (self.disableEvents) return;
+                self.triggerFieldUpdated();
             });
 
             this.on('change keyup', {
-                    inputSelector: function() {
-                        this.updateRangeVisibility();
-                        this.updateTimezone();
+                inputSelector: function(event) {
+                    if (this.disableEvents) return;
+                    if (event.type === 'change' || event.which === 13) {
+                        if (this.displayTime) {
+                            if ($(event.target).is('.date')) {
+                                this.triggerFieldUpdated();
+                            } else if (event.type === 'keyup') {
+                                $(event.target).blur();
+                            }
+                        } else {
+                            this.triggerFieldUpdated();
+                        }
                     }
-                });
+                }
+            });
 
             this.$node.find('input').on('paste', function(event) {
                 var $this = $(this);
@@ -134,91 +105,114 @@ define([
             this.on('click', {
                 timezoneSelector: this.onTimezoneOpen
             });
-
             this.on('selectTimezone', this.onSelectTimezone);
             this.updateTimezone();
         });
 
-        this.triggerFieldUpdated = function() {
-            var values = this.getValues(),
-                predicate = this.select('predicateSelector').val();
-            if (this.isValid()) {
-                if (this.displayTime) {
-                    // apply seconds to the time
-                    if (predicate === '=') {
-                        // turn into a range across all seconds in this minute
-                        predicate = 'range';
-                        values[1] = values[0] + ':59';
-                        values[0] += ':00';
-                    } else if (predicate === 'range') {
-                        values[0] += ':00';
-                        values[1] += ':59';
-                    } else if (predicate === '<') {
-                        values[0] += ':00';
-                    } else if (predicate === '>') {
-                        values[0] += ':59';
-                    }
-                } else {
-                    // append time to the day
-                    var MIDNIGHT = ' 00:00:00';
-                    var BEFORE_MIDNIGHT = ' 23:59:59';
-                    if (predicate === '=') {
-                        // turn into a range across all seconds in this day
-                        predicate = 'range';
-                        values[1] = F.date.addDaysToDateString(values[0], 1) + MIDNIGHT;
-                        values[0] += MIDNIGHT;
-                    } else if (predicate === 'range') {
-                        values[0] += MIDNIGHT;
-                        values[1] = F.date.addDaysToDateString(values[1], 1) + MIDNIGHT;
-                    } else if (predicate === '<') {
-                        values[0] += MIDNIGHT;
-                    } else if (predicate === '>') {
-                        values[0] += BEFORE_MIDNIGHT;
-                    }
-                }
+        this.getValue = function() {
+            var input = this.select('inputSelector').eq(0),
+                val = input.val(),
+                date = val.length && input.datepicker('getDate'),
+                dateStr;
+
+            if (_.isDate(date) && !isNaN(date.getTime())) {
+                dateStr = F.date.dateString(date.getTime());
             }
-            this.filterUpdated(
-                values,
-                predicate,
-                {
-                    metadata: this.currentTimezoneMetadata
+
+            if (this.displayTime) {
+                var timeField = input.next('input.timepicker'),
+                    timeVal = timeField.val();
+
+                if (dateStr && timeVal) {
+                    return F.timezone.dateTimeStringToUtc(dateStr + ' ' + timeVal, this.currentTimezone.name);
                 }
-            );
+            } else {
+                return dateStr;
+            }
+        };
+
+        this.getMetadata = function() {
+            return this.currentTimezoneMetadata;
+        }
+
+        this.setValue = function(value) {
+            var dateString, timeString;
+
+            this.disableEvents = true;
+            try {
+                if (value) {
+                    var millis = _.isNumber(value) ? value : undefined,
+                        date;
+
+                    if (_.isUndefined(millis) && _.isString(value) && value.length) {
+                        var looksLikeCorrectFormat = (/^\d+-\d+-\d+ \d+:\d+$/).test(value);
+                        if (looksLikeCorrectFormat) {
+                            var parsed = F.timezone.date(value, 'Etc/UTC');
+                            if (parsed) {
+                                date = parsed.toDate();
+                            }
+                        } else {
+                            date = F.date.looslyParseDate(value);
+                        }
+                        if (date) {
+                            millis = date.getTime();
+                        }
+                    } else if (isNaN(new Date(millis).getTime())) {
+                        millis = null;
+                    }
+
+                    if (millis) {
+                        if (this.displayTime) {
+                            var fromZoneName = F.timezone.currentTimezone().name,
+                                toZoneName = this.currentTimezone ?
+                                    this.currentTimezone.name :
+                                    fromZoneName;
+
+                            if (fromZoneName !== toZoneName) {
+                                millis = F.timezone.dateTimeStringToTimezone(millis, fromZoneName, toZoneName);
+                            }
+                            dateString = F.date.dateString(millis);
+                            timeString = F.date.timeString(millis);
+                        } else {
+                            dateString = F.date.dateStringUtc(millis);
+                        }
+                    }
+
+                }
+                this.select('inputSelector').eq(0).val(dateString).datepicker('update');
+                if (this.displayTime) {
+                    this.select('inputSelector').eq(1).timepicker('setTime', timeString);
+                }
+            } finally {
+                this.disableEvents = false;
+            }
+        };
+
+        this.isValid = function(value) {
+            return _.isString(value) && value.length;
         };
 
         this.onSelectTimezone = function(event, data) {
             if (data.name) {
                 this.updateTimezone(data);
+                this.triggerFieldUpdated();
             }
         };
 
         this.updateTimezone = function(tz) {
             if (this.displayTime) {
-                var values = this.getValues(),
-                    date = (values && values[0]) ? new Date(values[0]) : null,
-                    shiftTime = tz && tz.shiftTime;
+
+                var dateStringValue = this.getValue(),
+                    date = dateStringValue && new Date(dateStringValue);
 
                 if (tz) {
                     if (!_.isString(tz)) {
                         tz = tz.name;
                     }
-                    if (shiftTime) {
-                        var inputs = this.$node.find('input');
-
-                        if (values && values[0] && inputs.length > 1) {
-                            date = F.timezone.date(values[0], 'Etc/UTC').tz(tz);
-                            inputs.eq(0).val(date.format('YYYY-MM-DD')).datepicker('update');
-                            inputs.eq(1).data('timepicker').setTime(date.format('HH:mm'));
-                        } else if (values && values[1] && inputs.length > 3) {
-                            date = F.timezone.date(values[1], 'Etc/UTC').tz(tz);
-                            inputs.eq(2).val(date.format('YYYY-MM-DD')).datepicker('update');
-                            inputs.eq(3).data('timepicker').setTime(date.format('HH:mm'));
-                        }
-                    }
-                    this.currentTimezone = F.timezone.lookupTimezone(tz, date.getTime());
+                    this.currentTimezone = F.timezone.lookupTimezone(tz, date);
                 } else {
                     if (!this.currentTimezone) {
-                        this.currentTimezone = F.timezone.currentTimezone(date);
+                        this.currentTimezone = F.timezone.currentTimezone();
                     } else {
                         this.currentTimezone = F.timezone.lookupTimezone(this.currentTimezone.name, date);
                     }
@@ -235,8 +229,6 @@ define([
                 );
 
             }
-
-            this.triggerFieldUpdated();
         };
 
         this.onTimezoneOpen = function(event) {
@@ -268,6 +260,7 @@ define([
         var DATE_REGEX = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*$/,
             DATE_TIME_REGEX = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*\d{1,2}:\d{1,2}\s*$/;
 
+            /*
         this.isValid = function() {
             var displayTime = this.displayTime,
                 name = this.attr.property.title,
@@ -278,5 +271,6 @@ define([
                     F.vertex.singlePropValid(v, name);
             });
         };
+        */
     }
 });
