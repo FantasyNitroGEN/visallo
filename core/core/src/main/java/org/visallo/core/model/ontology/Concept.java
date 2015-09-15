@@ -22,6 +22,8 @@ public abstract class Concept {
 
     public abstract boolean hasGlyphIconResource();
 
+    public abstract boolean hasGlyphIconSelectedResource();
+
     public abstract String getColor();
 
     public abstract String getDisplayName();
@@ -83,6 +85,9 @@ public abstract class Concept {
             if (hasGlyphIconResource()) {
                 concept.setGlyphIconHref("resource?id=" + URLEncoder.encode(getIRI(), "utf8"));
             }
+            if (hasGlyphIconSelectedResource()) {
+                concept.setGlyphIconSelectedHref("resource?state=selected&id=" + URLEncoder.encode(getIRI(), "utf8"));
+            }
             if (getColor() != null) {
                 concept.setColor(getColor());
             }
@@ -124,6 +129,8 @@ public abstract class Concept {
     public abstract void removeProperty(String name, Authorizations authorizations);
 
     public abstract byte[] getGlyphIcon();
+
+    public abstract byte[] getGlyphIconSelected();
 
     public abstract byte[] getMapGlyphIcon();
 

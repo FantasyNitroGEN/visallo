@@ -335,6 +335,11 @@ define([
                 return concept.glyphIconHref;
             },
 
+            selectedImage: function(vertex, optionalWorkspaceId, width) {
+                var concept = V.concept(vertex);
+                return concept.glyphIconSelectedHref || V.image(vertex, optionalWorkspaceId, width);
+            },
+
             imageIsFromConcept: function(vertex, optionalWorkspaceId) {
                 return V.image(vertex, optionalWorkspaceId) === V.concept(vertex).glyphIconHref;
             },

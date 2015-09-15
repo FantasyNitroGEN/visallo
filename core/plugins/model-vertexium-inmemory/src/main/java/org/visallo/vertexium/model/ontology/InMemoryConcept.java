@@ -23,6 +23,7 @@ public class InMemoryConcept extends Concept {
     private String conceptIRI;
     private List<String> addRelatedConceptWhiteList;
     private byte[] glyphIcon;
+    private byte[] glyphIconSelected;
     private byte[] mapGlyphIcon;
     private boolean userVisible = true;
     private Boolean searchable;
@@ -58,6 +59,11 @@ public class InMemoryConcept extends Concept {
     @Override
     public boolean hasGlyphIconResource() {
         return glyphIcon != null;
+    }
+
+    @Override
+    public boolean hasGlyphIconSelectedResource() {
+        return glyphIconSelected != null;
     }
 
     @Override
@@ -126,6 +132,8 @@ public class InMemoryConcept extends Concept {
             this.userVisible = (Boolean) value;
         } else if (OntologyProperties.GLYPH_ICON.getPropertyName().equals(name)) {
             this.glyphIcon = (byte[]) value;
+        } else if (OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName().equals(name)) {
+            this.glyphIconSelected = (byte[]) value;
         } else if (OntologyProperties.MAP_GLYPH_ICON.getPropertyName().equals(name)) {
             this.mapGlyphIcon = (byte[]) value;
         } else if (OntologyProperties.TITLE.getPropertyName().equals(name)) {
@@ -167,6 +175,11 @@ public class InMemoryConcept extends Concept {
     @Override
     public byte[] getGlyphIcon() {
         return glyphIcon;
+    }
+
+    @Override
+    public byte[] getGlyphIconSelected() {
+        return glyphIconSelected;
     }
 
     @Override

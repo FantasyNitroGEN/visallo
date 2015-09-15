@@ -401,6 +401,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 continue;
             }
 
+            if (annotationIri.equals(OntologyProperties.GLYPH_ICON_SELECTED_FILE_NAME.getPropertyName())) {
+                setIconProperty(result, inDir, valueString, OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName(), authorizations);
+                continue;
+            }
+
             if (annotationIri.equals(OntologyProperties.MAP_GLYPH_ICON_FILE_NAME.getPropertyName())) {
                 setIconProperty(result, inDir, valueString, OntologyProperties.MAP_GLYPH_ICON.getPropertyName(), authorizations);
                 continue;
