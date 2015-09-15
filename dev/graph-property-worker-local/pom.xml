@@ -173,11 +173,6 @@
             <artifactId>visallo-gpw-drewnoakes-image-metadata-extractor</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-food-truck</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.visallo</groupId>

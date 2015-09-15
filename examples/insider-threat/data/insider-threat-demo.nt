@@ -1,0 +1,860 @@
+# Application: Accounting
+<app-accounting> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#application>
+<app-accounting> <http://visallo.org/insider-threat#assetTitle> "Accounting"
+
+# Application: Inventory
+<app-inventory> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#application>
+<app-inventory> <http://visallo.org/insider-threat#assetTitle> "Inventory"
+
+# Application: Wiki
+<app-wiki> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#application>
+<app-wiki> <http://visallo.org/insider-threat#assetTitle> "Wiki"
+
+# Application: HR
+<app-hr> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#application>
+<app-hr> <http://visallo.org/insider-threat#assetTitle> "HR"
+
+# Application: Website
+<app-website> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#application>
+<app-website> <http://visallo.org/insider-threat#assetTitle> "Website"
+
+# Andrew Cooper
+<employee-0001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0001> <http://visallo.org/insider-threat#userId[HR]> "AJK365"
+<employee-0001> <http://visallo.org/insider-threat#employeeId> "0001"
+<employee-0001> <http://visallo.org/insider-threat#employeeTitle> "BA"
+<employee-0001> <http://visallo.org/insider-threat#firstName[HR]> "Andrew"
+<employee-0001> <http://visallo.org/insider-threat#lastName[HR]> "Cooper"
+<employee-0001> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0001> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0001> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0001> <http://visallo.org/insider-threat#applicationRisk:hr> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0001> <http://visallo.org/insider-threat#applicationRisk:website> "0.400000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0001> <http://visallo.org/insider-threat#totalApplicationRisk> "0.400000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#eventRisk:401k> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0001> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0001> <http://visallo.org/insider-threat#totalEventRisk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#totalRisk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001> <http://visallo.org/insider-threat#street1[HR]> "8723 Camellia St."
+<employee-0001> <http://visallo.org/insider-threat#street2[HR]> ""
+<employee-0001> <http://visallo.org/insider-threat#city> "Ashburn"
+<employee-0001> <http://visallo.org/insider-threat#state> "VA"
+<employee-0001> <http://visallo.org/insider-threat#zipCode> "20147"
+<employee-0001> <http://visallo.org/insider-threat#geoLocation> "Home Address [39.039858, -77.481439]"^^<http://visallo.org#geolocation>
+<employee-0001> <http://visallo.org/insider-threat#geoLocation[HR]> "Home Address [39.057903, -77.483009]"^^<http://visallo.org#geolocation>
+<employee-0001-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0001-image[HR]> <http://visallo.org#title[HR]> "Image of Cooper, Andrew"
+<employee-0001-image[HR]> <http://visallo.org#raw[HR]> "employee-0001.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0001> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0001-image>
+<employee-0001> <http://visallo.org#entityImageVertexId[HR]> "employee-0001-image"
+
+# 401K Contribution for employee-0001 - 2014-06-01T23:59:59.000-05:00
+<employee-0001-401K-2014-06-01T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-06-01T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-01T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "80583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-01T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-06-01T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-06-01T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-01T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-06-01T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-06-15T23:59:59.000-05:00
+<employee-0001-401K-2014-06-15T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-06-15T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-15T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "81166.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-15T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-06-15T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-06-15T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-15T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-06-15T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-06-29T23:59:59.000-05:00
+<employee-0001-401K-2014-06-29T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-06-29T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-29T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "81749.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-29T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-06-29T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-06-29T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-06-29T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-06-29T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-07-13T23:59:59.000-05:00
+<employee-0001-401K-2014-07-13T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-07-13T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-07-13T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "82332.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-07-13T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-07-13T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-07-13T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-07-13T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-07-13T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-07-27T23:59:59.000-05:00
+<employee-0001-401K-2014-07-27T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-07-27T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-07-27T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "82915.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-07-27T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-07-27T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-07-27T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-07-27T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-07-27T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-08-10T23:59:59.000-05:00
+<employee-0001-401K-2014-08-10T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-08-10T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-10T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "83498.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-10T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-08-10T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-08-10T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-10T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-08-10T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-08-21T16:24:15.000-05:00
+<employee-0001-401K-2014-08-21T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-08-21T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-5000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-21T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "78498.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-21T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-08-21T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-08-21T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-21T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-08-21T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-08-24T23:59:59.000-05:00
+<employee-0001-401K-2014-08-24T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-08-24T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-24T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "79081.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-24T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-08-24T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-08-24T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-08-24T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-08-24T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-09-07T23:59:59.000-05:00
+<employee-0001-401K-2014-09-07T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-09-07T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-09-07T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "79664.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-09-07T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-09-07T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-09-07T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-09-07T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-09-07T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-09-21T23:59:59.000-05:00
+<employee-0001-401K-2014-09-21T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-09-21T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-09-21T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "80247.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-09-21T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-09-21T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-09-21T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-09-21T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-09-21T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-10-05T23:59:59.000-05:00
+<employee-0001-401K-2014-10-05T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-10-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "80830.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-10-05T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-10-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-10-05T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-10-15T16:24:15.000-05:00
+<employee-0001-401K-2014-10-15T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-10-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-5000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "75830.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-10-15T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-10-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-10-15T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-10-19T23:59:59.000-05:00
+<employee-0001-401K-2014-10-19T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-10-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "76413.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-10-19T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-10-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-10-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-10-19T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-11-03T00:59:59.000-05:00
+<employee-0001-401K-2014-11-03T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-11-03T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-11-03T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "76996.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-11-03T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-11-03T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-11-03T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-11-03T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-11-03T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-11-17T00:59:59.000-05:00
+<employee-0001-401K-2014-11-17T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-11-17T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-11-17T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "77579.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-11-17T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-11-17T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-11-17T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-11-17T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-11-17T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-12-01T00:59:59.000-05:00
+<employee-0001-401K-2014-12-01T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-12-01T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-01T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "78162.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-01T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-12-01T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-12-01T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-01T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-12-01T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-12-15T00:59:59.000-05:00
+<employee-0001-401K-2014-12-15T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-12-15T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-15T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "78745.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-15T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-12-15T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-12-15T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-15T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-12-15T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2014-12-29T00:59:59.000-05:00
+<employee-0001-401K-2014-12-29T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2014-12-29T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-29T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "79328.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-29T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-12-29T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2014-12-29T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2014-12-29T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2014-12-29T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-01-12T00:59:59.000-05:00
+<employee-0001-401K-2015-01-12T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-01-12T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-12T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "79911.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-12T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-01-12T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-01-12T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-12T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-01-12T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-01-26T00:59:59.000-05:00
+<employee-0001-401K-2015-01-26T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-01-26T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-26T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "80494.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-26T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-01-26T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-01-26T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-26T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-01-26T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-01-30T16:24:15.000-05:00
+<employee-0001-401K-2015-01-30T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-01-30T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-5000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-30T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "75494.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-30T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-01-30T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-01-30T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-01-30T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-01-30T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-02-09T00:59:59.000-05:00
+<employee-0001-401K-2015-02-09T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-02-09T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-09T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "76077.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-09T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-02-09T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-02-09T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-09T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-02-09T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-02-13T16:24:15.000-05:00
+<employee-0001-401K-2015-02-13T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-02-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-5000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "71077.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-02-13T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-02-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-02-13T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-02-23T00:59:59.000-05:00
+<employee-0001-401K-2015-02-23T00:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-02-23T00:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-23T00:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "71660.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-23T00:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-02-23T00:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-02-23T00:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-02-23T00:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-02-23T00:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-03-08T23:59:59.000-05:00
+<employee-0001-401K-2015-03-08T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-03-08T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-08T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "72243.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-08T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-03-08T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-03-08T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-08T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-03-08T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-03-12T16:24:15.000-05:00
+<employee-0001-401K-2015-03-12T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-03-12T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-5000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-12T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "67243.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-12T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-03-12T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-03-12T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-12T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-03-12T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-03-22T23:59:59.000-05:00
+<employee-0001-401K-2015-03-22T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-03-22T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-22T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "67826.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-22T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-03-22T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-03-22T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-03-22T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-03-22T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-04-05T23:59:59.000-05:00
+<employee-0001-401K-2015-04-05T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-04-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "68409.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-04-05T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-04-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-05T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-04-05T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-04-15T16:24:15.000-05:00
+<employee-0001-401K-2015-04-15T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-04-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-5000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "63409.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-04-15T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-04-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-15T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-04-15T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-04-19T23:59:59.000-05:00
+<employee-0001-401K-2015-04-19T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-04-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "63992.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-04-19T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-04-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-19T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-04-19T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-04-28T16:24:15.000-05:00
+<employee-0001-401K-2015-04-28T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-04-28T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-10000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-28T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "53992.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-28T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-04-28T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-04-28T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-04-28T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-04-28T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-05-03T23:59:59.000-05:00
+<employee-0001-401K-2015-05-03T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-05-03T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-03T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "54575.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-03T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-05-03T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-05-03T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-03T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-05-03T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-05-13T16:24:15.000-05:00
+<employee-0001-401K-2015-05-13T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-05-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-15000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "39575.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-05-13T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-05-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-13T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-05-13T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-05-17T23:59:59.000-05:00
+<employee-0001-401K-2015-05-17T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-05-17T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-17T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "40158.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-17T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-05-17T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-05-17T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-17T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-05-17T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-05-26T16:24:15.000-05:00
+<employee-0001-401K-2015-05-26T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-05-26T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-20000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-26T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "20158.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-26T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-05-26T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-05-26T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-26T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-05-26T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-05-31T23:59:59.000-05:00
+<employee-0001-401K-2015-05-31T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-05-31T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-31T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "20741.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-31T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-05-31T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-05-31T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-05-31T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-05-31T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-06-05T16:24:15.000-05:00
+<employee-0001-401K-2015-06-05T16:24:15.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-06-05T16:24:15.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "-20000.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-05T16:24:15.000-05:00> <http://visallo.org/insider-threat#balance> "741.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-05T16:24:15.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-06-05T16:24:15.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-06-05T16:24:15.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-05T16:24:15.000-05:00> <http://visallo.org/insider-threat#riskReason> "Withdrawal from 401k"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-06-05T16:24:15.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-06-14T23:59:59.000-05:00
+<employee-0001-401K-2015-06-14T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-06-14T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-14T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "1324.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-14T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-06-14T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-06-14T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-14T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-06-14T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-06-28T23:59:59.000-05:00
+<employee-0001-401K-2015-06-28T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-06-28T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-28T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "1907.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-28T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-06-28T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-06-28T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-06-28T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-06-28T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-07-12T23:59:59.000-05:00
+<employee-0001-401K-2015-07-12T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-07-12T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-07-12T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "2490.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-07-12T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-12T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-07-12T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-07-12T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-07-12T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-07-26T23:59:59.000-05:00
+<employee-0001-401K-2015-07-26T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-07-26T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-07-26T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "3073.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-07-26T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-26T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-07-26T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-07-26T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-07-26T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-08-09T23:59:59.000-05:00
+<employee-0001-401K-2015-08-09T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-08-09T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-08-09T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "3656.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-08-09T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-08-09T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-08-09T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-08-09T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-08-09T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-08-23T23:59:59.000-05:00
+<employee-0001-401K-2015-08-23T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-08-23T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-08-23T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "4239.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-08-23T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-08-23T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-08-23T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-08-23T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-08-23T23:59:59.000-05:00>
+
+# 401K Contribution for employee-0001 - 2015-09-06T23:59:59.000-05:00
+<employee-0001-401K-2015-09-06T23:59:59.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#401kTransaction>
+<employee-0001-401K-2015-09-06T23:59:59.000-05:00> <http://visallo.org/insider-threat#transactionAmount> "583.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-09-06T23:59:59.000-05:00> <http://visallo.org/insider-threat#balance> "4822.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-09-06T23:59:59.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-09-06T23:59:59.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-401K-2015-09-06T23:59:59.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-401K-2015-09-06T23:59:59.000-05:00> <http://visallo.org/insider-threat#riskReason> "401k Deposit"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-401K-2015-09-06T23:59:59.000-05:00>
+
+# employee-0001-app-website
+<employee-0001-app-website> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#privilege>
+<employee-0001-app-website> <http://visallo.org/insider-threat#applicationName> "Website"
+<employee-0001-app-website> <http://visallo.org/insider-threat#privilegeName:READ> "READ"
+<employee-0001-app-website> <http://visallo.org/insider-threat#risk:READ> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-app-website> <http://visallo.org/insider-threat#riskReason:READ> "Read Access"
+<employee-0001-app-website> <http://visallo.org/insider-threat#privilegeName:WRITE> "WRITE"
+<employee-0001-app-website> <http://visallo.org/insider-threat#risk:WRITE> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-app-website> <http://visallo.org/insider-threat#riskReason:WRITE> "Write Access"
+<employee-0001> <http://visallo.org/insider-threat#hasPrivilege> <employee-0001-app-website>
+<app-website> <http://visallo.org/insider-threat#hasPrivilege> <employee-0001-app-website>
+
+# employee-0001-app-wiki
+<employee-0001-app-wiki> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#privilege>
+<employee-0001-app-wiki> <http://visallo.org/insider-threat#applicationName> "Wiki"
+<employee-0001-app-wiki> <http://visallo.org/insider-threat#privilegeName:READ> "READ"
+<employee-0001-app-wiki> <http://visallo.org/insider-threat#risk:READ> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-app-wiki> <http://visallo.org/insider-threat#riskReason:READ> "Read Access"
+<employee-0001-app-wiki> <http://visallo.org/insider-threat#privilegeName:WRITE> "WRITE"
+<employee-0001-app-wiki> <http://visallo.org/insider-threat#risk:WRITE> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-app-wiki> <http://visallo.org/insider-threat#riskReason:WRITE> "Write Access"
+<employee-0001> <http://visallo.org/insider-threat#hasPrivilege> <employee-0001-app-wiki>
+<app-wiki> <http://visallo.org/insider-threat#hasPrivilege> <employee-0001-app-wiki>
+
+# Performance Review
+<employee-0001-2014-11-24T10:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#performanceReview>
+<employee-0001-2014-11-24T10:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Action Required Performance Review"
+<employee-0001-2014-11-24T10:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-11-24T10:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2014-11-24T10:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.700000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2014-11-24T10:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Action Required Performance Review"
+<employee-0001-2014-11-24T10:24:22.000-05:00> <http://visallo.org/insider-threat#performanceReviewScore> "AR"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2014-11-24T10:24:22.000-05:00>
+
+# HR Event
+<employee-0001-2015-02-09T09:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#hrEvent>
+<employee-0001-2015-02-09T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Harassment"
+<employee-0001-2015-02-09T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-02-09T09:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2015-02-09T09:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.900000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2015-02-09T09:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Harassment"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2015-02-09T09:24:22.000-05:00>
+
+# HR Event
+<employee-0001-2014-11-28T09:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#hrEvent>
+<employee-0001-2014-11-28T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Unexcused Absence"
+<employee-0001-2014-11-28T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-11-28T09:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2014-11-28T09:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2014-11-28T09:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Unexcused Absence"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2014-11-28T09:24:22.000-05:00>
+
+# HR Event
+<employee-0001-2014-12-22T09:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#hrEvent>
+<employee-0001-2014-12-22T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Unexcused Absence"
+<employee-0001-2014-12-22T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-12-22T09:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2014-12-22T09:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2014-12-22T09:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Unexcused Absence"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2014-12-22T09:24:22.000-05:00>
+
+# HR Event
+<employee-0001-2015-01-15T09:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#hrEvent>
+<employee-0001-2015-01-15T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Unexcused Absence"
+<employee-0001-2015-01-15T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-01-15T09:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2015-01-15T09:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2015-01-15T09:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Unexcused Absence"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2015-01-15T09:24:22.000-05:00>
+
+# HR Event
+<employee-0001-2015-03-23T09:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#hrEvent>
+<employee-0001-2015-03-23T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Unexcused Absence"
+<employee-0001-2015-03-23T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-03-23T09:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2015-03-23T09:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2015-03-23T09:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Unexcused Absence"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2015-03-23T09:24:22.000-05:00>
+
+# HR Event
+<employee-0001-2015-07-06T09:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#hrEvent>
+<employee-0001-2015-07-06T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Unexcused Absence"
+<employee-0001-2015-07-06T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-06T09:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2015-07-06T09:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2015-07-06T09:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Unexcused Absence"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2015-07-06T09:24:22.000-05:00>
+
+# HR Event
+<employee-0001-2015-07-07T09:24:22.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#hrEvent>
+<employee-0001-2015-07-07T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventAction> "Unexcused Absence"
+<employee-0001-2015-07-07T09:24:22.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-07T09:24:22.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-2015-07-07T09:24:22.000-05:00> <http://visallo.org/insider-threat#risk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-2015-07-07T09:24:22.000-05:00> <http://visallo.org/insider-threat#riskReason> "Unexcused Absence"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-2015-07-07T09:24:22.000-05:00>
+
+# Remote Access - 216.169.133.23
+<employee-0001-remoteAccess-2015-07-06T22:00:12.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#remoteAccess>
+<employee-0001-remoteAccess-2015-07-06T22:00:12.000-05:00> <http://visallo.org/insider-threat#eventAction> "Remote Access"
+<employee-0001-remoteAccess-2015-07-06T22:00:12.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-06T22:00:12.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-remoteAccess-2015-07-06T22:00:12.000-05:00> <http://visallo.org/insider-threat#ipAddress> "216.169.133.23"
+<employee-0001-remoteAccess-2015-07-06T22:00:12.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-remoteAccess-2015-07-06T22:00:12.000-05:00> <http://visallo.org/insider-threat#riskReason> "Remote Access"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-remoteAccess-2015-07-06T22:00:12.000-05:00>
+
+# Application Event
+<employee-0001-app-website2014-07-06T22:01:00.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#applicationEvent>
+<employee-0001-app-website2014-07-06T22:01:00.000-05:00> <http://visallo.org/insider-threat#eventAction> "Login"
+<employee-0001-app-website2014-07-06T22:01:00.000-05:00> <http://visallo.org/insider-threat#eventDate> "2014-07-06T22:01:00.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-app-website2014-07-06T22:01:00.000-05:00> <http://visallo.org/insider-threat#risk> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-app-website2014-07-06T22:01:00.000-05:00> <http://visallo.org/insider-threat#riskReason> "Login"
+<employee-0001-app-website2014-07-06T22:01:00.000-05:00> <http://visallo.org/insider-threat#ipAddress> "216.169.133.23"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-app-website2014-07-06T22:01:00.000-05:00>
+<employee-0001-app-website2014-07-06T22:01:00.000-05:00> <http://visallo.org/insider-threat#hasApplication> <app-website>
+
+# Application Event
+<employee-0001-app-accounting2015-07-06T22:03:12.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#applicationEvent>
+<employee-0001-app-accounting2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#eventAction> "Failed Login"
+<employee-0001-app-accounting2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-06T22:03:12.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-app-accounting2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#risk> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-app-accounting2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#riskReason> "Failed Login"
+<employee-0001-app-accounting2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#ipAddress> "216.169.133.23"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-app-accounting2015-07-06T22:03:12.000-05:00>
+<employee-0001-app-accounting2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#hasApplication> <app-accounting>
+
+# Application Event
+<employee-0001-app-hr2015-07-06T22:03:12.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#applicationEvent>
+<employee-0001-app-hr2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#eventAction> "Failed Login"
+<employee-0001-app-hr2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-06T22:03:12.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0001-app-hr2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#risk> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0001-app-hr2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#riskReason> "Failed Login"
+<employee-0001-app-hr2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#ipAddress> "216.169.133.23"
+<employee-0001> <http://visallo.org/insider-threat#hasEvent> <employee-0001-app-hr2015-07-06T22:03:12.000-05:00>
+<employee-0001-app-hr2015-07-06T22:03:12.000-05:00> <http://visallo.org/insider-threat#hasApplication> <app-hr>
+
+# Remote Access - 216.169.133.23
+<employee-0002-remoteAccess-2015-07-06T22:10:12.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#remoteAccess>
+<employee-0002-remoteAccess-2015-07-06T22:10:12.000-05:00> <http://visallo.org/insider-threat#eventAction> "Remote Access Failed"
+<employee-0002-remoteAccess-2015-07-06T22:10:12.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-06T22:10:12.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0002-remoteAccess-2015-07-06T22:10:12.000-05:00> <http://visallo.org/insider-threat#ipAddress> "216.169.133.23"
+<employee-0002-remoteAccess-2015-07-06T22:10:12.000-05:00> <http://visallo.org/insider-threat#risk> "0.700000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002-remoteAccess-2015-07-06T22:10:12.000-05:00> <http://visallo.org/insider-threat#riskReason> "Remote Access Failed"
+<employee-0002> <http://visallo.org/insider-threat#hasEvent> <employee-0002-remoteAccess-2015-07-06T22:10:12.000-05:00>
+
+# Remote Access - 216.169.133.23
+<employee-0003-remoteAccess-2015-07-06T22:20:12.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#remoteAccess>
+<employee-0003-remoteAccess-2015-07-06T22:20:12.000-05:00> <http://visallo.org/insider-threat#eventAction> "Remote Access Failed"
+<employee-0003-remoteAccess-2015-07-06T22:20:12.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-06T22:20:12.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0003-remoteAccess-2015-07-06T22:20:12.000-05:00> <http://visallo.org/insider-threat#ipAddress> "216.169.133.23"
+<employee-0003-remoteAccess-2015-07-06T22:20:12.000-05:00> <http://visallo.org/insider-threat#risk> "0.700000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003-remoteAccess-2015-07-06T22:20:12.000-05:00> <http://visallo.org/insider-threat#riskReason> "Remote Access Failed"
+<employee-0003> <http://visallo.org/insider-threat#hasEvent> <employee-0003-remoteAccess-2015-07-06T22:20:12.000-05:00>
+
+# Remote Access - 216.169.133.23
+<employee-0004-remoteAccess-2015-07-06T22:30:12.000-05:00> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#remoteAccess>
+<employee-0004-remoteAccess-2015-07-06T22:30:12.000-05:00> <http://visallo.org/insider-threat#eventAction> "Remote Access Failed"
+<employee-0004-remoteAccess-2015-07-06T22:30:12.000-05:00> <http://visallo.org/insider-threat#eventDate> "2015-07-06T22:30:12.000-05:00"^^<http://www.w3.org/2001/XMLSchema#dateTime>
+<employee-0004-remoteAccess-2015-07-06T22:30:12.000-05:00> <http://visallo.org/insider-threat#ipAddress> "216.169.133.23"
+<employee-0004-remoteAccess-2015-07-06T22:30:12.000-05:00> <http://visallo.org/insider-threat#risk> "0.700000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004-remoteAccess-2015-07-06T22:30:12.000-05:00> <http://visallo.org/insider-threat#riskReason> "Remote Access Failed"
+<employee-0004> <http://visallo.org/insider-threat#hasEvent> <employee-0004-remoteAccess-2015-07-06T22:30:12.000-05:00>
+
+# Garry Vasquez
+<employee-0002> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0002> <http://visallo.org/insider-threat#userId[HR]> "KSF983"
+<employee-0002> <http://visallo.org/insider-threat#employeeId> "0002"
+<employee-0002> <http://visallo.org/insider-threat#employeeTitle> "MGR"
+<employee-0002> <http://visallo.org/insider-threat#firstName[HR]> "Garry"
+<employee-0002> <http://visallo.org/insider-threat#lastName[HR]> "Vasquez"
+<employee-0002> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0002> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0002> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0002> <http://visallo.org/insider-threat#applicationRisk:hr> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0002> <http://visallo.org/insider-threat#applicationRisk:website> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0002> <http://visallo.org/insider-threat#totalApplicationRisk> "0.060000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#eventRisk:401k> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0002> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0002> <http://visallo.org/insider-threat#totalEventRisk> "0.150000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002> <http://visallo.org/insider-threat#totalRisk> "0.105000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0002-image[HR]> <http://visallo.org#title[HR]> "Image of Vasquez, Garry"
+<employee-0002-image[HR]> <http://visallo.org#raw[HR]> "employee-0002.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0002> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0002-image>
+<employee-0002> <http://visallo.org#entityImageVertexId[HR]> "employee-0002-image"
+
+# employee-0002-app-accounting
+<employee-0002-app-accounting> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#privilege>
+<employee-0002-app-accounting> <http://visallo.org/insider-threat#applicationName> "Accounting"
+<employee-0002-app-accounting> <http://visallo.org/insider-threat#privilegeName:READ> "READ"
+<employee-0002-app-accounting> <http://visallo.org/insider-threat#risk:READ> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002-app-accounting> <http://visallo.org/insider-threat#riskReason:READ> "Read Access"
+<employee-0002-app-accounting> <http://visallo.org/insider-threat#privilegeName:WRITE> "WRITE"
+<employee-0002-app-accounting> <http://visallo.org/insider-threat#risk:WRITE> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0002-app-accounting> <http://visallo.org/insider-threat#riskReason:WRITE> "Write Access"
+<employee-0002> <http://visallo.org/insider-threat#hasPrivilege> <employee-0002-app-accounting>
+<app-accounting> <http://visallo.org/insider-threat#hasPrivilege> <employee-0002-app-accounting>
+
+# Natasha Hall
+<employee-0003> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0003> <http://visallo.org/insider-threat#userId[HR]> "UFJ234"
+<employee-0003> <http://visallo.org/insider-threat#employeeId> "0003"
+<employee-0003> <http://visallo.org/insider-threat#employeeTitle> "SA"
+<employee-0003> <http://visallo.org/insider-threat#firstName[HR]> "Natasha"
+<employee-0003> <http://visallo.org/insider-threat#lastName[HR]> "Hall"
+<employee-0003> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0003> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0003> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0003> <http://visallo.org/insider-threat#applicationRisk:hr> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0003> <http://visallo.org/insider-threat#applicationRisk:website> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0003> <http://visallo.org/insider-threat#totalApplicationRisk> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#eventRisk:401k> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0003> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0003> <http://visallo.org/insider-threat#totalEventRisk> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003> <http://visallo.org/insider-threat#totalRisk> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0003-image[HR]> <http://visallo.org#title[HR]> "Image of Hall, Natasha"
+<employee-0003-image[HR]> <http://visallo.org#raw[HR]> "employee-0003.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0003> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0003-image>
+<employee-0003> <http://visallo.org#entityImageVertexId[HR]> "employee-0003-image"
+
+# employee-0003-app-hr
+<employee-0003-app-hr> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#privilege>
+<employee-0003-app-hr> <http://visallo.org/insider-threat#applicationName> "HR"
+<employee-0003-app-hr> <http://visallo.org/insider-threat#privilegeName:READ> "READ"
+<employee-0003-app-hr> <http://visallo.org/insider-threat#risk:READ> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003-app-hr> <http://visallo.org/insider-threat#riskReason:READ> "Read Access"
+<employee-0003-app-hr> <http://visallo.org/insider-threat#privilegeName:WRITE> "WRITE"
+<employee-0003-app-hr> <http://visallo.org/insider-threat#risk:WRITE> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003-app-hr> <http://visallo.org/insider-threat#riskReason:WRITE> "Write Access"
+<employee-0003-app-hr> <http://visallo.org/insider-threat#privilegeName:ADMIN> "ADMIN"
+<employee-0003-app-hr> <http://visallo.org/insider-threat#risk:ADMIN> "0.800000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0003-app-hr> <http://visallo.org/insider-threat#riskReason:ADMIN> "Admin Access"
+<employee-0003> <http://visallo.org/insider-threat#hasPrivilege> <employee-0003-app-hr>
+<app-hr> <http://visallo.org/insider-threat#hasPrivilege> <employee-0003-app-hr>
+
+# Ana Neal
+<employee-0004> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0004> <http://visallo.org/insider-threat#userId[HR]> "POD423"
+<employee-0004> <http://visallo.org/insider-threat#employeeId> "0004"
+<employee-0004> <http://visallo.org/insider-threat#employeeTitle> "BA"
+<employee-0004> <http://visallo.org/insider-threat#firstName[HR]> "Ana"
+<employee-0004> <http://visallo.org/insider-threat#lastName[HR]> "Neal"
+<employee-0004> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0004> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0004> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.300000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0004> <http://visallo.org/insider-threat#applicationRisk:hr> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0004> <http://visallo.org/insider-threat#applicationRisk:website> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0004> <http://visallo.org/insider-threat#totalApplicationRisk> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#eventRisk:401k> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0004> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0004> <http://visallo.org/insider-threat#totalEventRisk> "0.150000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004> <http://visallo.org/insider-threat#totalRisk> "0.125000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0004-image[HR]> <http://visallo.org#title[HR]> "Image of Neal, Ana"
+<employee-0004-image[HR]> <http://visallo.org#raw[HR]> "employee-0004.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0004> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0004-image>
+<employee-0004> <http://visallo.org#entityImageVertexId[HR]> "employee-0004-image"
+
+# employee-0004-app-hr
+<employee-0004-app-hr> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#privilege>
+<employee-0004-app-hr> <http://visallo.org/insider-threat#applicationName> "HR"
+<employee-0004-app-hr> <http://visallo.org/insider-threat#privilegeName:READ> "READ"
+<employee-0004-app-hr> <http://visallo.org/insider-threat#risk:READ> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004-app-hr> <http://visallo.org/insider-threat#riskReason:READ> "Read Access"
+<employee-0004-app-hr> <http://visallo.org/insider-threat#privilegeName:WRITE> "WRITE"
+<employee-0004-app-hr> <http://visallo.org/insider-threat#risk:WRITE> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0004-app-hr> <http://visallo.org/insider-threat#riskReason:WRITE> "Write Access"
+<employee-0004> <http://visallo.org/insider-threat#hasPrivilege> <employee-0004-app-hr>
+<app-hr> <http://visallo.org/insider-threat#hasPrivilege> <employee-0004-app-hr>
+
+# Robin Norris
+<employee-0005> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0005> <http://visallo.org/insider-threat#userId[HR]> "IKD845"
+<employee-0005> <http://visallo.org/insider-threat#employeeId> "0005"
+<employee-0005> <http://visallo.org/insider-threat#employeeTitle> "BA"
+<employee-0005> <http://visallo.org/insider-threat#firstName[HR]> "Robin"
+<employee-0005> <http://visallo.org/insider-threat#lastName[HR]> "Norris"
+<employee-0005> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.300000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0005> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0005> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0005> <http://visallo.org/insider-threat#applicationRisk:hr> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0005> <http://visallo.org/insider-threat#applicationRisk:website> "0.300000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0005> <http://visallo.org/insider-threat#totalApplicationRisk> "0.180000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#eventRisk:401k> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0005> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.400000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0005> <http://visallo.org/insider-threat#totalEventRisk> "0.250000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005> <http://visallo.org/insider-threat#totalRisk> "0.215000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0005-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0005-image[HR]> <http://visallo.org#title[HR]> "Image of Norris, Robin"
+<employee-0005-image[HR]> <http://visallo.org#raw[HR]> "employee-0005.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0005> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0005-image>
+<employee-0005> <http://visallo.org#entityImageVertexId[HR]> "employee-0005-image"
+
+# Eugene Lindsey
+<employee-0006> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0006> <http://visallo.org/insider-threat#userId[HR]> "NUP592"
+<employee-0006> <http://visallo.org/insider-threat#employeeId> "0006"
+<employee-0006> <http://visallo.org/insider-threat#employeeTitle> "BA"
+<employee-0006> <http://visallo.org/insider-threat#firstName[HR]> "Eugene"
+<employee-0006> <http://visallo.org/insider-threat#lastName[HR]> "Lindsey"
+<employee-0006> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0006> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.400000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0006> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0006> <http://visallo.org/insider-threat#applicationRisk:hr> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0006> <http://visallo.org/insider-threat#applicationRisk:website> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0006> <http://visallo.org/insider-threat#totalApplicationRisk> "0.140000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#eventRisk:401k> "0.300000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0006> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0006> <http://visallo.org/insider-threat#totalEventRisk> "0.450000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006> <http://visallo.org/insider-threat#totalRisk> "0.295000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0006-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0006-image[HR]> <http://visallo.org#title[HR]> "Image of Lindsey, Eugene"
+<employee-0006-image[HR]> <http://visallo.org#raw[HR]> "employee-0006.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0006> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0006-image>
+<employee-0006> <http://visallo.org#entityImageVertexId[HR]> "employee-0006-image"
+
+# Kent Santiago
+<employee-0007> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0007> <http://visallo.org/insider-threat#userId[HR]> "WJR923"
+<employee-0007> <http://visallo.org/insider-threat#employeeId> "0007"
+<employee-0007> <http://visallo.org/insider-threat#employeeTitle> "BA"
+<employee-0007> <http://visallo.org/insider-threat#firstName[HR]> "Kent"
+<employee-0007> <http://visallo.org/insider-threat#lastName[HR]> "Santiago"
+<employee-0007> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.500000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0007> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0007> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0007> <http://visallo.org/insider-threat#applicationRisk:hr> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0007> <http://visallo.org/insider-threat#applicationRisk:website> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0007> <http://visallo.org/insider-threat#totalApplicationRisk> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#eventRisk:401k> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0007> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0007> <http://visallo.org/insider-threat#totalEventRisk> "0.400000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007> <http://visallo.org/insider-threat#totalRisk> "0.300000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0007-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0007-image[HR]> <http://visallo.org#title[HR]> "Image of Santiago, Kent"
+<employee-0007-image[HR]> <http://visallo.org#raw[HR]> "employee-0007.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0007> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0007-image>
+<employee-0007> <http://visallo.org#entityImageVertexId[HR]> "employee-0007-image"
+
+# Julio Malone
+<employee-0008> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#employee>
+<employee-0008> <http://visallo.org/insider-threat#userId[HR]> "WJR295"
+<employee-0008> <http://visallo.org/insider-threat#employeeId> "0008"
+<employee-0008> <http://visallo.org/insider-threat#employeeTitle> "BA"
+<employee-0008> <http://visallo.org/insider-threat#firstName[HR]> "Julio"
+<employee-0008> <http://visallo.org/insider-threat#lastName[HR]> "Malone"
+<employee-0008> <http://visallo.org/insider-threat#applicationRisk:accounting> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#applicationRiskName:accounting> "Accounting"
+<employee-0008> <http://visallo.org/insider-threat#applicationRisk:inventory> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#applicationRiskName:inventory> "Inventory"
+<employee-0008> <http://visallo.org/insider-threat#applicationRisk:wiki> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#applicationRiskName:wiki> "Wiki"
+<employee-0008> <http://visallo.org/insider-threat#applicationRisk:hr> "0.000000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#applicationRiskName:hr> "HR"
+<employee-0008> <http://visallo.org/insider-threat#applicationRisk:website> "0.100000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#applicationRiskName:website> "Website"
+<employee-0008> <http://visallo.org/insider-threat#totalApplicationRisk> "0.140000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#eventRisk:401k> "0.600000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#eventRiskName:401k> "401K"
+<employee-0008> <http://visallo.org/insider-threat#eventRisk:remote-access> "0.200000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#eventRiskName:remote-access> "401K"
+<employee-0008> <http://visallo.org/insider-threat#totalEventRisk> "0.400000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008> <http://visallo.org/insider-threat#totalRisk> "0.270000"^^<http://www.w3.org/2001/XMLSchema#double>
+<employee-0008-image[HR]> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org/insider-threat#media>
+<employee-0008-image[HR]> <http://visallo.org#title[HR]> "Image of Malone, Julio"
+<employee-0008-image[HR]> <http://visallo.org#raw[HR]> "employee-0008.jpg"^^<http://visallo.org#streamingPropertyValue>
+<employee-0008> <http://visallo.org/cardTransaction#entityHasMedia[HR]> <employee-0008-image>
+<employee-0008> <http://visallo.org#entityImageVertexId[HR]> "employee-0008-image"
+
+<employee-0001> <http://visallo.org/insider-threat#hasManager> <employee-0002>
+<employee-0003> <http://visallo.org/insider-threat#hasManager> <employee-0002>
+<employee-0004> <http://visallo.org/insider-threat#hasManager> <employee-0002>

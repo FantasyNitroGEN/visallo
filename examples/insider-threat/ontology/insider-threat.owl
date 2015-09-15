@@ -1,0 +1,789 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY visallo "http://visallo.org#" >
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://visallo.org/insider-threat#"
+     xml:base="http://visallo.org/insider-threat"
+     xmlns:visallo="http://visallo.org#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://visallo.org/insider-threat">
+        <owl:imports rdf:resource="http://visallo.org"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://visallo.org/cardTransaction#entityHasMedia -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/cardTransaction#entityHasMedia">
+        <rdfs:label xml:lang="en">Has Media</rdfs:label>
+        <visallo:intent>entityHasImage</visallo:intent>
+        <visallo:intent>artifactContainsImageOfEntity</visallo:intent>
+        <rdfs:range rdf:resource="http://visallo.org/insider-threat#media"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#mediaHasEntity -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/insider-threat#mediaHasEntity">
+        <rdfs:label xml:lang="en">Has Entity</rdfs:label>
+        <visallo:intent>artifactHasEntity</visallo:intent>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#media"/>
+        <rdfs:range rdf:resource="&owl;Thing"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#hasApplication -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/insider-threat#hasApplication">
+        <rdfs:label xml:lang="en">Has Application</rdfs:label>
+        <rdfs:range rdf:resource="http://visallo.org/insider-threat#application"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#applicationEvent"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#hasEvent -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/insider-threat#hasEvent">
+        <rdfs:label xml:lang="en">has event</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="http://visallo.org/insider-threat#event"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#hasFacility -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/insider-threat#hasFacility">
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#badgeIn"/>
+        <rdfs:range rdf:resource="http://visallo.org/insider-threat#facility"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#hasManager -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/insider-threat#hasManager">
+        <rdfs:label xml:lang="en">has manager</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="http://visallo.org/insider-threat#employee"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#hasPrivilege -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/insider-threat#hasPrivilege">
+        <rdfs:label xml:lang="en">has privilege</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#asset"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="http://visallo.org/insider-threat#privilege"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://visallo.org/insider-threat#address -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#address">
+        <rdfs:label xml:lang="en">Address</rdfs:label>
+        <visallo:displayFormula>
+            _.compact([
+            dependentProp(&apos;http://visallo.org/insider-threat#street1&apos;),
+            dependentProp(&apos;http://visallo.org/insider-threat#street2&apos;),
+            dependentProp(&apos;http://visallo.org/insider-threat#city&apos;),
+            dependentProp(&apos;http://visallo.org/insider-threat#state&apos;),
+            dependentProp(&apos;http://visallo.org/insider-threat#zipCode&apos;)
+            ]).join(&apos;, &apos;)
+        </visallo:displayFormula>
+        <visallo:dependentPropertyIris>[
+            &quot;http://visallo.org/insider-threat#street1&quot;,
+            &quot;http://visallo.org/insider-threat#street2&quot;,
+            &quot;http://visallo.org/insider-threat#city&quot;,
+            &quot;http://visallo.org/insider-threat#state&quot;,
+            &quot;http://visallo.org/insider-threat#zipCode&quot;,
+            &quot;http://visallo.org/insider-threat#geoLocation&quot;
+            ]</visallo:dependentPropertyIris>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#facility"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#applicationName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#applicationName">
+        <rdfs:label xml:lang="en">Application Name</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#privilege"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#applicationRisk -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#applicationRisk">
+        <rdfs:label xml:lang="en">Application Risk Score</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:propertyGroup xml:lang="en">Access Risk</visallo:propertyGroup>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#applicationRiskMessage -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#applicationRiskMessage">
+        <rdfs:label xml:lang="en">Application Risk</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:displayFormula>
+            var risk = prop(&apos;http://visallo.org/insider-threat#applicationRisk&apos;);
+            var riskReason = prop(&apos;http://visallo.org/insider-threat#applicationRiskName&apos;);
+            if (riskReason) {
+                riskReason = &apos;(&apos; + riskReason + &apos;)&apos;;
+            }
+            return _.compact([risk, riskReason]).join(&apos; &apos;);
+        </visallo:displayFormula>
+        <visallo:dependentPropertyIris>[&apos;http://visallo.org/insider-threat#applicationRisk&apos;,&apos;http://visallo.org/insider-threat#applicationRiskName&apos;]</visallo:dependentPropertyIris>
+        <visallo:propertyGroup xml:lang="en">Access Risk</visallo:propertyGroup>
+        <visallo:displayType xml:lang="en">risk</visallo:displayType>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#applicationRiskName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#applicationRiskName">
+        <rdfs:label xml:lang="en">Application Risk Name</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:propertyGroup xml:lang="en">Access Risk</visallo:propertyGroup>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#assetTitle -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#assetTitle">
+        <rdfs:label xml:lang="en">Name</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#asset"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#balance -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#balance">
+        <rdfs:label xml:lang="en">Balance</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#401kTransaction"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#city -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#city">
+        <rdfs:label xml:lang="en">City</rdfs:label>
+        <visallo:intent>city</visallo:intent>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#facility"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#clockwiseRotation -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#clockwiseRotation">
+        <rdfs:label xml:lang="en">Clockwise Rotation</rdfs:label>
+        <visallo:intent>media.clockwiseRotation</visallo:intent>
+        <visallo:userVisible>false</visallo:userVisible>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#media"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#employeeId -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#employeeId">
+        <rdfs:label xml:lang="en">Employee ID</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#employeeName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#employeeName">
+        <rdfs:label xml:lang="en">Name</rdfs:label>
+        <visallo:dependentPropertyIris>[&apos;http://visallo.org/insider-threat#firstName&apos;,&apos;http://visallo.org/insider-threat#lastName&apos;]</visallo:dependentPropertyIris>
+        <visallo:displayFormula>
+            _.compact([dependentProp(&apos;http://visallo.org/insider-threat#lastName&apos;),
+            dependentProp(&apos;http://visallo.org/insider-threat#firstName&apos;)]).join(&apos;, &apos;)
+        </visallo:displayFormula>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#employeeTitle -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#employeeTitle">
+        <rdfs:label xml:lang="en">Title</rdfs:label>
+        <visallo:possibleValues xml:lang="en">
+            {
+            &quot;MGR&quot;: &quot;Manager&quot;,
+            &quot;BA&quot;: &quot;Business Analyst&quot;,
+            &quot;SA&quot;: &quot;System Administrator&quot;,
+            &quot;DEV&quot;: &quot;Developer&quot;
+            }
+        </visallo:possibleValues>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#eventAction -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#eventAction">
+        <rdfs:label xml:lang="en">Action</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#event"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#eventDate -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#eventDate">
+        <rdfs:label xml:lang="en">Date/Time</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#event"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#eventRisk -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#eventRisk">
+        <rdfs:label xml:lang="en">Event Risk Score</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:propertyGroup xml:lang="en">Event Risk</visallo:propertyGroup>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#eventRiskMessage -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#eventRiskMessage">
+        <rdfs:label xml:lang="en">Event Risk</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:displayFormula>
+            var risk = prop(&apos;http://visallo.org/insider-threat#eventRisk&apos;);
+            var riskReason = prop(&apos;http://visallo.org/insider-threat#eventRiskName&apos;);
+            if (riskReason) {
+                riskReason = &apos;(&apos; + riskReason + &apos;)&apos;;
+            }
+            return _.compact([risk, riskReason]).join(&apos; &apos;);
+        </visallo:displayFormula>
+        <visallo:propertyGroup xml:lang="en">Event Risk</visallo:propertyGroup>
+        <visallo:dependentPropertyIris>[&apos;http://visallo.org/insider-threat#eventRisk&apos;,&apos;http://visallo.org/insider-threat#eventRiskName&apos;]</visallo:dependentPropertyIris>
+        <visallo:displayType xml:lang="en">risk</visallo:displayType>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#eventRiskName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#eventRiskName">
+        <rdfs:label xml:lang="en">Event Risk Name</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:propertyGroup xml:lang="en">Event Risk</visallo:propertyGroup>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#firstName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#firstName">
+        <rdfs:label xml:lang="en">First Name</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#geoLocation -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#geoLocation">
+        <rdfs:label xml:lang="en">Geo-Location</rdfs:label>
+        <visallo:intent>geoLocation</visallo:intent>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#facility"/>
+        <rdfs:range rdf:resource="&visallo;geolocation"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#ipAddress -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#ipAddress">
+        <rdfs:label xml:lang="en">IP Address</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#applicationEvent"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#remoteAccess"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#lastName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#lastName">
+        <rdfs:label xml:lang="en">Last Name</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#performanceReviewScore -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#performanceReviewScore">
+        <rdfs:label xml:lang="en">Rating</rdfs:label>
+        <visallo:possibleValues xml:lang="en">
+            {
+            &quot;AR&quot;: &quot;Action Required&quot;,
+            &quot;I&quot;: &quot;Inconsistent&quot;,
+            &quot;S&quot;: &quot;Strong&quot;,
+            &quot;VS&quot;: &quot;Very Strong&quot;,
+            &quot;E&quot;: &quot;Exceptional&quot;
+            }
+        </visallo:possibleValues>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#performanceReview"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#privilegeName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#privilegeName">
+        <rdfs:label xml:lang="en">Name</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#privilege"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#risk -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#risk">
+        <rdfs:label xml:lang="en">Risk</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#event"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#privilege"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#riskReason -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#riskReason">
+        <rdfs:label xml:lang="en">Risk Reason</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#event"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#privilege"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#state -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#state">
+        <rdfs:label xml:lang="en">State</rdfs:label>
+        <visallo:intent>state</visallo:intent>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#facility"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#street1 -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#street1">
+        <rdfs:label xml:lang="en">Street Line 1</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#facility"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#street2 -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#street2">
+        <rdfs:label xml:lang="en">Street Line 2</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#facility"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#totalApplicationRisk -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#totalApplicationRisk">
+        <rdfs:label xml:lang="en">Total Access Risk</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:propertyGroup xml:lang="en">Access Risk</visallo:propertyGroup>
+        <visallo:displayType xml:lang="en">risk</visallo:displayType>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#totalEventRisk -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#totalEventRisk">
+        <rdfs:label xml:lang="en">Total Event Risk</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:propertyGroup xml:lang="en">Event Risk</visallo:propertyGroup>
+        <visallo:displayType xml:lang="en">risk</visallo:displayType>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#totalRisk -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#totalRisk">
+        <rdfs:label xml:lang="en">Total Risk</rdfs:label>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#transactionAmount -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#transactionAmount">
+        <rdfs:label xml:lang="en">Amount</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#401kTransaction"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#travelDestination -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#travelDestination">
+        <rdfs:label xml:lang="en">Destination</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#transferRequest"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#travel"/>
+        <rdfs:range rdf:resource="&visallo;geolocation"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#travelOrigin -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#travelOrigin">
+        <rdfs:label xml:lang="en">Origin</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#transferRequest"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#travel"/>
+        <rdfs:range rdf:resource="&visallo;geolocation"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#userId -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#userId">
+        <rdfs:label xml:lang="en">User ID</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#yAxisFlipped -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#yAxisFlipped">
+        <rdfs:label xml:lang="en">Y Axis Flipped</rdfs:label>
+        <visallo:intent>media.yAxisFlipped</visallo:intent>
+        <visallo:userVisible>false</visallo:userVisible>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#media"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/insider-threat#zipCode -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/insider-threat#zipCode">
+        <rdfs:label xml:lang="en">Zip Code</rdfs:label>
+        <visallo:intent>zipCode</visallo:intent>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#employee"/>
+        <rdfs:domain rdf:resource="http://visallo.org/insider-threat#facility"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://visallo.org/insider-threat#application -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#application">
+        <rdfs:label xml:lang="en">Application</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#asset"/>
+        <visallo:glyphIconFileName>application.png</visallo:glyphIconFileName>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#applicationEvent -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#applicationEvent">
+        <rdfs:label xml:lang="en">Application Event</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+        <visallo:glyphIconFileName>applicationEvent.png</visallo:glyphIconFileName>
+        <visallo:color>rgb(222, 10, 10)</visallo:color>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#asset -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#asset">
+        <rdfs:label xml:lang="en">Asset</rdfs:label>
+        <visallo:titleFormula xml:lang="en">prop(&apos;http://visallo.org/insider-threat#assetTitle&apos;) || &apos;&apos;</visallo:titleFormula>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#badgeIn -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#badgeIn">
+        <rdfs:label xml:lang="en">Badge In</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#employee -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#employee">
+        <rdfs:label xml:lang="en">Employee</rdfs:label>
+        <visallo:glyphIconFileName xml:lang="en">employee.png</visallo:glyphIconFileName>
+        <visallo:titleFormula xml:lang="en">prop(&apos;http://visallo.org/insider-threat#employeeName&apos;)
+            || (prop(&apos;http://visallo.org/insider-threat#employeeId&apos;) ? &apos;Employee &apos; + prop(&apos;http://visallo.org/insider-threat#employeeId&apos;) : &apos;&apos;)
+            || &apos;&apos;</visallo:titleFormula>
+        <visallo:color>rgb(187, 221, 221)</visallo:color>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#event -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#event">
+        <rdfs:label xml:lang="en">Event</rdfs:label>
+        <visallo:glyphIconFileName xml:lang="en">event.png</visallo:glyphIconFileName>
+        <visallo:titleFormula xml:lang="en">prop(&apos;http://visallo.org/insider-threat#eventAction&apos;) || &apos;&apos;</visallo:titleFormula>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#facility -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#facility">
+        <rdfs:label xml:lang="en">Facility</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#asset"/>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#hrEvent -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#hrEvent">
+        <rdfs:label xml:lang="en">HR Event</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+        <visallo:glyphIconFileName>hrEvent.png</visallo:glyphIconFileName>
+        <visallo:color>rgb(19, 249, 208)</visallo:color>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#media -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#media">
+        <rdfs:label xml:lang="en">Media</rdfs:label>
+        <visallo:color>rgb(34, 102, 153)</visallo:color>
+        <visallo:intent>audio</visallo:intent>
+        <visallo:intent>entityImage</visallo:intent>
+        <visallo:glyphIconFileName xml:lang="en">media.png</visallo:glyphIconFileName>
+        <visallo:intent>video</visallo:intent>
+        <visallo:intent>document</visallo:intent>
+        <visallo:intent>image</visallo:intent>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#performanceReview -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#performanceReview">
+        <rdfs:label xml:lang="en">Performance Review</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+        <visallo:glyphIconFileName>performanceReview.png</visallo:glyphIconFileName>
+        <visallo:color>rgb(10, 20, 222)</visallo:color>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#privilege -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#privilege">
+        <rdfs:label xml:lang="en">Privilege</rdfs:label>
+        <visallo:titleFormula xml:lang="en">
+            var appName = prop(&apos;http://visallo.org/insider-threat#applicationName&apos;);
+            var privileges = _.chain(vertex.properties).where({ name: &apos;http://visallo.org/insider-threat#privilegeName&apos; }).pluck(&apos;value&apos;).value().sort().join(&apos;, &apos;) || &apos;no privileges&apos;
+            return appName + &apos; - &apos; + privileges;
+        </visallo:titleFormula>
+        <visallo:glyphIconFileName>privilege.png</visallo:glyphIconFileName>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#remoteAccess -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#remoteAccess">
+        <rdfs:label xml:lang="en">Remote Access</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+        <visallo:color>rgb(249, 246, 19)</visallo:color>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#transferRequest -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#transferRequest">
+        <rdfs:label xml:lang="en">Transfer Request</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#travel -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#travel">
+        <rdfs:label xml:lang="en">Travel</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+        <visallo:titleFormula>
+            &apos;Travel - &apos; + prop(&apos;http://visallo.org/insider-threat#travelOrigin&apos;) + &quot;-&quot; + prop(&apos;http://visallo.org/insider-threat#travelDestination&apos;)
+        </visallo:titleFormula>
+        <visallo:glyphIconFileName>travel.png</visallo:glyphIconFileName>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/insider-threat#401kTransaction -->
+
+    <owl:Class rdf:about="http://visallo.org/insider-threat#401kTransaction">
+        <rdfs:label xml:lang="en">401k Transaction</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/insider-threat#event"/>
+        <visallo:glyphIconFileName>401kTransaction.png</visallo:glyphIconFileName>
+        <visallo:titleFormula xml:lang="en">
+            var title = &apos;401k &apos;;
+            var amount = parseInt(propRaw(&apos;http://visallo.org/insider-threat#transactionAmount&apos;));
+            var pos = amount &gt; 0;
+            amount = Math.abs(amount);
+            amount = sf(&apos;{0:#,###,##0}&apos;, amount);
+            if(pos) {
+               title += &apos;+$&apos; + amount;
+            } else {
+               title += &apos;-$&apos; + amount;
+            }
+            return title;
+        </visallo:titleFormula>
+        <visallo:color>rgb(39, 164, 39)</visallo:color>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
+

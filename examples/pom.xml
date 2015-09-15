@@ -15,5 +15,6 @@
 
     <modules>
         <module>example-cli</module>
+        <module>insider-threat</module>
     </modules>
 </project>
