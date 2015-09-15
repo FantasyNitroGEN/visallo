@@ -32,7 +32,7 @@ public class UserGet extends BaseRequestHandler {
             respondWithNotFound(response);
             return;
         }
-        Authorizations authorizations = getAuthorizations(request, user);
+        Authorizations authorizations = getUserRepository().getAuthorizations(user);
 
         ClientApiUser clientApiUser = getUserRepository().toClientApiPrivate(user);
 
