@@ -1,4 +1,0 @@
-org.visallo.foodTruck.FoodTruckTweetAnalyzerGraphPropertyWorker
-org.visallo.foodTruck.FoodTruckLocationUpdateGraphPropertyWorker
-org.visallo.foodTruck.FoodTruckHasTwitterAccountOnCreateGraphPropertyWorker
-org.visallo.foodTruck.FoodTruckRemoveOldGeoLocationsGraphPropertyWorker
