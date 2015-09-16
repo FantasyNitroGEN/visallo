@@ -90,19 +90,31 @@ public class RdfImport extends CommandLineTool {
 
     private void importFile(File inputFile, Visibility visibility) throws IOException {
         LOGGER.info("Importing file: %s", inputFile.getAbsolutePath());
-        try {
-            RdfGraphPropertyWorker rdfGraphPropertyWorker = InjectHelper.getInstance(RdfGraphPropertyWorker.class);
-            rdfGraphPropertyWorker.importRdf(getGraph(), inputFile, null, visibility, priority, getAuthorizations());
-        } catch (JenaException ex) {
-            if (ex.getCause() instanceof SAXParseException) {
-                TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
-                RdfTripleImport rdfTripleImport = new RdfTripleImport(getGraph(), timeZone, visibility, getAuthorizations());
-                Metadata metadata = new Metadata();
-                rdfTripleImport.importRdf(inputFile, metadata);
-            } else {
-                throw ex;
+        if (inputFile.getName().endsWith(".nt")) {
+            importFileRdfTriple(inputFile, visibility);
+        } else {
+            try {
+                importFileRdfXml(inputFile, visibility);
+            } catch (JenaException ex) {
+                if (ex.getMessage().contains("Content is not allowed in prolog.")) {
+                    importFileRdfTriple(inputFile, visibility);
+                } else {
+                    throw ex;
+                }
             }
         }
         getGraph().flush();
+    }
+
+    private void importFileRdfTriple(File inputFile, Visibility visibility) throws IOException {
+        TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
+        RdfTripleImport rdfTripleImport = new RdfTripleImport(getGraph(), timeZone, visibility, getAuthorizations());
+        Metadata metadata = new Metadata();
+        rdfTripleImport.importRdf(inputFile, metadata);
+    }
+
+    private void importFileRdfXml(File inputFile, Visibility visibility) throws IOException {
+        RdfGraphPropertyWorker rdfGraphPropertyWorker = InjectHelper.getInstance(RdfGraphPropertyWorker.class);
+        rdfGraphPropertyWorker.importRdf(getGraph(), inputFile, null, visibility, priority, getAuthorizations());
     }
 }
