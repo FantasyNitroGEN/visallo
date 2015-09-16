@@ -100,6 +100,7 @@ define([
             .selector('node:selected')
             .css({
                 'background-color': '#0088cc',
+                'background-image': 'data(selectedImageSrc)',
                 'border-color': '#0088cc',
                 'border-width': 2 * retina.devicePixelRatio,
                 color: '#0088cc'

@@ -365,6 +365,77 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         assertChangedPropertyValueAndVisibilityPublished();
     }
 
+    @Test
+    public void recreatedVertexWithSameIdAfterUndoShouldNotHaveOldProperties() {
+        String workspaceId = workspace.getWorkspaceId();
+        Authorizations workspaceAuthorizations = new InMemoryAuthorizations(workspaceId, OTHER_VISIBILITY_SOURCE);
+        VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, initialVisibilitySource, workspaceId);
+        Visibility visibility = VISIBILITY_TRANSLATOR.toVisibility(visibilityJson).getVisibility();
+        Metadata propertyMetadata = new Metadata();
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, visibilityJson, VISIBILITY_TRANSLATOR.getDefaultVisibility());
+
+        ElementBuilder<Vertex> vertexBuilder = graph.prepareVertex("v1", visibility)
+                .addPropertyValue("k1", "p1", "v1", propertyMetadata, visibility)
+                .addPropertyValue("k2", "p2", "v2", propertyMetadata, visibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, propertyMetadata, visibility);
+        Vertex v1 = vertexBuilder.save(workspaceAuthorizations);
+        graph.flush();
+
+        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), true, null, user1);
+        graph.flush();
+
+        String vertexId = v1.getId();
+        assertNotNull(graph.getVertex(vertexId, workspaceAuthorizations));
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        assertEquals(4, diffs.size());
+        undoWorkspace(diffs);
+        assertNull(graph.getVertex(vertexId, workspaceAuthorizations));
+
+        vertexBuilder = graph.prepareVertex("v1", visibility)
+                .addPropertyValue("k3", "p1", "v1", propertyMetadata, visibility)
+                .addPropertyValue("k4", "p2", "v2", propertyMetadata, visibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, propertyMetadata, visibility);
+        vertexBuilder.save(workspaceAuthorizations);
+        graph.flush();
+
+        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), true, null, user1);
+        graph.flush();
+
+        assertNotNull(graph.getVertex(vertexId, workspaceAuthorizations));
+        diffs = getDiffsFromWorkspace();
+        assertEquals(4, diffs.size());
+        undoWorkspace(diffs);
+        assertNull(graph.getVertex(vertexId, workspaceAuthorizations));
+    }
+
+    private void undoWorkspace (List<ClientApiWorkspaceDiff.Item> diffs) {
+        List<ClientApiUndoItem> undoItems = new ArrayList<>(diffs.size());
+        for (ClientApiWorkspaceDiff.Item diff : diffs) {
+            if (diff instanceof ClientApiWorkspaceDiff.VertexItem) {
+                ClientApiVertexUndoItem item = new ClientApiVertexUndoItem();
+                item.setVertexId(((ClientApiWorkspaceDiff.VertexItem) diff).getVertexId());
+                undoItems.add(item);
+            } else if (diff instanceof ClientApiWorkspaceDiff.EdgeItem) {
+                ClientApiRelationshipUndoItem item = new ClientApiRelationshipUndoItem();
+                item.setEdgeId(((ClientApiWorkspaceDiff.EdgeItem) diff).getEdgeId());
+                undoItems.add(item);
+            } else if (diff instanceof ClientApiWorkspaceDiff.PropertyItem) {
+                ClientApiPropertyUndoItem item = new ClientApiPropertyUndoItem();
+                item.setElementId(((ClientApiWorkspaceDiff.PropertyItem) diff).getElementId());
+                undoItems.add(item);
+            }
+        }
+        ClientApiWorkspaceUndoResponse workspaceUndoResponse = new ClientApiWorkspaceUndoResponse();
+        workspaceUndoHelper.undo(undoItems, workspaceUndoResponse, workspace.getWorkspaceId(), user1,
+                workspaceAuthorizations);
+        assertTrue(workspaceUndoResponse.isSuccess());
+    }
+
+    private List<ClientApiWorkspaceDiff.Item> getDiffsFromWorkspace() {
+        ClientApiWorkspaceDiff workspaceDiff = workspaceRepository.getDiff(workspace, user1, LOCALE, TIME_ZONE);
+        return workspaceDiff.getDiffs();
+    }
+
     private void publishWorkspace() {
         List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
         assertFalse(diffs.isEmpty());

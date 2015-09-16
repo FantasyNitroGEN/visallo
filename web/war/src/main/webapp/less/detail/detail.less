@@ -366,7 +366,7 @@
           padding: 0;
         }
                
-        ul li .preview {
+        ul li .preview, ul li .active-preview {
           left: 0.2em;
           width: 3em;
         }
@@ -430,6 +430,13 @@
           }
           ul li.map button {
             background-image: url(../img/glyphicons/glyphicons_242_google_maps@2x.png);
+          }
+
+          .preview {
+            display: block;
+          }
+          .active-preview {
+            display: none;
           }
         }
       }

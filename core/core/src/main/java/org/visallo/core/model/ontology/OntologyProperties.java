@@ -14,6 +14,8 @@ public class OntologyProperties {
     public static final BooleanSingleValueVisalloProperty USER_VISIBLE = new BooleanSingleValueVisalloProperty("http://visallo.org#userVisible");
     public static final StringSingleValueVisalloProperty GLYPH_ICON_FILE_NAME = new StringSingleValueVisalloProperty("http://visallo.org#glyphIconFileName");
     public static final StreamingSingleValueVisalloProperty GLYPH_ICON = new StreamingSingleValueVisalloProperty("http://visallo.org#glyphIcon");
+    public static final StringSingleValueVisalloProperty GLYPH_ICON_SELECTED_FILE_NAME = new StringSingleValueVisalloProperty("http://visallo.org#glyphIconSelectedFileName");
+    public static final StreamingSingleValueVisalloProperty GLYPH_ICON_SELECTED = new StreamingSingleValueVisalloProperty("http://visallo.org#glyphIconSelected");
     public static final StreamingSingleValueVisalloProperty MAP_GLYPH_ICON = new StreamingSingleValueVisalloProperty("http://visallo.org#mapGlyphIcon");
     public static final StringSingleValueVisalloProperty MAP_GLYPH_ICON_FILE_NAME = new StringSingleValueVisalloProperty("http://visallo.org#mapGlyphIconFileName");
     public static final JsonArraySingleValueVisalloProperty ADD_RELATED_CONCEPT_WHITE_LIST = new JsonArraySingleValueVisalloProperty("http://visallo.org#addRelatedConceptWhiteList");

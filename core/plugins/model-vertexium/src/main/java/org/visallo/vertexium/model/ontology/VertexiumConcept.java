@@ -27,6 +27,7 @@ public class VertexiumConcept extends Concept {
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.DISPLAY_NAME.getPropertyName());
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.DISPLAY_TYPE.getPropertyName());
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.GLYPH_ICON.getPropertyName());
+        PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName());
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.ONTOLOGY_TITLE.getPropertyName());
         PROPERTIES_NOT_IN_METADATA.add(VisalloProperties.CONCEPT_TYPE.getPropertyName());
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.COLOR.getPropertyName());
@@ -63,6 +64,11 @@ public class VertexiumConcept extends Concept {
     public boolean hasGlyphIconResource() {
         // TODO: This can be changed to GLYPH_ICON.getPropertyValue(vertex) once ENTITY_IMAGE_URL is added
         return vertex.getPropertyValue(OntologyProperties.GLYPH_ICON.getPropertyName()) != null;
+    }
+
+    @Override
+    public boolean hasGlyphIconSelectedResource() {
+        return vertex.getPropertyValue(OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName()) != null;
     }
 
     @Override
@@ -156,6 +162,19 @@ public class VertexiumConcept extends Concept {
             return IOUtils.toByteArray(spv.getInputStream());
         } catch (IOException e) {
             throw new VisalloResourceNotFoundException("Could not retrieve glyph icon");
+        }
+    }
+
+    @Override
+    public byte[] getGlyphIconSelected() {
+        try {
+            StreamingPropertyValue spv = OntologyProperties.GLYPH_ICON_SELECTED.getPropertyValue(getVertex());
+            if (spv == null) {
+                return null;
+            }
+            return IOUtils.toByteArray(spv.getInputStream());
+        } catch (IOException e) {
+            throw new VisalloResourceNotFoundException("Could not retrieve glyph icon selected");
         }
     }
 

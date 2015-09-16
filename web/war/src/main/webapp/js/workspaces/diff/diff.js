@@ -211,6 +211,7 @@ define([
                                 var concept = self.ontologyConcepts.byId[diffs[0].conceptType];
                                 if (concept) {
                                     outputItem.conceptImage = concept.glyphIconHref;
+                                    outputItem.selectedConceptImage = concept.glyphIconSelectedHref || concept.glyphIconHref;
                                 }
                             }
                         } else {

@@ -3,6 +3,7 @@ package org.visallo.core.model.workspace;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.vertexium.*;
+import org.vertexium.util.IterableUtils;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -10,9 +11,13 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
+
+import java.util.List;
 
 @Singleton
 public class WorkspaceHelper {
@@ -73,18 +78,20 @@ public class WorkspaceHelper {
         graph.flush();
     }
 
-    public void deleteProperty(Vertex vertex, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
+    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
         if (propertyIsPublic) {
-            vertex.markPropertyHidden(property, new Visibility(workspaceId), authorizations);
+            e.markPropertyHidden(property, new Visibility(workspaceId), authorizations);
         } else {
-            vertex.softDeleteProperty(property.getKey(), property.getName(), property.getVisibility(), authorizations);
+            e.softDeleteProperty(property.getKey(), property.getName(), property.getVisibility(), authorizations);
         }
 
-        unresolveTermMentionsForProperty(vertex, property, authorizations);
+        if (e instanceof Vertex) {
+            unresolveTermMentionsForProperty((Vertex) e, property, authorizations);
+        }
 
         graph.flush();
 
-        workQueueRepository.pushGraphPropertyQueue(vertex, property, priority);
+        workQueueRepository.pushGraphPropertyQueue(e, property, priority);
     }
 
     public void deleteEdge(
@@ -98,6 +105,8 @@ public class WorkspaceHelper {
             User user
     ) {
         ensureOntologyIrisInitialized();
+
+        deleteProperties(edge, workspaceId, priority, authorizations, user);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
@@ -155,9 +164,22 @@ public class WorkspaceHelper {
         }
     }
 
+    private void deleteProperties (Element e, String workspaceId, Priority priority, Authorizations authorizations, User user) {
+        List<Property> properties = IterableUtils.toList(e.getProperties());
+        SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
+
+        for (int i = 0; i < sandboxStatuses.length; i++) {
+            boolean propertyIsPublic = (sandboxStatuses[i] == SandboxStatus.PUBLIC);
+            Property property = properties.get(i);
+            deleteProperty(e, property, propertyIsPublic, workspaceId, priority, authorizations);
+        }
+    }
+
     public void deleteVertex(Vertex vertex, String workspaceId, boolean isPublicVertex, Priority priority, Authorizations authorizations, User user) {
         LOGGER.debug("BEGIN deleteVertex(vertexId: %s, workspaceId: %s, isPublicVertex: %b, user: %s)", vertex.getId(), workspaceId, isPublicVertex, user.getUsername());
         ensureOntologyIrisInitialized();
+
+        deleteProperties(vertex, workspaceId, priority, authorizations, user);
 
         // make sure the entity is on the workspace so that it shows up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);

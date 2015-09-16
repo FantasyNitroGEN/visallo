@@ -510,6 +510,7 @@ define([
             merged.truncatedTitle = truncatedTitle;
             merged.conceptType = F.vertex.prop(vertex, 'conceptType');
             merged.imageSrc = F.vertex.image(vertex, null, 150);
+            merged.selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
 
             registry.extensionsForPoint('org.visallo.graph.node.transformer')
                 .forEach(function(dataTransform) {

@@ -46,6 +46,7 @@ public class ClientApiOntology implements ClientApiObject {
         private Boolean userVisible;
         private Boolean searchable;
         private String glyphIconHref;
+        private String glyphIconSelectedHref;
         private String color;
         private List<String> intents = new ArrayList<>();
         private List<String> addRelatedConceptWhiteList = new ArrayList<>();
@@ -146,6 +147,14 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setGlyphIconHref(String glyphIconHref) {
             this.glyphIconHref = glyphIconHref;
+        }
+
+        public String getGlyphIconSelectedHref() {
+            return glyphIconSelectedHref;
+        }
+
+        public void setGlyphIconSelectedHref(String glyphIconSelectedHref) {
+            this.glyphIconSelectedHref = glyphIconSelectedHref;
         }
 
         public String getColor() {
