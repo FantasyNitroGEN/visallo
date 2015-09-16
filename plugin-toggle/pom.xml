@@ -291,6 +291,16 @@
             </dependencies>
         </profile>
         <profile>
+            <id>gpw-twitter</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-twitter-graph-property-worker</artifactId>
+                    <version>${v5.visallo.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>gpw-core</id>
             <dependencies>
                 <dependency>
