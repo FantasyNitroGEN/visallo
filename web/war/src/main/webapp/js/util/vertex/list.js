@@ -321,6 +321,7 @@ define([
 
                             var preview = li.data('previewLoaded', true)
                                             .find('.preview'),
+                                activePreview = li.find('.active-preview'),
                                 image = F.vertex.image(vertex, null, 80, 80),
                                 videoPreview = F.vertex.imageFrames(vertex);
 
@@ -335,8 +336,10 @@ define([
                                 });
                             } else {
                                 preview.find('div').remove();
-                                var conceptImage = F.vertex.concept(vertex).glyphIconHref,
-                                clsName = 'non_concept_preview';
+                                var concept = F.vertex.concept(vertex),
+                                    conceptImage = concept.glyphIconHref,
+                                    activeConceptImage = concept.glyphIconSelectedHref || conceptImage,
+                                    clsName = 'non_concept_preview';
 
                                 if ((preview.css('background-image') || '').indexOf(image) >= 0) {
                                     return;
@@ -347,6 +350,7 @@ define([
                                 deferredImage(conceptImage)
                                 .always(function() {
                                     preview.css('background-image', 'url(' + conceptImage + ')')
+                                    activePreview.css('background-image', 'url(' + activeConceptImage + ')')
                                 })
                                 .done(function() {
                                     if (conceptImage === image) {
@@ -355,10 +359,8 @@ define([
                                     } else {
                                         _.delay(function() {
                                             deferredImage(image).always(function() {
-                                                preview.css(
-                                                    'background-image',
-                                                    'url(' + image + ')'
-                                                );
+                                                preview.css('background-image', 'url(' + image + ')');
+                                                activePreview.css('background-image', 'url(' + image + ')');
                                                 li.toggleClass(clsName, !F.vertex.imageIsFromConcept(vertex))
                                                 .removeClass('loading');
                                             })

@@ -143,6 +143,9 @@ define([
                                 if (!child.glyphIconHref) {
                                     child.glyphIconHref = node.glyphIconHref;
                                 }
+                                if (!child.glyphIconSelectedHref) {
+                                    child.glyphIconSelectedHref = node.glyphIconSelectedHref;
+                                }
                                 if (!child.color) {
                                     if (node.color) {
                                         child.color = node.color;

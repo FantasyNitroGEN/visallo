@@ -64,6 +64,12 @@ body > .vertex-dragging {
         .map button {
           background-image: url(../img/glyphicons/white/glyphicons_242_google_maps@2x.png);
         }
+        .active-preview {
+          display: block;
+        }
+        .preview {
+          display: none;
+        }
       }
 
       &.graph-displayed li.graph { display: block; }
@@ -96,7 +102,7 @@ body > .vertex-dragging {
         height: 4em;
       }
 
-      .preview {
+      .preview, .active-preview {
         display: block;
         position: absolute;
         bottom: 1px;
@@ -108,6 +114,10 @@ body > .vertex-dragging {
         left: 0.3em;
         width: @preview-width * 0.4;
         background-size: contain;
+      }
+
+      .active-preview {
+        display: none;
       }
 
       ul {
