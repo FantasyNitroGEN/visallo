@@ -336,8 +336,9 @@ define([
             },
 
             selectedImage: function(vertex, optionalWorkspaceId, width) {
-                var concept = V.concept(vertex);
-                return concept.glyphIconSelectedHref || V.image(vertex, optionalWorkspaceId, width);
+                var concept = V.concept(vertex),
+                    conceptImage = V.image(vertex, optionalWorkspaceId, width);
+                return (conceptImage === concept.glyphIconHref) ? (concept.glyphIconSelectedHref || conceptImage) : conceptImage;
             },
 
             imageIsFromConcept: function(vertex, optionalWorkspaceId) {
