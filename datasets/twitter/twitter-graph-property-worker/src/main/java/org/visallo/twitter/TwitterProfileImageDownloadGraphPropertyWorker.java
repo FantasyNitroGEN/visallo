@@ -1,19 +1,22 @@
 package org.visallo.twitter;
 
+import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
+import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.PropertyMetadata;
+import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.vertexium.Element;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
-import org.vertexium.VertexBuilder;
-import org.vertexium.property.StreamingPropertyValue;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,16 +54,26 @@ public class TwitterProfileImageDownloadGraphPropertyWorker extends GraphPropert
             StreamingPropertyValue imageValue = new StreamingPropertyValue(imageData, byte[].class);
             imageValue.searchIndex(false);
 
+            List<VisalloPropertyUpdate> profileImagePropertyUpdates = new ArrayList<>();
+            PropertyMetadata metadata = new PropertyMetadata(getUser(), data.getVisibilityJson(), data.getVisibility());
             VertexBuilder v = getGraph().prepareVertex(profileImageId, data.getVisibility());
-            VisalloProperties.TITLE.addPropertyValue(v, MULTI_VALUE_KEY, "Profile Image of " + userTitle, data.getVisibility());
-            VisalloProperties.RAW.setProperty(v, imageValue, data.getVisibility());
-            VisalloProperties.CONCEPT_TYPE.setProperty(v, TwitterOntology.CONCEPT_TYPE_PROFILE_IMAGE, data.getVisibility());
+            VisalloProperties.TITLE.updateProperty(profileImagePropertyUpdates, null, v, MULTI_VALUE_KEY, "Profile Image of " + userTitle, metadata, data.getVisibility());
+            VisalloProperties.RAW.updateProperty(profileImagePropertyUpdates, null, v, imageValue, metadata, data.getVisibility());
+            VisalloProperties.CONCEPT_TYPE.updateProperty(profileImagePropertyUpdates, null, v, TwitterOntology.CONCEPT_TYPE_PROFILE_IMAGE, metadata, data.getVisibility());
             profileImageVertex = v.save(getAuthorizations());
             LOGGER.debug("created vertex: %s", profileImageVertex.getId());
 
-            getGraph().addEdge((Vertex) data.getElement(), profileImageVertex, entityHasImageIri, data.getVisibility(), getAuthorizations());
-            VisalloProperties.ENTITY_IMAGE_VERTEX_ID.setProperty(data.getElement(), profileImageVertex.getId(), data.getVisibility(), getAuthorizations());
+            List<VisalloPropertyUpdate> elementPropertyUpdates = new ArrayList<>();
+            Edge entityHasImageEdge = getGraph().addEdge((Vertex) data.getElement(), profileImageVertex, entityHasImageIri, data.getVisibility(), getAuthorizations());
+            ElementMutation m = ((Vertex) data.getElement()).prepareMutation();
+            VisalloProperties.ENTITY_IMAGE_VERTEX_ID.updateProperty(elementPropertyUpdates, data.getElement(), m, profileImageVertex.getId(), metadata, data.getVisibility());
+            m.save(getAuthorizations());
+
             getGraph().flush();
+
+            getWorkQueueRepository().pushElement(entityHasImageEdge, Priority.LOW);
+            getWorkQueueRepository().pushGraphVisalloPropertyQueue(profileImageVertex, profileImagePropertyUpdates, Priority.LOW);
+            getWorkQueueRepository().pushGraphVisalloPropertyQueue(data.getElement(), elementPropertyUpdates, Priority.LOW);
         }
     }
 
