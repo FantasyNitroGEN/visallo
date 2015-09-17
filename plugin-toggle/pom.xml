@@ -231,6 +231,16 @@
             </dependencies>
         </profile>
         <profile>
+            <id>gpw-geocoder</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-gpw-geocoder</artifactId>
+                    <version>${v5.visallo.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>gpw-geoip</id>
             <dependencies>
                 <dependency>

@@ -8,15 +8,15 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.vertexium.Authorizations;
-import org.vertexium.Vertex;
+import org.vertexium.Element;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiOntology;
-import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
 import java.io.IOException;
@@ -24,7 +24,10 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FormulaEvaluator {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FormulaEvaluator.class);
@@ -37,7 +40,8 @@ public class FormulaEvaluator {
     private ExecutorService executorService;
 
     private static final ThreadLocal<Map<String, Scriptable>> threadLocalScope = new ThreadLocal<Map<String, Scriptable>>() {
-        @Override protected Map<String, Scriptable> initialValue() {
+        @Override
+        protected Map<String, Scriptable> initialValue() {
             return new HashMap<>();
         }
     };
@@ -54,20 +58,30 @@ public class FormulaEvaluator {
         executorService.shutdown();
     }
 
-    public String evaluateTitleFormula(Vertex vertex, UserContext userContext, Authorizations authorizations) {
-        return evaluateFormula("Title", vertex, userContext, authorizations);
+    public String evaluateTitleFormula(Element element, UserContext userContext, Authorizations authorizations) {
+        return evaluateFormula("Title", element, null, null, userContext, authorizations);
     }
 
-    public String evaluateTimeFormula(Vertex vertex, UserContext userContext, Authorizations authorizations) {
-        return evaluateFormula("Time", vertex, userContext, authorizations);
+    public String evaluateTimeFormula(Element element, UserContext userContext, Authorizations authorizations) {
+        return evaluateFormula("Time", element, null, null, userContext, authorizations);
     }
 
-    public String evaluateSubtitleFormula(Vertex vertex, UserContext userContext, Authorizations authorizations) {
-        return evaluateFormula("Subtitle", vertex, userContext, authorizations);
+    public String evaluateSubtitleFormula(Element element, UserContext userContext, Authorizations authorizations) {
+        return evaluateFormula("Subtitle", element, null, null, userContext, authorizations);
     }
 
-    private String evaluateFormula(String type, Vertex vertex, UserContext userContext, Authorizations authorizations) {
-        FormulaEvaluatorCallable evaluationCallable = new FormulaEvaluatorCallable(type, vertex, userContext, authorizations);
+    public String evaluatePropertyDisplayFormula(
+            Element element,
+            String propertyKey,
+            String propertyName,
+            UserContext userContext,
+            Authorizations authorizations
+    ) {
+        return evaluateFormula("Property", element, propertyKey, propertyName, userContext, authorizations);
+    }
+
+    private String evaluateFormula(String type, Element element, String propertyKey, String propertyName, UserContext userContext, Authorizations authorizations) {
+        FormulaEvaluatorCallable evaluationCallable = new FormulaEvaluatorCallable(type, element, propertyKey, propertyName, userContext, authorizations);
 
         try {
             return executorService.submit(evaluationCallable).get();
@@ -152,8 +166,8 @@ public class FormulaEvaluator {
         return null;
     }
 
-    protected String toJson(Vertex vertex, String workspaceId, Authorizations authorizations) {
-        ClientApiVertex v = ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations);
+    protected String toJson(Element element, String workspaceId, Authorizations authorizations) {
+        ClientApiElement v = ClientApiConverter.toClientApi(element, workspaceId, authorizations);
         return v.toString();
     }
 
@@ -182,14 +196,18 @@ public class FormulaEvaluator {
     }
 
     private class FormulaEvaluatorCallable implements Callable<String> {
+        private final String propertyKey;
+        private final String propertyName;
         private UserContext userContext;
         private String fieldName;
-        private Vertex vertex;
+        private Element element;
         private Authorizations authorizations;
 
-        public FormulaEvaluatorCallable(String fieldName, Vertex vertex, UserContext userContext, Authorizations authorizations) {
+        public FormulaEvaluatorCallable(String fieldName, Element element, String propertyKey, String propertyName, UserContext userContext, Authorizations authorizations) {
             this.fieldName = fieldName;
-            this.vertex = vertex;
+            this.element = element;
+            this.propertyKey = propertyKey;
+            this.propertyName = propertyName;
             this.userContext = userContext;
             this.authorizations = authorizations;
         }
@@ -197,9 +215,9 @@ public class FormulaEvaluator {
         @Override
         public String call() throws Exception {
             Scriptable scope = getScriptable(userContext);
-            String json = toJson(vertex, userContext.getWorkspaceId(), authorizations);
+            String json = toJson(element, userContext.getWorkspaceId(), authorizations);
             Function function = (Function) scope.get("evaluate" + fieldName + "FormulaJson", scope);
-            Object result = function.call(Context.getCurrentContext(), scope, scope, new Object[]{json});
+            Object result = function.call(Context.getCurrentContext(), scope, scope, new Object[]{json, propertyKey, propertyName});
 
             return (String) Context.jsToJava(result, String.class);
         }

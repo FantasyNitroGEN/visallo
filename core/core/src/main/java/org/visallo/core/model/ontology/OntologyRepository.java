@@ -12,6 +12,7 @@ import org.visallo.web.clientapi.model.ClientApiOntology;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Set;
 
 public interface OntologyRepository {
@@ -102,9 +103,13 @@ public interface OntologyRepository {
 
     <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType);
 
+    List<OntologyProperty> getPropertiesByIntent(String intent);
+
     OntologyProperty getRequiredPropertyByIntent(String intent);
 
     String getRequiredPropertyIRIByIntent(String intent);
 
     boolean isOntologyDefined(String iri);
+
+    OntologyProperty getDependentPropertyParent(String iri);
 }

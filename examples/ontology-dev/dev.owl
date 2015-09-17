@@ -562,6 +562,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#cityProp">
         <rdfs:label xml:lang="en">City</rdfs:label>
+        <visallo:intent>geocodable</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -818,6 +819,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#stateProp">
         <rdfs:label xml:lang="en">State</rdfs:label>
+        <visallo:intent>geocodable</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -828,6 +830,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#street1">
         <rdfs:label xml:lang="en">Street Line 1</rdfs:label>
+        <visallo:intent>geocodable</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -838,6 +841,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#street2">
         <rdfs:label xml:lang="en">Street Line 2</rdfs:label>
+        <visallo:intent>geocodable</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -904,6 +908,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#zipCodeProp">
         <rdfs:label xml:lang="en">Zip Code</rdfs:label>
+        <visallo:intent>geocodable</visallo:intent>
         <visallo:intent>zipCode</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>

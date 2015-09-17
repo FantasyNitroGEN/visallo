@@ -1,17 +1,18 @@
 package org.visallo.core.formula;
 
-import org.junit.*;
+import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.vertexium.Authorizations;
+import org.vertexium.Element;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.apache.commons.io.IOUtils;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-import org.vertexium.Authorizations;
-import org.vertexium.Vertex;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -58,7 +59,7 @@ public class FormulaEvaluatorTest {
             }
 
             @Override
-            protected String toJson(Vertex vertex, String workspaceId, Authorizations authorizations) {
+            protected String toJson(Element element, String workspaceId, Authorizations authorizations) {
                 return vertexJson;
             }
         };
