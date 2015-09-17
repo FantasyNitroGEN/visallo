@@ -5,6 +5,7 @@ define([
     'tpl!util/alert',
     'util/withDataRequest',
     'util/formatters',
+    'util/popovers/withElementScrollingPositionUpdates',
     'configuration/plugins/registry'
 ], function(
     require,
@@ -13,12 +14,13 @@ define([
     alertTemplate,
     withDataRequest,
     F,
+    withElementScrollingPositionUpdates,
     registry) {
     'use strict';
 
     var SEARCH_TYPES = ['Visallo', 'Workspace'];
 
-    return defineComponent(Search, withDataRequest);
+    return defineComponent(Search, withDataRequest, withElementScrollingPositionUpdates);
 
     function Search() {
 
@@ -35,7 +37,9 @@ define([
             querySelector: '.navbar-search .search-query',
             queryValidationSelector: '.search-query-validation',
             hitsSelector: '.search-hits',
-            advancedSearchTypeSelector: '.advanced-search li a',
+            advancedSearchDropdownSelector: '.search-dropdowns .advanced',
+            advancedSearchTypeSelector: '.search-dropdowns .advanced-dropdown li a',
+            savedSearchSelector: '.search-dropdowns .saved',
             queryContainerSelector: '.search-query-container',
             clearSearchSelector: '.search-query-container a',
             segmentedControlSelector: '.segmented-control',
@@ -45,6 +49,9 @@ define([
 
         this.after('initialize', function() {
             this.render();
+
+            this.currentSearchByUrl = {};
+            this.currentSearchUrl = '';
 
             registry.documentExtensionPoint('org.visallo.search.filter',
                 'Add new types of search filters',
@@ -60,13 +67,17 @@ define([
             this.on('click', {
                 segmentedControlSelector: this.onSegmentedControlsClick,
                 clearSearchSelector: this.onClearSearchClick,
-                advancedSearchTypeSelector: this.onAdvancedSearchTypeClick
+                advancedSearchTypeSelector: this.onAdvancedSearchTypeClick,
+                savedSearchSelector: this.onSavedSearch
             });
+            this.on(this.select('advancedSearchDropdownSelector'), 'click', this.onAdvancedSearchDropdown);
             this.on('change keydown keyup paste', {
                 querySelector: this.onQueryChange
             });
             this.on(this.select('querySelector'), 'focus', this.onQueryFocus);
 
+            this.on('savedQuerySelected', this.onSavedQuerySelected);
+            this.on('setCurrentSearchForSaving', this.onSetCurrentSearchForSaving);
             this.on('filterschange', this.onFiltersChange);
             this.on('clearSearch', this.onClearSearch);
             this.on('searchRequestBegan', this.onSearchResultsBegan);
@@ -79,6 +90,32 @@ define([
             this.on(document, 'switchSearchType', this.onSwitchSearchType);
             this.on(document, 'menubarToggleDisplay', this.onToggleDisplay);
         });
+
+        this.onSavedQuerySelected = function(event, data) {
+            var self = this;
+
+            this.currentSearchQuery = data.query;
+            this.currentSearchByUrl[data.query.url] = data.query;
+            if ($(event.target).is(this.currentSearchNode)) return;
+            if ('q' in data.query.parameters) {
+                this.select('querySelector').filter(':visible')
+                    .val(data.query.parameters.q)
+                    .select()
+                this.updateClearSearch();
+            }
+            this.currentSearchNode.trigger(event.type, data);
+        };
+
+        this.onSetCurrentSearchForSaving = function(event, data) {
+            if ($(event.target).is(this.attr.savedSearchSelector)) return;
+
+            if (data && data.url) {
+                this.currentSearchByUrl[data.url] = data;
+            } else {
+                this.currentSearchByUrl = {};
+            }
+            this.select('savedSearchSelector').trigger(event.type, this.currentSearchByUrl[this.currentSearchUrl]);
+        };
 
         this.onToggleDisplay = function(event, data) {
             if (data.name === 'search' && this.$node.closest('.visible').length === 0) {
@@ -179,9 +216,11 @@ define([
             if (!data || data.success) {
                 $error.empty();
 
-                $hits.text(data && data.message || '');
+                if (data && data.message) {
+                    $hits.text(data.message);
+                } else $hits.html('&nbsp;')
             } else {
-                $hits.empty();
+                $hits.html('&nbsp;');
                 $error.html(
                     alertTemplate({ error: data.error || i18n('search.query.error') })
                 )
@@ -212,11 +251,12 @@ define([
                     }
 
                     var queryIsStarSearch = query === '*',
+                        queryIsSavedSearch = data.options && data.options.fromSavedSearch,
                         hasQuery = query && query.length,
                         validSearch = hasFilters ? hasQuery :
                             (hadFilters && hasQuery && !queryIsStarSearch);
 
-                    if (validSearch) {
+                    if (validSearch || queryIsSavedSearch) {
                         if (data.options && data.options.isScrubbing) {
                             self.triggerQueryUpdatedThrottled();
                         } else {
@@ -269,15 +309,58 @@ define([
 
         this.onAdvancedSearchTypeClick = function(event) {
             var $target = $(event.target),
-                path = $target.data('componentPath');
+                path = $target.data('componentPath'),
+                savedSearchUrl = $target.data('savedSearchUrl');
 
-            this.switchSearchType({ advancedSearch: path, displayName: $target.text() })
+            this.switchSearchType({
+                advancedSearch: path,
+                displayName: $target.text(),
+                savedSearchUrl: savedSearchUrl
+            });
+        };
+
+        this.onAdvancedSearchDropdown = function() {
+            this.select('savedSearchSelector').teardownAllComponents();
+        };
+
+        this.onSavedSearch = function(event) {
+            var self = this,
+                $button = $(event.target).closest('button').addClass('loading'),
+                $advancedButton = this.$node.find('.search-dropdowns .advanced');
+
+            event.stopPropagation();
+
+            if ($advancedButton.next('.dropdown-menu').is(':visible')) {
+                $advancedButton.dropdown('toggle');
+            }
+            require(['./save/popover'], function(Save) {
+                var opened = !!$button.lookupComponent(Save);
+
+                $button.removeClass('loading')
+
+                if (opened) {
+                    $button.siblings('button').andSelf().teardownAllComponents();
+                } else {
+                    self.dataRequest('search', 'all', self.currentSearchUrl).done(function(searches) {
+                        if (self.currentSearchQuery) {
+                            self.currentSearchQuery = _.findWhere(searches, { id: self.currentSearchQuery.id });
+                        }
+                        Save.attachTo($button, {
+                            list: searches,
+                            update: self.currentSearchQuery,
+                            query: self.currentSearchByUrl[self.currentSearchUrl]
+                        });
+                    })
+                }
+            });
         };
 
         this.onClearSearch = function(event) {
             var node = this.getSearchTypeNode(),
                 $query = this.select('querySelector'),
                 $clear = this.select('clearSearchSelector');
+
+            this.currentSearchQuery = null;
 
             if (node.is(event.target)) {
                 this.select('queryContainerSelector').removeClass('loading');
@@ -370,6 +453,9 @@ define([
                     self.trigger($container, 'searchtypeloaded', { type: newSearchType });
                 }
 
+                self.currentSearchUrl = newSearchType.savedSearchUrl
+                self.currentSearchNode = $container;
+
                 return;
             }
 
@@ -394,18 +480,20 @@ define([
                     .siblings('.search-type').removeClass('active').end();
 
             require(['./types/type' + newSearchType], function(SearchType) {
+                self.currentSearchUrl = SearchType.savedSearchUrl;
                 var alreadyAttached = node.lookupComponent(SearchType);
                 if (alreadyAttached) {
                     self.trigger(node, 'searchtypeloaded', { type: newSearchType });
                 } else {
                     SearchType.attachTo(node);
                 }
+                self.currentSearchNode = node;
                 self.updateTypeCss();
             });
         };
 
         this.updateAdvancedSearchDropdown = function(newSearchType) {
-            var dropdownCaret = this.$node.find('.advanced-search .caret')[0];
+            var dropdownCaret = this.$node.find('.search-dropdowns .advanced .caret')[0];
 
             if (dropdownCaret) {
                 dropdownCaret.previousSibling.textContent = (
@@ -414,7 +502,7 @@ define([
                         i18n('search.advanced.default')
                 ) + ' ';
             }
-            this.$node.find('.advanced-search').toggle(_.isObject(newSearchType) || newSearchType === 'Visallo');
+            this.$node.find('.search-dropdowns').toggle(_.isObject(newSearchType) || newSearchType === 'Visallo');
         }
 
         this.updateTypeCss = function() {
@@ -439,13 +527,15 @@ define([
 
             if (this.searchType) {
                 this.savedQueries[this.searchType].query = $query.val();
-                this.savedQueries[this.searchType].hits = $hits.text();
+                this.savedQueries[this.searchType].hits = $hits.text().trim();
             }
             this.searchType = newSearchType;
             this.otherSearchType = _.without(SEARCH_TYPES, this.searchType)[0];
 
             $query.val(this.savedQueries[newSearchType].query);
-            $hits.text(this.savedQueries[newSearchType].hits || '');
+            if (this.savedQueries[newSearchType].hits) {
+                $hits.text(this.savedQueries[newSearchType].hits);
+            } else $hits.html('&nbsp;')
 
             this.updateClearSearch();
         };
@@ -478,7 +568,7 @@ define([
             registry.documentExtensionPoint('org.visallo.search.advanced',
                 'Add alternate search interfaces',
                 function(e) {
-                    return (e.componentPath && e.displayName);
+                    return (e.componentPath && e.displayName && e.savedSearchUrl);
                 }
             );
             var self = this,

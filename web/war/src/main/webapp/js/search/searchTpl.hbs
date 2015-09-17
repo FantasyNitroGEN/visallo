@@ -6,19 +6,22 @@
     {{/each}}
   </div>
 
-  {{#if advancedSearch.length}}
-  <div class="advanced-search btn-group">
-    <a class="btn dropdown-toggle btn-mini btn-link" data-toggle="dropdown" href="#">
-      {{ i18n 'search.advanced.default' }} <span class="caret"></span>
-    </a>
-    <ul class="dropdown-menu">
-        <li><a href="#">{{ i18n 'search.advanced.default' }}</a></li>
-        {{#each advancedSearch}}
-        <li><a data-component-path="{{ componentPath }}" href="#">{{ displayName }}</a></li>
-        {{/each}}
-    </ul>
+  <div class="search-dropdowns btn-group">
+    <button class="btn btn-mini btn-link saved">
+      {{ i18n 'search.savedsearches.button' }} <span class="caret"></span>
+    </button>
+    {{#if advancedSearch.length}}
+      <a class="btn dropdown-toggle btn-mini btn-link advanced" data-toggle="dropdown">
+        {{ i18n 'search.advanced.default' }} <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu advanced-dropdown">
+          <li><a href="#">{{ i18n 'search.advanced.default' }}</a></li>
+          {{#each advancedSearch}}
+          <li><a data-saved-search-url="{{savedSearchUrl}}" data-component-path="{{ componentPath }}" href="#">{{ displayName }}</a></li>
+          {{/each}}
+      </ul>
+    {{/if}}
   </div>
-  {{/if}}
 
   <div class="search-query-container">
     <input type="text" class="search-query" placeholder="{{ i18n 'search.field.placeholder' }}">
@@ -26,7 +29,7 @@
   </div>
 
   <div class="search-query-validation"></div>
-  <div class="search-hits"></div>
+  <div class="search-hits">&nbsp;</div>
 </div>
 
 {{#each types}}

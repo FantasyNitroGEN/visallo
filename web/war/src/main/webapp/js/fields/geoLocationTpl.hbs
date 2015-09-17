@@ -1,0 +1,16 @@
+
+{{#if hasGeocoder}}
+<input data-optional="true" class="description" type="text" value="{{ value }}" placeholder="{{ i18n 'field.geolocation.form.description' }}">
+{{/if}}
+
+<input class="lat" type="text" required pattern="[\d-.]+" value="{{ latitude }}" placeholder="{{ i18n 'field.geolocation.form.latitude' }}">
+<input class="lon" type="text" required pattern="[\d-.]+" value="{{ longitude }}" placeholder="{{ i18n 'field.geolocation.form.longitude' }}">
+
+{{#if onlySearchable}}
+<input class="radius" 
+       required
+       pattern="[\d.,]+" 
+       placeholder="{{ i18n 'field.geolocation.form.radius.placeholder' }}"
+       type="text"
+       value="{{ radius }}">
+{{/if}}

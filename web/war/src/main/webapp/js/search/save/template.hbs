@@ -1,0 +1,18 @@
+<div class="savedSearchesPopover popover top">
+  <div class="arrow"></div>
+  <div class="popover-content" style="max-height:{{maxHeight}}px">
+    <div class="form input-append">
+      <input placeholder="Name" value="{{ name }}" type="text"><button class="btn btn-mini" type="button">{{ text }}</button>
+    </div>
+    <ul class="nav nav-list">
+      {{#each list}}
+        <li><a><h1>{{name}}</h1><pre>{{value}}</pre></a>
+          <button class="btn btn-mini btn-danger">Delete</button>
+        </li>
+      {{else}}
+      <li class="empty">{{ i18n 'search.savedsearches.none' }}</li>
+      {{/each}}
+    </ul>
+  </div>
+</div>
+

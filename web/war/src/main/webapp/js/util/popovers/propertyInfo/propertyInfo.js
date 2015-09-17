@@ -38,7 +38,12 @@ define([
                     config.isCommentCreator :
                     true;
                 config.canDelete = config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson';
-                config.canSearch = config.ontologyProperty && config.ontologyProperty.searchable && !config.isFullscreen;
+
+                var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
+                    config.ontologyProperty.dependentPropertyIris.length;
+                config.canSearch = config.ontologyProperty &&
+                    (config.ontologyProperty.searchable || isCompoundField) &&
+                    !config.isFullscreen;
             }
             config.hideDialog = true;
         });
@@ -286,11 +291,20 @@ define([
         };
 
         this.onSearch = function() {
-            var concept = F.vertex.concept(this.attr.data);
-            this.trigger('searchByProperty', {
-                property: _.pick(this.attr.property, 'name', 'value', 'values'),
-                conceptId: concept && concept.id
-            });
+            var concept = F.vertex.concept(this.attr.data),
+                data = {
+                    conceptId: concept && concept.id
+                },
+                trim = function(p) {
+                    return _.pick(p, 'name', 'value', 'values');
+                };
+
+            if (this.attr.property.compoundProperty) {
+                data.properties = this.attr.property.values.map(trim);
+            } else {
+                data.property = trim(this.attr.property);
+            }
+            this.trigger('searchByProperty', data);
             this.teardown();
         };
 

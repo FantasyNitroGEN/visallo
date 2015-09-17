@@ -9,6 +9,7 @@ define([
     '../withHighlighting',
     '../toolbar/toolbar',
     'tpl!./entity',
+    'configuration/plugins/registry',
     'util/vertex/formatters',
     'util/withDataRequest',
     'detail/dropdowns/propertyForm/propForm'
@@ -21,6 +22,7 @@ define([
     withHighlighting,
     Toolbar,
     template,
+    registry,
     F,
     withDataRequest,
     PropertyForm) {
@@ -39,6 +41,7 @@ define([
         this.defaultAttrs({
             glyphIconSelector: '.entity-glyphIcon',
             propertiesSelector: '.properties',
+            extensionsSelector: '.entity-extensions',
             relationshipsSelector: '.relationships',
             commentsSelector: '.comments',
             titleSelector: '.entity-title',
@@ -122,6 +125,8 @@ define([
                 data: vertex
             });
 
+            this.renderExtensions();
+
             Properties.attachTo(this.select('propertiesSelector'), {
                 data: vertex
             });
@@ -136,6 +141,30 @@ define([
 
             this.updateEntityAndArtifactDraggables();
             this.updateText();
+        };
+
+        this.renderExtensions = function() {
+            var self = this,
+                els = [],
+                requirePromises = [];
+
+            registry.extensionsForPoint('org.visallo.detail.extensions').forEach(function(e) {
+                if (!_.isFunction(e.canHandle) || e.canHandle(self.vertex, F.vertex.prop(self.vertex, 'conceptType'))) {
+                    var div = $('<div>');
+                    els.push(div);
+                    requirePromises.push(
+                        Promise.require(e.componentPath)
+                            .then(function(C) {
+                                C.attachTo(div, {
+                                    vertex: self.vertex
+                                });
+                            })
+                    );
+                }
+            })
+            Promise.all(requirePromises).done(function() {
+                self.select('extensionsSelector').html(els);
+            })
         };
 
         this.onPaneClicked = function(evt) {

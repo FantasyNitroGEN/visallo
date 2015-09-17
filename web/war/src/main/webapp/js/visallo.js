@@ -13,6 +13,7 @@ require([
     'util/privileges',
     'util/jquery.flight',
     'util/jquery.removePrefixedClasses',
+    'util/jquery/plugins',
     'util/promise'
 ],
 function(jQuery,

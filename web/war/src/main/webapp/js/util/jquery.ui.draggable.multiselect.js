@@ -15,8 +15,6 @@ define(['jquery', 'jqueryui'], function() {
                     .addClass('multi-select')
                     .on({
                         click: function(evt) {
-                            this.focus();
-
                             if ($(this).is(evt.target)) {
                                 $(this).find('li').removeClass('active');
                                 onSelection(evt, $());

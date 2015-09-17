@@ -1,0 +1,15 @@
+<input type="text"
+  placeholder="#"
+  value=""
+  pattern="\d+"
+  required="required" 
+  class="amount">
+<select class="unit">
+  {{#each units}}
+    <option value="{{value}}" {{#if selected}}selected{{/if}}>{{display}}</option>
+  {{/each}}
+</select>
+<select class="past-or-present">
+  <option value="-1">Ago</option>
+  <option value="1">From Now</option>
+</select>

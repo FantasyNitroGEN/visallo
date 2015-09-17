@@ -22,6 +22,7 @@ import org.visallo.core.model.lock.CuratorLockRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -143,6 +144,9 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(UserRepository.class)
                 .toProvider(VisalloBootstrap.<UserRepository>getConfigurableProvider(configuration, Configuration.USER_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(SearchRepository.class)
+                .toProvider(VisalloBootstrap.<SearchRepository>getConfigurableProvider(configuration, Configuration.SEARCH_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(WorkspaceRepository.class)
                 .toProvider(VisalloBootstrap.<WorkspaceRepository>getConfigurableProvider(configuration, Configuration.WORKSPACE_REPOSITORY))

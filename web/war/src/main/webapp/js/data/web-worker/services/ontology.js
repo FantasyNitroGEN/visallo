@@ -154,6 +154,7 @@ define([
                                             'http://visallo.org/user#user',
                                             'http://visallo.org/workspace#workspace',
                                             'http://visallo.org/longRunningProcess#longRunningProcess',
+                                            'http://visallo.org/search#savedSearch',
                                             'http://visallo.org/termMention#termMention'
                                         ].indexOf(child.id) === -1
                                     ) {
@@ -232,7 +233,17 @@ define([
                     .then(function(results) {
                         var concepts = results[0],
                             ontology = results[1],
-                            list = _.sortBy(ontology.relationships, 'displayName'),
+                            conceptIriIsVisible = function(iri) {
+                                var concept = concepts.byId[iri];
+                                return concept && concept.userVisible !== false;
+                            },
+                            list = _.chain(ontology.relationships)
+                                .filter(function(r) {
+                                    return _.some(r.domainConceptIris, conceptIriIsVisible) &&
+                                        _.some(r.rangeConceptIris, conceptIriIsVisible)
+                                })
+                                .sortBy('displayName')
+                                .value(),
                             groupedByRelated = {};
 
                         return {

@@ -26,10 +26,7 @@ import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.clientapi.model.ClientApiSearchResponse;
-import org.visallo.web.clientapi.model.ClientApiVertex;
-import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
-import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -313,8 +310,12 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
 
             if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "~".equals(predicateString) || "".equals(predicateString))) {
                 graphQuery.has(propertyName, TextPredicate.CONTAINS, value0);
-            } else if (PropertyType.BOOLEAN.equals(propertyDataType) && (predicateString == null || "".equals(predicateString))) {
+            } else if (PropertyType.DATE.equals(propertyDataType)) {
+                applyDateToQuery(graphQuery, obj, predicateString, values);
+            } else if (PropertyType.BOOLEAN.equals(propertyDataType)) {
                 graphQuery.has(propertyName, Compare.EQUAL, value0);
+            } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
+                graphQuery.has(propertyName, GeoCompare.WITHIN, value0);
             } else if ("<".equals(predicateString)) {
                 graphQuery.has(propertyName, Compare.LESS_THAN, value0);
             } else if (">".equals(predicateString)) {
@@ -324,15 +325,90 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
                 graphQuery.has(propertyName, Compare.LESS_THAN_EQUAL, jsonValueToObject(values, propertyDataType, 1));
             } else if ("=".equals(predicateString) || "equal".equals(predicateString)) {
                 graphQuery.has(propertyName, Compare.EQUAL, value0);
-            } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
-                graphQuery.has(propertyName, GeoCompare.WITHIN, value0);
             } else {
                 throw new VisalloException("unhandled query\n" + obj.toString(2));
             }
         }
     }
 
+    private void applyDateToQuery(Query graphQuery, JSONObject obj, String predicate, JSONArray values) throws ParseException {
+        String propertyName = obj.getString("propertyName");
+        PropertyType propertyDataType = PropertyType.DATE;
+        OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyName);
+
+        if (property != null && values.length() > 0) {
+            String displayType = property.getDisplayType();
+            boolean isDateOnly = displayType != null && displayType.equals("dateOnly");
+            boolean isRelative = values.get(0) instanceof JSONObject;
+
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+            if (isRelative) {
+                JSONObject fromNow = (JSONObject) values.get(0);
+                calendar.setTime(new Date());
+                moveDateToStart(calendar, isDateOnly);
+                calendar.add(fromNow.getInt("unit"), fromNow.getInt("amount"));
+            } else {
+                Date date0 = (Date) jsonValueToObject(values, propertyDataType, 0);
+                calendar.setTime(date0);
+            }
+
+            if (predicate == null || predicate.equals("equal") || predicate.equals("=")) {
+                moveDateToStart(calendar, isDateOnly);
+                graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, calendar.getTime());
+
+                moveDateToEnd(calendar, isDateOnly);
+                graphQuery.has(propertyName, Compare.LESS_THAN, calendar.getTime());
+            } else if (predicate.equals("range")) {
+                if (!isRelative) {
+                    moveDateToStart(calendar, isDateOnly);
+                }
+                graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, calendar.getTime());
+
+                if (values.get(1) instanceof JSONObject) {
+                    JSONObject fromNow = (JSONObject) values.get(1);
+                    calendar.setTime(new Date());
+                    moveDateToStart(calendar, isDateOnly);
+                    calendar.add(fromNow.getInt("unit"), fromNow.getInt("amount"));
+                    moveDateToEnd(calendar, isDateOnly);
+                    graphQuery.has(propertyName, Compare.LESS_THAN, calendar.getTime());
+                } else {
+                    calendar.setTime((Date) jsonValueToObject(values, propertyDataType, 1));
+                    moveDateToEnd(calendar, isDateOnly);
+                    graphQuery.has(propertyName, Compare.LESS_THAN, calendar.getTime());
+                }
+            } else if (predicate.equals("<")) {
+                moveDateToStart(calendar, isDateOnly);
+                graphQuery.has(propertyName, Compare.LESS_THAN, calendar.getTime());
+            } else if (predicate.equals(">")) {
+                moveDateToEnd(calendar, isDateOnly);
+                graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, calendar.getTime());
+            }
+        }
+    }
+
+    private void moveDateToStart(Calendar calendar, boolean dateOnly) {
+        if (dateOnly) {
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+        }
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+    }
+
+    private void moveDateToEnd(Calendar calendar, boolean dateOnly) {
+        if (dateOnly) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        } else {
+            calendar.add(Calendar.MINUTE, 1);
+        }
+    }
+
     private Object jsonValueToObject(JSONArray values, PropertyType propertyDataType, int index) throws ParseException {
+        if (values.get(index) instanceof JSONObject) {
+            return values.get(index);
+        }
         return OntologyProperty.convert(values, propertyDataType, index);
     }
 

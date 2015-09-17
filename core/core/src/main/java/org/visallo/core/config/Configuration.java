@@ -39,6 +39,7 @@ public class Configuration {
     public static final String LOCK_REPOSITORY = "repository.lock";
     public static final String TRACE_REPOSITORY = "repository.trace";
     public static final String USER_REPOSITORY = "repository.user";
+    public static final String SEARCH_REPOSITORY = "repository.search";
     public static final String WORKSPACE_REPOSITORY = "repository.workspace";
     public static final String AUTHORIZATION_REPOSITORY = "repository.authorization";
     public static final String ONTOLOGY_REPOSITORY = "repository.ontology";

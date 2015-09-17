@@ -13,12 +13,13 @@ define([
             }).then(_.property('auditHistory'));
         },
 
-        search: function(options) {
+        queryForOptions: function(options) {
             var params = {},
                 q = _.isUndefined(options.query.query) ?
                     options.query :
                     options.query.query,
-                url = '/vertex/search';
+                url = '/vertex/search',
+                originalUrl = url;
 
             if (options.conceptFilter) params.conceptType = options.conceptFilter;
             if (options.paging) {
@@ -43,8 +44,18 @@ define([
             }
 
             params.filter = JSON.stringify(options.propertyFilters || []);
+            return Promise.resolve({
+                url: url,
+                originalUrl: originalUrl,
+                parameters: params
+            });
+        },
 
-            return ajax('POST', url, params);
+        search: function(options) {
+            return api.queryForOptions(options)
+                .then(function(query) {
+                    return ajax('POST', query.url, query.parameters);
+                })
         },
 
         'geo-search': function(lat, lon, radius) {

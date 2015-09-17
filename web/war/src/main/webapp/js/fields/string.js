@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!./string',
+    'hbs!./stringTpl',
     'util/vertex/formatters',
     './withPropertyField'
 ], function(defineComponent, template, F, withPropertyField) {
@@ -11,36 +11,26 @@ define([
 
     function StringField() {
 
-        this.before('initialize', function(node, config) {
-            config.defaultPredicate = '~';
-        })
-
         this.after('initialize', function() {
-            var self = this;
-
-            this.$node.html(template(this.attr));
-
-            this.on('change keyup', {
-                inputSelector: function(event) {
-                    this.triggerFieldUpdated();
-                }
-            });
+            this.$node.html(template(_.extend({}, this.attr, {
+                textarea: this.attr.property.displayType === 'textarea'
+            })));
         });
 
-        this.triggerFieldUpdated = function() {
-            this.filterUpdated(
-                this.getValues(),
-                this.select('predicateSelector').val()
-            );
+        this.isValid = function(value) {
+            var name = this.attr.property.title;
+
+            return _.isString(value) &&
+                value.length > 0 &&
+                F.vertex.singlePropValid(value, name);
         };
 
-        this.isValid = function() {
-            var name = this.attr.property.title,
-                values = this.getValues();
+        this.setValue = function(value) {
+            this.select('inputSelector').val(value);
+        };
 
-            return _.every(this.getValues(), function(v) {
-                return $.trim(v).length > 0 && F.vertex.singlePropValid(v, name);
-            });
+        this.getValue = function() {
+            return this.select('inputSelector').val().trim();
         };
     }
 });

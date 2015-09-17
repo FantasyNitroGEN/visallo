@@ -1,11 +1,18 @@
 define([
     'flight/lib/component',
-    'flight/lib/registry',
     'tpl!./detail',
     'util/vertex/formatters',
-    'util/withDataRequest'
-], function(defineComponent, registry, template, F, withDataRequest) {
+    'util/withDataRequest',
+    'configuration/plugins/registry'
+], function(defineComponent, template, F, withDataRequest, registry) {
     'use strict';
+
+    registry.documentExtensionPoint('org.visallo.detail.extensions',
+        'Add custom views to entity detail pane',
+        function(e) {
+            return e.componentPath;
+        }
+    );
 
     return defineComponent(Detail, withDataRequest);
 

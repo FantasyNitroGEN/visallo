@@ -4,6 +4,9 @@ define([
 
     var FULL_NUMERIC_REGEX = /^[\-\+]?\d+\.?\d*$/,
         NUMERIC_WITH_UNITS_REGEX = /^[\-\+]?\d+\.?\d*[a-z]+$/,
+        prepare = function(str) {
+            return str.replace(/,/g, '');
+        },
         PARSERS = {
 
             number: {
@@ -16,19 +19,19 @@ define([
                 },
 
                 parseFloat: function(s) {
-                    return PARSERS.number.isValid(s) ? parseFloat(s, 10) : NaN;
+                    return PARSERS.number.isValid(s) ? parseFloat(prepare(s), 10) : NaN;
                 },
 
                 parseInt: function(s) {
-                    return PARSERS.number.isValid(s) ? parseInt(s, 10) : NaN;
+                    return PARSERS.number.isValid(s) ? parseInt(prepare(s), 10) : NaN;
                 },
 
                 parseFloatWithUnits: function(s) {
-                    return PARSERS.number.isValidWithUnits(s) ? parseFloat(s, 10) : NaN;
+                    return PARSERS.number.isValidWithUnits(s) ? parseFloat(prepare(s), 10) : NaN;
                 },
 
                 parseIntWithUnits: function(s) {
-                    return PARSERS.number.isValidWithUnits(s) ? parseInt(s, 10) : NaN;
+                    return PARSERS.number.isValidWithUnits(s) ? parseInt(prepare(s), 10) : NaN;
                 }
             }
         };

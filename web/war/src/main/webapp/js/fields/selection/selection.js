@@ -185,6 +185,10 @@ define([
                     })
                     .data('typeahead');
 
+                if (this.attr.focus) {
+                    this.select('findPropertySelection').focus();
+                }
+
                 typeahead.lookup = allowEmptyLookup;
                 typeahead.render = function(items) {
                     var self = this,
@@ -208,6 +212,26 @@ define([
 
                     this.$menu.empty().append($items)
                     return this;
+                };
+                typeahead.next = function(event) {
+                    var active = this.$menu.find('.active').removeClass('active'),
+                        next = active.nextAll(':not(.nav-header,.divider)').first();
+
+                    if (!next.length) {
+                        next = $(this.$menu.find('li:not(.nav-header,.divider)')[0])
+                    }
+
+                    next.addClass('active')
+                };
+                typeahead.prev = function(event) {
+                    var active = this.$menu.find('.active').removeClass('active'),
+                        prev = active.prevAll(':not(.nav-header,.divider)').first();
+
+                    if (!prev.length) {
+                        prev = this.$menu.find('li:not(.nav-header,.divider)').last()
+                    }
+
+                    prev.addClass('active')
                 };
             }
         });

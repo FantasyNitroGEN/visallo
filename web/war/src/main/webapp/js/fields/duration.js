@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!./double',
+    'hbs!./doubleTpl',
     'duration-js',
     'util/parsers',
     'util/vertex/formatters',
@@ -31,41 +31,24 @@ define([
     function DurationField() {
 
         this.after('initialize', function() {
-            if (this.attr.value) {
-                this.attr.value = F.number.duration(this.attr.value);
-            }
+            this.attr.placeholder = i18n('field.double.displaytype.duration.placeholder');
 
-            this.$node.html(template(this.attr));
-
-            $(this.$node.find('.input-row input')).attr('pattern', '^([\\d.]+[wdhms]+[\\s,;:]*)+$');
-
-            this.updateRangeVisibility();
-
-            this.on('change keyup', {
-                inputSelector: function() {
-                    this.updateRangeVisibility();
-                    this.triggerFieldUpdated();
-                }
-            });
+            this.$node
+                .html(template(this.attr))
+                .find('input').attr('pattern', '^([\\d.]+[wdhms]+[\\s,;:]*)+$');
         });
 
-        this.triggerFieldUpdated = function() {
-            this.filterUpdated(
-                this.getValues().map(function(v) {
-                    return toSeconds(v);
-                }),
-                this.select('predicateSelector').val()
-            );
+        this.setValue = function(value) {
+            this.select('inputSelector').val(F.number.duration(value));
         };
 
-        this.isValid = function() {
-            var name = this.attr.property.title,
-                values = this.getValues();
+        this.getValue = function() {
+            return toSeconds(this.select('inputSelector').val().trim());
+        };
 
-            return (_.every(values, function(v) {
-                var n = toSeconds(v);
-                return !isNaN(n) && F.vertex.singlePropValid(n, name);
-            }));
+        this.isValid = function(value) {
+            var name = this.attr.property.title;
+            return _.isNumber(value) && !isNaN(value) && F.vertex.singlePropValid(value, name);
         };
     }
 });

@@ -9,48 +9,37 @@ define([
 
     function RestrictValuesField() {
 
-        this.defaultAttrs({
-            selectSelector: 'select'
-        });
-
         this.after('initialize', function() {
             var val = this.attr.value;
 
-            this.filterUpdated(val);
-
             var propertyPossibleValues = this.attr.property.possibleValues,
-                possibleValues = _.map(Object.keys(propertyPossibleValues), function(key) {
+                possibleValues = _.map(Object.keys(propertyPossibleValues), function(key, i) {
                     return {
-                        key: key,
-                        value: propertyPossibleValues[key],
+                        i: i,
+                        value: key,
+                        display: propertyPossibleValues[key],
                         selected: key === String(val)
                     }
                 });
 
+            this.indexedByValue = _.indexBy(possibleValues, 'value');
+
             this.$node.html(template({
-                predicates: this.attr.predicates,
                 displayName: this.attr.property.displayName,
                 values: possibleValues
             }));
-
-            this.on('change', {
-                selectSelector: function(event) {
-                    this.triggerFieldUpdated();
-                }
-            })
         });
 
-        this.triggerFieldUpdated = function() {
-            var val = this.select('selectSelector').val()
-            this.filterUpdated(val, 'equal');
+        this.setValue = function(value) {
+            this.select('inputSelector').val(value);
         };
 
-        this.isValid = function() {
-            var vals = this.getValues();
+        this.getValue = function() {
+            return this.select('inputSelector').val();
+        };
 
-            return vals.length && _.every(vals, function(v) {
-                return $.trim(v).length > 0;
-            });
+        this.isValid = function(value) {
+            return value.length;
         };
 
     }

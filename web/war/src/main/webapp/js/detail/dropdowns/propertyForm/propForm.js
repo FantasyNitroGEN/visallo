@@ -38,7 +38,6 @@ define([
             vertexContainerSelector: '.vertex-select-container',
             visibilitySelector: '.visibility',
             justificationSelector: '.justification',
-            propertyInputSelector: '.input-row input',
             visibilityInputSelector: '.visibility input'
         });
 
@@ -57,7 +56,7 @@ define([
                 previousValuesSelector: this.onPreviousValuesButtons
             });
             this.on('keyup', {
-                propertyInputSelector: this.onKeyup,
+                configurationFieldSelector: this.onKeyup,
                 justificationSelector: this.onKeyup,
                 visibilityInputSelector: this.onKeyup
             });
@@ -113,6 +112,7 @@ define([
                 .done(function(properties) {
                     FieldSelection.attachTo(self.select('propertyListSelector'), {
                         properties: properties.list,
+                        focus: true,
                         placeholder: i18n('property.form.field.selection.placeholder')
                     });
                     self.manualOpen();
@@ -340,37 +340,12 @@ define([
                         'detail/dropdowns/propertyForm/justification',
                         'util/visibility/edit'
                     ], function(PropertyField, Justification, Visibility) {
-
-                        if (isCompoundField) {
-                            self.on('compoundReady', function() {
-                                self.manualOpen();
-                            });
-                            PropertyField.attachTo(config, {
-                                property: propertyDetails,
-                                vertex: self.attr.data,
-                                predicates: false,
-                                focus: true,
-                                values: property.key ?
-                                    F.vertex.props(self.attr.data, propertyDetails.title, property.key) :
-                                    null
-                            });
-                        } else {
-                            PropertyField.attachTo(config, {
-                                property: propertyDetails,
-                                vertexProperty: vertexProperty,
-                                value: self.attr.attemptToCoerceValue || previousValue,
-                                predicates: false,
-                                tooltip: (!self.attr.sourceInfo && !self.attr.justificationText) ? {
-                                    html: true,
-                                    title:
-                                        '<strong>' +
-                                        i18n('justification.field.tooltip.title') +
-                                        '</strong><br>' +
-                                        i18n('justification.field.tooltip.subtitle'),
-                                    placement: 'left',
-                                    trigger: 'focus'
-                                } : null
-                            });
+                        if (self.attr.manualOpen) {
+                            var $toHide = $()
+                                .add(config)
+                                .add(justification)
+                                .add(visibility)
+                                .hide();
                         }
 
                         Justification.attachTo(justification, {
@@ -384,8 +359,38 @@ define([
 
                         self.settingVisibility = false;
                         self.checkValid();
-                        if (!isCompoundField) {
+                        self.$node.find('configuration').hide();
+
+                        self.on('fieldRendered', function() {
+                            if ($toHide) {
+                                $toHide.show();
+                            }
                             self.manualOpen();
+                        });
+                        if (isCompoundField) {
+                            PropertyField.attachTo(config, {
+                                property: propertyDetails,
+                                vertex: self.attr.data,
+                                values: property.key ?
+                                    F.vertex.props(self.attr.data, propertyDetails.title, property.key) :
+                                    null
+                            });
+                        } else {
+                            PropertyField.attachTo(config, {
+                                property: propertyDetails,
+                                vertexProperty: vertexProperty,
+                                value: self.attr.attemptToCoerceValue || previousValue,
+                                tooltip: (!self.attr.sourceInfo && !self.attr.justificationText) ? {
+                                    html: true,
+                                    title:
+                                        '<strong>' +
+                                        i18n('justification.field.tooltip.title') +
+                                        '</strong><br>' +
+                                        i18n('justification.field.tooltip.subtitle'),
+                                    placement: 'left',
+                                    trigger: 'focus'
+                                } : null
+                            });
                         }
                     });
                 } else console.warn('Property ' + propertyName + ' not found in ontology');
@@ -434,6 +439,9 @@ define([
             var isCompoundField = this.currentPropertyDetails.dependentPropertyIris,
                 transformValue = function(valueArray) {
                     if (valueArray.length === 1) {
+                        if (_.isObject(valueArray[0]) && ('latitude' in valueArray[0])) {
+                            return JSON.stringify(valueArray[0])
+                        }
                         return valueArray[0];
                     } else if (valueArray.length === 2) {
                         // Must be geoLocation
@@ -450,7 +458,7 @@ define([
             if (isCompoundField) {
                 this.currentValue = _.map(data.values, transformValue);
             } else {
-                this.currentValue = transformValue(data.values);
+                this.currentValue = data.value;
             }
 
             this.currentMetadata = data.metadata;
