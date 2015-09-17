@@ -149,7 +149,7 @@ define([
             this.on(document, 'logout', this.logout);
             this.on(document, 'sessionExpiration', this.onSessionExpiration);
             this.on(document, 'showVertexContextMenu', this.onShowVertexContextMenu);
-            this.on(document, 'hideMenu', this.onHideMenu);
+            this.on(document, 'warnAboutContextMenuDisabled', this.onWarnAboutContextMenuDisabled);
             this.on(document, 'genericPaste', this.onGenericPaste);
             this.on(document, 'toggleTimeline', this.onToggleTimeline);
             this.on(document, 'privilegesReady', _.once(this.onPrivilegesReady.bind(this)));
@@ -306,7 +306,7 @@ define([
             this.$node.toggleClass('workspace-timeline-visible');
         };
 
-        this.onHideMenu = function() {
+        this.onWarnAboutContextMenuDisabled = function() {
             if (this.shouldWithholdContextMenuWarning) {
                 return;
             }

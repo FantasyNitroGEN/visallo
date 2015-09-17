@@ -15,21 +15,20 @@ define([
     }
 
     function ContextMenu() {
-        var hideMenu = false,
-            testedForBlur = false;
+        var contextMenuBlocked = false;
 
         this.after('initialize', function() {
             var self = this,
                 altKey = false,
                 ctrlKey = false,
                 downPosition,
-                queueContextMenuEvent,
                 state = 0,
+                blurPromise,
                 reset = function() {
                     altKey = false;
                     ctrlKey = false;
                     state = 0;
-                    queueContextMenuEvent = false;
+                    blurPromise = null;
                 },
                 progressContextMenu = function(event) {
                     state++;
@@ -37,35 +36,40 @@ define([
 
                     switch (state) {
                         case 1:
-                            queueContextMenuEvent = true;
-                            if (testedForBlur || hideMenu) {
-                                return;
-                            }
-
                             var originalTabindex = event.target.getAttribute('tabindex'),
                                 handler;
                             event.target.setAttribute('tabindex', -1);
-                            _.delay(function() {
-                                self.off(event.target, 'blur', handler);
-                            }, 500);
-                            self.on(event.target, 'blur', handler = function blurHandler(blurEvent) {
-                                queueContextMenuEvent = false;
-                                hideMenu = true;
-                                self.trigger(event.target, 'hideMenu');
-                                self.off(event.target, 'blur', blurHandler);
-                                if (originalTabindex) {
-                                    event.target.setAttribute('tabindex', originalTabindex);
-                                } else {
-                                    event.target.removeAttribute('tabindex');
-                                }
-                            });
+                            blurPromise = new Promise(function(v) {
+                                _.delay(function() {
+                                    self.off(event.target, 'blur', handler);
+                                    v(false);
+                                }, 100);
+                                self.on(event.target, 'blur', handler = function blurHandler(blurEvent) {
+                                    self.trigger(event.target, 'hideMenu');
+                                    self.off(event.target, 'blur', blurHandler);
+                                    if (originalTabindex) {
+                                        event.target.setAttribute('tabindex', originalTabindex);
+                                    } else {
+                                        event.target.removeAttribute('tabindex');
+                                    }
+                                    v(true);
+                                });
+                            })
                             break;
 
                         case 2:
-                            if (queueContextMenuEvent && !hideMenu && distance([event.pageX, event.pageY], downPosition) < 20) {
-                                self.triggerContextMenu(event);
+                            if (blurPromise) {
+                                blurPromise.done(function(menuBlocked) {
+                                    if (menuBlocked) {
+                                        contextMenuBlocked = true;
+                                        self.trigger(event.target, 'warnAboutContextMenuDisabled');
+                                    }
+                                    if (!contextMenuBlocked && distance([event.pageX, event.pageY], downPosition) < 20) {
+                                        self.triggerContextMenu(event);
+                                    }
+                                    _.delay(reset, 250);
+                                })
                             }
-                            _.delay(reset, 250);
                             break;
                     }
                 };
@@ -83,7 +87,9 @@ define([
             }, true);
 
             document.addEventListener('click', function(event) {
-                if (altKey || (ctrlKey && !hideMenu)) {
+                if (event.which === 3) return;
+
+                if (altKey || (ctrlKey && !contextMenuBlocked)) {
                     event.stopPropagation();
                     self.triggerContextMenu(event);
                 }
@@ -98,7 +104,6 @@ define([
         });
 
         this.triggerContextMenu = function(event) {
-            testedForBlur = true;
             this.trigger(
                 event.target,
                 'showMenu',
