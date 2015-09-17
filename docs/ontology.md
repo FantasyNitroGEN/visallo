@@ -142,6 +142,7 @@ To override an intent you can add the following to your configuration.
 | artifactTitle           | string      | The title of an artifact (fallback if documentTitle, etc. is not specified) |
 | city                    | string      | Geographic city                             |
 | documentTitle           | string      | The title of a document                     |
+| geocodable              | string      | Marks a property as being geocoded by a configured org.visallo.core.geocoding.GeocoderRepository |
 | geoLocation             | geoLocation | Geo-location                                |
 | media.clockwiseRotation | integer     | Image clockwise rotation                    |
 | media.dateTaken         | date        | Date/time image was taken                   |

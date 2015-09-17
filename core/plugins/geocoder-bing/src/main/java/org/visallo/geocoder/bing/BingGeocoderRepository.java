@@ -1,6 +1,10 @@
 package org.visallo.geocoder.bing;
 
 import com.google.inject.Inject;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.vertexium.ElementType;
+import org.vertexium.Visibility;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.GeocodeResult;
@@ -9,10 +13,6 @@ import org.visallo.core.http.HttpRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.vertexium.ElementType;
-import org.vertexium.Visibility;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,6 +58,7 @@ public class BingGeocoderRepository extends GeocoderRepository {
 
     @Override
     public void queuePropertySet(String locationString, ElementType elementType, String elementId, String propertyKey, String propertyName, Visibility visibility, Priority priority) {
+        LOGGER.debug("queue property for geocoding: %s:%s:%s -> %s", elementId, propertyName, propertyKey, locationString);
         this.bingExternalResourceWorker.queuePropertySet(locationString, elementType, elementId, propertyKey, propertyName, visibility, priority);
     }
 

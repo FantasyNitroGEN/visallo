@@ -62,6 +62,9 @@ require(['util/vertex/formatters'], function(F) {
     window.evaluateTitleFormulaJson = createFunction('title');
     window.evaluateTimeFormulaJson = createFunction('time');
     window.evaluateSubtitleFormulaJson = createFunction('subtitle');
+    window.evaluatePropertyFormulaJson = function(json, propertyKey, propertyName) {
+        return F.vertex['prop'](JSON.parse(json), propertyName);
+    }
 });
 
 timerLoop();

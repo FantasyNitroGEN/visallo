@@ -119,7 +119,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
         LOGGER.debug("importResourceOwl %s (iri: %s)", fileName, iri);
         InputStream owlFileIn = baseClass.getResourceAsStream(fileName);
-        checkNotNull(owlFileIn, "Could not load resource " + baseClass.getResource(fileName));
+        checkNotNull(owlFileIn, "Could not load resource " + baseClass.getResource(fileName) + " [" + fileName + "]");
 
         try {
             IRI documentIRI = IRI.create(iri);
@@ -1110,7 +1110,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             return property;
         }
 
-        List<OntologyProperty> properties = findLoadedPropertiesByIntent(intent);
+        List<OntologyProperty> properties = getPropertiesByIntent(intent);
         if (properties.size() == 0) {
             return null;
         }
@@ -1150,6 +1150,16 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     @Override
+    public OntologyProperty getDependentPropertyParent(String iri) {
+        for (OntologyProperty property : getProperties()) {
+            if (property.getDependentPropertyIris().contains(iri)) {
+                return property;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
         String propertyIri = getPropertyIRIByIntent(intent);
         if (propertyIri == null) {
@@ -1173,7 +1183,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return result;
     }
 
-    private List<OntologyProperty> findLoadedPropertiesByIntent(String intent) {
+    public List<OntologyProperty> getPropertiesByIntent(String intent) {
         List<OntologyProperty> results = new ArrayList<>();
         for (OntologyProperty property : getProperties()) {
             String[] propertyIntents = property.getIntents();
