@@ -319,7 +319,7 @@ define([
                     vertexIds = _.pluck(vertices, 'id'),
                     existingNodes = currentNodes.filter(function(i, n) {
                         var nId = n.id();
-                        if (/^NEW/.test(nId)) {
+                        if (/^(NEW|controlDragNodeId)/.test(nId)) {
                             return -1;
                         }
                         return vertexIds.indexOf(fromCyId(nId)) >= 0;
@@ -1152,15 +1152,17 @@ define([
                 this.select('contextMenuSelector').blur().parent().removeClass('open');
 
                 var originalEvent = event.originalEvent;
-                this.trigger(this.select('cytoscapeContainerSelector')[0], 'showVertexContextMenu', {
-                    vertexId: cyTargetIsElement ?
-                        fromCyId(event.cyTarget.id()) :
-                        selectedObjects.vertices[0].id,
-                    position: {
-                        x: originalEvent.pageX,
-                        y: originalEvent.pageY
-                    }
-                });
+                if (!cyTargetIsElement || !(/^(NEW|controlDragNodeId)/).test(event.cyTarget.id())) {
+                    this.trigger(this.select('cytoscapeContainerSelector')[0], 'showVertexContextMenu', {
+                        vertexId: cyTargetIsElement ?
+                            fromCyId(event.cyTarget.id()) :
+                            selectedObjects.vertices[0].id,
+                        position: {
+                            x: originalEvent.pageX,
+                            y: originalEvent.pageY
+                        }
+                    });
+                }
 
                 return;
             }
@@ -1303,8 +1305,8 @@ define([
             var self = this;
             this.trigger('defocusPaths');
             this.cytoscapeReady(function(cy) {
-                var vertices = event.cyTarget.selected() ? cy.nodes().filter(':selected').not('.temp') : event.cyTarget;
-                this.grabbedVertices = vertices.each(function() {
+                var vertices = event.cyTarget.selected() ? cy.nodes().filter(':selected') : event.cyTarget;
+                this.grabbedVertices = vertices.not('.temp,#controlDragNodeId').each(function() {
                     var p = retina.pixelsToPoints(this.position());
                     this.data('originalPosition', { x: p.x, y: p.y });
                     this.data('freed', false);
@@ -1386,7 +1388,7 @@ define([
             if (cyNode !== event.cy && cyNode.group() === 'nodes') {
                 this.mouseoverTimeout = _.delay(function() {
                     var nId = cyNode.id();
-                    if (/^NEW/.test(nId)) {
+                    if (/^(NEW|controlDragNodeId)/.test(nId)) {
                         return;
                     }
 
