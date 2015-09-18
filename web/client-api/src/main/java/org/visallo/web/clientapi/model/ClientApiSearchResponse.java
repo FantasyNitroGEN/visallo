@@ -116,11 +116,68 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
         }
     }
 
-    public static class HistographAggregateResult extends AggregateResult {
+    public static class HistogramAggregateResult extends AggregateResult {
         private Map<String, Long> buckets = new HashMap<>();
 
         public Map<String, Long> getBuckets() {
             return buckets;
+        }
+    }
+
+    public static class StatisticsAggregateResult extends AggregateResult {
+        private long count;
+        private double average;
+        private double min;
+        private double max;
+        private double standardDeviation;
+        private double sum;
+
+        public void setCount(long count) {
+            this.count = count;
+        }
+
+        public long getCount() {
+            return count;
+        }
+
+        public void setAverage(double average) {
+            this.average = average;
+        }
+
+        public double getAverage() {
+            return average;
+        }
+
+        public void setMin(double min) {
+            this.min = min;
+        }
+
+        public double getMin() {
+            return min;
+        }
+
+        public void setMax(double max) {
+            this.max = max;
+        }
+
+        public double getMax() {
+            return max;
+        }
+
+        public void setStandardDeviation(double standardDeviation) {
+            this.standardDeviation = standardDeviation;
+        }
+
+        public double getStandardDeviation() {
+            return standardDeviation;
+        }
+
+        public void setSum(double sum) {
+            this.sum = sum;
+        }
+
+        public double getSum() {
+            return sum;
         }
     }
 
