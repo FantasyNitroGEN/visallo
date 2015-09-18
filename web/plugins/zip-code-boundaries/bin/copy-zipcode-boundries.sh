@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ZIP_URL=http://www2.census.gov/geo/tiger/GENZ2013/cb_2013_us_zcta510_500k.zip
+ZIP_URL=http://www2.census.gov/geo/tiger/GENZ2014/shp/cb_2014_us_zcta510_500k.zip
 HDFS_DIR=/visallo/config/org.visallo.zipCodeBoundaries.ZipCodeBoundariesRepository
 
 hdfs dfs -ls ${HDFS_DIR} &> /dev/null
