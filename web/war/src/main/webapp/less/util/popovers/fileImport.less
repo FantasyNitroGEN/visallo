@@ -49,6 +49,29 @@
     padding: 0 1em;
   }
 
+  .file-select {
+    margin: 0;
+    padding: 0 0 0.5em 0;
+    position: relative;
+    cursor: pointer;
+    text-align: left;
+    overflow: hidden;
+    input {    
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 200%;
+      position: absolute;
+      margin: 0;
+      margin-left: -50%;
+      padding: 0;
+      bottom: 0;
+      z-index: 1;
+      cursor: pointer;
+      opacity: 0;
+    }
+  }
+
   &.collapseVisibility {
     .single {
       display: block;

@@ -1,4 +1,11 @@
+{{#if name}}
 <h1 title="{{name}}">{{name}}</h1>
+{{/if}}
+{{#if size}}
 <h2>{{size}}</h2>
+{{/if}}
 <div class="concept-container" data-file-index="{{index}}"></div>
+{{#if justification}}
+<div class="justification" data-file-index="{{index}}"></div>
+{{/if}}
 <div class="visibility" data-file-index="{{index}}"></div>
