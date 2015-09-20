@@ -25,9 +25,16 @@ Run the following command from the `/opt/visallo-source` directory within the de
 
 Run the commands below to start the Visallo web application. These steps must be run from the development Docker container shell resulting from running the `docker/run-dev.sh` script.
 
+First, build the web application. This only needs to be run once:
+
         mvn -am -pl web/war \
-            -P web-admin,web-auth-username-only,jetty-run \
             -Dgrunt.target=development \
+            compile
+
+Then, run the web application using Jetty:
+
+        mvn -am -pl web/war \
+            -P-build-webapp,jetty-run,web-admin,web-auth-username-only \
             compile
 
 The preceding `mvn` command will start the Visallo web application with a minimum number of features running. The `-P` option to the Maven command above specifies which profiles are included when starting Jetty. A profile groups a set of dependencies that make up a feature. Running the following command will list all of the available profiles that can be run.
