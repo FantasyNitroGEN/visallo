@@ -1,32 +1,33 @@
 <div class="fileImportPopover popover top collapseVisibility">
-  <div class="popover-title">
-    {{ i18n 'popovers.file_import.title' }} {{pluralString}}
-  </div>
+  <div class="popover-title">{{ title }}</div>
   <div class="arrow"></div>
   <div class="popover-content">
 
     <div class="errors"></div>
 
-    <div class="single">
-      {{#each rolledUp}}
-      {{> util/popovers/fileImport/formattedFile }}
-      {{/each}}
-    </div>
+    {{#unless hasFile}}
+    <button class="file-select btn btn-link btn-small">
+      {{ i18n 'popovers.file_import.attachfile' }}
+    <input type="file" name="files" class="file" multiple>
+    </button>
+    {{/unless}}
 
-    {{#if multipleFiles}}
-    <label class="checkbox">
+    <div class="single"></div>
+
+    <label class="checkbox toggle-collapsed" style="{{#unless multipleFiles}}display:none{{/unless}}">
       <input class="copyVisibility" type="checkbox" checked> {{ i18n 'popovers.file_import.visibility.apply_to_all' }}
     </label>
-    {{/if}}
 
-    <div class="individual-visibility">
-      {{#each formattedFiles}}
-      {{> util/popovers/fileImport/formattedFile }}
-      {{/each}}
-    </div>
+    <div class="individual-visibility"></div>
 
     <div>
-      <button class="btn btn-primary">{{ i18n 'popovers.file_import.button.import' }}</button>
+      <button class="btn btn-primary">
+        {{~#if hasFile~}}
+        {{ i18n 'popovers.file_import.button.import' }}
+        {{~else~}}
+        {{ i18n 'popovers.file_import.button.nofile.import' }}
+        {{~/if~}}
+      </button>
       <button style="display:none" class="btn btn-default">{{ i18n 'popovers.file_import.button.cancel' }}</button>
     </div>
   </div>

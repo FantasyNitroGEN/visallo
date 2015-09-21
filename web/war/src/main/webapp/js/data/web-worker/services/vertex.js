@@ -151,7 +151,7 @@ define([
                 'graphVertexId=' + encodeURIComponent(vertexId), file);
         },
 
-        create: function(conceptType, justification, visibilitySource) {
+        create: function(justification, conceptType, visibilitySource) {
             return ajax('POST', '/vertex/new', _.tap({
                 conceptType: conceptType,
                 visibilitySource: visibilitySource
