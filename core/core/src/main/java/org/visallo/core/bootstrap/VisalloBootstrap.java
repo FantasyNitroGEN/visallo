@@ -30,6 +30,7 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
+import org.visallo.core.time.TimeRepository;
 import org.visallo.core.trace.DefaultTraceRepository;
 import org.visallo.core.trace.TraceRepository;
 import org.visallo.core.trace.Traced;
@@ -169,6 +170,8 @@ public class VisalloBootstrap extends AbstractModule {
         bind(EmailRepository.class)
                 .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY, SmtpEmailRepository.class))
                 .in(Scopes.SINGLETON);
+        bind(TimeRepository.class)
+                .toInstance(new TimeRepository());
         injectProviders();
     }
 
