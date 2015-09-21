@@ -1,10 +1,13 @@
-.PHONY: serve build install clean clone push
+.PHONY: serve build check install clean clone push
 
 serve: install
 	@./node_modules/.bin/gitbook serve
 
 build: install
 	@./node_modules/.bin/gitbook build
+
+check: build
+	@find _book -name '*.md' | sed 's|^_book/||'
 
 install:
 	@npm install
