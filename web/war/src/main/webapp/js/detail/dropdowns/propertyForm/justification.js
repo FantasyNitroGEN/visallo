@@ -101,7 +101,7 @@ define([
                 };
 
             if (clipboard && normalizeWhiteSpace(clipboard.text) === normalizeWhiteSpace(val)) {
-                this.setValue(Object.freeze(clipboard));
+                this.setValue(_.extend({}, clipboard));
                 return true;
             }
 
