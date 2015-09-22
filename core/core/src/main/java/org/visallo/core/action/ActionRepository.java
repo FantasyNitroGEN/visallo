@@ -10,23 +10,30 @@ import java.util.Collection;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ActionRepository {
-    private final Collection<Action> actions;
+    private Collection<Action> actions;
+    private final Configuration configuration;
 
     @Inject
-    public ActionRepository(
-            Configuration configuration
-    ) {
-        actions = InjectHelper.getInjectedServices(Action.class, configuration);
+    public ActionRepository(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     public Action getActionFromActionData(JSONObject json) {
         String type = json.getString(Action.PROPERTY_TYPE);
-        for (Action action : actions) {
+        for (Action action : getActions()) {
             if (action.getClass().getName().equals(type)) {
                 return action;
             }
         }
         return null;
+    }
+
+    protected Collection<Action> getActions() {
+        // late bind the actions to avoid circular references
+        if (actions == null) {
+            actions = InjectHelper.getInjectedServices(Action.class, configuration);
+        }
+        return actions;
     }
 
     public void checkActionData(JSONObject actionData) {
