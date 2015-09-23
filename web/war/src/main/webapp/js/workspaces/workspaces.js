@@ -283,7 +283,9 @@ define([
                         this.classed('active', function(w) {
                             return w.workspaceId === visalloData.currentWorkspaceId;
                         })
-                        this.select('a .nav-list-title').text(_.property('title'));
+                        this.select('a .nav-list-title')
+                            .text(_.property('title'))
+                            .attr('title', _.property('title'));
                         this.select('a .nav-list-subtitle').text(function(w) {
                             var people = _.reject(w.users, function(user) {
                                     return user.userId === visalloData.currentUser.id;
