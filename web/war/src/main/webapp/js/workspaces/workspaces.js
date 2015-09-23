@@ -82,6 +82,7 @@ define([
                 title = $.trim($input.val());
 
             if (!title) return;
+            if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, title.toLowerCase())) return;
 
             var $button = $input.prop('disabled', true)
                 .next('button')
@@ -157,9 +158,11 @@ define([
         };
 
         this.onWorkspaceDeleted = function(event, data) {
+            var self = this;
             this.collapseEditForm();
             this.update(_.reject(this.workspaces, function(w) {
-                return data.workspaceId === w.workspaceId;
+                var removed = data.workspaceId === w.workspaceId;
+                return removed;
             }));
         };
 
@@ -235,6 +238,14 @@ define([
                     .unique()
                     .value(),
                 workspacesGrouped = _.chain(workspaces)
+                        .tap(function(workspaces) {
+                            self.workspaceTitlesLowercase = _.chain(workspaces)
+                                .where({ sharedToUser: false })
+                                .map(function(w) {
+                                    return w.title.toLowerCase();
+                                })
+                                .value();
+                        })
                         .sortBy('workspaceId')
                         .sortBy('createdBy')
                         .sortBy(function(w) {
