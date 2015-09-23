@@ -161,8 +161,7 @@ define([
             var self = this;
             this.collapseEditForm();
             this.update(_.reject(this.workspaces, function(w) {
-                var removed = data.workspaceId === w.workspaceId;
-                return removed;
+                return data.workspaceId === w.workspaceId;
             }));
         };
 
@@ -349,7 +348,7 @@ define([
                         .data(workspacesGrouped[SHARED] || [], _.property('workspaceId'))
                         .call(renderRows(userIdToDisplay, true));
 
-                    fullfill();
+                    fullfill(workspaces);
                 });
             })
         };
@@ -370,8 +369,13 @@ define([
                 if (data.visible) {
                     _.defer(function() {
                         self.loadWorkspaceList()
-                            .then(function() {
-                                self.switchActive(visalloData.currentWorkspaceId);
+                            .then(function(workspaces) {
+                                var active = visalloData.currentWorkspaceId;
+                                if (_.findWhere(workspaces, { workspaceId: active })) {
+                                    self.switchActive(active);
+                                } else if (workspaces && workspaces.length) {
+                                    self.trigger('switchWorkspace', workspaces[0]);
+                                }
                             })
                     });
                 } else {
