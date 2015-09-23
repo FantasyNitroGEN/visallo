@@ -218,7 +218,7 @@ public abstract class MinimalRequestHandler implements RequestResponseHandler {
 
         if (paramValues == null) {
             if (!optional) {
-                throw new RuntimeException(String.format("Parameter: '%s' is required in the request", parameterName));
+                throw new VisalloException(String.format("Parameter: '%s' is required in the request", parameterName));
             }
             return null;
         }
