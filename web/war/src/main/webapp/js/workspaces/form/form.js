@@ -143,6 +143,10 @@ define([
             (userIds.length ?
                 this.dataRequest('user', 'search', { userIds: userIds }) :
                 Promise.resolve([]))
+                .catch(function(error) {
+                    console.log(error);
+                    return [];
+                })
                 .done(function(users) {
                     var usersById = _.indexBy(users, 'id');
                     self.currentUsers = usersById;

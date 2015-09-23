@@ -230,6 +230,9 @@ define([
         };
 
         this.update = function(workspaces) {
+            workspaces = _.filter(workspaces, function(w) {
+                return 'createdBy' in w;
+            })
             var self = this,
                 MINE = 'mine',
                 SHARED = 'shared',
