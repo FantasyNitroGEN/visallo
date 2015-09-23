@@ -23,7 +23,7 @@ public class SetPropertyToNowAction extends SetPropertyActionBase {
         return new Date();
     }
 
-    public static JSONObject createWorkflowData(String propertyKey, String propertyName, String visibility) {
-        return SetPropertyActionBase.createWorkflowData(SetPropertyToNowAction.class, propertyKey, propertyName, visibility);
+    public static JSONObject createActionData(String propertyKey, String propertyName, String visibility) {
+        return SetPropertyActionBase.createActionData(SetPropertyToNowAction.class, propertyKey, propertyName, visibility);
     }
 }

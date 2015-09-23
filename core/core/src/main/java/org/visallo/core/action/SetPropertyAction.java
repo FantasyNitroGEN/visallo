@@ -29,8 +29,8 @@ public class SetPropertyAction extends SetPropertyActionBase {
         return parameters.getData().get(PROPERTY_VALUE);
     }
 
-    public static JSONObject createWorkflowData(String propertyKey, String propertyName, Object value, String visibility) {
-        JSONObject json = SetPropertyActionBase.createWorkflowData(SetPropertyAction.class, propertyKey, propertyName, visibility);
+    public static JSONObject createActionData(String propertyKey, String propertyName, Object value, String visibility) {
+        JSONObject json = SetPropertyActionBase.createActionData(SetPropertyAction.class, propertyKey, propertyName, visibility);
         json.put(PROPERTY_VALUE, value);
         return json;
     }

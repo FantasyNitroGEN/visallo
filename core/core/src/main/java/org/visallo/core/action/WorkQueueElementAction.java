@@ -26,8 +26,8 @@ public class WorkQueueElementAction extends Action {
         return Priority.safeParse(priorityStr);
     }
 
-    public static JSONObject createWorkflowData(Priority priority) {
-        JSONObject json = Action.createWorkflowData(WorkQueueElementAction.class);
+    public static JSONObject createActionData(Priority priority) {
+        JSONObject json = Action.createActionData(WorkQueueElementAction.class);
         if (priority != null) {
             json.put(PROPERTY_PRIORITY, priority.name());
         }

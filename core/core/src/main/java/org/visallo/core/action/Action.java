@@ -19,7 +19,7 @@ public abstract class Action {
         }
     }
 
-    protected static JSONObject createWorkflowData(Class clazz) {
+    protected static JSONObject createActionData(Class clazz) {
         JSONObject data = new JSONObject();
         data.put("type", clazz.getName());
         return data;

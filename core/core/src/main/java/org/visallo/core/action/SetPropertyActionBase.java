@@ -58,8 +58,8 @@ public abstract class SetPropertyActionBase extends Action {
 
     protected abstract Object getNewValue(ActionExecuteParameters parameters);
 
-    protected static JSONObject createWorkflowData(Class clazz, String propertyKey, String propertyName, String visibility) {
-        JSONObject json = Action.createWorkflowData(clazz);
+    protected static JSONObject createActionData(Class clazz, String propertyKey, String propertyName, String visibility) {
+        JSONObject json = Action.createActionData(clazz);
         json.put(PROPERTY_PROPERTY_KEY, propertyKey);
         json.put(PROPERTY_PROPERTY_NAME, propertyName);
         json.put(PROPERTY_VISIBILITY, visibility);
