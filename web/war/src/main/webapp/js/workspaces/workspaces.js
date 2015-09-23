@@ -95,11 +95,11 @@ define([
                     self.trigger('switchWorkspace', { workspaceId: workspace.workspaceId });
                 })
                 .catch(function(error) {
-                    $input.focus();
                 })
                 .finally(function() {
                     $input.add($button).prop('disabled', false);
                     $button.removeClass('loading');
+                    $input.focus();
                 })
         };
 
