@@ -83,13 +83,22 @@ define([
 
             if (!title) return;
 
+            var $button = $input.prop('disabled', true)
+                .next('button')
+                .prop('disabled', true)
+                .addClass('loading')
+
             this.dataRequest('workspace', 'create', { title: title })
                 .then(function(workspace) {
                     $input.val('')
                     self.trigger('switchWorkspace', { workspaceId: workspace.workspaceId });
                 })
-                .catch(function() {
+                .catch(function(error) {
                     $input.focus();
+                })
+                .finally(function() {
+                    $input.add($button).prop('disabled', false);
+                    $button.removeClass('loading');
                 })
         };
 
