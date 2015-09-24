@@ -520,6 +520,8 @@ define([
         };
 
         this.audioSetup = function(vertex) {
+            this.ignoreDetectedObjects = true;
+
             AudioScrubber.attachTo(this.select('audioPreviewSelector'), {
                 rawUrl: F.vertex.raw(vertex)
             })
