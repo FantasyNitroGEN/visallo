@@ -326,6 +326,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Relationship getOrCreateRelationshipType(
+            Relationship parent,
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
@@ -352,7 +353,8 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             }
         });
 
-        InMemoryRelationship inMemRelationship = new InMemoryRelationship(relationshipIRI, displayName, domainConceptIris, rangeConceptIris, intents, userVisible);
+        String parentIRI = parent == null ? null : parent.getIRI();
+        InMemoryRelationship inMemRelationship = new InMemoryRelationship(parentIRI, relationshipIRI, displayName, domainConceptIris, rangeConceptIris, intents, userVisible);
         relationshipsCache.put(relationshipIRI, inMemRelationship);
         return inMemRelationship;
     }

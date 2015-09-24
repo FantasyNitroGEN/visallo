@@ -575,7 +575,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             String[] intents
     );
 
-    protected void importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty) {
+    protected Relationship importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty) {
         String iri = objectProperty.getIRI().toString();
         String label = getLabel(o, objectProperty);
         String[] intents = getIntents(o, objectProperty);
@@ -583,7 +583,31 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         checkNotNull(label, "label cannot be null or empty for " + iri);
         LOGGER.info("Importing ontology object property " + iri + " (label: " + label + ")");
 
-        getOrCreateRelationshipType(getDomainsConcepts(o, objectProperty), getRangesConcepts(o, objectProperty), iri, label, intents, userVisible);
+        Relationship parent = getParentObjectProperty(o, objectProperty);
+        return getOrCreateRelationshipType(parent, getDomainsConcepts(o, objectProperty), getRangesConcepts(o, objectProperty), iri, label, intents, userVisible);
+    }
+
+    private Relationship getParentObjectProperty(OWLOntology o, OWLObjectProperty objectProperty) {
+        Collection<OWLObjectPropertyExpression> superProperties = EntitySearcher.getSuperProperties(objectProperty, o);
+        if (superProperties.size() == 0) {
+            return null;
+        } else if (superProperties.size() == 1) {
+            OWLObjectPropertyExpression superPropertyExpr = superProperties.iterator().next();
+            OWLObjectProperty superProperty = superPropertyExpr.asOWLObjectProperty();
+            String superPropertyUri = superProperty.getIRI().toString();
+            Relationship parent = getRelationshipByIRI(superPropertyUri);
+            if (parent != null) {
+                return parent;
+            }
+
+            parent = importObjectProperty(o, superProperty);
+            if (parent == null) {
+                throw new VisalloException("Could not find or create parent: " + superProperty);
+            }
+            return parent;
+        } else {
+            throw new VisalloException("Unhandled multiple super properties. Found " + superProperties.size() + ", expected 0 or 1.");
+        }
     }
 
     protected void importInverseOf(OWLOntology o, OWLObjectProperty objectProperty) {

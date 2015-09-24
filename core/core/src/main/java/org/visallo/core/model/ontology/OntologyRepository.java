@@ -55,7 +55,15 @@ public interface OntologyRepository {
 
     Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir);
 
-    Relationship getOrCreateRelationshipType(Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, String displayName, String[] intents, boolean userVisible);
+    Relationship getOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            String displayName,
+            String[] intents,
+            boolean userVisible
+    );
 
     OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition);
 
