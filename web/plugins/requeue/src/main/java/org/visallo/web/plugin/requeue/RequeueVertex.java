@@ -3,6 +3,11 @@ package org.visallo.web.plugin.requeue;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.v5analytics.webster.HandlerChain;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -12,11 +17,6 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
-import com.v5analytics.webster.HandlerChain;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,7 +60,7 @@ public class RequeueVertex extends BaseRequestHandler {
     }
 
     private void requeueVertex(Vertex vertex) {
-        workQueueRepository.broadcastElement(vertex, null);
+        workQueueRepository.pushElement(vertex, Priority.HIGH);
         for (Property property : vertex.getProperties()) {
             workQueueRepository.pushGraphPropertyQueue(vertex, property, Priority.HIGH);
         }

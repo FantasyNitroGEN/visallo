@@ -2,14 +2,14 @@ package org.visallo.tools;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.cmdline.converters.WorkQueuePriorityConverter;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -65,7 +65,7 @@ public class Requeue extends CommandLineTool {
 
     private void pushVertex(Vertex vertex, AtomicInteger pushedCount) {
         if (propertyName == null) {
-            getWorkQueueRepository().broadcastElement(vertex, null);
+            getWorkQueueRepository().pushElement(vertex, priority);
             pushedCount.incrementAndGet();
         } else {
             Iterable<Property> properties = vertex.getProperties(propertyName);
