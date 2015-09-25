@@ -1,12 +1,5 @@
 package org.visallo.vertexium.model.ontology;
 
-import org.visallo.core.exception.VisalloResourceNotFoundException;
-import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyProperties;
-import org.visallo.core.model.ontology.OntologyProperty;
-import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.util.JSONUtil;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.vertexium.Authorizations;
@@ -15,6 +8,13 @@ import org.vertexium.Vertex;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyProperties;
+import org.visallo.core.model.ontology.OntologyProperty;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.JSONUtil;
 
 import java.io.IOException;
 import java.util.*;
@@ -119,6 +119,11 @@ public class VertexiumConcept extends Concept {
     @Override
     public void addIntent(String intent, Authorizations authorizations) {
         OntologyProperties.INTENT.addPropertyValue(vertex, intent, intent, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+    }
+
+    @Override
+    public void removeIntent(String intent, Authorizations authorizations) {
+        OntologyProperties.INTENT.removeProperty(vertex, intent, authorizations);
     }
 
     @Override

@@ -52,6 +52,11 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
+    public void removeIntent(String intent, Authorizations authorizations) {
+        this.intents.remove(intent);
+    }
+
+    @Override
     public String getTitle() {
         return title;
     }

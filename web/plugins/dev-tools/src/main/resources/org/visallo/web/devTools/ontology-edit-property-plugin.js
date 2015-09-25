@@ -66,6 +66,7 @@ define([
                     displayFormula: this.$node.find('.displayFormula').val(),
                     validationFormula: this.$node.find('.validationFormula').val(),
                     possibleValues: this.$node.find('.possibleValues').val(),
+                    intents: this.$node.find('.intents').val().split(/[\n\s,]+/),
                     dependentPropertyIris: this.$node.find('.dependentPropertyIris')
                         .val().split(/[\n\s,]+/)
                 })
@@ -98,6 +99,9 @@ define([
                     }
                     if (key === 'possibleValues' && value) {
                         value = JSON.stringify(value, null, 2);
+                    }
+                    if (key === 'intents') {
+                        value = value.join('\n');
                     }
                     self.updateFieldValue(key, value)
                 });

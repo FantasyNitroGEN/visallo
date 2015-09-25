@@ -1,5 +1,6 @@
 package org.visallo.core.model.ontology;
 
+import com.google.common.collect.Lists;
 import org.json.JSONException;
 import org.vertexium.Authorizations;
 import org.visallo.web.clientapi.model.ClientApiOntology;
@@ -41,6 +42,24 @@ public abstract class Relationship {
     public abstract boolean getUserVisible();
 
     public abstract String[] getIntents();
+
+    public abstract void addIntent(String intent, Authorizations authorizations);
+
+    public abstract void removeIntent(String intent, Authorizations authorizations);
+
+    public void updateIntents(String[] newIntents, Authorizations authorizations) {
+        ArrayList<String> toBeRemovedIntents = Lists.newArrayList(getIntents());
+        for (String newIntent : newIntents) {
+            if (toBeRemovedIntents.contains(newIntent)) {
+                toBeRemovedIntents.remove(newIntent);
+            } else {
+                addIntent(newIntent, authorizations);
+            }
+        }
+        for (String toBeRemovedIntent : toBeRemovedIntents) {
+            removeIntent(toBeRemovedIntent, authorizations);
+        }
+    }
 
     public abstract void setProperty(String name, Object value, Authorizations authorizations);
 

@@ -11,10 +11,12 @@ import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.StringArrayUtil;
 import org.visallo.web.VisalloResponse;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 public class SaveOntologyConcept implements ParameterizedHandler {
     private OntologyRepository ontologyRepository;
@@ -34,6 +36,7 @@ public class SaveOntologyConcept implements ParameterizedHandler {
             @Required(name = "subtitleFormula") String subtitleFormula,
             @Required(name = "timeFormula") String timeFormula,
             @Required(name = "addRelatedConceptWhiteList[]") String[] addRelatedConceptWhiteListArg,
+            @Required(name = "intents[]") String[] intents,
             @Optional(name = "searchable", defaultValue = "true") boolean searchable,
             @Optional(name = "addable", defaultValue = "true") boolean addable,
             @Optional(name = "userVisible", defaultValue = "true") boolean userVisible,
@@ -85,6 +88,8 @@ public class SaveOntologyConcept implements ParameterizedHandler {
         } else {
             concept.removeProperty(OntologyProperties.TIME_FORMULA.getPropertyName(), authorizations);
         }
+
+        concept.updateIntents(StringArrayUtil.removeNullOrEmptyElements(intents), authorizations);
 
         ontologyRepository.clearCache();
 

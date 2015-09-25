@@ -12,6 +12,7 @@ import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.StringArrayUtil;
 import org.visallo.web.VisalloResponse;
 
 import java.util.Arrays;
@@ -35,6 +36,7 @@ public class SaveOntologyProperty implements ParameterizedHandler {
             @Required(name = "validationFormula") String validationFormula,
             @Required(name = "possibleValues") String possibleValues,
             @Required(name = "dependentPropertyIris[]") String[] dependentPropertyIrisArg,
+            @Required(name = "intents[]") String[] intents,
             @Optional(name = "searchable", defaultValue = "true") boolean searchable,
             @Optional(name = "addable", defaultValue = "true") boolean addable,
             @Optional(name = "sortable", defaultValue = "true") boolean sortable,
@@ -74,6 +76,8 @@ public class SaveOntologyProperty implements ParameterizedHandler {
 
         property.setProperty(OntologyProperties.DISPLAY_FORMULA.getPropertyName(), displayFormula, authorizations);
         property.setProperty(OntologyProperties.VALIDATION_FORMULA.getPropertyName(), validationFormula, authorizations);
+
+        property.updateIntents(StringArrayUtil.removeNullOrEmptyElements(intents), authorizations);
 
         ontologyRepository.clearCache();
 

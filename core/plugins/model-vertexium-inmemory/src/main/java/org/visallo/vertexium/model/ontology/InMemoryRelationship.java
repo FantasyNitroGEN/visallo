@@ -63,6 +63,16 @@ public class InMemoryRelationship extends Relationship {
     }
 
     @Override
+    public void addIntent(String intent, Authorizations authorizations) {
+        this.intents.add(intent);
+    }
+
+    @Override
+    public void removeIntent(String intent, Authorizations authorizations) {
+        this.intents.remove(intent);
+    }
+
+    @Override
     public void setProperty(String name, Object value, Authorizations authorizations) {
         if (OntologyProperties.DISPLAY_NAME.getPropertyName().equals(name)) {
             this.displayName = (String) value;

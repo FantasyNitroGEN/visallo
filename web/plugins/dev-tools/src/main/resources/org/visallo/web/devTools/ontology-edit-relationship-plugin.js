@@ -58,7 +58,8 @@ define([
                 this.select('buttonSelector'),
                 this.dataRequest('io-visallo-web-devTools', 'ontologyEditRelationship', {
                     relationship: this.currentRelationship,
-                    displayName: this.$node.find('.displayName').val()
+                    displayName: this.$node.find('.displayName').val(),
+                    intents: this.$node.find('.intents').val().split(/[\n\s,]+/)
                 })
                     .then(function() {
                         self.showSuccess('Saved, refresh to see changes');
@@ -79,6 +80,9 @@ define([
 
                 this.$node.find('*').not('.relationship-container *').val('').removeAttr('checked');
                 _.each(data.relationship, function(value, key) {
+                    if (key === 'intents') {
+                        value = value.join('\n');
+                    }
                     self.updateFieldValue(key, value)
                 });
             } else {
