@@ -9,6 +9,7 @@ import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.user.User;
+import org.visallo.core.util.StringArrayUtil;
 import org.visallo.web.VisalloResponse;
 
 public class SaveOntologyRelationship implements ParameterizedHandler {
@@ -23,6 +24,7 @@ public class SaveOntologyRelationship implements ParameterizedHandler {
     public void handle(
             @Required(name = "relationship") String relationshipIri,
             @Required(name = "displayName") String displayName,
+            @Required(name = "intents[]") String[] intents,
             User user,
             Authorizations authorizations,
             VisalloResponse response
@@ -36,6 +38,8 @@ public class SaveOntologyRelationship implements ParameterizedHandler {
         if (displayName.length() != 0) {
             relationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, authorizations);
         }
+
+        relationship.updateIntents(StringArrayUtil.removeNullOrEmptyElements(intents), authorizations);
 
         ontologyRepository.clearCache();
 

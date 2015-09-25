@@ -82,9 +82,10 @@ define([
                     titleFormula: this.$node.find('.titleFormula').val(),
                     subtitleFormula: this.$node.find('.subtitleFormula').val(),
                     timeFormula: this.$node.find('.timeFormula').val(),
+                    intents: this.$node.find('.intents').val().split(/[\n\s,]+/),
                     addRelatedConceptWhiteList: this.$node.find('.addRelatedConceptWhiteList')
                         .val().split(/[\n\s,]+/)
-                })
+                    })
                     .then(function() {
                         self.showSuccess('Saved, refresh to see changes');
                     })
@@ -110,6 +111,9 @@ define([
                 }
                 _.each(data.concept, function(value, key) {
                     if (key === 'addRelatedConceptWhiteList') {
+                        value = value.join('\n');
+                    }
+                    if (key === 'intents') {
                         value = value.join('\n');
                     }
                     self.updateFieldValue(key, value)

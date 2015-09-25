@@ -1,9 +1,10 @@
 package org.visallo.core.model.ontology;
 
-import org.visallo.core.exception.VisalloException;
-import org.visallo.web.clientapi.model.ClientApiOntology;
+import com.google.common.collect.Lists;
 import org.atteo.evo.inflector.English;
 import org.vertexium.Authorizations;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.web.clientapi.model.ClientApiOntology;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -139,6 +140,22 @@ public abstract class Concept {
     public abstract String[] getIntents();
 
     public abstract void addIntent(String intent, Authorizations authorizations);
+
+    public abstract void removeIntent(String intent, Authorizations authorizations);
+
+    public void updateIntents(String[] newIntents, Authorizations authorizations) {
+        ArrayList<String> toBeRemovedIntents = Lists.newArrayList(getIntents());
+        for (String newIntent : newIntents) {
+            if (toBeRemovedIntents.contains(newIntent)) {
+                toBeRemovedIntents.remove(newIntent);
+            } else {
+                addIntent(newIntent, authorizations);
+            }
+        }
+        for (String toBeRemovedIntent : toBeRemovedIntents) {
+            removeIntent(toBeRemovedIntent, authorizations);
+        }
+    }
 
     @Override
     public int hashCode() {

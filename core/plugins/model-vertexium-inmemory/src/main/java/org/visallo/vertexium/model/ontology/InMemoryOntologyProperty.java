@@ -197,4 +197,14 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     public void addIntent(String intent) {
         this.intents.add(intent);
     }
+
+    @Override
+    public void addIntent(String intent, Authorizations authorizations) {
+        this.intents.add(intent);
+    }
+
+    @Override
+    public void removeIntent(String intent, Authorizations authorizations) {
+        this.intents.remove(intent);
+    }
 }

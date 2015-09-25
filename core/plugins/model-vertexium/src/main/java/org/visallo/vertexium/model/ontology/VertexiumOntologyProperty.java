@@ -1,15 +1,15 @@
 package org.visallo.vertexium.model.ontology;
 
 import com.google.common.collect.ImmutableList;
+import org.json.JSONObject;
+import org.vertexium.Authorizations;
+import org.vertexium.Vertex;
+import org.vertexium.util.IterableUtils;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.PropertyType;
-import org.json.JSONObject;
-import org.vertexium.Authorizations;
-import org.vertexium.Vertex;
-import org.vertexium.util.IterableUtils;
 
 import java.util.Map;
 
@@ -56,6 +56,16 @@ public class VertexiumOntologyProperty extends OntologyProperty {
 
     public String[] getIntents() {
         return IterableUtils.toArray(OntologyProperties.INTENT.getPropertyValues(vertex), String.class);
+    }
+
+    @Override
+    public void addIntent(String intent, Authorizations authorizations) {
+        OntologyProperties.INTENT.addPropertyValue(vertex, intent, intent, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+    }
+
+    @Override
+    public void removeIntent(String intent, Authorizations authorizations) {
+        OntologyProperties.INTENT.removeProperty(vertex, intent, authorizations);
     }
 
     public boolean getUserVisible() {
