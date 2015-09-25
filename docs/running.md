@@ -41,7 +41,7 @@ The preceding `mvn` command will start the Visallo web application with a minimu
 
         mvn -am -pl web/war help:all-profiles
 
-Profiles that begin with `gqw` are graph property workers, which are primarily features that process ingested data. Features starting with `web` are web application plugins.
+Profiles that begin with `gpw` are graph property workers, which are primarily features that process ingested data. Features starting with `web` are web application plugins.
 
 It's also worth noting that some profiles are configured to run automatically. You can run the following command to see which profiles they are.
 

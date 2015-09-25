@@ -7,7 +7,7 @@ ingestion pipeline and the web application. The sections below describe all of t
 
 The diagram below shows the major software components used by Visallo. Visallo-specific code is written against many of
 these layers, but is not shown in the diagram. There are numerous other libraries not listed. Take a look at the parent
-[POM file](../pom.xml) or run `mvn dependency:tree` to get a feel for all the libraries involved.
+[POM file](https://github.com/v5analytics/visallo/blob/master/root/pom.xml) or run `mvn dependency:tree` to get a feel for all the libraries involved.
 
 ![Visallo Software Stack](img/visallo-software-stack.png)
 
@@ -21,7 +21,7 @@ Visallo provides a REST API to access and manipulate the graph while keeping you
 
 ## Extensibility
 
-Visallo has many extension points, from the underlying data store to data processing algorithms to UI plugins. As data is added to the system these extension points are used to analyze and transform the data into usable intelligence. Visallo Enterprise relies on the open extension points provided by Visallo open source to enhance your experience in meaningful and actionable ways, giving you more insight into your data.
+Visallo has many [extension points](extension-points.md), from the underlying data store to data processing algorithms to UI plugins. As data is added to the system these extension points are used to analyze and transform the data into usable intelligence. Visallo Enterprise relies on the open extension points provided by Visallo open source to enhance your experience in meaningful and actionable ways, giving you more insight into your data.
 
 ## Ingestion Pipeline
 
@@ -30,15 +30,15 @@ Instances of both approaches can be found in the Visallo code base.
 
 ### YARN-based Ingestion
 
-YARN-based ingestion within Visallo works on top of an abstraction called `GraphPropertyWorker`(s). The abstraction
+YARN-based ingestion within Visallo works on top of an abstraction called Graph Property Workers. The abstraction
 works a lot like data binding within GUI programming toolkits, with changes to properties of vertices in the graph
-being published to a queue. All `GraphPropertyWorker`s are then given an opportunity to inspect the property change and
+being published to a queue. All Graph Property Workers are then given an opportunity to inspect the property change and
 optionally perform some kind of action, possibly publishing new property changes to the queue for other workers to
 process further.
 
 Visallo-provided `GraphPropertyWorker` implementations are found in the `visallo-graph-property-worker-plugins-group` module.
 Each is implemented as a plugin and will automatically run if found in the classpath. Please see
-the [yarn features](features.md) page for more information about each plugin.
+the [features](features.md) page for more information about each plugin.
 
 ### Map Reduce Ingestion
 
