@@ -6,6 +6,7 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.vertexium.Authorizations;
+import org.vertexium.query.Query;
 import org.visallo.core.model.properties.types.VisalloProperty;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.web.clientapi.model.ClientApiOntology;
@@ -120,4 +121,6 @@ public interface OntologyRepository {
     boolean isOntologyDefined(String iri);
 
     OntologyProperty getDependentPropertyParent(String iri);
+
+    void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes);
 }

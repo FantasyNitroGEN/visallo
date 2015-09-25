@@ -24,12 +24,15 @@ import org.vertexium.DefinePropertyBuilder;
 import org.vertexium.Graph;
 import org.vertexium.TextIndexHint;
 import org.vertexium.property.StreamingPropertyValue;
+import org.vertexium.query.Contains;
+import org.vertexium.query.Query;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.VisalloProperty;
 import org.visallo.core.model.search.SearchProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -1284,5 +1287,26 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
         }
         return searchable;
+    }
+
+    public void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes) {
+        checkNotNull(query, "query cannot be null");
+        checkNotNull(conceptTypeIri, "conceptTypeIri cannot be null");
+
+        Concept concept = getConceptByIRI(conceptTypeIri);
+        if (includeChildNodes) {
+            Set<Concept> childConcepts = getConceptAndAllChildren(concept);
+            if (childConcepts.size() > 0) {
+                String[] conceptIds = new String[childConcepts.size()];
+                int count = 0;
+                for (Concept c : childConcepts) {
+                    conceptIds[count] = c.getIRI();
+                    count++;
+                }
+                query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Contains.IN, conceptIds);
+            }
+        } else {
+            query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptTypeIri);
+        }
     }
 }
