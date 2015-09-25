@@ -6,7 +6,6 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
-import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
@@ -54,15 +53,12 @@ public class RequeueVertex extends BaseRequestHandler {
 
     private void requeueVertices(Iterable<Vertex> vertices) {
         for (Vertex vertex : vertices) {
-            LOGGER.debug("requeuing vertex: %s", vertex.getId());
             requeueVertex(vertex);
         }
     }
 
     private void requeueVertex(Vertex vertex) {
+        LOGGER.debug("requeuing vertex: %s", vertex.getId());
         workQueueRepository.pushElement(vertex, Priority.HIGH);
-        for (Property property : vertex.getProperties()) {
-            workQueueRepository.pushGraphPropertyQueue(vertex, property, Priority.HIGH);
-        }
     }
 }
