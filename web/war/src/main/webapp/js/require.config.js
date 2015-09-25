@@ -19,8 +19,6 @@ var require = {
         'duration-js': '../libs/duration.js/duration',
         'easing': '../libs/jquery.easing/js/jquery.easing',
         'ejs': '../libs/ejs/ejs',
-        'es5shim': '../libs/es5-shim/es5-shim.min',
-        'es5sham': '../libs/es5-shim/es5-sham.min',
         'flight': '../libs/flight',
         'goog': '../libs/requirejs-plugins/src/goog',
         'gremlins': '../libs/gremlins.js/gremlins.min',
