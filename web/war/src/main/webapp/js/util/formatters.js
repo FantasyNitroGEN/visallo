@@ -279,6 +279,12 @@ define([
                     shortcut.character = parts[1];
                     shortcut[parts[0].toLowerCase() + 'Key'] = true;
                     shortcut.forEventLookup = parts[0] + '-' + shortcut.keyCode;
+                } else if (parts.length === 3) {
+                    shortcut.keyCode = codeForCharacter(parts[2]);
+                    shortcut.character = parts[2];
+                    shortcut[parts[0].toLowerCase() + 'Key'] = true;
+                    shortcut[parts[1].toLowerCase() + 'Key'] = true;
+                    shortcut.forEventLookup = parts[0] + '-' + parts[1] + '-' + shortcut.keyCode;
                 } else return console.warn('Unable to add shortcut ', key);
 
                 return shortcut;
@@ -301,26 +307,27 @@ define([
                     character = metaKeys.character;
                 }
 
-                var metaIcon;
+                var result = '';
 
                 character = keyboardMappings.charIcons[character.toLowerCase()] ||
                     (character.length > 1 ? character.toLowerCase() : character);
 
                 if (metaKeys.metaKey) {
-                    metaIcon = keyboardMappings.metaIcons.meta;
-                } else if (metaKeys.ctrlKey) {
-                    metaIcon = keyboardMappings.metaIcons.ctrl;
-                } else if (metaKeys.altKey) {
-                    metaIcon = keyboardMappings.metaIcons.alt;
-                } else if (metaKeys.shiftKey) {
-                    metaIcon = keyboardMappings.metaIcons.shift;
+                    result += keyboardMappings.metaIcons.meta + (isMac ? '' : '+');
+                }
+                if (metaKeys.ctrlKey) {
+                    result += keyboardMappings.metaIcons.ctrl + (isMac ? '' : '+');
+                }
+                if (metaKeys.altKey) {
+                    result += keyboardMappings.metaIcons.alt + (isMac ? '' : '+');
+                }
+                if (metaKeys.shiftKey) {
+                    result += keyboardMappings.metaIcons.shift + (isMac ? '' : '+');
                 }
 
-                if (metaIcon) {
-                    return metaIcon + (isMac ? '' : '+') + character;
-                }
+                result += character;
 
-                return character;
+                return result;
             },
             plural: function(count, singular, plural) {
                 plural = plural || (singular + 's');

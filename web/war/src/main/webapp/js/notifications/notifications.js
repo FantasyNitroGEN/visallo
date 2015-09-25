@@ -39,8 +39,9 @@ define([
                     notifications = result.shift();
 
                 self.autoDismissSeconds = {
-                    user: parseInt(properties['notifications.user.autoDismissSeconds'] || '-1'),
-                    system: parseInt(properties['notifications.system.autoDismissSeconds'] || '-1')
+                    local: parseInt(properties['notifications.local.autoDismissSeconds'] || '-1'),
+                    system: parseInt(properties['notifications.system.autoDismissSeconds'] || '-1'),
+                    user: parseInt(properties['notifications.user.autoDismissSeconds'] || '-1')
                 };
                 self.displayNotifications(notifications.system.active.concat(notifications.user));
             })
