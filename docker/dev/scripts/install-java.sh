@@ -1,9 +1,9 @@
 #!/bin/bash -eu
 
-wget --header "Cookie: oraclelicense=accept-securebackup-cookie" -O /opt/jdk-7u71-linux-x64.tar.gz http://download.oracle.com/otn-pub/java/jdk/7u71-b14/jdk-7u71-linux-x64.tar.gz
-tar -xzf /opt/jdk-7u71-linux-x64.tar.gz -C /opt
-rm /opt/jdk-7u71-linux-x64.tar.gz
-ln -s /opt/jdk1.7.0_71 /opt/jdk
+wget --header "Cookie: oraclelicense=accept-securebackup-cookie" -O /opt/jdk-8u60-linux-x64.tar.gz http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.tar.gz
+tar -xzf /opt/jdk-8u60-linux-x64.tar.gz -C /opt
+rm /opt/jdk-8u60-linux-x64.tar.gz
+ln -s /opt/jdk1.8.0_60 /opt/jdk
 
 JAI_VERSION=1.1.3
 JAI_IMAGEIO_VERSION=1.1

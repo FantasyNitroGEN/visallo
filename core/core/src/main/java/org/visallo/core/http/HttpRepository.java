@@ -51,7 +51,7 @@ public abstract class HttpRepository {
 
             if (LOGGER.isTraceEnabled()) {
                 String packageName = "sun.net.www.protocol.http";
-                LOGGER.trace("configuring JUL -> Log4J logging for: %s", packageName);
+                LOGGER.trace("configuring java.util.Logging -> Log4J logging for: %s", packageName);
                 Handler handler = new Handler() {
                     @Override
                     public void publish(LogRecord record) {
@@ -89,10 +89,10 @@ public abstract class HttpRepository {
             if (proxyType != null) {
                 Proxy proxy = new Proxy(proxyType, proxyAddress);
                 connection = (HttpURLConnection) url.openConnection(proxy);
-                LOGGER.trace("getting (via proxy) %s with retry count %d", urlString, retryCount);
+                LOGGER.debug("getting (via proxy) %s with retry count %d", urlString, retryCount);
             } else {
                 connection = (HttpURLConnection) url.openConnection();
-                LOGGER.trace("getting %s with retry count %d", urlString, retryCount);
+                LOGGER.debug("getting %s with retry count %d", urlString, retryCount);
             }
             connection.setRequestProperty("Accept-Encoding", "gzip");
             int responseCode = connection.getResponseCode();

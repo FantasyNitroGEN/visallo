@@ -161,6 +161,7 @@ function(jQuery,
                     updateVisalloLoadingProgress('User Interface');
 
                     $(document).one('loginSuccess', function() {
+                        // FIXME: privilegesHelper not available yet
                         document.addEventListener('pluginsLoaded', function loaded() {
                             document.removeEventListener('pluginsLoaded', loaded);
                             loginSuccess(true);

@@ -113,8 +113,8 @@ define([
                     self.onObjectsSelected(null, { edges: [], vertices: visalloData.selectedObjects.vertices });
 
                     self.on('selectAll', self.onSelectAll);
-                    self.on('down', self.move);
-                    self.on('up', self.move);
+                    self.on('downUp', self.move);
+                    self.on('upUp', self.move);
                     self.on('contextmenu', self.onContextMenu);
                     self.on(document, 'workspaceUpdated', self.onWorkspaceUpdated);
 
@@ -159,8 +159,8 @@ define([
         };
 
         this.move = function(e, data) {
-            var previousSelected = this.$node.find('.active')[e.type === 'up' ? 'first' : 'last'](),
-                moveTo = previousSelected[e.type === 'up' ? 'prev' : 'next']('.vertex-item');
+            var previousSelected = this.$node.find('.active')[e.type === 'upUp' ? 'first' : 'last'](),
+                moveTo = previousSelected[e.type === 'upUp' ? 'prev' : 'next']('.vertex-item');
 
             if (moveTo.length) {
                 var selected = [],

@@ -46,16 +46,6 @@ public class Configuration {
     public static final String WORK_QUEUE_REPOSITORY = "repository.workQueue";
     public static final String LONG_RUNNING_PROCESS_REPOSITORY = "repository.longRunningProcess";
     public static final String SIMPLE_ORM_SESSION = "simpleOrmSession";
-    public static final String WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_ENABLED = "webAppEmbedded.longRunningProcessRunner.enabled";
-    public static final boolean WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_ENABLED_DEFAULT = true;
-    public static final String WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_THREAD_COUNT = "webAppEmbedded.longRunningProcessRunner.threadCount";
-    public static final int WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_THREAD_COUNT_DEFAULT = 1;
-    public static final String WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_ENABLED = "webAppEmbedded.graphPropertyWorkerRunner.enabled";
-    public static final boolean WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_ENABLED_DEFAULT = true;
-    public static final String WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_THREAD_COUNT = "webAppEmbedded.graphPropertyWorkerRunner.threadCount";
-    public static final int WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_THREAD_COUNT_DEFAULT = 1;
-    public static final String WEB_APP_EMBEDDED_EXTERNAL_RESOURCE_WORKERS_ENABLED = "webAppEmbedded.externalResourceRunner.enabled";
-    public static final boolean WEB_APP_EMBEDDED_EXTERNAL_RESOURCE_WORKERS_ENABLED_DEFAULT = true;
     public static final String HTTP_REPOSITORY = "repository.http";
     public static final String GEOCODER_REPOSITORY = "repository.geocoder";
     public static final String EMAIL_REPOSITORY = "repository.email";

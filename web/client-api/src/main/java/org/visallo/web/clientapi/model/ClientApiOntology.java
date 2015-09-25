@@ -317,6 +317,7 @@ public class ClientApiOntology implements ClientApiObject {
     }
 
     public static class Relationship {
+        private String parentIri;
         private String title;
         private String displayName;
         private Boolean userVisible;
@@ -331,6 +332,14 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setTitle(String title) {
             this.title = title;
+        }
+
+        public String getParentIri() {
+            return parentIri;
+        }
+
+        public void setParentIri(String parentIri) {
+            this.parentIri = parentIri;
         }
 
         public String getDisplayName() {

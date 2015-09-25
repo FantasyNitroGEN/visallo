@@ -12,10 +12,8 @@ import org.vertexium.query.*;
 import org.vertexium.util.CloseableIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.trace.Trace;
@@ -26,7 +24,10 @@ import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.clientapi.model.*;
+import org.visallo.web.clientapi.model.ClientApiSearchResponse;
+import org.visallo.web.clientapi.model.ClientApiVertex;
+import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
+import org.visallo.web.clientapi.model.PropertyType;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -131,10 +132,27 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
                 results.getAggregates().put(histogramAggregateName, toClientApiHistogramResult(agg));
             }
         }
+        if (searchResults instanceof IterableWithStatisticsResults) {
+            for (String statisticsAggregateName : queryAndData.getStatisticsAggregationNames()) {
+                StatisticsResult agg = ((IterableWithStatisticsResults) searchResults).getStatisticsResults(statisticsAggregateName);
+                results.getAggregates().put(statisticsAggregateName, toClientApiStatisticsResult(agg));
+            }
+        }
+    }
+
+    private ClientApiSearchResponse.AggregateResult toClientApiStatisticsResult(StatisticsResult agg) {
+        ClientApiSearchResponse.StatisticsAggregateResult result = new ClientApiSearchResponse.StatisticsAggregateResult();
+        result.setCount(agg.getCount());
+        result.setAverage(agg.getAverage());
+        result.setMin(agg.getMin());
+        result.setMax(agg.getMax());
+        result.setStandardDeviation(agg.getStandardDeviation());
+        result.setSum(agg.getSum());
+        return result;
     }
 
     private ClientApiSearchResponse.AggregateResult toClientApiHistogramResult(HistogramResult agg) {
-        ClientApiSearchResponse.HistographAggregateResult result = new ClientApiSearchResponse.HistographAggregateResult();
+        ClientApiSearchResponse.HistogramAggregateResult result = new ClientApiSearchResponse.HistogramAggregateResult();
         for (HistogramBucket histogramBucket : agg.getBuckets()) {
             result.getBuckets().put(histogramBucket.getKey().toString(), histogramBucket.getCount());
         }
@@ -202,6 +220,14 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
                     ((GraphQueryWithHistogramAggregation) query).addHistogramAggregation(aggregationName, field, interval, minDocumentCount);
                     queryAndData.addHistogramAggregationName(aggregationName);
                     break;
+                case "statistics":
+                    if (!(query instanceof GraphQueryWithStatisticsAggregation)) {
+                        throw new VisalloException("Query does not support: " + GraphQueryWithStatisticsAggregation.class.getName());
+                    }
+                    field = aggregateJson.getString("field");
+                    ((GraphQueryWithStatisticsAggregation) query).addStatisticsAggregation(aggregationName, field);
+                    queryAndData.addStatisticsAggregationName(aggregationName);
+                    break;
                 default:
                     throw new VisalloException("Invalid aggregation type: " + type);
             }
@@ -261,22 +287,10 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
     protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, HttpServletRequest request) {
         final String conceptType = getOptionalParameter(request, "conceptType");
         final String includeChildNodes = getOptionalParameter(request, "includeChildNodes");
+        Query query = queryAndData.getQuery();
         if (conceptType != null) {
-            Concept concept = ontologyRepository.getConceptByIRI(conceptType);
-            if (includeChildNodes == null || !includeChildNodes.equals("false")) {
-                Set<Concept> childConcepts = ontologyRepository.getConceptAndAllChildren(concept);
-                if (childConcepts.size() > 0) {
-                    String[] conceptIds = new String[childConcepts.size()];
-                    int count = 0;
-                    for (Concept c : childConcepts) {
-                        conceptIds[count] = c.getIRI();
-                        count++;
-                    }
-                    queryAndData.getQuery().has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Contains.IN, conceptIds);
-                }
-            } else {
-                queryAndData.getQuery().has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptType);
-            }
+            boolean includeChildNodesBoolean = includeChildNodes == null || !includeChildNodes.equals("false");
+            ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, includeChildNodesBoolean);
         }
     }
 
@@ -421,6 +435,7 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
         private List<String> termAggregationNames = new ArrayList<>();
         private List<String> geohashAggregationNames = new ArrayList<>();
         private List<String> histogramAggregationNames = new ArrayList<>();
+        private List<String> statisticsAggregationNames = new ArrayList<>();
 
         public QueryAndData(Query query) {
             this.query = query;
@@ -446,12 +461,20 @@ public abstract class VertexSearchBase extends BaseRequestHandler {
             return histogramAggregationNames;
         }
 
+        public List<String> getStatisticsAggregationNames() {
+            return statisticsAggregationNames;
+        }
+
         public void addGeohashAggregationName(String aggregationName) {
             this.geohashAggregationNames.add(aggregationName);
         }
 
         public void addHistogramAggregationName(String aggregationName) {
             this.histogramAggregationNames.add(aggregationName);
+        }
+
+        public void addStatisticsAggregationName(String aggregationName) {
+            this.statisticsAggregationNames.add(aggregationName);
         }
     }
 }

@@ -31,30 +31,33 @@ define([
                     blurPromise = null;
                 },
                 progressContextMenu = function(event) {
+                    var target = event.target;
                     state++;
                     if (!state) return;
 
                     switch (state) {
                         case 1:
-                            var originalTabindex = event.target.getAttribute('tabindex'),
+                            var originalTabindex = target.getAttribute('tabindex'),
                                 handler;
-                            event.target.setAttribute('tabindex', -1);
+
                             blurPromise = new Promise(function(v) {
-                                _.delay(function() {
-                                    self.off(event.target, 'blur', handler);
-                                    v(false);
-                                }, 100);
-                                self.on(event.target, 'blur', handler = function blurHandler(blurEvent) {
-                                    self.trigger(event.target, 'hideMenu');
-                                    self.off(event.target, 'blur', blurHandler);
+                                    target.setAttribute('tabindex', -1);
+                                    _.delay(function() {
+                                        v(false);
+                                    }, 100);
+                                    self.on(target, 'blur', handler = function blurHandler(blurEvent) {
+                                        self.trigger(target, 'hideMenu');
+                                        v(true);
+                                    });
+                                })
+                                .tap(function() {
+                                    self.off(target, 'blur', handler);
                                     if (originalTabindex) {
-                                        event.target.setAttribute('tabindex', originalTabindex);
+                                        target.setAttribute('tabindex', originalTabindex);
                                     } else {
-                                        event.target.removeAttribute('tabindex');
+                                        target.removeAttribute('tabindex');
                                     }
-                                    v(true);
                                 });
-                            })
                             break;
 
                         case 2:
@@ -62,7 +65,7 @@ define([
                                 blurPromise.done(function(menuBlocked) {
                                     if (menuBlocked) {
                                         contextMenuBlocked = true;
-                                        self.trigger(event.target, 'warnAboutContextMenuDisabled');
+                                        self.trigger(target, 'warnAboutContextMenuDisabled');
                                     }
                                     if (!contextMenuBlocked && distance([event.pageX, event.pageY], downPosition) < 20) {
                                         self.triggerContextMenu(event);

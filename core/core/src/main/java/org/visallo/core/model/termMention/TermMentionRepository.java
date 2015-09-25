@@ -1,6 +1,10 @@
 package org.visallo.core.model.termMention;
 
 import com.google.inject.Inject;
+import org.vertexium.*;
+import org.vertexium.mutation.ExistingElementMutation;
+import org.vertexium.util.FilterIterable;
+import org.vertexium.util.JoinIterable;
 import org.visallo.core.model.PropertyJustificationMetadata;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -8,10 +12,6 @@ import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
-import org.vertexium.*;
-import org.vertexium.mutation.ExistingElementMutation;
-import org.vertexium.util.FilterIterable;
-import org.vertexium.util.JoinIterable;
 
 import static org.vertexium.util.IterableUtils.single;
 import static org.vertexium.util.IterableUtils.singleOrDefault;
@@ -211,6 +211,17 @@ public class TermMentionRepository {
     public void delete(Vertex termMention, Authorizations authorizations) {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
         graph.softDeleteVertex(termMention, authorizationsWithTermMention);
+    }
+
+    public void deleteAll(String vertexId, String propertyKey, Authorizations authorizations) {
+        Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
+        Iterable<Vertex> termMentions = findByVertexId(vertexId, authorizations);
+        for (Vertex termMention : termMentions) {
+            if (!VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(termMention, "").equals(propertyKey)) {
+                continue;
+            }
+            graph.softDeleteVertex(termMention, authorizationsWithTermMention);
+        }
     }
 
     public void markHidden(Vertex termMention, Visibility hiddenVisibility, Authorizations authorizations) {

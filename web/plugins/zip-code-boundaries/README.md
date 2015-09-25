@@ -1,9 +1,16 @@
 
 Shape Files:
 
-1. Download [ZIP Code Tabulation Areas (ZCTAs) Boundary File](https://www.census.gov/geo/maps-data/data/cbf/cbf_zcta.html)
+1. Download:
 
-1. `unzip cb_2014_us_zcta510_500k.zip`
+        curl http://www2.census.gov/geo/tiger/GENZ2014/shp/cb_2014_us_zcta510_500k.zip -O
+
+1. Unzip:
+
+        mkdir cb_2014_us_zcta510_500k
+        cd cb_2014_us_zcta510_500k
+        unzip ../cb_2014_us_zcta510_500k.zip
+        cd ..
 
 1. Copy to HDFS
         

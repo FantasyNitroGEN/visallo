@@ -15,21 +15,19 @@ import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.externalResource.ExternalResourceRunner;
-import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
-import org.visallo.core.model.longRunningProcess.LongRunningProcessRunner;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.user.User;
+import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.initializers.ApplicationBootstrapInitializer;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
@@ -69,9 +67,11 @@ public class ApplicationBootstrap implements ServletContextListener {
             verifyGraphVersion();
             setupGraphAuthorizations();
             setupWebApp(context, config);
-            setupLongRunningProcessRunner(config);
-            setupGraphPropertyWorkerRunner(config);
-            setupExternalResourceWorkers(config);
+
+            Iterable<ApplicationBootstrapInitializer> initializers = ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
+            for (ApplicationBootstrapInitializer initializer : initializers) {
+                initializer.initialize();
+            }
         } catch (Throwable ex) {
             LOGGER.error("Could not startup context", ex);
             throw new VisalloException("Could not startup context", ex);
@@ -216,96 +216,5 @@ public class ApplicationBootstrap implements ServletContextListener {
             initParameters.put(initParameterName, context.getInitParameter(initParameterName));
         }
         return initParameters;
-    }
-
-    private void setupLongRunningProcessRunner(final Configuration config) {
-        LOGGER.debug("setupLongRunningProcessRunner");
-
-        boolean enabled = Boolean.parseBoolean(config.get(Configuration.WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_ENABLED, Boolean.toString(Configuration.WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_ENABLED_DEFAULT)));
-        if (!enabled) {
-            LOGGER.debug("skipping embedded long running process runners");
-            return;
-        }
-
-        int threadCount = Integer.parseInt(config.get(Configuration.WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_THREAD_COUNT, Integer.toString(Configuration.WEB_APP_EMBEDDED_LONG_RUNNING_PROCESS_RUNNER_THREAD_COUNT_DEFAULT)));
-
-        LOGGER.debug("long running process runners: %d", threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    delayStart();
-                    final LongRunningProcessRunner longRunningProcessRunner = InjectHelper.getInstance(LongRunningProcessRunner.class);
-                    longRunningProcessRunner.prepare(config.toMap());
-                    try {
-                        longRunningProcessRunner.run();
-                    } catch (Exception ex) {
-                        LOGGER.error("Failed running long running process runner", ex);
-                    }
-                }
-            });
-            t.setName("long-running-process-runner-" + t.getId());
-            t.setDaemon(true);
-            LOGGER.debug("starting long running process runner thread: %s", t.getName());
-            t.start();
-        }
-    }
-
-    private void setupGraphPropertyWorkerRunner(Configuration config) {
-        LOGGER.debug("setupGraphPropertyWorkerRunner");
-
-        boolean enabled = Boolean.parseBoolean(config.get(Configuration.WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_ENABLED, Boolean.toString(Configuration.WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_ENABLED_DEFAULT)));
-        if (!enabled) {
-            LOGGER.debug("skipping embedded graph property worker");
-            return;
-        }
-
-        int threadCount = Integer.parseInt(config.get(Configuration.WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_THREAD_COUNT, Integer.toString(Configuration.WEB_APP_EMBEDDED_GRAPH_PROPERTY_WORKER_RUNNER_THREAD_COUNT_DEFAULT)));
-        final User user = userRepository.getSystemUser();
-
-        LOGGER.debug("starting graph property worker runners: %d", threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    delayStart();
-                    GraphPropertyRunner graphPropertyRunner = InjectHelper.getInstance(GraphPropertyRunner.class);
-                    graphPropertyRunner.prepare(user);
-                    try {
-                        graphPropertyRunner.run();
-                    } catch (Exception ex) {
-                        LOGGER.error("Failed running graph property runner", ex);
-                    }
-                }
-            });
-            t.setName("graph-property-worker-runner-" + t.getId());
-            t.setDaemon(true);
-            LOGGER.debug("starting graph property worker runner thread: %s", t.getName());
-            t.start();
-        }
-    }
-
-    private void setupExternalResourceWorkers(Configuration config) {
-        LOGGER.debug("setupExternalResourceWorkers");
-
-        boolean enabled = Boolean.parseBoolean(config.get(Configuration.WEB_APP_EMBEDDED_EXTERNAL_RESOURCE_WORKERS_ENABLED, Boolean.toString(Configuration.WEB_APP_EMBEDDED_EXTERNAL_RESOURCE_WORKERS_ENABLED_DEFAULT)));
-        if (!enabled) {
-            LOGGER.debug("skipping external resource worker");
-            return;
-        }
-
-        final User user = userRepository.getSystemUser();
-        new ExternalResourceRunner(config, user).startAll();
-    }
-
-    /**
-     * Delay the start of GPW and long running processes so the web app comes up faster
-     */
-    private void delayStart() {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            LOGGER.error("Could not sleep", e);
-        }
     }
 }

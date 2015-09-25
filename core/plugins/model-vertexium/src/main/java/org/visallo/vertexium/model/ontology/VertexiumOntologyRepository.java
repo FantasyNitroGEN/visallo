@@ -224,8 +224,19 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             }
         });
 
+        List<String> parentVertexIds = Lists.newArrayList(Iterables.transform(relationshipVertex.getVertices(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations()), new Function<Vertex, String>() {
+            @Override
+            public String apply(Vertex parentRelationshipVertex) {
+                return OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(parentRelationshipVertex);
+            }
+        }));
+        if (parentVertexIds.size() > 1) {
+            throw new VisalloException("Too many parent relationships found for relationship " + relationshipVertex.getId());
+        }
+        String parentIRI = parentVertexIds.size() == 0 ? null : parentVertexIds.get(0);
+
         final List<String> inverseOfIRIs = getRelationshipInverseOfIRIs(relationshipVertex);
-        return createRelationship(relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris);
+        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris);
     }
 
     private List<String> getRelationshipInverseOfIRIs(final Vertex vertex) {
@@ -487,6 +498,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Relationship getOrCreateRelationshipType(
+            Relationship parent,
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
@@ -517,6 +529,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             findOrAddEdge(relationshipVertex, ((VertexiumConcept) rangeConcept).getVertex(), LabelName.HAS_EDGE.toString());
         }
 
+        if (parent != null) {
+            findOrAddEdge(relationshipVertex, ((VertexiumRelationship) parent).getVertex(), LabelName.IS_A.toString());
+        }
+
         List<String> inverseOfIRIs = new ArrayList<>(); // no inverse of because this relationship is new
 
         graph.flush();
@@ -535,7 +551,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             }
         });
 
-        return createRelationship(relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris);
+        String parentIRI = parent == null ? null : parent.getIRI();
+        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris);
     }
 
     private OntologyProperty getOrCreatePropertyType(
@@ -643,9 +660,14 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     /**
      * Overridable so subclasses can supply a custom implementation of Relationship.
      */
-    protected Relationship createRelationship(Vertex relationshipVertex, List<String> inverseOfIRIs,
-                                              List<String> domainConceptIris, List<String> rangeConceptIris) {
-        return new VertexiumRelationship(relationshipVertex, domainConceptIris, rangeConceptIris, inverseOfIRIs);
+    protected Relationship createRelationship(
+            String parentIRI,
+            Vertex relationshipVertex,
+            List<String> inverseOfIRIs,
+            List<String> domainConceptIris,
+            List<String> rangeConceptIris
+    ) {
+        return new VertexiumRelationship(parentIRI, relationshipVertex, domainConceptIris, rangeConceptIris, inverseOfIRIs);
     }
 
     /**
