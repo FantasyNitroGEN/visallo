@@ -23,6 +23,7 @@ public class WebConfiguration {
     public static final String VIDEO_PREVIEW_FRAMES_COUNT = PREFIX + "video.preview.frames.count";
     public static final String FIELD_JUSTIFICATION_VALIDATION = PREFIX + "field.justification.validation";
     public static final String SEARCH_DISABLE_WILDCARD_SEARCH = PREFIX + "search.disableWildcardSearch";
+    public static final String NOTIFICATIONS_LOCAL_AUTO_DISMISS_SECONDS = PREFIX + "notifications.local.autoDismissSeconds";
     public static final String NOTIFICATIONS_SYSTEM_AUTO_DISMISS_SECONDS = PREFIX + "notifications.system.autoDismissSeconds";
     public static final String NOTIFICATIONS_USER_AUTO_DISMISS_SECONDS = PREFIX + "notifications.user.autoDismissSeconds";
     public static final String PROPERTIES_MULTIVALUE_DEFAULT_VISIBLE_COUNT = PREFIX + "properties.multivalue.defaultVisibleCount";
@@ -73,6 +74,7 @@ public class WebConfiguration {
         DEFAULTS.put(SEARCH_DISABLE_WILDCARD_SEARCH, "false");
 
         // Notifications
+        DEFAULTS.put(NOTIFICATIONS_LOCAL_AUTO_DISMISS_SECONDS, "2");
         DEFAULTS.put(NOTIFICATIONS_SYSTEM_AUTO_DISMISS_SECONDS, "-1");
         DEFAULTS.put(NOTIFICATIONS_USER_AUTO_DISMISS_SECONDS, "5");
 

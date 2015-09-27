@@ -121,6 +121,9 @@ define([
             if (keys[w]) {
                 return { preventDefault: false, fire: keys[w] };
             }
+            if ((event.metaKey || event.ctrlKey) && event.altKey) {
+                return this.shortcuts['CTRL-ALT-' + w] || this.shortcuts['META-ALT-' + w];
+            }
             if (event.metaKey || event.ctrlKey) {
                 return this.shortcuts['CTRL-' + w] || this.shortcuts['META-' + w];
             }
