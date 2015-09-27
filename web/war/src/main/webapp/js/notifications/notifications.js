@@ -24,6 +24,7 @@ define([
             this.stack = [];
             this.markRead = [];
 
+            this.on(document, 'postLocalNotification', this.onPostLocalNotification);
             this.on(document, 'notificationActive', this.onNotificationActive);
             this.on(document, 'notificationDeleted', this.onNotificationDeleted);
 
@@ -50,6 +51,17 @@ define([
                 .addClass('notifications')
                 .appendTo(this.$node);
         });
+
+        this.onPostLocalNotification = function(event, data) {
+            var notification = data && data.notification;
+            if (!notification) {
+                throw new Error('Notification must be passed to create local notifications');
+            }
+
+            notification.type = 'local';
+            notification.hash = 'local_' + new Date().getTime();
+            this.displayNotifications([notification]);
+        };
 
         this.onNotificationActive = function(event, data) {
             this.displayNotifications([data.notification]);
@@ -162,7 +174,7 @@ define([
         };
 
         this.canDismissNotification = function(notification) {
-            return this.attr.allowDismiss !== false || notification.type === 'user';
+            return this.attr.allowDismiss !== false || notification.type !== 'system';
         };
 
         this.update = function(forceAnimation) {
