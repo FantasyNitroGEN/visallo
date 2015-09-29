@@ -320,7 +320,8 @@ define([
                     };
 
                     _.each(vertex.properties, function(prop) {
-                        var intents = ontology.properties.byTitle[prop.name].intents;
+                        var ontologyProperty = ontology.properties.byTitle[prop.name],
+                            intents = ontologyProperty ? ontologyProperty.intents : null;
                         if (intents) {
                             if (_.indexOf(intents, 'media.clockwiseRotation') >= 0) {
                                 params.rotation = prop.value;
