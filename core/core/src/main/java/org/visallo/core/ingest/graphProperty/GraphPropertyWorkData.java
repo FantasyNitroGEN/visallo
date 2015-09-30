@@ -1,10 +1,10 @@
 package org.visallo.core.ingest.graphProperty;
 
+import org.vertexium.*;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.*;
 
 import java.io.File;
 
@@ -105,5 +105,15 @@ public class GraphPropertyWorkData {
         if (visibilityJson != null) {
             VisalloProperties.VISIBILITY_JSON.setProperty(element, visibilityJson, visibilityTranslator.getDefaultVisibility(), authorizations);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "GraphPropertyWorkData{" +
+                "element=" + element +
+                ", property=" + property +
+                ", workspaceId='" + workspaceId + '\'' +
+                ", priority=" + priority +
+                '}';
     }
 }
