@@ -26,6 +26,7 @@ import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
+import org.visallo.web.clientapi.model.ClientApiPublishItem.Action;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -323,17 +324,21 @@ public abstract class WorkspaceRepository {
         }
 
         ClientApiWorkspacePublishResponse workspacePublishResponse = new ClientApiWorkspacePublishResponse();
-        publishVertices(publishData, workspacePublishResponse, workspaceId, authorizations);
-        publishEdges(publishData, workspacePublishResponse, workspaceId, authorizations);
+        publishVertices(publishData, Action.addOrUpdate, workspacePublishResponse, workspaceId, authorizations);
+        publishEdges(publishData, Action.addOrUpdate, workspacePublishResponse, workspaceId, authorizations);
         publishProperties(publishData, workspacePublishResponse, workspaceId, authorizations);
+        publishEdges(publishData, Action.delete, workspacePublishResponse, workspaceId, authorizations);
+        publishVertices(publishData, Action.delete, workspacePublishResponse, workspaceId, authorizations);
         return workspacePublishResponse;
     }
 
-    private void publishVertices(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, Authorizations authorizations) {
+    private void publishVertices(ClientApiPublishItem[] publishData, Action action,
+                                 ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId,
+                                 Authorizations authorizations) {
         LOGGER.debug("BEGIN publishVertices");
         for (ClientApiPublishItem data : publishData) {
             try {
-                if (!(data instanceof ClientApiVertexPublishItem)) {
+                if (!(data instanceof ClientApiVertexPublishItem) || data.getAction() != action) {
                     continue;
                 }
                 ClientApiVertexPublishItem vertexPublishItem = (ClientApiVertexPublishItem) data;
@@ -364,11 +369,13 @@ public abstract class WorkspaceRepository {
         graph.flush();
     }
 
-    private void publishEdges(ClientApiPublishItem[] publishData, ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId, Authorizations authorizations) {
+    private void publishEdges(ClientApiPublishItem[] publishData, Action action,
+                              ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId,
+                              Authorizations authorizations) {
         LOGGER.debug("BEGIN publishEdges");
         for (ClientApiPublishItem data : publishData) {
             try {
-                if (!(data instanceof ClientApiRelationshipPublishItem)) {
+                if (!(data instanceof ClientApiRelationshipPublishItem) || data.getAction() != action) {
                     continue;
                 }
                 ClientApiRelationshipPublishItem relationshipPublishItem = (ClientApiRelationshipPublishItem) data;
