@@ -23,11 +23,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class GroovyGraphPropertyWorkerScriptRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GroovyGraphPropertyWorkerScriptRepository.class);
-    public static final String CONFIG_SCRIPT = GroovyGraphPropertyWorker.class.getName() + ".script";
-    public static final String CONFIG_REFRESH_INTERVAL = GroovyGraphPropertyWorker.class.getName() + ".refreshInterval";
-    public static final int CONFIG_REFRESH_INTERVAL_DEFAULT = 1000;
-    private final List<File> dirs = new ArrayList<>();
+    public static final String CONFIG_SCRIPT_DIR = GroovyGraphPropertyWorker.class.getName() + ".scriptDir";
+    public static final String CONFIG_REFRESH_INTERVAL_MS = GroovyGraphPropertyWorker.class.getName() + ".refreshIntervalMs";
+    public static final int CONFIG_REFRESH_INTERVAL_MS_DEFAULT = 1000;
     private final long refreshInterval;
+    private final File scriptDir;
     private long lastRefreshTime;
     private Map<File, ScriptData> scripts = new HashMap<>();
 
@@ -35,12 +35,10 @@ public class GroovyGraphPropertyWorkerScriptRepository {
     public GroovyGraphPropertyWorkerScriptRepository(
             Configuration configuration
     ) {
-        refreshInterval = configuration.getInt(CONFIG_REFRESH_INTERVAL, CONFIG_REFRESH_INTERVAL_DEFAULT);
-        Map<String, Map<String, String>> scripts = configuration.getMultiValue(CONFIG_SCRIPT);
-        for (Map.Entry<String, Map<String, String>> scriptsEntry : scripts.entrySet()) {
-            String dir = scriptsEntry.getValue().get("dir");
-            dirs.add(new File(dir));
-        }
+        refreshInterval = configuration.getInt(CONFIG_REFRESH_INTERVAL_MS, CONFIG_REFRESH_INTERVAL_MS_DEFAULT);
+        String scriptDirStr = configuration.get(CONFIG_SCRIPT_DIR, null);
+        checkNotNull(scriptDirStr, CONFIG_SCRIPT_DIR + " is required configuration parameter");
+        scriptDir = new File(scriptDirStr);
     }
 
     public void refreshScripts() {
@@ -48,7 +46,7 @@ public class GroovyGraphPropertyWorkerScriptRepository {
             return;
         }
         List<File> filesToRemove = new ArrayList<>(scripts.keySet());
-        refreshScriptDirs(filesToRemove);
+        refreshScripts(filesToRemove, scriptDir);
         removeScriptsThatAreNoLongerPresent(filesToRemove);
         lastRefreshTime = System.currentTimeMillis();
     }
@@ -62,12 +60,6 @@ public class GroovyGraphPropertyWorkerScriptRepository {
 
     private boolean isReadyToRefresh() {
         return lastRefreshTime + refreshInterval <= System.currentTimeMillis();
-    }
-
-    private void refreshScriptDirs(List<File> filesToRemove) {
-        for (File dir : dirs) {
-            refreshScripts(filesToRemove, dir);
-        }
     }
 
     private void refreshScripts(List<File> filesToRemove, File file) {
