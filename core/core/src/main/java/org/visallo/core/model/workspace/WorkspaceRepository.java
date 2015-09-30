@@ -324,11 +324,11 @@ public abstract class WorkspaceRepository {
         }
 
         ClientApiWorkspacePublishResponse workspacePublishResponse = new ClientApiWorkspacePublishResponse();
-        publishVertices(publishData, Action.addOrUpdate, workspacePublishResponse, workspaceId, authorizations);
-        publishEdges(publishData, Action.addOrUpdate, workspacePublishResponse, workspaceId, authorizations);
+        publishVertices(publishData, Action.ADD_OR_UPDATE, workspacePublishResponse, workspaceId, authorizations);
+        publishEdges(publishData, Action.ADD_OR_UPDATE, workspacePublishResponse, workspaceId, authorizations);
         publishProperties(publishData, workspacePublishResponse, workspaceId, authorizations);
-        publishEdges(publishData, Action.delete, workspacePublishResponse, workspaceId, authorizations);
-        publishVertices(publishData, Action.delete, workspacePublishResponse, workspaceId, authorizations);
+        publishEdges(publishData, Action.DELETE, workspacePublishResponse, workspaceId, authorizations);
+        publishVertices(publishData, Action.DELETE, workspacePublishResponse, workspaceId, authorizations);
         return workspacePublishResponse;
     }
 
@@ -348,7 +348,7 @@ public abstract class WorkspaceRepository {
                 checkNotNull(vertex);
                 if (SandboxStatusUtil.getSandboxStatus(vertex, workspaceId) == SandboxStatus.PUBLIC && !WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
                     String msg;
-                    if (data.getAction() == ClientApiPublishItem.Action.delete) {
+                    if (data.getAction() == ClientApiPublishItem.Action.DELETE) {
                         msg = "Cannot delete public vertex " + vertexId;
                     } else {
                         msg = "Vertex " + vertexId + " is already public";
@@ -384,7 +384,7 @@ public abstract class WorkspaceRepository {
                 Vertex destVertex = edge.getVertex(Direction.IN, authorizations);
                 if (SandboxStatusUtil.getSandboxStatus(edge, workspaceId) == SandboxStatus.PUBLIC && !WorkspaceDiffHelper.isPublicDelete(edge, authorizations)) {
                     String error_msg;
-                    if (data.getAction() == ClientApiPublishItem.Action.delete) {
+                    if (data.getAction() == ClientApiPublishItem.Action.DELETE) {
                         error_msg = "Cannot delete a public edge";
                     } else {
                         error_msg = "Edge is already public";
@@ -483,7 +483,7 @@ public abstract class WorkspaceRepository {
     }
 
     private void publishVertex(Vertex vertex, ClientApiPublishItem.Action action, Authorizations authorizations, String workspaceId) throws IOException {
-        if (action == ClientApiPublishItem.Action.delete || WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
+        if (action == ClientApiPublishItem.Action.DELETE || WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
             workQueueRepository.broadcastPublishVertexDelete(vertex);
@@ -531,7 +531,7 @@ public abstract class WorkspaceRepository {
     }
 
     private void publishProperty(Element element, ClientApiPublishItem.Action action, String key, String name, String workspaceId, Authorizations authorizations) {
-        if (action == ClientApiPublishItem.Action.delete) {
+        if (action == ClientApiPublishItem.Action.DELETE) {
             element.softDeleteProperty(key, name, authorizations);
             graph.flush();
             workQueueRepository.broadcastPublishPropertyDelete(element, key, name);
@@ -640,7 +640,7 @@ public abstract class WorkspaceRepository {
             String workspaceId,
             Authorizations authorizations
     ) {
-        if (action == ClientApiPublishItem.Action.delete || WorkspaceDiffHelper.isPublicDelete(edge, authorizations)) {
+        if (action == ClientApiPublishItem.Action.DELETE || WorkspaceDiffHelper.isPublicDelete(edge, authorizations)) {
             graph.softDeleteEdge(edge, authorizations);
             graph.flush();
             workQueueRepository.broadcastPublishEdgeDelete(edge);

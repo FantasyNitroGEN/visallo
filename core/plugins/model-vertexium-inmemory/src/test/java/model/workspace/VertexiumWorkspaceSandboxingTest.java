@@ -448,7 +448,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
             publishItem.setKey(diff.getKey());
             publishItem.setName(diff.getName());
             publishItem.setVisibilityString(diff.getVisibilityString());
-            publishItem.setAction(diff.isDeleted() ? Action.delete : Action.addOrUpdate);
+            publishItem.setAction(diff.isDeleted() ? Action.DELETE : Action.ADD_OR_UPDATE);
             publishItems[i++] = publishItem;
         }
 
@@ -478,7 +478,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
             item.setKey(diff.getKey());
             item.setName(diff.getName());
             item.setVisibilityString(diff.getVisibilityString());
-            item.setAction(diff.isDeleted() ? ClientApiUndoItem.Action.delete : ClientApiUndoItem.Action.addOrUpdate);
+            item.setAction(diff.isDeleted() ? ClientApiUndoItem.Action.DELETE : ClientApiUndoItem.Action.ADD_OR_UPDATE);
             undoItems.add(item);
         }
         ClientApiWorkspaceUndoResponse workspaceUndoResponse = new ClientApiWorkspaceUndoResponse();
