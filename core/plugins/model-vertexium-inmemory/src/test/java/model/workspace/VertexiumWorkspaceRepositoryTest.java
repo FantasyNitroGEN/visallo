@@ -225,14 +225,14 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
 
         ClientApiPublishItem[] publishDate = new ClientApiPublishItem[1];
         publishDate[0] = new ClientApiPropertyPublishItem() {{
-            setAction(Action.addOrUpdate);
+            setAction(Action.ADD_OR_UPDATE);
             setKey("key1");
             setName("prop1");
             setVertexId(entity1Vertex.getId());
         }};
         ClientApiWorkspacePublishResponse response = workspaceRepository.publish(publishDate, workspace.getWorkspaceId(), NO_AUTHORIZATIONS);
         assertEquals(1, response.getFailures().size());
-        assertEquals(ClientApiPublishItem.Action.addOrUpdate, response.getFailures().get(0).getAction());
+        assertEquals(ClientApiPublishItem.Action.ADD_OR_UPDATE, response.getFailures().get(0).getAction());
         assertEquals("property", response.getFailures().get(0).getType());
         assertEquals("no property with key 'key1' and name 'prop1' found on workspace 'WORKSPACE_testWorkspaceId'", response.getFailures().get(0).getErrorMessage());
     }
@@ -272,7 +272,7 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
 
         ClientApiPublishItem[] publishDate = new ClientApiPublishItem[1];
         publishDate[0] = new ClientApiPropertyPublishItem() {{
-            setAction(Action.addOrUpdate);
+            setAction(Action.ADD_OR_UPDATE);
             setKey("key1");
             setName("prop1");
             setVertexId(entity1Vertex.getId());
