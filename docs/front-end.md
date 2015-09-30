@@ -47,7 +47,7 @@ Randomly click in the UI for some period of time. Useful for checking to see if 
 
 ## Extensibility
 
-For more extensibility options, see README in the `js/configuration/plugins` directories.
+For more extensibility options, see README in the sub-directories of `web/war/src/main/webapp/js/configuration/plugins`.
 
 ### Localization
 
