@@ -28,7 +28,7 @@ public class WorkspaceApiExt extends WorkspaceApi {
         if (workspaceDiffItem instanceof ClientApiWorkspaceDiff.VertexItem) {
             ClientApiWorkspaceDiff.VertexItem vertexDiffItem = (ClientApiWorkspaceDiff.VertexItem) workspaceDiffItem;
             ClientApiVertexPublishItem publishItem = new ClientApiVertexPublishItem();
-            publishItem.setAction(ClientApiPublishItem.Action.addOrUpdate);
+            publishItem.setAction(ClientApiPublishItem.Action.ADD_OR_UPDATE);
             publishItem.setVertexId(vertexDiffItem.getVertexId());
             return publishItem;
         } else if (workspaceDiffItem instanceof ClientApiWorkspaceDiff.PropertyItem) {

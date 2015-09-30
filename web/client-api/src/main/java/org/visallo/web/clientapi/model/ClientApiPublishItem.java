@@ -41,18 +41,18 @@ public abstract class ClientApiPublishItem implements ClientApiObject {
         return ClientApiConverter.clientApiToString(this);
     }
 
-    public static enum Action {
-        delete, addOrUpdate;
+    public enum Action {
+        DELETE, ADD_OR_UPDATE;
 
         @JsonCreator
         public static Action create(String value) {
             if (value == null) {
-                return addOrUpdate;
+                return ADD_OR_UPDATE;
             }
-            if (value.equalsIgnoreCase("delete")) {
-                return delete;
+            if (value.equalsIgnoreCase(DELETE.name())) {
+                return DELETE;
             }
-            return addOrUpdate;
+            return ADD_OR_UPDATE;
         }
     }
 }
