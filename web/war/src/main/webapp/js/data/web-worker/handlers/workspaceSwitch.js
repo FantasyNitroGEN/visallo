@@ -3,12 +3,18 @@ define(['../services/workspace'], function(Workspace) {
 
     return function(message) {
         Workspace.get(message.workspaceId)
+            .then(function(workspace) {
+                if (!('createdBy' in workspace)) throw new Error();
+                return workspace;
+            })
             .catch(function(xhr) {
                 if (xhr && xhr.status === 500) {
                     throw new Error(xhr);
                 } else {
                     return Workspace.all().then(function(workspaces) {
-                        var workspace = _.findWhere(workspaces, { sharedToUser: false });
+                        var workspace = _.find(workspaces, function(w) {
+                            return !w.sharedToUser && ('createdBy' in w);
+                        });
                         if (workspace && workspace.workspaceId !== message.workspaceId) {
                             return Workspace.get(workspace.workspaceId);
                         }

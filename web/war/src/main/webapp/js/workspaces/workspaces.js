@@ -82,13 +82,23 @@ define([
                 title = $.trim($input.val());
 
             if (!title) return;
+            if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, title.toLowerCase())) return;
+
+            var $button = $input.prop('disabled', true)
+                .next('button')
+                .prop('disabled', true)
+                .addClass('loading')
 
             this.dataRequest('workspace', 'create', { title: title })
                 .then(function(workspace) {
                     $input.val('')
                     self.trigger('switchWorkspace', { workspaceId: workspace.workspaceId });
                 })
-                .catch(function() {
+                .catch(function(error) {
+                })
+                .finally(function() {
+                    $input.add($button).prop('disabled', false);
+                    $button.removeClass('loading');
                     $input.focus();
                 })
         };
@@ -148,6 +158,7 @@ define([
         };
 
         this.onWorkspaceDeleted = function(event, data) {
+            var self = this;
             this.collapseEditForm();
             this.update(_.reject(this.workspaces, function(w) {
                 return data.workspaceId === w.workspaceId;
@@ -218,6 +229,9 @@ define([
         };
 
         this.update = function(workspaces) {
+            workspaces = _.filter(workspaces, function(w) {
+                return 'createdBy' in w;
+            })
             var self = this,
                 MINE = 'mine',
                 SHARED = 'shared',
@@ -226,6 +240,14 @@ define([
                     .unique()
                     .value(),
                 workspacesGrouped = _.chain(workspaces)
+                        .tap(function(workspaces) {
+                            self.workspaceTitlesLowercase = _.chain(workspaces)
+                                .where({ sharedToUser: false })
+                                .map(function(w) {
+                                    return w.title.toLowerCase();
+                                })
+                                .value();
+                        })
                         .sortBy('workspaceId')
                         .sortBy('createdBy')
                         .sortBy(function(w) {
@@ -263,7 +285,9 @@ define([
                         this.classed('active', function(w) {
                             return w.workspaceId === visalloData.currentWorkspaceId;
                         })
-                        this.select('a .nav-list-title').text(_.property('title'));
+                        this.select('a .nav-list-title')
+                            .text(_.property('title'))
+                            .attr('title', _.property('title'));
                         this.select('a .nav-list-subtitle').text(function(w) {
                             var people = _.reject(w.users, function(user) {
                                     return user.userId === visalloData.currentUser.id;
@@ -324,7 +348,7 @@ define([
                         .data(workspacesGrouped[SHARED] || [], _.property('workspaceId'))
                         .call(renderRows(userIdToDisplay, true));
 
-                    fullfill();
+                    fullfill(workspaces);
                 });
             })
         };
@@ -345,8 +369,13 @@ define([
                 if (data.visible) {
                     _.defer(function() {
                         self.loadWorkspaceList()
-                            .then(function() {
-                                self.switchActive(visalloData.currentWorkspaceId);
+                            .then(function(workspaces) {
+                                var active = visalloData.currentWorkspaceId;
+                                if (_.findWhere(workspaces, { workspaceId: active })) {
+                                    self.switchActive(active);
+                                } else if (workspaces && workspaces.length) {
+                                    self.trigger('switchWorkspace', workspaces[0]);
+                                }
                             })
                     });
                 } else {
