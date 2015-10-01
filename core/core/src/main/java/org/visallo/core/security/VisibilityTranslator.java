@@ -13,6 +13,8 @@ public abstract class VisibilityTranslator {
 
     public abstract VisalloVisibility toVisibility(VisibilityJson visibilityJson);
 
+    public abstract VisalloVisibility toVisibility(String visibilitySource);
+
     public abstract Visibility toVisibilityNoSuperUser(VisibilityJson visibilityJson);
 
     public abstract Visibility getDefaultVisibility();
