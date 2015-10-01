@@ -35,8 +35,6 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
 
         deps: [
             'chai',
-            '../libs/es5-shim/es5-shim',
-            '../libs/es5-shim/es5-sham',
             '../libs/underscore/underscore'
         ],
 

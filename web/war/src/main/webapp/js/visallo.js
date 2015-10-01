@@ -1,7 +1,5 @@
 require([
     'jquery',
-    'es5shim',
-    'es5sham',
     'flight/lib/compose',
     'flight/lib/registry',
     'flight/lib/advice',
@@ -17,8 +15,6 @@ require([
     'util/promise'
 ],
 function(jQuery,
-         es5shim,
-         es5sham,
          compose,
          registry,
          advice,
