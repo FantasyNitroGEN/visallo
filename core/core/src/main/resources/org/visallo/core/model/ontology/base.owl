@@ -151,6 +151,17 @@
     
 
 
+    <!-- http://visallo.org#objectPropertyDomain -->
+
+    <owl:AnnotationProperty rdf:about="http://visallo.org#objectPropertyDomain">
+        <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:AnnotationProperty>
+    
+
+
     <!-- http://visallo.org#possibleValues -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#possibleValues">

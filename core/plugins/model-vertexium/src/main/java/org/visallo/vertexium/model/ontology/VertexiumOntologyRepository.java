@@ -236,7 +236,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         String parentIRI = parentVertexIds.size() == 0 ? null : parentVertexIds.get(0);
 
         final List<String> inverseOfIRIs = getRelationshipInverseOfIRIs(relationshipVertex);
-        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris);
+        List<OntologyProperty> properties = getPropertiesByVertexNoRecursion(relationshipVertex);
+        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris, properties);
     }
 
     private List<String> getRelationshipInverseOfIRIs(final Vertex vertex) {
@@ -432,6 +433,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     @Override
     public OntologyProperty addPropertyTo(
             List<Concept> concepts,
+            List<Relationship> relationships,
             String propertyIri,
             String displayName,
             PropertyType dataType,
@@ -472,6 +474,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
         for (Concept concept : concepts) {
             findOrAddEdge(((VertexiumConcept) concept).getVertex(), ((VertexiumOntologyProperty) property).getVertex(), LabelName.HAS_PROPERTY.toString());
+        }
+        for (Relationship relationship : relationships) {
+            findOrAddEdge(((VertexiumRelationship) relationship).getVertex(), ((VertexiumOntologyProperty) property).getVertex(), LabelName.HAS_PROPERTY.toString());
         }
 
         graph.flush();
@@ -551,8 +556,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             }
         });
 
+        Collection<OntologyProperty> properties = new ArrayList<>();
         String parentIRI = parent == null ? null : parent.getIRI();
-        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris);
+        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris, properties);
     }
 
     private OntologyProperty getOrCreatePropertyType(
@@ -665,9 +671,17 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Vertex relationshipVertex,
             List<String> inverseOfIRIs,
             List<String> domainConceptIris,
-            List<String> rangeConceptIris
+            List<String> rangeConceptIris,
+            Collection<OntologyProperty> properties
     ) {
-        return new VertexiumRelationship(parentIRI, relationshipVertex, domainConceptIris, rangeConceptIris, inverseOfIRIs);
+        return new VertexiumRelationship(
+                parentIRI,
+                relationshipVertex,
+                domainConceptIris,
+                rangeConceptIris,
+                inverseOfIRIs,
+                properties
+        );
     }
 
     /**

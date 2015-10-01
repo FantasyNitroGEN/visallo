@@ -4,12 +4,14 @@ import com.google.common.collect.ImmutableList;
 import org.vertexium.TextIndexHint;
 import org.visallo.web.clientapi.model.PropertyType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class OntologyPropertyDefinition {
     private final List<Concept> concepts;
+    private final List<Relationship> relationships;
     private final String propertyIri;
     private final String displayName;
     private final PropertyType dataType;
@@ -34,9 +36,14 @@ public class OntologyPropertyDefinition {
             PropertyType dataType
     ) {
         this.concepts = concepts;
+        this.relationships = new ArrayList<>();
         this.propertyIri = propertyIri;
         this.displayName = displayName;
         this.dataType = dataType;
+    }
+
+    public List<Relationship> getRelationships() {
+        return relationships;
     }
 
     public List<Concept> getConcepts() {
