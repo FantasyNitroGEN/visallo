@@ -21,12 +21,18 @@ dir_list() {
 }
 
 if [ $(uname) = 'Linux' ]; then
-  docker ps >/dev/null 2>&1
+  set +e
+  docker ps &>/dev/null
   if [ $? -ne 0 ]; then
-    SUDO=sudo
-  else
-    SUDO=
+    sudo docker ps &>/dev/null
+    if [ $? -eq 0 ]; then
+      SUDO=sudo
+    else
+      echo 'ERROR: failed to run docker (even with sudo)'
+      exit 1
+    fi
   fi
+  set -e
 else
   SUDO=
 fi
