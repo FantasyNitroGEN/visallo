@@ -3,10 +3,12 @@ package org.visallo.vertexium.model.ontology;
 import org.vertexium.Authorizations;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.model.ontology.OntologyProperties;
+import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class InMemoryRelationship extends Relationship {
@@ -22,10 +24,11 @@ public class InMemoryRelationship extends Relationship {
             String displayName,
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
+            Collection<OntologyProperty> properties,
             String[] intents,
             boolean userVisible
     ) {
-        super(parentIRI, domainConceptIRIs, rangeConceptIRIs);
+        super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.relationshipIRI = relationshipIRI;
         this.displayName = displayName;
         this.intents.addAll(Arrays.asList(intents));

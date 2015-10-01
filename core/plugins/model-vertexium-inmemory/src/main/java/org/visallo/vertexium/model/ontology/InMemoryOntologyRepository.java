@@ -121,6 +121,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     @Override
     protected OntologyProperty addPropertyTo(
             List<Concept> concepts,
+            List<Relationship> relationships,
             String propertyIri,
             String displayName,
             PropertyType dataType,
@@ -159,6 +160,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         );
         for (Concept concept : concepts) {
             concept.getProperties().add(property);
+        }
+        for (Relationship relationship : relationships) {
+            relationship.getProperties().add(property);
         }
         checkNotNull(property, "Could not find property: " + propertyIri);
         return property;
@@ -354,7 +358,17 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         });
 
         String parentIRI = parent == null ? null : parent.getIRI();
-        InMemoryRelationship inMemRelationship = new InMemoryRelationship(parentIRI, relationshipIRI, displayName, domainConceptIris, rangeConceptIris, intents, userVisible);
+        Collection<OntologyProperty> properties = new ArrayList<>();
+        InMemoryRelationship inMemRelationship = new InMemoryRelationship(
+                parentIRI,
+                relationshipIRI,
+                displayName,
+                domainConceptIris,
+                rangeConceptIris,
+                properties,
+                intents,
+                userVisible
+        );
         relationshipsCache.put(relationshipIRI, inMemRelationship);
         return inMemRelationship;
     }

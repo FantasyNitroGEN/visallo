@@ -325,6 +325,7 @@ public class ClientApiOntology implements ClientApiObject {
         private List<String> rangeConceptIris = new ArrayList<>();
         private List<InverseOf> inverseOfs = new ArrayList<>();
         private List<String> intents = new ArrayList<>();
+        private List<String> properties = new ArrayList<>();
 
         public String getTitle() {
             return title;
@@ -372,6 +373,14 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setUserVisible(Boolean userVisible) {
             this.userVisible = userVisible;
+        }
+
+        public List<String> getProperties() {
+            return properties;
+        }
+
+        public void setProperties(List<String> properties) {
+            this.properties = properties;
         }
 
         @JsonInclude(JsonInclude.Include.NON_EMPTY)

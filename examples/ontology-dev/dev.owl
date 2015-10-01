@@ -631,6 +631,16 @@
     
 
 
+    <!-- http://visallo.org/dev#firstMet -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#firstMet">
+        <rdfs:label xml:lang="en">First Met</rdfs:label>
+        <visallo:objectPropertyDomain rdf:resource="http://visallo.org/dev#personKnowsPerson"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://visallo.org/dev#firstName -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#firstName">

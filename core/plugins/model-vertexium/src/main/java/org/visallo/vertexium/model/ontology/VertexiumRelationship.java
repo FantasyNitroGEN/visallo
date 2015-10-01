@@ -4,9 +4,11 @@ import org.vertexium.Authorizations;
 import org.vertexium.Vertex;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.model.ontology.OntologyProperties;
+import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 
+import java.util.Collection;
 import java.util.List;
 
 public class VertexiumRelationship extends Relationship {
@@ -18,9 +20,10 @@ public class VertexiumRelationship extends Relationship {
             Vertex vertex,
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
-            List<String> inverseOfIRIs
+            List<String> inverseOfIRIs,
+            Collection<OntologyProperty> properties
     ) {
-        super(parentIRI, domainConceptIRIs, rangeConceptIRIs);
+        super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.vertex = vertex;
         this.inverseOfIRIs = inverseOfIRIs;
     }

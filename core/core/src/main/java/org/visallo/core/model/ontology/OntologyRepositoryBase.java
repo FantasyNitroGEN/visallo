@@ -59,6 +59,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     public static final String BASE_OWL_IRI = "http://visallo.org";
     public static final String COMMENT_OWL_IRI = "http://visallo.org/comment";
     public static final String RESOURCE_ENTITY_PNG = "entity.png";
+    private static final String OBJECT_PROPERTY_DOMAIN_IRI = "http://visallo.org#objectPropertyDomain";
     private final Configuration configuration;
 
     protected OntologyRepositoryBase(Configuration configuration) {
@@ -242,11 +243,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         long importConceptsTime = endTime - startTime;
 
         startTime = System.currentTimeMillis();
-        importDataProperties(o);
-        endTime = System.currentTimeMillis();
-        long importDataPropertiesTime = endTime - startTime;
-
-        startTime = System.currentTimeMillis();
         importObjectProperties(o);
         clearCache(); // needed to find the relationship for inverse of
         endTime = System.currentTimeMillis();
@@ -257,6 +253,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         endTime = System.currentTimeMillis();
         long importInverseOfObjectPropertiesTime = endTime - startTime;
         long totalEndTime = System.currentTimeMillis();
+
+        startTime = System.currentTimeMillis();
+        importDataProperties(o);
+        endTime = System.currentTimeMillis();
+        long importDataPropertiesTime = endTime - startTime;
 
         LOGGER.debug("import annotation properties time: %dms", importAnnotationPropertiesTime);
         LOGGER.debug("import concepts time: %dms", importConceptsTime);
@@ -505,10 +506,23 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 }
             }
 
+            List<Relationship> domainRelationships = new ArrayList<>();
+            for (OWLAnnotation domainAnnotation : getObjectPropertyDomains(o, dataTypeProperty)) {
+                String domainClassUri = domainAnnotation.getValue().toString();
+                Relationship domainRelationship = getRelationshipByIRI(domainClassUri);
+                if (domainRelationship == null) {
+                    LOGGER.error("Could not find relationship with uri: %s", domainClassUri);
+                } else {
+                    LOGGER.info("Adding data property " + propertyIRI + " to relationship " + domainRelationship.getIRI());
+                    domainRelationships.add(domainRelationship);
+                }
+            }
+
             Map<String, String> possibleValues = getPossibleValues(o, dataTypeProperty);
             Collection<TextIndexHint> textIndexHints = getTextIndexHints(o, dataTypeProperty);
             addPropertyTo(
                     domainConcepts,
+                    domainRelationships,
                     propertyIRI,
                     propertyDisplayName,
                     propertyType,
@@ -539,6 +553,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
         return addPropertyTo(
                 ontologyPropertyDefinition.getConcepts(),
+                ontologyPropertyDefinition.getRelationships(),
                 ontologyPropertyDefinition.getPropertyIri(),
                 ontologyPropertyDefinition.getDisplayName(),
                 ontologyPropertyDefinition.getDataType(),
@@ -560,6 +575,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract OntologyProperty addPropertyTo(
             List<Concept> concepts,
+            List<Relationship> relationships,
             String propertyIri,
             String displayName,
             PropertyType dataType,
@@ -587,7 +603,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         LOGGER.info("Importing ontology object property " + iri + " (label: " + label + ")");
 
         Relationship parent = getParentObjectProperty(o, objectProperty);
-        return getOrCreateRelationshipType(parent, getDomainsConcepts(o, objectProperty), getRangesConcepts(o, objectProperty), iri, label, intents, userVisible);
+        return getOrCreateRelationshipType(
+                parent,
+                getDomainsConcepts(o, objectProperty),
+                getRangesConcepts(o, objectProperty),
+                iri,
+                label,
+                intents,
+                userVisible
+        );
     }
 
     private Relationship getParentObjectProperty(OWLOntology o, OWLObjectProperty objectProperty) {
@@ -751,6 +775,16 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
         }
         return bestLabel;
+    }
+
+    protected Iterable<OWLAnnotation> getObjectPropertyDomains(OWLOntology o, OWLDataProperty owlDataTypeProperty) {
+        List<OWLAnnotation> results = new ArrayList<>();
+        for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlDataTypeProperty, o)) {
+            if (annotation.getProperty().getIRI().toString().equals(OBJECT_PROPERTY_DOMAIN_IRI)) {
+                results.add(annotation);
+            }
+        }
+        return results;
     }
 
     protected String getDisplayType(OWLOntology o, OWLEntity owlEntity) {

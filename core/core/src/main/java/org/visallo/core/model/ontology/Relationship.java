@@ -14,11 +14,18 @@ public abstract class Relationship {
     private final String parentIRI;
     private final List<String> domainConceptIRIs;
     private final List<String> rangeConceptIRIs;
+    private final Collection<OntologyProperty> properties;
 
-    protected Relationship(String parentIRI, List<String> domainConceptIRIs, List<String> rangeConceptIRIs) {
+    protected Relationship(
+            String parentIRI,
+            List<String> domainConceptIRIs,
+            List<String> rangeConceptIRIs,
+            Collection<OntologyProperty> properties
+    ) {
         this.parentIRI = parentIRI;
         this.domainConceptIRIs = domainConceptIRIs;
         this.rangeConceptIRIs = rangeConceptIRIs;
+        this.properties = properties;
     }
 
     public abstract String getIRI();
@@ -42,6 +49,10 @@ public abstract class Relationship {
     public abstract boolean getUserVisible();
 
     public abstract String[] getIntents();
+
+    public Collection<OntologyProperty> getProperties() {
+        return properties;
+    }
 
     public abstract void addIntent(String intent, Authorizations authorizations);
 
@@ -82,6 +93,12 @@ public abstract class Relationship {
                 inverseOf.setIri(inverseOfIRI);
                 inverseOf.setPrimaryIri(getPrimaryInverseOfIRI(getIRI(), inverseOfIRI));
                 result.getInverseOfs().add(inverseOf);
+            }
+
+            if (this.properties != null) {
+                for (OntologyProperty property : this.properties) {
+                    result.getProperties().add(property.getTitle());
+                }
             }
 
             return result;
