@@ -165,6 +165,8 @@ public class InMemoryOntologyProperty extends OntologyProperty {
             this.displayFormula = (String) value;
         } else if (OntologyProperties.DISPLAY_NAME.getPropertyName().equals(name)) {
             this.displayName = (String) value;
+        } else if (OntologyProperties.PROPERTY_GROUP.getPropertyName().equals(name)) {
+            this.propertyGroup = (String) value;
         } else if (OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY.equals(name)) {
             this.dependentPropertyIris = ImmutableList.copyOf(JSONUtil.toStringList(JSONUtil.parseArray((String) value)));
         } else if (OntologyProperties.SEARCHABLE.getPropertyName().equals(name)) {
