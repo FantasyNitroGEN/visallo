@@ -7,6 +7,7 @@ import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -25,6 +26,7 @@ public class EdgePropertyDetails extends BaseRequestHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EdgePropertyDetails.class);
     private final Graph graph;
     private final TermMentionRepository termMentionRepository;
+    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
     public EdgePropertyDetails(
@@ -32,11 +34,13 @@ public class EdgePropertyDetails extends BaseRequestHandler {
             WorkspaceRepository workspaceRepository,
             Configuration configuration,
             Graph graph,
-            TermMentionRepository termMentionRepository
+            TermMentionRepository termMentionRepository,
+            VisibilityTranslator visibilityTranslator
     ) {
         super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.termMentionRepository = termMentionRepository;
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     @Override
@@ -48,7 +52,7 @@ public class EdgePropertyDetails extends BaseRequestHandler {
         User user = getUser(request);
         Authorizations authorizations = getAuthorizations(request, user);
 
-        Visibility visibility = new Visibility(visibilitySource);
+        Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
         if (!graph.isVisibilityValid(visibility, authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             respondWithBadRequest(response, "visibilitySource", getString(request, "visibility.invalid"));

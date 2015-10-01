@@ -20,6 +20,11 @@ public class DirectVisibilityTranslator extends VisibilityTranslator {
     }
 
     @Override
+    public VisalloVisibility toVisibility(String visibilitySource) {
+        return new VisalloVisibility(toVisibilityNoSuperUser(new VisibilityJson(visibilitySource)));
+    }
+
+    @Override
     public Visibility toVisibilityNoSuperUser(VisibilityJson visibilityJson) {
         StringBuilder visibilityString = new StringBuilder();
 

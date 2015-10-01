@@ -52,7 +52,7 @@ public class VertexPropertyDetails extends BaseRequestHandler {
         Authorizations authorizations = getAuthorizations(request, user);
         String workspaceId = getActiveWorkspaceId(request);
 
-        Visibility visibility = new Visibility(visibilitySource);
+        Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
         if (!graph.isVisibilityValid(visibility, authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             respondWithBadRequest(response, "visibilitySource", getString(request, "visibility.invalid"));
