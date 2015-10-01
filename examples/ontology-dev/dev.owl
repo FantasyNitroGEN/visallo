@@ -562,8 +562,10 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#cityProp">
         <rdfs:label xml:lang="en">City</rdfs:label>
+        <visallo:intent>city</visallo:intent>
         <visallo:intent>geocodable</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -606,9 +608,9 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#duration">
         <rdfs:label xml:lang="en">Duration</rdfs:label>
         <visallo:intent>videoDuration</visallo:intent>
+        <visallo:displayType xml:lang="en">duration</visallo:displayType>
         <visallo:intent>media.duration</visallo:intent>
         <visallo:intent>audioDuration</visallo:intent>
-        <visallo:displayType xml:lang="en">duration</visallo:displayType>
         <visallo:validationFormula>propRaw(&apos;http://visallo.org/dev#duration&apos;) &gt;= 0</visallo:validationFormula>
         <rdfs:domain rdf:resource="http://visallo.org/dev#audio"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#phoneCall"/>
@@ -819,8 +821,10 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#stateProp">
         <rdfs:label xml:lang="en">State</rdfs:label>
+        <visallo:intent>state</visallo:intent>
         <visallo:intent>geocodable</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -908,30 +912,13 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#zipCodeProp">
         <rdfs:label xml:lang="en">Zip Code</rdfs:label>
-        <visallo:intent>geocodable</visallo:intent>
         <visallo:intent>zipCode</visallo:intent>
+        <visallo:intent>geocodable</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
-
-    <!-- http://visallo.org/dev#stateProp -->
-
-    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#stateProp">
-        <rdfs:label xml:lang="en">State</rdfs:label>
-        <visallo:intent>state</visallo:intent>
-        <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
-
-    <!-- http://visallo.org/dev#cityProp -->
-
-    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#cityProp">
-        <rdfs:label xml:lang="en">City</rdfs:label>
-        <visallo:intent>city</visallo:intent>
-        <rdfs:domain rdf:resource="http://visallo.org/dev#zipCode"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
+    
 
 
     <!-- http://visallo.org/dev#geoLocationAndDate/date -->
@@ -1006,8 +993,8 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/media#fileSize">
         <rdfs:label xml:lang="en">File Size</rdfs:label>
         <visallo:displayType xml:lang="en">bytes</visallo:displayType>
-        <visallo:validationFormula>propRaw(&apos;http://visallo.org/media#fileSize&apos;) &gt;= 0</visallo:validationFormula>
         <visallo:intent>media.fileSize</visallo:intent>
+        <visallo:validationFormula>propRaw(&apos;http://visallo.org/media#fileSize&apos;) &gt;= 0</visallo:validationFormula>
         <rdfs:domain rdf:resource="http://visallo.org/dev#audio"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#image"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
@@ -1058,8 +1045,8 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/media#width">
         <rdfs:label xml:lang="en">Width</rdfs:label>
-        <visallo:intent>media.width</visallo:intent>
         <visallo:validationFormula>propRaw(&apos;http://visallo.org/media#width&apos;) &gt; 0</visallo:validationFormula>
+        <visallo:intent>media.width</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/dev#image"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#video"/>
         <rdfs:range rdf:resource="&xsd;integer"/>
@@ -1294,8 +1281,8 @@
 
     <owl:Class rdf:about="http://visallo.org/dev#raw">
         <rdfs:label xml:lang="en">Raw</rdfs:label>
-        <visallo:glyphIconFileName xml:lang="en">artifact.png</visallo:glyphIconFileName>
         <visallo:titleFormula xml:lang="en"> prop(&apos;http://visallo.org/dev#artifactTitle&apos;) || prop(&apos;http://visallo.org#fileName&apos;) || &apos;&apos; </visallo:titleFormula>
+        <visallo:glyphIconFileName xml:lang="en">artifact.png</visallo:glyphIconFileName>
         <visallo:color xml:lang="en">rgb(28, 137, 28)</visallo:color>
     </owl:Class>
     
@@ -1360,25 +1347,25 @@
         <rdfs:label xml:lang="en">Zip Code</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/dev#location"/>
         <visallo:intent>zipCode</visallo:intent>
-        <visallo:glyphIconFileName xml:lang="en">glyphicons_020_home@2x.png</visallo:glyphIconFileName>
-        <visallo:color xml:lang="en">rgb(219, 63, 219)</visallo:color>
         <visallo:titleFormula>
-            var zipCode = prop('http://visallo.org/dev#zipCodeProp');
-            var city = prop('http://visallo.org/dev#cityProp');
-            var state = prop('http://visallo.org/dev#stateProp');
+            var zipCode = prop(&apos;http://visallo.org/dev#zipCodeProp&apos;);
+            var city = prop(&apos;http://visallo.org/dev#cityProp&apos;);
+            var state = prop(&apos;http://visallo.org/dev#stateProp&apos;);
             if(!zipCode) {
               return null;
             }
             var result = zipCode;
             if(city &amp;&amp; state) {
-              result += ' - ' + city + ', ' + state;
+              result += &apos; - &apos; + city + &apos;, &apos; + state;
             } else if(city) {
-              result += ' - ' + city;
+              result += &apos; - &apos; + city;
             } else if(state) {
-              result += ' - ' + state;
+              result += &apos; - &apos; + state;
             }
             return result;
         </visallo:titleFormula>
+        <visallo:glyphIconFileName xml:lang="en">glyphicons_020_home@2x.png</visallo:glyphIconFileName>
+        <visallo:color xml:lang="en">rgb(219, 63, 219)</visallo:color>
     </owl:Class>
 </rdf:RDF>
 
