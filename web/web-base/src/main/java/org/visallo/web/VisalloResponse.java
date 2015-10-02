@@ -1,12 +1,14 @@
 package org.visallo.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Preconditions;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.web.clientapi.model.ClientApiObject;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
 import javax.servlet.ServletOutputStream;
@@ -17,11 +19,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class VisalloResponse {
     public static final int EXPIRES_1_HOUR = 60 * 60;
+    public static final ClientApiSuccess SUCCESS = new ClientApiSuccess();
     private final HttpServletRequest request;
     private final HttpServletResponse response;
 
@@ -37,7 +39,7 @@ public class VisalloResponse {
         }
         try {
             String jsonObject = ObjectMapperFactory.getInstance().writeValueAsString(obj);
-            BaseRequestHandler.configureResponse(ResponseTypes.JSON_OBJECT, response, jsonObject);
+            configureResponse(ResponseTypes.JSON_OBJECT, response, jsonObject);
         } catch (JsonProcessingException e) {
             throw new VisalloException("Could not write json", e);
         }
@@ -49,15 +51,6 @@ public class VisalloResponse {
 
     public void respondWithNotFound(String message) throws IOException {
         response.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-    }
-
-    public void respondWithBadRequest(final String parameterName, final String errorMessage, final String invalidValue) throws IOException {
-        List<String> values = null;
-        if (invalidValue != null) {
-            values = new ArrayList<>();
-            values.add(invalidValue);
-        }
-        respondWithBadRequest(parameterName, errorMessage, values);
     }
 
     public void respondWithBadRequest(final String parameterName, final String errorMessage, final List<String> invalidValues) throws IOException {
@@ -74,30 +67,18 @@ public class VisalloResponse {
         respondWithJson(error);
     }
 
-    public void respondWithBadRequest(final String parameterName, final String errorMessage) throws IOException {
-        respondWithBadRequest(parameterName, errorMessage, new ArrayList<String>());
-    }
-
-    public HttpServletResponse getHttpServletResponse() {
-        return response;
-    }
-
     public void respondWithSuccessJson() {
-        JSONObject result = new JSONObject();
-        result.put("success", true);
-        respondWithJson(result);
+        JSONObject successJson = new JSONObject();
+        successJson.put("success", true);
+        respondWithJson(successJson);
     }
 
     public void respondWithJson(JSONObject jsonObject) {
-        BaseRequestHandler.configureResponse(ResponseTypes.JSON_OBJECT, response, jsonObject);
-    }
-
-    public void respondWithPlaintext(final String plaintext) {
-        BaseRequestHandler.configureResponse(ResponseTypes.PLAINTEXT, response, plaintext);
+        configureResponse(ResponseTypes.JSON_OBJECT, response, jsonObject);
     }
 
     public void respondWithHtml(final String html) {
-        BaseRequestHandler.configureResponse(ResponseTypes.HTML, response, html);
+        configureResponse(ResponseTypes.HTML, response, html);
     }
 
     public String generateETag(byte[] data) {
@@ -170,7 +151,65 @@ public class VisalloResponse {
         }
     }
 
+    public void flushBuffer() {
+        try {
+            response.flushBuffer();
+        } catch (IOException e) {
+            throw new VisalloException("Could not flush response buffer");
+        }
+    }
+
+    public void setStatus(int statusCode) {
+        response.setStatus(statusCode);
+    }
+
     public void setContentLength(int length) {
         response.setContentLength(length);
+    }
+
+    public void setCharacterEncoding(String charset) {
+        response.setCharacterEncoding(charset);
+    }
+
+    public static void configureResponse(final ResponseTypes type, final HttpServletResponse response, final Object responseData) {
+        Preconditions.checkNotNull(response, "The provided response was invalid");
+        Preconditions.checkNotNull(responseData, "The provided data was invalid");
+
+        try {
+            switch (type) {
+                case JSON_OBJECT:
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(responseData.toString());
+                    break;
+                case JSON_ARRAY:
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(responseData.toString());
+                    break;
+                case PLAINTEXT:
+                    response.setContentType("text/plain");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(responseData.toString());
+                    break;
+                case HTML:
+                    response.setContentType("text/html");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(responseData.toString());
+                    break;
+                default:
+                    throw new VisalloException("Unsupported response type encountered");
+            }
+
+            if (response.getWriter().checkError()) {
+                throw new ConnectionClosedException();
+            }
+        } catch (IOException e) {
+            throw new VisalloException("Error occurred while writing response", e);
+        }
+    }
+
+    public HttpServletResponse getHttpServletResponse() {
+        return response;
     }
 }

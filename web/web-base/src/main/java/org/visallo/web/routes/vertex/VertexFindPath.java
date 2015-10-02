@@ -32,26 +32,26 @@ public class VertexFindPath implements ParameterizedHandler {
     public void handle(
             User user,
             @ActiveWorkspaceId String workspaceId,
-            @Required(name = "sourceGraphVertexId") String sourceGraphVertexId,
-            @Required(name = "destGraphVertexId") String destGraphVertexId,
+            @Required(name = "outVertexId") String outVertexId,
+            @Required(name = "inVertexId") String inVertexId,
             @Required(name = "hops") int hops,
             @Optional(name = "labels[]") String[] labels,
             Authorizations authorizations,
             VisalloResponse response
     ) throws Exception {
-        Vertex sourceVertex = graph.getVertex(sourceGraphVertexId, authorizations);
-        if (sourceVertex == null) {
+        Vertex outVertex = graph.getVertex(outVertexId, authorizations);
+        if (outVertex == null) {
             response.respondWithNotFound("Source vertex not found");
             return;
         }
 
-        Vertex destVertex = graph.getVertex(destGraphVertexId, authorizations);
-        if (destVertex == null) {
+        Vertex inVertex = graph.getVertex(inVertexId, authorizations);
+        if (inVertex == null) {
             response.respondWithNotFound("Destination vertex not found");
             return;
         }
 
-        FindPathLongRunningProcessQueueItem findPathQueueItem = new FindPathLongRunningProcessQueueItem(sourceVertex.getId(), destVertex.getId(), labels, hops, workspaceId, authorizations);
+        FindPathLongRunningProcessQueueItem findPathQueueItem = new FindPathLongRunningProcessQueueItem(outVertex.getId(), inVertex.getId(), labels, hops, workspaceId, authorizations);
         String id = this.longRunningProcessRepository.enqueue(findPathQueueItem.toJson(), user, authorizations);
 
         response.respondWithClientApiObject(new ClientApiLongRunningProcessSubmitResponse(id));

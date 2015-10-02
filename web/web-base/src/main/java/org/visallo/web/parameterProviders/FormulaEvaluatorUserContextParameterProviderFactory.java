@@ -24,7 +24,7 @@ public class FormulaEvaluatorUserContextParameterProviderFactory extends Paramet
             public FormulaEvaluator.UserContext getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 Locale locale = getLocale(request);
                 String timeZone = getTimeZone(request);
-                String workspaceId = getWorkspaceIdOrDefault(request);
+                String workspaceId = getActiveWorkspaceIdOrDefault(request);
                 return new FormulaEvaluator.UserContext(locale, timeZone, workspaceId);
             }
         };

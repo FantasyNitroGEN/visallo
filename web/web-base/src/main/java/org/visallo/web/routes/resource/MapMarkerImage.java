@@ -46,12 +46,12 @@ public class MapMarkerImage implements ParameterizedHandler {
 
     @Handle
     public void handle(
-            User user,
             @Required(name = "type") String typeStr,
             @Optional(name = "scale", defaultValue = "1") long scale,
             @Optional(name = "heading", defaultValue = "0.0") double headingParam,
             @Optional(name = "selected", defaultValue = "false") boolean selected,
-            VisalloResponse response
+            VisalloResponse response,
+            User user
     ) throws Exception {
         int heading = roundHeadingAngle(headingParam);
 

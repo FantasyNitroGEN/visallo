@@ -7,6 +7,7 @@ import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
 public class UserNotificationMarkRead implements ParameterizedHandler {
     private final UserNotificationRepository userNotificationRepository;
@@ -17,12 +18,11 @@ public class UserNotificationMarkRead implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
-            User user,
+    public ClientApiSuccess handle(
             @Required(name = "notificationIds[]") String[] notificationIds,
-            VisalloResponse response
+            User user
     ) throws Exception {
         userNotificationRepository.markRead(notificationIds, user);
-        response.respondWithSuccessJson();
+        return VisalloResponse.SUCCESS;
     }
 }

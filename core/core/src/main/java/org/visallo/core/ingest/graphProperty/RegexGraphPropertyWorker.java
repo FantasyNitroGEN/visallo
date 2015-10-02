@@ -42,7 +42,7 @@ public abstract class RegexGraphPropertyWorker extends GraphPropertyWorker {
 
         final Matcher matcher = pattern.matcher(text);
 
-        Vertex sourceVertex = (Vertex) data.getElement();
+        Vertex outVertex = (Vertex) data.getElement();
 
         List<Vertex> termMentions = new ArrayList<>();
         while (matcher.find()) {
@@ -51,7 +51,7 @@ public abstract class RegexGraphPropertyWorker extends GraphPropertyWorker {
             int end = matcher.end();
 
             Vertex termMention = new TermMentionBuilder()
-                    .sourceVertex(sourceVertex)
+                    .outVertex(outVertex)
                     .propertyKey(data.getProperty().getKey())
                     .start(start)
                     .end(end)
@@ -62,7 +62,7 @@ public abstract class RegexGraphPropertyWorker extends GraphPropertyWorker {
                     .save(getGraph(), getVisibilityTranslator(), getAuthorizations());
             termMentions.add(termMention);
         }
-        applyTermMentionFilters(sourceVertex, termMentions);
+        applyTermMentionFilters(outVertex, termMentions);
         pushTextUpdated(data);
     }
 

@@ -26,11 +26,12 @@ public class WorkspaceEdgesTest extends RouteTestBase {
     private WorkspaceEdges workspaceEdges;
     private VertexiumWorkspace workspace;
     private Vertex workspaceVertex;
+    private Authorizations authorizations;
 
     @Before
     public void setUp() throws IOException {
         super.setUp();
-        workspaceEdges = new WorkspaceEdges(graph, userRepository, configuration, workspaceRepository) {
+        workspaceEdges = new WorkspaceEdges(graph, workspaceRepository) {
             @Override
             protected ClientApiWorkspaceEdges getEdges(HttpServletRequest request, String workspaceId, Iterable<String> vertexIds, Authorizations authorizations) {
                 return super.getEdges(request, workspaceId, vertexIds, authorizations);
@@ -40,7 +41,7 @@ public class WorkspaceEdgesTest extends RouteTestBase {
         Visibility workspaceVisibility = new Visibility("");
         Authorizations workspaceAuthorizations = graph.createAuthorizations("");
         Visibility visibility = new Visibility("");
-        Authorizations authorizations = graph.createAuthorizations("");
+        authorizations = graph.createAuthorizations("");
 
         when(userRepository.getAuthorizations(eq(user), eq(WORKSPACE_ID))).thenReturn(authorizations);
 
@@ -58,7 +59,7 @@ public class WorkspaceEdgesTest extends RouteTestBase {
         List<WorkspaceEntity> workspaceEntities = new ArrayList<>();
         when(workspaceRepository.findEntities(workspace, user)).thenReturn(workspaceEntities);
 
-        ClientApiWorkspaceEdges edges = handle(workspaceEdges, ClientApiWorkspaceEdges.class);
+        ClientApiWorkspaceEdges edges = workspaceEdges.handle(request, null, workspace.getWorkspaceId(), user, authorizations);
         assertEquals(0, edges.edges.size());
     }
 
@@ -69,7 +70,7 @@ public class WorkspaceEdgesTest extends RouteTestBase {
         workspaceEntityVertexIds.add("v2");
         when(workspaceRepository.findEntityVertexIds(workspace, user)).thenReturn(workspaceEntityVertexIds);
 
-        ClientApiWorkspaceEdges edges = handle(workspaceEdges, ClientApiWorkspaceEdges.class);
+        ClientApiWorkspaceEdges edges = workspaceEdges.handle(request, null, workspace.getWorkspaceId(), user, authorizations);
         assertEquals(1, edges.edges.size());
     }
 }

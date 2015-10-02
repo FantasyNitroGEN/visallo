@@ -12,7 +12,6 @@ import org.visallo.core.model.notification.SystemNotificationRepository;
 import org.visallo.core.model.notification.UserNotification;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.VisalloResponse;
 
 import java.util.Date;
 
@@ -30,10 +29,9 @@ public class Notifications implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
-            User user,
+    public JSONObject handle(
             @Optional(name = "futureDays", defaultValue = "10") int futureDays,
-            VisalloResponse response
+            User user
     ) throws Exception {
         JSONObject notifications = new JSONObject();
 
@@ -59,6 +57,6 @@ public class Notifications implements ParameterizedHandler {
 
         notifications.put("system", systemNotifications);
         notifications.put("user", userNotifications);
-        response.respondWithJson(notifications);
+        return notifications;
     }
 }

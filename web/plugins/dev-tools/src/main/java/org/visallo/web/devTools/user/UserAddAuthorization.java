@@ -1,39 +1,33 @@
 package org.visallo.web.devTools.user;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
+import org.json.JSONObject;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+public class UserAddAuthorization implements ParameterizedHandler {
+    private final UserRepository userRepository;
 
-public class UserAddAuthorization extends BaseRequestHandler {
     @Inject
-    public UserAddAuthorization(
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public UserAddAuthorization(final UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String userName = getRequiredParameter(request, "user-name");
-        User authUser = getUser(request);
-        String auth = getRequiredParameter(request, "auth");
-
-        User user = getUserRepository().findByUsername(userName);
+    @Handle
+    public JSONObject handle(
+            @Required(name = "user-name") String userName,
+            @Required(name = "auth") String auth,
+            User authUser
+    ) throws Exception {
+        User user = userRepository.findByUsername(userName);
         if (user == null) {
-            respondWithNotFound(response, "User " + userName + " not found");
-            return;
+            throw new VisalloResourceNotFoundException("User " + userName + " not found");
         }
-
-        getUserRepository().addAuthorization(user, auth, authUser);
-
-        respondWithJson(response, getUserRepository().toJsonWithAuths(user));
+        userRepository.addAuthorization(user, auth, authUser);
+        return userRepository.toJsonWithAuths(user);
     }
 }

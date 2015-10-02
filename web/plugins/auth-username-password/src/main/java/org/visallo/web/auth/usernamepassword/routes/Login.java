@@ -1,42 +1,45 @@
 package org.visallo.web.auth.usernamepassword.routes;
 
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.utils.UrlUtils;
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
+import org.json.JSONObject;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.AuthenticationHandler;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.CurrentUser;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-public class Login extends BaseRequestHandler {
+public class Login implements ParameterizedHandler {
+
+    private final UserRepository userRepository;
 
     @Inject
-    public Login(UserRepository userRepository, WorkspaceRepository workspaceRepository, Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public Login(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String username = UrlUtils.urlDecode(request.getParameter("username"));
-        final String password = UrlUtils.urlDecode(request.getParameter("password")).trim();
+    @Handle
+    public JSONObject handle(
+            HttpServletRequest request,
+            @Required(name = "username") String username,
+            @Required(name = "password") String password
+    ) throws Exception {
+        username = username.trim();
+        password = password.trim();
 
-        User user = getUserRepository().findByUsername(username);
-        if (user != null && getUserRepository().isPasswordValid(user, password)) {
-            getUserRepository().recordLogin(user, AuthenticationHandler.getRemoteAddr(request));
+        User user = userRepository.findByUsername(username);
+        if (user != null && userRepository.isPasswordValid(user, password)) {
+            userRepository.recordLogin(user, AuthenticationHandler.getRemoteAddr(request));
             CurrentUser.set(request, user.getUserId(), user.getUsername());
             JSONObject json = new JSONObject();
             json.put("status", "OK");
-            respondWithJson(response, json);
+            return json;
         } else {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            throw new VisalloAccessDeniedException("", user, null);
         }
-
     }
 }

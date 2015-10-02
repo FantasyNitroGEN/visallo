@@ -1,49 +1,42 @@
 package org.visallo.web.devTools.user;
 
-import com.v5analytics.webster.HandlerChain;
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
+import org.vertexium.Graph;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
-import org.json.JSONObject;
-import org.vertexium.Graph;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class UserDelete extends BaseRequestHandler {
+public class UserDelete implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserDelete.class);
     private final Graph graph;
+    private final UserRepository userRepository;
 
     @Inject
-    public UserDelete(
-            final UserRepository userRepository,
-            final Configuration configuration,
-            final WorkspaceRepository workspaceRepository,
-            final Graph graph) {
-        super(userRepository, workspaceRepository, configuration);
+    public UserDelete(final Graph graph, final UserRepository userRepository) {
         this.graph = graph;
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String userName = getRequiredParameter(request, "user-name");
-
-        User user = getUserRepository().findByUsername(userName);
+    @Handle
+    public ClientApiSuccess handle(
+            @Required(name = "user-name") String userName
+    ) throws Exception {
+        User user = userRepository.findByUsername(userName);
         if (user == null) {
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException("Could find user: " + userName);
         }
 
         LOGGER.info("deleting user %s", user.getUserId());
-        getUserRepository().delete(user);
+        userRepository.delete(user);
         this.graph.flush();
 
-        JSONObject json = new JSONObject();
-        respondWithJson(response, json);
+        return VisalloResponse.SUCCESS;
     }
 }

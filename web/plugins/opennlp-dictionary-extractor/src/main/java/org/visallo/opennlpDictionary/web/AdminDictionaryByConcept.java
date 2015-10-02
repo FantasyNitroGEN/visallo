@@ -1,39 +1,32 @@
 package org.visallo.opennlpDictionary.web;
 
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
+import com.google.inject.Inject;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
+import com.v5analytics.webster.utils.UrlUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.visallo.core.user.User;
 import org.visallo.opennlpDictionary.model.DictionaryEntry;
 import org.visallo.opennlpDictionary.model.DictionaryEntryRepository;
-import org.visallo.web.BaseRequestHandler;
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.utils.UrlUtils;
-import com.google.inject.Inject;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class AdminDictionaryByConcept extends BaseRequestHandler {
+public class AdminDictionaryByConcept implements ParameterizedHandler {
 
     private DictionaryEntryRepository dictionaryEntryRepository;
 
     @Inject
     public AdminDictionaryByConcept(
-            final DictionaryEntryRepository dictionaryEntryRepository,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final DictionaryEntryRepository dictionaryEntryRepository) {
         this.dictionaryEntryRepository = dictionaryEntryRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String concept = UrlUtils.urlDecode(getAttributeString(request, "concept"));
-        User user = getUser(request);
+    @Handle
+    public JSONObject handle(
+            @Required(name = "concept") String conceptParam,
+            User user
+    ) throws Exception {
+        final String concept = UrlUtils.urlDecode(conceptParam);
 
         Iterable<DictionaryEntry> dictionary = dictionaryEntryRepository.findByConcept(concept, user);
         JSONArray entries = new JSONArray();
@@ -44,6 +37,6 @@ public class AdminDictionaryByConcept extends BaseRequestHandler {
 
         results.put("entries", entries);
 
-        respondWithJson(response, results);
+        return results;
     }
 }

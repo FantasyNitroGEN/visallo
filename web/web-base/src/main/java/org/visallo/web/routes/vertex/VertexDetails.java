@@ -27,21 +27,20 @@ public class VertexDetails implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public ClientApiVertexDetails handle(
             @Required(name = "vertexId") String vertexId,
             Authorizations authorizations,
             VisalloResponse response
     ) throws Exception {
         Vertex vertex = this.graph.getVertex(vertexId, authorizations);
         if (vertex == null) {
-            throw new VisalloResourceNotFoundException("Could not find vertex with id: " + vertexId, vertexId);
+            throw new VisalloResourceNotFoundException("Could not find vertex with id: " + vertexId);
         }
 
         ClientApiSourceInfo sourceInfo = termMentionRepository.getSourceInfoForVertex(vertex, authorizations);
 
         ClientApiVertexDetails result = new ClientApiVertexDetails();
         result.sourceInfo = sourceInfo;
-
-        response.respondWithClientApiObject(result);
+        return result;
     }
 }

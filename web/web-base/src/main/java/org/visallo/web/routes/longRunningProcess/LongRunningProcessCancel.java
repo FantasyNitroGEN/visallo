@@ -1,48 +1,39 @@
 package org.visallo.web.routes.longRunningProcess;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
+import org.json.JSONObject;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
-import org.json.JSONObject;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class LongRunningProcessCancel extends BaseRequestHandler {
+public class LongRunningProcessCancel implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessCancel.class);
     private final LongRunningProcessRepository longRunningProcessRepository;
 
     @Inject
-    public LongRunningProcessCancel(
-            final WorkspaceRepository workspaceRepo,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration,
-            final LongRunningProcessRepository longRunningProcessRepository) {
-        super(userRepository, workspaceRepository, configuration);
+    public LongRunningProcessCancel(final LongRunningProcessRepository longRunningProcessRepository) {
         this.longRunningProcessRepository = longRunningProcessRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String longRunningProcessId = getRequiredParameter(request, "longRunningProcessId");
-        final User authUser = getUser(request);
-
+    @Handle
+    public ClientApiSuccess handle(
+            User authUser,
+            @Required(name = "longRunningProcessId") String longRunningProcessId
+    ) throws Exception {
         LOGGER.info("Attempting to cancel long running process: %s", longRunningProcessId);
         JSONObject longRunningProcess = longRunningProcessRepository.findById(longRunningProcessId, authUser);
         if (longRunningProcess == null) {
-            LOGGER.warn("Could not find long running process: %s", longRunningProcessId);
-            respondWithNotFound(response);
+            throw new VisalloResourceNotFoundException("Could not find long running process: %s", longRunningProcessId);
         } else {
             longRunningProcessRepository.cancel(longRunningProcessId, authUser);
-            respondWithSuccessJson(response);
+            return VisalloResponse.SUCCESS;
         }
     }
 }

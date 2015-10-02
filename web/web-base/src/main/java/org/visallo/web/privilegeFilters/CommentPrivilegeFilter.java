@@ -10,7 +10,7 @@ import java.util.EnumSet;
 
 public class CommentPrivilegeFilter extends PrivilegeFilter {
     @Inject
-    protected CommentPrivilegeFilter(UserRepository userRepository, WorkspaceRepository workspaceRepository, Configuration configuration) {
-        super(EnumSet.of(Privilege.COMMENT), userRepository, workspaceRepository, configuration);
+    protected CommentPrivilegeFilter(UserRepository userRepository) {
+        super(EnumSet.of(Privilege.COMMENT), userRepository);
     }
 }

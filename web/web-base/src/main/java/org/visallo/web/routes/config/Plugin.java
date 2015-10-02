@@ -1,38 +1,35 @@
 package org.visallo.web.routes.config;
 
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
-import com.v5analytics.webster.HandlerChain;
 import com.google.inject.Inject;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.web.VisalloResponse;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 
-public class Plugin extends BaseRequestHandler {
+public class Plugin implements ParameterizedHandler {
     private static final String WEB_PLUGINS_PREFIX = "web.plugins.";
     private static final String DEFAULT_PLUGINS_DIR = "/jsc/configuration/plugins";
-
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Plugin.class);
+    private final org.visallo.core.config.Configuration configuration;
 
     @Inject
-    public Plugin(
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final org.visallo.core.config.Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public Plugin(org.visallo.core.config.Configuration configuration) {
+        this.configuration = configuration;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String pluginName = getAttributeString(request, "pluginName");
+    @Handle
+    public void handle(
+            HttpServletRequest request,
+            @Required(name = "pluginName") String pluginName,
+            VisalloResponse response
+    ) throws Exception {
         final String configurationKey = WEB_PLUGINS_PREFIX + pluginName;
-        String pluginPath = getConfiguration().get(configurationKey, null);
+        String pluginPath = configuration.get(configurationKey, null);
 
         // Default behavior if not customized
         if (pluginPath == null) {
@@ -52,19 +49,17 @@ public class Plugin extends BaseRequestHandler {
         } else if (pluginResourcePath.endsWith(".html")) {
             response.setContentType("text/html");
         } else {
-            LOGGER.error("Only js,ejs,css,html files served from plugin");
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException("Only js,ejs,css,html files served from plugin");
         }
 
         String filePath = FilenameUtils.concat(pluginPath, pluginResourcePath);
         File file = new File(filePath);
 
-        if (file.exists()) {
-            response.setCharacterEncoding("UTF-8");
-            FileUtils.copyFile(file, response.getOutputStream());
-        } else {
-            respondWithNotFound(response);
+        if (!file.exists()) {
+            throw new VisalloResourceNotFoundException("Could not find file: " + filePath);
         }
+
+        response.setCharacterEncoding("UTF-8");
+        FileUtils.copyFile(file, response.getOutputStream());
     }
 }

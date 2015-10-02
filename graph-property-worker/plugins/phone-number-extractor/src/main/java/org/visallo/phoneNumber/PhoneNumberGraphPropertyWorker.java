@@ -54,8 +54,8 @@ public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
 
         final String text = CharStreams.toString(new InputStreamReader(in, Charsets.UTF_8));
 
-        Vertex sourceVertex = (Vertex) data.getElement();
-        VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(sourceVertex);
+        Vertex outVertex = (Vertex) data.getElement();
+        VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(outVertex);
         final Iterable<PhoneNumberMatch> phoneNumbers = phoneNumberUtil.findNumbers(text, defaultRegionCode);
         List<Vertex> termMentions = new ArrayList<>();
         for (final PhoneNumberMatch phoneNumber : phoneNumbers) {
@@ -64,7 +64,7 @@ public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
             int end = phoneNumber.end();
 
             Vertex termMention = new TermMentionBuilder()
-                    .sourceVertex(sourceVertex)
+                    .outVertex(outVertex)
                     .propertyKey(data.getProperty().getKey())
                     .start(start)
                     .end(end)
@@ -76,7 +76,7 @@ public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
             termMentions.add(termMention);
         }
         getGraph().flush();
-        applyTermMentionFilters(sourceVertex, termMentions);
+        applyTermMentionFilters(outVertex, termMentions);
         pushTextUpdated(data);
 
         LOGGER.debug("Number of phone numbers extracted: %d", count(phoneNumbers));

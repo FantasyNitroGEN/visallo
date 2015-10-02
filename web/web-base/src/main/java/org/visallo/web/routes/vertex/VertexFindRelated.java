@@ -2,51 +2,45 @@ package org.visallo.web.routes.vertex;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiVertexFindRelatedResponse;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.HashSet;
 import java.util.Set;
 
-public class VertexFindRelated extends BaseRequestHandler {
+public class VertexFindRelated implements ParameterizedHandler {
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
 
     @Inject
     public VertexFindRelated(
             final OntologyRepository ontologyRepository,
-            final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final Graph graph
+    ) {
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String[] graphVertexIds = getRequiredParameterArray(request, "graphVertexIds[]");
-        String limitParentConceptId = getOptionalParameter(request, "limitParentConceptId");
-        String limitEdgeLabel = getOptionalParameter(request, "limitEdgeLabel");
-        long maxVerticesToReturn = getOptionalParameterLong(request, "maxVerticesToReturn", 250);
-
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-        String workspaceId = getActiveWorkspaceId(request);
-
+    @Handle
+    public ClientApiVertexFindRelatedResponse handle(
+            @Required(name = "graphVertexIds[]") String[] graphVertexIds,
+            @Optional(name = "limitParentConceptId") String limitParentConceptId,
+            @Optional(name = "limitEdgeLabel") String limitEdgeLabel,
+            @Optional(name = "maxVerticesToReturn", defaultValue = "250") long maxVerticesToReturn,
+            HttpServletRequest request,
+            @ActiveWorkspaceId String workspaceId,
+            Authorizations authorizations
+    ) throws Exception {
         Set<String> limitConceptIds = new HashSet<>();
 
         if (limitParentConceptId != null) {
@@ -60,10 +54,7 @@ public class VertexFindRelated extends BaseRequestHandler {
             }
         }
 
-        ClientApiVertexFindRelatedResponse result = getVertices(request, workspaceId, graphVertexIds, limitEdgeLabel,
-                limitConceptIds, maxVerticesToReturn, authorizations);
-
-        respondWithClientApiObject(response, result);
+        return getVertices(request, workspaceId, graphVertexIds, limitEdgeLabel, limitConceptIds, maxVerticesToReturn, authorizations);
     }
 
     /**

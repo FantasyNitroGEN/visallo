@@ -380,8 +380,8 @@ public abstract class WorkspaceRepository {
                 }
                 ClientApiRelationshipPublishItem relationshipPublishItem = (ClientApiRelationshipPublishItem) data;
                 Edge edge = graph.getEdge(relationshipPublishItem.getEdgeId(), FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
-                Vertex sourceVertex = edge.getVertex(Direction.OUT, authorizations);
-                Vertex destVertex = edge.getVertex(Direction.IN, authorizations);
+                Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
+                Vertex inVertex = edge.getVertex(Direction.IN, authorizations);
                 if (SandboxStatusUtil.getSandboxStatus(edge, workspaceId) == SandboxStatus.PUBLIC && !WorkspaceDiffHelper.isPublicDelete(edge, authorizations)) {
                     String error_msg;
                     if (data.getAction() == ClientApiPublishItem.Action.DELETE) {
@@ -395,16 +395,16 @@ public abstract class WorkspaceRepository {
                     continue;
                 }
 
-                if (sourceVertex != null && destVertex != null
-                        && SandboxStatusUtil.getSandboxStatus(sourceVertex, workspaceId) != SandboxStatus.PUBLIC
-                        && SandboxStatusUtil.getSandboxStatus(destVertex, workspaceId) != SandboxStatus.PUBLIC) {
+                if (outVertex != null && inVertex != null
+                        && SandboxStatusUtil.getSandboxStatus(outVertex, workspaceId) != SandboxStatus.PUBLIC
+                        && SandboxStatusUtil.getSandboxStatus(inVertex, workspaceId) != SandboxStatus.PUBLIC) {
                     String error_msg = "Cannot publish edge, " + edge.getId() + ", because either source and/or dest vertex are not public";
                     LOGGER.warn(error_msg);
                     data.setErrorMessage(error_msg);
                     workspacePublishResponse.addFailure(data);
                     continue;
                 }
-                publishEdge(edge, sourceVertex, destVertex, data.getAction(), workspaceId, authorizations);
+                publishEdge(edge, outVertex, inVertex, data.getAction(), workspaceId, authorizations);
             } catch (Exception ex) {
                 LOGGER.error("Error publishing %s", data.toString(), ex);
                 data.setErrorMessage(ex.getMessage());
@@ -634,8 +634,8 @@ public abstract class WorkspaceRepository {
 
     private void publishEdge(
             Edge edge,
-            @SuppressWarnings("UnusedParameters") Vertex sourceVertex,
-            Vertex destVertex,
+            @SuppressWarnings("UnusedParameters") Vertex outVertex,
+            Vertex inVertex,
             ClientApiPublishItem.Action action,
             String workspaceId,
             Authorizations authorizations
@@ -682,7 +682,7 @@ public abstract class WorkspaceRepository {
         VisalloProperties.VISIBILITY_JSON.setProperty(edgeExistingElementMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
         edge = edgeExistingElementMutation.save(authorizations);
 
-        for (Vertex termMention : termMentionRepository.findResolvedTo(destVertex.getId(), authorizations)) {
+        for (Vertex termMention : termMentionRepository.findResolvedTo(inVertex.getId(), authorizations)) {
             termMentionRepository.updateVisibility(termMention, visalloVisibility.getVisibility(), authorizations);
         }
 

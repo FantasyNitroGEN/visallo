@@ -2,16 +2,17 @@ package org.visallo.web.routes.vertex;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
-import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
@@ -19,11 +20,11 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.*;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.VisibilityJson;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,10 +35,8 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 
-public class VertexUploadImage extends BaseRequestHandler {
+public class VertexUploadImage implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexUploadImage.class);
-
-    private static final String ATTR_GRAPH_VERTEX_ID = "graphVertexId";
     private static final String SOURCE_UPLOAD = "User Upload";
     private static final String PROCESS = VertexUploadImage.class.getName();
     private static final String MULTI_VALUE_KEY = VertexUploadImage.class.getName();
@@ -57,11 +56,9 @@ public class VertexUploadImage extends BaseRequestHandler {
             final Graph graph,
             final OntologyRepository ontologyRepository,
             final WorkQueueRepository workQueueRepository,
-            final UserRepository userRepository,
-            final Configuration configuration,
             final VisibilityTranslator visibilityTranslator,
-            final WorkspaceRepository workspaceRepository) {
-        super(userRepository, workspaceRepository, configuration);
+            final WorkspaceRepository workspaceRepository
+    ) {
         this.graph = graph;
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
@@ -74,9 +71,14 @@ public class VertexUploadImage extends BaseRequestHandler {
         this.clockwiseRotationIri = ontologyRepository.getRequiredPropertyIRIByIntent("media.clockwiseRotation");
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String graphVertexId = getAttributeString(request, ATTR_GRAPH_VERTEX_ID);
+    @Handle
+    public ClientApiElement handle(
+            HttpServletRequest request,
+            @Required(name = "graphVertexId") String graphVertexId,
+            @ActiveWorkspaceId String workspaceId,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
         final List<Part> files = Lists.newArrayList(request.getParts());
 
         Concept concept = ontologyRepository.getConceptByIRI(conceptIri);
@@ -86,17 +88,12 @@ public class VertexUploadImage extends BaseRequestHandler {
             throw new RuntimeException("Wrong number of uploaded files. Expected 1 got " + files.size());
         }
 
-        final User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
         final Part file = files.get(0);
-        String workspaceId = getActiveWorkspaceId(request);
         Workspace workspace = this.workspaceRepository.findById(workspaceId, user);
 
         Vertex entityVertex = graph.getVertex(graphVertexId, authorizations);
         if (entityVertex == null) {
-            LOGGER.warn("Could not find associated entity vertex for id: %s", graphVertexId);
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException(String.format("Could not find associated entity vertex for id: %s", graphVertexId));
         }
         ElementMutation<Vertex> entityVertexMutation = entityVertex.prepareMutation();
 
@@ -143,7 +140,7 @@ public class VertexUploadImage extends BaseRequestHandler {
                 Priority.HIGH
         );
 
-        respondWithClientApiObject(response, ClientApiConverter.toClientApi(entityVertex, workspaceId, authorizations));
+        return ClientApiConverter.toClientApi(entityVertex, workspaceId, authorizations);
     }
 
     private String imageTitle(Vertex entityVertex) {

@@ -237,7 +237,7 @@ public final class TweetTransformer {
         final String title = VisalloProperties.TITLE.getOnlyPropertyValue(vertex);
 
         new TermMentionBuilder()
-                .sourceVertex(tweetVertex)
+                .outVertex(tweetVertex)
                 .propertyKey(LoaderConstants.MULTI_VALUE_KEY)
                 .start(startOffset)
                 .end(endOffset)

@@ -11,6 +11,7 @@ import org.vertexium.Graph;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.user.User;
@@ -39,16 +40,15 @@ public class VertexPosterFrame implements ParameterizedHandler {
     public void handle(
             @Required(name = "graphVertexId") String graphVertexId,
             @Optional(name = "width") Integer width,
-            VisalloResponse response,
             Authorizations authorizations,
-            User user
+            User user,
+            VisalloResponse response
     ) throws Exception {
         int[] boundaryDims = new int[]{200, 200};
 
         Vertex artifactVertex = graph.getVertex(graphVertexId, authorizations);
         if (artifactVertex == null) {
-            response.respondWithNotFound();
-            return;
+            throw new VisalloResourceNotFoundException("Could not find vertex with id: " + graphVertexId);
         }
 
         if (width != null) {
@@ -61,9 +61,9 @@ public class VertexPosterFrame implements ParameterizedHandler {
             byte[] thumbnailData = artifactThumbnailRepository.getThumbnailData(artifactVertex.getId(), "poster-frame", boundaryDims[0], boundaryDims[1], user);
             if (thumbnailData != null) {
                 LOGGER.debug("Cache hit for: %s (poster-frame) %d x %d", graphVertexId, boundaryDims[0], boundaryDims[1]);
-                OutputStream out = response.getOutputStream();
-                out.write(thumbnailData);
-                out.close();
+                try (OutputStream out = response.getOutputStream()) {
+                    out.write(thumbnailData);
+                }
                 return;
             }
         }
@@ -71,9 +71,7 @@ public class VertexPosterFrame implements ParameterizedHandler {
         Property rawPosterFrame = MediaVisalloProperties.RAW_POSTER_FRAME.getOnlyProperty(artifactVertex);
         StreamingPropertyValue rawPosterFrameValue = MediaVisalloProperties.RAW_POSTER_FRAME.getPropertyValue(rawPosterFrame);
         if (rawPosterFrameValue == null) {
-            LOGGER.warn("Could not find raw poster from for artifact: %s", artifactVertex.getId());
-            response.respondWithNotFound();
-            return;
+            throw new VisalloResourceNotFoundException("Could not find raw poster from for artifact: " + artifactVertex.getId());
         }
 
         try (InputStream in = rawPosterFrameValue.getInputStream()) {
@@ -85,12 +83,14 @@ public class VertexPosterFrame implements ParameterizedHandler {
                 response.setMaxAge(VisalloResponse.EXPIRES_1_HOUR);
 
                 byte[] thumbnailData = artifactThumbnailRepository.createThumbnail(artifactVertex, rawPosterFrame.getKey(), "poster-frame", in, boundaryDims, user).getData();
-                OutputStream out = response.getOutputStream();
-                out.write(thumbnailData);
-                out.close();
+                try (OutputStream out = response.getOutputStream()) {
+                    out.write(thumbnailData);
+                }
             } else {
                 response.setContentType("image/png");
-                IOUtils.copy(in, response.getOutputStream());
+                try (OutputStream out = response.getOutputStream()) {
+                    IOUtils.copy(in, out);
+                }
             }
         }
     }

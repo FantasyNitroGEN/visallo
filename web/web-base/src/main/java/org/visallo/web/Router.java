@@ -5,8 +5,11 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.handlers.StaticResourceHandler;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
 import org.visallo.core.trace.Trace;
@@ -209,29 +212,41 @@ public class Router extends HttpServlet {
     }
 
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         TraceSpan trace = null;
-        CurrentUser.setUserInLogMappedDiagnosticContexts(req);
+        CurrentUser.setUserInLogMappedDiagnosticContexts(request);
         try {
-            if (req.getContentType() != null && req.getContentType().startsWith("multipart/form-data")) {
-                req.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT8, MULTI_PART_CONFIG);
-                req.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT9, MULTI_PART_CONFIG);
+            if (request.getContentType() != null && request.getContentType().startsWith("multipart/form-data")) {
+                request.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT8, MULTI_PART_CONFIG);
+                request.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT9, MULTI_PART_CONFIG);
             }
 
-            if (isGraphTraceEnabled(req)) {
-                String traceDescription = req.getRequestURI();
+            if (isGraphTraceEnabled(request)) {
+                String traceDescription = request.getRequestURI();
                 Map<String, String> parameters = new HashMap<>();
-                for (Map.Entry<String, String[]> reqParameters : req.getParameterMap().entrySet()) {
+                for (Map.Entry<String, String[]> reqParameters : request.getParameterMap().entrySet()) {
                     parameters.put(reqParameters.getKey(), Joiner.on(", ").join(reqParameters.getValue()));
                 }
                 trace = Trace.on(traceDescription, parameters);
             }
 
-            resp.addHeader("Accept-Ranges", "bytes");
-            app.handle(req, resp);
+            response.addHeader("Accept-Ranges", "bytes");
+            app.handle(request, response);
         } catch (ConnectionClosedException cce) {
             LOGGER.debug("Connection closed by client", cce);
         } catch (Exception e) {
+            if (e.getCause() instanceof VisalloResourceNotFoundException) {
+                handleNotFound(response, (VisalloResourceNotFoundException) e.getCause());
+                return;
+            }
+            if (e.getCause() instanceof BadRequestException) {
+                handleBadRequest(response, (BadRequestException) e.getCause());
+                return;
+            }
+            if (e.getCause() instanceof VisalloAccessDeniedException) {
+                handleAccessDenied(response, (VisalloAccessDeniedException) e.getCause());
+                return;
+            }
             throw new ServletException(e);
         } finally {
             if (trace != null) {
@@ -240,6 +255,29 @@ public class Router extends HttpServlet {
             Trace.off();
             CurrentUser.clearUserFromLogMappedDiagnosticContexts();
         }
+    }
+
+    private void handleAccessDenied(HttpServletResponse response, VisalloAccessDeniedException accessDenied) throws IOException {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDenied.getMessage());
+    }
+
+    private void handleNotFound(HttpServletResponse response, VisalloResourceNotFoundException notFoundException) throws IOException {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, notFoundException.getMessage());
+    }
+
+    private void handleBadRequest(HttpServletResponse response, BadRequestException badRequestException) {
+        LOGGER.error("bad request", badRequestException);
+        JSONObject error = new JSONObject();
+        error.put(badRequestException.getParameterName(), badRequestException.getMessage());
+        if (badRequestException.getInvalidValues() != null) {
+            JSONArray values = new JSONArray();
+            for (String v : badRequestException.getInvalidValues()) {
+                values.put(v);
+            }
+            error.put("invalidValues", values);
+        }
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        VisalloResponse.configureResponse(ResponseTypes.JSON_OBJECT, response, error);
     }
 
     private boolean isGraphTraceEnabled(ServletRequest req) {
@@ -254,5 +292,9 @@ public class Router extends HttpServlet {
     @Inject
     public void setGeocoderRepository(GeocoderRepository geocoderRepository) {
         this.geocoderRepository = geocoderRepository;
+    }
+
+    public WebApp getApp() {
+        return app;
     }
 }

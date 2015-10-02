@@ -1,49 +1,38 @@
 package org.visallo.web.routes.user;
 
-import com.v5analytics.webster.HandlerChain;
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
 import org.json.JSONObject;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.user.User;
+import org.visallo.web.BadRequestException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+public class UserSetUiPreferences implements ParameterizedHandler {
+    private final UserRepository userRepository;
 
-public class UserSetUiPreferences extends BaseRequestHandler {
     @Inject
-    public UserSetUiPreferences(
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public UserSetUiPreferences(final UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String uiPreferencesString = getOptionalParameter(request, "ui-preferences");
-        String propertyName = getOptionalParameter(request, "name");
-        String propertyValue = getOptionalParameter(request, "value");
-
-        User user = getUser(request);
-        if (user == null || user.getUsername() == null) {
-            respondWithNotFound(response);
-            return;
-        }
-
+    @Handle
+    public JSONObject handle(
+            User user,
+            @Optional(name = "ui-preferences") String uiPreferencesString,
+            @Optional(name = "name") String propertyName,
+            @Optional(name = "value") String propertyValue
+    ) throws Exception {
         if (uiPreferencesString != null) {
-            getUserRepository().setUiPreferences(user, new JSONObject(uiPreferencesString));
+            userRepository.setUiPreferences(user, new JSONObject(uiPreferencesString));
         } else if (propertyName != null) {
             user.getUiPreferences().put(propertyName, propertyValue);
-            getUserRepository().setUiPreferences(user, user.getUiPreferences());
+            userRepository.setUiPreferences(user, user.getUiPreferences());
         } else {
-            respondWithBadRequest(response, "ui-preferences", "either ui-preferences or name,value are required parameters.");
+            throw new BadRequestException("ui-preferences", "either ui-preferences or name,value are required parameters.");
         }
 
-        user = getUser(request);
-        JSONObject userJson = getUserRepository().toJsonWithAuths(user);
-        respondWithJson(response, userJson);
+        return userRepository.toJsonWithAuths(user);
     }
 }

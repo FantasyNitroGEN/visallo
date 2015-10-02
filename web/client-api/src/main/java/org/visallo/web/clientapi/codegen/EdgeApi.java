@@ -130,10 +130,10 @@ public class EdgeApi {
       }
     }
   }
-  public ClientApiEdgeWithVertexData create (String sourceGraphVertexId, String destGraphVertexId, String predicateLabel, String visibilitySource, String justificationText, String sourceInfo, String edgeId) throws ApiException {
+  public ClientApiEdgeWithVertexData create (String outVertexId, String inVertexId, String predicateLabel, String visibilitySource, String justificationText, String sourceInfo, String edgeId) throws ApiException {
     Object postBody = null;
     // verify required params are set
-    if(sourceGraphVertexId == null || destGraphVertexId == null || predicateLabel == null || visibilitySource == null ) {
+    if(outVertexId == null || inVertexId == null || predicateLabel == null || visibilitySource == null ) {
        throw new ApiException(400, "missing required params");
     }
     // create path and map variables
@@ -144,10 +144,10 @@ public class EdgeApi {
     Map<String, String> headerParams = new HashMap<String, String>();
     Map<String, String> formParams = new HashMap<String, String>();
 
-    if(!"null".equals(String.valueOf(sourceGraphVertexId)))
-      queryParams.put("sourceGraphVertexId", String.valueOf(sourceGraphVertexId));
-    if(!"null".equals(String.valueOf(destGraphVertexId)))
-      queryParams.put("destGraphVertexId", String.valueOf(destGraphVertexId));
+    if(!"null".equals(String.valueOf(outVertexId)))
+      queryParams.put("outVertexId", String.valueOf(outVertexId));
+    if(!"null".equals(String.valueOf(inVertexId)))
+      queryParams.put("inVertexId", String.valueOf(inVertexId));
     if(!"null".equals(String.valueOf(predicateLabel)))
       queryParams.put("predicateLabel", String.valueOf(predicateLabel));
     if(!"null".equals(String.valueOf(visibilitySource)))

@@ -21,7 +21,7 @@ public class VertexExists implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public ClientApiVerticesExistsResponse handle(
             @Required(name = "vertexIds[]") String[] vertexIds,
             VisalloResponse response,
             Authorizations authorizations
@@ -29,7 +29,6 @@ public class VertexExists implements ParameterizedHandler {
         Map<String, Boolean> graphVertices = graph.doVerticesExist(Lists.newArrayList(vertexIds), authorizations);
         ClientApiVerticesExistsResponse result = new ClientApiVerticesExistsResponse();
         result.getExists().putAll(graphVertices);
-
-        response.respondWithClientApiObject(result);
+        return result;
     }
 }

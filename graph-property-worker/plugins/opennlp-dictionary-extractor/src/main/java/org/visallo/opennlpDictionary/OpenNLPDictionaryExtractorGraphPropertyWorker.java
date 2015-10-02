@@ -75,35 +75,35 @@ public class OpenNLPDictionaryExtractorGraphPropertyWorker extends GraphProperty
         int charOffset = 0;
 
         LOGGER.debug("Processing artifact content stream");
-        Vertex sourceVertex = (Vertex) data.getElement();
+        Vertex outVertex = (Vertex) data.getElement();
         List<Vertex> termMentions = new ArrayList<>();
         while ((line = untokenizedLineStream.read()) != null) {
-            termMentions.addAll(processLine(sourceVertex, data.getProperty().getKey(), line, charOffset, VisalloProperties.VISIBILITY_JSON.getPropertyValue(sourceVertex)));
+            termMentions.addAll(processLine(outVertex, data.getProperty().getKey(), line, charOffset, VisalloProperties.VISIBILITY_JSON.getPropertyValue(outVertex)));
             getGraph().flush();
             charOffset += line.length() + NEW_LINE_CHARACTER_LENGTH;
         }
-        applyTermMentionFilters(sourceVertex, termMentions);
+        applyTermMentionFilters(outVertex, termMentions);
         pushTextUpdated(data);
 
         untokenizedLineStream.close();
         LOGGER.debug("Stream processing completed");
     }
 
-    private List<Vertex> processLine(Vertex sourceVertex, String propertyKey, String line, int charOffset, VisibilityJson visibilityJson) {
+    private List<Vertex> processLine(Vertex outVertex, String propertyKey, String line, int charOffset, VisibilityJson visibilityJson) {
         List<Vertex> termMentions = new ArrayList<>();
         String tokenList[] = tokenizer.tokenize(line);
         Span[] tokenListPositions = tokenizer.tokenizePos(line);
         for (TokenNameFinder finder : finders) {
             Span[] foundSpans = finder.find(tokenList);
             for (Span span : foundSpans) {
-                termMentions.add(createTermMention(sourceVertex, propertyKey, charOffset, span, tokenList, tokenListPositions, visibilityJson));
+                termMentions.add(createTermMention(outVertex, propertyKey, charOffset, span, tokenList, tokenListPositions, visibilityJson));
             }
             finder.clearAdaptiveData();
         }
         return termMentions;
     }
 
-    private Vertex createTermMention(Vertex sourceVertex, String propertyKey, int charOffset, Span foundName, String[] tokens, Span[] tokenListPositions, VisibilityJson visibilityJson) {
+    private Vertex createTermMention(Vertex outVertex, String propertyKey, int charOffset, Span foundName, String[] tokens, Span[] tokenListPositions, VisibilityJson visibilityJson) {
         String name = Span.spansToStrings(new Span[]{foundName}, tokens)[0];
         int start = charOffset + tokenListPositions[foundName.getStart()].getStart();
         int end = charOffset + tokenListPositions[foundName.getEnd() - 1].getEnd();
@@ -111,7 +111,7 @@ public class OpenNLPDictionaryExtractorGraphPropertyWorker extends GraphProperty
         String ontologyClassUri = mapToOntologyIri(type);
 
         return new TermMentionBuilder()
-                .sourceVertex(sourceVertex)
+                .outVertex(outVertex)
                 .propertyKey(propertyKey)
                 .start(start)
                 .end(end)

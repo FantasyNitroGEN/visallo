@@ -6,10 +6,10 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSearch;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ public class SearchRun implements ParameterizedHandler {
             return;
         }
 
-        request.setAttribute(BaseRequestHandler.WORKSPACE_ID_ATTRIBUTE_NAME, workspaceId);
+        request.setAttribute(VisalloBaseParameterProvider.VISALLO_WORKSPACE_ID_HEADER_NAME, workspaceId);
         if (savedSearch.parameters != null) {
             for (Object k : savedSearch.parameters.keySet()) {
                 String key = (String) k;

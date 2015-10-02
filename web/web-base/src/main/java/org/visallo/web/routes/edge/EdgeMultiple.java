@@ -1,9 +1,10 @@
 package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
@@ -11,42 +12,47 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VertexiumUtil;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiEdgeMultipleResponse;
 import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.parameterProviders.AuthorizationsParameterProviderFactory;
+import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 import static org.vertexium.util.IterableUtils.toIterable;
 import static org.vertexium.util.IterableUtils.toList;
 
-public class EdgeMultiple extends BaseRequestHandler {
+public class EdgeMultiple implements ParameterizedHandler {
     private final Graph graph;
+    private final UserRepository userRepository;
+    private final WorkspaceRepository workspaceRepository;
 
     @Inject
     public EdgeMultiple(
             final Graph graph,
             final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final WorkspaceRepository workspaceRepository
+    ) {
         this.graph = graph;
+        this.userRepository = userRepository;
+        this.workspaceRepository = workspaceRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        HashSet<String> edgeStringIds = new HashSet<>(Arrays.asList(getRequiredParameterArray(request, "edgeIds[]")));
+    @Handle
+    public ClientApiEdgeMultipleResponse handle(
+            @Required(name = "edgeIds[]") String[] edgeIdsParameter,
+            @ActiveWorkspaceId(required = false) String workspaceId,
+            HttpServletRequest request,
+            User user
+    ) throws Exception {
+        HashSet<String> edgeStringIds = new HashSet<>(Arrays.asList(edgeIdsParameter));
 
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, false, user).authorizations;
-        String workspaceId = getWorkspaceId(request);
+        Authorizations authorizations = getAuthorizations(request, false, user);
 
         Iterable<String> edgeIds = toIterable(edgeStringIds.toArray(new String[edgeStringIds.size()]));
-        ClientApiEdgeMultipleResponse result = getEdges(request, workspaceId, edgeIds, authorizations);
-
-        respondWithClientApiObject(response, result);
+        return getEdges(request, workspaceId, edgeIds, authorizations);
     }
 
     /**
@@ -77,30 +83,18 @@ public class EdgeMultiple extends BaseRequestHandler {
         return edgeResult;
     }
 
-    private GetAuthorizationsResult getAuthorizations(HttpServletRequest request, boolean fallbackToPublic, User user) {
+    private Authorizations getAuthorizations(HttpServletRequest request, boolean fallbackToPublic, User user) {
         GetAuthorizationsResult result = new GetAuthorizationsResult();
         result.requiredFallback = false;
         try {
-            result.authorizations = getAuthorizations(request, user);
+            return AuthorizationsParameterProviderFactory.getAuthorizations(request, userRepository, workspaceRepository);
         } catch (VisalloAccessDeniedException ex) {
             if (fallbackToPublic) {
-                result.authorizations = getUserRepository().getAuthorizations(user);
-                result.requiredFallback = true;
+                return userRepository.getAuthorizations(user);
             } else {
                 throw ex;
             }
         }
-        return result;
-    }
-
-    private String getWorkspaceId(HttpServletRequest request) {
-        String workspaceId;
-        try {
-            workspaceId = getActiveWorkspaceId(request);
-        } catch (VisalloException ex) {
-            workspaceId = null;
-        }
-        return workspaceId;
     }
 
     private static class GetAuthorizationsResult {

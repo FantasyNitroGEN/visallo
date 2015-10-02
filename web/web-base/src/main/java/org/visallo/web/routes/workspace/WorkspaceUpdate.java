@@ -3,35 +3,33 @@ package org.visallo.web.routes.workspace;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
-import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.notification.ExpirationAge;
 import org.visallo.core.model.notification.ExpirationAgeUnit;
 import org.visallo.core.model.notification.UserNotificationRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.clientapi.model.ClientApiWorkspace;
-import org.visallo.web.clientapi.model.ClientApiWorkspaceUpdateData;
-import org.visallo.web.clientapi.model.GraphPosition;
-import org.visallo.web.clientapi.model.WorkspaceAccess;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.*;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class WorkspaceUpdate extends BaseRequestHandler {
+public class WorkspaceUpdate implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceUpdate.class);
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -40,55 +38,50 @@ public class WorkspaceUpdate extends BaseRequestHandler {
     @Inject
     public WorkspaceUpdate(
             final WorkspaceRepository workspaceRepository,
-            final UserRepository userRepository,
             final WorkQueueRepository workQueueRepository,
-            final UserNotificationRepository userNotificationRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final UserNotificationRepository userNotificationRepository
+    ) {
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.userNotificationRepository = userNotificationRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String workspaceId = getActiveWorkspaceId(request);
-        final String data = getRequiredParameter(request, "data");
-
-        User authUser = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, authUser);
-
-        Workspace workspace = workspaceRepository.findById(workspaceId, authUser);
+    @Handle
+    public ClientApiSuccess handle(
+            HttpServletRequest request,
+            @Required(name = "data") ClientApiWorkspaceUpdateData updateData,
+            @ActiveWorkspaceId String workspaceId,
+            ResourceBundle resourceBundle,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
+        Workspace workspace = workspaceRepository.findById(workspaceId, user);
         if (workspace == null) {
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find workspace: " + workspaceId);
         }
-
-        ClientApiWorkspaceUpdateData updateData = ObjectMapperFactory.getInstance().readValue(data, ClientApiWorkspaceUpdateData.class);
 
         if (updateData.getTitle() != null) {
-            setTitle(workspace, updateData.getTitle(), authUser);
+            setTitle(workspace, updateData.getTitle(), user);
         }
 
-        updateEntities(workspace, updateData.getEntityUpdates(), authUser);
+        updateEntities(workspace, updateData.getEntityUpdates(), user);
 
-        deleteEntities(workspace, updateData.getEntityDeletes(), authUser);
+        deleteEntities(workspace, updateData.getEntityDeletes(), user);
 
-        ResourceBundle resource = getBundle(request);
-        String title = resource.getString("workspaces.notification.shared.title");
-        String message = resource.getString("workspaces.notification.shared.subtitle");
-        updateUsers(workspace, updateData.getUserUpdates(), authUser, title, message);
+        String title = resourceBundle.getString("workspaces.notification.shared.title");
+        String message = resourceBundle.getString("workspaces.notification.shared.subtitle");
+        updateUsers(workspace, updateData.getUserUpdates(), user, title, message);
 
-        workspace = workspaceRepository.findById(workspaceId, authUser);
-        ClientApiWorkspace clientApiWorkspaceAfterUpdateButBeforeDelete = workspaceRepository.toClientApi(workspace, authUser, true, authorizations);
+        workspace = workspaceRepository.findById(workspaceId, user);
+        ClientApiWorkspace clientApiWorkspaceAfterUpdateButBeforeDelete = workspaceRepository.toClientApi(workspace, user, true, authorizations);
         List<ClientApiWorkspace.User> previousUsers = clientApiWorkspaceAfterUpdateButBeforeDelete.getUsers();
-        deleteUsers(workspace, updateData.getUserDeletes(), authUser);
+        deleteUsers(workspace, updateData.getUserDeletes(), user);
 
-        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, authUser, true, authorizations);
+        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true, authorizations);
 
-        respondWithSuccessJson(response);
+        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, previousUsers, user.getUserId(), request.getSession().getId());
 
-        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, previousUsers, authUser.getUserId(), request.getSession().getId());
+        return VisalloResponse.SUCCESS;
     }
 
     private void setTitle(Workspace workspace, String title, User authUser) {

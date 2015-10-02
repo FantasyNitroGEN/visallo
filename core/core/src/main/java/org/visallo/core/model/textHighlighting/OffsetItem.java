@@ -27,7 +27,7 @@ public abstract class OffsetItem implements Comparable {
 
     public abstract String getProcess();
 
-    public String getSourceVertexId() {
+    public String getOutVertexId() {
         return null;
     }
 
@@ -49,7 +49,7 @@ public abstract class OffsetItem implements Comparable {
             infoJson.put("id", getId());
             infoJson.put("start", getStart());
             infoJson.put("end", getEnd());
-            infoJson.put("sourceVertexId", getSourceVertexId());
+            infoJson.put("outVertexId", getOutVertexId());
             infoJson.put("sandboxStatus", getSandboxStatus().toString());
             if (getResolvedToVertexId() != null) {
                 infoJson.put("resolvedToVertexId", getResolvedToVertexId());

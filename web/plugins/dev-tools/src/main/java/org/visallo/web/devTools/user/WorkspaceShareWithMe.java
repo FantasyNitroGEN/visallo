@@ -1,50 +1,49 @@
 package org.visallo.web.devTools.user;
 
-import com.v5analytics.webster.HandlerChain;
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
-import org.visallo.web.clientapi.model.WorkspaceAccess;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
-import org.json.JSONObject;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
+import org.visallo.web.clientapi.model.WorkspaceAccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+public class WorkspaceShareWithMe implements ParameterizedHandler {
+    private final UserRepository userRepository;
+    private final WorkspaceRepository workspaceRepository;
 
-public class WorkspaceShareWithMe extends BaseRequestHandler {
     @Inject
     public WorkspaceShareWithMe(
             final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final WorkspaceRepository workspaceRepository
+    ) {
+        this.userRepository = userRepository;
+        this.workspaceRepository = workspaceRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String workspaceId = getRequiredParameter(request, "workspaceId");
-        String userName = getRequiredParameter(request, "user-name");
-
-        User me = getUser(request);
-
-        User user = this.getUserRepository().findByUsername(userName);
+    @Handle
+    public ClientApiSuccess handle(
+            @Required(name = "workspaceId") String workspaceId,
+            @Required(name = "user-name") String userName,
+            User me
+    ) throws Exception {
+        User user = userRepository.findByUsername(userName);
         if (user == null) {
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find user: " + userName);
         }
 
-        Workspace workspace = getWorkspaceRepository().findById(workspaceId, user);
+        Workspace workspace = workspaceRepository.findById(workspaceId, user);
         if (workspace == null) {
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find workspace: " + workspaceId);
         }
 
-        getWorkspaceRepository().updateUserOnWorkspace(workspace, me.getUserId(), WorkspaceAccess.WRITE, user);
+        workspaceRepository.updateUserOnWorkspace(workspace, me.getUserId(), WorkspaceAccess.WRITE, user);
 
-        JSONObject json = new JSONObject();
-        respondWithJson(response, json);
+        return VisalloResponse.SUCCESS;
     }
 }

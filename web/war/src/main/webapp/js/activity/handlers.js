@@ -23,8 +23,8 @@ define([], function() {
                     withDataRequest.dataRequest('vertex', 'store', {
                         workspaceId: process.workspaceId,
                         vertexIds: [
-                            process.sourceVertexId,
-                            process.destVertexId
+                            process.outVertexId,
+                            process.inVertexId
                         ]
                     }).done(function(vertices) {
                         if (vertices.length === 2) {

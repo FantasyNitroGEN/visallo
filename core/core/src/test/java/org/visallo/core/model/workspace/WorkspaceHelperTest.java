@@ -15,8 +15,6 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.WorkspaceHelper;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import static org.mockito.Matchers.eq;
@@ -74,7 +72,7 @@ public class WorkspaceHelperTest {
         VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, visibility, authorizations);
         graph.flush();
 
-        when(termMentionRepository.findSourceVertex(v1tm1, authorizations)).thenReturn(v1);
+        when(termMentionRepository.findOutVertex(v1tm1, authorizations)).thenReturn(v1);
 
         workspaceHelper.unresolveTerm(v1tm1, authorizations);
 

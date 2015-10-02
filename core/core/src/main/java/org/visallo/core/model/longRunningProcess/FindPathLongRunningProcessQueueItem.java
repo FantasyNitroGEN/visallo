@@ -5,8 +5,8 @@ import org.vertexium.Authorizations;
 import org.visallo.core.util.ClientApiConverter;
 
 public class FindPathLongRunningProcessQueueItem {
-    private String sourceVertexId;
-    private String destVertexId;
+    private String outVertexId;
+    private String inVertexId;
     private String[] labels;
     private int hops;
     private String workspaceId;
@@ -16,21 +16,21 @@ public class FindPathLongRunningProcessQueueItem {
 
     }
 
-    public FindPathLongRunningProcessQueueItem(String sourceVertexId, String destVertexId, String[] labels, int hops, String workspaceId, Authorizations authorizations) {
-        this.sourceVertexId = sourceVertexId;
-        this.destVertexId = destVertexId;
+    public FindPathLongRunningProcessQueueItem(String outVertexId, String inVertexId, String[] labels, int hops, String workspaceId, Authorizations authorizations) {
+        this.outVertexId = outVertexId;
+        this.inVertexId = inVertexId;
         this.labels = labels;
         this.hops = hops;
         this.workspaceId = workspaceId;
         this.authorizations = authorizations.getAuthorizations();
     }
 
-    public String getSourceVertexId() {
-        return sourceVertexId;
+    public String getOutVertexId() {
+        return outVertexId;
     }
 
-    public String getDestVertexId() {
-        return destVertexId;
+    public String getInVertexId() {
+        return inVertexId;
     }
 
     public String[] getLabels() {

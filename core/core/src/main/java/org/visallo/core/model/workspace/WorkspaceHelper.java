@@ -59,8 +59,8 @@ public class WorkspaceHelper {
     }
 
     public void unresolveTerm(Vertex termMention, Authorizations authorizations) {
-        Vertex sourceVertex = termMentionRepository.findSourceVertex(termMention, authorizations);
-        if (sourceVertex == null) {
+        Vertex outVertex = termMentionRepository.findOutVertex(termMention, authorizations);
+        if (outVertex == null) {
             return;
         }
 
@@ -73,7 +73,7 @@ public class WorkspaceHelper {
         }
 
         termMentionRepository.delete(termMention, authorizations);
-        workQueueRepository.pushTextUpdated(sourceVertex.getId());
+        workQueueRepository.pushTextUpdated(outVertex.getId());
 
         graph.flush();
     }
@@ -97,8 +97,8 @@ public class WorkspaceHelper {
     public void deleteEdge(
             String workspaceId,
             Edge edge,
-            Vertex sourceVertex,
-            @SuppressWarnings("UnusedParameters") Vertex destVertex,
+            Vertex outVertex,
+            @SuppressWarnings("UnusedParameters") Vertex inVertex,
             boolean isPublicEdge,
             Priority priority,
             Authorizations authorizations,
@@ -118,16 +118,16 @@ public class WorkspaceHelper {
             graph.markEdgeHidden(edge, workspaceVisibility, authorizations);
 
             if (edge.getLabel().equals(entityHasImageIri)) {
-                Property entityHasImage = sourceVertex.getProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName());
+                Property entityHasImage = outVertex.getProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName());
                 if (entityHasImage != null) {
-                    sourceVertex.markPropertyHidden(entityHasImage, workspaceVisibility, authorizations);
-                    this.workQueueRepository.pushElementImageQueue(sourceVertex, entityHasImage, priority);
+                    outVertex.markPropertyHidden(entityHasImage, workspaceVisibility, authorizations);
+                    this.workQueueRepository.pushElementImageQueue(outVertex, entityHasImage, priority);
                 }
             }
 
-            for (Vertex termMention : termMentionRepository.findByEdgeId(sourceVertex.getId(), edge.getId(), authorizations)) {
+            for (Vertex termMention : termMentionRepository.findByEdgeId(outVertex.getId(), edge.getId(), authorizations)) {
                 termMentionRepository.markHidden(termMention, workspaceVisibility, authorizations);
-                workQueueRepository.pushTextUpdated(sourceVertex.getId());
+                workQueueRepository.pushTextUpdated(outVertex.getId());
             }
 
             graph.flush();
@@ -136,16 +136,16 @@ public class WorkspaceHelper {
             graph.softDeleteEdge(edge, authorizations);
 
             if (edge.getLabel().equals(entityHasImageIri)) {
-                Property entityHasImage = sourceVertex.getProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName());
+                Property entityHasImage = outVertex.getProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName());
                 if (entityHasImage != null) {
-                    sourceVertex.softDeleteProperty(entityHasImage.getKey(), entityHasImage.getName(), authorizations);
-                    this.workQueueRepository.pushElementImageQueue(sourceVertex, entityHasImage, priority);
+                    outVertex.softDeleteProperty(entityHasImage.getKey(), entityHasImage.getName(), authorizations);
+                    this.workQueueRepository.pushElementImageQueue(outVertex, entityHasImage, priority);
                 }
             }
 
-            for (Vertex termMention : termMentionRepository.findByEdgeId(sourceVertex.getId(), edge.getId(), authorizations)) {
+            for (Vertex termMention : termMentionRepository.findByEdgeId(outVertex.getId(), edge.getId(), authorizations)) {
                 termMentionRepository.delete(termMention, authorizations);
-                workQueueRepository.pushTextUpdated(sourceVertex.getId());
+                workQueueRepository.pushTextUpdated(outVertex.getId());
             }
 
             graph.flush();

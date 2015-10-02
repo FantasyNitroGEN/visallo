@@ -819,7 +819,7 @@ define([
                     vertex.properties['http://visallo.org#conceptType'] === 'relationship';
                 return propsIsObjectNotArray ||
                     V.prop(vertex, 'conceptType') === 'relationship' ||
-                    (_.has(vertex, 'sourceVertexId') && _.has(vertex, 'destVertexId'));
+                    (_.has(vertex, 'outVertexId') && _.has(vertex, 'inVertexId'));
             },
 
             isArtifact: function(vertex) {

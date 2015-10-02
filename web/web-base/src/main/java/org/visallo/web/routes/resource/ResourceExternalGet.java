@@ -11,6 +11,7 @@ import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.http.HttpRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.util.ImageUtils;
@@ -46,8 +47,7 @@ public class ResourceExternalGet implements ParameterizedHandler {
         String propertyKey = getPropertyKey(url, maxWidth, maxHeight, jpegQuality);
         Vertex vertex = this.graph.getVertex(vertexId, authorizations);
         if (vertex == null) {
-            response.respondWithNotFound("Could not find vertex: " + vertexId);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find vertex: " + vertexId);
         }
 
         InputStream in;

@@ -1,28 +1,27 @@
 package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloResourceNotFoundException;
-import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.security.VisibilityTranslator;
-import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.clientapi.model.ClientApiEdgePropertyDetails;
-import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
 import org.vertexium.Visibility;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.BadRequestException;
+import org.visallo.web.clientapi.model.ClientApiEdgePropertyDetails;
+import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.ResourceBundle;
 
-public class EdgePropertyDetails extends BaseRequestHandler {
+public class EdgePropertyDetails implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EdgePropertyDetails.class);
     private final Graph graph;
     private final TermMentionRepository termMentionRepository;
@@ -30,34 +29,29 @@ public class EdgePropertyDetails extends BaseRequestHandler {
 
     @Inject
     public EdgePropertyDetails(
-            UserRepository userRepository,
-            WorkspaceRepository workspaceRepository,
-            Configuration configuration,
             Graph graph,
             TermMentionRepository termMentionRepository,
             VisibilityTranslator visibilityTranslator
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.termMentionRepository = termMentionRepository;
         this.visibilityTranslator = visibilityTranslator;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String edgeId = getRequiredParameter(request, "edgeId");
-        String propertyName = getRequiredParameter(request, "propertyName");
-        String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        String propertyKey = getOptionalParameter(request, "propertyKey");
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-
+    @Handle
+    public ClientApiEdgePropertyDetails handle(
+            @Required(name = "edgeId") String edgeId,
+            @Optional(name = "propertyKey") String propertyKey,
+            @Required(name = "propertyName") String propertyName,
+            @Required(name = "visibilitySource") String visibilitySource,
+            ResourceBundle resourceBundle,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
         Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
         if (!graph.isVisibilityValid(visibility, authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            respondWithBadRequest(response, "visibilitySource", getString(request, "visibility.invalid"));
-            chain.next(request, response);
-            return;
+            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
         Edge edge = this.graph.getEdge(edgeId, authorizations);
@@ -69,7 +63,6 @@ public class EdgePropertyDetails extends BaseRequestHandler {
 
         ClientApiEdgePropertyDetails result = new ClientApiEdgePropertyDetails();
         result.sourceInfo = sourceInfo;
-
-        respondWithClientApiObject(response, result);
+        return result;
     }
 }

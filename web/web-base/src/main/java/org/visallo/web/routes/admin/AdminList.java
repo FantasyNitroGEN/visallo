@@ -1,35 +1,24 @@
 package org.visallo.web.routes.admin;
 
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.web.BaseRequestHandler;
 import com.v5analytics.webster.App;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.Route;
-import com.google.inject.Inject;
+import com.v5analytics.webster.annotations.ContentType;
+import com.v5analytics.webster.annotations.Handle;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class AdminList extends BaseRequestHandler {
-    @Inject
-    public AdminList(
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
-    }
+public class AdminList implements ParameterizedHandler {
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+    @Handle
+    @ContentType("text/html")
+    public String handle(HttpServletRequest request) throws Exception {
         App app = App.getApp(request);
         List<String> paths = getPaths(app);
-        String out = pathsToHtml(paths);
-        respondWithHtml(response, out);
+        return pathsToHtml(paths);
     }
 
     private String pathsToHtml(List<String> paths) {

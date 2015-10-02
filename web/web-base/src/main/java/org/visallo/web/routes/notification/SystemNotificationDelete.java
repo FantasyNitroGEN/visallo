@@ -4,11 +4,13 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.notification.SystemNotification;
 import org.visallo.core.model.notification.SystemNotificationRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
 public class SystemNotificationDelete implements ParameterizedHandler {
     private final SystemNotificationRepository systemNotificationRepository;
@@ -24,19 +26,17 @@ public class SystemNotificationDelete implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
-            User user,
+    public ClientApiSuccess handle(
             @Required(name = "notificationId") String notificationId,
-            VisalloResponse response
+            User user
     ) throws Exception {
         SystemNotification notification = systemNotificationRepository.getNotification(notificationId, user);
         if (notification == null) {
-            response.respondWithNotFound();
-            return;
+            throw new VisalloResourceNotFoundException("Could not find notification with id: " + notificationId);
         }
 
         systemNotificationRepository.endNotification(notification, user);
         workQueueRepository.pushSystemNotificationEnded(notificationId);
-        response.respondWithSuccessJson();
+        return VisalloResponse.SUCCESS;
     }
 }

@@ -17,16 +17,16 @@ public class Ontology implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(VisalloResponse response) throws Exception {
+    public ClientApiOntology handle(VisalloResponse response) throws Exception {
         ClientApiOntology result = ontologyRepository.getClientApiObject();
 
         String json = ObjectMapperFactory.getInstance().writeValueAsString(result);
         String eTag = response.generateETag(json.getBytes());
         if (response.testEtagHeaders(eTag)) {
-            return;
+            return result;
         }
 
         response.addETagHeader(eTag);
-        response.respondWithClientApiObject(result);
+        return result;
     }
 }

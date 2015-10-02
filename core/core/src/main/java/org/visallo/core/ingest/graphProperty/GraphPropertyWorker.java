@@ -45,10 +45,10 @@ public abstract class GraphPropertyWorker {
         this.workerPrepareData = workerPrepareData;
     }
 
-    protected void applyTermMentionFilters(Vertex sourceVertex, Iterable<Vertex> termMentions) {
+    protected void applyTermMentionFilters(Vertex outVertex, Iterable<Vertex> termMentions) {
         for (TermMentionFilter termMentionFilter : this.workerPrepareData.getTermMentionFilters()) {
             try {
-                termMentionFilter.apply(sourceVertex, termMentions, this.workerPrepareData.getAuthorizations());
+                termMentionFilter.apply(outVertex, termMentions, this.workerPrepareData.getAuthorizations());
             } catch (Exception e) {
                 LOGGER.error("Could not apply term mention filter", e);
             }

@@ -1,49 +1,34 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.core.util.ClientApiConverter;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.clientapi.model.ClientApiElement;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.util.ClientApiConverter;
+import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class VertexProperties extends BaseRequestHandler {
+public class VertexProperties implements ParameterizedHandler {
     private final Graph graph;
 
     @Inject
-    public VertexProperties(
-            final Graph graph,
-            final UserRepository userRepository,
-            final Configuration configuration,
-            final WorkspaceRepository workspaceRepository) {
-        super(userRepository, workspaceRepository, configuration);
+    public VertexProperties(final Graph graph) {
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String graphVertexId = getAttributeString(request, "graphVertexId");
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-        String workspaceId = getActiveWorkspaceId(request);
-
-        ClientApiElement element = handle(graphVertexId, workspaceId, authorizations);
-        respondWithClientApiObject(response, element);
-    }
-
-    private ClientApiElement handle(String graphVertexId, String workspaceId, Authorizations authorizations) {
+    @Handle
+    public ClientApiElement handle(
+            @Required(name = "graphVertexId") String graphVertexId,
+            @ActiveWorkspaceId String workspaceId,
+            Authorizations authorizations
+    ) throws Exception {
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         if (vertex == null) {
-            return null;
+            throw new VisalloResourceNotFoundException("Could not find vertex: " + graphVertexId);
         }
         return ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
     }

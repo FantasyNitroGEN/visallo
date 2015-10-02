@@ -12,15 +12,24 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class ActiveWorkspaceIdParameterProviderFactory extends ParameterProviderFactory<String> {
-    private final ParameterProvider<String> parameterProvider;
+    private final ParameterProvider<String> requiredParameterProvider;
+    private final ParameterProvider<String> notRequiredParameterProvider;
 
     @Inject
     public ActiveWorkspaceIdParameterProviderFactory(UserRepository userRepository, Configuration configuration) {
-        parameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
+        requiredParameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 return getActiveWorkspaceId(request);
+            }
+        };
+        notRequiredParameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
+            @Override
+            public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
+                return getActiveWorkspaceIdOrDefault(request);
             }
         };
     }
@@ -32,7 +41,13 @@ public class ActiveWorkspaceIdParameterProviderFactory extends ParameterProvider
 
     @Override
     public ParameterProvider<String> createParameterProvider(Method handleMethod, Class<?> parameterType, Annotation[] parameterAnnotations) {
-        return parameterProvider;
+        ActiveWorkspaceId activeWorkspaceIdAnnotation = getActiveWorkspaceIdAnnotation(parameterAnnotations);
+        checkNotNull(activeWorkspaceIdAnnotation, "cannot find " + ActiveWorkspaceId.class.getName());
+        if (activeWorkspaceIdAnnotation.required()) {
+            return requiredParameterProvider;
+        } else {
+            return notRequiredParameterProvider;
+        }
     }
 
     private static ActiveWorkspaceId getActiveWorkspaceIdAnnotation(Annotation[] annotations) {

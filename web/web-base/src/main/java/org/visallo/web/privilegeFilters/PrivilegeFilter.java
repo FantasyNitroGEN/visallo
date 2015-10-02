@@ -1,36 +1,35 @@
 package org.visallo.web.privilegeFilters;
 
 import com.v5analytics.webster.HandlerChain;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.RequestResponseHandler;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.web.BaseRequestHandler;
-import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.core.user.User;
+import org.visallo.web.clientapi.model.Privilege;
+import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Set;
 
-public class PrivilegeFilter extends BaseRequestHandler {
+public class PrivilegeFilter implements RequestResponseHandler {
     private final Set<Privilege> requiredPrivileges;
+    private UserRepository userRepository;
 
     protected PrivilegeFilter(
             final Set<Privilege> requiredPrivileges,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final UserRepository userRepository
+    ) {
         this.requiredPrivileges = requiredPrivileges;
+        this.userRepository = userRepository;
     }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-        Set<Privilege> userPrivileges = getPrivileges(user);
+        User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+        Set<Privilege> userPrivileges = userRepository.getPrivileges(user);
         if (!Privilege.hasAll(userPrivileges, requiredPrivileges)) {
-            respondWithAccessDenied(response, "You do not have the required privileges: " + Privilege.toString(requiredPrivileges));
-            return;
+            throw new VisalloAccessDeniedException("You do not have the required privileges: " + Privilege.toString(requiredPrivileges), user, "privileges");
         }
         chain.next(request, response);
     }

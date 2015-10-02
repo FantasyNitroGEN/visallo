@@ -92,7 +92,7 @@ define([
                             var relation = relationship.relationship,
                                 vertex = relationship.vertex;
                             relationDirections[vertex.id] = 'relation-' + (
-                                relation.destVertexId === vertex.id ?
+                                relation.inVertexId === vertex.id ?
                                     'to' : 'from'
                             );
                             return vertex;

@@ -73,8 +73,8 @@ public class JsonSerializer {
         try {
             JSONObject json = toJsonElement(edge, workspaceId);
             json.put("label", edge.getLabel());
-            json.put("sourceVertexId", edge.getVertexId(Direction.OUT));
-            json.put("destVertexId", edge.getVertexId(Direction.IN));
+            json.put("outVertexId", edge.getVertexId(Direction.OUT));
+            json.put("inVertexId", edge.getVertexId(Direction.IN));
             return json;
         } catch (JSONException e) {
             throw new RuntimeException(e);

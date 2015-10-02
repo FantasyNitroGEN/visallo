@@ -1053,10 +1053,10 @@ public class VertexApi {
       }
     }
   }
-  public ClientApiLongRunningProcessSubmitResponse findPath (String sourceGraphVertexId, String destGraphVertexId, Integer hops) throws ApiException {
+  public ClientApiLongRunningProcessSubmitResponse findPath (String outVertexId, String inVertexId, Integer hops) throws ApiException {
     Object postBody = null;
     // verify required params are set
-    if(sourceGraphVertexId == null || destGraphVertexId == null || hops == null ) {
+    if(outVertexId == null || inVertexId == null || hops == null ) {
        throw new ApiException(400, "missing required params");
     }
     // create path and map variables
@@ -1067,10 +1067,10 @@ public class VertexApi {
     Map<String, String> headerParams = new HashMap<String, String>();
     Map<String, String> formParams = new HashMap<String, String>();
 
-    if(!"null".equals(String.valueOf(sourceGraphVertexId)))
-      queryParams.put("sourceGraphVertexId", String.valueOf(sourceGraphVertexId));
-    if(!"null".equals(String.valueOf(destGraphVertexId)))
-      queryParams.put("destGraphVertexId", String.valueOf(destGraphVertexId));
+    if(!"null".equals(String.valueOf(outVertexId)))
+      queryParams.put("outVertexId", String.valueOf(outVertexId));
+    if(!"null".equals(String.valueOf(inVertexId)))
+      queryParams.put("inVertexId", String.valueOf(inVertexId));
     if(!"null".equals(String.valueOf(hops)))
       queryParams.put("hops", String.valueOf(hops));
     String[] contentTypes = {

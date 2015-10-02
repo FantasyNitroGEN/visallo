@@ -152,8 +152,8 @@ define([], function() {
                         cyNode: target,
                         otherCyNode: other,
                         edge: edge,
-                        sourceVertexId: self.fromCyId(edge.data('source')),
-                        targetVertexId: self.fromCyId(edge.data('target')),
+                        outVertexId: self.fromCyId(edge.data('source')),
+                        inVertexId: self.fromCyId(edge.data('target')),
                         connectionData: connectionData
                     });
                     state = STATE_CONNECTED;

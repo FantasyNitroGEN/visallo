@@ -40,7 +40,7 @@ public class FindPathLongRunningProcessWorker extends LongRunningProcessWorker {
                 longRunningProcessRepository.reportProgress(longRunningProcessQueueItem, progressPercent, step.formatMessage(edgeIndex, vertexCount));
             }
         };
-        Iterable<Path> paths = graph.findPaths(findPath.getSourceVertexId(), findPath.getDestVertexId(), labels, hops, progressCallback, authorizations);
+        Iterable<Path> paths = graph.findPaths(findPath.getOutVertexId(), findPath.getInVertexId(), labels, hops, progressCallback, authorizations);
         for (Path path : paths) {
             List<String> clientApiVertexPath = new ArrayList<>();
             for (String s : path) {

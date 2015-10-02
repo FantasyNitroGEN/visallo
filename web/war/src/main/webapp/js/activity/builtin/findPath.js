@@ -44,8 +44,8 @@ define([
 
             this.dataRequest('workspace', 'store', workspaceId)
                 .done(function(workspaceVertices) {
-                    var sourceDestInWorkspace = (self.attr.process.sourceVertexId in workspaceVertices) &&
-                            (self.attr.process.destVertexId in workspaceVertices),
+                    var sourceDestInWorkspace = (self.attr.process.outVertexId in workspaceVertices) &&
+                            (self.attr.process.inVertexId in workspaceVertices),
                         disabled = onDifferentWorkspace ||
                             noResults ||
                             !sourceDestInWorkspace;
@@ -85,8 +85,8 @@ define([
         this.onFocusPaths = function(event, data) {
             // FIXME: if multiple paths using same src, dest it doesn't reset
             // the others
-            if (data.sourceId !== this.attr.process.sourceVertexId ||
-               data.targetId !== this.attr.process.destVertexId) {
+            if (data.sourceId !== this.attr.process.outVertexId ||
+               data.targetId !== this.attr.process.inVertexId) {
                 this.loadDefaultContent();
             }
         };
@@ -163,8 +163,8 @@ define([
 
                     self.trigger('focusPaths', {
                         paths: paths,
-                        sourceId: self.attr.process.sourceVertexId,
-                        targetId: self.attr.process.destVertexId
+                        sourceId: self.attr.process.outVertexId,
+                        targetId: self.attr.process.inVertexId
                     });
 
                     $target.hide();

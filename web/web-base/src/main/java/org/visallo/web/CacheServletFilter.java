@@ -24,7 +24,7 @@ public class CacheServletFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (response instanceof HttpServletResponse && maxAge != null) {
-            BaseRequestHandler.setMaxAge((HttpServletResponse) response, maxAge);
+            ((HttpServletResponse) response).setHeader("Cache-Control", "max-age=" + maxAge);
         }
         chain.doFilter(request, response);
     }

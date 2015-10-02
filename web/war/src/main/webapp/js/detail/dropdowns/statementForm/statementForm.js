@@ -141,18 +141,18 @@ define([
         this.onCreateStatement = function(event) {
             var self = this,
                 parameters = {
-                    sourceGraphVertexId: this.attr.sourceTerm.data('info').resolvedToVertexId ||
+                    outVertexId: this.attr.sourceTerm.data('info').resolvedToVertexId ||
                         this.attr.sourceTerm.data('vertex-id'),
-                    destGraphVertexId: this.attr.destTerm.data('info').resolvedToVertexId ||
+                    inVertexId: this.attr.destTerm.data('info').resolvedToVertexId ||
                         this.attr.destTerm.data('vertex-id'),
                     predicateLabel: this.select('relationshipSelector').val(),
                     visibilitySource: this.visibilitySource.value
                 };
 
             if (this.select('formSelector').hasClass('invert')) {
-                var swap = parameters.sourceGraphVertexId;
-                parameters.sourceGraphVertexId = parameters.destGraphVertexId;
-                parameters.destGraphVertexId = swap;
+                var swap = parameters.outVertexId;
+                parameters.outVertexId = parameters.inVertexId;
+                parameters.inVertexId = swap;
             }
 
             if (this.justification.sourceInfo) {

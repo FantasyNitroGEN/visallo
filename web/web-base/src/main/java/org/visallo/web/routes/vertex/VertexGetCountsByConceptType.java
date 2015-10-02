@@ -1,41 +1,28 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiVertexCountsByConceptType;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
-public class VertexGetCountsByConceptType extends BaseRequestHandler {
+public class VertexGetCountsByConceptType implements ParameterizedHandler {
     private final Graph graph;
 
     @Inject
-    public VertexGetCountsByConceptType(
-            UserRepository userRepository,
-            WorkspaceRepository workspaceRepository,
-            Configuration configuration,
-            Graph graph
-    ) {
-        super(userRepository, workspaceRepository, configuration);
+    public VertexGetCountsByConceptType(Graph graph) {
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-
+    @Handle
+    public ClientApiVertexCountsByConceptType handle(
+            Authorizations authorizations
+    ) throws Exception {
         Map<Object, Long> conceptTypeCounts = graph.getVertexPropertyCountByValue(VisalloProperties.CONCEPT_TYPE.getPropertyName(), authorizations);
-        respondWithClientApiObject(response, new ClientApiVertexCountsByConceptType(conceptTypeCounts));
+        return new ClientApiVertexCountsByConceptType(conceptTypeCounts);
     }
 }

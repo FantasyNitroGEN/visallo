@@ -1,49 +1,44 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
 import org.vertexium.Authorizations;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.ClientApiWorkspaces;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class WorkspaceList extends BaseRequestHandler {
+public class WorkspaceList implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
+    private final UserRepository userRepository;
 
     @Inject
     public WorkspaceList(
             final WorkspaceRepository workspaceRepository,
-            final UserRepository userRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final UserRepository userRepository
+    ) {
         this.workspaceRepository = workspaceRepository;
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-        String workspaceId = getWorkspaceIdOrDefault(request);
-        Authorizations authorizations = null;
+    @Handle
+    public ClientApiWorkspaces handle(
+            @ActiveWorkspaceId(required = false) String workspaceId,
+            User user
+    ) throws Exception {
+        Authorizations authorizations;
         if (workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user)) {
-            authorizations = getUserRepository().getAuthorizations(user, workspaceId);
+            authorizations = userRepository.getAuthorizations(user, workspaceId);
         } else {
-            authorizations = getUserRepository().getAuthorizations(user);
+            authorizations = userRepository.getAuthorizations(user);
         }
-        ClientApiWorkspaces results = handle(user, authorizations);
-        respondWithClientApiObject(response, results);
-    }
 
-    public ClientApiWorkspaces handle(User user, Authorizations authorizations) {
         Iterable<Workspace> workspaces = workspaceRepository.findAllForUser(user);
-        String activeWorkspaceId = getUserRepository().getCurrentWorkspaceId(user.getUserId());
+        String activeWorkspaceId = userRepository.getCurrentWorkspaceId(user.getUserId());
         activeWorkspaceId = activeWorkspaceId != null ? activeWorkspaceId : "";
 
         ClientApiWorkspaces results = new ClientApiWorkspaces();

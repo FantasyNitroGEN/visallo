@@ -3,52 +3,43 @@ package org.visallo.web.plugin.requeue;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class RequeueVertex extends BaseRequestHandler {
+public class RequeueVertex implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RequeueVertex.class);
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
 
     @Inject
     public RequeueVertex(
-            UserRepository userRepository,
-            WorkspaceRepository workspaceRepository,
-            Configuration configuration,
             Graph graph,
             WorkQueueRepository workQueueRepository
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String[] vertexIds = getRequiredParameterArray(request, "vertexIds[]");
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-
-        LOGGER.debug("requeuing %d vertices: %s", vertexIds.length, Joiner.on(", ").join(vertexIds));
-        Iterable<Vertex> vertices = graph.getVertices(Lists.newArrayList(vertexIds), authorizations);
+    @Handle
+    public ClientApiSuccess handle(
+            @Required(name = "vertexIds[]") String[] vertexIdsParam,
+            Authorizations authorizations
+    ) throws Exception {
+        LOGGER.debug("requeuing %d vertices: %s", vertexIdsParam.length, Joiner.on(", ").join(vertexIdsParam));
+        Iterable<Vertex> vertices = graph.getVertices(Lists.newArrayList(vertexIdsParam), authorizations);
         requeueVertices(vertices);
 
-        respondWithSuccessJson(response);
+        return VisalloResponse.SUCCESS;
     }
 
     private void requeueVertices(Iterable<Vertex> vertices) {

@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.json.JSONObject;
-import org.visallo.web.VisalloResponse;
 
 import java.util.ResourceBundle;
 
@@ -17,8 +16,7 @@ public class Configuration implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(ResourceBundle resourceBundle, VisalloResponse response) throws Exception {
-        JSONObject configuration = this.configuration.toJSON(resourceBundle);
-        response.respondWithJson(configuration);
+    public JSONObject handle(ResourceBundle resourceBundle) throws Exception {
+        return this.configuration.toJSON(resourceBundle);
     }
 }

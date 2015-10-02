@@ -1,42 +1,29 @@
 package org.visallo.opennlpDictionary.web;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.user.User;
 import org.visallo.opennlpDictionary.model.DictionaryEntryRepository;
-import org.visallo.web.BaseRequestHandler;
-import org.json.JSONObject;
-import com.v5analytics.webster.HandlerChain;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class AdminDictionaryEntryDelete extends BaseRequestHandler {
+public class AdminDictionaryEntryDelete implements ParameterizedHandler {
 
     private DictionaryEntryRepository dictionaryEntryRepository;
 
     @Inject
-    public AdminDictionaryEntryDelete(
-            final DictionaryEntryRepository dictionaryEntryRepository,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public AdminDictionaryEntryDelete(final DictionaryEntryRepository dictionaryEntryRepository) {
         this.dictionaryEntryRepository = dictionaryEntryRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String strRowKey = getAttributeString(request, "entryRowKey");
-        User user = getUser(request);
-
+    @Handle
+    public ClientApiSuccess handle(
+            @Required(name = "entryRowKey") String strRowKey,
+            User user
+    ) throws Exception {
         dictionaryEntryRepository.delete(strRowKey, user);
-
-        JSONObject resultJson = new JSONObject();
-        resultJson.put("success", true);
-
-        respondWithJson(response, resultJson);
+        return VisalloResponse.SUCCESS;
     }
 }

@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 @JsonTypeName("edge")
 public class ClientApiEdge extends ClientApiElement {
     private String label;
-    private String sourceVertexId;
-    private String destVertexId;
+    private String outVertexId;
+    private String inVertexId;
 
     public String getLabel() {
         return label;
@@ -16,19 +16,19 @@ public class ClientApiEdge extends ClientApiElement {
         this.label = label;
     }
 
-    public String getSourceVertexId() {
-        return sourceVertexId;
+    public String getOutVertexId() {
+        return outVertexId;
     }
 
-    public void setSourceVertexId(String sourceVertexId) {
-        this.sourceVertexId = sourceVertexId;
+    public void setOutVertexId(String outVertexId) {
+        this.outVertexId = outVertexId;
     }
 
-    public String getDestVertexId() {
-        return destVertexId;
+    public String getInVertexId() {
+        return inVertexId;
     }
 
-    public void setDestVertexId(String destVertexId) {
-        this.destVertexId = destVertexId;
+    public void setInVertexId(String inVertexId) {
+        this.inVertexId = inVertexId;
     }
 }

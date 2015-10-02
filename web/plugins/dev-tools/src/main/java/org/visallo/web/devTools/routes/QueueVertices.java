@@ -1,47 +1,46 @@
 package org.visallo.web.devTools.routes;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class QueueVertices extends BaseRequestHandler {
+public class QueueVertices implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(QueueVertices.class);
+    private final UserRepository userRepository;
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
 
     @Inject
     public QueueVertices(
             UserRepository userRepository,
-            WorkspaceRepository workspaceRepository,
-            Configuration configuration,
             Graph graph,
-            WorkQueueRepository workQueueRepository) {
-        super(userRepository, workspaceRepository, configuration);
+            WorkQueueRepository workQueueRepository
+    ) {
+        this.userRepository = userRepository;
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String propertyName = getOptionalParameter(request, "propertyName");
+    @Handle
+    public ClientApiSuccess handle(
+            @Optional(name = "propertyName") String propertyName
+    ) throws Exception {
         if (propertyName != null && propertyName.trim().length() == 0) {
             propertyName = null;
         }
-        final Authorizations authorizations = getUserRepository().getAuthorizations(getUserRepository().getSystemUser());
+        final Authorizations authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
 
         final String finalPropertyName = propertyName;
         Thread t = new Thread(new Runnable() {
@@ -74,6 +73,6 @@ public class QueueVertices extends BaseRequestHandler {
         t.setName("requeue-vertices");
         t.start();
 
-        respondWithHtml(response, "Started requeue thread");
+        return VisalloResponse.SUCCESS;
     }
 }

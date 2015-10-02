@@ -13,7 +13,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class TermMentionBuilder {
     private static final String TERM_MENTION_VERTEX_ID_PREFIX = "TM_";
-    private Vertex sourceVertex;
+    private Vertex outVertex;
     private String propertyKey;
     private long start = -1;
     private long end = -1;
@@ -33,10 +33,10 @@ public class TermMentionBuilder {
      * Copy an existing term mention.
      *
      * @param existingTermMention The term mention you would like to copy.
-     * @param sourceVertex        The vertex that contains this term mention (ie Document, Html page, etc).
+     * @param outVertex        The vertex that contains this term mention (ie Document, Html page, etc).
      */
-    public TermMentionBuilder(Vertex existingTermMention, Vertex sourceVertex) {
-        this.sourceVertex = sourceVertex;
+    public TermMentionBuilder(Vertex existingTermMention, Vertex outVertex) {
+        this.outVertex = outVertex;
         this.propertyKey = VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(existingTermMention);
         this.start = VisalloProperties.TERM_MENTION_START_OFFSET.getPropertyValue(existingTermMention, 0);
         this.end = VisalloProperties.TERM_MENTION_END_OFFSET.getPropertyValue(existingTermMention, 0);
@@ -128,8 +128,8 @@ public class TermMentionBuilder {
     /**
      * The vertex that contains this term mention (ie Document, Html page, etc).
      */
-    public TermMentionBuilder sourceVertex(Vertex sourceVertex) {
-        this.sourceVertex = sourceVertex;
+    public TermMentionBuilder outVertex(Vertex outVertex) {
+        this.outVertex = outVertex;
         return this;
     }
 
@@ -168,7 +168,7 @@ public class TermMentionBuilder {
      * Vertex             Mention                    Vertex
      */
     public Vertex save(Graph graph, VisibilityTranslator visibilityTranslator, Authorizations authorizations) {
-        checkNotNull(sourceVertex, "sourceVertex cannot be null");
+        checkNotNull(outVertex, "outVertex cannot be null");
         checkNotNull(propertyKey, "propertyKey cannot be null");
         checkNotNull(title, "title cannot be null");
         checkArgument(title.length() > 0, "title cannot be an empty string");
@@ -207,7 +207,7 @@ public class TermMentionBuilder {
         Vertex termMentionVertex = vertexBuilder.save(authorizations);
 
         String hasTermMentionId = vertexId + "_hasTermMention";
-        EdgeBuilder termMentionEdgeBuilder = graph.prepareEdge(hasTermMentionId, this.sourceVertex, termMentionVertex, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility);
+        EdgeBuilder termMentionEdgeBuilder = graph.prepareEdge(hasTermMentionId, this.outVertex, termMentionVertex, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility);
         VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(termMentionEdgeBuilder, this.visibilityJson, visibility);
         termMentionEdgeBuilder.save(authorizations);
         if (this.resolvedToVertexId != null) {

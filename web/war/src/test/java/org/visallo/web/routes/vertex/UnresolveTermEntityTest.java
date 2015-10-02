@@ -34,7 +34,7 @@ public class UnresolveTermEntityTest extends RouteTestBase {
         termMentionVisibility = new Visibility(TermMentionRepository.VISIBILITY_STRING);
         authorizations = graph.createAuthorizations(TermMentionRepository.VISIBILITY_STRING);
 
-        unresolveTermEntity = new UnresolveTermEntity(termMentionRepository, graph, userRepository, workspaceRepository, configuration, workspaceHelper);
+        unresolveTermEntity = new UnresolveTermEntity(termMentionRepository, graph, workspaceHelper);
     }
 
     @Test
@@ -54,8 +54,7 @@ public class UnresolveTermEntityTest extends RouteTestBase {
         when(userRepository.getAuthorizations(eq(user), eq(WORKSPACE_ID))).thenReturn(authorizations);
         when(termMentionRepository.findById(eq("v1tm1"), eq(authorizations))).thenReturn(v1tm1);
 
-        setParameter("termMentionId", "v1tm1");
-        handleAssertSuccess(unresolveTermEntity);
+        unresolveTermEntity.handle("v1tm1", WORKSPACE_ID, authorizations);
 
         verify(workspaceHelper).unresolveTerm(eq(v1tm1), eq(authorizations));
     }

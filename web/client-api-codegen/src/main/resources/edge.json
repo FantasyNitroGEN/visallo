@@ -88,14 +88,14 @@
                     "nickname": "create",
                     "parameters": [
                         {
-                            "name": "sourceGraphVertexId",
+                            "name": "outVertexId",
                             "description": "Source vertex id",
                             "required": true,
                             "type": "string",
                             "paramType": "query"
                         },
                         {
-                            "name": "destGraphVertexId",
+                            "name": "inVertexId",
                             "description": "Destination vertex id",
                             "required": true,
                             "type": "string",

@@ -121,8 +121,8 @@ define([
             var self = this,
                 $target = $(event.target).addClass('loading'),
                 parameters = {
-                    sourceGraphVertexId: this.attr.sourceVertexId,
-                    destGraphVertexId: this.attr.targetVertexId,
+                    outVertexId: this.attr.outVertexId,
+                    inVertexId: this.attr.inVertexId,
                     depth: 5,
                     hops: this.hops,
                     edgeLabels: this.edgeLabels

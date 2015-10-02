@@ -1,7 +1,14 @@
 package org.visallo.web.importExportWorkspaces;
 
 import com.v5analytics.webster.HandlerChain;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.ContentType;
+import com.v5analytics.webster.annotations.Handle;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
+import org.vertexium.tools.GraphRestore;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -10,12 +17,8 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
-import org.visallo.web.BaseRequestHandler;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
-import org.vertexium.tools.GraphRestore;
+import org.visallo.web.BadRequestException;
+import org.visallo.web.util.HttpPartUtil;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -25,42 +28,43 @@ import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Import extends BaseRequestHandler {
+public class Import implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Import.class);
+    private final UserRepository userRepository;
     private final VertexiumWorkspaceRepository workspaceRepository;
     private final Graph graph;
 
     @Inject
     public Import(
             UserRepository userRepository,
-            Configuration configuration,
             WorkspaceRepository workspaceRepository,
             Graph graph) {
-        super(userRepository, workspaceRepository, configuration);
+        this.userRepository = userRepository;
         this.workspaceRepository = (VertexiumWorkspaceRepository) workspaceRepository;
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+    @Handle
+    @ContentType("text/plain")
+    public String handle(
+            User user,
+            HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
         if (!ServletFileUpload.isMultipartContent(request)) {
             LOGGER.warn("Could not process request without multi-part content");
-            respondWithBadRequest(response, "file", "Could not process request without multi-part content");
-            return;
+            throw new BadRequestException("file", "Could not process request without multi-part content");
         }
 
-        User user = getUser(request);
-        Vertex userVertex = ((VertexiumUserRepository) getUserRepository()).findByIdUserVertex(user.getUserId());
+        Vertex userVertex = ((VertexiumUserRepository) userRepository).findByIdUserVertex(user.getUserId());
         GraphRestore graphRestore = new GraphRestore();
 
         for (Part part : request.getParts()) {
             if (part.getName().equals("workspace")) {
                 File outFile = File.createTempFile("visalloWorkspaceImport", "visalloworkspace");
-                copyPartToFile(part, outFile);
+                HttpPartUtil.copyPartToFile(part, outFile);
 
                 String workspaceId = getWorkspaceId(outFile);
 
-                Authorizations authorizations = getUserRepository().getAuthorizations(user, UserRepository.VISIBILITY_STRING, WorkspaceRepository.VISIBILITY_STRING, workspaceId);
+                Authorizations authorizations = userRepository.getAuthorizations(user, UserRepository.VISIBILITY_STRING, WorkspaceRepository.VISIBILITY_STRING, workspaceId);
 
                 try (InputStream in = new FileInputStream(outFile)) {
                     graphRestore.restore(graph, in, authorizations);
@@ -73,7 +77,7 @@ public class Import extends BaseRequestHandler {
             }
         }
 
-        respondWithPlaintext(response, "Workspace Imported");
+        return "Workspace Imported";
     }
 
     private String getWorkspaceId(File file) throws IOException {

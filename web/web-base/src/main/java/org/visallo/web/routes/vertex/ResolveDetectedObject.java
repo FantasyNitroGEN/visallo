@@ -1,16 +1,17 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.ArtifactDetectedObject;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
@@ -21,15 +22,16 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.BadRequestException;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.parameterProviders.JustificationText;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.ResourceBundle;
 
-public class ResolveDetectedObject extends BaseRequestHandler {
+public class ResolveDetectedObject implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ResolveDetectedObject.class);
     private static final String MULTI_VALUE_KEY_PREFIX = ResolveDetectedObject.class.getName();
     private static final String MULTI_VALUE_KEY = ResolveDetectedObject.class.getName();
@@ -45,14 +47,11 @@ public class ResolveDetectedObject extends BaseRequestHandler {
     public ResolveDetectedObject(
             final Graph graph,
             final OntologyRepository ontologyRepository,
-            final UserRepository userRepository,
-            final Configuration configuration,
             final WorkQueueRepository workQueueRepository,
             final VisibilityTranslator visibilityTranslator,
             final WorkspaceRepository workspaceRepository,
             final TermMentionRepository termMentionRepository
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
@@ -66,35 +65,34 @@ public class ResolveDetectedObject extends BaseRequestHandler {
         }
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+    @Handle
+    public ClientApiElement handle(
+            @Required(name = "artifactId") String artifactId,
+            @Required(name = "title") String title,
+            @Required(name = "conceptId") String conceptId,
+            @Required(name = "visibilitySource") String visibilitySource,
+            @Optional(name = "graphVertexId") String graphVertexId,
+            @JustificationText String justificationText,
+            @Optional(name = "sourceInfo") String sourceInfoString,
+            @Optional(name = "originalPropertyKey") String originalPropertyKey,
+            @Required(name = "x1") double x1,
+            @Required(name = "x2") double x2,
+            @Required(name = "y1") double y1,
+            @Required(name = "y2") double y2,
+            ResourceBundle resourceBundle,
+            @ActiveWorkspaceId String workspaceId,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
         if (this.artifactContainsImageOfEntityIri == null) {
             this.artifactContainsImageOfEntityIri = ontologyRepository.getRequiredRelationshipIRIByIntent("artifactContainsImageOfEntity");
         }
 
-        final String artifactId = getRequiredParameter(request, "artifactId");
-        final String title = getRequiredParameter(request, "title");
-        final String conceptId = getRequiredParameter(request, "conceptId");
-        final String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        final String graphVertexId = getOptionalParameter(request, "graphVertexId");
-        final String justificationText = routeHelper.getJustificationText(request);
-        final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
-        String originalPropertyKey = getOptionalParameter(request, "originalPropertyKey");
-        double x1 = Double.parseDouble(getRequiredParameter(request, "x1"));
-        double x2 = Double.parseDouble(getRequiredParameter(request, "x2"));
-        double y1 = Double.parseDouble(getRequiredParameter(request, "y1"));
-        double y2 = Double.parseDouble(getRequiredParameter(request, "y2"));
-
-        User user = getUser(request);
-        String workspaceId = getActiveWorkspaceId(request);
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
-        Authorizations authorizations = getAuthorizations(request, user);
 
         if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            respondWithBadRequest(response, "visibilitySource", getString(request, "visibility.invalid"));
-            chain.next(request, response);
-            return;
+            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspaceId);
@@ -157,7 +155,6 @@ public class ResolveDetectedObject extends BaseRequestHandler {
         workQueueRepository.broadcastElement(edge, workspaceId);
         workQueueRepository.pushGraphPropertyQueue(artifactVertex, propertyKey, VisalloProperties.DETECTED_OBJECT.getPropertyName(), Priority.HIGH);
 
-        ClientApiElement result = ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);
-        respondWithClientApiObject(response, result);
+        return ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);
     }
 }

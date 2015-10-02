@@ -29,7 +29,7 @@ public class ImportImgMRMapper extends VisalloElementMapperBase<SequenceFileKey,
     @Override
     protected void safeMap(SequenceFileKey key, BytesWritable value, Context context) throws Exception {
         String conceptType;
-        String sourceVertexId;
+        String outVertexId;
         String edgeLabel;
 
         context.setStatus(key.getRecordType() + ":" + key.getId());
@@ -38,17 +38,17 @@ public class ImportImgMRMapper extends VisalloElementMapperBase<SequenceFileKey,
             case PERSON:
                 conceptType = TheMovieDbOntology.CONCEPT_TYPE_PROFILE_IMAGE;
                 edgeLabel = TheMovieDbOntology.EDGE_LABEL_HAS_PROFILE_IMAGE;
-                sourceVertexId = TheMovieDbOntology.getPersonVertexId(key.getId());
+                outVertexId = TheMovieDbOntology.getPersonVertexId(key.getId());
                 break;
             case MOVIE:
                 conceptType = TheMovieDbOntology.CONCEPT_TYPE_POSTER_IMAGE;
                 edgeLabel = TheMovieDbOntology.EDGE_LABEL_HAS_POSTER_IMAGE;
-                sourceVertexId = TheMovieDbOntology.getMovieVertexId(key.getId());
+                outVertexId = TheMovieDbOntology.getMovieVertexId(key.getId());
                 break;
             case PRODUCTION_COMPANY:
                 conceptType = TheMovieDbOntology.CONCEPT_TYPE_LOGO;
                 edgeLabel = TheMovieDbOntology.EDGE_LABEL_HAS_LOGO;
-                sourceVertexId = TheMovieDbOntology.getProductionCompanyVertexId(key.getId());
+                outVertexId = TheMovieDbOntology.getProductionCompanyVertexId(key.getId());
                 break;
             default:
                 throw new VisalloException("Invalid record type: " + key.getRecordType());
@@ -67,11 +67,11 @@ public class ImportImgMRMapper extends VisalloElementMapperBase<SequenceFileKey,
         VisalloProperties.TITLE.addPropertyValue(m, MULTI_VALUE_KEY, "Image of " + title, visibility);
         Vertex profileImageVertex = m.save(authorizations);
 
-        VertexBuilder sourceVertexMutation = prepareVertex(sourceVertexId, visibility);
-        VisalloProperties.ENTITY_IMAGE_VERTEX_ID.setProperty(sourceVertexMutation, profileImageVertex.getId(), visibility);
-        Vertex sourceVertex = sourceVertexMutation.save(authorizations);
+        VertexBuilder outVertexMutation = prepareVertex(outVertexId, visibility);
+        VisalloProperties.ENTITY_IMAGE_VERTEX_ID.setProperty(outVertexMutation, profileImageVertex.getId(), visibility);
+        Vertex outVertex = outVertexMutation.save(authorizations);
 
-        addEdge(edgeId, sourceVertex, profileImageVertex, edgeLabel, visibility, authorizations);
+        addEdge(edgeId, outVertex, profileImageVertex, edgeLabel, visibility, authorizations);
 
         context.getCounter(TheMovieDbImportCounters.IMAGES_PROCESSED).increment(1);
     }

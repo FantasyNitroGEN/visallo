@@ -1,57 +1,57 @@
 package org.visallo.web.importExportWorkspaces;
 
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.tools.GraphBackup;
 import org.vertexium.util.ConvertingIterable;
-import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceEntity;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.VisalloResponse;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.vertexium.util.IterableUtils.toList;
 
-public class Export extends BaseRequestHandler {
+public class Export implements ParameterizedHandler {
+    private final UserRepository userRepository;
     private final VertexiumWorkspaceRepository workspaceRepository;
     private final Graph graph;
 
     @Inject
     public Export(
             UserRepository userRepository,
-            Configuration configuration,
             WorkspaceRepository workspaceRepository,
             Graph graph) {
-        super(userRepository, workspaceRepository, configuration);
-        this.workspaceRepository = (VertexiumWorkspaceRepository) workspaceRepository;
+        this.userRepository = userRepository;
+        this.workspaceRepository =  (VertexiumWorkspaceRepository) workspaceRepository;
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String workspaceId = getRequiredParameter(request, "workspaceId");
-
-        User user = getUser(request);
+    @Handle
+    public void handle(
+            User user,
+            @Required(name = "workspaceId") String workspaceId,
+            VisalloResponse response
+    ) throws Exception {
         Workspace workspace = this.workspaceRepository.findById(workspaceId, user);
         if (workspace == null) {
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException("workspace not found");
         }
 
-        Authorizations authorizations = getUserRepository().getAuthorizations(user, UserRepository.VISIBILITY_STRING, WorkspaceRepository.VISIBILITY_STRING, workspace.getWorkspaceId());
+        Authorizations authorizations = userRepository.getAuthorizations(user, UserRepository.VISIBILITY_STRING, WorkspaceRepository.VISIBILITY_STRING, workspace.getWorkspaceId());
 
         List<String> workspaceEntityIds = toList(getWorkspaceEntityIds(user, workspace));
 
@@ -59,7 +59,7 @@ public class Export extends BaseRequestHandler {
         ArrayList<String> workspaceEntityIdsAndWorkspaceId = new ArrayList<>(workspaceEntityIds);
         workspaceEntityIdsAndWorkspaceId.add(workspace.getWorkspaceId());
 
-        Vertex workspaceVertex = this.workspaceRepository.getVertex(workspace.getWorkspaceId(), user);
+        Vertex workspaceVertex = workspaceRepository.getVertex(workspace.getWorkspaceId(), user);
         Iterable<Vertex> vertices = graph.getVertices(workspaceEntityIds, authorizations);
         Iterable<Edge> edges = graph.getEdges(graph.findRelatedEdgeIds(workspaceEntityIdsAndWorkspaceId, authorizations), authorizations);
 

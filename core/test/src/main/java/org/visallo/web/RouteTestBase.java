@@ -1,7 +1,5 @@
 package org.visallo.web;
 
-import com.amazonaws.util.json.JSONObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.v5analytics.webster.HandlerChain;
 import org.json.JSONArray;
 import org.mockito.Mock;
@@ -13,14 +11,12 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
-import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.Privilege;
-import org.visallo.web.clientapi.util.ObjectMapperFactory;
-import org.visallo.core.model.workspace.WorkspaceHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +29,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -80,14 +75,10 @@ public abstract class RouteTestBase {
 
     private ByteArrayOutputStream responseByteArrayOutputStream;
 
-    private ObjectMapper objectMapper;
-
     protected void setUp() throws IOException {
         Map config = new HashMap();
         ConfigurationLoader hashMapConfigurationLoader = new HashMapConfigurationLoader(config);
         configuration = new Configuration(hashMapConfigurationLoader, new HashMap<>());
-
-        objectMapper = ObjectMapperFactory.getInstance();
 
         graph = InMemoryGraph.create();
 
@@ -115,36 +106,8 @@ public abstract class RouteTestBase {
         return responseByteArrayOutputStream.toByteArray();
     }
 
-    protected String getResponseAsString() {
-        return new String(getResponse());
-    }
-
-    protected <T extends ClientApiObject> T getResponseAsClientApiObject(Class<T> type) throws IOException {
-        return objectMapper.readValue(getResponse(), type);
-    }
-
-    protected void handle(BaseRequestHandler handler) throws Exception {
-        handler.handle(request, response, chain);
-    }
-
-    protected void handleAssertSuccess(BaseRequestHandler handler) throws Exception {
-        handle(handler);
-        org.json.JSONObject successJson = new org.json.JSONObject();
-        successJson.put("success", true);
-        assertEquals(successJson.toString(), getResponseAsString());
-    }
-
-    protected <T extends ClientApiObject> T handle(BaseRequestHandler handler, Class<T> responseType) throws Exception {
-        handler.handle(request, response, chain);
-        return getResponseAsClientApiObject(responseType);
-    }
-
     protected void setArrayParameter(String parameterName, String[] values) {
         when(request.getParameterValues(eq(parameterName))).thenReturn(values);
-    }
-
-    protected void setParameter(String parameterName, JSONObject json) {
-        setParameter(parameterName, json.toString());
     }
 
     protected void setParameter(String parameterName, JSONArray json) {

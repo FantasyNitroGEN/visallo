@@ -409,8 +409,8 @@ define([], function() {
                         ).then(function(edges) {
                             edgesById = _.indexBy(_.compact(edges), 'id');
                             edges.forEach(function(edge) {
-                                vertexIdsToRequest.push(edge.sourceVertexId)
-                                vertexIdsToRequest.push(edge.destVertexId)
+                                vertexIdsToRequest.push(edge.outVertexId)
+                                vertexIdsToRequest.push(edge.inVertexId)
                             });
                             if (vertexIdsToRequest.length) {
                                 return dataRequest('vertex', 'store', { vertexIds: _.unique(vertexIdsToRequest) });
@@ -436,8 +436,8 @@ define([], function() {
                                     }
                                 } else if (s.edgeIds.length === 1) {
                                     var edge = edgesById[s.edgeIds[0]],
-                                        source = edge && verticesById[edge.sourceVertexId],
-                                        target = edge && verticesById[edge.destVertexId],
+                                        source = edge && verticesById[edge.outVertexId],
+                                        target = edge && verticesById[edge.inVertexId],
                                         ontologyEdge = edge && relationships.byTitle[edge.label],
                                         label = ' → ';
                                     if (source && target) {

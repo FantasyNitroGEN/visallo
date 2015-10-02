@@ -1,24 +1,21 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
 import org.vertexium.Authorizations;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 
-public class WorkspaceCreate extends BaseRequestHandler {
+public class WorkspaceCreate implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceCreate.class);
     private static final String DEFAULT_WORKSPACE_TITLE = "Default";
 
@@ -28,36 +25,29 @@ public class WorkspaceCreate extends BaseRequestHandler {
     @Inject
     public WorkspaceCreate(
             final WorkspaceRepository workspaceRepository,
-            final UserRepository userRepository,
-            final WorkQueueRepository workQueueRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final WorkQueueRepository workQueueRepository
+    ) {
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User authUser = getUser(request);
-        User user = getUserRepository().findById(authUser.getUserId());
-        Authorizations authorizations = getAuthorizations(request, user);
-
-        String title = getOptionalParameter(request, "title");
-
-        Workspace workspace = handle(title, user, authUser);
-        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true, authorizations);
-        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, new ArrayList<ClientApiWorkspace.User>(), authUser.getUserId(), null);
-        respondWithClientApiObject(response, clientApiWorkspace);
-    }
-
-    public Workspace handle(String title, User user, User authUser) {
+    @Handle
+    public ClientApiWorkspace handle(
+            @Optional(name = "title") String title,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
         Workspace workspace;
         if (title == null) {
             title = DEFAULT_WORKSPACE_TITLE + " - " + user.getDisplayName();
         }
-        workspace = workspaceRepository.add(title, authUser);
+        workspace = workspaceRepository.add(title, user);
 
         LOGGER.info("Created workspace: %s, title: %s", workspace.getWorkspaceId(), workspace.getDisplayTitle());
-        return workspace;
+        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true, authorizations);
+
+        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, new ArrayList<ClientApiWorkspace.User>(), user.getUserId(), null);
+
+        return clientApiWorkspace;
     }
 }

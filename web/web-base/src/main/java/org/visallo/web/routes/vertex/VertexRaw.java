@@ -1,23 +1,21 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.utils.UrlUtils;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.MediaVisalloProperties;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
-import org.apache.commons.io.IOUtils;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
+import org.apache.hadoop.util.LimitInputStream;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.properties.MediaVisalloProperties;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.web.BadRequestException;
+import org.visallo.web.VisalloResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,46 +27,39 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class VertexRaw extends BaseRequestHandler {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexRaw.class);
+public class VertexRaw implements ParameterizedHandler {
     private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=([0-9]*)-([0-9]*)");
 
     private final Graph graph;
 
     @Inject
-    public VertexRaw(
-            final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public VertexRaw(final Graph graph) {
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        boolean download = getOptionalParameter(request, "download") != null;
-        boolean playback = getOptionalParameter(request, "playback") != null;
-
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-
-        String graphVertexId = UrlUtils.urlDecode(getAttributeString(request, "graphVertexId"));
-
+    @Handle
+    public InputStream handle(
+            HttpServletRequest request,
+            @Required(name = "graphVertexId") String graphVertexId,
+            @Optional(name = "download", defaultValue = "false") boolean download,
+            @Optional(name = "playback", defaultValue = "false") boolean playback,
+            @Optional(name = "type") String type,
+            Authorizations authorizations,
+            VisalloResponse response
+    ) throws Exception {
         Vertex artifactVertex = graph.getVertex(graphVertexId, authorizations);
         if (artifactVertex == null) {
-            respondWithNotFound(response);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find vertex with id: " + graphVertexId);
         }
 
         String fileName = VisalloProperties.FILE_NAME.getOnlyPropertyValue(artifactVertex);
 
         if (playback) {
-            handlePartialPlayback(request, response, artifactVertex, fileName);
+            return handlePartialPlayback(request, response, artifactVertex, fileName, type);
         } else {
             String mimeType = getMimeType(artifactVertex);
             response.setContentType(mimeType);
-            setMaxAge(response, EXPIRES_1_HOUR);
+            response.setMaxAge(VisalloResponse.EXPIRES_1_HOUR);
             String fileNameWithoutQuotes = fileName.replace('"', '\'');
             if (download) {
                 response.addHeader("Content-Disposition", "attachment; filename=\"" + fileNameWithoutQuotes + "\"");
@@ -78,20 +69,16 @@ public class VertexRaw extends BaseRequestHandler {
 
             StreamingPropertyValue rawValue = VisalloProperties.RAW.getPropertyValue(artifactVertex);
             if (rawValue == null) {
-                LOGGER.warn("Could not find raw on artifact: %s", artifactVertex.getId());
-                respondWithNotFound(response);
-                return;
+                throw new VisalloResourceNotFoundException("Could not find raw on artifact: " + artifactVertex.getId());
             }
-            try (InputStream in = rawValue.getInputStream()) {
-                IOUtils.copy(in, response.getOutputStream());
-            }
+            return rawValue.getInputStream();
         }
-
-        chain.next(request, response);
     }
 
-    private void handlePartialPlayback(HttpServletRequest request, HttpServletResponse response, Vertex artifactVertex, String fileName) throws IOException {
-        String type = getRequiredParameter(request, "type");
+    private InputStream handlePartialPlayback(HttpServletRequest request, VisalloResponse response, Vertex artifactVertex, String fileName, String type) throws IOException {
+        if (type == null) {
+            throw new BadRequestException("type is required for partial playback");
+        }
 
         InputStream in;
         Long totalLength;
@@ -138,10 +125,7 @@ public class VertexRaw extends BaseRequestHandler {
 
         response.addHeader("Content-Length", "" + partialLength);
 
-        OutputStream out = response.getOutputStream();
-        copy(in, out, partialLength);
-
-        response.flushBuffer();
+        return new LimitInputStream(in, partialLength);
     }
 
     private StreamingPropertyValue getStreamingPropertyValue(Vertex artifactVertex, String type) {

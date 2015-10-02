@@ -1,28 +1,27 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.BadRequestException;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.visallo.core.model.workspace.WorkspaceHelper;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import static org.vertexium.util.IterableUtils.singleOrDefault;
 
-public class UnresolveTermEntity extends BaseRequestHandler {
+public class UnresolveTermEntity implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UnresolveTermEntity.class);
     private final TermMentionRepository termMentionRepository;
     private final Graph graph;
@@ -32,53 +31,41 @@ public class UnresolveTermEntity extends BaseRequestHandler {
     public UnresolveTermEntity(
             final TermMentionRepository termMentionRepository,
             final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration,
             final WorkspaceHelper workspaceHelper
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.termMentionRepository = termMentionRepository;
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String termMentionId = getRequiredParameter(request, "termMentionId");
-
+    @Handle
+    public ClientApiSuccess handle(
+            @Required(name = "termMentionId") String termMentionId,
+            @ActiveWorkspaceId String workspaceId,
+            Authorizations authorizations
+    ) throws Exception {
         LOGGER.debug("UnresolveTermEntity (termMentionId: %s)", termMentionId);
-
-        String workspaceId = getActiveWorkspaceId(request);
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
 
         Vertex termMention = termMentionRepository.findById(termMentionId, authorizations);
         if (termMention == null) {
-            respondWithNotFound(response, "Could not find term mention with id: " + termMentionId);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find term mention with id: " + termMentionId);
         }
 
         Vertex resolvedVertex = singleOrDefault(termMention.getVertices(Direction.OUT, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, authorizations), null);
         if (resolvedVertex == null) {
-            respondWithNotFound(response, "Could not find resolved vertex from term mention: " + termMentionId);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find resolved vertex from term mention: " + termMentionId);
         }
 
         String edgeId = VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID.getPropertyValue(termMention);
         Edge edge = graph.getEdge(edgeId, authorizations);
         if (edge == null) {
-            respondWithNotFound(response, "Could not find edge " + edgeId + " from term mention: " + termMentionId);
-            return;
+            throw new VisalloResourceNotFoundException("Could not find edge " + edgeId + " from term mention: " + termMentionId);
         }
 
         SandboxStatus vertexSandboxStatus = SandboxStatusUtil.getSandboxStatus(resolvedVertex, workspaceId);
         SandboxStatus edgeSandboxStatus = SandboxStatusUtil.getSandboxStatus(edge, workspaceId);
         if (vertexSandboxStatus == SandboxStatus.PUBLIC && edgeSandboxStatus == SandboxStatus.PUBLIC) {
-            LOGGER.warn("Can not unresolve a public entity");
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-            chain.next(request, response);
-            return;
+            throw new BadRequestException("Can not unresolve a public entity");
         }
 
         VisibilityJson visibilityJson;
@@ -91,6 +78,6 @@ public class UnresolveTermEntity extends BaseRequestHandler {
         }
 
         workspaceHelper.unresolveTerm(termMention, authorizations);
-        respondWithSuccessJson(response);
+        return VisalloResponse.SUCCESS;
     }
 }

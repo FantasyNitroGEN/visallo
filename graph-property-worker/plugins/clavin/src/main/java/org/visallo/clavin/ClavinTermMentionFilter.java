@@ -177,7 +177,7 @@ public class ClavinTermMentionFilter extends TermMentionFilter {
     }
 
     @Override
-    public void apply(Vertex sourceVertex, Iterable<Vertex> termMentions, Authorizations authorizations) throws IOException, ParseException {
+    public void apply(Vertex outVertex, Iterable<Vertex> termMentions, Authorizations authorizations) throws IOException, ParseException {
         List<LocationOccurrence> locationOccurrences = getLocationOccurrencesFromTermMentions(termMentions);
         LOGGER.info("Found %d Locations in %d terms.", locationOccurrences.size(), count(termMentions));
         List<ResolvedLocation> resolvedLocationNames = resolver.resolveLocations(locationOccurrences, fuzzy);
@@ -204,21 +204,21 @@ public class ClavinTermMentionFilter extends TermMentionFilter {
                 String termMentionConceptType = VisalloProperties.TERM_MENTION_CONCEPT_TYPE.getPropertyValue(termMention);
                 String conceptType = getOntologyClassUri(loc, termMentionConceptType);
 
-                VisibilityJson sourceVertexVisibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(sourceVertex);
+                VisibilityJson outVertexVisibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(outVertex);
                 Metadata metadata = new Metadata();
-                VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, sourceVertexVisibilityJson, getVisibilityTranslator().getDefaultVisibility());
-                ElementBuilder<Vertex> resolvedToVertexBuilder = getGraph().prepareVertex(id, sourceVertex.getVisibility())
-                        .addPropertyValue(MULTI_VALUE_PROPERTY_KEY, geoLocationIri, geoPoint, metadata, sourceVertex.getVisibility());
-                VisalloProperties.CONCEPT_TYPE.setProperty(resolvedToVertexBuilder, conceptType, metadata, sourceVertex.getVisibility());
-                VisalloProperties.SOURCE.addPropertyValue(resolvedToVertexBuilder, MULTI_VALUE_PROPERTY_KEY, "CLAVIN", metadata, sourceVertex.getVisibility());
-                VisalloProperties.TITLE.addPropertyValue(resolvedToVertexBuilder, MULTI_VALUE_PROPERTY_KEY, title, metadata, sourceVertex.getVisibility());
-                VisalloProperties.VISIBILITY_JSON.setProperty(resolvedToVertexBuilder, sourceVertexVisibilityJson, metadata, sourceVertex.getVisibility());
+                VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, outVertexVisibilityJson, getVisibilityTranslator().getDefaultVisibility());
+                ElementBuilder<Vertex> resolvedToVertexBuilder = getGraph().prepareVertex(id, outVertex.getVisibility())
+                        .addPropertyValue(MULTI_VALUE_PROPERTY_KEY, geoLocationIri, geoPoint, metadata, outVertex.getVisibility());
+                VisalloProperties.CONCEPT_TYPE.setProperty(resolvedToVertexBuilder, conceptType, metadata, outVertex.getVisibility());
+                VisalloProperties.SOURCE.addPropertyValue(resolvedToVertexBuilder, MULTI_VALUE_PROPERTY_KEY, "CLAVIN", metadata, outVertex.getVisibility());
+                VisalloProperties.TITLE.addPropertyValue(resolvedToVertexBuilder, MULTI_VALUE_PROPERTY_KEY, title, metadata, outVertex.getVisibility());
+                VisalloProperties.VISIBILITY_JSON.setProperty(resolvedToVertexBuilder, outVertexVisibilityJson, metadata, outVertex.getVisibility());
                 Vertex resolvedToVertex = resolvedToVertexBuilder.save(authorizations);
                 getGraph().flush();
 
-                String edgeId = sourceVertex.getId() + "-" + artifactHasEntityIri + "-" + resolvedToVertex.getId();
-                Edge resolvedEdge = getGraph().prepareEdge(edgeId, sourceVertex, resolvedToVertex, artifactHasEntityIri, sourceVertex.getVisibility()).save(authorizations);
-                VisalloProperties.VISIBILITY_JSON.setProperty(resolvedEdge, sourceVertexVisibilityJson, metadata, sourceVertex.getVisibility(), authorizations);
+                String edgeId = outVertex.getId() + "-" + artifactHasEntityIri + "-" + resolvedToVertex.getId();
+                Edge resolvedEdge = getGraph().prepareEdge(edgeId, outVertex, resolvedToVertex, artifactHasEntityIri, outVertex.getVisibility()).save(authorizations);
+                VisalloProperties.VISIBILITY_JSON.setProperty(resolvedEdge, outVertexVisibilityJson, metadata, outVertex.getVisibility(), authorizations);
                 VisibilityJson visibilityJson = VisalloProperties.TERM_MENTION_VISIBILITY_JSON.getPropertyValue(termMention);
                 if (visibilityJson != null && visibilityJson.getWorkspaces().size() > 0) {
                     Set<String> workspaceIds = visibilityJson.getWorkspaces();
@@ -227,7 +227,7 @@ public class ClavinTermMentionFilter extends TermMentionFilter {
                     }
                 }
 
-                Vertex resolvedMention = new TermMentionBuilder(termMention, sourceVertex)
+                Vertex resolvedMention = new TermMentionBuilder(termMention, outVertex)
                         .resolvedTo(resolvedToVertex, resolvedEdge)
                         .title(title)
                         .conceptIri(conceptType)

@@ -1,26 +1,28 @@
 package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.model.graph.GraphRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JsonSerializer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.BadRequestException;
+import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.parameterProviders.JustificationText;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.ResourceBundle;
 
-public class EdgeCreate extends BaseRequestHandler {
+public class EdgeCreate implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EdgeCreate.class);
 
     private final Graph graph;
@@ -30,49 +32,43 @@ public class EdgeCreate extends BaseRequestHandler {
     @Inject
     public EdgeCreate(
             final Graph graph,
-            final WorkspaceRepository workspaceRepository,
             final WorkQueueRepository workQueueRepository,
-            final UserRepository userRepository,
-            final Configuration configuration,
             final GraphRepository graphRepository
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String sourceGraphVertexId = getRequiredParameter(request, "sourceGraphVertexId");
-        final String destGraphVertexId = getRequiredParameter(request, "destGraphVertexId");
-        final String predicateLabel = getRequiredParameter(request, "predicateLabel");
-        final String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        final String justificationText = routeHelper.getJustificationText(request);
-        final String sourceInfoString = getOptionalParameter(request, "sourceInfo");
-        final String edgeId = getOptionalParameter(request, "edgeId");
-
-        String workspaceId = getActiveWorkspaceId(request);
-
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-        Vertex destVertex = graph.getVertex(destGraphVertexId, authorizations);
-        Vertex sourceVertex = graph.getVertex(sourceGraphVertexId, authorizations);
+    @Handle
+    public ClientApiElement handle(
+            @Optional(name = "edgeId") String edgeId,
+            @Required(name = "outVertexId") String outVertexId,
+            @Required(name = "inVertexId") String inVertexId,
+            @Required(name = "predicateLabel") String predicateLabel,
+            @Required(name = "visibilitySource") String visibilitySource,
+            @JustificationText String justificationText,
+            ClientApiSourceInfo sourceInfo,
+            @ActiveWorkspaceId String workspaceId,
+            ResourceBundle resourceBundle,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
+        Vertex inVertex = graph.getVertex(inVertexId, authorizations);
+        Vertex outVertex = graph.getVertex(outVertexId, authorizations);
 
         if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            respondWithBadRequest(response, "visibilitySource", getString(request, "visibility.invalid"));
-            chain.next(request, response);
-            return;
+            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
         Edge edge = graphRepository.addEdge(
                 edgeId,
-                sourceVertex,
-                destVertex,
+                outVertex,
+                inVertex,
                 predicateLabel,
                 justificationText,
-                ClientApiSourceInfo.fromString(sourceInfoString),
+                sourceInfo,
                 visibilitySource,
                 workspaceId,
                 user,
@@ -87,6 +83,6 @@ public class EdgeCreate extends BaseRequestHandler {
 
         workQueueRepository.broadcastElement(edge, workspaceId);
         workQueueRepository.pushElement(edge, Priority.HIGH);
-        respondWithClientApiObject(response, ClientApiConverter.toClientApi(edge, workspaceId, authorizations));
+        return ClientApiConverter.toClientApi(edge, workspaceId, authorizations);
     }
 }

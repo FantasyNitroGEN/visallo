@@ -6,7 +6,6 @@ import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.web.BaseRequestHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +20,23 @@ public class BaseUrlParameterProviderFactory extends ParameterProviderFactory<St
         parameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-                return BaseRequestHandler.getBaseUrl(request, configuration);
+                String configuredBaseUrl = configuration.get(Configuration.BASE_URL, null);
+                if (configuredBaseUrl != null && configuredBaseUrl.trim().length() > 0) {
+                    return configuredBaseUrl;
+                }
+
+                String scheme = request.getScheme();
+                String serverName = request.getServerName();
+                int port = request.getServerPort();
+                String contextPath = request.getContextPath();
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(scheme).append("://").append(serverName);
+                if (!(scheme.equals("http") && port == 80 || scheme.equals("https") && port == 443)) {
+                    sb.append(":").append(port);
+                }
+                sb.append(contextPath);
+                return sb.toString();
             }
         };
     }

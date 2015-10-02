@@ -144,7 +144,7 @@ public class GraphRepository {
             termMentionRepository.removeSourceInfoEdge(element, propertyKey, propertyName, visalloVisibility, authorizations);
             VisalloProperties.JUSTIFICATION_METADATA.setMetadata(propertyMetadata, propertyJustificationMetadata, defaultVisibility);
         } else if (sourceInfo != null) {
-            Vertex sourceVertex = graph.getVertex(sourceInfo.vertexId, authorizations);
+            Vertex outVertex = graph.getVertex(sourceInfo.vertexId, authorizations);
             VisalloProperties.JUSTIFICATION.removeMetadata(propertyMetadata);
             termMentionRepository.addSourceInfo(
                     element,
@@ -157,7 +157,7 @@ public class GraphRepository {
                     sourceInfo.textPropertyKey,
                     sourceInfo.startOffset,
                     sourceInfo.endOffset,
-                    sourceVertex,
+                    outVertex,
                     propertyVisibility,
                     authorizations
             );
@@ -236,8 +236,8 @@ public class GraphRepository {
 
     public Edge addEdge(
             String edgeId,
-            Vertex sourceVertex,
-            Vertex destVertex,
+            Vertex outVertex,
+            Vertex inVertex,
             String predicateLabel,
             String justificationText,
             ClientApiSourceInfo sourceInfo,
@@ -251,9 +251,9 @@ public class GraphRepository {
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
         ElementBuilder<Edge> edgeBuilder;
         if (edgeId == null) {
-            edgeBuilder = graph.prepareEdge(sourceVertex, destVertex, predicateLabel, visalloVisibility.getVisibility());
+            edgeBuilder = graph.prepareEdge(outVertex, inVertex, predicateLabel, visalloVisibility.getVisibility());
         } else{
-            edgeBuilder = graph.prepareEdge(edgeId, sourceVertex, destVertex, predicateLabel, visalloVisibility.getVisibility());
+            edgeBuilder = graph.prepareEdge(edgeId, outVertex, inVertex, predicateLabel, visalloVisibility.getVisibility());
         }
         VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visalloVisibility.getVisibility());
         VisalloProperties.CONCEPT_TYPE.setProperty(edgeBuilder, OntologyRepository.TYPE_RELATIONSHIP, visalloVisibility.getVisibility());

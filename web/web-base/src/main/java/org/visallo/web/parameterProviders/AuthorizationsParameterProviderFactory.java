@@ -28,18 +28,22 @@ public class AuthorizationsParameterProviderFactory extends ParameterProviderFac
         parameterProvider = new VisalloBaseParameterProvider<Authorizations>(userRepository, configuration) {
             @Override
             public Authorizations getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-                String workspaceId = getWorkspaceIdOrDefault(request);
-                User user = getUser(request);
-                if (workspaceId != null) {
-                    if (!workspaceRepository.hasReadPermissions(workspaceId, user)) {
-                        throw new VisalloAccessDeniedException("You do not have access to workspace: " + workspaceId, user, workspaceId);
-                    }
-                    return getUserRepository().getAuthorizations(user, workspaceId);
-                }
-
-                return getUserRepository().getAuthorizations(user);
+                return getAuthorizations(request, getUserRepository(), workspaceRepository);
             }
         };
+    }
+
+    public static Authorizations getAuthorizations(HttpServletRequest request, UserRepository userRepository, WorkspaceRepository workspaceRepository) {
+        String workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
+        User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+        if (workspaceId != null) {
+            if (!workspaceRepository.hasReadPermissions(workspaceId, user)) {
+                throw new VisalloAccessDeniedException("You do not have access to workspace: " + workspaceId, user, workspaceId);
+            }
+            return userRepository.getAuthorizations(user, workspaceId);
+        }
+
+        return userRepository.getAuthorizations(user);
     }
 
     @Override

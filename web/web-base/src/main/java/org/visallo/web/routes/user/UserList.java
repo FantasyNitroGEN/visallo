@@ -1,20 +1,19 @@
 package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
-import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.WorkspaceUser;
 import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiUsers;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,37 +22,40 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.vertexium.util.IterableUtils.toList;
 
-public class UserList extends BaseRequestHandler {
+public class UserList implements ParameterizedHandler {
+    private final UserRepository userRepository;
+    private final WorkspaceRepository workspaceRepository;
+
     @Inject
     public UserList(
             final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final WorkspaceRepository workspaceRepository
+    ) {
+        this.userRepository = userRepository;
+        this.workspaceRepository = workspaceRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String query = getOptionalParameter(request, "q");
-        String workspaceId = getOptionalParameter(request, "workspaceId");
-        String[] userIds = getOptionalParameterArray(request, "userIds[]");
-        User user = getUser(request);
-
+    @Handle
+    public ClientApiUsers handle(
+            User user,
+            @Optional(name = "q") String query,
+            @Optional(name = "workspaceId") String workspaceId,
+            @Optional(name = "userIds[]") String[] userIds
+    ) throws Exception {
         List<User> users;
         if (userIds != null) {
             checkArgument(query == null, "Cannot use userIds[] and q at the same time");
             checkArgument(workspaceId == null, "Cannot use userIds[] and workspaceId at the same time");
             users = new ArrayList<>();
             for (String userId : userIds) {
-                User u = getUserRepository().findById(userId);
+                User u = userRepository.findById(userId);
                 if (u == null) {
-                    respondWithNotFound(response, "User " + userId + " not found");
-                    return;
+                    throw new VisalloResourceNotFoundException("User " + userId + " not found");
                 }
                 users.add(u);
             }
         } else {
-            users = toList(getUserRepository().find(query));
+            users = toList(userRepository.find(query));
 
             if (workspaceId != null) {
                 users = toList(getUsersWithWorkspaceAccess(workspaceId, users, user));
@@ -63,13 +65,13 @@ public class UserList extends BaseRequestHandler {
         Iterable<String> workspaceIds = getCurrentWorkspaceIds(users);
         Map<String, String> workspaceNames = getWorkspaceNames(workspaceIds, user);
 
-        ClientApiUsers clientApiUsers = getUserRepository().toClientApi(users, workspaceNames);
-        respondWithClientApiObject(response, clientApiUsers);
+        ClientApiUsers clientApiUsers = userRepository.toClientApi(users, workspaceNames);
+        return clientApiUsers;
     }
 
     private Map<String, String> getWorkspaceNames(Iterable<String> workspaceIds, User user) {
         Map<String, String> result = new HashMap<>();
-        for (Workspace workspace : getWorkspaceRepository().findByIds(workspaceIds, user)) {
+        for (Workspace workspace : workspaceRepository.findByIds(workspaceIds, user)) {
             if (workspace != null) {
                 result.put(workspace.getWorkspaceId(), workspace.getDisplayTitle());
             }
@@ -87,7 +89,7 @@ public class UserList extends BaseRequestHandler {
     }
 
     private Iterable<User> getUsersWithWorkspaceAccess(String workspaceId, final Iterable<User> users, User user) {
-        final List<WorkspaceUser> usersWithAccess = getWorkspaceRepository().findUsersWithAccess(workspaceId, user);
+        final List<WorkspaceUser> usersWithAccess = workspaceRepository.findUsersWithAccess(workspaceId, user);
         return new FilterIterable<User>(users) {
             @Override
             protected boolean isIncluded(User u) {

@@ -1,27 +1,28 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
+import org.vertexium.*;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.BadRequestException;
+import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiVertexPropertyDetails;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.*;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.ResourceBundle;
 
-public class VertexPropertyDetails extends BaseRequestHandler {
+public class VertexPropertyDetails implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexPropertyDetails.class);
     private final Graph graph;
     private final VisibilityTranslator visibilityTranslator;
@@ -29,35 +30,31 @@ public class VertexPropertyDetails extends BaseRequestHandler {
 
     @Inject
     public VertexPropertyDetails(
-            UserRepository userRepository,
-            WorkspaceRepository workspaceRepository,
-            Configuration configuration,
             Graph graph,
             VisibilityTranslator visibilityTranslator,
             TermMentionRepository termMentionRepository
     ) {
-        super(userRepository, workspaceRepository, configuration);
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
         this.termMentionRepository = termMentionRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String vertexId = getRequiredParameter(request, "vertexId");
-        String propertyName = getRequiredParameter(request, "propertyName");
-        String visibilitySource = getRequiredParameter(request, "visibilitySource");
-        String propertyKey = getOptionalParameter(request, "propertyKey");
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-        String workspaceId = getActiveWorkspaceId(request);
-
+    @Handle
+    public ClientApiVertexPropertyDetails handle(
+            @Required(name = "vertexId") String vertexId,
+            @Optional(name = "propertyKey") String propertyKey,
+            @Required(name = "propertyName") String propertyName,
+            @Required(name = "visibilitySource") String visibilitySource,
+            @ActiveWorkspaceId String workspaceId,
+            ResourceBundle resourceBundle,
+            User user,
+            Authorizations authorizations,
+            VisalloResponse response
+    ) throws Exception {
         Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
         if (!graph.isVisibilityValid(visibility, authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            respondWithBadRequest(response, "visibilitySource", getString(request, "visibility.invalid"));
-            chain.next(request, response);
-            return;
+            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
         Vertex vertex = this.graph.getVertex(vertexId, authorizations);
@@ -81,7 +78,6 @@ public class VertexPropertyDetails extends BaseRequestHandler {
 
         ClientApiVertexPropertyDetails result = new ClientApiVertexPropertyDetails();
         result.sourceInfo = sourceInfo;
-
-        respondWithClientApiObject(response, result);
+        return result;
     }
 }

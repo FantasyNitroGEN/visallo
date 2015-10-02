@@ -67,7 +67,7 @@ public class VertexOffsetItem extends OffsetItem {
     }
 
     @Override
-    public String getSourceVertexId() {
+    public String getOutVertexId() {
         return singleOrDefault(termMention.getVertexIds(Direction.IN, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, this.authorizations), null);
     }
 

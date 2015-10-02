@@ -12,7 +12,6 @@ import org.visallo.core.model.workspace.WorkspaceEntity;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceVertices;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
@@ -32,11 +31,10 @@ public class WorkspaceVertices implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public ClientApiWorkspaceVertices handle(
             User user,
             Authorizations authorizations,
-            @ActiveWorkspaceId String workspaceId,
-            VisalloResponse response
+            @ActiveWorkspaceId String workspaceId
     ) throws Exception {
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
         final List<WorkspaceEntity> workspaceEntities = workspaceRepository.findEntities(workspace, user);
@@ -44,7 +42,7 @@ public class WorkspaceVertices implements ParameterizedHandler {
         Iterable<Vertex> graphVertices = graph.getVertices(vertexIds, ClientApiConverter.SEARCH_FETCH_HINTS, authorizations);
         ClientApiWorkspaceVertices results = new ClientApiWorkspaceVertices();
         results.getVertices().addAll(ClientApiConverter.toClientApiVertices(graphVertices, workspaceId, authorizations));
-        response.respondWithClientApiObject(results);
+        return results;
     }
 
     private LookAheadIterable<WorkspaceEntity, String> getVisibleWorkspaceEntityIds(final List<WorkspaceEntity> workspaceEntities) {

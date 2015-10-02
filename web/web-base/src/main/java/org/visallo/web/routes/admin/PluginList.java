@@ -1,7 +1,8 @@
 package org.visallo.web.routes.admin;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.lib.LibLoader;
@@ -11,28 +12,22 @@ import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.PostMimeTypeWorker;
 import org.visallo.core.ingest.graphProperty.TermMentionFilter;
 import org.visallo.core.model.user.UserListener;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.util.ServiceLoaderUtil;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.WebAppPlugin;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 
-public class PluginList extends BaseRequestHandler {
+public class PluginList implements ParameterizedHandler {
+    private final Configuration configuration;
+
     @Inject
-    public PluginList(
-            UserRepository userRepository,
-            WorkspaceRepository workspaceRepository,
-            Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public PluginList(Configuration configuration) {
+        this.configuration = configuration;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+    @Handle
+    public JSONObject handle() throws Exception {
         JSONObject json = new JSONObject();
 
         json.put("loadedLibFiles", getLoadedLibFilesJson());
@@ -44,12 +39,12 @@ public class PluginList extends BaseRequestHandler {
         json.put("termMentionFilters", getTermMentionFiltersJson());
         json.put("webAppPlugins", getWebAppPluginsJson());
 
-        respondWithJson(response, json);
+        return json;
     }
 
     private JSONArray getUserListenersJson() {
         JSONArray json = new JSONArray();
-        for (Class<? extends UserListener> userListenerClass : ServiceLoaderUtil.loadClasses(UserListener.class, getConfiguration())) {
+        for (Class<? extends UserListener> userListenerClass : ServiceLoaderUtil.loadClasses(UserListener.class, configuration)) {
             json.put(getUserListenerJson(userListenerClass));
         }
         return json;
@@ -63,7 +58,7 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getGraphPropertyWorkersJson() {
         JSONArray json = new JSONArray();
-        for (Class<? extends GraphPropertyWorker> graphPropertyWorkerClass : ServiceLoaderUtil.loadClasses(GraphPropertyWorker.class, getConfiguration())) {
+        for (Class<? extends GraphPropertyWorker> graphPropertyWorkerClass : ServiceLoaderUtil.loadClasses(GraphPropertyWorker.class, configuration)) {
             json.put(getGraphPropertyWorkerJson(graphPropertyWorkerClass));
         }
         return json;
@@ -77,7 +72,7 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getPostMimeTypeWorkersJson() {
         JSONArray json = new JSONArray();
-        for (Class<? extends PostMimeTypeWorker> postMimeTypeWorkerClass : ServiceLoaderUtil.loadClasses(PostMimeTypeWorker.class, getConfiguration())) {
+        for (Class<? extends PostMimeTypeWorker> postMimeTypeWorkerClass : ServiceLoaderUtil.loadClasses(PostMimeTypeWorker.class, configuration)) {
             json.put(getPostMimeTypeWorkerJson(postMimeTypeWorkerClass));
         }
         return json;
@@ -105,7 +100,7 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getLibLoadersJson() {
         JSONArray json = new JSONArray();
-        for (Class<? extends LibLoader> libLoaderClass : ServiceLoaderUtil.loadClasses(LibLoader.class, getConfiguration())) {
+        for (Class<? extends LibLoader> libLoaderClass : ServiceLoaderUtil.loadClasses(LibLoader.class, configuration)) {
             json.put(getLibLoaderJson(libLoaderClass));
         }
         return json;
@@ -119,7 +114,7 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getFileImportSupportingFileHandlersJson() {
         JSONArray json = new JSONArray();
-        for (Class<? extends FileImportSupportingFileHandler> fileImportSupportingFileHandlerClass : ServiceLoaderUtil.loadClasses(FileImportSupportingFileHandler.class, getConfiguration())) {
+        for (Class<? extends FileImportSupportingFileHandler> fileImportSupportingFileHandlerClass : ServiceLoaderUtil.loadClasses(FileImportSupportingFileHandler.class, configuration)) {
             json.put(getFileImportSupportingFileHandlerJson(fileImportSupportingFileHandlerClass));
         }
         return json;
@@ -133,7 +128,7 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getTermMentionFiltersJson() {
         JSONArray json = new JSONArray();
-        for (Class<? extends TermMentionFilter> termMentionFilterClass : ServiceLoaderUtil.loadClasses(TermMentionFilter.class, getConfiguration())) {
+        for (Class<? extends TermMentionFilter> termMentionFilterClass : ServiceLoaderUtil.loadClasses(TermMentionFilter.class, configuration)) {
             json.put(getTermMentionFilterJson(termMentionFilterClass));
         }
         return json;
@@ -147,7 +142,7 @@ public class PluginList extends BaseRequestHandler {
 
     private JSONArray getWebAppPluginsJson() {
         JSONArray json = new JSONArray();
-        for (Class<? extends WebAppPlugin> webAppPluginClass : ServiceLoaderUtil.loadClasses(WebAppPlugin.class, getConfiguration())) {
+        for (Class<? extends WebAppPlugin> webAppPluginClass : ServiceLoaderUtil.loadClasses(WebAppPlugin.class, configuration)) {
             json.put(getWebAppPluginJson(webAppPluginClass));
         }
         return json;

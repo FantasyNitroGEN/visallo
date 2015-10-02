@@ -79,8 +79,8 @@ define([
                 return {
                     edgeId: fullEdge.id,
                     label: fullEdge.label,
-                    inVertexId: fullEdge.destVertexId,
-                    outVertexId: fullEdge.sourceVertexId
+                    inVertexId: fullEdge.inVertexId,
+                    outVertexId: fullEdge.outVertexId
                 };
             },
             generateCompoundEdgeId = function(edge) {

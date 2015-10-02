@@ -69,7 +69,7 @@ public class InjectHelper {
         return injector != null;
     }
 
-    public static interface ModuleMaker {
+    public interface ModuleMaker {
         Module createModule();
 
         Configuration getConfiguration();

@@ -1,46 +1,41 @@
 package org.visallo.termsOfUse;
 
 import com.google.inject.Inject;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
+import org.apache.commons.codec.binary.Hex;
+import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
-import org.apache.commons.codec.binary.Hex;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class TermsOfUse extends BaseRequestHandler {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TermsOfUse.class);
-    private JSONObject termsJson;
-    private String termsHash;
-
+public class TermsOfUse implements ParameterizedHandler {
     public static final String TITLE_PROPERTY = "termsOfUse.title";
     public static final String DEFAULT_TITLE = "Terms of Use";
     public static final String HTML_PROPERTY = "termsOfUse.html";
     public static final String DEFAULT_HTML = "<p>These are the terms to which you must agree before using Visallo:</p><p>With great power comes great responsibility. Please use Visallo responsibly.</p>";
     public static final String DATE_PROPERTY = "termsOfUse.date";
     public static final String DATE_PROPERTY_FORMAT = "yyyy-MM-dd";
-
     private static final String UI_PREFERENCE_KEY = "termsOfUse";
     private static final String UI_PREFERENCE_HASH_SUBKEY = "hash";
     private static final String UI_PREFERENCE_DATE_SUBKEY = "date";
+    private JSONObject termsJson;
+    private String termsHash;
+    private UserRepository userRepository;
 
     @Inject
-    protected TermsOfUse(UserRepository userRepository, WorkspaceRepository workspaceRepository, Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
-
+    protected TermsOfUse(Configuration configuration,
+                         UserRepository userRepository) {
+        this.userRepository = userRepository;
         String title = configuration.get(TITLE_PROPERTY, DEFAULT_TITLE);
         String html = configuration.get(HTML_PROPERTY, DEFAULT_HTML);
         termsHash = hash(html);
@@ -64,22 +59,23 @@ public class TermsOfUse extends BaseRequestHandler {
         }
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-
+    @Handle
+    public JSONObject handle(
+            @Required(name = "hash") String hash,
+            HttpServletRequest request,
+            User user
+    ) throws Exception {
         if (request.getMethod().equals("POST")) {
-            recordAcceptance(user, getRequiredParameter(request, "hash"));
+            recordAcceptance(user, hash);
             JSONObject successJson = new JSONObject();
             successJson.put("success", true);
             successJson.put("message", "Terms of Use accepted.");
-            respondWithJson(response, successJson);
-        } else {
-            JSONObject termsAndStatus = new JSONObject();
-            termsAndStatus.put("terms", termsJson);
-            termsAndStatus.put("status", getStatus(user));
-            respondWithJson(response, termsAndStatus);
+            return successJson;
         }
+        JSONObject termsAndStatus = new JSONObject();
+        termsAndStatus.put("terms", termsJson);
+        termsAndStatus.put("status", getStatus(user));
+        return termsAndStatus;
     }
 
     private String hash(String s) {
@@ -104,7 +100,7 @@ public class TermsOfUse extends BaseRequestHandler {
         touJson.put(UI_PREFERENCE_HASH_SUBKEY, hash);
         touJson.put(UI_PREFERENCE_DATE_SUBKEY, new Date());
         uiPreferences.put(UI_PREFERENCE_KEY, touJson);
-        getUserRepository().setUiPreferences(user, uiPreferences);
+        userRepository.setUiPreferences(user, uiPreferences);
     }
 
     private JSONObject getStatus(User user) {

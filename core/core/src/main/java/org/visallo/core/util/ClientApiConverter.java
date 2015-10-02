@@ -104,8 +104,8 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
 
     public static void populateClientApiEdge(ClientApiEdge e, Edge edge, String workspaceId) {
         e.setLabel(edge.getLabel());
-        e.setSourceVertexId(edge.getVertexId(Direction.OUT));
-        e.setDestVertexId(edge.getVertexId(Direction.IN));
+        e.setOutVertexId(edge.getVertexId(Direction.OUT));
+        e.setInVertexId(edge.getVertexId(Direction.IN));
 
         populateClientApiElement(e, edge, workspaceId);
     }

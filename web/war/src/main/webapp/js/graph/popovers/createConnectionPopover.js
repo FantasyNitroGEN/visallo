@@ -150,8 +150,8 @@ define([
                     .text('Connecting...')
                     .attr('disabled', true),
                 parameters = {
-                    sourceGraphVertexId: this.attr.sourceVertexId,
-                    destGraphVertexId: this.attr.targetVertexId,
+                    outVertexId: this.attr.outVertexId,
+                    inVertexId: this.attr.inVertexId,
                     predicateLabel: $target.siblings('select').val(),
                     visibilitySource: this.visibilitySource.value
                 },
@@ -160,8 +160,8 @@ define([
 
             if (this.attr.otherCyNode.id() !== this.attr.edge.data('source')) {
                 // Invert
-                parameters.sourceGraphVertexId = this.attr.targetVertexId;
-                parameters.destGraphVertexId = this.attr.sourceVertexId;
+                parameters.outVertexId = this.attr.inVertexId;
+                parameters.inVertexId = this.attr.outVertexId;
             }
 
             this.attr.teardownOnTap = false;

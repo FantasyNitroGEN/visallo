@@ -6,69 +6,58 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.trace.Trace;
 import org.visallo.core.trace.TraceSpan;
-import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiVertexEdges;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
-public class VertexEdges extends BaseRequestHandler {
+public class VertexEdges implements ParameterizedHandler {
     private final Graph graph;
 
     @Inject
-    public VertexEdges(
-            final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public VertexEdges(final Graph graph) {
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-        String workspaceId = getActiveWorkspaceId(request);
-
-        String graphVertexId = getAttributeString(request, "graphVertexId");
-        int offset = getOptionalParameterInt(request, "offset", 0);
-        int size = getOptionalParameterInt(request, "size", 25);
-        String edgeLabel = getOptionalParameter(request, "edgeLabel");
-        String relatedVertexId = getOptionalParameter(request, "relatedVertexId");
-
+    @Handle
+    public ClientApiVertexEdges handle(
+            @Required(name = "graphVertexId") String graphVertexId,
+            @Optional(name = "offset", defaultValue = "0") int offset,
+            @Optional(name = "size", defaultValue = "25") int size,
+            @Optional(name = "edgeLabel") String edgeLabel,
+            @Optional(name = "relatedVertexId") String relatedVertexId,
+            @ActiveWorkspaceId String workspaceId,
+            Authorizations authorizations
+    ) throws Exception {
         Vertex vertex;
         Vertex relatedVertex = null;
         try (TraceSpan trace = Trace.start("getOriginalVertex").data("graphVertexId", graphVertexId)) {
             vertex = graph.getVertex(graphVertexId, authorizations);
             if (vertex == null) {
-                respondWithNotFound(response);
-                return;
+                throw new VisalloResourceNotFoundException("Could not find vertex: " + graphVertexId);
             }
         }
 
         List<String> edgeIds;
         if (edgeLabel == null && relatedVertexId == null) {
             edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, authorizations));
-        } else if (relatedVertexId == null){
+        } else if (relatedVertexId == null) {
             edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, edgeLabel, authorizations));
         } else {
             relatedVertex = graph.getVertex(relatedVertexId, authorizations);
             if (relatedVertex == null) {
-                respondWithNotFound(response);
-                return;
+                throw new VisalloResourceNotFoundException("Could not find related vertex: " + relatedVertexId);
             }
 
             if (edgeLabel == null) {
@@ -106,7 +95,7 @@ public class VertexEdges extends BaseRequestHandler {
         }
         result.setTotalReferences(totalEdgeCount);
 
-        respondWithClientApiObject(response, result);
+        return result;
     }
 
     private Map<String, Vertex> getVertices(final String myVertexId, List<Edge> edges, Authorizations authorizations) {

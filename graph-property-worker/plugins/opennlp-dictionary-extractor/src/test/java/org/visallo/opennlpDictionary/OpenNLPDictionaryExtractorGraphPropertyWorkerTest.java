@@ -80,7 +80,7 @@ public class OpenNLPDictionaryExtractorGraphPropertyWorkerTest extends GraphProp
                 + "Bob Robertson who lives in Boston, MA and works for a company called V5 Analytics";
         worker.execute(new ByteArrayInputStream(text.getBytes()), workData);
 
-        List<Vertex> termMentions = toList(termMentionRepository.findBySourceGraphVertex(vertex.getId(),
+        List<Vertex> termMentions = toList(termMentionRepository.findByOutVertex(vertex.getId(),
                 termMentionAuthorizations));
 
         assertEquals(3, termMentions.size());

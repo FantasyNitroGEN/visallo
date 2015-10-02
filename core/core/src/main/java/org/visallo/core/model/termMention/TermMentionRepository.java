@@ -28,9 +28,9 @@ public class TermMentionRepository {
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
     }
 
-    public Iterable<Vertex> findBySourceGraphVertexAndPropertyKey(String sourceVertexId, final String propertyKey, Authorizations authorizations) {
+    public Iterable<Vertex> findByOutVertexAndPropertyKey(String outVertexId, final String propertyKey, Authorizations authorizations) {
         authorizations = getAuthorizations(authorizations);
-        return new FilterIterable<Vertex>(findBySourceGraphVertex(sourceVertexId, authorizations)) {
+        return new FilterIterable<Vertex>(findByOutVertex(outVertexId, authorizations)) {
             @Override
             protected boolean isIncluded(Vertex v) {
                 String vertexPropertyKey = VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(v);
@@ -39,10 +39,10 @@ public class TermMentionRepository {
         };
     }
 
-    public Iterable<Vertex> findBySourceGraphVertex(String sourceVertexId, Authorizations authorizations) {
+    public Iterable<Vertex> findByOutVertex(String outVertexId, Authorizations authorizations) {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
-        Vertex sourceVertex = graph.getVertex(sourceVertexId, authorizationsWithTermMention);
-        return sourceVertex.getVertices(Direction.OUT, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, authorizationsWithTermMention);
+        Vertex outVertex = graph.getVertex(outVertexId, authorizationsWithTermMention);
+        return outVertex.getVertices(Direction.OUT, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, authorizationsWithTermMention);
     }
 
     /**
@@ -202,10 +202,10 @@ public class TermMentionRepository {
         }
     }
 
-    public Iterable<Vertex> findResolvedTo(String destVertexId, Authorizations authorizations) {
+    public Iterable<Vertex> findResolvedTo(String inVertexId, Authorizations authorizations) {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
-        Vertex destVertex = graph.getVertex(destVertexId, authorizationsWithTermMention);
-        return destVertex.getVertices(Direction.IN, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, authorizationsWithTermMention);
+        Vertex inVertex = graph.getVertex(inVertexId, authorizationsWithTermMention);
+        return inVertex.getVertices(Direction.IN, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, authorizationsWithTermMention);
     }
 
     public void delete(Vertex termMention, Authorizations authorizations) {
@@ -229,10 +229,10 @@ public class TermMentionRepository {
         graph.markVertexHidden(termMention, hiddenVisibility, authorizationsWithTermMention);
     }
 
-    public Iterable<Vertex> findByEdgeId(String sourceVertexId, final String edgeId, Authorizations authorizations) {
+    public Iterable<Vertex> findByEdgeId(String outVertexId, final String edgeId, Authorizations authorizations) {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
-        Vertex sourceVertex = graph.getVertex(sourceVertexId, authorizationsWithTermMention);
-        return new FilterIterable<Vertex>(sourceVertex.getVertices(Direction.OUT, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, authorizationsWithTermMention)) {
+        Vertex outVertex = graph.getVertex(outVertexId, authorizationsWithTermMention);
+        return new FilterIterable<Vertex>(outVertex.getVertices(Direction.OUT, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, authorizationsWithTermMention)) {
             @Override
             protected boolean isIncluded(Vertex v) {
                 String vertexEdgeId = VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID.getPropertyValue(v);
@@ -241,7 +241,7 @@ public class TermMentionRepository {
         };
     }
 
-    public Vertex findSourceVertex(Vertex termMention, Authorizations authorizations) {
+    public Vertex findOutVertex(Vertex termMention, Authorizations authorizations) {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
         return singleOrDefault(termMention.getVertices(Direction.IN, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, authorizationsWithTermMention), null);
     }
@@ -262,7 +262,7 @@ public class TermMentionRepository {
             removeSourceInfoEdgeFromVertex(vertex.getId(), vertex.getId(), null, null, visalloVisibility, authorizations);
             VisalloProperties.JUSTIFICATION.setProperty(vertex, propertyJustificationMetadata, visalloVisibility.getVisibility(), authorizations);
         } else if (sourceInfo != null) {
-            Vertex sourceVertex = graph.getVertex(sourceInfo.vertexId, authorizations);
+            Vertex outVertex = graph.getVertex(sourceInfo.vertexId, authorizations);
             VisalloProperties.JUSTIFICATION.removeProperty(vertex, authorizations);
             addSourceInfoToVertex(
                     vertex,
@@ -275,7 +275,7 @@ public class TermMentionRepository {
                     sourceInfo.textPropertyKey,
                     sourceInfo.startOffset,
                     sourceInfo.endOffset,
-                    sourceVertex,
+                    outVertex,
                     visalloVisibility.getVisibility(),
                     authorizations
             );
@@ -293,7 +293,7 @@ public class TermMentionRepository {
             String textPropertyKey,
             long startOffset,
             long endOffset,
-            Vertex sourceVertex,
+            Vertex outVertex,
             Visibility visibility,
             Authorizations authorizations
     ) {
@@ -309,7 +309,7 @@ public class TermMentionRepository {
                     textPropertyKey,
                     startOffset,
                     endOffset,
-                    sourceVertex,
+                    outVertex,
                     visibility,
                     authorizations
             );
@@ -325,7 +325,7 @@ public class TermMentionRepository {
                     textPropertyKey,
                     startOffset,
                     endOffset,
-                    sourceVertex,
+                    outVertex,
                     visibility,
                     authorizations
             );
@@ -343,12 +343,12 @@ public class TermMentionRepository {
             String textPropertyKey,
             long startOffset,
             long endOffset,
-            Vertex sourceVertex,
+            Vertex outVertex,
             Visibility visibility,
             Authorizations authorizations
     ) {
         visibility = VisalloVisibility.and(visibility, VISIBILITY_STRING);
-        String termMentionVertexId = vertex.getId() + "hasSource" + sourceVertex.getId();
+        String termMentionVertexId = vertex.getId() + "hasSource" + outVertex.getId();
         if (propertyKey != null) {
             termMentionVertexId += ":" + propertyKey;
         }
@@ -376,7 +376,7 @@ public class TermMentionRepository {
         VisalloProperties.TERM_MENTION_END_OFFSET.setProperty(m, endOffset, visibility);
         Vertex termMention = m.save(authorizations);
 
-        graph.addEdge(VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION + termMentionVertexId, sourceVertex, termMention, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility, authorizations);
+        graph.addEdge(VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION + termMentionVertexId, outVertex, termMention, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility, authorizations);
         graph.addEdge(VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO + termMentionVertexId, termMention, vertex, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, visibility, authorizations);
 
         graph.flush();
@@ -394,7 +394,7 @@ public class TermMentionRepository {
             String textPropertyKey,
             long startOffset,
             long endOffset,
-            Vertex sourceVertex,
+            Vertex originalVertex,
             Visibility visibility,
             Authorizations authorizations
     ) {
@@ -411,7 +411,7 @@ public class TermMentionRepository {
                 textPropertyKey,
                 startOffset,
                 endOffset,
-                sourceVertex,
+                originalVertex,
                 visibility,
                 authorizations
         );
@@ -426,7 +426,7 @@ public class TermMentionRepository {
                 textPropertyKey,
                 startOffset,
                 endOffset,
-                sourceVertex,
+                originalVertex,
                 visibility,
                 authorizations
         );

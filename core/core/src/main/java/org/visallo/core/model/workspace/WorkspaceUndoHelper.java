@@ -95,9 +95,9 @@ public class WorkspaceUndoHelper {
                 if (edge == null) {
                     continue;
                 }
-                Vertex sourceVertex = edge.getVertex(Direction.OUT, authorizations);
-                Vertex destVertex = edge.getVertex(Direction.IN, authorizations);
-                if (sourceVertex == null || destVertex == null) {
+                Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
+                Vertex inVertex = edge.getVertex(Direction.IN, authorizations);
+                if (outVertex == null || inVertex == null) {
                     continue;
                 }
 
@@ -115,7 +115,7 @@ public class WorkspaceUndoHelper {
                     undoItem.setErrorMessage(error_msg);
                     workspaceUndoResponse.addFailure(undoItem);
                 } else {
-                    workspaceHelper.deleteEdge(workspaceId, edge, sourceVertex, destVertex, false, Priority.HIGH, authorizations, user);
+                    workspaceHelper.deleteEdge(workspaceId, edge, outVertex, inVertex, false, Priority.HIGH, authorizations, user);
                     graph.flush();
                     workQueueRepository.broadcastUndoEdge(edge);
                 }

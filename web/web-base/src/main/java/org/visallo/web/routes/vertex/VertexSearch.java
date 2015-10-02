@@ -4,6 +4,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.vertexium.Authorizations;
@@ -13,41 +15,50 @@ import org.vertexium.query.CompositeGraphQuery;
 import org.vertexium.query.Query;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class VertexSearch extends VertexSearchBase {
+public class VertexSearch extends VertexSearchBase implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSearch.class);
 
     @Inject
     public VertexSearch(
             OntologyRepository ontologyRepository,
             Graph graph,
-            UserRepository userRepository,
-            Configuration configuration,
-            WorkspaceRepository workspaceRepository
+            Configuration configuration
     ) {
-        super(ontologyRepository, graph, userRepository, configuration, workspaceRepository);
+        super(ontologyRepository, graph, configuration);
+    }
+
+    @Override
+    @Handle
+    public ClientApiVertexSearchResponse handle(
+            HttpServletRequest request,
+            @ActiveWorkspaceId String workspaceId,
+            Authorizations authorizations
+    ) throws Exception {
+        return super.handle(request, workspaceId, authorizations);
     }
 
     @Override
     protected QueryAndData getQuery(HttpServletRequest request, final Authorizations authorizations) {
-        final String[] relatedToVertexIdsParam = getOptionalParameterArray(request, "relatedToVertexIds[]");
+        final String[] relatedToVertexIdsParam = VisalloBaseParameterProvider.getOptionalParameterArray(request, "relatedToVertexIds[]");
         final JSONArray filterJson = getFilterJson(request);
         final List<String> relatedToVertexIds;
         final String queryString;
         if (relatedToVertexIdsParam == null) {
-            queryString = getRequiredParameter(request, "q");
+            queryString = VisalloBaseParameterProvider.getRequiredParameter(request, "q");
             relatedToVertexIds = ImmutableList.of();
         } else {
-            queryString = getOptionalParameter(request, "q");
+            queryString = VisalloBaseParameterProvider.getOptionalParameter(request, "q");
             relatedToVertexIds = ImmutableList.copyOf(relatedToVertexIdsParam);
         }
         LOGGER.debug("search %s\n%s", queryString, filterJson.toString(2));

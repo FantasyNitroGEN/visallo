@@ -1,22 +1,20 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.utils.UrlUtils;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
-import org.visallo.web.BaseRequestHandler;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.web.VisalloResponse;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,58 +23,43 @@ import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class VertexGetPropertyValue extends BaseRequestHandler {
+public class VertexGetPropertyValue implements ParameterizedHandler {
     private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=([0-9]*)-([0-9]*)");
     private Graph graph;
 
     @Inject
     public VertexGetPropertyValue(
-            final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final Graph graph
+    ) {
         this.graph = graph;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+    @Handle
+    public void handle(
+            @Required(name = "graphVertexId") String graphVertexId,
+            @Required(name = "propertyKey") String propertyKey,
+            @Required(name = "propertyName") String propertyName,
+            @Optional(name = "Range") String range,
+            @Optional(name = "download", defaultValue = "false") boolean download,
+            @Optional(name = "playback", defaultValue = "false") boolean playback,
+            Authorizations authorizations,
+            VisalloResponse response
+    ) throws Exception {
         PlaybackOptions playbackOptions = new PlaybackOptions();
-        String graphVertexId = UrlUtils.urlDecode(getAttributeString(request, "graphVertexId"));
-        String propertyName = UrlUtils.urlDecode(getAttributeString(request, "propertyName"));
-        String propertyKey = UrlUtils.urlDecode(getAttributeString(request, "propertyKey"));
-        playbackOptions.range = getOptionalParameter(request, "Range");
-        playbackOptions.download = getOptionalParameter(request, "download") != null;
-        playbackOptions.playback = getOptionalParameter(request, "playback") != null;
+        playbackOptions.range = range;
+        playbackOptions.download = download;
+        playbackOptions.playback = playback;
 
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-        handle(response, graphVertexId, propertyName, propertyKey, playbackOptions, authorizations);
-    }
-
-    public class PlaybackOptions {
-        public String range;
-        public boolean download;
-        public boolean playback;
-    }
-
-    public void handle(HttpServletResponse response, String graphVertexId, String propertyName, String propertyKey, PlaybackOptions playbackOptions, Authorizations authorizations) throws IOException {
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         if (vertex == null) {
-            respondWithNotFound(response, String.format("vertex %s not found", graphVertexId));
-            return;
+            throw new VisalloResourceNotFoundException(String.format("vertex %s not found", graphVertexId));
         }
 
         Property property = vertex.getProperty(propertyKey, propertyName);
         if (property == null) {
-            respondWithNotFound(response, String.format("property %s:%s not found on vertex %s", propertyKey, propertyName, vertex.getId()));
-            return;
+            throw new VisalloResourceNotFoundException(String.format("property %s:%s not found on vertex %s", propertyKey, propertyName, vertex.getId()));
         }
 
-        handle(response, vertex, property, playbackOptions);
-    }
-
-    private void handle(HttpServletResponse response, Vertex vertex, Property property, PlaybackOptions playbackOptions) throws IOException {
         String fileName = VisalloProperties.FILE_NAME.getOnlyPropertyValue(vertex);
 
         String mimeType = getMimeType(property);
@@ -109,7 +92,7 @@ public class VertexGetPropertyValue extends BaseRequestHandler {
         }
     }
 
-    private void setFileNameHeaders(HttpServletResponse response, String fileName, PlaybackOptions playbackOptions) {
+    private void setFileNameHeaders(VisalloResponse response, String fileName, PlaybackOptions playbackOptions) {
         if (playbackOptions.download) {
             response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
         } else {
@@ -117,11 +100,13 @@ public class VertexGetPropertyValue extends BaseRequestHandler {
         }
     }
 
-    private void handleFullPlayback(HttpServletResponse response, InputStream in) throws IOException {
-        IOUtils.copy(in, response.getOutputStream());
+    private void handleFullPlayback(VisalloResponse response, InputStream in) throws IOException {
+        try (OutputStream out = response.getOutputStream()) {
+            IOUtils.copy(in, out);
+        }
     }
 
-    private void handlePartialPlayback(HttpServletResponse response, InputStream in, long totalLength, PlaybackOptions playbackOptions) throws IOException {
+    private void handlePartialPlayback(VisalloResponse response, InputStream in, long totalLength, PlaybackOptions playbackOptions) throws IOException {
         long partialStart = 0;
         Long partialEnd = null;
 
@@ -152,9 +137,9 @@ public class VertexGetPropertyValue extends BaseRequestHandler {
 
         response.addHeader("Content-Length", "" + partialLength);
 
-        OutputStream out = response.getOutputStream();
-        IOUtils.copyLarge(in, out, partialStart, partialLength);
-
+        try (OutputStream out = response.getOutputStream()) {
+            IOUtils.copyLarge(in, out, partialStart, partialLength);
+        }
         response.flushBuffer();
     }
 
@@ -164,5 +149,11 @@ public class VertexGetPropertyValue extends BaseRequestHandler {
             return mimeType;
         }
         return null;
+    }
+
+    public class PlaybackOptions {
+        public String range;
+        public boolean download;
+        public boolean playback;
     }
 }

@@ -2,46 +2,37 @@ package org.visallo.web.routes.workspace;
 
 import com.google.common.base.Joiner;
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiPublishItem;
 import org.visallo.web.clientapi.model.ClientApiWorkspacePublishResponse;
+import org.visallo.web.clientapi.util.ObjectMapperFactory;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class WorkspacePublish extends BaseRequestHandler {
+public class WorkspacePublish implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspacePublish.class);
+    private final WorkspaceRepository workspaceRepository;
 
     @Inject
-    public WorkspacePublish(
-            final UserRepository userRepository,
-            final Configuration configuration,
-            final WorkspaceRepository workspaceRepository
-    ) {
-        super(userRepository, workspaceRepository, configuration);
-
+    public WorkspacePublish(final WorkspaceRepository workspaceRepository) {
+        this.workspaceRepository = workspaceRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String publishDataString = getRequiredParameter(request, "publishData");
-        ClientApiPublishItem[] publishData = getObjectMapper().readValue(publishDataString, ClientApiPublishItem[].class);
-        User user = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, user);
-        String workspaceId = getActiveWorkspaceId(request);
-
+    @Handle
+    public ClientApiWorkspacePublishResponse handle(
+            @Required(name = "publishData") ClientApiPublishItem[] publishData,
+            @ActiveWorkspaceId String workspaceId,
+            Authorizations authorizations
+    ) throws Exception {
         LOGGER.debug("publishing:\n%s", Joiner.on("\n").join(publishData));
-        ClientApiWorkspacePublishResponse workspacePublishResponse = getWorkspaceRepository().publish(publishData, workspaceId, authorizations);
+        ClientApiWorkspacePublishResponse workspacePublishResponse = workspaceRepository.publish(publishData, workspaceId, authorizations);
 
         LOGGER.debug("publishing results: %s", workspacePublishResponse);
-        respondWithClientApiObject(response, workspacePublishResponse);
+        return workspacePublishResponse;
     }
 }

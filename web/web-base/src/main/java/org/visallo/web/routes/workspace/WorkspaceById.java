@@ -1,53 +1,48 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.HandlerChain;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.SecurityVertexiumException;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.exception.VisalloAccessDeniedException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BaseRequestHandler;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class WorkspaceById extends BaseRequestHandler {
+public class WorkspaceById implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceById.class);
+    private final WorkspaceRepository workspaceRepository;
 
     @Inject
     public WorkspaceById(
-            final WorkspaceRepository workspaceRepo,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository,
-            final Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+            final WorkspaceRepository workspaceRepository
+    ) {
+        this.workspaceRepository = workspaceRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        final String workspaceId = super.getAttributeString(request, "workspaceId");
-        final User authUser = getUser(request);
-        Authorizations authorizations = getAuthorizations(request, authUser);
+    @Handle
+    public ClientApiWorkspace handle(
+            @Required(name = "workspaceId") String workspaceId,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
         LOGGER.info("Attempting to retrieve workspace: %s", workspaceId);
         try {
-            final Workspace workspace = getWorkspaceRepository().findById(workspaceId, authUser);
+            final Workspace workspace = workspaceRepository.findById(workspaceId, user);
             if (workspace == null) {
-                LOGGER.warn("Could not find workspace: %s", workspaceId);
-                respondWithNotFound(response);
+                throw new VisalloResourceNotFoundException("Could not find workspace: " + workspaceId);
             } else {
                 LOGGER.debug("Successfully found workspace");
-                ClientApiWorkspace result = getWorkspaceRepository().toClientApi(workspace, authUser, true, authorizations);
-                respondWithClientApiObject(response, result);
+                return workspaceRepository.toClientApi(workspace, user, true, authorizations);
             }
         } catch (SecurityVertexiumException ex) {
-            LOGGER.error("security error", ex);
-            respondWithAccessDenied(response, "Could not get workspace");
+            throw new VisalloAccessDeniedException("Could not get workspace " + workspaceId, user, workspaceId);
         }
     }
 }

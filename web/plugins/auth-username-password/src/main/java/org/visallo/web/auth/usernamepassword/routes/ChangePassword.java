@@ -1,56 +1,59 @@
 package org.visallo.web.auth.usernamepassword.routes;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.BadRequestException;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
-public class ChangePassword extends BaseRequestHandler {
+public class ChangePassword implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ChangePassword.class);
     public static final String TOKEN_PARAMETER_NAME = "token";
     public static final String NEW_PASSWORD_PARAMETER_NAME = "newPassword";
     public static final String NEW_PASSWORD_CONFIRMATION_PARAMETER_NAME = "newPasswordConfirmation";
+    private final UserRepository userRepository;
 
     @Inject
-    public ChangePassword(UserRepository userRepository, WorkspaceRepository workspaceRepository, Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public ChangePassword(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String token = getRequiredParameter(request, TOKEN_PARAMETER_NAME);
-        String newPassword = getRequiredParameter(request, NEW_PASSWORD_PARAMETER_NAME);
-        String newPasswordConfirmation = getRequiredParameter(request, NEW_PASSWORD_CONFIRMATION_PARAMETER_NAME);
-
-        User user = getUserRepository().findByPasswordResetToken(token);
-        if (user != null) {
-            Date now = new Date();
-            if (user.getPasswordResetTokenExpirationDate().after(now)) {
-                if (newPassword.length() > 0) {
-                    if (newPassword.equals(newPasswordConfirmation)) {
-                        getUserRepository().setPassword(user, newPassword);
-                        getUserRepository().clearPasswordResetTokenAndExpirationDate(user);
-                        LOGGER.info("changed password for user: %s", user.getUsername());
-                    } else {
-                        respondWithBadRequest(response, NEW_PASSWORD_CONFIRMATION_PARAMETER_NAME, "new password and new password confirmation do not match");
-                    }
-                } else {
-                    respondWithBadRequest(response, NEW_PASSWORD_PARAMETER_NAME, "new password may not be blank");
-                }
-            } else {
-                respondWithAccessDenied(response, "expired token");
-            }
-        } else {
-            respondWithAccessDenied(response, "invalid token");
+    @Handle
+    public ClientApiSuccess handle(
+            @Required(name = TOKEN_PARAMETER_NAME) String token,
+            @Required(name = NEW_PASSWORD_PARAMETER_NAME) String newPassword,
+            @Required(name = NEW_PASSWORD_CONFIRMATION_PARAMETER_NAME) String newPasswordConfirmation
+    ) throws Exception {
+        User user = userRepository.findByPasswordResetToken(token);
+        if (user == null) {
+            throw new BadRequestException("invalid token");
         }
+
+        Date now = new Date();
+        if (!user.getPasswordResetTokenExpirationDate().after(now)) {
+            throw new BadRequestException("expired token");
+        }
+
+        if (newPassword.length() <= 0) {
+            throw new BadRequestException(NEW_PASSWORD_PARAMETER_NAME, "new password may not be blank");
+        }
+
+        if (!newPassword.equals(newPasswordConfirmation)) {
+            throw new BadRequestException(NEW_PASSWORD_CONFIRMATION_PARAMETER_NAME, "new password and new password confirmation do not match");
+        }
+
+        userRepository.setPassword(user, newPassword);
+        userRepository.clearPasswordResetTokenAndExpirationDate(user);
+        LOGGER.info("changed password for user: %s", user.getUsername());
+
+        return VisalloResponse.SUCCESS;
     }
 }

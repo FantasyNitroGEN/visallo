@@ -239,15 +239,15 @@ define([
                     if (resemblesEdge(data.edge)) {
                         toCache = data.edge;
                     } else {
-                        if (data.edge.sourceVertexId && data.edge.destVertexId) {
+                        if (data.edge.outVertexId && data.edge.inVertexId) {
                             // Load vertices from cache
                             cached = _.compact(api.getObjects(data.workspaceId, 'vertex', [
-                                data.edge.sourceVertexId,
-                                data.edge.destVertexId
+                                data.edge.outVertexId,
+                                data.edge.inVertexId
                             ]));
 
                             if (cached && cached.length === 2) {
-                                toCache = _.extend({}, _.omit(data.edge, 'sourceVertexId', 'destVertexId'), {
+                                toCache = _.extend({}, _.omit(data.edge, 'outVertexId', 'inVertexId'), {
                                     source: cached[0],
                                     target: cached[1]
                                 });
@@ -488,8 +488,8 @@ define([
             _.has(val, 'sandboxStatus') &&
             _.has(val, 'properties') &&
             _.isArray(val.properties) &&
-            !_.has(val, 'sourceVertexId') &&
-            !_.has(val, 'destVertexId')
+            !_.has(val, 'outVertexId') &&
+            !_.has(val, 'inVertexId')
         );
     }
 

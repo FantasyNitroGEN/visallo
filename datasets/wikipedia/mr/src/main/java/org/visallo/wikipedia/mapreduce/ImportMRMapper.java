@@ -228,7 +228,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
                 authorizations);
 
         new TermMentionBuilder()
-                .sourceVertex(pageVertex)
+                .outVertex(pageVertex)
                 .propertyKey(pageTextKey)
                 .start(link.getStartOffset())
                 .end(link.getEndOffset())

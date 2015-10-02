@@ -4,8 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Authorizations;
-import org.vertexium.Visibility;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.web.RouteTestBase;
 import org.visallo.web.clientapi.model.ClientApiUser;
@@ -19,17 +17,11 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class MeGetTest extends RouteTestBase {
     private MeGet meGet;
-    private Visibility visibility;
-    private Authorizations authorizations;
 
     @Before
     public void setUp() throws IOException {
         super.setUp();
-
-        visibility = new Visibility("");
-        authorizations = graph.createAuthorizations("");
-
-        meGet = new MeGet(userRepository, workspaceRepository, configuration);
+        meGet = new MeGet(userRepository, workspaceRepository);
     }
 
     @Test
@@ -38,7 +30,7 @@ public class MeGetTest extends RouteTestBase {
         clientApiUser.setCurrentWorkspaceId(null);
         when(userRepository.toClientApiPrivate(eq(user))).thenReturn(clientApiUser);
 
-        ClientApiUser response = handle(meGet, ClientApiUser.class);
+        ClientApiUser response = meGet.handle(request, user);
         assertEquals(null, response.getCurrentWorkspaceId());
     }
 
@@ -49,7 +41,7 @@ public class MeGetTest extends RouteTestBase {
         when(userRepository.toClientApiPrivate(eq(user))).thenReturn(clientApiUser);
         when(workspaceRepository.hasReadPermissions(eq("WORKSPACE_123"), eq(user))).thenReturn(true);
 
-        ClientApiUser response = handle(meGet, ClientApiUser.class);
+        ClientApiUser response = meGet.handle(request, user);
         assertEquals("WORKSPACE_123", response.getCurrentWorkspaceId());
     }
 
@@ -60,7 +52,7 @@ public class MeGetTest extends RouteTestBase {
         when(userRepository.toClientApiPrivate(eq(user))).thenReturn(clientApiUser);
         when(workspaceRepository.hasReadPermissions(eq("WORKSPACE_123"), eq(user))).thenReturn(false);
 
-        ClientApiUser response = handle(meGet, ClientApiUser.class);
+        ClientApiUser response = meGet.handle(request, user);
         assertEquals(null, response.getCurrentWorkspaceId());
     }
 
@@ -71,7 +63,7 @@ public class MeGetTest extends RouteTestBase {
         when(userRepository.toClientApiPrivate(eq(user))).thenReturn(clientApiUser);
         when(workspaceRepository.hasReadPermissions(eq("WORKSPACE_123"), eq(user))).thenThrow(new VisalloException("boom"));
 
-        ClientApiUser response = handle(meGet, ClientApiUser.class);
+        ClientApiUser response = meGet.handle(request, user);
         assertEquals(null, response.getCurrentWorkspaceId());
     }
 }

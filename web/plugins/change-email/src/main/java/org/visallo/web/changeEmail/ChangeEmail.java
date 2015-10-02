@@ -1,45 +1,33 @@
 package org.visallo.web.changeEmail;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
+import com.v5analytics.webster.ParameterizedHandler;
+import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import com.v5analytics.webster.HandlerChain;
-import org.visallo.web.BaseRequestHandler;
+import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-public class ChangeEmail extends BaseRequestHandler {
+public class ChangeEmail implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ChangeEmail.class);
     private static final String EMAIL_PARAMETER_NAME = "email";
+    private final UserRepository userRepository;
 
     @Inject
-    public ChangeEmail(UserRepository userRepository,
-                       WorkspaceRepository workspaceRepository,
-                       Configuration configuration) {
-        super(userRepository, workspaceRepository, configuration);
+    public ChangeEmail(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        User user = getUser(request);
-        String email = getRequiredParameter(request, EMAIL_PARAMETER_NAME);
-
-        if (user != null) {
-            if (email.length() > 0) {
-                    getUserRepository().setEmailAddress(user, email);
-                    LOGGER.info("changed email for user: %s", user.getUsername());
-                    respondWithSuccessJson(response);
-            } else {
-                respondWithBadRequest(response, EMAIL_PARAMETER_NAME, "new email may not be blank");
-            }
-        } else {
-            LOGGER.error("current user not found while attempting to change email");
-            respondWithAccessDenied(response, "current user not found");
-        }
+    @Handle
+    public ClientApiSuccess handle(
+            User user,
+            @Required(name = EMAIL_PARAMETER_NAME) String email
+    ) throws Exception {
+        userRepository.setEmailAddress(user, email);
+        LOGGER.info("changed email for user: %s", user.getUsername());
+        return VisalloResponse.SUCCESS;
     }
 }

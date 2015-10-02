@@ -30,7 +30,7 @@ public class VertexSearchTest extends RouteTestBase {
         visibility = new Visibility("");
         authorizations = graph.createAuthorizations("");
 
-        vertexSearch = new VertexSearch(ontologyRepository, graph, userRepository, configuration, workspaceRepository);
+        vertexSearch = new VertexSearch(ontologyRepository, graph, configuration);
     }
 
     @Test
@@ -47,7 +47,7 @@ public class VertexSearchTest extends RouteTestBase {
 
         when(userRepository.getAuthorizations(eq(user), eq(WORKSPACE_ID))).thenReturn(authorizations);
 
-        ClientApiVertexSearchResponse response = handle(vertexSearch, ClientApiVertexSearchResponse.class);
+        ClientApiVertexSearchResponse response = vertexSearch.handle(request, WORKSPACE_ID, authorizations);
         assertEquals(2, response.getVertices().size());
         assertEquals(2, response.getItemCount());
     }

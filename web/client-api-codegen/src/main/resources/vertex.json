@@ -826,14 +826,14 @@
                     "nickname": "findPath",
                     "parameters": [
                         {
-                            "name": "sourceGraphVertexId",
+                            "name": "outVertexId",
                             "description": "Source vertex",
                             "required": true,
                             "type": "string",
                             "paramType": "query"
                         },
                         {
-                            "name": "destGraphVertexId",
+                            "name": "inVertexId",
                             "description": "Destination vertex",
                             "required": true,
                             "type": "string",

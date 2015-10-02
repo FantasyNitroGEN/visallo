@@ -10,6 +10,7 @@ import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.EntityHighlighter;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.ingest.video.VideoTranscript;
 import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -39,7 +40,7 @@ public class VertexHighlightedText implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public String handle(
             @Required(name = "graphVertexId") String graphVertexId,
             @Required(name = "propertyKey") String propertyKey,
             @ActiveWorkspaceId String workspaceId,
@@ -51,8 +52,7 @@ public class VertexHighlightedText implements ParameterizedHandler {
 
         Vertex artifactVertex = graph.getVertex(graphVertexId, authorizations);
         if (artifactVertex == null) {
-            response.respondWithNotFound();
-            return;
+            throw new VisalloResourceNotFoundException("Could not find vertex with id: " + graphVertexId);
         }
 
         StreamingPropertyValue textPropertyValue = VisalloProperties.TEXT.getPropertyValue(artifactVertex, propertyKey);
@@ -63,32 +63,32 @@ public class VertexHighlightedText implements ParameterizedHandler {
             if (text == null) {
                 highlightedText = "";
             } else {
-                Iterable<Vertex> termMentions = termMentionRepository.findBySourceGraphVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizationsWithTermMention);
+                Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizationsWithTermMention);
                 highlightedText = entityHighlighter.getHighlightedText(text, termMentions, workspaceId, authorizationsWithTermMention);
             }
 
-            response.respondWithHtml(highlightedText);
-            return;
+            response.setContentType("text/html");
+            return highlightedText;
         }
 
         VideoTranscript videoTranscript = MediaVisalloProperties.VIDEO_TRANSCRIPT.getPropertyValue(artifactVertex, propertyKey);
         if (videoTranscript != null) {
             LOGGER.debug("returning video transcript for vertexId:%s property:%s", artifactVertex.getId(), propertyKey);
-            Iterable<Vertex> termMentions = termMentionRepository.findBySourceGraphVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
+            Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
             VideoTranscript highlightedVideoTranscript = entityHighlighter.getHighlightedVideoTranscript(videoTranscript, termMentions, workspaceId, authorizations);
-            response.respondWithJson(highlightedVideoTranscript.toJson());
-            return;
+            response.setContentType("application/json");
+            return highlightedVideoTranscript.toJson().toString();
         }
 
         videoTranscript = JsonSerializer.getSynthesisedVideoTranscription(artifactVertex, propertyKey);
         if (videoTranscript != null) {
             LOGGER.debug("returning synthesised video transcript for vertexId:%s property:%s", artifactVertex.getId(), propertyKey);
-            Iterable<Vertex> termMentions = termMentionRepository.findBySourceGraphVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
+            Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
             VideoTranscript highlightedVideoTranscript = entityHighlighter.getHighlightedVideoTranscript(videoTranscript, termMentions, workspaceId, authorizationsWithTermMention);
-            response.respondWithJson(highlightedVideoTranscript.toJson());
-            return;
+            response.setContentType("application/json");
+            return highlightedVideoTranscript.toJson().toString();
         }
 
-        response.respondWithNotFound();
+        return null;
     }
 }
