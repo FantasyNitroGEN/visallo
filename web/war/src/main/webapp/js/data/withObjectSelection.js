@@ -142,7 +142,7 @@ define([], function() {
 
             if (edge) {
                 this.dataRequestPromise.done(function(dataRequest) {
-                    dataRequest('edge', 'delete', edge.id);
+                    dataRequest('edge', 'delete', edge.edgeId);
                 });
             } else {
                 this.trigger('promptEdgeDelete', data);
