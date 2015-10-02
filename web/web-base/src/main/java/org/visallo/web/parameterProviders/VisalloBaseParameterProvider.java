@@ -145,16 +145,19 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
     }
 
     protected static String getParameter(final HttpServletRequest request, final String parameterName, final boolean optional) {
-        final String paramValue = request.getParameter(parameterName);
-
+        String paramValue = request.getParameter(parameterName);
         if (paramValue == null) {
-            if (!optional) {
-                throw new VisalloException(String.format("Parameter: '%s' is required in the request", parameterName));
+            Object paramValueObject = request.getAttribute(parameterName);
+            if (paramValueObject != null) {
+                paramValue = paramValueObject.toString();
             }
-
-            return null;
+            if (paramValue == null) {
+                if (!optional) {
+                    throw new VisalloException(String.format("Parameter: '%s' is required in the request", parameterName));
+                }
+                return null;
+            }
         }
-
         return paramValue;
     }
 
