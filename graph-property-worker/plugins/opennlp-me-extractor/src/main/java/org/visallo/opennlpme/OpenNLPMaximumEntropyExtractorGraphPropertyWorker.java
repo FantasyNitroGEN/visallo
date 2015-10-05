@@ -1,15 +1,5 @@
 package org.visallo.opennlpme;
 
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.termMention.TermMentionBuilder;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.VisibilityJson;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
@@ -24,6 +14,16 @@ import org.apache.hadoop.fs.Path;
 import org.vertexium.Element;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.termMention.TermMentionBuilder;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,7 +111,7 @@ public class OpenNLPMaximumEntropyExtractorGraphPropertyWorker extends GraphProp
                 .conceptIri(ontologyClassUri)
                 .visibilityJson(visibilityJson)
                 .process(getClass().getName())
-                .save(getGraph(), getVisibilityTranslator(), getAuthorizations());
+                .save(getGraph(), getVisibilityTranslator(), getUser(), getAuthorizations());
     }
 
     protected String mapToOntologyIri(String type) {

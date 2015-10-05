@@ -12,6 +12,7 @@ import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionBuilder;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -28,6 +29,7 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
 
+import java.util.Date;
 import java.util.ResourceBundle;
 
 public class ResolveTermEntity implements ParameterizedHandler {
@@ -106,23 +108,25 @@ public class ResolveTermEntity implements ParameterizedHandler {
             vertexMutation = graph.prepareVertex(id, visalloVisibility.getVisibility());
             VisalloProperties.CONCEPT_TYPE.setProperty(vertexMutation, conceptId, metadata, visalloVisibility.getVisibility());
             VisalloProperties.TITLE.addPropertyValue(vertexMutation, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
-            vertex = vertexMutation.save(authorizations);
 
             if (justificationText != null) {
                 PropertyJustificationMetadata propertyJustificationMetadata = new PropertyJustificationMetadata(justificationText);
-                VisalloProperties.JUSTIFICATION.setProperty(vertex, propertyJustificationMetadata, visalloVisibility.getVisibility(), authorizations);
+                VisalloProperties.JUSTIFICATION.setProperty(vertexMutation, propertyJustificationMetadata, visalloVisibility.getVisibility());
             }
 
             VisalloProperties.VISIBILITY_JSON.setProperty(vertexMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
+            vertex = vertexMutation.save(authorizations);
 
             this.graph.flush();
 
             workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), null, null, user);
         }
 
-        // TODO: a better way to check if the same edge exists instead of looking it up every time?
-        Edge edge = graph.addEdge(artifactVertex, vertex, this.artifactHasEntityIri, visalloVisibility.getVisibility(), authorizations);
-        VisalloProperties.VISIBILITY_JSON.setProperty(edge, visibilityJson, metadata, visalloVisibility.getVisibility(), authorizations);
+        EdgeBuilder edgeBuilder = graph.prepareEdge(artifactVertex, vertex, this.artifactHasEntityIri, visalloVisibility.getVisibility());
+        VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), visalloVisibility.getVisibility());
+        VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, new Date(), visalloVisibility.getVisibility());
+        VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, metadata, visalloVisibility.getVisibility());
+        Edge edge = edgeBuilder.save(authorizations);
 
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
         new TermMentionBuilder()
@@ -136,14 +140,13 @@ public class ResolveTermEntity implements ParameterizedHandler {
                 .visibilityJson(visibilityJson)
                 .resolvedTo(vertex, edge)
                 .process(getClass().getSimpleName())
-                .save(this.graph, visibilityTranslator, authorizations);
+                .save(this.graph, visibilityTranslator, user, authorizations);
 
         vertexMutation.save(authorizations);
 
         this.graph.flush();
         workQueueRepository.pushTextUpdated(artifactId);
-
-        workQueueRepository.broadcastElement(edge, workspaceId);
+        workQueueRepository.pushElement(edge, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
     }

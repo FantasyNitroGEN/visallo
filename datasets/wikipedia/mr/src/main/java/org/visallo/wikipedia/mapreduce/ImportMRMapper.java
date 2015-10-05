@@ -1,5 +1,6 @@
 package org.visallo.wikipedia.mapreduce;
 
+import com.google.inject.Inject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -25,8 +26,10 @@ import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.JoinIterable;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionBuilder;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.mapreduce.VisalloElementMapperBase;
@@ -62,6 +65,8 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
     private VisibilityJson visibilityJson;
     private VisibilityTranslator visibilityTranslator;
     private Visibility defaultVisibility;
+    private UserRepository userRepository;
+    private User user;
 
     public ImportMRMapper() {
         this.textXPath = XPathFactory.instance().compile(TEXT_XPATH, Filters.text());
@@ -78,6 +83,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
         this.visibilityJson = new VisibilityJson();
         this.authorizations = new AccumuloAuthorizations();
         this.sourceFileName = context.getConfiguration().get(CONFIG_SOURCE_FILE_NAME);
+        this.user = this.userRepository.getSystemUser();
 
         try {
             config = DefaultConfigEnWp.generate();
@@ -237,7 +243,7 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
                 .visibilityJson(visibilityJson)
                 .process(WIKIPEDIA_PROCESS)
                 .resolvedTo(linkedPageVertex, edge)
-                .save(getGraph(), visibilityTranslator, authorizations);
+                .save(getGraph(), visibilityTranslator, user, authorizations);
     }
 
     private Iterable<LinkWithOffsets> getLinks(TextConverter textConverter) {
@@ -318,5 +324,10 @@ class ImportMRMapper extends VisalloElementMapperBase<LongWritable, Text> {
         public void setWikitext(String wikitext) {
             this.wikitext = wikitext;
         }
+    }
+
+    @Inject
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 }
