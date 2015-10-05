@@ -33,7 +33,6 @@ define([], function() {
             this.on('selectConnected', this.onSelectConnected);
 
             this.on('deleteSelected', this.onDeleteSelected);
-            this.on('deleteEdges', this.onDeleteEdges);
             this.on('edgesLoaded', this.onEdgesLoaded);
             this.on('edgesDeleted', function(event, data) {
                 if (selectedObjects && _.findWhere(selectedObjects.edges, { id: data.edgeId })) {
@@ -130,23 +129,9 @@ define([], function() {
                         self.trigger('updateWorkspace', {
                             entityDeletes: _.pluck(selectedObjects.vertices, 'id')
                         });
-                    } else if (selectedObjects.edges.length) {
-                        self.trigger('deleteEdges', { edges: selectedObjects.edges });
                     }
                 }
             });
-        };
-
-        this.onDeleteEdges = function(event, data) {
-            var edge = data && data.edges && data.edges.length === 1 && data.edges[0];
-
-            if (edge) {
-                this.dataRequestPromise.done(function(dataRequest) {
-                    dataRequest('edge', 'delete', edge.edgeId);
-                });
-            } else {
-                this.trigger('promptEdgeDelete', data);
-            }
         };
 
         this.onSelectObjects = function(event, data) {

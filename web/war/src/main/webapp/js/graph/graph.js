@@ -135,8 +135,7 @@ define([
             graphToolsSelector: '.controls',
             graphViewsSelector: '.graph-views',
             contextMenuSelector: '.graph-context-menu',
-            vertexContextMenuSelector: '.vertex-context-menu',
-            edgeContextMenuSelector: '.edge-context-menu'
+            vertexContextMenuSelector: '.vertex-context-menu'
         });
 
         this.onVerticesHoveringEnded = function(evt, data) {
@@ -667,13 +666,6 @@ define([
             });
         };
 
-        this.onContextMenuDeleteEdge = function() {
-            var menu = this.select('edgeContextMenuSelector'),
-                edges = menu.data('edge').edges;
-
-            this.trigger('deleteEdges', { edges: edges });
-        };
-
         this.onEdgesLoaded = function(evt, relationshipData) {
             this.cytoscapeReady(function(cy) {
                 var self = this;
@@ -778,23 +770,6 @@ define([
                     }
                 });
             });
-        };
-
-        this.onPromptEdgeDelete = function(event, data) {
-            var self = this,
-                edges = data.edges;
-
-            this.cytoscapeReady(function(cy) {
-                var cyEdge = cy.$('#' + toCyId(generateCompoundEdgeId(edges[0])));
-                require(['util/popovers/deleteEdges/deleteEdges'], function(Popover) {
-                    Popover.attachTo(self.$node, {
-                        edges: edges,
-                        anchorTo: {
-                            vertexId: edges[0].outVertexId
-                        }
-                    });
-                })
-            })
         };
 
         this.onContextMenuFitToWindow = function() {
@@ -1125,35 +1100,10 @@ define([
             if (event.cyTarget === event.cy) {
                 menu = this.select('contextMenuSelector');
                 this.select('vertexContextMenuSelector').blur().parent().removeClass('open');
-                this.select('edgeContextMenuSelector').blur().parent().removeClass('open');
                 this.trigger('closeVertexMenu');
-            } else if (selectionHasEdges || (
-                cyTargetIsElement && event.cyTarget.group('edges') === 'edges'
+            } else if (selectionHasVertices || (
+                cyTargetIsElement && event.cyTarget.group() === 'nodes'
             )) {
-
-                if (Privileges.canEDIT) {
-                    menu = this.select('edgeContextMenuSelector');
-                    var edgeData = cyTargetIsElement ?
-                            event.cyTarget.data() :
-                            selectedObjects.edges[0],
-                        anyDeletable = _.any(edgeData.edges, function(e) {
-                            return !(/^public$/i.test(e.diffType));
-                        });
-
-                    if (anyDeletable) {
-                        menu.data('edge', edgeData);
-                        if (event.cy.nodes().filter(':selected').length > 1) {
-                            return false;
-                        }
-                    } else {
-                        menu = null;
-                    }
-                }
-
-                this.select('vertexContextMenuSelector').blur().parent().removeClass('open');
-                this.select('contextMenuSelector').blur().parent().removeClass('open');
-            } else {
-                this.select('edgeContextMenuSelector').blur().parent().removeClass('open');
                 this.select('contextMenuSelector').blur().parent().removeClass('open');
 
                 var originalEvent = event.originalEvent;
@@ -1170,6 +1120,9 @@ define([
                 }
 
                 return;
+            } else {
+                this.select('vertexContextMenuSelector').blur().parent().removeClass('open');
+                this.select('contextMenuSelector').blur().parent().removeClass('open');
             }
 
             if (menu) {
@@ -1712,7 +1665,6 @@ define([
         this.onHideMenu = function(event) {
             this.trigger(document, 'closeVertexMenu');
             this.select('contextMenuSelector').blur().parent().removeClass('open');
-            this.select('edgeContextMenuSelector').blur().parent().removeClass('open');
         };
 
         this.createVertex = function(offset) {
@@ -1850,7 +1802,6 @@ define([
             this.on(document, 'edgesLoaded', this.onEdgesLoaded);
             this.on(document, 'edgesDeleted', this.onEdgesDeleted);
             this.on(document, 'edgesUpdated', this.onEdgesUpdated);
-            this.on(document, 'promptEdgeDelete', this.onPromptEdgeDelete);
             this.on(document, 'didToggleDisplay', this.onDidToggleDisplay);
 
             this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
