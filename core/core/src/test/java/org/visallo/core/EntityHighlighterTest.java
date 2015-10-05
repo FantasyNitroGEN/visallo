@@ -52,6 +52,8 @@ public class EntityHighlighterTest {
         visibility = new Visibility("");
         graph = InMemoryGraph.create();
         authorizations = new InMemoryAuthorizations(TermMentionRepository.VISIBILITY_STRING);
+
+        when(user.getUserId()).thenReturn("USER123");
     }
 
     @Test
@@ -125,7 +127,7 @@ public class EntityHighlighterTest {
                 .title(sign)
                 .visibilityJson("")
                 .process(getClass().getSimpleName())
-                .save(graph, visibilityTranslator, authorizations);
+                .save(graph, visibilityTranslator, user, authorizations);
     }
 
     private Vertex createTermMention(Vertex outVertex, String sign, String conceptIri, int start, int end, String process) {
@@ -138,7 +140,7 @@ public class EntityHighlighterTest {
                 .title(sign)
                 .visibilityJson("")
                 .process(process)
-                .save(graph, visibilityTranslator, authorizations);
+                .save(graph, visibilityTranslator, user, authorizations);
     }
 
     public void testGetHighlightedTextOverlaps() throws Exception {

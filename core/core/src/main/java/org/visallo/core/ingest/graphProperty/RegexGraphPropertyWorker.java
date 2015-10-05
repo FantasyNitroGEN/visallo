@@ -59,7 +59,7 @@ public abstract class RegexGraphPropertyWorker extends GraphPropertyWorker {
                     .conceptIri(getConcept().getIRI())
                     .visibilityJson(data.getVisibilityJson())
                     .process(getClass().getName())
-                    .save(getGraph(), getVisibilityTranslator(), getAuthorizations());
+                    .save(getGraph(), getVisibilityTranslator(), getUser(), getAuthorizations());
             termMentions.add(termMention);
         }
         applyTermMentionFilters(outVertex, termMentions);

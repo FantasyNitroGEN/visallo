@@ -103,7 +103,7 @@ public class ZipCodeResolverTermMentionFilter extends TermMentionFilter {
                     .conceptIri(zipCodeConceptIri)
                     .process(getClass().getName())
                     .visibilityJson(VisalloProperties.TERM_MENTION_VISIBILITY_JSON.getPropertyValue(termMention))
-                    .save(getGraph(), getVisibilityTranslator(), authorizations);
+                    .save(getGraph(), getVisibilityTranslator(), user, authorizations);
         }
     }
 

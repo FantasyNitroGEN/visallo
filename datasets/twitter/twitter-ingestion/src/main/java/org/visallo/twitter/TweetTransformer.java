@@ -246,6 +246,6 @@ public final class TweetTransformer {
                 .conceptIri(conceptUri)
                 .visibilityJson(visibilitySource)
                 .resolvedTo(vertex, edge)
-                .save(graph, visibilityTranslator, authorizations);
+                .save(graph, visibilityTranslator, userRepository.getSystemUser(), authorizations);
     }
 }

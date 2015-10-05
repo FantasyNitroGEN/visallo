@@ -1,12 +1,15 @@
 package org.visallo.core.model.termMention;
 
+import org.vertexium.*;
+import org.vertexium.mutation.EdgeMutation;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.*;
-import org.vertexium.mutation.EdgeMutation;
+
+import java.util.Date;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -33,7 +36,7 @@ public class TermMentionBuilder {
      * Copy an existing term mention.
      *
      * @param existingTermMention The term mention you would like to copy.
-     * @param outVertex        The vertex that contains this term mention (ie Document, Html page, etc).
+     * @param outVertex           The vertex that contains this term mention (ie Document, Html page, etc).
      */
     public TermMentionBuilder(Vertex existingTermMention, Vertex outVertex) {
         this.outVertex = outVertex;
@@ -167,7 +170,7 @@ public class TermMentionBuilder {
      * Source  -- Has --> Term    -- Resolved To --> Resolved
      * Vertex             Mention                    Vertex
      */
-    public Vertex save(Graph graph, VisibilityTranslator visibilityTranslator, Authorizations authorizations) {
+    public Vertex save(Graph graph, VisibilityTranslator visibilityTranslator, User user, Authorizations authorizations) {
         checkNotNull(outVertex, "outVertex cannot be null");
         checkNotNull(propertyKey, "propertyKey cannot be null");
         checkNotNull(title, "title cannot be null");
@@ -180,6 +183,7 @@ public class TermMentionBuilder {
         checkArgument(start >= 0, "start must be greater than or equal to 0");
         checkArgument(end >= 0, "start must be greater than or equal to 0");
 
+        Date now = new Date();
         String vertexId = createVertexId();
         Visibility visibility = VisalloVisibility.and(visibilityTranslator.toVisibility(this.visibilityJson).getVisibility(), TermMentionRepository.VISIBILITY_STRING);
         VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, visibility);
@@ -209,11 +213,15 @@ public class TermMentionBuilder {
         String hasTermMentionId = vertexId + "_hasTermMention";
         EdgeBuilder termMentionEdgeBuilder = graph.prepareEdge(hasTermMentionId, this.outVertex, termMentionVertex, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility);
         VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(termMentionEdgeBuilder, this.visibilityJson, visibility);
+        VisalloProperties.MODIFIED_BY.setProperty(termMentionEdgeBuilder, user.getUserId(), visibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(termMentionEdgeBuilder, now, visibility);
         termMentionEdgeBuilder.save(authorizations);
         if (this.resolvedToVertexId != null) {
             String resolvedToId = vertexId + "_resolvedTo";
             EdgeMutation resolvedToEdgeBuilder = graph.prepareEdge(resolvedToId, termMentionVertex.getId(), resolvedToVertexId, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, visibility);
             VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(resolvedToEdgeBuilder, this.visibilityJson, visibility);
+            VisalloProperties.MODIFIED_BY.setProperty(resolvedToEdgeBuilder, user.getUserId(), visibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(resolvedToEdgeBuilder, now, visibility);
             resolvedToEdgeBuilder.save(authorizations);
         }
 
