@@ -49,29 +49,20 @@ public class VertexEdges implements ParameterizedHandler {
             }
         }
 
-        List<String> edgeIds;
-        if (edgeLabel == null && relatedVertexId == null) {
-            edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, authorizations));
-        } else if (relatedVertexId == null) {
-            edgeIds = Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, edgeLabel, authorizations));
-        } else {
+        if (relatedVertexId != null) {
             relatedVertex = graph.getVertex(relatedVertexId, authorizations);
             if (relatedVertex == null) {
                 throw new VisalloResourceNotFoundException("Could not find related vertex: " + relatedVertexId);
             }
-
-            if (edgeLabel == null) {
-                edgeIds = Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, authorizations));
-            } else {
-                edgeIds = Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, edgeLabel, authorizations));
-            }
         }
+
+        List<String> edgeIds = loadEdgeIds(edgeLabel, vertex, relatedVertex, authorizations);
         int totalEdgeCount = edgeIds.size();
 
         ClientApiVertexEdges result = new ClientApiVertexEdges();
 
         edgeIds = edgeIds.subList(Math.min(edgeIds.size(), offset), Math.min(edgeIds.size(), offset + size));
-        List<Edge> edges = Lists.newArrayList(graph.getEdges(edgeIds, authorizations));
+        List<Edge> edges = loadEdges(edgeIds, authorizations);
         Map<String, Vertex> vertices;
         try (TraceSpan trace = Trace.start("getConnectedVertices").data("graphVertexId", vertex.getId())) {
             vertices = getVertices(vertex.getId(), edges, authorizations);
@@ -81,21 +72,51 @@ public class VertexEdges implements ParameterizedHandler {
             String otherVertexId = relatedVertexId == null ? edge.getOtherVertexId(vertex.getId()) : relatedVertexId;
             Vertex otherVertex = relatedVertex == null ? vertices.get(otherVertexId) : relatedVertex;
 
-            ClientApiVertexEdges.Edge clientApiEdge = new ClientApiVertexEdges.Edge();
-            clientApiEdge.setRelationship(ClientApiConverter.toClientApiEdge(edge, workspaceId));
-            ClientApiVertex clientApiVertex;
-            if (otherVertex == null) {
-                clientApiVertex = new ClientApiVertex();
-                clientApiVertex.setId(otherVertexId);
-            } else {
-                clientApiVertex = ClientApiConverter.toClientApiVertex(otherVertex, workspaceId, authorizations);
-            }
-            clientApiEdge.setVertex(clientApiVertex);
-            result.getRelationships().add(clientApiEdge);
+            result.getRelationships().add(convertEdgeToClientApi(edge, otherVertexId, otherVertex, workspaceId, authorizations));
         }
         result.setTotalReferences(totalEdgeCount);
 
         return result;
+    }
+
+    /**
+     * This is overridable so web plugins can modify the resulting set of edges.
+     */
+    protected List<String> loadEdgeIds(String edgeLabel, Vertex vertex, Vertex relatedVertex, Authorizations authorizations) {
+        if (edgeLabel == null && relatedVertex == null) {
+            return Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, authorizations));
+        } else if (relatedVertex == null) {
+            return Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, edgeLabel, authorizations));
+        } else if (edgeLabel == null) {
+            return Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, authorizations));
+        } else {
+            return Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, edgeLabel, authorizations));
+        }
+    }
+
+    /**
+     * This is overridable so web plugins can modify the resulting set of edges.
+     */
+    protected List<Edge> loadEdges(List<String> edgeIds, Authorizations authorizations) {
+        return Lists.newArrayList(graph.getEdges(edgeIds, authorizations));
+    }
+
+    /**
+     * This is overridable so web plugins can modify the resulting set of edges.
+     */
+    protected ClientApiVertexEdges.Edge convertEdgeToClientApi(Edge edge, String otherVertexId, Vertex otherVertex, String workspaceId, Authorizations authorizations) {
+        ClientApiVertexEdges.Edge clientApiEdge = new ClientApiVertexEdges.Edge();
+        clientApiEdge.setRelationship(ClientApiConverter.toClientApiEdge(edge, workspaceId));
+        ClientApiVertex clientApiVertex;
+        if (otherVertex == null) {
+            clientApiVertex = new ClientApiVertex();
+            clientApiVertex.setId(otherVertexId);
+        } else {
+            clientApiVertex = ClientApiConverter.toClientApiVertex(otherVertex, workspaceId, authorizations);
+        }
+        clientApiEdge.setVertex(clientApiVertex);
+
+        return clientApiEdge;
     }
 
     private Map<String, Vertex> getVertices(final String myVertexId, List<Edge> edges, Authorizations authorizations) {

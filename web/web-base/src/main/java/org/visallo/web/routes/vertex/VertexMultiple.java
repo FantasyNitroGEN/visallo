@@ -9,7 +9,6 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
@@ -17,13 +16,10 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.AuthorizationsParameterProviderFactory;
-import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
-
-import static org.vertexium.util.IterableUtils.toIterable;
 
 public class VertexMultiple implements ParameterizedHandler {
     private final Graph graph;
@@ -52,8 +48,7 @@ public class VertexMultiple implements ParameterizedHandler {
         HashSet<String> vertexStringIds = new HashSet<>(Arrays.asList(vertexIdsParam));
         GetAuthorizationsResult getAuthorizationsResult = getAuthorizations(request, fallbackToPublic, user);
 
-        Iterable<String> vertexIds = toIterable(vertexStringIds.toArray(new String[vertexStringIds.size()]));
-        Iterable<Vertex> graphVertices = graph.getVertices(vertexIds, ClientApiConverter.SEARCH_FETCH_HINTS, getAuthorizationsResult.authorizations);
+        Iterable<Vertex> graphVertices = graph.getVertices(vertexStringIds, ClientApiConverter.SEARCH_FETCH_HINTS, getAuthorizationsResult.authorizations);
         ClientApiVertexMultipleResponse result = new ClientApiVertexMultipleResponse();
         result.setRequiredFallback(getAuthorizationsResult.requiredFallback);
         for (Vertex v : graphVertices) {
@@ -62,7 +57,7 @@ public class VertexMultiple implements ParameterizedHandler {
         return result;
     }
 
-    private GetAuthorizationsResult getAuthorizations(HttpServletRequest request, boolean fallbackToPublic, User user) {
+    protected GetAuthorizationsResult getAuthorizations(HttpServletRequest request, boolean fallbackToPublic, User user) {
         GetAuthorizationsResult result = new GetAuthorizationsResult();
         result.requiredFallback = false;
         try {
@@ -78,7 +73,7 @@ public class VertexMultiple implements ParameterizedHandler {
         return result;
     }
 
-    private static class GetAuthorizationsResult {
+    protected static class GetAuthorizationsResult {
         public Authorizations authorizations;
         public boolean requiredFallback;
     }
