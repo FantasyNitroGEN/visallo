@@ -240,10 +240,17 @@ define([
                 addNewText = i18n('admin.element.editor.addNewProperty.label');
 
             this.currentElementId = element.id;
+            var props = element.properties.slice(0);
+            if (element.label) {
+                props.push({
+                    name: 'label',
+                    value: element.label
+                });
+            }
             d3.select(this.$node.children('div')[0])
                 .selectAll('section')
                 .data(
-                    _.chain(element.properties)
+                    _.chain(props)
                       .groupBy('name')
                       .pairs()
                       .sortBy(function(pair) {
