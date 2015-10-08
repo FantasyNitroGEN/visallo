@@ -209,7 +209,11 @@ public abstract class OntologyProperty {
             try {
                 return DATE_TIME_FORMAT.parse(valueStr);
             } catch (ParseException ex2) {
-                return DATE_FORMAT.parse(valueStr);
+                try {
+                    return DATE_FORMAT.parse(valueStr);
+                } catch (ParseException ex3) {
+                    return new Date(Long.parseLong(valueStr));
+                }
             }
         }
     }
