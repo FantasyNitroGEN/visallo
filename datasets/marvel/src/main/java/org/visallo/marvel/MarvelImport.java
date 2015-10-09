@@ -5,6 +5,7 @@ import com.beust.jcommander.converters.FileConverter;
 import com.beust.jcommander.internal.Maps;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Queues;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.accumulo.AccumuloGraph;
@@ -182,7 +183,8 @@ public class MarvelImport extends CommandLineTool {
                 @Override
                 public void run() {
                     try {
-                        Graph graph = AccumuloGraph.create(new AccumuloGraphConfiguration(getConfiguration().getSubset("graph")));
+                        Map<String, Object> config = ImmutableMap.<String, Object>copyOf(getConfiguration().getSubset("graph"));
+                        Graph graph = AccumuloGraph.create(new AccumuloGraphConfiguration(config));
                         while (!fileLines.isEmpty()) {
                             FileLine heroLine = fileLines.poll();
                             unitOfWork.doWork(heroLine, graph);
