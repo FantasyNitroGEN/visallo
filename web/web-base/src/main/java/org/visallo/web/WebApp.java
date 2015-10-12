@@ -68,6 +68,7 @@ public class WebApp extends App {
         App.registeredParameterProviderFactory(injector.getInstance(ResourceBundleParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(ClientApiSourceInfoParameterProviderFactory.class));
         App.registeredParameterProviderFactory(injector.getInstance(WebAppParameterProviderFactory.class));
+        App.registeredParameterProviderFactory(injector.getInstance(RemoteAddrParameterProviderFactory.class));
 
         App.registerParameterValueConverter(ClientApiObject.class, new ClientApiObjectParameterValueConverter());
         App.registerParameterValueConverter(ClientApiObject[].class, new ClientApiObjectArrayParameterValueConverter());

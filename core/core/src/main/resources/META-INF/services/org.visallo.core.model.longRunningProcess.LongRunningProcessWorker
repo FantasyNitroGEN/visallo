@@ -1,1 +1,2 @@
 org.visallo.core.model.longRunningProcess.FindPathLongRunningProcessWorker
+org.visallo.core.ping.PingLongRunningProcess

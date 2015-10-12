@@ -34,6 +34,8 @@ import org.visallo.web.routes.notification.SystemNotificationDelete;
 import org.visallo.web.routes.notification.SystemNotificationSave;
 import org.visallo.web.routes.notification.UserNotificationMarkRead;
 import org.visallo.web.routes.ontology.Ontology;
+import org.visallo.web.routes.ping.Ping;
+import org.visallo.web.routes.ping.PingStats;
 import org.visallo.web.routes.resource.MapMarkerImage;
 import org.visallo.web.routes.resource.ResourceExternalGet;
 import org.visallo.web.routes.resource.ResourceGet;
@@ -192,6 +194,9 @@ public class Router extends HttpServlet {
             app.get("/admin/all", authenticator, csrfProtector, AdminPrivilegeFilter.class, AdminList.class);
             app.get("/admin/plugins", authenticator, csrfProtector, PluginList.class);
             app.post("/admin/upload-ontology", authenticator, csrfProtector, AdminPrivilegeFilter.class, AdminUploadOntology.class);
+
+            app.get("/ping", RateLimitFilter.class, Ping.class);
+            app.get("/ping/stats", authenticator, AdminPrivilegeFilter.class, PingStats.class);
 
             List<WebAppPlugin> webAppPlugins = toList(ServiceLoaderUtil.load(WebAppPlugin.class, configuration));
             for (WebAppPlugin webAppPlugin : webAppPlugins) {
