@@ -18,7 +18,7 @@ public class ModelUtil {
             AuthorizationRepository authorizationRepository,
             User user
     ) {
-        ModelUtil.deleteTables(simpleOrmSession, user);
+        ModelUtil.clearTables(simpleOrmSession, user);
         workQueueRepository.format();
         // TODO provide a way to delete the graph and it's search index
         // graph.delete(getUser());
@@ -46,5 +46,20 @@ public class ModelUtil {
             }
         }
         LOGGER.warn("END deleting tables");
+    }
+
+    public static void clearTables(SimpleOrmSession simpleOrmSession, User user) {
+        LOGGER.warn("BEGIN clearing tables");
+        String tablePrefix = simpleOrmSession.getTablePrefix();
+        if (Strings.isNullOrEmpty(tablePrefix)) {
+            throw new VisalloException("Unable to format without a SimpleOrmSession table prefix");
+        }
+        for (String table : simpleOrmSession.getTableList(user.getSimpleOrmContext())) {
+            if (table.startsWith(tablePrefix)) {
+                LOGGER.warn("clearing table: %s", table);
+                simpleOrmSession.clearTable(table, user.getSimpleOrmContext());
+            }
+        }
+        LOGGER.warn("END clearing tables");
     }
 }
