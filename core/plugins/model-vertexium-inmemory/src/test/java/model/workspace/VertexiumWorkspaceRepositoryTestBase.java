@@ -1,6 +1,8 @@
 package model.workspace;
 
+import com.google.inject.Injector;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.junit.After;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.vertexium.Metadata;
@@ -14,6 +16,7 @@ import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.inmemory.InMemoryGraphConfiguration;
 import org.vertexium.search.DefaultSearchIndex;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.formula.FormulaEvaluator;
@@ -27,9 +30,9 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceDiffHelper;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.model.workspace.WorkspaceDiffHelper;
 import org.visallo.core.model.workspace.WorkspaceUndoHelper;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
@@ -76,6 +79,10 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
     protected UserNotificationRepository userNotificationRepository;
     @Mock
     protected OntologyRepository ontologyRepository;
+    @Mock
+    protected FormulaEvaluator formulaEvaluator;
+    @Mock
+    protected Injector injector;
 
     protected static class QueueUuidFallbackIdGenerator extends QueueIdGenerator {
         private IdGenerator fallbackIdGenerator = new UUIDIdGenerator(null);
@@ -92,7 +99,9 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
     @Before
     public void setup() throws Exception {
         initMocks(this);
-        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap());
+        InjectHelper.setInjector(injector);
+
+        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap<String, Object>());
         idGenerator = new VertexiumWorkspaceRepositoryTest.QueueUuidFallbackIdGenerator();
         graph = InMemoryGraph.create(config, idGenerator, new DefaultSearchIndex(config));
         authorizationRepository = new InMemoryAuthorizationRepository();
@@ -116,7 +125,6 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
         user2 = (InMemoryUser) userRepository.findOrAddUser("user2", "user2", null, "none", new String[0]);
         graph.addVertex(user2.getUserId(), DEFAULT_VISIBILITY, NO_AUTHORIZATIONS);
 
-        FormulaEvaluator formulaEvaluator = new FormulaEvaluator(visalloConfiguration, ontologyRepository);
         WorkspaceDiffHelper workspaceDiff = new WorkspaceDiffHelper(graph, userRepository, formulaEvaluator);
 
         workspaceRepository = new VertexiumWorkspaceRepository(
@@ -161,5 +169,10 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
                 .addPropertyValue("key1", "prop1", "value1", new Metadata(), DEFAULT_VISIBILITY)
                 .addPropertyValue("key9", "prop9", "value9", new Metadata(), DEFAULT_VISIBILITY)
                 .save(NO_AUTHORIZATIONS);
+    }
+
+    @After
+    public void teardown() {
+        InjectHelper.setInjector(null);
     }
 }

@@ -1,17 +1,25 @@
 package model.workspace;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryAuthorizations;
+import org.visallo.core.formula.FormulaEvaluator;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.util.SandboxStatusUtil;
+import org.visallo.vertexium.model.ontology.InMemoryOntologyProperty;
 import org.visallo.web.clientapi.model.*;
 import org.visallo.web.clientapi.model.ClientApiPublishItem.Action;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff.PropertyItem;
+import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff.VertexItem;
 
 import java.util.*;
 
@@ -32,6 +40,8 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     private static final Visibility SECRET_VISIBILITY =
             VISIBILITY_TRANSLATOR.toVisibility(new VisibilityJson(SECRET_VISIBILITY_SOURCE)).getVisibility();
     private static final String OTHER_VISIBILITY_SOURCE = "other";
+    private static final String VERTEX_TITLE = "The Title";
+    private static final String VERTEX_CONCEPT_TYPE = "The Concept Type";
 
     private Workspace workspace;
     private InMemoryAuthorizations workspaceAuthorizations;
@@ -41,6 +51,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     private Metadata initialMetadata;
     private Visibility secretWorkspaceViz;
     private Metadata secretMetadata;
+    private VisibilityJson initialVisibilityJson;
 
     @Parameterized.Parameters
     public static Iterable<Object[]> initialVisibilitySources() {
@@ -68,7 +79,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         String workspaceId = workspace.getWorkspaceId();
         workspaceAuthorizations = new InMemoryAuthorizations(workspaceId, SECRET_VISIBILITY_SOURCE, OTHER_VISIBILITY_SOURCE);
 
-        VisibilityJson initialVisibilityJson = new VisibilityJson(initialVisibilitySource);
+        initialVisibilityJson = new VisibilityJson(initialVisibilitySource);
         initialVisibilityJson.addWorkspace(workspaceId);
         initialWorkspaceViz = VISIBILITY_TRANSLATOR.toVisibilityNoSuperUser(initialVisibilityJson);
         initialMetadata = new Metadata();
@@ -82,24 +93,25 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
 
         workspaceRepository.updateEntityOnWorkspace(workspace, entity1Vertex.getId(), true, GRAPH_POSITION, user1);
 
+        when(termMentionRepository.findByVertexIdForVertex(anyString(), any(Authorizations.class)))
+                .thenReturn(Collections.<Vertex>emptyList());
         when(termMentionRepository.findByVertexIdAndProperty(anyString(), anyString(), anyString(),
                 any(Visibility.class), any(Authorizations.class)))
-                .thenReturn(Collections.<Vertex>emptySet());
-
+                .thenReturn(Collections.<Vertex>emptyList());
         when(termMentionRepository.findResolvedTo(anyString(), any(Authorizations.class)))
-                .thenReturn(Collections.<Vertex>emptySet());
+                .thenReturn(Collections.<Vertex>emptyList());
     }
 
     @Test
     public void getDiffWithNoChangesReturnsZeroDiffs() {
-        assertEquals(0, getPropertyDiffsFromWorkspace().size());
+        assertNoDiffs();
     }
 
     @Test
     public void getDiffWithChangedPublicPropertyValueReturnsOneDiff() {
         changePublicPropertyValueOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueDiff(diffs.get(0));
@@ -109,7 +121,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     public void getDiffWithChangedPublicPropertyVisibilityReturnsOneDiff() {
         changePublicPropertyVisibilityOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyVisibilityDiff(diffs.get(0));
@@ -119,7 +131,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     public void getDiffWithChangedPublicPropertyValueAndVisibilityReturnsOneDiff() {
         changePublicPropertyValueAndVisibilityOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueAndVisibilityDiff(diffs.get(0));
@@ -130,7 +142,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyValueOnWorkspace();
         changePublicPropertyValueOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueDiff(diffs.get(0));
@@ -141,7 +153,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyVisibilityOnWorkspace();
         changePublicPropertyVisibilityOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyVisibilityDiff(diffs.get(0));
@@ -152,7 +164,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyValueAndVisibilityOnWorkspace();
         changePublicPropertyValueAndVisibilityOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueAndVisibilityDiff(diffs.get(0));
@@ -163,7 +175,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueDiff(diffs.get(0));
@@ -174,7 +186,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyVisibilityOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyVisibilityDiff(diffs.get(0));
@@ -185,7 +197,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueAndVisibilityOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueAndVisibilityDiff(diffs.get(0));
@@ -196,7 +208,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyValueOnWorkspace();
         changeNonPublicPropertyVisibilityOnWorkspace(); // changes only the visibility for the current property
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueAndVisibilityDiff(diffs.get(0));
@@ -206,7 +218,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     public void getDiffWithNewPropertyReturnsOneDiff() {
         addNewPropertyOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertNewPropertyDiff(diffs.get(0));
@@ -216,7 +228,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     public void getDiffWithDeletedPropertyReturnsOneDiff() {
         deletePublicPropertyOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(1, diffs.size());
         assertDeletedPropertyDiff(diffs.get(0));
@@ -228,7 +240,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         addNewPropertyOnWorkspace();
         deletePublicPropertyOnWorkspace();
 
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class);
 
         assertEquals(3, diffs.size());
         assertChangedPropertyValueAndVisibilityDiff(diffs.get(0));
@@ -238,28 +250,28 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
 
     @Test
     public void undoWithNoChangesResultsInNoDiffs() {
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
     public void undoWithChangedPublicPropertyValueResultsInNoDiffs() {
         changePublicPropertyValueOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
     public void undoWithChangedPublicPropertyVisibilityResultsInNoDiffs() {
         changePublicPropertyVisibilityOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
     public void undoWithChangedPublicPropertyValueAndVisibilityResultsInNoDiffs() {
         changePublicPropertyValueAndVisibilityOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -267,7 +279,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyValueOnWorkspace();
         changePublicPropertyValueOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -275,7 +287,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyVisibilityOnWorkspace();
         changePublicPropertyVisibilityOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -283,7 +295,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyValueAndVisibilityOnWorkspace();
         changePublicPropertyValueAndVisibilityOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -291,7 +303,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -299,7 +311,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyVisibilityOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -307,7 +319,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueAndVisibilityOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -315,21 +327,21 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyValueOnWorkspace();
         changeNonPublicPropertyVisibilityOnWorkspace(); // changes only the visibility for the current property
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
     public void undoWithNewPropertyResultsInNoDiffs() {
         addNewPropertyOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
     public void undoWithDeletedPropertyResultsInNoDiffs() {
         deletePublicPropertyOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
@@ -338,14 +350,14 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         addNewPropertyOnWorkspace();
         deletePublicPropertyOnWorkspace();
 
-        undoPropertyDiffsAndAssertNoDiffs(getPropertyDiffsFromWorkspace());
+        undoPropertyDiffsAndAssertNoDiffs(getDiffsFromWorkspace(PropertyItem.class));
     }
 
     @Test
     public void publishWithChangedPublicPropertyValueSucceeds() {
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueOnWorkspace();
-        publishWorkspace();
+        publishWorkspaceDiffs();
         assertChangedPropertyValuePublished();
     }
 
@@ -353,7 +365,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     public void publishWithChangedPublicPropertyVisibilitySucceeds() {
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyVisibilityOnWorkspace();
-        publishWorkspace();
+        publishWorkspaceDiffs();
         assertChangedPropertyVisibilityPublished();
     }
 
@@ -361,23 +373,96 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     public void publishWithChangedPublicPropertyValueAndVisibilitySucceeds() {
         markPublicPropertyHiddenOnWorkspace();
         changePublicPropertyValueAndVisibilityOnWorkspace();
-        publishWorkspace();
+        publishWorkspaceDiffs();
         assertChangedPropertyValueAndVisibilityPublished();
     }
 
     @Test
-    public void recreatedVertexWithSameIdAfterUndoShouldNotHaveOldProperties() {
-        String workspaceId = workspace.getWorkspaceId();
-        Authorizations workspaceAuthorizations = new InMemoryAuthorizations(workspaceId, OTHER_VISIBILITY_SOURCE);
-        VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, initialVisibilitySource, workspaceId);
-        Visibility visibility = VISIBILITY_TRANSLATOR.toVisibility(visibilityJson).getVisibility();
-        Metadata propertyMetadata = new Metadata();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, visibilityJson, VISIBILITY_TRANSLATOR.getDefaultVisibility());
+    public void publishNewVertexSucceeds() {
+        Vertex vertex = newVertexOnWorkspace();
 
-        ElementBuilder<Vertex> vertexBuilder = graph.prepareVertex("v1", visibility)
-                .addPropertyValue("k1", "p1", "v1", propertyMetadata, visibility)
-                .addPropertyValue("k2", "p2", "v2", propertyMetadata, visibility);
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, propertyMetadata, visibility);
+        when(formulaEvaluator.evaluateTitleFormula(
+                any(Element.class), any(FormulaEvaluator.UserContext.class), any(Authorizations.class)))
+                .thenReturn(VERTEX_TITLE);
+
+        List<VertexItem> vertexDiffs = getDiffsFromWorkspace(VertexItem.class);
+        assertEquals(1, vertexDiffs.size());
+        VertexItem vertexDiff = vertexDiffs.get(0);
+        assertEquals(vertex.getId(), vertexDiff.getVertexId());
+        assertEquals(VERTEX_CONCEPT_TYPE, vertexDiff.getConceptType());
+        assertEquals(VERTEX_TITLE, vertexDiff.getTitle());
+        assertEquals("VertexDiffItem", vertexDiff.getType());
+        assertEquals(SandboxStatus.PRIVATE, vertexDiff.getSandboxStatus());
+        assertTrue(vertexDiff.isVisible());
+        assertFalse(vertexDiff.isDeleted());
+        assertEquals(initialVisibilityJson.toString(), vertexDiff.getVisibilityJson().get("value").toString());
+
+        List<PropertyItem> propertyDiffs = getDiffsFromWorkspace(PropertyItem.class);
+        assertEquals(2, propertyDiffs.size()); // conceptType and title
+
+        publishWorkspaceDiffs();
+
+        vertex = graph.getVertex(vertex.getId(), workspaceAuthorizations);
+        assertEquals(vertex.getId(), vertexDiff.getVertexId());
+        assertEquals(VERTEX_CONCEPT_TYPE,
+                vertex.getProperty(VisalloProperties.CONCEPT_TYPE.getPropertyName(), initialVisibility).getValue());
+        assertEquals(VERTEX_TITLE, VisalloProperties.TITLE.getOnlyPropertyValue(vertex));
+        assertEquals(VisibilityJson.removeFromAllWorkspace(initialVisibilityJson),
+                VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex));
+        assertNull(vertex.getProperty(VisalloProperties.CONCEPT_TYPE.getPropertyName(), initialWorkspaceViz));
+        assertNull(vertex.getProperty(VisalloProperties.TITLE.getPropertyName(), initialWorkspaceViz));
+        assertNull(vertex.getProperty(VisalloProperties.VISIBILITY_JSON.getPropertyName(), initialWorkspaceViz));
+    }
+
+    @Test
+    public void publishDeleteVertexSucceeds() {
+        Vertex vertex = newVertexOnWorkspace();
+
+        // publish the new vertex
+        publishWorkspaceDiffs();
+        vertex = graph.getVertex(vertex.getId(), workspaceAuthorizations);
+
+        SandboxStatus sandboxStatus = SandboxStatusUtil.getSandboxStatus(vertex, workspace.getWorkspaceId());
+        assertEquals(SandboxStatus.PUBLIC, sandboxStatus);
+        workspaceHelper.deleteVertex(vertex, workspace.getWorkspaceId(), true, Priority.HIGH, workspaceAuthorizations,
+                user1);
+
+        List<VertexItem> vertexDiffs = getDiffsFromWorkspace(VertexItem.class);
+
+        assertEquals(1, vertexDiffs.size());
+        VertexItem vertexDiff = vertexDiffs.get(0);
+        assertEquals(vertex.getId(), vertexDiff.getVertexId());
+        assertEquals(VERTEX_CONCEPT_TYPE, vertexDiff.getConceptType());
+        assertNull(vertexDiff.getTitle());
+        assertEquals("VertexDiffItem", vertexDiff.getType());
+        assertEquals(SandboxStatus.PUBLIC, vertexDiff.getSandboxStatus());
+        assertTrue(vertexDiff.isVisible());
+        assertTrue(vertexDiff.isDeleted());
+        assertEquals(new VisibilityJson(initialVisibilitySource).toString(),
+                vertexDiff.getVisibilityJson().get("value").toString());
+
+        List<PropertyItem> propertyDiffs = getDiffsFromWorkspace(PropertyItem.class);
+
+        // TODO: why is visibilityJson here but not in publishNewVertexSucceeds()?
+        assertEquals(3, propertyDiffs.size()); // conceptType, title, and visibilityJson
+
+        // publish the vertex deletion
+        publishWorkspaceDiffs();
+
+        assertNull(graph.getVertex(vertex.getId(), workspaceAuthorizations));
+    }
+
+    @Test
+    public void recreatedVertexWithSameIdAfterUndoShouldNotHaveOldProperties() {
+        Metadata propertyMetadata = new Metadata();
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, initialVisibilityJson,
+                VISIBILITY_TRANSLATOR.getDefaultVisibility());
+
+        ElementBuilder<Vertex> vertexBuilder = graph.prepareVertex("v1", initialVisibility)
+                .addPropertyValue("k1", "p1", "v1", propertyMetadata, initialVisibility)
+                .addPropertyValue("k2", "p2", "v2", propertyMetadata, initialVisibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, initialVisibilityJson, propertyMetadata,
+                initialVisibility);
         Vertex v1 = vertexBuilder.save(workspaceAuthorizations);
         graph.flush();
 
@@ -391,10 +476,11 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         undoWorkspace(diffs);
         assertNull(graph.getVertex(vertexId, workspaceAuthorizations));
 
-        vertexBuilder = graph.prepareVertex("v1", visibility)
-                .addPropertyValue("k3", "p1", "v1", propertyMetadata, visibility)
-                .addPropertyValue("k4", "p2", "v2", propertyMetadata, visibility);
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, propertyMetadata, visibility);
+        vertexBuilder = graph.prepareVertex("v1", initialVisibility)
+                .addPropertyValue("k3", "p1", "v1", propertyMetadata, initialVisibility)
+                .addPropertyValue("k4", "p2", "v2", propertyMetadata, initialVisibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, initialVisibilityJson, propertyMetadata,
+                initialVisibility);
         vertexBuilder.save(workspaceAuthorizations);
         graph.flush();
 
@@ -408,7 +494,41 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         assertNull(graph.getVertex(vertexId, workspaceAuthorizations));
     }
 
-    private void undoWorkspace (List<ClientApiWorkspaceDiff.Item> diffs) {
+    private Vertex newVertexOnWorkspace() {
+        when(injector.getInstance(OntologyRepository.class)).thenReturn(ontologyRepository);
+        when(ontologyRepository.getPropertyByIRI(VisalloProperties.CONCEPT_TYPE.getPropertyName()))
+                .thenReturn(new InMemoryOntologyProperty());
+        when(ontologyRepository.getPropertyByIRI(VisalloProperties.VISIBILITY_JSON.getPropertyName()))
+                .thenReturn(new InMemoryOntologyProperty());
+        InMemoryOntologyProperty titleOntologyProp = new InMemoryOntologyProperty();
+        titleOntologyProp.setUserVisible(true);
+        when(ontologyRepository.getPropertyByIRI(VisalloProperties.TITLE.getPropertyName())).thenReturn(titleOntologyProp);
+
+        VertexBuilder vertexBuilder = graph.prepareVertex(initialWorkspaceViz);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, initialVisibilityJson, initialWorkspaceViz);
+
+        // Note that GraphRepository does not create new Metadata for each property. Doing that here is needed due
+        // to the use of InMemoryGraph.
+        Metadata propertyMetadata = new Metadata();
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, initialVisibilityJson,
+                DEFAULT_VISIBILITY);
+        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, VERTEX_CONCEPT_TYPE, propertyMetadata,
+                initialWorkspaceViz);
+
+        propertyMetadata = new Metadata();
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, initialVisibilityJson,
+                DEFAULT_VISIBILITY);
+        VisalloProperties.TITLE.addPropertyValue(vertexBuilder, "", VERTEX_TITLE, propertyMetadata, initialWorkspaceViz);
+
+        Vertex vertex = vertexBuilder.save(workspaceAuthorizations);
+        graph.flush();
+
+        workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), true, null, user1);
+        graph.flush();
+        return vertex;
+    }
+
+    private void undoWorkspace(List<ClientApiWorkspaceDiff.Item> diffs) {
         List<ClientApiUndoItem> undoItems = new ArrayList<>(diffs.size());
         for (ClientApiWorkspaceDiff.Item diff : diffs) {
             if (diff instanceof ClientApiWorkspaceDiff.VertexItem) {
@@ -425,46 +545,55 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 undoItems.add(item);
             }
         }
-        ClientApiWorkspaceUndoResponse workspaceUndoResponse = new ClientApiWorkspaceUndoResponse();
-        workspaceUndoHelper.undo(undoItems, workspaceUndoResponse, workspace.getWorkspaceId(), user1,
-                workspaceAuthorizations);
-        assertTrue(workspaceUndoResponse.isSuccess());
+        ClientApiWorkspaceUndoResponse response = new ClientApiWorkspaceUndoResponse();
+        workspaceUndoHelper.undo(undoItems, response, workspace.getWorkspaceId(), user1, workspaceAuthorizations);
+        assertTrue(response.isSuccess());
     }
 
-    private List<ClientApiWorkspaceDiff.Item> getDiffsFromWorkspace() {
-        ClientApiWorkspaceDiff workspaceDiff = workspaceRepository.getDiff(workspace, user1, LOCALE, TIME_ZONE);
-        return workspaceDiff.getDiffs();
-    }
+    private void publishWorkspaceDiffs() {
+        List<VertexItem> vertexDiffs = getDiffsFromWorkspace(VertexItem.class);
+        List<PropertyItem> propertyDiffs = getDiffsFromWorkspace(PropertyItem.class);
 
-    private void publishWorkspace() {
-        List<PropertyItem> diffs = getPropertyDiffsFromWorkspace();
-        assertFalse(diffs.isEmpty());
+        assertTrue("no diffs were found to publish", vertexDiffs.size() + propertyDiffs.size() > 0);
 
-        ClientApiPublishItem[] publishItems = new ClientApiPublishItem[diffs.size()];
-        int i = 0;
-        for (PropertyItem diff : diffs) {
+        List<ClientApiPublishItem> vertexItems = new ArrayList<>();
+        for (VertexItem diff : vertexDiffs) {
+            ClientApiVertexPublishItem publishItem = new ClientApiVertexPublishItem();
+            publishItem.setVertexId(diff.getVertexId());
+            publishItem.setAction(diff.isDeleted() ? Action.DELETE : Action.ADD_OR_UPDATE);
+            vertexItems.add(publishItem);
+        }
+
+        List<ClientApiPublishItem> propertyItems = new ArrayList<>();
+        for (PropertyItem diff : propertyDiffs) {
             ClientApiPropertyPublishItem publishItem = new ClientApiPropertyPublishItem();
             publishItem.setElementId(diff.getElementId());
             publishItem.setKey(diff.getKey());
             publishItem.setName(diff.getName());
             publishItem.setVisibilityString(diff.getVisibilityString());
             publishItem.setAction(diff.isDeleted() ? Action.DELETE : Action.ADD_OR_UPDATE);
-            publishItems[i++] = publishItem;
+            propertyItems.add(publishItem);
         }
 
-        ClientApiWorkspacePublishResponse response =
-                workspaceRepository.publish(publishItems, workspace.getWorkspaceId(), workspaceAuthorizations);
+        ClientApiPublishItem[] allPublishItems = Lists.newArrayList(Iterables.concat(vertexItems, propertyItems))
+                .toArray(new ClientApiPublishItem[vertexDiffs.size() + propertyDiffs.size()]);
 
+        ClientApiWorkspacePublishResponse response =
+                workspaceRepository.publish(allPublishItems, workspace.getWorkspaceId(), workspaceAuthorizations);
         assertTrue(response.isSuccess());
-        assertEquals(0, getPropertyDiffsFromWorkspace().size());
-        entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
+        assertNoDiffs();
     }
 
-    private List<PropertyItem> getPropertyDiffsFromWorkspace() {
-        List<PropertyItem> diffs = new ArrayList<>();
-        ClientApiWorkspaceDiff workspaceDiff = workspaceRepository.getDiff(workspace, user1, LOCALE, TIME_ZONE);
-        for (ClientApiWorkspaceDiff.Item diff : workspaceDiff.getDiffs()) {
-            diffs.add((PropertyItem) diff);
+    private List<ClientApiWorkspaceDiff.Item> getDiffsFromWorkspace() {
+        return workspaceRepository.getDiff(workspace, user1, LOCALE, TIME_ZONE).getDiffs();
+    }
+
+    private <T extends ClientApiWorkspaceDiff.Item> List<T> getDiffsFromWorkspace(Class<T> itemType) {
+        List<T> diffs = new ArrayList<>();
+        for (ClientApiWorkspaceDiff.Item diff : getDiffsFromWorkspace()) {
+            if (itemType.isAssignableFrom(diff.getClass())) {
+                diffs.add(itemType.cast(diff));
+            }
         }
         return diffs;
     }
@@ -489,7 +618,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
 
     private void undoPropertyDiffsAndAssertNoDiffs(List<PropertyItem> diffs) {
         undoPropertyDiffs(diffs);
-        assertEquals(0, getPropertyDiffsFromWorkspace().size());
+        assertNoDiffs();
     }
 
     private void markPublicPropertyHiddenOnWorkspace() {
@@ -514,6 +643,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     private void assertChangedPropertyValuePublished() {
+        entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
         Property property = entity1Vertex.getProperty("key1", "prop1");
         assertEquals("value1a", property.getValue());
         assertVisibilityOnProperty(initialVisibility, property);
@@ -543,6 +673,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     private void assertChangedPropertyVisibilityPublished() {
+        entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
         Property property = entity1Vertex.getProperty("key1", "prop1");
         assertEquals("value1", property.getValue());
         assertVisibilityOnProperty(SECRET_VISIBILITY, property);
@@ -566,6 +697,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     private void assertChangedPropertyValueAndVisibilityPublished() {
+        entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
         Property property = entity1Vertex.getProperty("key1", "prop1");
         assertEquals("value1a", property.getValue());
         assertVisibilityOnProperty(SECRET_VISIBILITY, property);
@@ -601,6 +733,10 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         assertVisibilityEquals(initialVisibility.getVisibilityString(), diff.getVisibilityString());
         assertEquals(SandboxStatus.PUBLIC, diff.getSandboxStatus());
         assertTrue(diff.isDeleted());
+    }
+
+    private void assertNoDiffs() {
+        assertEquals(0, workspaceRepository.getDiff(workspace, user1, LOCALE, TIME_ZONE).getDiffs().size());
     }
 
     private static void assertVisibilityOnProperty(Visibility expectedVisibility, Property property) {
