@@ -3,7 +3,6 @@ package model.workspace;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -379,7 +378,6 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     @Test
-    @Ignore("requires vertexium 2.1.x")
     public void publishNewVertexSucceeds() {
         Vertex vertex = newVertexOnWorkspace();
 
@@ -417,7 +415,6 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     @Test
-    @Ignore("requires vertexium 2.1.x")
     public void publishDeleteVertexSucceeds() {
         Vertex vertex = newVertexOnWorkspace();
 
