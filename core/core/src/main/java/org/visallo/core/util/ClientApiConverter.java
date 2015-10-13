@@ -92,7 +92,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return e;
     }
 
-    public static ClientApiEdge toClientApiEdgeWithVertexData(Edge edge, Vertex source, Vertex target, String workspaceId, Authorizations authorizations) {
+    public static ClientApiEdgeWithVertexData toClientApiEdgeWithVertexData(Edge edge, Vertex source, Vertex target, String workspaceId, Authorizations authorizations) {
         checkNotNull(source, "source vertex is required");
         checkNotNull(target, "target vertex is required");
         ClientApiEdgeWithVertexData e = new ClientApiEdgeWithVertexData();
