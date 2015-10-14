@@ -48,6 +48,21 @@ public class VertexiumRelationship extends Relationship {
         getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
     }
 
+    @Override
+    public String getTitleFormula() {
+        return OntologyProperties.TITLE_FORMULA.getPropertyValue(vertex);
+    }
+
+    @Override
+    public String getSubtitleFormula() {
+        return OntologyProperties.SUBTITLE_FORMULA.getPropertyValue(vertex);
+    }
+
+    @Override
+    public String getTimeFormula() {
+        return OntologyProperties.TIME_FORMULA.getPropertyValue(vertex);
+    }
+
     public String getIRI() {
         return OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(vertex);
     }

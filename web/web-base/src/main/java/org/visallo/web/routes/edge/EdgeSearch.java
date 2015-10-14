@@ -1,4 +1,4 @@
-package org.visallo.web.routes.vertex;
+package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
@@ -10,13 +10,14 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.routes.vertex.ElementSearchWithRelatedBase;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.EnumSet;
 
-public class VertexSearch extends ElementSearchWithRelatedBase implements ParameterizedHandler {
+public class EdgeSearch extends ElementSearchWithRelatedBase implements ParameterizedHandler {
     @Inject
-    public VertexSearch(
+    public EdgeSearch(
             OntologyRepository ontologyRepository,
             Graph graph,
             Configuration configuration
@@ -36,6 +37,6 @@ public class VertexSearch extends ElementSearchWithRelatedBase implements Parame
 
     @Override
     protected EnumSet<ElementType> getResultType() {
-        return EnumSet.of(ElementType.VERTEX);
+        return EnumSet.of(ElementType.EDGE);
     }
 }

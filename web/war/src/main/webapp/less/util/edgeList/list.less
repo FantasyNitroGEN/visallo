@@ -1,11 +1,14 @@
 
 .edge-list {
-  li > a {
+  .edge > a {
     padding: 0.5em;
     line-height: 1.7em;
     height: auto;
     border-bottom: 1px solid #eee;    
+    display: flex;
+    flex-wrap: wrap;
     span {
+      flex: 1 0 100%;
       .selection {
         background: fade(@blue-color, 10%);
       }
@@ -18,14 +21,25 @@
         border: 0;
       }
     }
-    .subtitle {
+    .subtitle, .subtitleTime {
       color: darken(@pane-background, 30%);
       font-size: 90%;
       text-shadow: 0 1px 0 white;
+      line-height: 1.5em;
+      &:empty {
+        display: none;
+      }
+    }
+    .subtitle {
+        padding-right: 0.5em;
+        flex: 1 1 50%;
+    }
+    .subtitleTime {
+        margin-bottom: 0.25em;
     }
   }
-  .active {
-    .subtitle {
+  .active > a {
+    .subtitle, .subtitleTime {
       color: #eee;
       text-shadow: none;
     }

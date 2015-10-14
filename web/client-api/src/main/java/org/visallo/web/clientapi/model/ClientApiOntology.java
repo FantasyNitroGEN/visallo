@@ -321,6 +321,9 @@ public class ClientApiOntology implements ClientApiObject {
         private String title;
         private String displayName;
         private Boolean userVisible;
+        private String titleFormula;
+        private String subtitleFormula;
+        private String timeFormula;
         private List<String> domainConceptIris = new ArrayList<>();
         private List<String> rangeConceptIris = new ArrayList<>();
         private List<InverseOf> inverseOfs = new ArrayList<>();
@@ -381,6 +384,30 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setProperties(List<String> properties) {
             this.properties = properties;
+        }
+
+        public String getTitleFormula() {
+            return titleFormula;
+        }
+
+        public void setTitleFormula(String titleFormula) {
+            this.titleFormula = titleFormula;
+        }
+
+        public String getSubtitleFormula() {
+            return subtitleFormula;
+        }
+
+        public void setSubtitleFormula(String subtitleFormula) {
+            this.subtitleFormula = subtitleFormula;
+        }
+
+        public String getTimeFormula() {
+            return timeFormula;
+        }
+
+        public void setTimeFormula(String timeFormula) {
+            this.timeFormula = timeFormula;
         }
 
         @JsonInclude(JsonInclude.Include.NON_EMPTY)

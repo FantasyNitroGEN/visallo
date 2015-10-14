@@ -1,12 +1,13 @@
 package org.visallo.it;
 
 import com.google.common.collect.ImmutableList;
-import org.visallo.web.clientapi.VisalloApi;
+import org.junit.Test;
 import org.visallo.web.clientapi.VertexApiExt;
+import org.visallo.web.clientapi.VisalloApi;
 import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.codegen.VertexApi;
+import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiVertex;
-import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,61 +47,61 @@ public class VertexIntegrationTest extends VertextTestBase {
     @Test
     public void testSearchVisibleWithQueryString() throws ApiException {
         VertexVisibilityHelper helper = new VertexVisibilityHelper();
-        List<ClientApiVertex> vertices;
+        List<ClientApiElement> elements;
 
         // matches all visible
-        vertices = helper.vertexApi.vertexSearch(PROPERTY_QUERY_STRING, EMPTY_FILTER, null, null, null, null,
-                null).getVertices();
+        elements = helper.vertexApi.vertexSearch(PROPERTY_QUERY_STRING, EMPTY_FILTER, null, null, null, null,
+                null).getElements();
 
-        assertVertexIds(helper.visibleVertexIds, vertices);
+        assertElementIds(helper.visibleVertexIds, elements);
 
         // matches nothing
-        vertices = helper.vertexApi.vertexSearch(NO_MATCHING_PROPERTY_VALUE, EMPTY_FILTER, null, null, null,
-                null, null).getVertices();
+        elements = helper.vertexApi.vertexSearch(NO_MATCHING_PROPERTY_VALUE, EMPTY_FILTER, null, null, null,
+                null, null).getElements();
 
-        assertEquals(0, vertices.size());
+        assertEquals(0, elements.size());
     }
 
     @Test
     public void testSearchPublicWithQueryStringForRelated() throws ApiException {
         RelatedVerticesHelper helper = new RelatedVerticesHelper();
         VertexApi vertexApi = helper.vertexApi;
-        List<ClientApiVertex> vertices;
+        List<ClientApiElement> elements;
 
         // match single
-        vertices = vertexApi.vertexSearch(PROPERTY_QUERY_STRING, EMPTY_FILTER, null, null, null, null,
-                helper.getVertexIdForSingleSearch()).getVertices();
+        elements = vertexApi.vertexSearch(PROPERTY_QUERY_STRING, EMPTY_FILTER, null, null, null, null,
+                helper.getVertexIdForSingleSearch()).getElements();
 
-        helper.assertRelatedVerticesForSingle(vertices);
+        helper.assertRelatedElementForSingle(elements);
 
         // match multiple
-        vertices = vertexApi.vertexSearch(PROPERTY_QUERY_STRING, EMPTY_FILTER, null, null, null, null,
-                helper.getVertexIdsForMultipleSearch()).getVertices();
+        elements = vertexApi.vertexSearch(PROPERTY_QUERY_STRING, EMPTY_FILTER, null, null, null, null,
+                helper.getVertexIdsForMultipleSearch()).getElements();
 
-        helper.assertRelatedVerticesForMultiple(vertices);
+        helper.assertRelatedElementsForMultiple(elements);
 
         // no match
-        vertices = vertexApi.vertexSearch(NO_MATCHING_PROPERTY_VALUE, EMPTY_FILTER, null, null, null, null,
-                helper.getVertexIdsForMultipleSearch()).getVertices();
+        elements = vertexApi.vertexSearch(NO_MATCHING_PROPERTY_VALUE, EMPTY_FILTER, null, null, null, null,
+                helper.getVertexIdsForMultipleSearch()).getElements();
 
-        assertEquals(0, vertices.size());
+        assertEquals(0, elements.size());
     }
 
     @Test
     public void testFindRelated() throws ApiException {
         RelatedVerticesHelper helper = new RelatedVerticesHelper();
         VertexApiExt vertexApi = helper.vertexApi;
-        List<ClientApiVertex> vertices;
+        List<ClientApiElement> elements;
 
         // single
-        vertices = vertexApi.findRelated(helper.getVertexIdForSingleSearch()).getVertices();
+        elements = vertexApi.findRelated(helper.getVertexIdForSingleSearch()).getElements();
 
-        helper.assertRelatedVerticesForSingle(vertices);
+        helper.assertRelatedElementForSingle(elements);
 
         // multiple
-        vertices = vertexApi.findRelated(helper.getVertexIdsForMultipleSearch()).getVertices();
+        elements = vertexApi.findRelated(helper.getVertexIdsForMultipleSearch()).getElements();
 
-        helper.assertRelatedVerticesForMultiple(vertices);
+        helper.assertRelatedElementsForMultiple(elements);
     }
 
     private class RelatedVerticesHelper {
@@ -132,19 +133,19 @@ public class VertexIntegrationTest extends VertextTestBase {
             return ImmutableList.of(vertexIds.get(0), vertexIds.get(3));
         }
 
-        void assertRelatedVerticesForSingle(List<ClientApiVertex> actualVertices) {
-            assertVertexIds(
+        void assertRelatedElementForSingle(List<ClientApiElement> actualElements) {
+            assertElementIds(
                     ImmutableList.of(vertexIds.get(1), vertexIds.get(2), vertexIds.get(3)),
-                    actualVertices);
+                    actualElements);
         }
 
-        void assertRelatedVerticesForMultiple(List<ClientApiVertex> actualVertices) {
+        void assertRelatedElementsForMultiple(List<ClientApiElement> actualElements) {
             // These expected vertices are dependent on the edges set up in the constructor.
-            assertVertexIds(
+            assertElementIds(
                     ImmutableList.of(
                             vertexIds.get(0), vertexIds.get(1), vertexIds.get(2),
                             vertexIds.get(3), vertexIds.get(4)),
-                    actualVertices);
+                    actualElements);
         }
     }
 

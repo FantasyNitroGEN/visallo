@@ -311,6 +311,17 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    protected List<Relationship> getChildRelationships(Relationship relationship) {
+        List<Relationship> results = new ArrayList<>();
+        for (Relationship childRelationship : relationshipsCache.values()) {
+            if (relationship.getIRI().equals(childRelationship.getParentIRI())) {
+                results.add(childRelationship);
+            }
+        }
+        return results;
+    }
+
+    @Override
     public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
         InMemoryConcept concept = (InMemoryConcept) getConceptByIRI(conceptIRI);
         if (concept != null) {
@@ -334,9 +345,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
-            String displayName,
-            String[] intents,
-            boolean userVisible
+            String displayName
     ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
@@ -365,9 +374,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 displayName,
                 domainConceptIris,
                 rangeConceptIris,
-                properties,
-                intents,
-                userVisible
+                properties
         );
         relationshipsCache.put(relationshipIRI, inMemRelationship);
         return inMemRelationship;

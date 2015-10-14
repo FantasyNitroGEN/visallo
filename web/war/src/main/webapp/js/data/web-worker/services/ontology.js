@@ -68,6 +68,39 @@ define([
                     });
             }),
 
+            propertiesByRelationship: memoize(function(relationshipId) {
+                return api.ontology()
+                    .then(function(ontology) {
+                        var propertyIds = [],
+                            collectPropertyIds = function(rId) {
+                                var relation = ontology.relationships.byTitle[rId],
+                                properties = relation && relation.properties,
+                                parentId = relation && relation.parentIri;
+
+                                if (properties && properties.length) {
+                                    propertyIds.push.apply(propertyIds, properties);
+                                }
+                                if (parentId) {
+                                    collectPropertyIds(parentId);
+                                }
+                            };
+
+                        collectPropertyIds(relationshipId);
+
+                        var properties = _.chain(propertyIds)
+                            .uniq()
+                            .map(function(pId) {
+                                return ontology.properties.byTitle[pId];
+                            })
+                            .value();
+
+                        return {
+                            list: _.sortBy(properties, 'displayName'),
+                            byTitle: _.indexBy(properties, 'title')
+                        };
+                    });
+            }),
+
             propertiesByConceptId: memoize(function(conceptId) {
                 return getOntology()
                     .then(function(ontology) {

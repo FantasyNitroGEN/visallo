@@ -5,9 +5,9 @@ import org.visallo.web.clientapi.util.ClientApiConverter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientApiVertexFindRelatedResponse implements ClientApiObject {
+public class ClientApiElementFindRelatedResponse implements ClientApiObject {
     private long count;
-    private List<ClientApiVertex> vertices = new ArrayList<ClientApiVertex>();
+    private List<ClientApiElement> elements = new ArrayList<>();
 
     public long getCount() {
         return count;
@@ -17,8 +17,8 @@ public class ClientApiVertexFindRelatedResponse implements ClientApiObject {
         this.count = count;
     }
 
-    public List<ClientApiVertex> getVertices() {
-        return vertices;
+    public List<ClientApiElement> getElements() {
+        return elements;
     }
 
     @Override

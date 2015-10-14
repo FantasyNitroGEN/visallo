@@ -4,11 +4,15 @@ define(['../util/ajax'], function(ajax) {
     var api = {
 
         all: function(urlFilter) {
+            var visalloFilter = /^\/(?:vertex|element|edge)\/search$/;
             return ajax('GET', '/search/all')
                 .then(function(result) {
                     return _.chain(result.searches)
                         .filter(function(search) {
                             if (urlFilter) {
+                                if (visalloFilter.test(urlFilter)) {
+                                    return visalloFilter.test(search.url);
+                                }
                                 return search.url === urlFilter;
                             }
                             return true;

@@ -286,6 +286,7 @@
         <rdfs:label xml:lang="en">Has Sibling</rdfs:label>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="http://visallo.org/dev#person"/>
+        <visallo:titleFormula xml:lang="en"> label || &apos;&apos; </visallo:titleFormula>
     </owl:ObjectProperty>
     
 
@@ -336,6 +337,7 @@
         <rdfs:label xml:lang="en">Knows</rdfs:label>
         <rdfs:range rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
+        <visallo:timeFormula xml:lang="en"> prop(&apos;http://visallo.org/dev#firstMet&apos;) || &apos;&apos; </visallo:timeFormula>
     </owl:ObjectProperty>
     
 

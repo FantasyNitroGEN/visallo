@@ -83,6 +83,7 @@ define([
             this.on('searchRequestBegan', this.onSearchResultsBegan);
             this.on('searchRequestCompleted', this.onSearchResultsCompleted);
             this.on('searchtypeloaded', this.onSearchTypeLoaded);
+            this.on(document, 'searchByParameters', this.onSearchByParameters);
             this.on(document, 'searchForPhrase', this.onSearchForPhrase);
             this.on(document, 'searchByRelatedEntity', this.onSearchByRelatedEntity);
             this.on(document, 'searchByProperty', this.onSearchByProperty);
@@ -92,25 +93,43 @@ define([
         });
 
         this.onSavedQuerySelected = function(event, data) {
+            this.trigger('searchByParameters', data.query);
+        };
+
+        this.onSearchByParameters = function(event, data) {
             var self = this;
 
-            this.currentSearchQuery = data.query;
-            this.currentSearchByUrl[data.query.url] = data.query;
             if ($(event.target).is(this.currentSearchNode)) return;
-            if ('q' in data.query.parameters) {
-                this.select('querySelector').filter(':visible')
-                    .val(data.query.parameters.q)
-                    .select()
-                this.updateClearSearch();
-            }
-            this.currentSearchNode.trigger(event.type, data);
+
+            this.currentSearchQuery = data;
+            this.currentSearchByUrl[data.url] = data;
+
+            if (!data.url) data.url = '/vertex/search';
+            if (!data.parameters) data.parameters = {};
+            if (!data.parameters.filter) data.parameters.filter = '[]';
+
+            this.openSearchType('Visallo')
+                .done(function() {
+                    var node = self.getSearchTypeNode().find('.search-filters .content');
+                    if ('q' in data.parameters) {
+                        self.select('querySelector').filter(':visible')
+                            .val(data.parameters.q)
+                            .select()
+                        self.updateClearSearch();
+                    }
+                    node.trigger(event.type, data);
+                });
         };
 
         this.onSetCurrentSearchForSaving = function(event, data) {
             if ($(event.target).is(this.attr.savedSearchSelector)) return;
 
             if (data && data.url) {
+                var visalloFilter = /^\/(?:vertex|element|edge)\/search$/;
                 this.currentSearchByUrl[data.url] = data;
+                if (visalloFilter.test(data.url)) {
+                    this.currentSearchByUrl['/vertex/search'] = data;
+                }
             } else {
                 this.currentSearchByUrl = {};
             }
@@ -156,16 +175,12 @@ define([
         };
 
         this.onSearchForPhrase = function(event, data) {
-            var self = this;
-
-            this.openSearchType('Visallo')
-                .done(function() {
-                    var node = self.getSearchTypeNode();
-                    self.trigger(node, 'clearSearch');
-
-                    self.setQueryVal('"' + data.query.replace(/"/g, '\\"') + '"').select();
-                    self.triggerQuerySubmit();
-                })
+            this.trigger('searchByParameters', {
+                submit: true,
+                parameters: {
+                    q: '"' + data.query.replace(/"/g, '\\"') + '"'
+                }
+            });
         };
 
         this.onSearchByProperty = function(event, data) {
@@ -251,17 +266,16 @@ define([
                     }
 
                     var queryIsStarSearch = query === '*',
-                        queryIsSavedSearch = data.options && data.options.fromSavedSearch,
                         hasQuery = query && query.length,
                         validSearch = hasFilters ? hasQuery :
                             (hadFilters && hasQuery && !queryIsStarSearch);
 
-                    if (validSearch || queryIsSavedSearch) {
-                        if (data.options && data.options.isScrubbing) {
-                            self.triggerQueryUpdatedThrottled();
-                        } else {
-                            self.triggerQueryUpdated();
-                        }
+                    if (data.options && data.options.isScrubbing) {
+                        self.triggerQueryUpdatedThrottled();
+                    } else {
+                        self.triggerQueryUpdated();
+                    }
+                    if (validSearch || (data.options && data.options.submit)) {
                         self.triggerQuerySubmit();
                     }
 

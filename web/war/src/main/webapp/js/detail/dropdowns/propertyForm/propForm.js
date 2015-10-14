@@ -98,25 +98,29 @@ define([
                     value: ''
                 });
                 this.manualOpen();
-            } else if (F.vertex.isEdge(vertex)) {
-                throw new Error('Property form not supported for edges');
             } else {
                 this.setupPropertySelectionField();
             }
         });
 
         this.setupPropertySelectionField = function() {
-            var self = this;
+            var self = this,
+                req;
 
-            this.dataRequest('ontology', 'propertiesByConceptId', F.vertex.prop(this.attr.data, 'conceptType'))
-                .done(function(properties) {
-                    FieldSelection.attachTo(self.select('propertyListSelector'), {
-                        properties: properties.list,
-                        focus: true,
-                        placeholder: i18n('property.form.field.selection.placeholder')
-                    });
-                    self.manualOpen();
+            if (F.vertex.isEdge(this.attr.data)) {
+                req = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label)
+            } else {
+                req = this.dataRequest('ontology', 'propertiesByConceptId', F.vertex.prop(this.attr.data, 'conceptType'))
+            }
+
+            req.done(function(properties) {
+                FieldSelection.attachTo(self.select('propertyListSelector'), {
+                    properties: properties.list,
+                    focus: true,
+                    placeholder: i18n('property.form.field.selection.placeholder')
                 });
+                self.manualOpen();
+            });
         }
 
         this.onVertexSelected = function(event, data) {

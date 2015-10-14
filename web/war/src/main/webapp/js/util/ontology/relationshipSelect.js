@@ -29,9 +29,15 @@ define([
                 fieldSelector: this.showTypeahead
             });
             this.on('limitParentConceptId', this.onLimitParentConceptId);
+            this.on('selectRelationshipId', this.onSetRelationshipId);
 
             this.setupTypeahead();
         });
+
+        this.onSetRelationshipId = function(event, data) {
+            var relationship = data && data.relationshipId && this.ontology.relationships.byTitle[data.relationshipId];
+            this.select('fieldSelector').val(relationship && relationship.displayName || '');
+        };
 
         this.showTypeahead = function() {
             this.select('fieldSelector').typeahead('lookup').select();

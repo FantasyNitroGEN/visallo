@@ -3,10 +3,7 @@ package org.visallo.web.routes.vertex;
 import com.google.inject.Inject;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.vertexium.Authorizations;
-import org.vertexium.FetchHint;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
+import org.vertexium.*;
 import org.vertexium.query.*;
 import org.vertexium.util.CloseableIterable;
 import org.visallo.core.config.Configuration;
@@ -19,9 +16,9 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import org.visallo.web.clientapi.model.ClientApiSearchResponse;
-import org.visallo.web.clientapi.model.ClientApiVertex;
-import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
@@ -29,14 +26,14 @@ import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.util.*;
 
-public abstract class VertexSearchBase {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSearch.class);
+public abstract class ElementSearchBase {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchBase.class);
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
     private int defaultSearchResultCount;
 
     @Inject
-    public VertexSearchBase(
+    public ElementSearchBase(
             final OntologyRepository ontologyRepository,
             final Graph graph,
             final Configuration configuration
@@ -46,7 +43,7 @@ public abstract class VertexSearchBase {
         defaultSearchResultCount = configuration.getInt(Configuration.DEFAULT_SEARCH_RESULT_COUNT, 100);
     }
 
-    protected ClientApiVertexSearchResponse handle(
+    protected ClientApiElementSearchResponse handle(
             HttpServletRequest request,
             String workspaceId,
             Authorizations authorizations
@@ -69,7 +66,7 @@ public abstract class VertexSearchBase {
         queryAndData.getQuery().limit(size);
         queryAndData.getQuery().skip(offset);
 
-        Iterable<Vertex> searchResults = getSearchResults(queryAndData, fetchHints);
+        Iterable<? extends Element> searchResults = getSearchResults(queryAndData, fetchHints);
 
         Map<String, Double> scores = null;
         if (searchResults instanceof IterableWithScores) {
@@ -77,13 +74,13 @@ public abstract class VertexSearchBase {
         }
 
         long retrievalStartTime = System.nanoTime();
-        List<ClientApiVertex> verticesList = convertVerticesToClientApi(queryAndData, searchResults, scores, workspaceId, authorizations);
+        List<ClientApiElement> elementList = convertElementsToClientApi(queryAndData, searchResults, scores, workspaceId, authorizations);
         long retrievalEndTime = System.nanoTime();
 
         long totalEndTime = System.nanoTime();
 
-        ClientApiVertexSearchResponse results = new ClientApiVertexSearchResponse();
-        results.getVertices().addAll(verticesList);
+        ClientApiElementSearchResponse results = new ClientApiElementSearchResponse();
+        results.getElements().addAll(elementList);
         results.setNextOffset(offset + size);
         results.setRetrievalTime(retrievalEndTime - retrievalStartTime);
         results.setTotalTime(totalEndTime - totalStartTime);
@@ -91,7 +88,7 @@ public abstract class VertexSearchBase {
         addSearchResultsDataToResults(results, queryAndData, searchResults);
 
         long endTime = System.nanoTime();
-        LOGGER.info("Search found %d vertices in %dms", verticesList.size(), (endTime - startTime) / 1000 / 1000);
+        LOGGER.info("Search found %d vertices in %dms", elementList.size(), (endTime - startTime) / 1000 / 1000);
 
         if (searchResults instanceof CloseableIterable) {
             ((CloseableIterable) searchResults).close();
@@ -100,7 +97,7 @@ public abstract class VertexSearchBase {
         return results;
     }
 
-    private void addSearchResultsDataToResults(ClientApiVertexSearchResponse results, QueryAndData queryAndData, Iterable<Vertex> searchResults) {
+    private void addSearchResultsDataToResults(ClientApiElementSearchResponse results, QueryAndData queryAndData, Iterable<? extends Element> searchResults) {
         if (searchResults instanceof IterableWithTotalHits) {
             results.setTotalHits(((IterableWithTotalHits) searchResults).getTotalHits());
         }
@@ -246,33 +243,50 @@ public abstract class VertexSearchBase {
         }
     }
 
-    protected List<ClientApiVertex> convertVerticesToClientApi(
+    protected List<ClientApiElement> convertElementsToClientApi(
             QueryAndData queryAndData,
-            Iterable<Vertex> searchResults,
+            Iterable<? extends Element> searchResults,
             Map<String, Double> scores,
             String workspaceId,
             Authorizations authorizations
     ) {
-        List<ClientApiVertex> verticesList = new ArrayList<>();
-        for (Vertex vertex : searchResults) {
-            Integer commonCount = getCommonCount(queryAndData, vertex);
-            ClientApiVertex v = ClientApiConverter.toClientApiVertex(vertex, workspaceId, commonCount, authorizations);
-            if (scores != null) {
-                v.setScore(scores.get(vertex.getId()));
+        List<ClientApiElement> elementsList = new ArrayList<>();
+        for (Element element : searchResults) {
+            Integer commonCount = getCommonCount(queryAndData, element);
+            ClientApiElement elem;
+            if (element instanceof Vertex) {
+                elem = ClientApiConverter.toClientApiVertex((Vertex) element, workspaceId, commonCount, authorizations);
+            } else if (element instanceof Edge) {
+                elem = ClientApiConverter.toClientApiEdge((Edge) element, workspaceId);
+            } else {
+                throw new VisalloException("Unhandled element type: " + element.getClass().getName());
             }
-            verticesList.add(v);
+            if (scores != null) {
+                elem.setScore(scores.get(element.getId()));
+            }
+            elementsList.add(elem);
         }
-        return verticesList;
+        return elementsList;
     }
 
-    protected Iterable<Vertex> getSearchResults(QueryAndData queryAndData, EnumSet<FetchHint> fetchHints) {
+    protected Iterable<? extends Element> getSearchResults(QueryAndData queryAndData, EnumSet<FetchHint> fetchHints) {
         //noinspection unused
         try (TraceSpan trace = Trace.start("getSearchResults")) {
-            return queryAndData.getQuery().vertices(fetchHints);
+            if (getResultType().contains(ElementType.VERTEX) && getResultType().contains(ElementType.EDGE)) {
+                return queryAndData.getQuery().elements(fetchHints);
+            } else if (getResultType().contains(ElementType.VERTEX)) {
+                return queryAndData.getQuery().vertices(fetchHints);
+            } else if (getResultType().contains(ElementType.EDGE)) {
+                return queryAndData.getQuery().edges(fetchHints);
+            } else {
+                throw new VisalloException("Unexpected result type: " + getResultType());
+            }
         }
     }
 
-    protected Integer getCommonCount(QueryAndData queryAndData, Vertex vertex) {
+    protected abstract EnumSet<ElementType> getResultType();
+
+    protected Integer getCommonCount(QueryAndData queryAndData, Element element) {
         return null;
     }
 

@@ -1,12 +1,11 @@
 package org.visallo.web.clientapi.codegen;
 
-import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
 import org.visallo.web.clientapi.model.ClientApiLongRunningProcessSubmitResponse;
-import org.visallo.web.clientapi.model.ClientApiVertexFindRelatedResponse;
+import org.visallo.web.clientapi.model.ClientApiElementFindRelatedResponse;
 import org.visallo.web.clientapi.model.ClientApiVerticesExistsResponse;
-import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
+import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiVertexEdges;
 import org.visallo.web.clientapi.model.ClientApiVertexCountsByConceptType;
@@ -943,7 +942,7 @@ public class VertexApi {
       }
     }
   }
-  public ClientApiVertexSearchResponse vertexSearch (String q, String filter, Integer offset, Integer size, String conceptType, Boolean includeChildNodes, List<String> relatedToVertexIds) throws ApiException {
+  public ClientApiElementSearchResponse vertexSearch (String q, String filter, Integer offset, Integer size, String conceptType, Boolean includeChildNodes, List<String> relatedToVertexIds) throws ApiException {
     Object postBody = null;
     // verify required params are set
     if(filter == null ) {
@@ -988,7 +987,7 @@ public class VertexApi {
     try {
       String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, postBody, headerParams, formParams, contentType);
       if(response != null){
-        return (ClientApiVertexSearchResponse) ApiInvoker.deserialize(response, "", ClientApiVertexSearchResponse.class);
+        return (ClientApiElementSearchResponse) ApiInvoker.deserialize(response, "", ClientApiElementSearchResponse.class);
       }
       else {
         return null;
@@ -1002,7 +1001,7 @@ public class VertexApi {
       }
     }
   }
-  public ClientApiVertexSearchResponse vertexGeoSearch (Double lat, Double lon, Double radius) throws ApiException {
+  public ClientApiElementSearchResponse vertexGeoSearch (Double lat, Double lon, Double radius) throws ApiException {
     Object postBody = null;
     // verify required params are set
     if(lat == null || lon == null || radius == null ) {
@@ -1039,7 +1038,7 @@ public class VertexApi {
     try {
       String response = apiInvoker.invokeAPI(basePath, path, "GET", queryParams, postBody, headerParams, formParams, contentType);
       if(response != null){
-        return (ClientApiVertexSearchResponse) ApiInvoker.deserialize(response, "", ClientApiVertexSearchResponse.class);
+        return (ClientApiElementSearchResponse) ApiInvoker.deserialize(response, "", ClientApiElementSearchResponse.class);
       }
       else {
         return null;
@@ -1104,7 +1103,7 @@ public class VertexApi {
       }
     }
   }
-  public ClientApiVertexFindRelatedResponse findRelated (List<String> graphVertexIds, String limitParentConceptId, String limitEdgeLabel, Integer maxVerticesToReturn) throws ApiException {
+  public ClientApiElementFindRelatedResponse findRelated (List<String> graphVertexIds, String limitParentConceptId, String limitEdgeLabel, Integer maxVerticesToReturn) throws ApiException {
     Object postBody = null;
     // verify required params are set
     if(graphVertexIds == null ) {
@@ -1143,7 +1142,7 @@ public class VertexApi {
     try {
       String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, postBody, headerParams, formParams, contentType);
       if(response != null){
-        return (ClientApiVertexFindRelatedResponse) ApiInvoker.deserialize(response, "", ClientApiVertexFindRelatedResponse.class);
+        return (ClientApiElementFindRelatedResponse) ApiInvoker.deserialize(response, "", ClientApiElementFindRelatedResponse.class);
       }
       else {
         return null;

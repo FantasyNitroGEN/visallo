@@ -135,6 +135,7 @@ define([
                         {
                             title: i18n('detail.toolbar.add'),
                             submenu: [
+                                Toolbar.ITEMS.ADD_PROPERTY,
                                 Toolbar.ITEMS.ADD_COMMENT
                             ]
                         },

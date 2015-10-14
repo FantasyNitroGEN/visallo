@@ -1,17 +1,17 @@
 package org.visallo.it;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
+import org.vertexium.type.GeoPoint;
 import org.visallo.core.ingest.FileImport;
-import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.tikaTextExtractor.TikaTextExtractorGraphPropertyWorker;
 import org.visallo.web.clientapi.VisalloApi;
 import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.model.*;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.vertexium.type.GeoPoint;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -83,10 +83,10 @@ public class UploadFileIntegrationTest extends TestBase {
     private void assertUser1CanSeeInSearch() throws ApiException {
         VisalloApi visalloApi = login(USERNAME_TEST_USER_1);
 
-        ClientApiVertexSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
+        ClientApiElementSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
         LOGGER.debug("searchResults: %s", searchResults.toString());
-        assertEquals(1, searchResults.getVertices().size());
-        ClientApiVertex searchResult = searchResults.getVertices().get(0);
+        assertEquals(1, searchResults.getElements().size());
+        ClientApiElement searchResult = searchResults.getElements().get(0);
         assertEquals(artifactVertexId, searchResult.getId());
 
         visalloApi.logout();
@@ -223,8 +223,8 @@ public class UploadFileIntegrationTest extends TestBase {
         String geoPoint = ObjectMapperFactory.getInstance().writeValueAsString(new GeoPoint(38.8951, -77.0367));
         visalloApi.getVertexApi().setProperty(artifactVertexId, "", TestOntology.PROPERTY_GEO_LOCATION.getPropertyName(), geoPoint, "", "justification", null, null);
 
-        ClientApiVertexSearchResponse geoSearchResults = visalloApi.getVertexApi().vertexGeoSearch(38.8951, -77.0367, 1000.0);
-        assertEquals(1, geoSearchResults.getVertices().size());
+        ClientApiElementSearchResponse geoSearchResults = visalloApi.getVertexApi().vertexGeoSearch(38.8951, -77.0367, 1000.0);
+        assertEquals(1, geoSearchResults.getElements().size());
 
         visalloApi.logout();
     }

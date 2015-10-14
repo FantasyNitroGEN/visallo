@@ -118,7 +118,7 @@ define([], function() {
                                 .done(function(vertices) {
                                     var graphVisible = $('.graph-pane-2d').is('.visible');
 
-                                    if (visalloData.currentWorkspaceEditable) {
+                                    if (visalloData.currentWorkspaceEditable && vertices.length) {
                                         self.trigger('clearWorkspaceFilter');
                                         self.trigger('verticesDropped', {
                                             vertices: vertices,
@@ -132,7 +132,10 @@ define([], function() {
             }));
 
             function verticesFromDraggable(draggable, dataRequestPromise) {
-                var alsoDragging = draggable.data('ui-draggable').alsoDragging,
+                var draggableData = draggable.data('ui-draggable');
+                if (!draggableData) return Promise.resolve([]);
+
+                var alsoDragging = draggableData.alsoDragging,
                     anchors = draggable;
 
                 if (alsoDragging && alsoDragging.length) {

@@ -1,0 +1,97 @@
+.sort-fields {
+  .fields {
+      list-style: none;
+      margin: 0 0 0.5em 0;    
+  }
+  .fields li {
+      white-space: nowrap;
+      display: flex;
+      margin: 0;
+      padding: 0;
+      cursor: move;
+
+      .asc {
+        display: inline;
+      }
+      .desc {
+        display: none;
+      }
+      &.ascending {
+        .asc {
+          display: none;
+        }
+        .desc {
+          display: inline;
+        }
+      }
+      &:hover, &.ui-sortable-helper {
+        background-color: darken(@pane-background, 5%);
+        border-radius: 10px;    
+      }
+  }
+  .fields li div {
+    flex: 2;    
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: #777;
+    font-size: 95%;        
+    span {
+      margin-right: 0.5em;
+    }
+    a {
+      cursor: s-resize;    
+      font-size: 0;
+      width: 21px;
+      height: 18px;
+      vertical-align: top;
+      display: inline-block;
+      .transition(~"all ease-in-out 0.2s");
+      background-image: url(../img/glyphicons/glyphicons_212_down_arrow@2x.png);
+      background-size: auto 9px;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.5;
+      &:hover {
+        opacity: 1.0;                
+      }
+    }
+  }
+
+  .fields .ascending div a {
+    cursor: n-resize;
+    .rotate(180deg);
+    /*transform: rotate(180deg);*/
+    /*background-image: url(../img/glyphicons/glyphicons_213_up_arrow@2x.png);*/
+  }
+
+  .fields li div,
+  .fields li button {
+    line-height: 1.5em;
+  }
+  .fields li .remove-sort {
+    font-size: 0;
+    width: 20px;
+    height: 20px;
+    color: #999;
+    line-height: 1.4em;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0.4;
+    background-color: transparent;
+    background-image: url(../img/glyphicons/glyphicons_192_circle_remove.png);
+    background-repeat: no-repeat;
+    background-size: 13px;
+    background-position: center;
+  }
+  .fields li button {
+     width: auto;       
+     padding: 0;
+     margin: 0;    
+  }
+  .fields li .btn-link {
+      font-variant: small-caps;
+      text-transform: uppercase;
+      font-size: 70%;
+  }
+}

@@ -9,7 +9,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
 import org.visallo.web.RouteTestBase;
-import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
+import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 
 import java.io.IOException;
 
@@ -47,8 +47,8 @@ public class VertexSearchTest extends RouteTestBase {
 
         when(userRepository.getAuthorizations(eq(user), eq(WORKSPACE_ID))).thenReturn(authorizations);
 
-        ClientApiVertexSearchResponse response = vertexSearch.handle(request, WORKSPACE_ID, authorizations);
-        assertEquals(2, response.getVertices().size());
+        ClientApiElementSearchResponse response = vertexSearch.handle(request, WORKSPACE_ID, authorizations);
+        assertEquals(2, response.getElements().size());
         assertEquals(2, response.getItemCount());
     }
 }
