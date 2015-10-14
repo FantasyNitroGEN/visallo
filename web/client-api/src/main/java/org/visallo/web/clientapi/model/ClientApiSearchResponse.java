@@ -184,10 +184,10 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     public static ClientApiSearchResponse listToClientApiSearchResponse(List<List<Object>> rows) {
         ClientApiSearchResponse results;
         if (rows == null || rows.size() == 0) {
-            results = new ClientApiVertexSearchResponse();
+            results = new ClientApiElementSearchResponse();
         } else if (rows.get(0).size() == 1 && rows.get(0).get(0) instanceof ClientApiVertex) {
-            results = new ClientApiVertexSearchResponse();
-            ((ClientApiVertexSearchResponse) results).getVertices().addAll(toClientApiVertex(rows));
+            results = new ClientApiElementSearchResponse();
+            ((ClientApiElementSearchResponse) results).getElements().addAll(toClientApiVertex(rows));
         } else if (rows.get(0).size() == 1 && rows.get(0).get(0) instanceof ClientApiEdge) {
             results = new ClientApiEdgeSearchResponse();
             ((ClientApiEdgeSearchResponse) results).getResults().addAll(toClientApiEdge(rows));

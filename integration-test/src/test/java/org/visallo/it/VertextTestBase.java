@@ -3,14 +3,13 @@ package org.visallo.it;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.visallo.web.clientapi.VisalloApi;
+import org.apache.commons.collections.iterators.LoopingIterator;
+import org.junit.Before;
 import org.visallo.web.clientapi.VertexApiExt;
+import org.visallo.web.clientapi.VisalloApi;
 import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.codegen.EdgeApi;
 import org.visallo.web.clientapi.model.ClientApiElement;
-import org.visallo.web.clientapi.model.ClientApiVertex;
-import org.apache.commons.collections.iterators.LoopingIterator;
-import org.junit.Before;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,11 +70,11 @@ public abstract class VertextTestBase extends TestBase {
         setupEdgeApi.create(outVertexId, inVertexId, edgeLabel, "", "ok", "{}", null);
     }
 
-    protected void assertVertexIds(List<String> expectedVertexIds, List<ClientApiVertex> actualVertices) {
+    protected void assertElementIds(List<String> expectedVertexIds, List<ClientApiElement> actualElements) {
         List<String> expectedIds = new ArrayList<>(expectedVertexIds);
-        List<String> actualIds = new ArrayList<>(Lists.transform(actualVertices, new Function<ClientApiVertex, String>() {
-            public String apply(ClientApiVertex vertex) {
-                return vertex.getId();
+        List<String> actualIds = new ArrayList<>(Lists.transform(actualElements, new Function<ClientApiElement, String>() {
+            public String apply(ClientApiElement element) {
+                return element.getId();
             }
         }));
         Collections.sort(expectedIds);

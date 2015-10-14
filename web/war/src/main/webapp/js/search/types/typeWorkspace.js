@@ -12,9 +12,11 @@ define([
 
     function SearchTypeWorkspace() {
 
-        this.before('initialize', function(node, config) {
-            config.supportsHistogram = true;
-            config.searchType = 'Workspace';
+        this.attributes({
+            supportsHistogram: true,
+            supportsMatch: false,
+            searchType: 'Workspace',
+            supportsSorting: false
         });
 
         this.after('initialize', function() {

@@ -1,12 +1,12 @@
 package org.visallo.it;
 
+import org.junit.Test;
 import org.visallo.csv.CsvOntology;
 import org.visallo.web.clientapi.VisalloApi;
 import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.model.ClientApiArtifactImportResponse;
-import org.visallo.web.clientapi.model.ClientApiVertex;
-import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
-import org.junit.Test;
+import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -37,11 +37,11 @@ public class UploadCsvIntegrationTest extends TestBase {
 
         assertPublishAll(visalloApi, 46);
 
-        ClientApiVertexSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
+        ClientApiElementSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
         LOGGER.info("searchResults (user1): %s", searchResults);
-        assertEquals(8, searchResults.getVertices().size());
-        for (ClientApiVertex v : searchResults.getVertices()) {
-            assertEquals("auth1", v.getVisibilitySource());
+        assertEquals(8, searchResults.getElements().size());
+        for (ClientApiElement e : searchResults.getElements()) {
+            assertEquals("auth1", e.getVisibilitySource());
         }
 
         visalloApi.logout();
@@ -51,9 +51,9 @@ public class UploadCsvIntegrationTest extends TestBase {
         VisalloApi visalloApi = login(USERNAME_TEST_USER_2);
         addUserAuths(visalloApi, USERNAME_TEST_USER_2, "auth1");
 
-        ClientApiVertexSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
+        ClientApiElementSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
         LOGGER.info("searchResults (user2): %s", searchResults);
-        assertEquals(8, searchResults.getVertices().size());
+        assertEquals(8, searchResults.getElements().size());
 
         visalloApi.logout();
     }

@@ -53,6 +53,7 @@ define([
                 this.setCurrentProperty(this.attr);
             } else {
                 this.createFieldSelection();
+                this.trigger('fieldRendered');
             }
         });
 

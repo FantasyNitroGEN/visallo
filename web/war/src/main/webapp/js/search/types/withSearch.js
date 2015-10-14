@@ -4,14 +4,16 @@ define([
     'hbs!./templates/type',
     'util/withDataRequest',
     'util/formatters',
-    'util/vertex/list'
+    'util/vertex/list',
+    'util/edge/list'
 ], function(
     registry,
     Filters,
     template,
     withDataRequest,
     F,
-    VertexList
+    VertexList,
+    EdgeList
 ) {
     'use strict';
 
@@ -21,7 +23,7 @@ define([
 
         withDataRequest.call(this);
 
-        this.defaultAttrs({
+        this.attributes({
             resultsSelector: '.search-results',
             resultsContainerSelector: '.search-results .content > div',
             filtersSelector: '.search-filters'
@@ -32,21 +34,21 @@ define([
 
             this.on(document, 'menubarToggleDisplay', this.onToggleDisplay);
 
-            this.on('savedQuerySelected', this.onSavedQuerySelected);
+            this.on('searchByParameters', this.onSearchByParameters);
             this.on('searchRequestCompleted', function(event, data) {
                 if (data.success && data.result) {
                     var self = this,
                         result = data.result,
-                        vertices = result.vertices,
+                        elements = result.elements,
                         $searchResults = this.select('resultsSelector'),
                         $resultsContainer = this.select('resultsContainerSelector')
-                            .teardownComponent(VertexList)
+                            .teardownAllComponents()
                             .empty(),
                         $hits = $searchResults.find('.total-hits').find('span').text(
                             i18n('search.results.none')
                         ).end().toggle(
                             _.isUndefined(result.totalHits) ?
-                                result.vertices.length === 0 :
+                                result.elements.length === 0 :
                                 result.totalHits === 0
                         );
 
@@ -55,12 +57,19 @@ define([
                     } else {
                         $searchResults.show().children('.content').scrollTop(0);
 
-                        VertexList.attachTo($resultsContainer, {
-                            vertices: vertices,
+                        var attrs = {
                             nextOffset: result.nextOffset,
                             infiniteScrolling: this.attr.infiniteScrolling,
                             total: result.totalHits
-                        });
+                        };
+                        if (result.vertices) {
+                            attrs.vertices = result.vertices;
+                            VertexList.attachTo($resultsContainer, attrs);
+                        } else {
+                            attrs.edges = result.edges;
+                            attrs.showTypeLabel = true;
+                            EdgeList.attachTo($resultsContainer.removeClass('vertex-list'), attrs);
+                        }
                         this.makeResizable($searchResults);
                     }
                     this.trigger($searchResults, 'paneResized');
@@ -72,6 +81,12 @@ define([
                 var filters = this.select('filtersSelector').find('.content')
                 this.trigger(filters, 'clearfilters');
             });
+            this.on('searchtypeloaded', function(event, data) {
+                var filters = this.select('filtersSelector').find('.content')
+                this.trigger(filters, 'enableMatchSelection', {
+                    match: data.type === 'Visallo'
+                })
+            })
         });
 
         this.onToggleDisplay = function(event, data) {
@@ -80,7 +95,7 @@ define([
             }
         };
 
-        this.onSavedQuerySelected = function(event, data) {
+        this.onSearchByParameters = function(event, data) {
             var filtersNode = this.select('filtersSelector').find('.content')
             event.stopPropagation();
             if ($(event.target).is(filtersNode)) return;
@@ -99,7 +114,9 @@ define([
             var filters = this.select('filtersSelector');
             Filters.attachTo(filters.find('.content'), {
                 supportsHistogram: this.attr.supportsHistogram === true,
-                searchType: this.attr.searchType
+                supportsSorting: this.attr.supportsSorting !== false,
+                searchType: this.attr.searchType,
+                match: this.searchOptions && this.searchOptions.match || 'vertex'
             });
         };
 
@@ -107,7 +124,7 @@ define([
             this.select('resultsSelector')
                 .hide();
             this.select('resultsContainerSelector')
-                .teardownComponent(VertexList)
+                .teardownAllComponents()
                 .empty();
             this.trigger(document, 'paneResized');
         };

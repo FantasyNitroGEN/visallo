@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'd3',
-    'util/formatters',
+    'util/vertex/formatters',
     'util/withDataRequest',
     'util/vertex/justification/viewer'
 ], function(
@@ -90,6 +90,7 @@ define([
                         .call(function() {
                             this.append('span');
                             this.append('div').attr('class', 'subtitle')
+                            this.append('div').attr('class', 'subtitleTime')
                         });
 
                     this.attr('data-edge-id', function(d) {
@@ -100,12 +101,15 @@ define([
                         var $this = $(this),
                             d = d3.select(this).datum(),
                             justification = _.findWhere(d.properties, { name: 'http://visallo.org#justification' }),
-                            sourceInfo = _.findWhere(d.properties, { name: '_sourceMetadata' });
+                            sourceInfo = _.findWhere(d.properties, { name: '_sourceMetadata' }),
+                            ontologyRelation = self.ontologyRelationships.byTitle[d.label];
 
                         $this.teardownAllComponents();
 
-                        if (self.attr.showTypeLabel) {
-                            $this.text(self.ontologyRelationships.byTitle[d.label].displayName);
+                        if (self.attr.showTypeLabel && ontologyRelation && ontologyRelation.titleFormula) {
+                            $this.text(F.edge.title(d));
+                        } else if (self.attr.showTypeLabel && ontologyRelation) {
+                            $this.text(ontologyRelation.displayName);
                         } else if (justification || sourceInfo) {
                             JustificationViewer.attachTo($this, {
                                 justificationMetadata: justification && justification.value,
@@ -116,30 +120,8 @@ define([
                         }
                     });
 
-                    this.select('.subtitle').text(i18n('detail.multiple.edge.loading')).each(function(d) {
-                        var propertyDate = _.findWhere(d.properties, { name: 'http://visallo.org#modifiedDate' }),
-                            propertyBy = _.findWhere(d.properties, { name: 'http://visallo.org#modifiedBy' }),
-                            subtitleEl = d3.select(this),
-                            setText = function(userNames, date) {
-                                var text = i18n('detail.multiple.edge.created.display',
-                                    userNames && userNames[0] ?
-                                        userNames[0] :
-                                        i18n('detail.multiple.edge.created.by.unknown'),
-                                    date ?
-                                        F.date.relativeToNow(F.date.utc(date.value)) :
-                                        i18n('detail.multiple.edge.created.date.unknown'));
-                                subtitleEl.text(text);
-                            };
-
-                        if (propertyBy) {
-                            withDataRequest.dataRequest('user', 'getUserNames', [propertyBy.value])
-                                .done(function(userNames) {
-                                    setText(userNames, propertyDate);
-                                });
-                        } else {
-                            setText(propertyBy, propertyDate);
-                        }
-                    });
+                    this.select('.subtitle').text(F.edge.subtitle);
+                    this.select('.subtitleTime').text(F.edge.time);
 
                     this.exit().remove();
                 });

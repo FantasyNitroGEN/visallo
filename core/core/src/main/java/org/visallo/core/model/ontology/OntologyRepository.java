@@ -54,6 +54,8 @@ public interface OntologyRepository {
 
     Set<Concept> getConceptAndAllChildren(Concept concept);
 
+    Set<Relationship> getRelationshipAndAllChildren(Relationship relationship);
+
     Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir);
 
     Relationship getOrCreateRelationshipType(
@@ -61,9 +63,7 @@ public interface OntologyRepository {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
-            String displayName,
-            String[] intents,
-            boolean userVisible
+            String displayName
     );
 
     OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition);
@@ -123,4 +123,6 @@ public interface OntologyRepository {
     OntologyProperty getDependentPropertyParent(String iri);
 
     void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes);
+
+    void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes);
 }

@@ -24,6 +24,7 @@ import org.visallo.web.routes.admin.AdminUploadOntology;
 import org.visallo.web.routes.admin.PluginList;
 import org.visallo.web.routes.config.Configuration;
 import org.visallo.web.routes.edge.*;
+import org.visallo.web.routes.element.ElementSearch;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessById;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessCancel;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessDelete;
@@ -110,6 +111,9 @@ public class Router extends HttpServlet {
             app.get("/search/run", authenticator, csrfProtector, SearchRun.class);
             app.delete("/search", authenticator, csrfProtector, SearchDelete.class);
 
+            app.get("/element/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, ElementSearch.class);
+            app.post("/element/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, ElementSearch.class);
+
             app.delete("/vertex", authenticator, csrfProtector, EditPrivilegeFilter.class, VertexRemove.class);
             app.get("/vertex/highlighted-text", authenticator, csrfProtector, ReadPrivilegeFilter.class, VertexHighlightedText.class);
             app.get("/vertex/raw", authenticator, csrfProtector, ReadPrivilegeFilter.class, VertexRaw.class);
@@ -160,6 +164,8 @@ public class Router extends HttpServlet {
             app.get("/edge/property/details", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgePropertyDetails.class);
             app.get("/edge/details", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeDetails.class);
             app.get("/edge/count", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeGetCount.class);
+            app.get("/edge/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeSearch.class);
+            app.post("/edge/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeSearch.class);
 
             app.get("/workspace/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceList.class);
             app.post("/workspace/create", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceCreate.class);

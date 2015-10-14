@@ -243,7 +243,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         long importConceptsTime = endTime - startTime;
 
         startTime = System.currentTimeMillis();
-        importObjectProperties(o);
+        importObjectProperties(o, authorizations);
         clearCache(); // needed to find the relationship for inverse of
         endTime = System.currentTimeMillis();
         long importObjectPropertiesTime = endTime - startTime;
@@ -281,12 +281,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    private void importObjectProperties(OWLOntology o) {
+    private void importObjectProperties(OWLOntology o, Authorizations authorizations) {
         for (OWLObjectProperty objectProperty : o.getObjectPropertiesInSignature()) {
             if (!o.isDeclared(objectProperty, Imports.EXCLUDED)) {
                 continue;
             }
-            importObjectProperty(o, objectProperty);
+            importObjectProperty(o, objectProperty, authorizations);
         }
     }
 
@@ -594,27 +594,46 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             String[] intents
     );
 
-    protected Relationship importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty) {
+    protected Relationship importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty, Authorizations authorizations) {
         String iri = objectProperty.getIRI().toString();
         String label = getLabel(o, objectProperty);
-        String[] intents = getIntents(o, objectProperty);
-        boolean userVisible = getUserVisible(o, objectProperty);
         checkNotNull(label, "label cannot be null or empty for " + iri);
         LOGGER.info("Importing ontology object property " + iri + " (label: " + label + ")");
 
-        Relationship parent = getParentObjectProperty(o, objectProperty);
-        return getOrCreateRelationshipType(
+        Relationship parent = getParentObjectProperty(o, objectProperty, authorizations);
+        Relationship relationship = getOrCreateRelationshipType(
                 parent,
                 getDomainsConcepts(o, objectProperty),
                 getRangesConcepts(o, objectProperty),
                 iri,
-                label,
-                intents,
-                userVisible
+                label
         );
+        for (OWLAnnotation annotation : EntitySearcher.getAnnotations(objectProperty, o)) {
+            String annotationIri = annotation.getProperty().getIRI().toString();
+            OWLLiteral valueLiteral = (OWLLiteral) annotation.getValue();
+            String valueString = valueLiteral.getLiteral();
+
+            if (annotationIri.equals(OntologyProperties.INTENT.getPropertyName())) {
+                relationship.addIntent(valueString, authorizations);
+                continue;
+            }
+
+            if (annotationIri.equals(OntologyProperties.USER_VISIBLE.getPropertyName())) {
+                boolean userVisible = Boolean.parseBoolean(valueString);
+                relationship.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), userVisible, authorizations);
+                continue;
+            }
+
+            if (annotationIri.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+                continue;
+            }
+
+            relationship.setProperty(annotationIri, valueString, authorizations);
+        }
+        return relationship;
     }
 
-    private Relationship getParentObjectProperty(OWLOntology o, OWLObjectProperty objectProperty) {
+    private Relationship getParentObjectProperty(OWLOntology o, OWLObjectProperty objectProperty, Authorizations authorizations) {
         Collection<OWLObjectPropertyExpression> superProperties = EntitySearcher.getSuperProperties(objectProperty, o);
         if (superProperties.size() == 0) {
             return null;
@@ -627,7 +646,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 return parent;
             }
 
-            parent = importObjectProperty(o, superProperty);
+            parent = importObjectProperty(o, superProperty, authorizations);
             if (parent == null) {
                 throw new VisalloException("Could not find or create parent: " + superProperty);
             }
@@ -987,6 +1006,23 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     protected abstract List<Concept> getChildConcepts(Concept concept);
 
     @Override
+    public Set<Relationship> getRelationshipAndAllChildren(Relationship relationship) {
+        List<Relationship> childRelationships = getChildRelationships(relationship);
+        Set<Relationship> result = Sets.newHashSet(relationship);
+        if (childRelationships.size() > 0) {
+            List<Relationship> childrenList = new ArrayList<>();
+            for (Relationship childRelationship : childRelationships) {
+                Set<Relationship> child = getRelationshipAndAllChildren(childRelationship);
+                childrenList.addAll(child);
+            }
+            result.addAll(childrenList);
+        }
+        return result;
+    }
+
+    protected abstract List<Relationship> getChildRelationships(Relationship relationship);
+
+    @Override
     public void resolvePropertyIds(JSONArray filterJson) throws JSONException {
         for (int i = 0; i < filterJson.length(); i++) {
             JSONObject filter = filterJson.getJSONObject(i);
@@ -1323,6 +1359,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return searchable;
     }
 
+    @Override
     public void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes) {
         checkNotNull(query, "query cannot be null");
         checkNotNull(conceptTypeIri, "conceptTypeIri cannot be null");
@@ -1341,6 +1378,28 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
         } else {
             query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptTypeIri);
+        }
+    }
+
+    @Override
+    public void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes) {
+        checkNotNull(query, "query cannot be null");
+        checkNotNull(edgeLabel, "edgeLabel cannot be null");
+
+        Relationship relationship = getRelationshipByIRI(edgeLabel);
+        if (includeChildNodes) {
+            Set<Relationship> childRelationships = getRelationshipAndAllChildren(relationship);
+            if (childRelationships.size() > 0) {
+                String[] relationshipIds = new String[childRelationships.size()];
+                int count = 0;
+                for (Relationship r : childRelationships) {
+                    relationshipIds[count] = r.getIRI();
+                    count++;
+                }
+                query.hasEdgeLabel(relationshipIds);
+            }
+        } else {
+            query.hasEdgeLabel(edgeLabel);
         }
     }
 }

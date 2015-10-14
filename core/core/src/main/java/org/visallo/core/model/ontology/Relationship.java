@@ -34,6 +34,12 @@ public abstract class Relationship {
         return parentIRI;
     }
 
+    public abstract String getTitleFormula();
+
+    public abstract String getSubtitleFormula();
+
+    public abstract String getTimeFormula();
+
     public abstract String getDisplayName();
 
     public abstract Iterable<String> getInverseOfIRIs();
@@ -83,6 +89,9 @@ public abstract class Relationship {
             result.setDomainConceptIris(getDomainConceptIRIs());
             result.setRangeConceptIris(getRangeConceptIRIs());
             result.setUserVisible(getUserVisible());
+            result.setTitleFormula(getTitleFormula());
+            result.setSubtitleFormula(getSubtitleFormula());
+            result.setTimeFormula(getTimeFormula());
             if (getIntents() != null) {
                 result.getIntents().addAll(Arrays.asList(getIntents()));
             }

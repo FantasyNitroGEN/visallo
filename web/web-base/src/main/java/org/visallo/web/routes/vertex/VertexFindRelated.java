@@ -11,7 +11,7 @@ import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.util.ClientApiConverter;
-import org.visallo.web.clientapi.model.ClientApiVertexFindRelatedResponse;
+import org.visallo.web.clientapi.model.ClientApiElementFindRelatedResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +32,7 @@ public class VertexFindRelated implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiVertexFindRelatedResponse handle(
+    public ClientApiElementFindRelatedResponse handle(
             @Required(name = "graphVertexIds[]") String[] graphVertexIds,
             @Optional(name = "limitParentConceptId") String limitParentConceptId,
             @Optional(name = "limitEdgeLabel") String limitEdgeLabel,
@@ -60,12 +60,12 @@ public class VertexFindRelated implements ParameterizedHandler {
     /**
      * This is overridable so web plugins can modify the resulting set of vertices.
      */
-    protected ClientApiVertexFindRelatedResponse getVertices(HttpServletRequest request, String workspaceId,
-                                                             String[] graphVertexIds, String limitEdgeLabel,
-                                                             Set<String> limitConceptIds, long maxVerticesToReturn,
-                                                             Authorizations authorizations) {
+    protected ClientApiElementFindRelatedResponse getVertices(HttpServletRequest request, String workspaceId,
+                                                              String[] graphVertexIds, String limitEdgeLabel,
+                                                              Set<String> limitConceptIds, long maxVerticesToReturn,
+                                                              Authorizations authorizations) {
         Set<String> visitedIds = new HashSet<>();
-        ClientApiVertexFindRelatedResponse vertexResult = new ClientApiVertexFindRelatedResponse();
+        ClientApiElementFindRelatedResponse vertexResult = new ClientApiElementFindRelatedResponse();
         long count = visitedIds.size();
         Iterable<Vertex> vertices = graph.getVertices(Lists.newArrayList(graphVertexIds), FetchHint.EDGE_REFS, authorizations);
         for (Vertex v : vertices) {
@@ -76,7 +76,7 @@ public class VertexFindRelated implements ParameterizedHandler {
                 }
                 if (limitConceptIds.size() == 0 || !isLimited(vertex, limitConceptIds)) {
                     if (count < maxVerticesToReturn) {
-                        vertexResult.getVertices().add(ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations));
+                        vertexResult.getElements().add(ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations));
                     }
                     count++;
                 }

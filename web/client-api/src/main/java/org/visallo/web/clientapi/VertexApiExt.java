@@ -3,12 +3,12 @@ package org.visallo.web.clientapi;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
+import org.json.JSONArray;
 import org.visallo.web.clientapi.codegen.ApiException;
+import org.visallo.web.clientapi.codegen.VertexApi;
 import org.visallo.web.clientapi.model.*;
 import org.visallo.web.clientapi.util.FileUtils;
 import org.visallo.web.clientapi.util.IOUtils;
-import org.json.JSONArray;
-import org.visallo.web.clientapi.codegen.VertexApi;
 
 import javax.ws.rs.core.MediaType;
 import java.io.File;
@@ -165,7 +165,7 @@ public class VertexApiExt extends VertexApi {
         return apiInvoker.getBinary(basePath, VERTEX_BASE_URL + "video-preview", queryParams, headerParams);
     }
 
-    public ClientApiVertexFindRelatedResponse findRelated(List<String> vertexIds) throws ApiException {
+    public ClientApiElementFindRelatedResponse findRelated(List<String> vertexIds) throws ApiException {
         return findRelated(vertexIds, null, null, null);
     }
 
@@ -207,12 +207,12 @@ public class VertexApiExt extends VertexApi {
         }
     }
 
-    public ClientApiVertexSearchResponse vertexSearch(String query) throws ApiException {
+    public ClientApiElementSearchResponse vertexSearch(String query) throws ApiException {
         JSONArray filters = new JSONArray();
         return vertexSearch(query, filters, null, null, null, null, null);
     }
 
-    public ClientApiVertexSearchResponse vertexSearch(String query, JSONArray filters, Integer offset, Integer size, String conceptType, Boolean includeChildNodes, List<String> relatedToVertexIds) throws ApiException {
+    public ClientApiElementSearchResponse vertexSearch(String query, JSONArray filters, Integer offset, Integer size, String conceptType, Boolean includeChildNodes, List<String> relatedToVertexIds) throws ApiException {
         return vertexSearch(query, filters.toString(), offset, size, conceptType, includeChildNodes, relatedToVertexIds);
     }
 

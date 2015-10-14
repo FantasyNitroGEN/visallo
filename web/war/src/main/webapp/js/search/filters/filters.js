@@ -5,8 +5,10 @@ define([
     'hbs!./filtersTpl',
     './filterItem',
     'tpl!./entityItem',
+    'search/sort',
     'util/vertex/formatters',
     'util/ontology/conceptSelect',
+    'util/ontology/relationshipSelect',
     'util/withDataRequest',
     'configuration/plugins/registry'
 ], function(
@@ -15,8 +17,10 @@ define([
     template,
     FilterItem,
     entityItemTemplate,
+    SortFilter,
     F,
     ConceptSelector,
+    RelationshipSelector,
     withDataRequest,
     registry) {
     'use strict';
@@ -30,12 +34,22 @@ define([
         this.otherFilters = {};
         this.filterId = 0;
 
-        this.defaultAttrs({
+        this.attributes({
             removeEntityRowSelector: '.entity-filters button.remove',
             removeExtensionRowSelector: '.extension-filters button.remove',
+            matchTypeSelector: '.match-types input',
             extensionsSelector: '.extension-filters',
             filterItemsSelector: '.prop-filters .filter',
-            conceptDropdownSelector: '.concepts-dropdown'
+            conceptDropdownSelector: '.concepts-dropdown',
+            edgeLabelDropdownSelector: '.edgetype-dropdown',
+            sortContentSelector: '.sort-content',
+            conceptFilterSelector: '.concepts-dropdown,.concept-filter-header',
+            edgeLabelFilterSelector: '.edgetype-dropdown,.edgetype-filter-header',
+            match: 'vertex',
+            supportsMatch: true,
+            supportsSorting: true,
+            supportsHistogram: null,
+            searchType: null
         });
 
         this.after('initialize', function() {
@@ -44,17 +58,20 @@ define([
             this.throttledNotifyOfFilters = _.throttle(this.notifyOfFilters.bind(this), 100);
             this.notifyOfFilters = _.debounce(this.notifyOfFilters.bind(this), FILTER_SEARCH_DELAY_SECONDS * 1000);
 
-            this.$node.html(template({}));
-
-            this.addSearchFilterExtensions()
-                .done(function() {
-                    self.trigger('filtersLoaded');
-                });
+            this.matchType = this.attr.match;
+            this.$node.html(template({
+                showMatchType: this.attr.supportsMatch !== false,
+                showConceptFilter: this.attr.match === 'vertex',
+                showEdgeFilter: this.attr.match === 'edge',
+                showSorting: this.attr.supportsSorting
+            }));
 
             this.on('filterItemChanged', this.onFilterItemChanged);
 
-            this.on('savedQuerySelected', this.onSavedQuerySelected);
+            this.on('searchByParameters', this.onSearchByParameters);
             this.on('clearfilters', this.onClearFilters);
+            this.on('sortFieldsUpdated', this.onSortFieldsUpdated);
+            this.on('enableMatchSelection', this.onEnableMatchSelection);
             this.on('click', {
                 removeExtensionRowSelector: this.onRemoveExtensionRow,
                 removeEntityRowSelector: this.onRemoveExtensionRow
@@ -65,13 +82,25 @@ define([
                     e.preventDefault();
                 }
             })
+            this.on('change', {
+                matchTypeSelector: this.onChangeMatchType
+            })
             this.on('conceptSelected', this.onConceptChange);
+            this.on('relationshipSelected', this.onEdgeTypeChange);
             this.on('searchByRelatedEntity', this.onSearchByRelatedEntity);
             this.on('searchByProperty', this.onSearchByProperty);
             this.on('filterExtensionChanged', this.onFilterExtensionChanged);
 
-            this.loadPropertyFilters();
-            this.loadConcepts();
+            Promise.resolve(this.addSearchFilterExtensions())
+                .then(function() {
+                    return self.loadPropertyFilters();
+                })
+                .done(function() {
+                    self.loadConcepts();
+                    self.loadEdgeTypes();
+                    self.loadSorting();
+                    self.trigger('filtersLoaded');
+                });
         });
 
         this.onFilterItemChanged = function(event, data) {
@@ -139,15 +168,16 @@ define([
         }
 
         this.onFilterExtensionChanged = function(event, data) {
-            var options = data && data.options,
+            var self = this,
+                options = data && data.options,
                 newFilters = _.omit(data, 'options');
 
-            if (options && options.clearOtherFilters && !this.disableNotify) {
-                this.onClearFilters();
-            }
-            _.extend(this.otherFilters, newFilters);
-            $(event.target).closest('.extension-filter-row').show();
-            this.notifyOfFilters();
+            this.clearFilters({ triggerUpdates: false }).done(function() {
+                _.extend(self.otherFilters, newFilters);
+                $(event.target).closest('.extension-filter-row').show();
+                self.disableMatchEdges = data.options && data.options.disableMatchEdges === true;
+                self.notifyOfFilters();
+            })
         };
 
         this.onSearchByProperty = function(event, data) {
@@ -192,19 +222,22 @@ define([
             event.stopPropagation();
             var self = this;
 
-            this.onClearFilters();
-
-            Promise.resolve(this.setConceptFilter(data.conceptId))
+            this.disableNotify = true;
+            Promise.resolve(this.clearFilters({ triggerUpdates: false }))
+                .then(this.setConceptFilter.bind(this, data.conceptId))
+                .then(this.setRelatedToEntityFilter.bind(this, data.vertexIds))
                 .then(function() {
-                    self.setRelatedToEntityFilter(data.vertexIds);
+                    self.disableNotify = false;
+                    self.notifyOfFilters();
                 })
+                .done();
         };
 
         this.setRelatedToEntityFilter = function(vertexIds) {
             var self = this;
 
             return this.dataRequest('vertex', 'store', { vertexIds: vertexIds })
-                .done(function(vertices) {
+                .then(function(vertices) {
                     var single = vertices[0],
                         title = vertices.length > 1 ? i18n('search.filters.title_multiple', vertices.length)
                                                     : single && F.vertex.title(single) || single.id;
@@ -214,6 +247,44 @@ define([
                         .append(entityItemTemplate({title: title})).show();
                     self.notifyOfFilters();
                 });
+        };
+
+        this.setSort = function(sortFields, options) {
+            this.currentSort = sortFields || [];
+            if (!options || options.propagate !== false) {
+                this.select('sortContentSelector').trigger('setSortFields', {
+                    sortFields: sortFields
+                });
+            }
+            this.notifyOfFilters();
+        };
+
+        this.setEdgeTypeFilter = function(edgeId) {
+            this.edgeLabelFilter = edgeId || '';
+            this.trigger(this.select('edgeLabelDropdownSelector'), 'selectRelationshipId', { relationshipId: edgeId });
+
+            // TODO: update property filters to edge properties for this type
+            this.filteredPropertiesList = null;
+            this.select('filterItemsSelector')
+                .add(this.select('sortContentSelector'))
+                .trigger('filterProperties', {
+                    properties: this.properties
+                })
+            this.notifyOfFilters();
+        };
+
+        this.setMatchType = function(type) {
+            this.matchType = type;
+            this.$node.find('.match-type-' + type).prop('checked', true);
+            this.$node.find('input').prop('disabled', this.disableMatchEdges === true);
+            this.select('conceptFilterSelector').toggle(type === 'vertex');
+            this.select('edgeLabelFilterSelector').toggle(type === 'edge');
+            if (this.matchType === 'vertex') {
+                this.setConceptFilter(this.conceptFilter);
+            } else {
+                this.setEdgeTypeFilter(this.edgeLabelFilter);
+            }
+            this.notifyOfFilters();
         };
 
         this.setConceptFilter = function(conceptId) {
@@ -228,45 +299,86 @@ define([
                         self.filteredPropertiesList = _.reject(properties && properties.list || [], function(property) {
                             return !_.isEmpty(property.dependentPropertyIris);
                         });
-                        self.select('filterItemsSelector').trigger('filterProperties', {
-                            properties: self.filteredPropertiesList
-                        })
+                        self.select('filterItemsSelector')
+                            .add(self.select('sortContentSelector'))
+                            .trigger('filterProperties', {
+                                properties: self.filteredPropertiesList
+                            })
                         self.notifyOfFilters();
                     })
             } else {
                 this.filteredPropertiesList = null;
-                this.select('filterItemsSelector').trigger('filterProperties', {
-                    properties: this.properties
-                })
+                this.select('filterItemsSelector')
+                    .add(self.select('sortContentSelector'))
+                    .trigger('filterProperties', {
+                        properties: this.properties
+                    })
                 this.notifyOfFilters();
             }
+        };
+
+        this.onChangeMatchType = function(event, data) {
+            this.setMatchType($(event.target).val());
         };
 
         this.onConceptChange = function(event, data) {
             this.setConceptFilter(data.concept && data.concept.id || '');
         };
 
+        this.onEdgeTypeChange = function(event, data) {
+            this.setEdgeTypeFilter(data.relationship && data.relationship.title || '');
+        };
+
+        this.onSortFieldsUpdated = function(event, data) {
+            this.setSort(data.sortFields, { propagate: false });
+        };
+
+        this.onEnableMatchSelection = function(event, data) {
+            this.$node.find('.search-options').toggle(data.match === true);
+            if (data.match) {
+                this.setMatchType(this.matchType);
+            }
+        };
+
         this.onClearFilters = function(event, data) {
+            var self = this;
+            this.clearFilters().done(function() {
+                self.trigger('filtersCleared');
+            })
+        };
+
+        this.clearFilters = function(options) {
             var self = this,
                 filterItems = this.$node.find('.prop-filters .filter');
 
             filterItems.teardownAllComponents();
 
-            this.setConceptFilter()
-            this.createNewRowIfNeeded();
-            this.otherFilters = {};
-            this.$node.find('.entity-filters').hide().empty();
-            this.$node.find('.extension-filter-row').hide();
-            if (!data || data.triggerUpdates !== false) {
-                this.notifyOfFilters();
-            }
+            this.disableNotify = true;
+
+            return Promise.resolve(this.setConceptFilter())
+                .then(this.setMatchType.bind(this, 'vertex'))
+                .then(this.setEdgeTypeFilter.bind(this))
+                .then(this.setSort.bind(this))
+                .then(this.createNewRowIfNeeded.bind(this))
+                .then(function() {
+                    self.disableMatchEdges = false;
+                    self.otherFilters = {};
+                    self.$node.find('.entity-filters').hide().empty();
+                    self.$node.find('.extension-filter-row').hide();
+                    self.disableNotify = false;
+                    if (!options || options.triggerUpdates !== false) {
+                        self.notifyOfFilters();
+                    }
+                });
         };
 
         this.hasSomeFilters = function(filters) {
             return !!(filters &&
-                !_.isEmpty(filters.conceptFilter) ||
+                (!_.isEmpty(filters.conceptFilter) && this.matchType === 'vertex') ||
+                (!_.isEmpty(filters.edgeLabelFilter) && this.matchType === 'edge') ||
                 !_.isEmpty(filters.propertyFilters) ||
-                !_.isEmpty(filters.otherFilters)
+                !_.isEmpty(filters.otherFilters) ||
+                !_.isEmpty(this.currentSort)
              );
         }
 
@@ -277,6 +389,9 @@ define([
                 filters = {
                     otherFilters: this.otherFilters,
                     conceptFilter: this.conceptFilter,
+                    edgeLabelFilter: this.edgeLabelFilter,
+                    sortFields: this.currentSort,
+                    matchType: this.matchType,
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
                             var ontologyProperty = ontologyProperties.byTitle[filter.propertyId];
@@ -324,6 +439,7 @@ define([
             keys.forEach(function(key) {
                 delete self.otherFilters[key];
             })
+            this.disabledMatchEdges = false;
             this.notifyOfFilters();
         };
 
@@ -332,21 +448,19 @@ define([
                 return;
             }
             if (this.$node.find('.newrow').length === 0) {
-                this.addFilterItem();
+                return this.addFilterItem();
             }
         };
 
-        this.onSavedQuerySelected = function(event, data) {
+        this.onSearchByParameters = function(event, data) {
             var self = this,
-                filters = JSON.parse(data.query.parameters.filter);
+                filters = JSON.parse(data.parameters.filter);
 
-            this.dataRequest('ontology', 'properties')
-                .then(function(ontologyProperties) {
-                    self.onClearFilters();
-
-                    self.disableNotify = true;
-                    if (data.query.parameters['relatedToVertexIds[]']) {
-                        return self.setRelatedToEntityFilter(data.query.parameters['relatedToVertexIds[]']);
+            this.disableNotify = true;
+            Promise.resolve(this.clearFilters())
+                .then(function() {
+                    if (data.parameters['relatedToVertexIds[]']) {
+                        return self.setRelatedToEntityFilter(data.parameters['relatedToVertexIds[]']);
                     }
                 })
                 .then(function() {
@@ -355,7 +469,7 @@ define([
                         if (!_.isArray(keys)) {
                             keys = [keys];
                         }
-                        if (_.some(data.query.parameters, function(val, key) {
+                        if (_.some(data.parameters, function(val, key) {
                             return _.contains(keys, key.replace(/\[\]$/, ''));
                         })) {
                             return true;
@@ -371,7 +485,7 @@ define([
                                 keys = [keys];
                             }
                             return new Promise(function(fulfill) {
-                                var newFilters = _.chain(data.query.parameters)
+                                var newFilters = _.chain(data.parameters)
                                     .map(function(val, key) {
                                         return [key.replace(/\[\]$/, ''), val];
                                     })
@@ -391,7 +505,32 @@ define([
                         })
                 })
                 .then(function() {
-                    return self.setConceptFilter(data.query.parameters.conceptType);
+                    return self.setMatchType((/edge/).test(data.url) ? 'edge' : 'vertex');
+                })
+                .then(function() {
+                    return self.setConceptFilter(data.parameters.conceptType);
+                })
+                .then(function() {
+                    return self.setEdgeTypeFilter(data.parameters.edgeType);
+                })
+                .then(function() {
+                    var sortRaw = data.parameters['sort[]'],
+                        sort;
+                    if (sortRaw) {
+                        sort = _.chain(sortRaw)
+                            .map(function(sortStr) {
+                                var match = sortStr.match(/^(.*):(ASCENDING|DESCENDING)$/);
+                                if (match) {
+                                    return {
+                                        field: match[1],
+                                        direction: match[2]
+                                    }
+                                }
+                            })
+                            .compact()
+                            .value();
+                    }
+                    return self.setSort(sort);
                 })
                 .then(function() {
                     return Promise.resolve(filters).map(function(filter) {
@@ -401,7 +540,7 @@ define([
                 .done(function() {
                     self.disableNotify = false;
                     self.$node.find('.filter').show();
-                    self.notifyOfFilters({ fromSavedSearch: true });
+                    self.notifyOfFilters({ submit: data.submit === true });
                 });
         };
 
@@ -417,6 +556,17 @@ define([
             }
 
             node.empty();
+        };
+
+        this.loadSorting = function() {
+            if (!this.attr.supportsSorting) return;
+            SortFilter.attachTo(this.select('sortContentSelector'));
+        };
+
+        this.loadEdgeTypes = function() {
+            RelationshipSelector.attachTo(this.select('edgeLabelDropdownSelector'), {
+                defaultText: i18n('search.filters.all_edgetypes')
+            });
         };
 
         this.loadConcepts = function() {
@@ -435,8 +585,10 @@ define([
                     self.properties = _.reject(properties.list, function(property) {
                         return !_.isEmpty(property.dependentPropertyIris);
                     });
-                    self.addFilterItem();
+                    return self.addFilterItem();
                 })
+
+            return this.ontologyPromise;
         };
 
         this.addFilterItem = function(filter, options) {

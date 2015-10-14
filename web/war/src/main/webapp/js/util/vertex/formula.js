@@ -20,24 +20,29 @@ define([], function() {
                 formula = 'return (' + formula + ')';
             }
 
-            /*eslint no-new-func:0*/
-            return new Function(
-                // Get property value and converted to string displayValue
-                'prop', 'dependentProp',
-                // Get actual raw property value
-                'propRaw',
-                // Get the longest property value and converted to string displayValue
-                'longestProp',
-                // Vertex Json
-                'vertex',
-                // Inner function string
-                formula)(
-                    prop,
-                    prop,
-                    propRaw,
-                    longestProp,
-                    vertex);
+            var scope = _.extend({}, optionalOpts.additionalScope || {}, {
+                prop: prop,
+                dependentProp: prop,
+                propRaw: propRaw,
+                longestProp: longestProp
+            });
 
+            if (V.isEdge(vertex)) {
+                scope.edge = vertex;
+            } else {
+                scope.vertex = vertex;
+            }
+
+            var keys = [],
+                values = [];
+
+            _.each(scope, function(value, key) {
+                values.push(value);
+                keys.push(key);
+            });
+
+            /*eslint no-new-func:0*/
+            return (new Function(keys.join(','), formula)).apply(null, values);
         } catch(e) {
             console.warn('Unable to execute formula: ' + formula + ' Reason: ', e);
         }

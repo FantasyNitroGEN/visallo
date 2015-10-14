@@ -163,7 +163,7 @@ define([
                     var config = results.shift(),
                         related = results.shift(),
                         count = related.count,
-                        vertices = related.vertices,
+                        vertices = related.elements,
                         forceSearch = count > config['vertex.loadRelatedMaxForceSearch'],
                         promptBeforeAdding = count > config['vertex.loadRelatedMaxBeforePrompt'];
 

@@ -364,6 +364,12 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    protected List<Relationship> getChildRelationships(Relationship relationship) {
+        Vertex relationshipVertex = ((VertexiumRelationship) relationship).getVertex();
+        return toRelationships(relationshipVertex.getVertices(Direction.IN, LabelName.IS_A.toString(), getAuthorizations()));
+    }
+
+    @Override
     public Concept getParentConcept(final Concept concept) {
         Vertex parentConceptVertex = getParentConceptVertex(((VertexiumConcept) concept).getVertex());
         if (parentConceptVertex == null) {
@@ -378,6 +384,14 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             concepts.add(createConcept(vertex));
         }
         return concepts;
+    }
+
+    private List<Relationship> toRelationships(Iterable<Vertex> vertices) {
+        ArrayList<Relationship> relationships = new ArrayList<>();
+        for (Vertex vertex : vertices) {
+            relationships.add(toVertexiumRelationship(vertex));
+        }
+        return relationships;
     }
 
     private List<OntologyProperty> getPropertiesByVertexNoRecursion(Vertex vertex) {
@@ -507,9 +521,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
-            String displayName,
-            String[] intents,
-            boolean userVisible
+            String displayName
     ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
@@ -520,10 +532,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         VisalloProperties.CONCEPT_TYPE.setProperty(builder, TYPE_RELATIONSHIP, VISIBILITY.getVisibility());
         OntologyProperties.ONTOLOGY_TITLE.setProperty(builder, relationshipIRI, VISIBILITY.getVisibility());
         OntologyProperties.DISPLAY_NAME.setProperty(builder, displayName, VISIBILITY.getVisibility());
-        OntologyProperties.USER_VISIBLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
-        for (String intent : intents) {
-            OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
-        }
         Vertex relationshipVertex = builder.save(getAuthorizations());
 
         for (Concept domainConcept : domainConcepts) {

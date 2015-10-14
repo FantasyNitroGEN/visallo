@@ -18,13 +18,24 @@ define([
                 q = _.isUndefined(options.query.query) ?
                     options.query :
                     options.query.query,
-                url = '/vertex/search',
+                matchType = options.matchType || 'vertex',
+                url = '/' + matchType + '/search',
                 originalUrl = url;
 
-            if (options.conceptFilter) params.conceptType = options.conceptFilter;
+            if (options.conceptFilter && matchType === 'vertex') {
+                params.conceptType = options.conceptFilter;
+            }
+            if (options.edgeLabelFilter && matchType === 'edge') {
+                params.edgeLabel = options.edgeLabelFilter;
+            }
             if (options.paging) {
                 if (options.paging.offset) params.offset = options.paging.offset;
                 if (options.paging.size) params.size = options.paging.size;
+            }
+            if (!_.isEmpty(options.sort)) {
+                params.sort = options.sort.map(function(sort) {
+                    return [sort.field, sort.direction.toUpperCase()].join(':');
+                });
             }
 
             if (q) {

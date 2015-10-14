@@ -17,9 +17,10 @@ define([
 
     function SearchTypeVisallo() {
 
-        this.defaultAttrs({
+        this.attributes({
             infiniteScrolling: true,
-            searchType: 'Visallo'
+            searchType: 'Visallo',
+            supportsSorting: true
         });
 
         this.after('initialize', function() {
@@ -33,6 +34,8 @@ define([
             this.on('clearSearch', this.onClearSearch);
             this.on('infiniteScrollRequest', this.onInfiniteScrollRequest);
         });
+
+
 
         this.onClearSearch = function() {
             if (this.currentRequest && this.currentRequest.cancel) {
@@ -72,7 +75,10 @@ define([
                     query: data.value,
                     conceptFilter: data.filters.conceptFilter,
                     propertyFilters: data.filters.propertyFilters,
-                    otherFilters: data.filters.otherFilters
+                    otherFilters: data.filters.otherFilters,
+                    edgeLabelFilter: data.filters.edgeLabelFilter,
+                    sort: data.filters.sortFields,
+                    matchType: data.filters.matchType
                 };
                 self.triggerUpdatedSavedSearchQuery(options);
             })
@@ -97,7 +103,6 @@ define([
 
         this.onQuerySubmit = function(event, data) {
             var self = this,
-                otherFilters = data.filters.otherFilters,
                 query = data.value;
 
             this.currentQuery = data.value;
@@ -108,13 +113,16 @@ define([
                 self.triggerRequest(
                     query,
                     self.currentFilters.propertyFilters,
+                    self.currentFilters.matchType,
                     self.currentFilters.conceptFilter,
-                    otherFilters,
+                    self.currentFilters.edgeLabelFilter,
+                    self.currentFilters.otherFilters,
+                    self.currentFilters.sortFields,
                     { offset: 0 }
                 )
                     .then(function(result) {
                         var unknownTotal = false,
-                            verticesLength = result.vertices.length;
+                            verticesLength = result.elements.length;
 
                         if (!('totalHits' in result)) {
                             unknownTotal = true;
@@ -123,6 +131,11 @@ define([
                             // totalHits includes deleted items so show no results
                             // if no vertices returned and hits > 0
                             result.totalHits = 0;
+                        }
+
+                        switch (self.currentFilters.matchType) {
+                            case 'vertex': result.vertices = result.elements; break;
+                            case 'edge': result.edges = result.elements; break;
                         }
 
                         self.trigger('searchRequestCompleted', {
@@ -144,7 +157,7 @@ define([
             });
         };
 
-        this.triggerRequest = function(query, propertyFilters, conceptFilter, otherFilters, paging) {
+        this.triggerRequest = function(query, propertyFilters, matchType, conceptFilter, edgeLabelFilter, otherFilters, sortFields, paging) {
             if (this.currentRequest && this.currentRequest.cancel) {
                 this.currentRequest.cancel();
                 this.currentRequest = null;
@@ -160,8 +173,11 @@ define([
                     query: query,
                     propertyFilters: propertyFilters,
                     conceptFilter: conceptFilter,
+                    edgeLabelFilter: edgeLabelFilter,
                     otherFilters: otherFilters,
-                    paging: paging
+                    paging: paging,
+                    sort: sortFields,
+                    matchType: matchType
                 };
 
             this.triggerUpdatedSavedSearchQuery(options);
@@ -181,8 +197,11 @@ define([
             this.triggerRequest(
                 query,
                 this.currentFilters.propertyFilters,
+                this.currentFilters.matchType,
                 this.currentFilters.conceptFilter,
+                this.currentFilters.edgeLabelFilter,
                 this.currentFilters.otherFilters,
+                this.currentFilters.sortFields,
                 data.paging
             )
                 .then(function(results) {

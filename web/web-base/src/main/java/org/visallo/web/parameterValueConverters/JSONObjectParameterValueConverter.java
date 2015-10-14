@@ -4,13 +4,13 @@ import com.v5analytics.webster.DefaultParameterValueConverter;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 
-public class JSONObjectParameterValueConverter extends DefaultParameterValueConverter.SingleValueConverter<JSONObject> {
+public class JSONObjectParameterValueConverter implements DefaultParameterValueConverter.Converter<JSONObject> {
     @Override
-    public JSONObject convert(Class parameterType, String parameterName, String value) {
+    public JSONObject convert(Class parameterType, String parameterName, String[] value) {
         try {
-            return new JSONObject(value);
+            return new JSONObject(value[0]);
         } catch (Exception ex) {
-            throw new VisalloException("Could not parse JSONObject: " + value);
+            throw new VisalloException("Could not parse JSONObject: " + value[0]);
         }
     }
 }

@@ -1,10 +1,10 @@
 package org.visallo.it;
 
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.VisalloApi;
 import org.visallo.web.clientapi.codegen.ApiException;
-import org.junit.Test;
 import org.visallo.web.clientapi.model.*;
 
 import java.io.ByteArrayInputStream;
@@ -40,20 +40,20 @@ public class UploadRdfIntegrationTest extends TestBase {
 
         assertPublishAll(visalloApi, 25);
 
-        ClientApiVertexSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
+        ClientApiElementSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
         LOGGER.info("searchResults (user1): %s", searchResults);
-        assertEquals(4, searchResults.getVertices().size());
-        for (ClientApiVertex v : searchResults.getVertices()) {
-            assertEquals("auth1", v.getVisibilitySource());
+        assertEquals(4, searchResults.getElements().size());
+        for (ClientApiElement e : searchResults.getElements()) {
+            assertEquals("auth1", e.getVisibilitySource());
 
-            if (v.getId().equals("PERSON_Joe_Ferner")) {
-                joeFernerVertexId = v.getId();
+            if (e.getId().equals("PERSON_Joe_Ferner")) {
+                joeFernerVertexId = e.getId();
             }
-            if (v.getId().equals("PERSON_Dave_Singley")) {
-                daveSingleyVertexId = v.getId();
+            if (e.getId().equals("PERSON_Dave_Singley")) {
+                daveSingleyVertexId = e.getId();
             }
-            if (v.getId().equals("COMPANY_v5analytics")) {
-                v5AnalyticsVertexId = v.getId();
+            if (e.getId().equals("COMPANY_v5analytics")) {
+                v5AnalyticsVertexId = e.getId();
             }
         }
         assertNotNull(joeFernerVertexId, "Could not find joe ferner");
@@ -116,17 +116,17 @@ public class UploadRdfIntegrationTest extends TestBase {
     }
 
     private void assertFindRelated(VisalloApi visalloApi) throws ApiException {
-        ClientApiVertexFindRelatedResponse related = visalloApi.getVertexApi().findRelated(ImmutableList.of(joeFernerVertexId));
+        ClientApiElementFindRelatedResponse related = visalloApi.getVertexApi().findRelated(ImmutableList.of(joeFernerVertexId));
         assertEquals(2, related.getCount());
-        assertEquals(2, related.getVertices().size());
+        assertEquals(2, related.getElements().size());
 
         boolean foundV5Analytics = false;
         boolean foundRdfDocument = false;
-        for (ClientApiVertex v : related.getVertices()) {
-            if (v.getId().equals(v5AnalyticsVertexId)) {
+        for (ClientApiElement e : related.getElements()) {
+            if (e.getId().equals(v5AnalyticsVertexId)) {
                 foundV5Analytics = true;
             }
-            if (v.getId().equals(artifactVertexId)) {
+            if (e.getId().equals(artifactVertexId)) {
                 foundRdfDocument = true;
             }
         }
@@ -135,9 +135,9 @@ public class UploadRdfIntegrationTest extends TestBase {
     }
 
     private void assertSearch(VisalloApi visalloApi) throws ApiException {
-        ClientApiVertexSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
+        ClientApiElementSearchResponse searchResults = visalloApi.getVertexApi().vertexSearch("*");
         LOGGER.info("searchResults (user2): %s", searchResults);
-        assertEquals(4, searchResults.getVertices().size());
+        assertEquals(4, searchResults.getElements().size());
     }
 
     private void assertGetEdges(VisalloApi visalloApi) throws ApiException {
@@ -183,14 +183,14 @@ public class UploadRdfIntegrationTest extends TestBase {
     }
 
     private void addAllVerticesExceptArtifactToWorkspace(VisalloApi visalloApi) throws ApiException {
-        ClientApiVertexSearchResponse vertices = visalloApi.getVertexApi().vertexSearch("*");
+        ClientApiElementSearchResponse vertices = visalloApi.getVertexApi().vertexSearch("*");
         ClientApiWorkspaceUpdateData workspaceUpdateData = new ClientApiWorkspaceUpdateData();
-        for (ClientApiVertex v : vertices.getVertices()) {
-            if (v.getId().equals(artifactVertexId)) {
+        for (ClientApiElement e : vertices.getElements()) {
+            if (e.getId().equals(artifactVertexId)) {
                 continue;
             }
             ClientApiWorkspaceUpdateData.EntityUpdate entityUpdate = new ClientApiWorkspaceUpdateData.EntityUpdate();
-            entityUpdate.setVertexId(v.getId());
+            entityUpdate.setVertexId(e.getId());
             entityUpdate.setGraphPosition(new GraphPosition(10, 10));
             workspaceUpdateData.getEntityUpdates().add(entityUpdate);
         }
@@ -218,14 +218,14 @@ public class UploadRdfIntegrationTest extends TestBase {
 
         VisalloApi visalloApi = login(USERNAME_TEST_USER_1);
 
-        ClientApiVertexSearchResponse vertices = visalloApi.getVertexApi().vertexSearch("*");
+        ClientApiElementSearchResponse vertices = visalloApi.getVertexApi().vertexSearch("*");
         boolean foundAndChangedVertexVisibility = false;
-        for (ClientApiVertex v : vertices.getVertices()) {
-            if (v.getId().contains("PERSON_Joe_Ferner")) {
-                visalloApi.getVertexApi().setVisibility(v.getId(), "auth2");
+        for (ClientApiElement e : vertices.getElements()) {
+            if (e.getId().contains("PERSON_Joe_Ferner")) {
+                visalloApi.getVertexApi().setVisibility(e.getId(), "auth2");
                 foundAndChangedVertexVisibility = true;
-            } else if (v.getId().contains("COMPANY_v5analytics")) {
-                v5AnalyticsVertexId = v.getId();
+            } else if (e.getId().contains("COMPANY_v5analytics")) {
+                v5AnalyticsVertexId = e.getId();
                 ClientApiVertexEdges existingEdges = visalloApi.getVertexApi().getEdges(v5AnalyticsVertexId, null, 0, 100);
                 existingEdgeCount = existingEdges.getRelationships().size();
                 existingEdgeTotalCount = existingEdges.getTotalReferences();

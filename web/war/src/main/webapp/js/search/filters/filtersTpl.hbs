@@ -1,7 +1,25 @@
+<ul class="nav nav-list search-options" {{#unless showMatchType}}style="display:none"{{/unless}}>
+  <li class="nav-header"><span>Match</span>
+    <div class="match-types" style="float:right">
+      <label><input type="radio" class="match-type-vertex" name="match-type" 
+        {{#if showConceptFilter}}checked{{/if}} value="vertex">{{ i18n 'search.filters.match.vertex' }}</label>
+      <label><input type="radio" class="match-type-edge" name="match-type" 
+        {{#if showEdgeFilter}}checked{{/if}} value="edge">{{ i18n 'search.filters.match.edge' }}</label>
+    </div>
+  </li>
+</ul>
 <ul class="extension-filters nav nav-list"></ul>
 <ul style="display:none" class="entity-filters nav nav-list"></ul>
 <ul class="prop-filters nav nav-list">
-  <li class="concept-filter-header nav-header">{{ i18n 'search.filters.concept' }}</li>
-  <li class="concepts-dropdown"></li>
+  <li {{#unless showConceptFilter}}style="display:none"{{/unless}}
+    class="concept-filter-header nav-header">{{ i18n 'search.filters.concept' }}</li>
+  <li {{#unless showConceptFilter}}style="display:none"{{/unless}} class="concepts-dropdown"></li>
+  <li {{#unless showEdgeFilter}}style="display:none"{{/unless}}
+    class="edgetype-filter-header nav-header">{{ i18n 'search.filters.edgeType' }}</li>
+  <li {{#unless showEdgeFilter}}style="display:none"{{/unless}} class="edgetype-dropdown"></li>
+  {{#if showSorting}}
+  <li class="sort-filter-header nav-header">{{ i18n 'search.filters.sort' }}</li>
+  <li class="sort-content"></li>
+  {{/if}}
   <li class="prop-filter-header nav-header">{{ i18n 'search.filters.properties' }}</li>
 </ul>

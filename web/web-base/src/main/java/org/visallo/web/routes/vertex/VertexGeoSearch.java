@@ -12,7 +12,7 @@ import org.vertexium.type.GeoCircle;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.ClientApiConverter;
-import org.visallo.web.clientapi.model.ClientApiVertexSearchResponse;
+import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
@@ -30,14 +30,14 @@ public class VertexGeoSearch implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiVertexSearchResponse handle(
+    public ClientApiElementSearchResponse handle(
             @Required(name = "lat") double latitude,
             @Required(name = "lon") double longitude,
             @Required(name = "radius") double radius,
             @ActiveWorkspaceId String workspaceId,
             Authorizations authorizations
     ) throws Exception {
-        ClientApiVertexSearchResponse results = new ClientApiVertexSearchResponse();
+        ClientApiElementSearchResponse results = new ClientApiElementSearchResponse();
 
         for (OntologyProperty property : this.ontologyRepository.getProperties()) {
             if (property.getDataType() != PropertyType.GEO_LOCATION) {
@@ -48,7 +48,7 @@ public class VertexGeoSearch implements ParameterizedHandler {
                     has(property.getTitle(), GeoCompare.WITHIN, new GeoCircle(latitude, longitude, radius)).
                     vertices();
             for (Vertex vertex : vertices) {
-                results.getVertices().add(ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations));
+                results.getElements().add(ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations));
             }
         }
 
