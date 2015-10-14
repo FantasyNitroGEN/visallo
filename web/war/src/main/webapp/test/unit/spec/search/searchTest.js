@@ -4,6 +4,17 @@ describeComponent('search/search', function() {
     beforeEach(function(done) {
         setupComponent(this)
         var c = this.component;
+        $(document).off('dataRequest').on('dataRequest', function(event, data) {
+            if (data.service === 'ontology') {
+                require(['util/requirejs/promise!util/service/ontologyPromise'], function(o) {
+                    $(document).trigger('dataRequestCompleted', {
+                        requestId: data.requestId,
+                        result: data.method in o ? o[data.method] : o,
+                        success: true
+                    });
+                })
+            } else throw new Error('Unknown service/method', data);
+        })
         switchToSearchType(c, 'visallo').done(function() {
             querySetValue(c, '');
             done();
@@ -236,10 +247,10 @@ describeComponent('search/search', function() {
     }
 
     function switchToSearchType(component, type) {
-        var d = $.Deferred();
-        component.on('searchtypeloaded', d.resolve);
-        component.$node.find('.find-' + type).click();
-        return d.promise();
+        return new Promise(function(r) {
+            component.on('searchtypeloaded', r);
+            component.$node.find('.find-' + type).click();
+        });
     }
 
 });
