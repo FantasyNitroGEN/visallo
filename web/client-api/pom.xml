@@ -20,6 +20,7 @@
         <java.target.version>1.7</java.target.version>
 
         <plugin.maven.compiler.version>3.1</plugin.maven.compiler.version>
+        <plugin.maven.shade.version>2.2</plugin.maven.shade.version>
 
         <json.version>20131018</json.version>
         <jersey.version>1.19</jersey.version>
@@ -68,17 +69,15 @@
             </plugin>
 
             <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${plugin.maven.shade.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <includeScope>compile</includeScope>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
