@@ -42,8 +42,11 @@ public class VertexApiExt extends VertexApi {
         File tempDir = FileUtils.getTempDirectory();
         File file = new File(tempDir, fileName);
         try {
-            try (FileOutputStream out = new FileOutputStream(file)) {
+            FileOutputStream out = new FileOutputStream(file);
+            try {
                 IOUtils.copy(data, out);
+            } finally {
+                out.close();
             }
             return importFile(visibilitySource, file);
         } finally {
@@ -68,9 +71,9 @@ public class VertexApiExt extends VertexApi {
             String path = (VERTEX_BASE_URL + "import").replaceAll("\\{format\\}", "json");
 
             // query params
-            Map<String, String> queryParams = new HashMap<>();
-            Map<String, String> headerParams = new HashMap<>();
-            Map<String, String> formParams = new HashMap<>();
+            Map<String, String> queryParams = new HashMap<String, String>();
+            Map<String, String> headerParams = new HashMap<String, String>();
+            Map<String, String> formParams = new HashMap<String, String>();
 
             String[] contentTypes = {
                     "multipart/form-data"};
@@ -120,8 +123,8 @@ public class VertexApiExt extends VertexApi {
     }
 
     private InputStream getRaw(String graphVertexId, boolean download, boolean playback, String type) throws ApiException, IOException {
-        Map<String, String> queryParams = new HashMap<>();
-        Map<String, String> headerParams = new HashMap<>();
+        Map<String, String> queryParams = new HashMap<String, String>();
+        Map<String, String> headerParams = new HashMap<String, String>();
         queryParams.put("graphVertexId", graphVertexId);
         if (download) {
             queryParams.put("download", "true");
@@ -136,8 +139,8 @@ public class VertexApiExt extends VertexApi {
     }
 
     public InputStream getThumbnail(String graphVertexId, Integer width) throws ApiException, IOException {
-        Map<String, String> queryParams = new HashMap<>();
-        Map<String, String> headerParams = new HashMap<>();
+        Map<String, String> queryParams = new HashMap<String, String>();
+        Map<String, String> headerParams = new HashMap<String, String>();
         queryParams.put("graphVertexId", graphVertexId);
         if (width != null) {
             queryParams.put("width", width.toString());
@@ -146,8 +149,8 @@ public class VertexApiExt extends VertexApi {
     }
 
     public InputStream getPosterFrame(String graphVertexId, Integer width) throws ApiException, IOException {
-        Map<String, String> queryParams = new HashMap<>();
-        Map<String, String> headerParams = new HashMap<>();
+        Map<String, String> queryParams = new HashMap<String, String>();
+        Map<String, String> headerParams = new HashMap<String, String>();
         queryParams.put("graphVertexId", graphVertexId);
         if (width != null) {
             queryParams.put("width", width.toString());
@@ -156,8 +159,8 @@ public class VertexApiExt extends VertexApi {
     }
 
     public InputStream getVideoPreview(String graphVertexId, Integer width) throws ApiException, IOException {
-        Map<String, String> queryParams = new HashMap<>();
-        Map<String, String> headerParams = new HashMap<>();
+        Map<String, String> queryParams = new HashMap<String, String>();
+        Map<String, String> headerParams = new HashMap<String, String>();
         queryParams.put("graphVertexId", graphVertexId);
         if (width != null) {
             queryParams.put("width", width.toString());
@@ -193,8 +196,11 @@ public class VertexApiExt extends VertexApi {
             if (file == null) {
                 File tempDir = FileUtils.getTempDirectory();
                 file = new File(tempDir, getFileName());
-                try (FileOutputStream out = new FileOutputStream(file)) {
+                FileOutputStream out = new FileOutputStream(file);
+                try {
                     IOUtils.copy(data, out);
+                } finally {
+                    out.close();
                 }
             }
             return file;

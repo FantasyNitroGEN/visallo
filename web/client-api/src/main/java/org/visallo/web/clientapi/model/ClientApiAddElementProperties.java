@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ClientApiAddElementProperties implements ClientApiObject {
-    public List<Property> properties = new ArrayList<>();
+    public List<Property> properties = new ArrayList<Property>();
 
     public ClientApiAddElementProperties() {
 

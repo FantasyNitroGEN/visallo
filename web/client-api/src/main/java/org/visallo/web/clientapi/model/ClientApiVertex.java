@@ -7,7 +7,7 @@ import java.util.List;
 
 @JsonTypeName("vertex")
 public class ClientApiVertex extends ClientApiElement {
-    private List<String> edgeLabels = new ArrayList<>();
+    private List<String> edgeLabels = new ArrayList<String>();
 
     public List<String> getEdgeLabels() {
         return edgeLabels;

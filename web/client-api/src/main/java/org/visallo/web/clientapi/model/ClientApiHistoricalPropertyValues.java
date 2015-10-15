@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 public class ClientApiHistoricalPropertyValues implements ClientApiObject {
-    public List<Value> values = new ArrayList<>();
+    public List<Value> values = new ArrayList<Value>();
 
     public static class Value implements ClientApiObject {
         public long timestamp;
-        public Map<String, Object> metadata = new HashMap<>();
+        public Map<String, Object> metadata = new HashMap<String, Object>();
         public Object value;
     }
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiEdgeSearchResponse extends ClientApiSearchResponse {
-    private List<ClientApiEdge> results = new ArrayList<>();
+    private List<ClientApiEdge> results = new ArrayList<ClientApiEdge>();
 
     public List<ClientApiEdge> getResults() {
         return results;

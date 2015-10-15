@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiWorkspaceDiff implements ClientApiObject {
-    private List<Item> diffs = new ArrayList<>();
+    private List<Item> diffs = new ArrayList<Item>();
 
     public void addAll(List<Item> diffs) {
         this.diffs.addAll(diffs);

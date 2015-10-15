@@ -17,7 +17,7 @@ import java.util.List;
 })
 public abstract class ClientApiElement implements ClientApiObject {
     private String id;
-    private List<ClientApiProperty> properties = new ArrayList<>();
+    private List<ClientApiProperty> properties = new ArrayList<ClientApiProperty>();
     private SandboxStatus sandboxStatus;
     private String visibilitySource;
     private Double score;

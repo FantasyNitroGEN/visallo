@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClientApiVerticesExistsResponse implements ClientApiObject {
-    private Map<String, Boolean> exists = new HashMap<>();
+    private Map<String, Boolean> exists = new HashMap<String, Boolean>();
 
     public Map<String, Boolean> getExists() {
         return exists;

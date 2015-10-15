@@ -13,7 +13,7 @@ public class WorkspaceApiExt extends WorkspaceApi {
     }
 
     public ClientApiWorkspacePublishResponse publishAll(List<ClientApiWorkspaceDiff.Item> diffItems) throws ApiException {
-        List<ClientApiPublishItem> publishItems = new ArrayList<>();
+        List<ClientApiPublishItem> publishItems = new ArrayList<ClientApiPublishItem>();
         for (ClientApiWorkspaceDiff.Item diffItem : diffItems) {
             publishItems.add(workspaceDiffItemToPublishItem(diffItem));
         }
@@ -37,7 +37,7 @@ public class WorkspaceApiExt extends WorkspaceApi {
             publishItem.setElementId(propertyDiffItem.getElementId());
             publishItem.setKey(propertyDiffItem.getKey());
             publishItem.setName(propertyDiffItem.getName());
-            publishItem.setVisibilityString (propertyDiffItem.getVisibilityString());
+            publishItem.setVisibilityString(propertyDiffItem.getVisibilityString());
             return publishItem;
         } else if (workspaceDiffItem instanceof ClientApiWorkspaceDiff.EdgeItem) {
             ClientApiWorkspaceDiff.EdgeItem edgeDiffItem = (ClientApiWorkspaceDiff.EdgeItem) workspaceDiffItem;
@@ -50,7 +50,7 @@ public class WorkspaceApiExt extends WorkspaceApi {
     }
 
     public ClientApiWorkspaceUndoResponse undoAll(List<ClientApiWorkspaceDiff.Item> diffItems) throws ApiException {
-        List<ClientApiUndoItem> undoItems = new ArrayList<>();
+        List<ClientApiUndoItem> undoItems = new ArrayList<ClientApiUndoItem>();
         for (ClientApiWorkspaceDiff.Item diffItem : diffItems) {
             undoItems.add(workspaceDiffItemToUndoItem(diffItem));
         }

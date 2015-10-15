@@ -1,15 +1,17 @@
 package org.visallo.web.clientapi.codegen;
 
-import com.sun.jersey.multipart.FormDataMultiPart;
+import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
-import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
+
 import org.visallo.web.clientapi.model.ClientApiEdgesExistsResponse;
+import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
 import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyValues;
+import com.sun.jersey.multipart.FormDataMultiPart;
 
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.io.File;
+import java.util.*;
 
 public class EdgeApi {
   protected String basePath = "http://visallo-dev:8889";

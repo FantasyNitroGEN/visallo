@@ -12,8 +12,8 @@ public class ClientApiWorkspace implements ClientApiObject {
     private boolean isSharedToUser;
     private boolean isEditable;
     private boolean isCommentable;
-    private List<User> users = new ArrayList<>();
-    private List<Vertex> vertices = new ArrayList<>();
+    private List<User> users = new ArrayList<User>();
+    private List<Vertex> vertices = new ArrayList<Vertex>();
     private boolean active;
 
     public String getWorkspaceId() {
