@@ -5,7 +5,7 @@ define([
     '../toolbar/toolbar',
     'tpl!./multiple',
     'tpl!./histogram',
-    'util/vertex/list',
+    'util/element/list',
     'util/vertex/formatters',
     'util/withDataRequest'
 ], function(
@@ -15,7 +15,7 @@ define([
     Toolbar,
     template,
     histogramTemplate,
-    VertexList,
+    ElementList,
     F,
     withDataRequest) {
     'use strict';
@@ -117,7 +117,7 @@ define([
         this.defaultAttrs({
             histogramSelector: '.multiple .histogram',
             histogramListSelector: '.multiple .histograms',
-            vertexListSelector: '.multiple .vertices-list',
+            elementListSelector: '.multiple .elements-list',
             histogramBarSelector: 'g.histogram-bar',
             toolbarSelector: '.comp-toolbar'
         });
@@ -166,8 +166,9 @@ define([
                 d3 = _d3;
 
                 if (vertexIds.length) {
-                    VertexList.attachTo(self.select('vertexListSelector'), {
-                        vertices: vertices
+                    ElementList.attachTo(self.select('elementListSelector'), {
+                        items: vertices,
+                        usageContext: 'detail/multiple'
                     });
                 }
 
@@ -220,10 +221,10 @@ define([
                 return;
             }
             event.stopPropagation();
-            var $verticesList = this.$node.find('.vertices-list'),
+            var $verticesList = this.$node.find('.elements-list'),
                 max = 200,
                 height = _.reduce(
-                    $verticesList.find('li.vertex-item').toArray(),
+                    $verticesList.find('li.element-item').toArray(),
                      function(sum, el) {
                          if (sum > max) {
                              return sum;
@@ -264,7 +265,7 @@ define([
                 var first = vertices[0], moduleName;
                 if (self._selectedGraphId === first.id) {
                     self.$node.find('.multiple').removeClass('viewing-vertex');
-                    self.$node.find('.vertices-list').show().find('.active').removeClass('active');
+                    self.$node.find('.elements-list').show().find('.active').removeClass('active');
                     self._selectedGraphId = null;
                     return;
                 }
@@ -283,7 +284,7 @@ define([
                     Module.attachTo(detailsContent, {
                         data: first
                     });
-                    self.$node.find('.vertices-list').show();
+                    self.$node.find('.elements-list').show();
                 });
             });
         };

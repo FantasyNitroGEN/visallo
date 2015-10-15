@@ -814,6 +814,10 @@ define([
                 }
             },
 
+            isVertex: function(vertex) {
+                return vertex && vertex.id && _.isArray(vertex.properties) && !V.isEdge(vertex);
+            },
+
             isEdge: function(vertex) {
                 var propsIsObjectNotArray = _.isObject(vertex && vertex.properties) &&
                     vertex.properties['http://visallo.org#conceptType'] === 'relationship';

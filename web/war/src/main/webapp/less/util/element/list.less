@@ -25,12 +25,12 @@ body > .vertex-dragging {
   }
 }
 
-.viewing-vertex .vertex-list {
+.viewing-vertex .element-list {
   ul li.has_preview {
     a { padding-left: 16px; }
   }
 }
-.vertex-list {
+.element-list {
   word-wrap: break-word;
   text-align: right;
 
@@ -72,34 +72,45 @@ body > .vertex-dragging {
         }
       }
 
+      &.active.video_preview {
+        .active-preview {
+          display: none;
+        }
+        .preview {
+          display: block;
+        }
+      }
+
       &.graph-displayed li.graph { display: block; }
       &.map-displayed li.map { display: block;margin-top: -0.4em; }
 
       @preview-width: 35px;
       a { 
-        padding-left: @preview-width + @preview-width * 0.5;           
         padding-right: 1.3em;
-        padding-top: 0.8em;          
+        padding-top: 0.8em;
         line-height: 2.2em;
-      }
-      &.relation-from a:before {
-        content: '← ';
-      }
-      &.relation-to a:before {
-        content: '→ ';
-      }
-      &.has-timeSubtitle, &.has-subtitle {
-        a {
+
+        &.has-preview {
+          padding-left: @preview-width + @preview-width * 0.5;
+        }
+
+        &.has-timeSubtitle, &.has-subtitle {
           line-height: 1.2em;
         }
-      }
 
-      &.non_concept_preview .preview, &.non_concept_preview .active-preview {
-        left: -1em;
-        top: 0;
-        width: 3.3em;
-        background-size: contain;
-        height: 4em;
+        &.non_concept_preview .preview, &.non_concept_preview .active-preview {
+          left: -1em;
+          top: 0;
+          width: 3.3em;
+          background-size: contain;
+          height: 4em;
+        }
+      }
+      & a.relation-from:before {
+        content: '← ';
+      }
+      & a.relation-to:before {
+        content: '→ ';
       }
 
       .preview, .active-preview {
@@ -142,7 +153,7 @@ body > .vertex-dragging {
             width: 100%;
             font-size: 0;
             border: 0;
-            .opacity(50);        
+            .opacity(50);
           }
 
           &.graph button {
@@ -155,13 +166,13 @@ body > .vertex-dragging {
         }
       }
 
-      &.loading a {
+      a.loading {
         background-image: url(../img/loading.gif);
         background-size: auto 12px;
         background-repeat: no-repeat;
         background-position: 4px center;
       }
-      &.loading.active a {
+      &.active a.loading {
         background-image: url(../img/loading-active.gif);
       }
     }
@@ -198,10 +209,10 @@ body > .vertex-dragging {
     }
   }
 
-  ul li.has-timeSubtitle a .date {
+  ul a.has-timeSubtitle .date {
     float: left;
   }
-  ul li.has-timeSubtitle.has-subtitle a .date {
+  ul a.has-timeSubtitle.has-subtitle .date {
     float: right;
   }
 }
