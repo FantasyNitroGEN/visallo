@@ -39,6 +39,14 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
         ],
 
         callback: function(chai) {
+            if (typeof Function.prototype.bind !== 'function') {
+                /*eslint no-extend-native:0 */
+                Function.prototype.bind = function() {
+                    var args = _.toArray(arguments),
+                        bindArgs = [this, args.shift()].concat(args);
+                    return _.bind.apply(_, bindArgs);
+                }
+            }
 
             window.visalloData = {
                 currentWorkspaceId: 'w1'
