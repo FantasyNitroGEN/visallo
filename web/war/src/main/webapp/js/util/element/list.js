@@ -273,13 +273,14 @@ define([
 
         this.attachItemRenderer = function(el, item, relationship) {
             var self = this,
+                usageContext = self.attr.usageContext,
                 itemRenderer = _.find(this.renderers, function(renderer) {
-                    return renderer.component && renderer.canHandle(item, self.attr.usageContext);
+                    return renderer.component && renderer.canHandle(item, usageContext);
                 }).component;
 
             el.children('a').teardownAllComponents();
             el.empty();
-            itemRenderer.attachTo($('<a class="draggable" />').appendTo(el), { item: item });
+            itemRenderer.attachTo($('<a class="draggable" />').appendTo(el), { item: item, usageContext: usageContext });
 
             this.stateForItem(el).then(function(itemState) {
                 if (itemState.inGraph) el.addClass('graph-displayed');

@@ -17,8 +17,12 @@ define([
         this.after('initialize', function() {
             var self = this;
 
+            if (this.attr.linkToSource === undefined) {
+                this.attr.linkToSource = this.$node.closest('a').length === 0;
+            }
+
             this.$node.html(
-                template(_.pick(this.attr, 'justificationMetadata', 'sourceMetadata'))
+                template(_.pick(this.attr, 'justificationMetadata', 'sourceMetadata', 'linkToSource'))
             );
 
             this.on('click', {
