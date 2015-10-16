@@ -12,7 +12,7 @@
         cp qt-faststart /usr/local/bin
 
 
-## Mac OSX
+## Mac OS X
 
 1. Install FFmpeg and qt-faststart with `brew`:
 

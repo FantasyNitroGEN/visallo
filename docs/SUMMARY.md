@@ -20,4 +20,5 @@
 * [Admin URLs](admin-urls.md)
 * Extras
     * [FFmpeg Setup](ffmpeg-setup.md)
+    * [Sizing](sizing.md)
 * [Glossary](GLOSSARY.md)
