@@ -94,6 +94,11 @@ function start_rabbitmq {
   _initd after-rabbitmq
 }
 
+function start_spark {
+  start_msg "Spark"
+  hadoop fs -mkdir -p /spark.eventLog
+}
+
 function ensure_visallo_config {
   start_msg "Visallo Config"
   hadoop fs -mkdir -p /visallo/lib
@@ -109,6 +114,7 @@ start_hadoop
 start_accumulo
 start_elasticsearch
 start_rabbitmq
+start_spark
 ensure_visallo_config
 
 if [ $PPID -eq 1 ]; then

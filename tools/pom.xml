@@ -27,6 +27,7 @@
         <module>backup-restore</module>
         <module>assign-image-mr</module>
         <module>requeue</module>
+        <module>spark-base</module>
         <module>yarn-base</module>
         <module>long-running-process-yarn</module>
         <module>graph-property-worker-yarn</module>
