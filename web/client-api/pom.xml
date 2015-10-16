@@ -16,10 +16,11 @@
 
     <properties>
         <java.compiler.showWarnings>true</java.compiler.showWarnings>
-        <java.source.version>1.7</java.source.version>
-        <java.target.version>1.7</java.target.version>
+        <java.source.version>1.6</java.source.version>
+        <java.target.version>1.6</java.target.version>
 
         <plugin.maven.compiler.version>3.1</plugin.maven.compiler.version>
+        <plugin.maven.shade.version>2.2</plugin.maven.shade.version>
 
         <json.version>20131018</json.version>
         <jersey.version>1.19</jersey.version>
@@ -67,6 +68,7 @@
                 </configuration>
             </plugin>
 
+            <!-- This plugin is to make it easier for android developers -->
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
@@ -79,6 +81,19 @@
                             <outputDirectory>${project.build.directory}/lib</outputDirectory>
                             <includeScope>compile</includeScope>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${plugin.maven.shade.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

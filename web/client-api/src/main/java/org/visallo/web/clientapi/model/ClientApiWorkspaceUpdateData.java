@@ -5,10 +5,10 @@ import java.util.List;
 
 public class ClientApiWorkspaceUpdateData implements ClientApiObject {
     private String title;
-    private List<EntityUpdate> entityUpdates = new ArrayList<>();
-    private List<String> entityDeletes = new ArrayList<>();
-    private List<UserUpdate> userUpdates = new ArrayList<>();
-    private List<String> userDeletes = new ArrayList<>();
+    private List<EntityUpdate> entityUpdates = new ArrayList<EntityUpdate>();
+    private List<String> entityDeletes = new ArrayList<String>();
+    private List<UserUpdate> userUpdates = new ArrayList<UserUpdate>();
+    private List<String> userDeletes = new ArrayList<String>();
 
     public String getTitle() {
         return title;

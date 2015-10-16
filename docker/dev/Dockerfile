@@ -93,6 +93,14 @@ ENV PATH $PATH:/opt/jetty/bin
 VOLUME ["/opt/jetty/webapps"]
 EXPOSE 8080 8443
 
+# Install Spark
+ENV SPARK_VERSION 1.5.1
+RUN curl -f -s -L http://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz | tar -C /opt -xzf -
+RUN ln -s /opt/spark-${SPARK_VERSION}-bin-without-hadoop /opt/spark
+ADD spark/spark-env.sh /opt/spark/conf/spark-env.sh
+ADD spark/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
+ADD spark/log4j.properties /opt/spark/conf/log4j.properties
+
 # Install .bowerrc
 ADD bower/dot-bowerrc /root/.bowerrc
 

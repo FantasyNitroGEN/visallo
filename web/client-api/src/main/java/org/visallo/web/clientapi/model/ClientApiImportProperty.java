@@ -6,7 +6,7 @@ import java.util.Map;
 public class ClientApiImportProperty {
     private String key;
     private String name;
-    private Map<String, Object> metadata = new HashMap<>();
+    private Map<String, Object> metadata = new HashMap<String, Object>();
     private String value;
     private String visibilitySource;
 

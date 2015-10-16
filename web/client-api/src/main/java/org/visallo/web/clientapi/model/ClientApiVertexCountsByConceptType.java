@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClientApiVertexCountsByConceptType implements ClientApiObject {
-    private Map<String, Long> conceptTypeCounts = new HashMap<>();
+    private Map<String, Long> conceptTypeCounts = new HashMap<String, Long>();
 
     public ClientApiVertexCountsByConceptType() {
 

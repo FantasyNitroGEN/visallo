@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiMapGeocodeResponse implements ClientApiObject {
-    public List<Result> results = new ArrayList<>();
+    public List<Result> results = new ArrayList<Result>();
 
     public static class Result implements ClientApiObject {
         public String name;

@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.*;
 
 public class ClientApiOntology implements ClientApiObject {
-    private List<Concept> concepts = new ArrayList<>();
-    private List<Property> properties = new ArrayList<>();
-    private List<Relationship> relationships = new ArrayList<>();
+    private List<Concept> concepts = new ArrayList<Concept>();
+    private List<Property> properties = new ArrayList<Property>();
+    private List<Relationship> relationships = new ArrayList<Relationship>();
 
     public List<Concept> getConcepts() {
         return concepts;
@@ -48,10 +48,10 @@ public class ClientApiOntology implements ClientApiObject {
         private String glyphIconHref;
         private String glyphIconSelectedHref;
         private String color;
-        private List<String> intents = new ArrayList<>();
-        private List<String> addRelatedConceptWhiteList = new ArrayList<>();
-        private List<String> properties = new ArrayList<>();
-        private Map<String, String> metadata = new HashMap<>();
+        private List<String> intents = new ArrayList<String>();
+        private List<String> addRelatedConceptWhiteList = new ArrayList<String>();
+        private List<String> properties = new ArrayList<String>();
+        private Map<String, String> metadata = new HashMap<String, String>();
 
         public String getId() {
             return id;
@@ -195,11 +195,11 @@ public class ClientApiOntology implements ClientApiObject {
         private PropertyType dataType;
         private String displayType;
         private String propertyGroup;
-        private Map<String, String> possibleValues = new HashMap<>();
+        private Map<String, String> possibleValues = new HashMap<String, String>();
         private String validationFormula;
         private String displayFormula;
         private String[] dependentPropertyIris;
-        private List<String> intents = new ArrayList<>();
+        private List<String> intents = new ArrayList<String>();
 
         public String getTitle() {
             return title;
@@ -324,11 +324,11 @@ public class ClientApiOntology implements ClientApiObject {
         private String titleFormula;
         private String subtitleFormula;
         private String timeFormula;
-        private List<String> domainConceptIris = new ArrayList<>();
-        private List<String> rangeConceptIris = new ArrayList<>();
-        private List<InverseOf> inverseOfs = new ArrayList<>();
-        private List<String> intents = new ArrayList<>();
-        private List<String> properties = new ArrayList<>();
+        private List<String> domainConceptIris = new ArrayList<String>();
+        private List<String> rangeConceptIris = new ArrayList<String>();
+        private List<InverseOf> inverseOfs = new ArrayList<InverseOf>();
+        private List<String> intents = new ArrayList<String>();
+        private List<String> properties = new ArrayList<String>();
 
         public String getTitle() {
             return title;

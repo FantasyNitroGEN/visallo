@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class VisibilityJson {
     private String source = "";
-    private Set<String> workspaces = new HashSet<>();
+    private Set<String> workspaces = new HashSet<String>();
 
     public VisibilityJson() {
 

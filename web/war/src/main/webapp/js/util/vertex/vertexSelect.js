@@ -364,7 +364,7 @@ define([
                     conceptFilter: this.attr.restrictConcept
                 })
                     .then(function(response) {
-                        var vertices = response.vertices;
+                        var vertices = response.elements;
                         if (self.attr.filterResultsToTitleField) {
                             var splitUpString = function(str) {
                                     return F.string.normalizeAccents(str.toLowerCase())

@@ -16,7 +16,7 @@ and `org.visallo.core.bootstrap.lib.LibDirectoryLoader` to load additional `.jar
 
 The following directories will be searched in order:
 
-* `/opt/visallo/` for Linux/OSX
+* `/opt/visallo/` for Linux/OS X
 * `c:/opt/visallo/` for Windows
 * `${appdata}/Visallo`
 * `${user.home}/.visallo`

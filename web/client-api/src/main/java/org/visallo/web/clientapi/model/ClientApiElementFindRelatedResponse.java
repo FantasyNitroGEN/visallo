@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ClientApiElementFindRelatedResponse implements ClientApiObject {
     private long count;
-    private List<ClientApiElement> elements = new ArrayList<>();
+    private List<ClientApiElement> elements = new ArrayList<ClientApiElement>();
 
     public long getCount() {
         return count;

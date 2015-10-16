@@ -23,7 +23,7 @@ public class ClientApiConverter {
     }
 
     private static List<Object> toClientApiValue(JSONArray json) {
-        List<Object> result = new ArrayList<>();
+        List<Object> result = new ArrayList<Object>();
         for (int i = 0; i < json.length(); i++) {
             Object obj = json.get(i);
             result.add(toClientApiValue(obj));
@@ -58,7 +58,7 @@ public class ClientApiConverter {
     }
 
     public static Map<String, Object> toClientApiValue(JSONObject json) {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<String, Object>();
         for (Object key : json.keySet()) {
             String keyStr = (String) key;
             result.put(keyStr, toClientApiValue(json.get(keyStr)));

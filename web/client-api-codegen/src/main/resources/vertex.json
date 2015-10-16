@@ -721,7 +721,7 @@
                 {
                     "method": "POST",
                     "summary": "Searches the graph for vertices",
-                    "type": "ClientApiVertexSearchResponse",
+                    "type": "ClientApiElementSearchResponse",
                     "nickname": "vertexSearch",
                     "consumes": [
                         "multipart/form-data"
@@ -788,7 +788,7 @@
                 {
                     "method": "GET",
                     "summary": "Searches the graph for vertices around a geo-location",
-                    "type": "ClientApiVertexSearchResponse",
+                    "type": "ClientApiElementSearchResponse",
                     "nickname": "vertexGeoSearch",
                     "parameters": [
                         {
@@ -857,7 +857,7 @@
                 {
                     "method": "POST",
                     "summary": "Finds related vertices",
-                    "type": "ClientApiVertexFindRelatedResponse",
+                    "type": "ClientApiElementFindRelatedResponse",
                     "nickname": "findRelated",
                     "consumes": [
                         "multipart/form-data"

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiSearchListResponse implements ClientApiObject {
-    public List<ClientApiSearch> searches = new ArrayList<>();
+    public List<ClientApiSearch> searches = new ArrayList<ClientApiSearch>();
 
     @Override
     public boolean equals(Object o) {

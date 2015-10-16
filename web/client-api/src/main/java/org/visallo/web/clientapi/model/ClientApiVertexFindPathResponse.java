@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiVertexFindPathResponse implements ClientApiObject {
-    private List<List<String>> paths = new ArrayList<>();
+    private List<List<String>> paths = new ArrayList<List<String>>();
 
     public List<List<String>> getPaths() {
         return paths;

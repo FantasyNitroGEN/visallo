@@ -10,7 +10,7 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     private Long totalTime = null;
     private Long totalHits = null;
     private Long searchTime = null;
-    private Map<String, AggregateResult> aggregates = new HashMap<>();
+    private Map<String, AggregateResult> aggregates = new HashMap<String, AggregateResult>();
 
     public Integer getNextOffset() {
         return nextOffset;
@@ -68,7 +68,7 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     }
 
     public static class TermsAggregateResult extends AggregateResult {
-        private Map<String, Long> buckets = new HashMap<>();
+        private Map<String, Long> buckets = new HashMap<String, Long>();
 
         public Map<String, Long> getBuckets() {
             return buckets;
@@ -77,7 +77,7 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
 
     public static class GeohashAggregateResult extends AggregateResult {
         private long maxCount;
-        private Map<String, Bucket> buckets = new HashMap<>();
+        private Map<String, Bucket> buckets = new HashMap<String, Bucket>();
 
         public void setMaxCount(long maxCount) {
             this.maxCount = maxCount;
@@ -117,7 +117,7 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     }
 
     public static class HistogramAggregateResult extends AggregateResult {
-        private Map<String, Long> buckets = new HashMap<>();
+        private Map<String, Long> buckets = new HashMap<String, Long>();
 
         public Map<String, Long> getBuckets() {
             return buckets;
@@ -199,7 +199,7 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     }
 
     private static Collection<ClientApiVertex> toClientApiVertex(List<List<Object>> rows) {
-        List<ClientApiVertex> results = new ArrayList<>();
+        List<ClientApiVertex> results = new ArrayList<ClientApiVertex>();
         for (List<Object> row : rows) {
             results.add((ClientApiVertex) row.get(0));
         }
@@ -207,7 +207,7 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     }
 
     private static Collection<ClientApiEdge> toClientApiEdge(List<List<Object>> rows) {
-        List<ClientApiEdge> results = new ArrayList<>();
+        List<ClientApiEdge> results = new ArrayList<ClientApiEdge>();
         for (List<Object> row : rows) {
             results.add((ClientApiEdge) row.get(0));
         }

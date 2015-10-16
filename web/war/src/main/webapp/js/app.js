@@ -489,7 +489,10 @@ define([
                     require(['login'], function(Login) {
                         $(document.body)
                             .removeClass('animatelogin animateloginstart')
-                            .append('<div id="login"/>');
+                            .append('<div id="login"/>')
+                            .on('loginSuccess', function() {
+                                window.location.reload();
+                            })
                         Login.teardownAll();
                         Login.attachTo('#login', {
                             errorMessage: data && data.message || i18n('visallo.server.not_found')

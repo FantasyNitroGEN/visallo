@@ -42,8 +42,10 @@ define([
         MAX_TITLE_LENGTH = 15,
         SELECTION_THROTTLE = 100,
         GRAPH_PADDING_BORDER = 20,
-        GRID_LAYOUT_X_INCREMENT = 175,
-        GRID_LAYOUT_Y_INCREMENT = 100,
+        GRAPH_SNAP_TO_GRID = 175,
+        GRAPH_SNAP_TO_GRID_Y = 75,
+        GRID_LAYOUT_X_INCREMENT = GRAPH_SNAP_TO_GRID,
+        GRID_LAYOUT_Y_INCREMENT = GRAPH_SNAP_TO_GRID_Y,
         GRAPH_EXPORTER_POINT = 'org.visallo.graph.export';
 
     return defineComponent(Graph, withAsyncQueue, withContextMenu, withControlDrag, withDataRequest);
@@ -67,6 +69,29 @@ define([
                     circle: false,
                     maximalAdjustments: 10
                 }
+            },
+            snapCoordinate = function(value, snap) {
+                var rounded = Math.round(value),
+                    diff = (rounded % snap),
+                    which = snap / 2;
+
+                if (rounded < 0 && Math.abs(diff) < which) return rounded - diff;
+                if (rounded < 0) return rounded - (snap + diff);
+                if (diff < which) return rounded - diff;
+
+                return rounded + (snap - diff)
+            },
+            snapPosition = function(cyNode) {
+                var p = retina.pixelsToPoints(cyNode.position()),
+                    height = retina.pixelsToPoints({w: 0, h: cyNode.height()}).h,
+                    xSnap = GRAPH_SNAP_TO_GRID,
+                    ySnap = GRAPH_SNAP_TO_GRID_Y || xSnap,
+                    copy = {
+                        x: snapCoordinate(p.x, xSnap),
+                        y: snapCoordinate(p.y, ySnap) + (ySnap - height) / 2
+                    };
+
+                return copy;
             },
             fromCyId = function(cyId) {
                 return F.className.from(cyId);
@@ -237,13 +262,19 @@ define([
                 vertices.forEach(function(vertex, i) {
                     var node = cy.getElementById('NEW-' + toCyId(vertex));
                     if (node.length === 0) return;
-                    if (i === 0) position = node.position();
+                    if (i === 0) {
+                        position = node.position();
+                    }
                     if (node.hasClass('existing')) {
                         var existingNode = cy.getElementById(node.id().replace(/^NEW-/, ''));
                         if (existingNode.length) toFitTo.push(existingNode);
                         toAnimateTo.push([node, existingNode]);
                         toFitTo.push(existingNode);
                     } else {
+                        if (visalloData.currentUser.uiPreferences.snapToGrid === 'true') {
+                            position = retina.pointsToPixels(snapPosition(node));
+                            node.position(position);
+                        }
                         entityUpdates.push({
                             vertexId: vertex.id,
                             graphPosition: retina.pixelsToPoints(node.position())
@@ -1282,30 +1313,20 @@ define([
 
             var cy = vertices[0].cy(),
                 updateData = {},
-                verticesMoved = [],
-                snapCoordinate = function(value, snap) {
-                    var diff = (value % snap),
-                        which = snap / 2;
-
-                    if (value < 0 && Math.abs(diff) < which) return value - diff;
-                    if (value < 0) return value - (snap + diff);
-                    if (diff < which) return value - diff;
-
-                    return value + (snap - diff)
-                };
+                verticesMoved = [];
 
             vertices.each(function(i, vertex) {
-                var p = retina.pixelsToPoints(vertex.position()),
-                    cyId = vertex.id(),
+                var cyId = vertex.id(),
+                    pCopy;
+
+                if (visalloData.currentUser.uiPreferences.snapToGrid === 'true') {
+                    pCopy = snapPosition(vertex);
+                } else {
+                    var p = retina.pixelsToPoints(vertex.position());
                     pCopy = {
                         x: Math.round(p.x),
                         y: Math.round(p.y)
                     };
-
-                if (window.DEBUG_GRAPH_SNAP_TO_GRID) {
-                    pCopy.x = snapCoordinate(pCopy.x, window.DEBUG_GRAPH_SNAP_TO_GRID);
-                    pCopy.y = snapCoordinate(pCopy.y, window.DEBUG_GRAPH_SNAP_TO_GRID_Y || window.DEBUG_GRAPH_SNAP_TO_GRID) +
-                        ((100 - retina.pixelsToPoints({w: 0, h: vertex.height()}).h) / 2);
                 }
 
                 if (!vertex.data('freed')) {
@@ -1717,6 +1738,36 @@ define([
             }
         };
 
+        this.onToggleSnapToGrid = function(event, data) {
+            var self = this;
+
+            if (!data || !data.snapToGrid) return;
+
+            this.cytoscapeReady(function(cy) {
+                cy.batch(function() {
+                    var verticesMoved = [];
+                    cy.nodes().forEach(function(cyNode) {
+                        var points = snapPosition(cyNode),
+                            p = retina.pointsToPixels(points),
+                            cyId = cyNode.id();
+
+                        cyNode.position(p);
+
+                        if (!(/^(NEW|controlDragNodeId)/.test(cyId))) {
+                            verticesMoved.push({
+                                vertexId: fromCyId(cyId),
+                                graphPosition: points
+                            });
+                        }
+                    });
+
+                    self.trigger('updateWorkspace', {
+                        entityUpdates: verticesMoved
+                    });
+                });
+            })
+        };
+
         this.after('teardown', function() {
             this.$node.empty();
         });
@@ -1811,6 +1862,7 @@ define([
             this.on('showMenu', this.onShowMenu);
             this.on('hideMenu', this.onHideMenu);
             this.on('createVertex', this.onCreateVertex);
+            this.on('toggleSnapToGrid', this.onToggleSnapToGrid);
             this.on('contextmenu', function(e) {
                 e.preventDefault();
             });

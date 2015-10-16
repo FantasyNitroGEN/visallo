@@ -107,17 +107,18 @@ h1 {
 }
 .toggle-timeline {
   padding: 0;
-  padding-left: 0.25em;
   font-size: 90%;
-  border-left: 1px solid #ccc;
-  margin-left: 1em;
-  padding-left: 2em;
   line-height: 1em;
   position: relative;
   .twizzle;
   &:before {
-    left: 4.5ex;
-    top: -0.5ex;
+    color: inherit;
+    left: auto;
+    right: -1.5em;
+    top: 0;
+  }
+  &:hover:before {
+    color: inherit;
   }
   &.expanded {
     .twizzle-expand;

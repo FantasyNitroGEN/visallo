@@ -34,7 +34,6 @@ define([
         this.defaultAttrs({
             userSelector: '.user',
             nameSelector: '.name',
-            subtitleSelector: '.subtitle',
             toggleTimelineSelector: '.toggle-timeline'
         });
 
@@ -154,23 +153,15 @@ define([
             }
         }
 
-        this.setContent = function(title, editable, commentable, subtitle) {
+        this.setContent = function(title, editable, commentable) {
             this.select('nameSelector').text(title);
-            this.select('subtitleSelector').html(
-                editable === false || Privilege.missingEDIT ?
-                commentable === false || Privilege.missingCOMMENT ?
-                i18n('workspaces.overlay.read_only') :
-                i18n('workspaces.overlay.read_only_comment') :
-                subtitle
-            );
         };
 
         this.updateWithNewWorkspaceData = function(workspace) {
             this.setContent(
                 workspace.title,
                 workspace.editable,
-                workspace.commentable,
-                i18n('workspaces.overlay.no_changes')
+                workspace.commentable
             );
             clearTimeout(this.updateTimer);
             this.updateWorkspaceTooltip(workspace);
@@ -198,7 +189,6 @@ define([
         };
 
         this.onWorkspaceSaving = function(event, data) {
-            this.select('subtitleSelector').text(i18n('workspaces.overlay.saving'));
             clearTimeout(this.updateTimer);
             this.updateWorkspaceTooltip(data);
         };
@@ -212,23 +202,6 @@ define([
             }
 
             this.updateWorkspaceTooltip(data);
-
-            var subtitle = this.select('subtitleSelector').text(
-                    i18n('workspaces.overlay.last_saved_moments_ago')
-                ),
-                setTimer = function() {
-                    this.updateTimer = setTimeout(function() {
-
-                        var time = F.date.relativeToNow(this.lastSaved);
-                        subtitle.text(
-                            i18n('workspaces.overlay.last_saved_time', time)
-                        );
-
-                        setTimer();
-                    }.bind(this), LAST_SAVED_UPDATE_FREQUENCY_SECONDS * 1000);
-                }.bind(this);
-
-            setTimer();
         };
 
         this.onDiffBadgeMouse = function(event) {
