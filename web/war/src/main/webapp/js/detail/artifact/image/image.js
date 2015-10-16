@@ -4,11 +4,12 @@ define([
     'tpl!./image',
     'util/withAsyncQueue',
     'util/privileges',
-    'util/detectedObjects/withFacebox'
-], function(defineComponent, template, withAsyncQueue, Privileges, withFacebox) {
+    'util/detectedObjects/withFacebox',
+    'util/withFileDrop'
+], function(defineComponent, template, withAsyncQueue, Privileges, withFacebox, withFileDrop) {
     'use strict';
 
-    return defineComponent(ImageView, withAsyncQueue, withFacebox);
+    return defineComponent(ImageView, withFileDrop, withAsyncQueue, withFacebox);
 
     function ImageView() {
 
