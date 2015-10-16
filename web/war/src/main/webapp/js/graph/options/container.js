@@ -20,7 +20,11 @@ define([
             registry.registerExtension('org.visallo.graph.options', {
                 identifier: 'toggleEdgeLabel',
                 optionComponentPath: 'graph/options/edgeLabel'
-            })
+            });
+            registry.registerExtension('org.visallo.graph.options', {
+                identifier: 'toggleSnapToGrid',
+                optionComponentPath: 'graph/options/snapToGrid'
+            });
 
             var self = this,
                 $options = $(),
