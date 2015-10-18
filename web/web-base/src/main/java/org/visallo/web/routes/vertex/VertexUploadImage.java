@@ -144,12 +144,15 @@ public class VertexUploadImage implements ParameterizedHandler {
     }
 
     private String imageTitle(Vertex entityVertex) {
-        Object title = VisalloProperties.TITLE.getFirstProperty(entityVertex).getValue();
-        if (title == null) {
+        Property titleProperty = VisalloProperties.TITLE.getFirstProperty(entityVertex);
+        Object title;
+        if (titleProperty == null) {
             String conceptTypeProperty = VisalloProperties.CONCEPT_TYPE.getPropertyName();
             String vertexConceptType = (String) entityVertex.getProperty(conceptTypeProperty).getValue();
             Concept concept = ontologyRepository.getConceptByIRI(vertexConceptType);
             title = concept.getDisplayName();
+        } else {
+            title = titleProperty.getValue();
         }
         return String.format("Image of %s", title.toString());
     }
