@@ -1,6 +1,4 @@
-
-define([
-], function() {
+define([], function() {
     'use strict';
 
     var ERROR_NO_POSITION_RESPONSE =
@@ -11,7 +9,7 @@ define([
 
     function withPopover() {
 
-        this.defaultAttrs({
+        this.attributes({
             withPopoverInputSelector: 'input,select'
         })
 
