@@ -1,5 +1,5 @@
 language: java
 install:
   - mvn -f root/pom.xml install
-  - mvn install -DskipTests=true
+  - mvn -q install -DskipTests=true
 script: mvn test-compile
