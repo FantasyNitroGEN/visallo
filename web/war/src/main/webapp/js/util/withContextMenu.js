@@ -23,6 +23,7 @@ define([], function() {
 
             if (target.closest('li.disabled').length) {
                 event.stopPropagation();
+                event.preventDefault();
                 return;
             }
             if (func) {

@@ -1236,6 +1236,7 @@ define([
                         appendLayoutMenuItems(menu.find('.layouts-multi .dropdown-menu'), true);
                     }
                 }
+                menu.find('.layouts, .layouts-multi, .layouts li, .layouts-multi li').toggleClass('disabled', visalloData.currentWorkspaceEditable === false);
 
                 this.toggleMenu({positionUsingEvent: event}, menu);
             }
