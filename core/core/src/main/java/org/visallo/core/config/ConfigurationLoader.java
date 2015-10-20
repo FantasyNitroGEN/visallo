@@ -115,7 +115,8 @@ public abstract class ConfigurationLoader {
         }
         if (log4jFile == null || !log4jFile.exists()) {
             try {
-                URL log4jResource = getClass().getResource("log4j.xml");
+                String fileName = System.getProperty("logQuiet") == null ? "log4j.xml" : "log4j-quiet.xml";
+                URL log4jResource = getClass().getResource(fileName);
                 if (log4jResource != null) {
                     DOMConfigurator.configure(log4jResource);
                     log4jLocation = log4jResource.toExternalForm();
