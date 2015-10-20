@@ -32,7 +32,7 @@
           <% if (item === 'DIVIDER') { %>
             <li class="divider"/>
           <% } else if (!item.shouldHide || !item.shouldHide(vertex)) { %>
-            <li <%= shouldDisable(item) ? 'disabled' : '' %>>
+            <li class="<%= shouldDisable(item) ? 'disabled' : '' %>">
             <a 
               data-args="<%= JSON.stringify(item.args || {}) %>"
               data-event="<%= item.event %>" 
