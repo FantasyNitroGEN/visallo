@@ -9,7 +9,7 @@ define([], function() {
 
     function withPopover() {
 
-        this.attributes({
+        this.defaultAttrs({
             withPopoverInputSelector: 'input,select'
         })
 
