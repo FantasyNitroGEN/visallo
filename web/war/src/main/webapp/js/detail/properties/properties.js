@@ -495,9 +495,9 @@ define([
                     return cls + ' expanded';
                 }
 
-                return cls + (
+                return cls + ' ' + (
                     _.contains(expandedSections, d[0]) ?
-                        '' : ' collapsed'
+                        'expanded' : 'collapsed'
                 );
             });
 
