@@ -2,28 +2,47 @@
 define([], function() {
     'use strict';
 
-    var sheet = (function() {
-            var style = document.createElement('style');
+    function Sheet() {
+        var style = document.createElement('style');
+        // WebKit hack :(
+        style.appendChild(document.createTextNode(''));
+        document.head.appendChild(style);
 
-            // WebKit hack :(
-            style.appendChild(document.createTextNode(''));
+        var sheet = style.sheet,
+            index = 0;
 
-            document.head.appendChild(style);
-            return style.sheet;
-        })(),
-        index = 0;
+        this.addRule = function(selector, definition) {
+            if (!sheet) throw new Error('No stylesheet found in page');
 
-    function addCSSRule(selector, rules) {
-        if (sheet.insertRule) {
-            sheet.insertRule(selector + '{' + rules + '}', index++);
-        } else {
-            sheet.addRule(selector, rules, index++);
+            if (sheet.insertRule) {
+                sheet.insertRule(selector + ' {' + definition + '; }', index++);
+            } else {
+                sheet.addRule(selector, definition, index++);
+            }
+            return this;
+        };
+
+        this.remove = function() {
+            if (style) {
+                style.parentNode.removeChild(style);
+                style = null;
+                sheet = null;
+            }
         }
     }
 
+    var defaultSheet;
+
     return {
         addRule: function(selector, definition) {
-            addCSSRule(selector, definition);
+            if (!defaultSheet) {
+                defaultSheet = new Sheet();
+            }
+            defaultSheet.addRule(selector, definition);
+        },
+
+        addSheet: function() {
+            return new Sheet();
         }
     };
 });
