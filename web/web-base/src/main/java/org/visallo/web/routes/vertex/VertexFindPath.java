@@ -8,6 +8,7 @@ import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.longRunningProcess.FindPathLongRunningProcessQueueItem;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.user.User;
@@ -29,7 +30,7 @@ public class VertexFindPath implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public ClientApiLongRunningProcessSubmitResponse handle(
             User user,
             @ActiveWorkspaceId String workspaceId,
             @Required(name = "outVertexId") String outVertexId,
@@ -41,20 +42,18 @@ public class VertexFindPath implements ParameterizedHandler {
     ) throws Exception {
         Vertex outVertex = graph.getVertex(outVertexId, authorizations);
         if (outVertex == null) {
-            response.respondWithNotFound("Source vertex not found");
-            return;
+            throw new VisalloResourceNotFoundException("Source vertex not found");
         }
 
         Vertex inVertex = graph.getVertex(inVertexId, authorizations);
         if (inVertex == null) {
-            response.respondWithNotFound("Destination vertex not found");
-            return;
+            throw new VisalloResourceNotFoundException("Destination vertex not found");
         }
 
         FindPathLongRunningProcessQueueItem findPathQueueItem = new FindPathLongRunningProcessQueueItem(outVertex.getId(), inVertex.getId(), labels, hops, workspaceId, authorizations);
         String id = this.longRunningProcessRepository.enqueue(findPathQueueItem.toJson(), user, authorizations);
 
-        response.respondWithClientApiObject(new ClientApiLongRunningProcessSubmitResponse(id));
+        return new ClientApiLongRunningProcessSubmitResponse(id);
     }
 }
 
