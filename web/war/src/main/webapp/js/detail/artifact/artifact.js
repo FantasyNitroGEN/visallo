@@ -5,6 +5,7 @@ define([
     'util/audio/scrubber',
     'util/privileges',
     './image/image',
+    '../entity/image/image',
     '../withTypeContent',
     '../withHighlighting',
     '../toolbar/toolbar',
@@ -26,6 +27,7 @@ define([
     AudioScrubber,
     Privileges,
     Image,
+    EntityImage,
     withTypeContent, withHighlighting,
     Toolbar,
     TermForm,
@@ -51,6 +53,7 @@ define([
     function Artifact() {
 
         this.defaultAttrs({
+            glyphIconSelector: '.entity-glyphIcon',
             previewSelector: '.preview',
             audioPreviewSelector: '.audio-preview',
             currentTranscriptSelector: '.currentTranscript',
@@ -168,6 +171,8 @@ define([
                 vertex: vertex
             });
 
+            var canAddImage = displayType !== 'image' && displayType !== 'video';
+
             Toolbar.attachTo(this.select('toolbarSelector'), {
                 toolbar: [
                     {
@@ -192,6 +197,7 @@ define([
                         title: i18n('detail.toolbar.add'),
                         submenu: [
                             Toolbar.ITEMS.ADD_PROPERTY,
+                            canAddImage ? Toolbar.ITEMS.ADD_IMAGE : undefined,
                             Toolbar.ITEMS.ADD_COMMENT
                         ]
                     },
@@ -211,6 +217,12 @@ define([
 
             if (this[displayType + 'Setup']) {
                 this[displayType + 'Setup'](this.attr.data, config);
+            }
+
+            if (canAddImage) {
+                EntityImage.attachTo(this.select('glyphIconSelector'), {
+                    data: vertex
+                });
             }
 
             this.update();
