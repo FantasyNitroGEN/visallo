@@ -1,10 +1,11 @@
 package org.visallo.core.config;
 
 import org.apache.commons.beanutils.ConvertUtilsBean;
-import org.apache.hadoop.fs.FileSystem;
-import org.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.hadoop.fs.FileSystem;
+import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
@@ -15,6 +16,7 @@ import org.visallo.core.util.ClassUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +31,11 @@ import java.util.*;
 public class Configuration {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Configuration.class);
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+    public static final String PROPERTY_HADOOP_CONF_DIR = "hadoop.conf.dir";
+    public static final String ENV_VARIABLE_HADOOP_CONF_DIR = "HADOOP_CONF_DIR";
+    public static final String[] HADOOP_XML_FILENAMES = new String[]{"core-site.xml", "hdfs-site.xml", "mapred-site.xml", "yarn-site.xml"};
+    public static final String[] PROPERTY_PREFIXES_FOR_HADOOP_CONF = new String[]{"fs", "dfs", "hadoop", "mapreduce", "yarn"};
 
     public static final String BASE_URL = "base.url";
     public static final String HADOOP_URL = "hadoop.url";
@@ -87,9 +94,9 @@ public class Configuration {
     }
 
     private void resolvePropertyReferences() {
-        for(Map.Entry<String, String> entry : config.entrySet()) {
+        for (Map.Entry<String, String> entry : config.entrySet()) {
             String entryValue = entry.getValue();
-            if(!StringUtils.isBlank(entryValue)) {
+            if (!StringUtils.isBlank(entryValue)) {
                 entry.setValue(StrSubstitutor.replace(entryValue, config));
             }
         }
@@ -325,6 +332,47 @@ public class Configuration {
         return sb.toString();
     }
 
+    public org.apache.hadoop.conf.Configuration getHadoopConfiguration() {
+        org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration();
+
+        File dir = null;
+        String property = get(PROPERTY_HADOOP_CONF_DIR, null);
+        String envVariable = System.getenv(ENV_VARIABLE_HADOOP_CONF_DIR);
+        if (property != null) {
+            dir = new File(property);
+            if (!dir.isDirectory()) {
+                LOGGER.warn("configuration property %s is not a directory", PROPERTY_HADOOP_CONF_DIR);
+            }
+        } else if (envVariable != null) {
+            dir = new File(envVariable);
+            if (!dir.isDirectory()) {
+                LOGGER.warn("environment variable %s is not a directory", ENV_VARIABLE_HADOOP_CONF_DIR);
+            }
+        }
+        if (dir != null && dir.isDirectory()) {
+            for (String xmlFilename : HADOOP_XML_FILENAMES) {
+                File file = new File(dir, xmlFilename);
+                if (file.isFile()) {
+                    try {
+                        ByteArrayInputStream in = new ByteArrayInputStream(FileUtils.readFileToByteArray(file));
+                        hadoopConfiguration.addResource(in);
+                    } catch (Exception ex) {
+                        LOGGER.warn("error adding resource: " + xmlFilename + " to Hadoop configuration", ex);
+                    }
+                }
+            }
+        }
+
+        for (String prefix : PROPERTY_PREFIXES_FOR_HADOOP_CONF) {
+            for (Map.Entry<String, String> entry : getSubset(prefix).entrySet()) {
+                hadoopConfiguration.set(prefix + "." + entry.getKey(), entry.getValue(), Configuration.class.getName());
+            }
+        }
+
+        return hadoopConfiguration;
+    }
+
+    @Deprecated
     public org.apache.hadoop.conf.Configuration toHadoopConfiguration() {
         org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
         for (Object entryObj : this.toMap().entrySet()) {
@@ -334,6 +382,7 @@ public class Configuration {
         return conf;
     }
 
+    @Deprecated
     public org.apache.hadoop.conf.Configuration toHadoopConfiguration(org.apache.hadoop.conf.Configuration additionalConfiguration) {
         org.apache.hadoop.conf.Configuration hadoopConfig = toHadoopConfiguration();
         hadoopConfig.setBoolean("mapred.used.genericoptionsparser", true); // eliminates warning on our version of hadoop
