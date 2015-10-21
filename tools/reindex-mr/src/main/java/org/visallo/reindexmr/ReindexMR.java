@@ -3,10 +3,9 @@ package org.visallo.reindexmr;
 import com.beust.jcommander.Parameter;
 import com.google.inject.Inject;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloRowInputFormat;
-import org.apache.accumulo.core.util.Pair;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
@@ -15,7 +14,6 @@ import org.vertexium.ElementType;
 import org.vertexium.FetchHint;
 import org.vertexium.Graph;
 import org.vertexium.accumulo.AccumuloGraph;
-import org.vertexium.accumulo.AccumuloVertex;
 import org.vertexium.accumulo.mapreduce.AccumuloEdgeInputFormat;
 import org.vertexium.accumulo.mapreduce.AccumuloElementInputFormatBase;
 import org.vertexium.accumulo.mapreduce.AccumuloVertexInputFormat;
@@ -37,7 +35,7 @@ public class ReindexMR extends VisalloMRBase {
     private AccumuloGraph graph;
     private ElementType elementType;
 
-    @Parameter(description = "vertex|edge")
+    @Parameter(description = "vertex|edge", arity = 1)
     private List<String> type;
 
     @Parameter(names = {"-o", "--offline"}, description = "Use offline mode (use RFiles instead of tablet servers)")
@@ -45,6 +43,9 @@ public class ReindexMR extends VisalloMRBase {
 
     @Parameter(names = {"--noclone"}, description = "Do not clone the tables while in offline mode (tables will be unusable by Visallo)")
     private boolean noClone = false;
+
+    @Parameter(names = {"--range"}, description = "Colon seperated ranges to index (ex --range a:b)")
+    private List<String> ranges = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         LOGGER = VisalloLoggerFactory.getLogger(ReindexMR.class);
@@ -70,6 +71,11 @@ public class ReindexMR extends VisalloMRBase {
         job.setOutputFormatClass(NullOutputFormat.class);
         job.setNumReduceTasks(0);
 
+        List<Range> accumuloRanges = getRanges();
+        if (accumuloRanges.size() > 0) {
+            AccumuloInputFormat.setRanges(job, accumuloRanges);
+        }
+
         if (elementType == ElementType.VERTEX) {
             String verticesTableName = AccumuloGraph.getVerticesTableName(getAccumuloGraphConfiguration().getTableNamePrefix());
             if (offline) {
@@ -88,7 +94,7 @@ public class ReindexMR extends VisalloMRBase {
             }
 
             job.setInputFormatClass(AccumuloVertexInputFormat.class);
-            AccumuloElementInputFormatBase.setFetchHints(job,ElementType.VERTEX, EnumSet.of(FetchHint.PROPERTIES));
+            AccumuloElementInputFormatBase.setFetchHints(job, ElementType.VERTEX, EnumSet.of(FetchHint.PROPERTIES));
             AccumuloElementInputFormatBase.setInputInfo(job, getInstanceName(), getZooKeepers(), getPrincipal(), getAuthorizationToken(), authorizations, verticesTableName);
         } else if (elementType == ElementType.EDGE) {
             String edgesTableName = AccumuloGraph.getEdgesTableName(getAccumuloGraphConfiguration().getTableNamePrefix());
@@ -112,6 +118,21 @@ public class ReindexMR extends VisalloMRBase {
         } else {
             throw new VisalloException("Unhandled element type: " + elementType);
         }
+    }
+
+    private List<Range> getRanges() {
+        List<Range> accumuloRanges = new ArrayList<>();
+        for (String range : ranges) {
+            String[] parts = range.split(":");
+            if (parts.length != 2) {
+                throw new VisalloException("Invalid Range. Must have a single color.");
+            }
+            Key startKey = new Key(parts[0]);
+            Key endKey = new Key(parts[1]);
+            Range accumuloRange = new Range(startKey, endKey);
+            accumuloRanges.add(accumuloRange);
+        }
+        return accumuloRanges;
     }
 
     @Override
