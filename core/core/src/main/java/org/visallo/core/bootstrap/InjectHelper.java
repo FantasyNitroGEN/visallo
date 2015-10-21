@@ -46,11 +46,15 @@ public class InjectHelper {
     }
 
     public static <T> T getInstance(Class<? extends T> clazz) {
-        LOGGER.debug("getInstance of class: " + clazz.getSimpleName());
+        LOGGER.debug("getInstance of class: " + clazz.getName());
         if (injector == null) {
             throw new VisalloException("Could not find injector");
         }
-        return injector.getInstance(clazz);
+        try {
+            return injector.getInstance(clazz);
+        } catch (Throwable ex) {
+            throw new VisalloException("Could not create class: " + clazz.getName(), ex);
+        }
     }
 
     public static <T> Collection<T> getInjectedServices(Class<T> clazz, Configuration configuration) {
