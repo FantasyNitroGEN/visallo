@@ -136,9 +136,9 @@ public class SqlLongRunningProcessRepository extends LongRunningProcessRepositor
     }
 
     @Override
-    public void reportProgress(JSONObject longRunningProcessQueueItem, final double progressPercent, final String message) {
+    public void reportProgress(String longRunningProcessId, final double progressPercent, final String message) {
         final JSONObject[] json = new JSONObject[1];
-        updateLongRunningProcess(longRunningProcessQueueItem, new UpdateLongRunningProcessAction() {
+        updateLongRunningProcess(longRunningProcessId, new UpdateLongRunningProcessAction() {
             @Override
             public void run(SqlLongRunningProcess longRunningProcess) {
                 json[0] = new JSONObject(longRunningProcess.getJson());

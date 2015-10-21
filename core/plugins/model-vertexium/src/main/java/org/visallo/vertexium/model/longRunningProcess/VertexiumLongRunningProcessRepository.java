@@ -132,8 +132,7 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     }
 
     @Override
-    public void reportProgress(JSONObject longRunningProcessQueueItem, double progressPercent, String message) {
-        String longRunningProcessGraphVertexId = longRunningProcessQueueItem.getString("id");
+    public void reportProgress(String longRunningProcessGraphVertexId, double progressPercent, String message) {
         Authorizations authorizations = getAuthorizations(userRepository.getSystemUser());
         Vertex vertex = this.graph.getVertex(longRunningProcessGraphVertexId, authorizations);
         checkNotNull(vertex, "Could not find long running process vertex: " + longRunningProcessGraphVertexId);
