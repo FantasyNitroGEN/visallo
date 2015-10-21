@@ -171,6 +171,8 @@ define([
                 vertex: vertex
             });
 
+            var canAddImage = displayType !== 'image' && displayType !== 'video';
+
             Toolbar.attachTo(this.select('toolbarSelector'), {
                 toolbar: [
                     {
@@ -195,7 +197,7 @@ define([
                         title: i18n('detail.toolbar.add'),
                         submenu: [
                             Toolbar.ITEMS.ADD_PROPERTY,
-                            Toolbar.ITEMS.ADD_IMAGE,
+                            canAddImage ? Toolbar.ITEMS.ADD_IMAGE : undefined,
                             Toolbar.ITEMS.ADD_COMMENT
                         ]
                     },
@@ -217,7 +219,7 @@ define([
                 this[displayType + 'Setup'](this.attr.data, config);
             }
 
-            if (displayType !== 'image' && displayType !== 'video') {
+            if (canAddImage) {
                 EntityImage.attachTo(this.select('glyphIconSelector'), {
                     data: vertex
                 });
