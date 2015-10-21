@@ -6,7 +6,7 @@
         <artifactId>visallo-root</artifactId>
         <groupId>org.visallo</groupId>
         <version>1.1-SNAPSHOT</version>
-        <relativePath>../mr-base</relativePath>
+        <relativePath>../../root</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -20,8 +20,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
-            <version>1.4.0</version>
+            <artifactId>spark-core_${spark.scala.version}</artifactId>
+            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -37,21 +37,4 @@
             <artifactId>vertexium-elasticsearch-singledocument</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <configuration>
-                    <artifactSet>
-                        <excludes>
-                            <exclude>org.apache.spark:*</exclude>
-                            <exclude>org.apache.hadoop:*</exclude>
-                        </excludes>
-                    </artifactSet>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
