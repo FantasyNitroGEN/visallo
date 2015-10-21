@@ -5,11 +5,15 @@ import org.vertexium.Element;
 import org.vertexium.Property;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.InputStream;
 
+@Name("Groovy")
+@Description("Runs groovy scripts as graph property workers")
 public class GroovyGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GroovyGraphPropertyWorker.class);
     private final GroovyGraphPropertyWorkerScriptRepository scriptRepository;
