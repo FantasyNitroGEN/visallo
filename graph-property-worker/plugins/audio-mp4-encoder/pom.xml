@@ -12,4 +12,21 @@
 
     <artifactId>visallo-gpw-audio-mp4-encoder</artifactId>
     <name>Visallo: GraphPropertyWorker: Plugin: Audio MP4 Encoder</name>
+    <profiles>
+        <profile>
+            <id>test-exclude-native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${plugin.maven.surefire.version}</version>
+                        <configuration>
+                            <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
