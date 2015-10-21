@@ -191,7 +191,7 @@ define([
             var query = this.currentQuery,
                 trigger = this.trigger.bind(this,
                    this.select('resultsContainerSelector'),
-                   'addInfiniteVertices'
+                   'addInfiniteItems'
                 );
 
             this.triggerRequest(
@@ -207,7 +207,7 @@ define([
                 .then(function(results) {
                     trigger({
                         success: true,
-                        vertices: results.vertices,
+                        items: results.elements,
                         total: results.totalHits,
                         nextOffset: results.nextOffset
                     });

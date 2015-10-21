@@ -3,7 +3,7 @@ define([
     'flight/lib/registry',
     'tpl!./edges',
     '../withTypeContent',
-    'util/edge/list',
+    'util/element/list',
     'util/vertex/formatters',
     'util/withDataRequest'
 ], function(
@@ -11,7 +11,7 @@ define([
     registry,
     template,
     withTypeContent,
-    EdgeList,
+    ElementList,
     F,
     withDataRequest) {
     'use strict';
@@ -57,8 +57,9 @@ define([
                     edges: edges
                 }));
 
-                EdgeList.attachTo(self.select('edgeListSelector'), {
-                    edges: edges
+                ElementList.attachTo(self.select('edgeListSelector'), {
+                    items: edges,
+                    usageContext: 'detail/multiple'
                 })
             });
 
@@ -104,7 +105,7 @@ define([
             var $edgesList = this.$node.find('.edge-list'),
                 max = 200,
                 height = _.reduce(
-                    $edgesList.find('li.edge').toArray(),
+                    $edgesList.find('li.element-item').toArray(),
                      function(sum, el) {
                          if (sum > max) {
                              return sum;

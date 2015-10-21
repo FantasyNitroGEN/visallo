@@ -58,7 +58,7 @@ describe('Search', function () {
           .elementByCss('.search-results').getComputedCss('display').should.become('block')
           .then(function() {
             return browser.waitFor(
-                self.asserters.jsCondition("$('.search-results .vertex-item').length === " + expected),
+                self.asserters.jsCondition("$('.search-results .element-item').length === " + expected),
                 utils.requestTimeout
             ).should.eventually.be.ok
           })
@@ -66,7 +66,7 @@ describe('Search', function () {
 
     it('Should be able to drag result to graph', function() {
         return this.browser
-            .elementByCss('.vertex-item')
+            .elementByCss('.element-item')
             .moveTo()
             .buttonDown()
             .elementByCss('.graph-pane')

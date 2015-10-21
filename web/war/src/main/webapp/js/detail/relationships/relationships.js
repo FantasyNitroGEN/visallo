@@ -3,14 +3,14 @@ define([
     'util/withDataRequest',
     'tpl!util/alert',
     'util/formatters',
-    'util/vertex/list',
+    'util/element/list',
     'd3'
 ], function(
     defineComponent,
     withDataRequest,
     alertTemplate,
     F,
-    VertexList,
+    ElementList,
     d3) {
     'use strict';
 
@@ -86,22 +86,12 @@ define([
                         return;
                     }
 
-                    var node = $content.empty().append('<div>').find('div'),
-                        relationDirections = {},
-                        vertices = _.map(relationships, function(relationship) {
-                            var relation = relationship.relationship,
-                                vertex = relationship.vertex;
-                            relationDirections[vertex.id] = 'relation-' + (
-                                relation.inVertexId === vertex.id ?
-                                    'to' : 'from'
-                            );
-                            return vertex;
-                        });
+                    var node = $content.empty().append('<div>').find('div');
 
-                    node.teardownComponent(VertexList);
-                    VertexList.attachTo(node, {
-                        vertices: vertices,
-                        relationDirections: relationDirections
+                    node.teardownComponent(ElementList);
+                    ElementList.attachTo(node, {
+                        items: relationships,
+                        usageContext: 'detail/relationships'
                     });
 
                     if (result.relationships.length !== result.totalReferences) {

@@ -4,16 +4,14 @@ define([
     'hbs!./templates/type',
     'util/withDataRequest',
     'util/formatters',
-    'util/vertex/list',
-    'util/edge/list'
+    'util/element/list'
 ], function(
     registry,
     Filters,
     template,
     withDataRequest,
     F,
-    VertexList,
-    EdgeList
+    ElementList
 ) {
     'use strict';
 
@@ -57,19 +55,14 @@ define([
                     } else {
                         $searchResults.show().children('.content').scrollTop(0);
 
-                        var attrs = {
+                        ElementList.attachTo($resultsContainer, {
+                            items: result.elements,
+                            usageContext: 'searchresults',
                             nextOffset: result.nextOffset,
                             infiniteScrolling: this.attr.infiniteScrolling,
                             total: result.totalHits
-                        };
-                        if (result.vertices) {
-                            attrs.vertices = result.vertices;
-                            VertexList.attachTo($resultsContainer, attrs);
-                        } else {
-                            attrs.edges = result.edges;
-                            attrs.showTypeLabel = true;
-                            EdgeList.attachTo($resultsContainer.removeClass('vertex-list'), attrs);
-                        }
+                        });
+
                         this.makeResizable($searchResults);
                     }
                     this.trigger($searchResults, 'paneResized');
