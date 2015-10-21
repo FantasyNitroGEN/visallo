@@ -17,8 +17,17 @@ import java.util.List;
 @Name("Find Path")
 @Description("Finds a path between two vertices")
 public class FindPathLongRunningProcessWorker extends LongRunningProcessWorker {
-    private Graph graph;
-    private LongRunningProcessRepository longRunningProcessRepository;
+    private final Graph graph;
+    private final LongRunningProcessRepository longRunningProcessRepository;
+
+    @Inject
+    public FindPathLongRunningProcessWorker(
+            Graph graph,
+            LongRunningProcessRepository longRunningProcessRepository
+    ) {
+        this.graph = graph;
+        this.longRunningProcessRepository = longRunningProcessRepository;
+    }
 
     @Override
     public boolean isHandled(JSONObject longRunningProcessQueueItem) {
@@ -57,15 +66,5 @@ public class FindPathLongRunningProcessWorker extends LongRunningProcessWorker {
 
     private Authorizations getAuthorizations(String[] authorizations) {
         return graph.createAuthorizations(authorizations);
-    }
-
-    @Inject
-    public void setLongRunningProcessRepository(LongRunningProcessRepository longRunningProcessRepository) {
-        this.longRunningProcessRepository = longRunningProcessRepository;
-    }
-
-    @Inject
-    public void setGraph(Graph graph) {
-        this.graph = graph;
     }
 }
