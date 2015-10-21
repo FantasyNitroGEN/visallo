@@ -34,7 +34,8 @@ public class Configuration {
 
     public static final String PROPERTY_HADOOP_CONF_DIR = "hadoop.conf.dir";
     public static final String ENV_VARIABLE_HADOOP_CONF_DIR = "HADOOP_CONF_DIR";
-    public static final String[] HADOOP_XML_FILENAMES = new String[]{"core-site.xml", "hdfs-site.xml", "mapred-site.xml", "yarn-site.xml"};
+    public static final String DEFAULT_HADOOP_CONF_DIR = "/etc/hadoop/conf";
+    public static final String[] HADOOP_CONF_FILENAMES = new String[]{"core-site.xml", "hdfs-site.xml", "mapred-site.xml", "yarn-site.xml"};
     public static final String[] PROPERTY_PREFIXES_FOR_HADOOP_CONF = new String[]{"fs", "dfs", "hadoop", "mapreduce", "yarn"};
 
     public static final String BASE_URL = "base.url";
@@ -342,15 +343,25 @@ public class Configuration {
             dir = new File(property);
             if (!dir.isDirectory()) {
                 LOGGER.warn("configuration property %s is not a directory", PROPERTY_HADOOP_CONF_DIR);
+                dir = null;
             }
-        } else if (envVariable != null) {
+        }
+        if (dir == null && envVariable != null) {
             dir = new File(envVariable);
             if (!dir.isDirectory()) {
                 LOGGER.warn("environment variable %s is not a directory", ENV_VARIABLE_HADOOP_CONF_DIR);
+                dir = null;
             }
         }
-        if (dir != null && dir.isDirectory()) {
-            for (String xmlFilename : HADOOP_XML_FILENAMES) {
+        if (dir == null) {
+            dir = new File(DEFAULT_HADOOP_CONF_DIR);
+            if (!dir.isDirectory()) {
+                LOGGER.warn("(default) %s is not a directory", DEFAULT_HADOOP_CONF_DIR);
+                dir = null;
+            }
+        }
+        if (dir != null) {
+            for (String xmlFilename : HADOOP_CONF_FILENAMES) {
                 File file = new File(dir, xmlFilename);
                 if (file.isFile()) {
                     try {
