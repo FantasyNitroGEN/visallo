@@ -5,7 +5,6 @@ define([
     'util/audio/scrubber',
     'util/privileges',
     './image/image',
-    '../entity/image/image',
     '../withTypeContent',
     '../withHighlighting',
     '../toolbar/toolbar',
@@ -20,14 +19,14 @@ define([
     'util/vertex/formatters',
     'util/withDataRequest',
     'd3',
-    'sf'
+    'sf',
+    'require'
 ], function(
     defineComponent,
     VideoScrubber,
     AudioScrubber,
     Privileges,
     Image,
-    EntityImage,
     withTypeContent, withHighlighting,
     Toolbar,
     TermForm,
@@ -41,7 +40,8 @@ define([
     F,
     withDataRequest,
     d3,
-    sf) {
+    sf,
+    require) {
     'use strict';
 
     var PERCENT_CLOSE_FOR_ROUNDING = 5; // Used for sorting x/y coordinates of detected objects
@@ -220,8 +220,10 @@ define([
             }
 
             if (canAddImage) {
-                EntityImage.attachTo(this.select('glyphIconSelector'), {
-                    data: vertex
+                require(['../entity/image/image'], function(EntityImage) {
+                    EntityImage.attachTo(self.select('glyphIconSelector'), {
+                        data: vertex
+                    });
                 });
             }
 
