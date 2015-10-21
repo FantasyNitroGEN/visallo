@@ -364,6 +364,7 @@ public class Configuration {
             for (String xmlFilename : HADOOP_CONF_FILENAMES) {
                 File file = new File(dir, xmlFilename);
                 if (file.isFile()) {
+                    LOGGER.info("adding resource: %s to Hadoop configuration", file);
                     try {
                         ByteArrayInputStream in = new ByteArrayInputStream(FileUtils.readFileToByteArray(file));
                         hadoopConfiguration.addResource(in);
