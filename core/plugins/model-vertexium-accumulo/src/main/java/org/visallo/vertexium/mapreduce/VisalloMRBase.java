@@ -92,6 +92,10 @@ public abstract class VisalloMRBase extends Configured implements Tool {
         long endTime = System.currentTimeMillis();
         LOGGER.info("Job complete");
 
+        if (job.getStatus().getState() != JobStatus.State.SUCCEEDED) {
+            LOGGER.warn("Unexpected job state: %s", job.getStatus().getState());
+        }
+
         if (periodicCounterOutputTimer != null) {
             periodicCounterOutputTimer.cancel();
         }
