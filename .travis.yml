@@ -1,5 +1,5 @@
 language: java
 install:
   - mvn -f root/pom.xml install
-  - mvn -q install -DskipTests=true -P-build-war
+  - mvn -q install -DskipTests=true -P-build-webapp
 script: mvn test -Ptest-exclude-native -DlogQuiet
