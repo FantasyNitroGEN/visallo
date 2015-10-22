@@ -381,6 +381,36 @@ public class Configuration {
             }
         }
 
+        StringBuilder sb = new StringBuilder();
+        SortedSet<String> keys = new TreeSet<>();
+        for (Map.Entry<String, String> entry : hadoopConfiguration) {
+            keys.add(entry.getKey());
+        }
+
+        boolean first = true;
+        for (String key : keys) {
+            String[] sources = hadoopConfiguration.getPropertySources(key);
+            String source = sources[sources.length - 1];
+
+            if (source.endsWith("default.xml") && !LOGGER.isTraceEnabled()) {
+                continue;
+            }
+
+            if (first) {
+                first = false;
+            } else {
+                sb.append(LINE_SEPARATOR);
+            }
+            if (key.toLowerCase().contains("password")) {
+                sb.append(key).append(": ********");
+            } else {
+                sb.append(key).append(": ").append(hadoopConfiguration.get(key));
+            }
+            sb.append(" (").append(source).append(")");
+        }
+
+        LOGGER.debug("Hadoop configuration:%n%s", sb.toString());
+
         return hadoopConfiguration;
     }
 
