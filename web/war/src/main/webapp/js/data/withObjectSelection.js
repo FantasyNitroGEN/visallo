@@ -250,7 +250,7 @@ define([], function() {
                         vertex = results.shift(),
                         title = F.vertex.title(vertex);
 
-                    self.trigger('searchForPhrase', { query: title });
+                    self.trigger('searchByParameters', { submit: true, parameters: { q: title }});
                 })
             }
         };

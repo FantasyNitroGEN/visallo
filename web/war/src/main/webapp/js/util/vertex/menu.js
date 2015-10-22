@@ -47,7 +47,7 @@ define([
                     {
                         label: i18n('vertex.contextmenu.search'),
                         submenu: [
-                            { label: '\"{ title }\"', shortcut: 'alt+t', event: 'searchTitle', selection: 1 },
+                            { label: '{ title }', shortcut: 'alt+t', event: 'searchTitle', selection: 1 },
                             {
                                 label: i18n('graph.contextmenu.search.related'),
                                 subtitle: i18n('graph.contextmenu.search.related.subtitle'),
