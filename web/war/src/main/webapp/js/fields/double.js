@@ -29,6 +29,19 @@ define([
             return makeNumber(this.select('inputSelector').val().trim());
         };
 
+        this.getMetadata = function() {
+            var currentVal = this.select('inputSelector').val().trim();
+            if (currentVal && !isNaN(makeNumber(currentVal))) {
+                var inputPrecision = 0,
+                    decimalPart = currentVal.match(/\.(\d+)/);
+                if (decimalPart) {
+                    inputPrecision = decimalPart[1].length;
+                }
+                return { 'http://visallo.org#inputPrecision': inputPrecision };
+            }
+            return null;
+        };
+
         this.isValid = function(value) {
             var name = this.attr.property.title;
             return _.isNumber(value) && !isNaN(value) && F.vertex.singlePropValid(value, name);

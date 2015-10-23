@@ -82,7 +82,8 @@ define([
             var valid = this.isValid(),
                 filter = {
                     propertyId: this.filter.propertyId,
-                    predicate: this.filter.predicate
+                    predicate: this.filter.predicate,
+                    metadata: this.filter.metadata
                 };
 
             if (this.predicateNeedsValues()) {
@@ -157,6 +158,8 @@ define([
                 if (index !== 0) return;
                 this.filter.values = [data.value];
             }
+            this.filter.metadata = data.metadata;
+
             this.triggerChange();
         };
 

@@ -403,7 +403,8 @@ define([
                                         return {
                                             propertyId: iri,
                                             predicate: filter.predicate,
-                                            values: filter.values[i]
+                                            values: filter.values[i],
+                                            metadata: filter.metadata
                                         }
                                     }
                                 });
@@ -412,7 +413,8 @@ define([
                             return {
                                 propertyId: filter.propertyId,
                                 predicate: filter.predicate,
-                                values: filter.values
+                                values: filter.values,
+                                metadata: filter.metadata
                             };
                         })
                         .flatten(true)
