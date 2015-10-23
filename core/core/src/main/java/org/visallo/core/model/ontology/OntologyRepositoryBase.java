@@ -38,6 +38,7 @@ import org.visallo.core.model.search.SearchProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.ping.PingOntology;
 import org.visallo.core.util.ExecutorServiceUtil;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
@@ -79,6 +80,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         importResourceOwl("comment.owl", COMMENT_OWL_IRI, authorizations);
         importResourceOwl("search.owl", SearchProperties.IRI, authorizations);
         importResourceOwl("longRunningProcess.owl", LongRunningProcessProperties.OWL_IRI, authorizations);
+        importResourceOwl("ping.owl", PingOntology.BASE_IRI, authorizations);
 
         for (Map.Entry<String, Map<String, String>> owlGroup : config.getMultiValue(Configuration.ONTOLOGY_REPOSITORY_OWL).entrySet()) {
             String iri = owlGroup.getValue().get("iri");

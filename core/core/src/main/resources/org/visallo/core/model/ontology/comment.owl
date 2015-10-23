@@ -10,13 +10,16 @@
 ]>
 
 
-<rdf:RDF xmlns="http://visallo.org/user#"
-     xml:base="http://visallo.org/user"
+<rdf:RDF xmlns="http://visallo.org/comment#"
+     xml:base="http://visallo.org/comment"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
      xmlns:visallo="http://visallo.org#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://visallo.org/comment">
+        <owl:imports rdf:resource="http://visallo.org"/>
+    </owl:Ontology>
 
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
