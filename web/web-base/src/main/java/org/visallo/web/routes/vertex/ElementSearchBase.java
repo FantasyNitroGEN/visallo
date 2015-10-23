@@ -346,10 +346,29 @@ public abstract class ElementSearchBase {
                 graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, value0);
                 graphQuery.has(propertyName, Compare.LESS_THAN_EQUAL, jsonValueToObject(values, propertyDataType, 1));
             } else if ("=".equals(predicateString) || "equal".equals(predicateString)) {
-                graphQuery.has(propertyName, Compare.EQUAL, value0);
+                if (PropertyType.DOUBLE.equals(propertyDataType)) {
+                    applyDoubleEqualityToQuery(graphQuery, obj, value0);
+                } else {
+                    graphQuery.has(propertyName, Compare.EQUAL, value0);
+                }
             } else {
                 throw new VisalloException("unhandled query\n" + obj.toString(2));
             }
+        }
+    }
+
+    private void applyDoubleEqualityToQuery(Query graphQuery, JSONObject obj, Object value0) throws ParseException {
+        String propertyName = obj.getString("propertyName");
+        JSONObject metadata = obj.has("metadata") ? obj.getJSONObject("metadata") : null;
+
+        if (metadata != null && metadata.has("http://visallo.org#inputPrecision") && value0 instanceof Double) {
+            double doubleParam = (double)value0;
+            double buffer = Math.pow(10, -(Math.abs(metadata.getInt("http://visallo.org#inputPrecision")) + 1)) * 5;
+
+            graphQuery.has(propertyName, Compare.GREATER_THAN, doubleParam - buffer);
+            graphQuery.has(propertyName, Compare.LESS_THAN, doubleParam + buffer);
+        } else {
+            graphQuery.has(propertyName, Compare.EQUAL, value0);
         }
     }
 
