@@ -39,7 +39,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/ping#createDate">
         <rdfs:label xml:lang="en">Create Date</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;dateTime"/>
     </owl:DatatypeProperty>
     
@@ -51,7 +51,7 @@
         <rdfs:label xml:lang="en">Create Remote Address</rdfs:label>
         <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -62,7 +62,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/ping#gpwDate">
         <rdfs:label xml:lang="en">GPW Date</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;dateTime"/>
     </owl:DatatypeProperty>
     
@@ -74,7 +74,7 @@
         <rdfs:label xml:lang="en">GPW Host Address</rdfs:label>
         <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -86,7 +86,7 @@
         <rdfs:label xml:lang="en">GPW Hostname</rdfs:label>
         <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -97,7 +97,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/ping#gpwWaitTimeMs">
         <rdfs:label xml:lang="en">GPW Wait Time (ms)</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;integer"/>
     </owl:DatatypeProperty>
     
@@ -108,7 +108,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/ping#lrpDate">
         <rdfs:label xml:lang="en">LRP Date</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;dateTime"/>
     </owl:DatatypeProperty>
     
@@ -120,7 +120,7 @@
         <rdfs:label xml:lang="en">LRP Host Address</rdfs:label>
         <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -132,7 +132,7 @@
         <rdfs:label xml:lang="en">LRP Hostname</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
         <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -143,7 +143,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/ping#lrpWaitTimeMs">
         <rdfs:label xml:lang="en">LRP Wait Time (ms)</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;integer"/>
     </owl:DatatypeProperty>
     
@@ -154,7 +154,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/ping#retrievalTimeMs">
         <rdfs:label xml:lang="en">Retrieval Time (ms)</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;integer"/>
     </owl:DatatypeProperty>
     
@@ -165,7 +165,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/ping#searchTimeMs">
         <rdfs:label xml:lang="en">Search Time (ms)</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:domain rdf:resource="http://visallo.org/ping"/>
+        <rdfs:domain rdf:resource="http://visallo.org/ping#ping"/>
         <rdfs:range rdf:resource="&xsd;integer"/>
     </owl:DatatypeProperty>
     
@@ -184,7 +184,7 @@
 
     <!-- http://visallo.org/ping -->
 
-    <owl:Class rdf:about="http://visallo.org/ping">
+    <owl:Class rdf:about="http://visallo.org/ping#ping">
         <rdfs:label xml:lang="en">Ping</rdfs:label>
         <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
     </owl:Class>
