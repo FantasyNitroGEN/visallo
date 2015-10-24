@@ -10,12 +10,14 @@ import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.cmdline.converters.WorkQueuePriorityConverter;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.rdf.RdfGraphPropertyWorker;
-import org.xml.sax.SAXParseException;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -54,9 +57,9 @@ public class RdfImport extends CommandLineTool {
 
     @Override
     protected int run() throws Exception {
-        VisalloVisibility visibility = new VisalloVisibility(visibilitySource);
-        importInFiles(inFiles, visibility.getVisibility());
-        importInDirs(inDirs, pattern, visibility.getVisibility());
+        Visibility visibility = getVisibilityTranslator().toVisibility(visibilitySource).getVisibility();
+        importInFiles(inFiles, visibility);
+        importInDirs(inDirs, pattern, visibility);
         return 0;
     }
 
@@ -110,6 +113,15 @@ public class RdfImport extends CommandLineTool {
         TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
         RdfTripleImport rdfTripleImport = new RdfTripleImport(getGraph(), timeZone, visibility, getAuthorizations());
         Metadata metadata = new Metadata();
+        Date now = new Date();
+        Visibility metadataVisibility = getVisibilityTranslator().getDefaultVisibility();
+        VisibilityJson visibilityJson = new VisibilityJson(visibility.getVisibilityString());
+        User user = getUserRepository().getSystemUser();
+        VisalloProperties.SOURCE_FILE_NAME_METADATA.setMetadata(metadata, inputFile.getName(), metadataVisibility);
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, metadataVisibility);
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, metadataVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), metadataVisibility);
+        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, metadataVisibility);
         rdfTripleImport.importRdf(inputFile, metadata);
     }
 

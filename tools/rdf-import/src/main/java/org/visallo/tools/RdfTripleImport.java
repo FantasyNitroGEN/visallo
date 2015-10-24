@@ -8,6 +8,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.VisalloDate;
 import org.visallo.core.util.VisalloDateTime;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -93,7 +94,7 @@ public class RdfTripleImport {
         }
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
-            setConceptType(vertexId, third, metadata, vertexVisibility);
+            setConceptType(vertexId, third, vertexVisibility);
             return true;
         }
 
@@ -206,10 +207,13 @@ public class RdfTripleImport {
         return visalloDateTime.toDateGMT();
     }
 
-    private void setConceptType(String vertexId, RdfTriple.Part third, Metadata metadata, Visibility visibility) {
+    private void setConceptType(String vertexId, RdfTriple.Part third, Visibility visibility) {
         VertexBuilder m = graph.prepareVertex(vertexId, visibility);
         String conceptType = getConceptType(third);
+        VisibilityJson visibilityJson = new VisibilityJson(visibility.getVisibilityString());
+        Metadata metadata = new Metadata();
         VisalloProperties.CONCEPT_TYPE.setProperty(m, conceptType, metadata, visibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, visibility);
         m.save(authorizations);
     }
 
