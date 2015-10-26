@@ -34,7 +34,7 @@ public class PingGraphPropertyWorker extends GraphPropertyWorker {
     @Override
     public boolean isHandled(Element element, Property property) {
         return element instanceof Vertex
-                && VisalloProperties.CONCEPT_TYPE.getPropertyValue(element).equals(PingOntology.IRI_CONCEPT_PING)
+                && PingOntology.IRI_CONCEPT_PING.equals(VisalloProperties.CONCEPT_TYPE.getPropertyValue(element))
                 && property == null;
     }
 }
