@@ -59,6 +59,9 @@ define([
                 this.dataRequest('io-visallo-web-devTools', 'ontologyEditRelationship', {
                     relationship: this.currentRelationship,
                     displayName: this.$node.find('.displayName').val(),
+                    titleFormula: this.$node.find('.titleFormula').val(),
+                    subtitleFormula: this.$node.find('.subtitleFormula').val(),
+                    timeFormula: this.$node.find('.timeFormula').val(),
                     intents: this.$node.find('.intents').val().split(/[\n\s,]+/)
                 })
                     .then(function() {

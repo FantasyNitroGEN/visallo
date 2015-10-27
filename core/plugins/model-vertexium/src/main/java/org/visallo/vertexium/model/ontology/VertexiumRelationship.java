@@ -2,6 +2,7 @@ package org.visallo.vertexium.model.ontology;
 
 import org.vertexium.Authorizations;
 import org.vertexium.Vertex;
+import org.vertexium.mutation.ElementMutation;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -46,6 +47,11 @@ public class VertexiumRelationship extends Relationship {
     @Override
     public void setProperty(String name, Object value, Authorizations authorizations) {
         getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+    }
+
+    @Override
+    public void removeProperty(String name, Authorizations authorizations) {
+        getVertex().softDeleteProperty(ElementMutation.DEFAULT_KEY, name, authorizations);
     }
 
     @Override

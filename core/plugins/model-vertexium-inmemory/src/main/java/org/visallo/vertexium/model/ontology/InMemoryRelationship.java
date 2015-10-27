@@ -2,6 +2,7 @@ package org.visallo.vertexium.model.ontology;
 
 import org.vertexium.Authorizations;
 import org.vertexium.util.ConvertingIterable;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
@@ -100,6 +101,19 @@ public class InMemoryRelationship extends Relationship {
             this.timeFormula = (String) value;
         } else if (OntologyProperties.USER_VISIBLE.getPropertyName().equals(name)) {
             this.userVisible = (Boolean) value;
+        }
+    }
+
+    @Override
+    public void removeProperty(String name, Authorizations authorizations) {
+        if (OntologyProperties.TITLE_FORMULA.getPropertyName().equals(name)) {
+            this.titleFormula = null;
+        } else if (OntologyProperties.SUBTITLE_FORMULA.getPropertyName().equals(name)) {
+            this.subtitleFormula = null;
+        } else if (OntologyProperties.TIME_FORMULA.getPropertyName().equals(name)) {
+            this.timeFormula = null;
+        } else {
+            throw new VisalloException("Remove not implemented for property " + name);
         }
     }
 

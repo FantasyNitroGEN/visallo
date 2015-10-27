@@ -80,6 +80,8 @@ public abstract class Relationship {
 
     public abstract void setProperty(String name, Object value, Authorizations authorizations);
 
+    public abstract void removeProperty(String name, Authorizations authorizations);
+
     public ClientApiOntology.Relationship toClientApi() {
         try {
             ClientApiOntology.Relationship result = new ClientApiOntology.Relationship();
