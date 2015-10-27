@@ -1,23 +1,35 @@
 <ul class="nav nav-list">
 
-    <li class="nav-header">Property Name</li>
     <li>
+        <label class="nav-header">Priority</label>
+        <select class="vertex-priority">
+          <option selected>LOW</option>
+          <option>NORMAL</option>
+          <option>HIGH</option>
+        </select>
+
+        <label class="nav-header">Concept Type</label>
+        <input type="text" class="vertex-concept-type" value="">
+
+        <label class="nav-header">Property Name</label>
         <input type="text" class="vertex-property-name" value="http://visallo.org#raw">
-        <button class="btn vertex-property-name">Requeue Vertex Properties</button>
+
+        <button class="btn vertex">Requeue Vertices</button>
     </li>
 
     <li class="divider"></li>
 
-    <li class="nav-header">Label</li>
     <li>
+        <label class="nav-header">Priority</label>
+        <select class="edge-priority">
+          <option selected>LOW</option>
+          <option>NORMAL</option>
+          <option>HIGH</option>
+        </select>
+
+        <label class="nav-header">Label</label>
         <input type="text" class="edge-label" value="http://visallo.org#hasSource">
-        <button class="btn edge-label">Requeue Edges By Label</button>
+        <button class="btn edge-label">Requeue Edges</button>
     </li>
-
-    <li class="divider"></li>
-
-    <li><button class="btn vertex">Requeue Vertices</button></li>
-
-    <li><button class="btn edge">Requeue Edges</button></li>
 
 </ul>

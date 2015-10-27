@@ -4,10 +4,12 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -33,8 +35,10 @@ public class QueueEdges implements ParameterizedHandler {
 
     @Handle
     public ClientApiSuccess handle(
+            @Required(name = "priority") String priorityString,
             @Optional(name = "label") String label
     ) throws Exception {
+        final Priority priority = Priority.safeParse(priorityString);
         if (label != null && label.trim().length() == 0) {
             label = null;
         }
@@ -50,7 +54,7 @@ public class QueueEdges implements ParameterizedHandler {
                     if (finalLabel != null && !finalLabel.equals(edge.getLabel())) {
                         continue;
                     }
-                    workQueueRepository.broadcastElement(edge, null);
+                    workQueueRepository.pushElement(edge, priority);
                 }
                 workQueueRepository.flush();
                 LOGGER.info("requeue all edges complete");

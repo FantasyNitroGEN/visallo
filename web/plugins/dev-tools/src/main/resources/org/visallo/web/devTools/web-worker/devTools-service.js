@@ -15,4 +15,4 @@ define('data/web-worker/services/io-visallo-web-devTools', [
           }
 
     }
-})
+});

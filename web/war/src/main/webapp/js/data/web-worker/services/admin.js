@@ -100,16 +100,23 @@ define([
             return ajax('POST->HTML', '/admin/workspace/import', formData);
         },
 
-        queueVertices: function(propertyName) {
-            var data = {};
+        queueVertices: function(priority, conceptType, propertyName) {
+            var data = {
+                priority: priority
+            };
+            if (conceptType) {
+                data.conceptType = conceptType;
+            }
             if (propertyName) {
                 data.propertyName = propertyName;
             }
             return ajax('POST->HTML', '/admin/queueVertices', data);
         },
 
-        queueEdges: function(label) {
-            var data = {};
+        queueEdges: function(priority, label) {
+            var data = {
+                priority: priority
+            };
             if (label) {
                 data.label = label;
             }

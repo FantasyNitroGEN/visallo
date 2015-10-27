@@ -15,54 +15,48 @@ define([
     function Requeue() {
 
         this.defaultAttrs({
+            vertexPrioritySelector: 'select.vertex-priority',
+            vertexConceptTypeSelector: 'input.vertex-concept-type',
             vertexPropertyNameSelector: 'input.vertex-property-name',
-            vertexPropertyNameButton: 'button.vertex-property-name',
+            vertexButtonSelector: 'button.vertex',
+            edgePrioritySelector: 'select.edge-priority',
             edgeLabelSelector: 'input.edge-label',
-            edgeLabelButton: 'button.edge-label',
-            vertexButton: 'button.vertex',
-            edgeButton: 'button.edge'
+            edgeButtonSelector: 'button.edge-label'
         });
 
         this.after('initialize', function() {
             this.on('click', {
-                vertexPropertyNameButton: this.onVertexPropertyNameRequeue,
-                edgeLabelButton: this.onEdgeLabelRequeue,
-                vertexButton: this.onVertexRequeue,
-                edgeButton: this.onEdgeRequeue
+                vertexButtonSelector: this.onVertexRequeue,
+                edgeButtonSelector: this.onEdgeRequeue
             });
 
             this.$node.html(template({}));
         });
 
-        this.onVertexPropertyNameRequeue = function(event) {
-            this.handleSubmitButton(event.target,
-                this.showResult(
-                    this.dataRequest('admin', 'queueVertices', this.select('vertexPropertyNameSelector').val())
-                )
-            );
-        };
-
-        this.onEdgeLabelRequeue = function(event) {
-            this.handleSubmitButton(event.target,
-              this.showResult(
-                this.dataRequest('admin', 'queueEdges', this.select('edgeLabelSelector').val())
-              )
-            );
-        };
-
         this.onVertexRequeue = function(event) {
             this.handleSubmitButton(event.target,
                 this.showResult(
-                    this.dataRequest('admin', 'queueVertices')
+                    this.dataRequest(
+                      'admin',
+                      'queueVertices',
+                      this.select('vertexPrioritySelector').val(),
+                      this.select('vertexConceptTypeSelector').val(),
+                      this.select('vertexPropertyNameSelector').val()
+                    )
                 )
             );
         };
 
         this.onEdgeRequeue = function(event) {
             this.handleSubmitButton(event.target,
-                this.showResult(
-                    this.dataRequest('admin', 'queueEdges')
+              this.showResult(
+                this.dataRequest(
+                  'admin',
+                  'queueEdges',
+                  this.select('edgePrioritySelector').val(),
+                  this.select('edgeLabelSelector').val()
                 )
+              )
             );
         };
 
