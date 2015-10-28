@@ -57,9 +57,11 @@ define([
                     propertyFilters.forEach(function(f) {
                         var ontologyProperty = ontologyProperties.byTitle[f.propertyId];
                         if (ontologyProperty && ontologyProperty.dataType === 'currency') {
-                            f.values = f.values.map(function(v) {
-                                return String(v);
-                            });
+                            if (_.isArray(f.values)) {
+                                f.values = f.values.map(function(v) {
+                                    return String(v);
+                                });
+                            }
                         }
                     })
                 }
