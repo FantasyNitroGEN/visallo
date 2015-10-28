@@ -50,11 +50,11 @@ public abstract class VisalloSparkBase implements Serializable {
     @Parameter(names = "--numberOfPartitions")
     private int numberOfPartitions = 5;
 
-    protected int run(String[] args) throws ExecutionException, InterruptedException {
+    protected void run(String[] args) throws ExecutionException, InterruptedException {
         JCommander cmd = new JCommander(this, args);
         if (this.help) {
             cmd.usage();
-            return -1;
+            throw new RuntimeException("invalid parameters");
         }
         jobStartDate = new Date();
 
@@ -76,8 +76,6 @@ public abstract class VisalloSparkBase implements Serializable {
             future.future.get();
         }
         context.stop();
-
-        return 0;
     }
 
     protected abstract List<NamedJavaFutureAction> createJobs(JavaSparkContext ctx);
