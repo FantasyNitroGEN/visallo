@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.mortbay.util.ajax.JSON;
 import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.user.User;
 import org.visallo.core.util.StringArrayUtil;
@@ -62,7 +63,11 @@ public class SaveOntologyProperty implements ParameterizedHandler {
             List<Concept> concepts = Lists.newArrayList(Iterables.transform(Arrays.asList(conceptIris), new Function<String, Concept>() {
                 @Override
                 public Concept apply(String conceptIri) {
-                    return ontologyRepository.getConceptByIRI(conceptIri);
+                    Concept concept = ontologyRepository.getConceptByIRI(conceptIri);
+                    if (concept == null) {
+                        throw new VisalloResourceNotFoundException("Could not find concept with IRI '" + conceptIri + "'");
+                    }
+                    return concept;
                 }
             }));
             OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
