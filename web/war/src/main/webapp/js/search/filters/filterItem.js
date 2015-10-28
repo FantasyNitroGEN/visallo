@@ -186,6 +186,9 @@ define([
                 hasProperty = !!property;
 
             this.currentProperty = property;
+            if (data.predicate === 'equal') {
+                data.predicate = '=';
+            }
             this.filter = {
                 predicate: data.predicate,
                 propertyId: property && property.title,
