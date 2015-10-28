@@ -3,6 +3,7 @@ package org.visallo.core.model.longRunningProcess;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ClientApiConverter;
 
 import java.util.List;
 
@@ -10,6 +11,11 @@ public abstract class LongRunningProcessRepository {
     public static final String VISIBILITY_STRING = "longRunningProcess";
 
     public abstract String enqueue(JSONObject longRunningProcessQueueItem, User user, Authorizations authorizations);
+
+    public String enqueue(LongRunningProcessQueueItemBase longRunningProcessQueueItem, User user, Authorizations authorizations) {
+        JSONObject json = new JSONObject(ClientApiConverter.clientApiToString(longRunningProcessQueueItem));
+        return enqueue(json, user, authorizations);
+    }
 
     public void beginWork(JSONObject longRunningProcessQueueItem) {
     }
