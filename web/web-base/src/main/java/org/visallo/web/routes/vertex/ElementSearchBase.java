@@ -362,7 +362,7 @@ public abstract class ElementSearchBase {
         JSONObject metadata = obj.has("metadata") ? obj.getJSONObject("metadata") : null;
 
         if (metadata != null && metadata.has("http://visallo.org#inputPrecision") && value0 instanceof Double) {
-            double doubleParam = (double)value0;
+            double doubleParam = (double) value0;
             double buffer = Math.pow(10, -(Math.abs(metadata.getInt("http://visallo.org#inputPrecision")) + 1)) * 5;
 
             graphQuery.has(propertyName, Compare.GREATER_THAN, doubleParam - buffer);

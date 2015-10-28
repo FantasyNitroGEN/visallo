@@ -167,6 +167,13 @@ public abstract class OntologyProperty {
             case DOUBLE:
                 return values.getDouble(index);
             case BOOLEAN:
+                Object result = values.get(index);
+                if ("T".equals(result)) {
+                    return true;
+                }
+                if ("F".equals(result)) {
+                    return false;
+                }
                 return values.getBoolean(index);
         }
         return values.getString(index);
