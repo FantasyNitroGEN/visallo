@@ -64,14 +64,37 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     }
 
     public abstract static class AggregateResult {
+        public abstract static class BucketBase {
+            private final Map<String, AggregateResult> nestedResults;
 
+            protected BucketBase(Map<String, AggregateResult> nestedResults) {
+                this.nestedResults = nestedResults;
+            }
+
+            public Map<String, AggregateResult> getNestedResults() {
+                return nestedResults;
+            }
+        }
     }
 
     public static class TermsAggregateResult extends AggregateResult {
-        private Map<String, Long> buckets = new HashMap<String, Long>();
+        private Map<String, Bucket> buckets = new HashMap<String, Bucket>();
 
-        public Map<String, Long> getBuckets() {
+        public Map<String, Bucket> getBuckets() {
             return buckets;
+        }
+
+        public static class Bucket extends BucketBase {
+            private final long count;
+
+            public Bucket(long count, Map<String, AggregateResult> nestedResults) {
+                super(nestedResults);
+                this.count = count;
+            }
+
+            public long getCount() {
+                return count;
+            }
         }
     }
 
@@ -91,12 +114,13 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
             return buckets;
         }
 
-        public static class Bucket {
+        public static class Bucket extends BucketBase {
             private final ClientApiGeoRect cell;
             private final ClientApiGeoPoint point;
             private final long count;
 
-            public Bucket(ClientApiGeoRect cell, ClientApiGeoPoint point, long count) {
+            public Bucket(ClientApiGeoRect cell, ClientApiGeoPoint point, long count, Map<String, AggregateResult> nestedResults) {
+                super(nestedResults);
                 this.cell = cell;
                 this.point = point;
                 this.count = count;
@@ -117,10 +141,23 @@ public abstract class ClientApiSearchResponse implements ClientApiObject {
     }
 
     public static class HistogramAggregateResult extends AggregateResult {
-        private Map<String, Long> buckets = new HashMap<String, Long>();
+        private Map<String, Bucket> buckets = new HashMap<String, Bucket>();
 
-        public Map<String, Long> getBuckets() {
+        public Map<String, Bucket> getBuckets() {
             return buckets;
+        }
+
+        public static class Bucket extends BucketBase {
+            private final long count;
+
+            public Bucket(long count, Map<String, AggregateResult> nestedResults) {
+                super(nestedResults);
+                this.count = count;
+            }
+
+            public long getCount() {
+                return count;
+            }
         }
     }
 
