@@ -7,7 +7,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Queues;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.vertexium.*;
 import org.vertexium.accumulo.AccumuloGraph;
 import org.vertexium.accumulo.AccumuloGraphConfiguration;
 import org.vertexium.property.StreamingPropertyValue;
@@ -19,14 +21,9 @@ import org.visallo.core.model.properties.types.StringSingleValueVisalloProperty;
 import org.visallo.core.util.RowKeyHelper;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.commons.io.FileUtils;
-import org.vertexium.*;
 
 import java.io.*;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +40,7 @@ public class MarvelImport extends CommandLineTool {
     private static final String COMIC_BOOK_IRI = "http://visallo.org/marvel#comicBook";
     private static final String MOVIE_IRI = "http://visallo.org/marvel#movie";
     private static final String HERO_IRI = "http://visallo.org/marvel#hero";
-    private static final Visibility DEFAULT_VISIBILITY =  new Visibility("");
+    private static final Visibility DEFAULT_VISIBILITY = new Visibility("");
     private static final Metadata DEFAULT_METADATA = new Metadata();
     private static final String DEFAULT_MIME_TYPE = "image";
     public static final String GEOLOCATION_IRI = "http://visallo.org/marvel#geolocation";
@@ -81,15 +78,14 @@ public class MarvelImport extends CommandLineTool {
 
             @Override
             public void doWork(FileLine fileLine, Graph graph) {
-                try{
+                try {
                     GeoPointVisalloProperty property = new GeoPointVisalloProperty(GEOLOCATION_IRI);
                     Vertex vertex = graph.getVertex(getVertexId(fileLine.id), getAuthorizations());
                     String[] split = fileLine.data.split(" ");
 
                     GeoPoint geoPoint = new GeoPoint(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
                     property.addPropertyValue(vertex, "locationlocation", geoPoint, DEFAULT_METADATA, DEFAULT_VISIBILITY, getAuthorizations());
-                }
-                catch(Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -122,7 +118,7 @@ public class MarvelImport extends CommandLineTool {
             @Override
             public void doWork(FileLine fileLine, Graph graph) {
                 String srcId = getVertexId(fileLine.id);
-                for(String id : fileLine.data.split(" ")){
+                for (String id : fileLine.data.split(" ")) {
                     String destId = getVertexId(id);
                     handleEdge(graph, srcId, destId, getAuthorizations());
                 }
@@ -178,13 +174,17 @@ public class MarvelImport extends CommandLineTool {
 
         final AtomicInteger atomicInteger = new AtomicInteger();
 
-        for(int i = 0; i < NUM_THREADS; i++){
+        for (int i = 0; i < NUM_THREADS; i++) {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        Map<String, Object> config = ImmutableMap.<String, Object>copyOf(getConfiguration().getSubset("graph"));
-                        Graph graph = AccumuloGraph.create(new AccumuloGraphConfiguration(config));
+                        Map<String, String> graphConfig = getConfiguration().getSubset("graph");
+                        Map<String, Object> graphConfigStringObject = new HashMap<>();
+                        for (Map.Entry<String, String> entry : graphConfig.entrySet()) {
+                            graphConfigStringObject.put(entry.getKey(), entry.getValue());
+                        }
+                        Graph graph = AccumuloGraph.create(new AccumuloGraphConfiguration(graphConfigStringObject));
                         while (!fileLines.isEmpty()) {
                             FileLine heroLine = fileLines.poll();
                             unitOfWork.doWork(heroLine, graph);
@@ -212,7 +212,7 @@ public class MarvelImport extends CommandLineTool {
         LOGGER.info("%d/%d, total time: %ds\n", numFileLines, numFileLines, stopwatch.elapsed(TimeUnit.SECONDS));
     }
 
-    private interface FileLineWorker{
+    private interface FileLineWorker {
         void doWork(FileLine fileLine, Graph graph);
     }
 
@@ -227,14 +227,14 @@ public class MarvelImport extends CommandLineTool {
     private static MarvelComicBookNameParser createComicBookParser(File comicBookMetadata) throws IOException {
         MarvelComicBookNameParser metadata = new MarvelComicBookNameParser();
         List<String> lines = FileUtils.readLines(comicBookMetadata);
-        for(String line : lines){
+        for (String line : lines) {
             metadata.addMetadata(line);
         }
 
         return metadata;
     }
 
-    private static Vertex handleHero(Graph graph,  String id, String name, Authorizations authorizations) {
+    private static Vertex handleHero(Graph graph, String id, String name, Authorizations authorizations) {
         VertexBuilder vertexBuilder = graph.prepareVertex(getVertexId(id), getVisibility());
         HERO_NAME_PROPERTY.setProperty(vertexBuilder, name, getVisibility());
         VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, HERO_IRI, getVisibility());
@@ -242,7 +242,7 @@ public class MarvelImport extends CommandLineTool {
         return vertexBuilder.save(authorizations);
     }
 
-    private static Vertex handleMovie(Graph graph,  String id, String name, Authorizations authorizations) {
+    private static Vertex handleMovie(Graph graph, String id, String name, Authorizations authorizations) {
         VertexBuilder vertexBuilder = graph.prepareVertex(getVertexId(id), getVisibility());
         MOVIE_TITLE_PROPERTY.setProperty(vertexBuilder, name, getVisibility());
         VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, MOVIE_IRI, getVisibility());
@@ -251,14 +251,14 @@ public class MarvelImport extends CommandLineTool {
     }
 
     private static Edge handleEdge(Graph graph, String srcId, String destId, Authorizations authorizations) {
-        return graph.prepareEdge(Joiner.on("-").join(new String[] { "edge", srcId, destId }), srcId, destId, CHARACTER_WAS_IN_IRI, getVisibility()).save(authorizations);
+        return graph.prepareEdge(Joiner.on("-").join(new String[]{"edge", srcId, destId}), srcId, destId, CHARACTER_WAS_IN_IRI, getVisibility()).save(authorizations);
     }
 
-    private static String getVertexId(String id){
+    private static String getVertexId(String id) {
         return VERTEX_ID_PREFIX + id;
     }
 
-    private static Visibility getVisibility(){
+    private static Visibility getVisibility() {
         return new Visibility("");
     }
 
@@ -267,7 +267,7 @@ public class MarvelImport extends CommandLineTool {
 
         Map<String, String> map = Maps.newHashMap();
 
-        for(FileLine line : lines){
+        for (FileLine line : lines) {
             map.put(line.id, removeFirstAndLastCharacter(line.data));
         }
 
@@ -277,7 +277,7 @@ public class MarvelImport extends CommandLineTool {
     private static Queue<FileLine> getFileLines(File file) throws IOException {
         List<String> lines = FileUtils.readLines(file);
         Queue<FileLine> fileLines = Queues.newConcurrentLinkedQueue();
-        for(String line : lines){
+        for (String line : lines) {
             int split = line.indexOf(' ');
             String id = line.substring(0, split);
             String data = line.substring(split + 1);
@@ -297,7 +297,7 @@ public class MarvelImport extends CommandLineTool {
         }
     }
 
-    private static String removeFirstAndLastCharacter(String str){
+    private static String removeFirstAndLastCharacter(String str) {
         return str.substring(1, str.length() - 1);
     }
 
@@ -329,7 +329,7 @@ public class MarvelImport extends CommandLineTool {
         return vertexBuilder;
     }
 
-    private File getFile(String file){
+    private File getFile(String file) {
         return new File(dataDir, file);
     }
 }
