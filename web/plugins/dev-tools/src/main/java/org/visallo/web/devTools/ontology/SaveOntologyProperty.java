@@ -11,6 +11,7 @@ import com.v5analytics.webster.annotations.Required;
 import org.json.JSONArray;
 import org.mortbay.util.ajax.JSON;
 import org.vertexium.Authorizations;
+import org.vertexium.TextIndexHint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.*;
@@ -44,6 +45,7 @@ public class SaveOntologyProperty implements ParameterizedHandler {
             @Required(name = "intents[]") String[] intents,
             @Optional(name = "concepts[]") String[] conceptIris,
             @Optional(name = "searchable", defaultValue = "true") boolean searchable,
+            @Optional(name = "textIndexHints") String textIndexHints,
             @Optional(name = "addable", defaultValue = "true") boolean addable,
             @Optional(name = "sortable", defaultValue = "true") boolean sortable,
             @Optional(name = "userVisible", defaultValue = "true") boolean userVisible,
@@ -76,6 +78,16 @@ public class SaveOntologyProperty implements ParameterizedHandler {
                     displayName,
                     dataType
             );
+            propertyDefinition.setSearchable(searchable);
+            if (searchable && dataType == PropertyType.STRING) {
+                if (textIndexHints == null || textIndexHints.length() == 0) {
+                    throw new VisalloException("textIndexHints are required for searchable strings");
+                }
+                propertyDefinition.setTextIndexHints(TextIndexHint.parse(textIndexHints));
+            }
+            propertyDefinition.setAddable(addable);
+            propertyDefinition.setSortable(sortable);
+            propertyDefinition.setUserVisible(userVisible);
             property = ontologyRepository.getOrCreateProperty(propertyDefinition);
         }
 

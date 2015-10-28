@@ -7,6 +7,7 @@ import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.json.JSONArray;
 import org.vertexium.Authorizations;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -16,7 +17,6 @@ import org.visallo.web.VisalloResponse;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 public class SaveOntologyConcept implements ParameterizedHandler {
     private OntologyRepository ontologyRepository;
@@ -28,6 +28,7 @@ public class SaveOntologyConcept implements ParameterizedHandler {
 
     @Handle
     public void handle(
+            @Optional(name = "parentIRI") String parentIRI,
             @Required(name = "concept") String conceptIRI,
             @Required(name = "displayName") String displayName,
             @Required(name = "color") String color,
@@ -48,8 +49,14 @@ public class SaveOntologyConcept implements ParameterizedHandler {
 
         Concept concept = ontologyRepository.getConceptByIRI(conceptIRI);
         if (concept == null) {
-            response.respondWithNotFound("concept " + conceptIRI + " not found");
-            return;
+            if (parentIRI == null) {
+                throw new VisalloResourceNotFoundException("You must specify a parentIRI if you are creating a concept");
+            }
+            Concept parent = ontologyRepository.getConceptByIRI(parentIRI);
+            if (parent == null) {
+                throw new VisalloResourceNotFoundException("Could not find parent with iri: " + parentIRI);
+            }
+            concept = ontologyRepository.getOrCreateConcept(parent, conceptIRI, displayName, null);
         }
 
         if (displayName.length() != 0) {
