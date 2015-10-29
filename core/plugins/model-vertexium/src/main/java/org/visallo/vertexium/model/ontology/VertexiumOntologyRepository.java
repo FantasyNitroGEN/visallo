@@ -623,16 +623,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 OntologyProperties.DISPLAY_FORMULA.setProperty(builder, displayFormula, VISIBILITY.getVisibility());
             }
             if (dependentPropertyIris != null) {
-                int i = 0;
-                for (String dependentPropertyIri : dependentPropertyIris) {
-                    String dependentPropertyVertexId = ID_PREFIX_PROPERTY + dependentPropertyIri;
-                    String edgeId = propertyVertexId + "-dependentProperty-" + i;
-                    graph.prepareEdge(edgeId, propertyVertexId, dependentPropertyVertexId, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY, VISIBILITY.getVisibility())
-                            .setProperty(DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME, i, VISIBILITY.getVisibility())
-                            .save(authorizations);
-                    i++;
-                }
-                // TODO: if the list of dependent property iris gets smaller they will not get cleaned up.
+                saveDependentProperties(propertyVertexId, dependentPropertyIris);
             }
             if (intents != null) {
                 for (String intent : intents) {
@@ -644,6 +635,37 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             graph.flush();
         }
         return typeProperty;
+    }
+
+    private void saveDependentProperties(String propertyVertexId, Collection<String> dependentPropertyIris) {
+        int i;
+        for (i = 0; i < 1000; i++) {
+            String edgeId = propertyVertexId + "-dependentProperty-" + i;
+            Edge edge = graph.getEdge(edgeId, authorizations);
+            if (edge == null) {
+                break;
+            }
+            graph.deleteEdge(edge, authorizations);
+        }
+        graph.flush();
+
+        i = 0;
+        for (String dependentPropertyIri : dependentPropertyIris) {
+            String dependentPropertyVertexId = ID_PREFIX_PROPERTY + dependentPropertyIri;
+            String edgeId = propertyVertexId + "-dependentProperty-" + i;
+            graph.prepareEdge(edgeId, propertyVertexId, dependentPropertyVertexId, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY, VISIBILITY.getVisibility())
+                    .setProperty(DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME, i, VISIBILITY.getVisibility())
+                    .save(authorizations);
+            i++;
+        }
+    }
+
+    @Override
+    public void updatePropertyDependentIris(OntologyProperty property, Collection<String> newDependentPropertyIris) {
+        VertexiumOntologyProperty vertexiumProperty = (VertexiumOntologyProperty) property;
+        saveDependentProperties(vertexiumProperty.getVertex().getId(), newDependentPropertyIris);
+        graph.flush();
+        vertexiumProperty.setDependentProperties(newDependentPropertyIris);
     }
 
     private Vertex getParentConceptVertex(Vertex conceptVertex) {

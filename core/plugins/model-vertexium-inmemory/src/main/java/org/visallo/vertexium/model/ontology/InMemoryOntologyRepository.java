@@ -100,6 +100,12 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris) {
+        InMemoryOntologyProperty inMemoryOntologyProperty = (InMemoryOntologyProperty) property;
+        inMemoryOntologyProperty.setDependentPropertyIris(dependentPropertyIris);
+    }
+
+    @Override
     protected List<OWLOntology> loadOntologyFiles(OWLOntologyManager m, OWLOntologyLoaderConfiguration config, IRI excludedIRI) throws Exception {
         List<OWLOntology> loadedOntologies = new ArrayList<>();
         for (OwlData owlData : fileCache) {

@@ -13,6 +13,8 @@ import org.visallo.web.clientapi.model.ClientApiOntology;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -125,4 +127,6 @@ public interface OntologyRepository {
     void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes);
 
     void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes);
+
+    void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris);
 }
