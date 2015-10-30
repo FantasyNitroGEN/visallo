@@ -10,6 +10,7 @@ define([
     var KIND_TO_CACHE = {
             vertex: 'vertices',
             edge: 'edges',
+            workspaceEdges: 'workspaceEdges',
             workspace: 'workspace',
             filteredVertexIds: 'filteredVertexIds',
             cachedIds: 'cachedIds'
@@ -265,6 +266,11 @@ define([
                 var url = request.url,
                     cacheable;
 
+                if (url === '/workspace/edges') {
+                    cacheWorkspaceEdges(workspaceId, json.edges);
+                    return;
+                }
+
                 if (cacheDecisions.shouldCacheObjectsAtUrl(url)) {
                     if (resemblesVertex(json)) {
                         if (cacheDecisions.shouldCacheVertexAtUrl(json, url)) {
@@ -351,6 +357,7 @@ define([
         workspaceCaches[workspaceId] = {
             vertices: new Cache(),
             edges: new Cache(),
+            workspaceEdges: {},
             cachedIds: {}
         };
 
@@ -371,6 +378,11 @@ define([
                 .then(callback)
                 .done();
         });
+    }
+
+    function cacheWorkspaceEdges(workspaceId, workspaceEdges) {
+        var workspaceCache = cacheForWorkspace(workspaceId);
+        workspaceCache.workspaceEdges = workspaceEdges;
     }
 
     function cacheVertices(workspaceId, vertices, priority) {

@@ -61,14 +61,10 @@ define([
                 }
             }
 
-            this.currentSelectedVertexIds = [];
-
-            Promise.all([
-                this.dataRequest('workspace', 'histogramValues', this.attr.property),
-                this.dataRequest('ontology', 'concepts')
-            ]).done(this.renderChart.bind(this));
-
+            this.currentSelected = { vertexIds: [], edgeIds: [] };
             this.redraw = _.throttle(this.redraw.bind(this), 16);
+
+            this.renderChart();
         });
 
         this.onFitHistogram = function() {
@@ -86,54 +82,46 @@ define([
             }
 
             var selectedVertices = (data && data.vertices) || [],
+                selectedEdges = (data && data.edges) || [],
+                selectedEdgeIds = _.pluck(selectedEdges, 'id').sort(),
                 selectedVertexIds = _.pluck(selectedVertices, 'id').sort();
 
             this.clearBrush();
-            this.currentSelectedVertexIds = selectedVertexIds;
-            this.updateBarSelection(selectedVertexIds);
+            this.currentSelected = {
+                vertexIds: selectedVertexIds,
+                edgeIds: selectedEdgeIds
+            };
+            this.updateBarSelection(this.currentSelected);
         };
 
         this.onVerticesUpdated = function() {
             var self = this;
-            Promise.all([
-                this.dataRequest('workspace', 'histogramValues', this.attr.property),
-                this.dataRequest('ontology', 'concepts')
-            ]).done(function(results) {
-                self.renderChart(results);
-                self.updateBarSelection(self.currentSelectedVertexIds);
+
+            this.renderChart().then(function() {
+                self.updateBarSelection(self.currentSelected);
             });
         };
 
         this.onWorkspaceUpdated = function(event, data) {
             if (data.newVertices.length) {
                 var self = this;
-                Promise.all([
-                    this.dataRequest('workspace', 'histogramValues', this.attr.property),
-                    this.dataRequest('ontology', 'concepts')
-                ]).done(function(results) {
-                    self.renderChart(results);
-                    self.updateBarSelection(self.currentSelectedVertexIds);
+                this.renderChart().then(function() {
+                    self.updateBarSelection(self.currentSelected);
                 });
             }
             if (data.entityDeletes.length) {
-                this.currentSelectedVertexIds = _.difference(this.currentSelectedVertexIds, data.entityDeletes);
+                this.currentSelected.vertexIds = _.without(this.currentSelected.vertexIds || [], data.entityDeletes);
                 this.values = _.reject(this.values, function(v) {
                     return _.contains(data.entityDeletes, v.vertexId);
                 });
                 this.data = this.binValues();
                 this.createBars(this.data);
-                this.updateBarSelection(this.currentSelectedVertexIds);
+                this.updateBarSelection(this.currentSelected);
             }
         };
 
         this.onWorkspaceLoaded = function() {
-            var self = this;
-            Promise.all([
-                this.dataRequest('workspace', 'histogramValues', this.attr.property),
-                this.dataRequest('ontology', 'concepts')
-            ]).done(function(results) {
-                self.renderChart(results);
-            });
+            this.renderChart();
         };
 
         this.onGraphPaddingUpdated = function(event, data) {
@@ -181,10 +169,10 @@ define([
             this.svg.select('.x.axis').call(this.xAxis.orient('bottom'));
 
             if (this.currentExtent) {
-                var selectedVertexIds = this.getVertexIdsFortExtent(self.currentExtent);
-                if (!_.isEqual(selectedVertexIds, this.currentSelectedVertexIds)) {
-                    this.currentSelectedVertexIds = selectedVertexIds;
-                    this.triggerChange({ extent: this.currentExtent, vertexIds: this.currentSelectedVertexIds });
+                var selectedObjectIds = this.getObjectIdsForExtent(this.currentExtent);
+                if (!_.isEqual(selectedObjectIds, this.currentSelected)) {
+                    this.currentSelected = selectedObjectIds;
+                    this.triggerChange(_.extend({ extent: this.currentExtent }, this.currentSelected));
                 }
             }
         };
@@ -194,7 +182,7 @@ define([
                 isDateTime = this.attr.property.displayType !== 'dateOnly',
                 allDates = this.attr.property.title === ALL_DATES,
                 xScale = this.xScale,
-                ontologyConcepts = this.ontologyConcepts;
+                ontology = this.ontology;
 
             if (!this.binCount) {
                 this.binCount = allDates ? xScale.ticks(100) : isDate ? xScale.ticks(25) : 25;
@@ -229,7 +217,7 @@ define([
                     .pairs()
                     .map(function(kv) {
                         var conceptIri = kv[0],
-                            ontologyConcept = ontologyConcepts.byId[conceptIri];
+                            ontologyConcept = ontology.concepts.byId[conceptIri] || ontology.relationships.byTitle[conceptIri];
 
                         var normalColor = '#c4c4c4';
                         if (ontologyConcept && ontologyConcept.color) {
@@ -247,7 +235,7 @@ define([
             });
         }
 
-        this.getVertexIdsFortExtent = function(extent) {
+        this.getObjectIdsForExtent = function(extent) {
             extent = extent || this.currentExtent;
             return _.chain(this.data || [])
                     .map(function(d) {
@@ -259,9 +247,16 @@ define([
                         });
                     })
                     .flatten()
-                    .pluck('vertexId')
-                    .value()
-                    .sort();
+                    .partition(function(d) {
+                        return 'vertexId' in d;
+                    })
+                    .map(function(d, i) {
+                        return i === 0 ?
+                            ['vertexIds', _.pluck(d, 'vertexId').sort()] :
+                            ['edgeIds', _.pluck(d, 'edgeId').sort()];
+                    })
+                    .object()
+                    .value();
         };
 
         this.triggerChange = function(data) {
@@ -269,10 +264,20 @@ define([
         };
 
         this.renderChart = function(results) {
+            var self = this;
+
+            if (!results) {
+                return Promise.all([
+                    this.dataRequest('workspace', 'histogramValues', this.attr.property),
+                    this.dataRequest('ontology', 'ontology')
+                ]).then(function(results) {
+                    return self.renderChart(results);
+                });
+            }
+
             this.$node.find('svg').remove();
 
-            var self = this,
-                vals = results[0],
+            var vals = results[0],
                 isDate = this.attr.property.dataType === 'date',
                 isDateTime = isDate && this.attr.property.displayType !== 'dateOnly';
 
@@ -288,7 +293,7 @@ define([
 
             var foundOntologyProperties = this.foundOntologyProperties = vals.foundOntologyProperties,
 
-                ontologyConcepts = this.ontologyConcepts = results[1],
+                ontology = this.ontology = results[1],
 
                 values = this.values = vals.values,
 
@@ -574,9 +579,10 @@ define([
 
                 if (!_.isEqual(data.extent, self.currentExtent) && (data.extent || self.currentExtent)) {
                     self.updateBarSelection();
-                    data.vertexIds = self.getVertexIdsFortExtent(data.extent);
-                    if (!_.isEqual(data.vertexIds, self.currentSelectedVertexIds)) {
-                        self.currentSelectedVertexIds = data.vertexIds;
+                    var objectsForExtent = self.getObjectIdsForExtent(data.extent);
+                    _.extend(data, objectsForExtent);
+                    if (!_.isEqual(objectsForExtent, self.currentSelected)) {
+                        self.currentSelected = objectsForExtent;
                         self.triggerChange(data);
                     }
                 }
@@ -599,7 +605,7 @@ define([
                     );
             }
             this.clearBrush = function() {
-                this.currentSelectedVertexIds = [];
+                this.currentSelected = {};
                 gBrush.call(brush.clear());
                 delete self.currentExtent;
                 updateBrushInfo();
@@ -666,7 +672,8 @@ define([
                 .append('g').attr('class', 'bar')
                 .classed('selected', function(d) {
                     return !self.currentExtent && d.length && _.any(d, function(o) {
-                        return o.vertexId && _.contains(self.currentSelectedVertexIds || [], o.vertexId);
+                        return o.vertexId && _.contains(self.currentSelected.vertexIds || [], o.vertexId) ||
+                            o.edgeId && _.contains(self.currentSelected.edgeIds || [], o.edgeId);
                     });
                 })
                 .attr('transform', function(d) {
@@ -709,27 +716,30 @@ define([
                     xInv = xScale.invert(xy[0]);
                 self.clearBrush();
                 self.brush.extent([xInv, xInv]);
-                self.currentSelectedVertexIds = _.pluck(d, 'vertexId');
-                self.updateBarSelection(self.currentSelectedVertexIds);
-                self.triggerChange({ extent: self.currentExtent, vertexIds: self.currentSelectedVertexIds });
+                self.currentSelected.vertexIds = _.compact(_.pluck(d, 'vertexId')).sort();
+                self.currentSelected.edgeIds = _.compact(_.pluck(d, 'edgeId')).sort();
+                self.updateBarSelection(self.currentSelected);
+                self.triggerChange(_.extend({ extent: self.currentExtent }, self.currentSelected));
             });
 
             return bars;
         }
 
-        this.updateBarSelection = function(selectedVertexIds) {
+        this.updateBarSelection = function(selected) {
             var barLayers = this.svg.selectAll('.barlayer'),
-                bars = barLayers.selectAll('.bar');
+                bars = barLayers.selectAll('.bar'),
+                selectedVertexIds = selected && selected.vertexIds || [],
+                selectedEdgeIds = selected && selected.edgeIds || [],
+                anySelected = selectedVertexIds.length || selectedEdgeIds.length;
 
-            selectedVertexIds = selectedVertexIds || [];
-
-            bars.classed('selected', selectedVertexIds.length > 0 && function(d) {
+            bars.classed('selected', anySelected && function(d) {
                 return d.length && _.any(d, function(o) {
-                    return o.vertexId && _.contains(selectedVertexIds, o.vertexId);
+                    return o.vertexId && _.contains(selectedVertexIds, o.vertexId) ||
+                        o.edgeId && _.contains(selectedEdgeIds, o.edgeId);
                 });
             });
             barLayers.each(function(d) {
-                var currentColor = selectedVertexIds.length > 0 ? d.dimColor : d.normalColor;
+                var currentColor = anySelected ? d.dimColor : d.normalColor;
                 d3.select(this).transition('fill-animation').style('fill', currentColor);
             });
         }

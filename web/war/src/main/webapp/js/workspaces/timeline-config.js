@@ -36,9 +36,10 @@ define([
                 self.on(self.popover, 'change', {
                     inputSelector: this.onCheckboxChange
                 })
-                self.dataRequest('ontology', 'concepts')
-                    .done(function(concepts) {
-                        self.ontologyConcepts = concepts;
+                self.dataRequest('ontology', 'ontology')
+                    .done(function(ontology) {
+                        self.ontologyConcepts = ontology.concepts;
+                        self.ontologyRelationships = ontology.relationships;
                         self.update();
                         self.positionDialog();
                     })
@@ -84,7 +85,7 @@ define([
                 prettyConcepts = function(d) {
                     return _.chain(d.concepts)
                         .map(function(c) {
-                            var concept = self.ontologyConcepts.byId[c];
+                            var concept = self.ontologyConcepts.byId[c] || self.ontologyRelationships.byTitle[c];
                             return concept && concept.displayName;
                         })
                         .compact()
@@ -124,7 +125,7 @@ define([
                         .selectAll('.color')
                         .data(function(d) {
                             return d.concepts.map(function(c) {
-                                var concept = self.ontologyConcepts.byId[c];
+                                var concept = self.ontologyConcepts.byId[c] || self.ontologyRelationships.byTitle[c];
                                 return {
                                     color: concept && concept.color,
                                     width: (10 / d.concepts.length) + 'px'
