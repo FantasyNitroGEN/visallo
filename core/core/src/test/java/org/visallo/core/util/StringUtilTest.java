@@ -20,6 +20,7 @@ public class StringUtilTest {
         assertTrue(StringUtil.containsOnWordBoundaryCaseInsensitive("string \"test\" string", "test"));
         assertTrue(StringUtil.containsOnWordBoundaryCaseInsensitive("string \'test\' string", "test"));
         assertTrue(StringUtil.containsOnWordBoundaryCaseInsensitive("test-test string", "test-test"));
+        assertTrue(StringUtil.containsOnWordBoundaryCaseInsensitive("test-test\nstring", "test-test"));
         assertFalse(StringUtil.containsOnWordBoundaryCaseInsensitive("C is cool", "c++"));
         assertFalse(StringUtil.containsOnWordBoundaryCaseInsensitive("string testing", "test"));
     }
