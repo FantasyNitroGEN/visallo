@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.externalResource.QueueExternalResourceWorker;
 import org.visallo.core.geocoding.GeocodeResult;
@@ -21,7 +22,18 @@ import java.util.List;
 @Description("Uses Bing to geo-locate a string")
 public class BingExternalResourceWorker extends QueueExternalResourceWorker {
     public static final String QUEUE_NAME = QUEUE_NAME_PREFIX + "Bing";
-    private Graph graph;
+    public static final int DEFAULT_MULTIPLE_MATCH_FUZZINESS_KM = 20;
+    private final Graph graph;
+    private double multipleMatchFuzzinessKm;
+
+    @Inject
+    public BingExternalResourceWorker(
+            Graph graph,
+            Configuration configuration
+    ) {
+        this.graph = graph;
+        this.multipleMatchFuzzinessKm = configuration.getInt(BingExternalResourceWorker.class.getName() + ".multipleMatchFuzzinessKm", DEFAULT_MULTIPLE_MATCH_FUZZINESS_KM);
+    }
 
     public void queuePropertySet(
             String locationString,
@@ -114,7 +126,7 @@ public class BingExternalResourceWorker extends QueueExternalResourceWorker {
         GeocodeResult firstResult = results.get(0);
         for (GeocodeResult result : results) {
             double distanceKm = GeoPoint.distanceBetween(firstResult.getLatitude(), firstResult.getLongitude(), result.getLatitude(), result.getLongitude());
-            if (distanceKm > 5.0) {
+            if (distanceKm > multipleMatchFuzzinessKm) {
                 return null;
             }
         }
@@ -124,11 +136,6 @@ public class BingExternalResourceWorker extends QueueExternalResourceWorker {
     @Override
     public String getQueueName() {
         return QUEUE_NAME;
-    }
-
-    @Inject
-    public final void setGraph(Graph graph) {
-        this.graph = graph;
     }
 
     private enum WorkType {
