@@ -22,4 +22,13 @@ public class GeocodeResult {
     public double getLongitude() {
         return longitude;
     }
+
+    @Override
+    public String toString() {
+        return "GeocodeResult{" +
+                "name='" + name + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                '}';
+    }
 }
