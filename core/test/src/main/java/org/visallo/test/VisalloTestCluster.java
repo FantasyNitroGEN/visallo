@@ -1,25 +1,11 @@
 package org.visallo.test;
 
 import com.google.common.base.Throwables;
-import com.v5analytics.simpleorm.AccumuloSimpleOrmContext;
-import com.v5analytics.simpleorm.AccumuloSimpleOrmSession;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.commons.io.FileUtils;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.JSONObject;
 import org.vertexium.Graph;
-import org.vertexium.GraphBaseWithSearchIndex;
-import org.vertexium.GraphConfiguration;
-import org.vertexium.elasticsearch.ElasticSearchSearchIndexBase;
-import org.vertexium.elasticsearch.ElasticSearchSearchIndexConfiguration;
-import org.vertexium.search.SearchIndex;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.Configuration;

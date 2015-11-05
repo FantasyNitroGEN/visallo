@@ -29,11 +29,6 @@
             <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.vertexium</groupId>
-            <artifactId>vertexium-elasticsearch-base</artifactId>
-            <version>${vertexium.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
