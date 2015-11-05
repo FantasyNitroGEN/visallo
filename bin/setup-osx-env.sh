@@ -33,7 +33,6 @@ _message 'Creating Docker virtial machine'
 docker-machine create \
   --driver virtualbox \
   --virtualbox-memory 8192 \
-  --virtualbox-boot2docker-url https://github.com/boot2docker/boot2docker/releases/download/v1.8.1/boot2docker.iso \
   visallo-dev
 
 eval "$(docker-machine env visallo-dev)"
