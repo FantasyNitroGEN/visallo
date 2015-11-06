@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>visallo-dist</artifactId>
+        <groupId>org.visallo</groupId>
+        <version>1.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>visallo-dist-all</artifactId>
+    <name>Visallo Distribution: All</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-gpw</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-client-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-queue-rabbitmq</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-search-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-storage-accumulo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-storage-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-tools</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-web</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${project.build.directory}/dist/bin">
+                                    <fileset dir="${project.basedir}/../tools/target/visallo-dist-tools-${project.version}/bin">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/core">
+                                    <fileset dir="${project.basedir}/../core/target/visallo-dist-core-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/gpw">
+                                    <fileset dir="${project.basedir}/../gpw/target/visallo-dist-gpw-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/client-api">
+                                    <fileset dir="${project.basedir}/../client-api/target/visallo-dist-client-api-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/web">
+                                    <fileset dir="${project.basedir}/../web/target/visallo-dist-web-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/queue/rabbitmq">
+                                    <fileset dir="${project.basedir}/../queue-rabbitmq/target/visallo-dist-queue-rabbitmq-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/search/elasticsearch">
+                                    <fileset dir="${project.basedir}/../search-elasticsearch/target/visallo-dist-search-elasticsearch-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/storage/accumulo">
+                                    <fileset dir="${project.basedir}/../storage-accumulo/target/visallo-dist-storage-accumulo-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/storage/inmemory">
+                                    <fileset dir="${project.basedir}/../storage-inmemory/target/visallo-dist-storage-inmemory-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/tools">
+                                    <fileset dir="${project.basedir}/../tools/target/visallo-dist-tools-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy file="${project.basedir}/../../web/war/target/visallo-web-war-${project.version}.war"
+                                      todir="${project.build.directory}/dist"/>
+                                <copy file="${project.basedir}/../../config/visallo.properties"
+                                      tofile="${project.build.directory}/dist/config/visallo.properties.EXAMPLE"/>
+                                <copy file="${project.basedir}/../../config/log4j.xml"
+                                      tofile="${project.build.directory}/dist/config/log4j.xml.EXAMPLE"/>
+                                <chmod file="${project.build.directory}/dist/bin/*.sh" perm="ugo+x"/>
+                                <property name="rm-redundant-libs-full-path" location="./rm-redundant-libs.sh"/>
+                                <exec executable="${rm-redundant-libs-full-path}" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

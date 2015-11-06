@@ -57,6 +57,7 @@
         <module>common</module>
         <module>docker</module>
         <module>plugin-toggle</module>
+        <module>dist</module>
     </modules>
 
     <dependencies>
