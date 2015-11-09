@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.exception.VisalloAccessDeniedException;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -14,6 +16,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -164,7 +167,7 @@ public class WorkspaceHelper {
         }
     }
 
-    private void deleteProperties (Element e, String workspaceId, Priority priority, Authorizations authorizations, User user) {
+    private void deleteProperties(Element e, String workspaceId, Priority priority, Authorizations authorizations, User user) {
         List<Property> properties = IterableUtils.toList(e.getProperties());
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
 
@@ -265,5 +268,18 @@ public class WorkspaceHelper {
                 unresolveTerm(termMention, authorizations);
             }
         }
+    }
+
+    public static String getWorkspaceIdOrNullIfPublish(String workspaceId, boolean shouldPublish, User user) {
+        if (shouldPublish) {
+            if (user.getPrivileges().contains(Privilege.PUBLISH)) {
+                workspaceId = null;
+            } else {
+                throw new VisalloAccessDeniedException("The publish parameter was sent in the request, but the user does not have publish privilege.", user, "publish");
+            }
+        } else if (workspaceId == null) {
+            throw new VisalloException("workspaceId parameter required");
+        }
+        return workspaceId;
     }
 }

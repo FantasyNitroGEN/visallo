@@ -16,6 +16,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
@@ -81,15 +82,7 @@ public class VertexNew implements ParameterizedHandler {
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
-        if (shouldPublish) {
-            if (user.getPrivileges().contains(Privilege.PUBLISH)) {
-                workspaceId = null;
-            } else {
-                throw new VisalloAccessDeniedException("The publish parameter was sent in the request, but the user does not have publish privilege.", user, "publish");
-            }
-        } else if (workspaceId == null) {
-            throw new WebsterException("workspaceId parameter required");
-        }
+        workspaceId = WorkspaceHelper.getWorkspaceIdOrNullIfPublish(workspaceId, shouldPublish, user);
 
         Vertex vertex = graphRepository.addVertex(
                 vertexId,

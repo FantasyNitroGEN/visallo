@@ -6,6 +6,7 @@ import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
 import org.apache.commons.fileupload.FileUploadBase;
 import org.apache.commons.fileupload.ParameterParser;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -19,6 +20,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.FileImport;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -86,6 +88,7 @@ public class VertexImport implements ParameterizedHandler {
 
     @Handle
     public ClientApiArtifactImportResponse handle(
+            @Optional(name = "publish", defaultValue = "false") boolean shouldPublish,
             @ActiveWorkspaceId String workspaceId,
             Authorizations authorizations,
             User user,
@@ -96,6 +99,8 @@ public class VertexImport implements ParameterizedHandler {
         if (!ServletFileUpload.isMultipartContent(request)) {
             throw new BadRequestException("file", "Could not process request without multi-part content");
         }
+
+        workspaceId = WorkspaceHelper.getWorkspaceIdOrNullIfPublish(workspaceId, shouldPublish, user);
 
         this.authorizations = authorizations;
 
