@@ -43,7 +43,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     public static final String ID_PREFIX_PROPERTY = ID_PREFIX + "prop_";
     public static final String ID_PREFIX_RELATIONSHIP = ID_PREFIX + "rel_";
     public static final String ID_PREFIX_CONCEPT = ID_PREFIX + "concept_";
-    public static final String DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME = "order";
     private Graph graph;
     private Authorizations authorizations;
     private Cache<String, List<Concept>> allConceptsWithPropertiesCache = CacheBuilder.newBuilder()
@@ -70,11 +69,109 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
 
+        defineRequiredProperties(graph);
+
         Set<String> authorizationsSet = new HashSet<>();
         authorizationsSet.add(VISIBILITY_STRING);
         this.authorizations = graph.createAuthorizations(authorizationsSet);
 
         loadOntologies(config, authorizations);
+    }
+
+    private void defineRequiredProperties(Graph graph) {
+        if (!graph.isPropertyDefined(VisalloProperties.CONCEPT_TYPE.getPropertyName())) {
+            graph.defineProperty(VisalloProperties.CONCEPT_TYPE.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.EXACT_MATCH)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.ONTOLOGY_TITLE.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.ONTOLOGY_TITLE.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.EXACT_MATCH)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.DISPLAY_NAME.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.DISPLAY_NAME.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.EXACT_MATCH)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.TITLE_FORMULA.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.TITLE_FORMULA.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.SUBTITLE_FORMULA.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.SUBTITLE_FORMULA.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.TIME_FORMULA.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.TIME_FORMULA.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.GLYPH_ICON.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.GLYPH_ICON.getPropertyName())
+                    .dataType(byte[].class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.DATA_TYPE.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.DATA_TYPE.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.EXACT_MATCH)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.USER_VISIBLE.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.USER_VISIBLE.getPropertyName())
+                    .dataType(Boolean.TYPE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.SEARCHABLE.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.SEARCHABLE.getPropertyName())
+                    .dataType(Boolean.TYPE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.SORTABLE.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.SORTABLE.getPropertyName())
+                    .dataType(Boolean.TYPE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.ADDABLE.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.ADDABLE.getPropertyName())
+                    .dataType(Boolean.TYPE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.ONTOLOGY_FILE.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.ONTOLOGY_FILE.getPropertyName())
+                    .dataType(byte[].class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyName())
+                    .dataType(Integer.class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
     }
 
     @Override
@@ -298,8 +395,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         Collections.sort(dependentProperties, new Comparator<Edge>() {
             @Override
             public int compare(Edge e1, Edge e2) {
-                Integer o1 = (Integer) e1.getPropertyValue(VertexiumOntologyRepository.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME);
-                Integer o2 = (Integer) e2.getPropertyValue(VertexiumOntologyRepository.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME);
+                Integer o1 = OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyValue(e1, 0);
+                Integer o2 = OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyValue(e2, 0);
                 return Integer.compare(o1, o2);
             }
         });
@@ -653,9 +750,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         for (String dependentPropertyIri : dependentPropertyIris) {
             String dependentPropertyVertexId = ID_PREFIX_PROPERTY + dependentPropertyIri;
             String edgeId = propertyVertexId + "-dependentProperty-" + i;
-            graph.prepareEdge(edgeId, propertyVertexId, dependentPropertyVertexId, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY, VISIBILITY.getVisibility())
-                    .setProperty(DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME, i, VISIBILITY.getVisibility())
-                    .save(authorizations);
+            EdgeBuilderByVertexId m = graph.prepareEdge(edgeId, propertyVertexId, dependentPropertyVertexId, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY, VISIBILITY.getVisibility());
+            OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.setProperty(m, i, VISIBILITY.getVisibility());
+            m.save(authorizations);
             i++;
         }
     }
