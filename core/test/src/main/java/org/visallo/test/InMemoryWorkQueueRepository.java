@@ -1,15 +1,17 @@
 package org.visallo.test;
 
 import com.google.inject.Inject;
-import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.WorkerTuple;
 import org.visallo.core.model.FlushFlag;
+import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.status.model.QueueStatus;
+import org.visallo.core.status.model.Status;
 
 import java.util.*;
 
@@ -82,6 +84,15 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
                 }
             }
         };
+    }
+
+    @Override
+    public Map<String, Status> getQueuesStatus() {
+        Map<String, Status> results = new HashMap<>();
+        for (Map.Entry<String, List<JSONObject>> queue : queues.entrySet()) {
+            results.put(queue.getKey(), new QueueStatus(queue.getValue().size()));
+        }
+        return results;
     }
 
     public static void clearQueue() {
