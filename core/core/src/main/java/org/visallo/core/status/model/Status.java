@@ -17,7 +17,8 @@ import java.util.Date;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ExternalResourceRunnerStatus.class, name = "externalResourceRunner"),
         @JsonSubTypes.Type(value = GraphPropertyRunnerStatus.class, name = "graphPropertyRunner"),
-        @JsonSubTypes.Type(value = LongRunningProcessRunnerStatus.class, name = "longRunningProcessRunner")
+        @JsonSubTypes.Type(value = LongRunningProcessRunnerStatus.class, name = "longRunningProcessRunner"),
+        @JsonSubTypes.Type(value = QueueStatus.class, name = "queue")
 })
 public abstract class Status implements ClientApiObject {
     private String className;

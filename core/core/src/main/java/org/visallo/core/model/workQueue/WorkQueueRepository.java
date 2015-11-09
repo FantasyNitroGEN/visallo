@@ -14,6 +14,7 @@ import org.visallo.core.model.notification.SystemNotification;
 import org.visallo.core.model.notification.UserNotification;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.status.model.Status;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
@@ -39,6 +40,7 @@ public abstract class WorkQueueRepository {
     }
 
     public void pushGraphPropertyQueue(final Element element, final Property property, Priority priority) {
+        checkNotNull(property, "property cannot be null");
         pushGraphPropertyQueue(element, property.getKey(), property.getName(), priority);
     }
 
@@ -89,6 +91,7 @@ public abstract class WorkQueueRepository {
     }
 
     public void pushGraphPropertyQueue(final Element element, String propertyKey, final String propertyName, Priority priority) {
+        checkNotNull(element, "element cannot be null");
         pushGraphPropertyQueue(element, propertyKey, propertyName, null, null, priority);
     }
 
@@ -709,6 +712,8 @@ public abstract class WorkQueueRepository {
 
         return json;
     }
+
+    public abstract Map<String, Status> getQueuesStatus();
 
     private enum PublishType {
         TO_PUBLIC("toPublic"),

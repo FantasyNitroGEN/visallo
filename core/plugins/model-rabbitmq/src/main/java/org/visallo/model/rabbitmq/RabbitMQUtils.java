@@ -15,7 +15,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RabbitMQUtils {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RabbitMQUtils.class);
-    private static final String RABBITMQ_ADDR_PREFIX = "rabbitmq.addr";
+    public static final String RABBITMQ_ADDR_PREFIX = "rabbitmq.addr";
+    public static final String RABBITMQ_DELIVERY_MODE = "rabbitmq.deliveryMode";
     private static final int DEFAULT_PORT = 5672;
 
     public static Connection openConnection(String[] addresses) throws IOException {
@@ -54,7 +55,7 @@ public class RabbitMQUtils {
         }
     }
 
-    private static Address[] getAddresses(Configuration configuration) {
+    public static Address[] getAddresses(Configuration configuration) {
         List<Address> addresses = new ArrayList<Address>();
         for (String key : configuration.getKeys(RABBITMQ_ADDR_PREFIX)) {
             if (key.endsWith(".host")) {
@@ -70,16 +71,14 @@ public class RabbitMQUtils {
     private static Address[] createAddresses(String[] addresses) {
         List<Address> addressList = Lists.newArrayList();
 
-        for(String address : addresses){
+        for (String address : addresses) {
             String[] addressParts = address.split(":");
 
-            if(addressParts.length == 1){
+            if (addressParts.length == 1) {
                 addressList.add(new Address(address));
-            }
-            else if(addressParts.length == 2){
+            } else if (addressParts.length == 2) {
                 addressList.add(new Address(addressParts[0], Integer.parseInt(addressParts[1])));
-            }
-            else{
+            } else {
                 throw new IllegalArgumentException(String.format("malformed rabbitmq address: %s", address));
             }
         }

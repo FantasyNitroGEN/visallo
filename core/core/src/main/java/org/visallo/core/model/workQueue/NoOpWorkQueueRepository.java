@@ -1,13 +1,17 @@
 package org.visallo.core.model.workQueue;
 
 import com.google.inject.Inject;
-import org.visallo.core.model.WorkQueueNames;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.model.FlushFlag;
+import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.status.model.Status;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class NoOpWorkQueueRepository extends WorkQueueRepository {
     @Inject
@@ -43,5 +47,10 @@ public class NoOpWorkQueueRepository extends WorkQueueRepository {
     @Override
     public WorkerSpout createWorkerSpout(String queueName) {
         throw new VisalloException("Not supported");
+    }
+
+    @Override
+    public Map<String, Status> getQueuesStatus() {
+        return new HashMap<>();
     }
 }

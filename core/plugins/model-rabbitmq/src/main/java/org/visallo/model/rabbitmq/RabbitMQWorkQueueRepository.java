@@ -1,10 +1,10 @@
 package org.visallo.model.rabbitmq;
 
 import com.google.inject.Inject;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.*;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -17,10 +17,15 @@ import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.status.model.QueueStatus;
+import org.visallo.core.status.model.Status;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 
 public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
@@ -29,15 +34,23 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
 
     private final Connection connection;
     private final Channel channel;
+    private final Integer deliveryMode;
+    private final Address[] rabbitMqAddresses;
     private Set<String> declaredQueues = new HashSet<>();
 
     @Inject
-    public RabbitMQWorkQueueRepository(Graph graph, WorkQueueNames workQueueNames, Configuration configuration)
+    public RabbitMQWorkQueueRepository(
+            Graph graph,
+            WorkQueueNames workQueueNames,
+            Configuration configuration
+    )
             throws IOException {
         super(graph, workQueueNames, configuration);
         this.connection = RabbitMQUtils.openConnection(configuration);
         this.channel = RabbitMQUtils.openChannel(this.connection);
         this.channel.exchangeDeclare(getExchangeName(), "fanout");
+        this.deliveryMode = configuration.getInt(RabbitMQUtils.RABBITMQ_DELIVERY_MODE, MessageProperties.PERSISTENT_BASIC.getDeliveryMode());
+        this.rabbitMqAddresses = RabbitMQUtils.getAddresses(configuration);
     }
 
     @Override
@@ -57,6 +70,9 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
             json.put("priority", priority.name());
             LOGGER.debug("enqueuing message to queue [%s]: %s", queueName, json.toString());
             AMQP.BasicProperties.Builder propsBuilder = new AMQP.BasicProperties.Builder();
+            if (deliveryMode != null) {
+                propsBuilder.deliveryMode(deliveryMode);
+            }
             propsBuilder.priority(toRabbitMQPriority(priority));
             channel.basicPublish("", queueName, propsBuilder.build(), json.toString().getBytes());
         } catch (Exception ex) {
@@ -108,6 +124,29 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
             this.connection.close();
         } catch (Throwable e) {
             LOGGER.error("Could not close RabbitMQ connection", e);
+        }
+    }
+
+    @Override
+    public Map<String, Status> getQueuesStatus() {
+        try {
+            Map<String, Status> results = new HashMap<>();
+            URL url = new URL(String.format("http://%s:15672/api/queues", rabbitMqAddresses[0].getHost()));
+            URLConnection conn = url.openConnection();
+            String basicAuth = Base64.encodeBase64String("guest:guest".getBytes());
+            conn.setRequestProperty("Authorization", "Basic " + basicAuth);
+            try (InputStream in = conn.getInputStream()) {
+                JSONArray queuesJson = new JSONArray(IOUtils.toString(in));
+                for (int i = 0; i < queuesJson.length(); i++) {
+                    JSONObject queueJson = queuesJson.getJSONObject(i);
+                    String name = queueJson.getString("name");
+                    int messages = queueJson.getInt("messages");
+                    results.put(name, new QueueStatus(messages));
+                }
+            }
+            return results;
+        } catch (Exception e) {
+            throw new VisalloException("Could not connect to RabbitMQ", e);
         }
     }
 
@@ -175,7 +214,7 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
         return InjectHelper.inject(new RabbitMQWorkQueueSpout(queueName));
     }
 
-    private String getExchangeName(){
+    private String getExchangeName() {
         return this.configuration.get(Configuration.BROADCAST_EXCHANGE_NAME_CONFIGURATION, DEFAULT_BROADCAST_EXCHANGE_NAME);
     }
 }
