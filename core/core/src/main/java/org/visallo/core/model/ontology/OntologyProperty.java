@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.type.GeoCircle;
+import org.vertexium.type.GeoHash;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.types.*;
@@ -151,10 +152,15 @@ public abstract class OntologyProperty {
 
     public static Object convert(JSONArray values, PropertyType propertyDataType, int index) throws ParseException {
         switch (propertyDataType) {
-            case DATE:
+            case DATE: {
                 String valueStr = values.getString(index);
                 return parseDateTime(valueStr);
+            }
             case GEO_LOCATION:
+                if (values.get(index) instanceof String) {
+                    String valueStr = values.getString(index);
+                    return new GeoHash(valueStr);
+                }
                 return new GeoCircle(
                         values.getDouble(index),
                         values.getDouble(index + 1),
