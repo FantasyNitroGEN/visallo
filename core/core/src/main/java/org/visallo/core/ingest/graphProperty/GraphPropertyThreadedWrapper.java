@@ -3,6 +3,7 @@ package org.visallo.core.ingest.graphProperty;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.inject.Inject;
+import org.vertexium.Element;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.PausableTimerContext;
 import org.visallo.core.status.PausableTimerContextAware;
@@ -11,7 +12,6 @@ import org.visallo.core.status.model.GraphPropertyRunnerStatus;
 import org.visallo.core.status.model.Status;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.vertexium.Element;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,10 +62,13 @@ public class GraphPropertyThreadedWrapper implements Runnable {
                         ((PausableTimerContextAware) in).setPausableTimerContext(timerContext);
                     }
                     processingCounter.inc();
+                    long startTime = System.currentTimeMillis();
                     try {
                         this.worker.execute(in, work.getData());
                     } finally {
-                        LOGGER.debug("END doWork (%s): %s", workerClassName, elementId);
+                        long endTime = System.currentTimeMillis();
+                        long time = endTime - startTime;
+                        LOGGER.debug("END doWork (%s): %s (%dms)", workerClassName, elementId, time);
                         processingCounter.dec();
                         totalProcessedCounter.inc();
                         timerContext.stop();
