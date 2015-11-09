@@ -63,6 +63,7 @@ public class Configuration {
     public static final String DEFAULT_PRIVILEGES = "newuser.privileges";
     public static final String WEB_CONFIGURATION_PREFIX = "web.ui.";
     public static final String WEB_GEOCODER_ENABLED = WEB_CONFIGURATION_PREFIX + "geocoder.enabled";
+    public static final String MAPZEN_TILE_API_KEY = "mapzen.tile.api.key";
     public static final String DEV_MODE = "devMode";
     public static final String DEFAULT_SEARCH_RESULT_COUNT = "search.defaultSearchCount";
     public static final String LOCK_REPOSITORY_PATH_PREFIX = "lockRepository.pathPrefix";
