@@ -40,9 +40,9 @@ public abstract class WorkspaceRepository {
     public static final String TO_ENTITY_ID_SEPARATOR = "_TO_ENTITY_";
     public static final String VISIBILITY_STRING = "workspace";
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
-    public static final String WORKSPACE_CONCEPT_IRI = "http://visallo.org/workspace#workspace";
-    public static final String WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace#toEntity";
-    public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = "http://visallo.org/workspace#toUser";
+    public static final String WORKSPACE_CONCEPT_IRI = WorkspaceProperties.WORKSPACE_CONCEPT_IRI;
+    public static final String WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI = WorkspaceProperties.WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI;
+    public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = WorkspaceProperties.WORKSPACE_TO_USER_RELATIONSHIP_IRI;
     public static final String WORKSPACE_ID_PREFIX = "WORKSPACE_";
     public static final String OWL_IRI = "http://visallo.org/workspace";
     private String entityHasImageIri;

@@ -107,6 +107,17 @@
     
 
 
+    <!-- http://visallo.org#displayName -->
+
+    <owl:AnnotationProperty rdf:about="http://visallo.org#displayName">
+        <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:AnnotationProperty>
+    
+
+
     <!-- http://visallo.org#displayType -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#displayType">

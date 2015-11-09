@@ -116,6 +116,7 @@ public class Router extends HttpServlet {
             app.post("/search/save", authenticator, csrfProtector, SearchSave.class);
             app.get("/search/all", authenticator, csrfProtector, SearchList.class);
             app.get("/search/run", authenticator, csrfProtector, SearchRun.class);
+            app.post("/search/run", authenticator, csrfProtector, SearchRun.class);
             app.delete("/search", authenticator, csrfProtector, SearchDelete.class);
 
             app.get("/element/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, ElementSearch.class);
