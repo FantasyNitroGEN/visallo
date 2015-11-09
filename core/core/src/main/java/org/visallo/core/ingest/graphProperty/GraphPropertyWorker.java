@@ -63,9 +63,9 @@ public abstract class GraphPropertyWorker {
         getWorkQueueRepository().pushTextUpdated(data.getElement().getId(), data.getPriority());
     }
 
-    public abstract void execute(InputStream in, GraphPropertyWorkData data) throws Exception;
-
     public abstract boolean isHandled(Element element, Property property);
+
+    public abstract void execute(InputStream in, GraphPropertyWorkData data) throws Exception;
 
     public boolean isLocalFileRequired() {
         return false;
@@ -165,6 +165,26 @@ public abstract class GraphPropertyWorker {
 
         String mimeType = (String) property.getMetadata().getValue(VisalloProperties.MIME_TYPE.getPropertyName());
         return !(mimeType == null || !mimeType.startsWith("text"));
+    }
+
+    protected static boolean isVertex(Element element) {
+        if (!(element instanceof Vertex)) {
+            return false;
+        }
+        return true;
+    }
+
+    protected static boolean isConceptType(Element element, String conceptType) {
+        String elementConceptType = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element);
+        if (elementConceptType == null) {
+            return false;
+        }
+
+        if (!elementConceptType.equals(conceptType)) {
+            return false;
+        }
+
+        return true;
     }
 
     protected void addVideoTranscriptAsTextPropertiesToMutation(ExistingElementMutation<Vertex> mutation, String propertyKey, VideoTranscript videoTranscript, Metadata metadata, Visibility visibility) {
