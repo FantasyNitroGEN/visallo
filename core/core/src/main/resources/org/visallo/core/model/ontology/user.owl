@@ -165,7 +165,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/user#status">
         <visallo:userVisible>false</visallo:userVisible>
-        <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
         <rdfs:domain rdf:resource="http://visallo.org/user#user"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>

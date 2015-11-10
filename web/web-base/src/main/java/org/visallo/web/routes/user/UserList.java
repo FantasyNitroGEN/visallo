@@ -13,6 +13,7 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.WorkspaceUser;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiUsers;
+import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +41,10 @@ public class UserList implements ParameterizedHandler {
             User user,
             @Optional(name = "q") String query,
             @Optional(name = "workspaceId") String workspaceId,
-            @Optional(name = "userIds[]") String[] userIds
+            @Optional(name = "userIds[]") String[] userIds,
+            @Optional(name = "status") String status,
+            @Optional(name = "skip", defaultValue = "0") int skip,
+            @Optional(name = "limit", defaultValue = "100") int limit
     ) throws Exception {
         List<User> users;
         if (userIds != null) {
@@ -54,6 +58,8 @@ public class UserList implements ParameterizedHandler {
                 }
                 users.add(u);
             }
+        } else if (status != null && status.length() > 0) {
+            users = toList(userRepository.findByStatus(skip, limit, UserStatus.valueOf(status)));
         } else {
             users = toList(userRepository.find(query));
 
@@ -65,8 +71,7 @@ public class UserList implements ParameterizedHandler {
         Iterable<String> workspaceIds = getCurrentWorkspaceIds(users);
         Map<String, String> workspaceNames = getWorkspaceNames(workspaceIds, user);
 
-        ClientApiUsers clientApiUsers = userRepository.toClientApi(users, workspaceNames);
-        return clientApiUsers;
+        return userRepository.toClientApi(users, workspaceNames);
     }
 
     private Map<String, String> getWorkspaceNames(Iterable<String> workspaceIds, User user) {
