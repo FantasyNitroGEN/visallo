@@ -336,13 +336,13 @@ public abstract class WorkQueueRepository {
     }
 
     public void pushVertexDeletion(Vertex vertex) {
-        broadcastVertexDeletion(vertex);
+        pushVertexDeletion(vertex.getId());
     }
 
-    protected void broadcastVertexDeletion(Vertex vertex) {
-        JSONArray vertexIds = new JSONArray();
-        vertexIds.put(vertex.getId());
-        broadcastVerticesDeletion(vertexIds);
+    public void pushVertexDeletion(String vertexId) {
+        JSONArray verticesDeleted = new JSONArray();
+        verticesDeleted.put(vertexId);
+        broadcastVerticesDeletion(verticesDeleted);
     }
 
     public void pushVerticesDeletion(JSONArray verticesDeleted) {
