@@ -1,7 +1,6 @@
 package org.visallo.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.resultWriters.ResultWriter;
 import com.v5analytics.webster.resultWriters.ResultWriterBase;
 import com.v5analytics.webster.resultWriters.ResultWriterFactory;
@@ -11,8 +10,8 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
@@ -39,14 +38,13 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
             }
 
             @Override
-            public void write(Object result, HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
+            protected void writeResult(HttpServletResponse response, Object result) throws IOException {
                 if (result != null) {
                     response.setCharacterEncoding("UTF-8");
                     if (resultIsClientApiObject) {
                         try {
                             String jsonObject = ObjectMapperFactory.getInstance().writeValueAsString(result);
                             response.getWriter().write(jsonObject);
-                            return;
                         } catch (JsonProcessingException e) {
                             throw new VisalloException("Could not write json", e);
                         }
@@ -56,9 +54,10 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                         } finally {
                             response.flushBuffer();
                         }
+                    } else {
+                        super.writeResult(response, result);
                     }
                 }
-                super.write(result, request, response, chain);
             }
         };
     }
