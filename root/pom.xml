@@ -72,8 +72,8 @@
         <log4j.version>1.2.17</log4j.version>
         <lucene.version>4.7.0</lucene.version>
         <metrics.version>3.0.2</metrics.version>
-        <vertexium.version>2.2.1</vertexium.version>
-        <simple-orm.version>1.0.1</simple-orm.version>
+        <vertexium.version>2.2.2</vertexium.version>
+        <simple-orm.version>1.0.2</simple-orm.version>
         <groovy.version>2.4.3</groovy.version>
         <zip4j.version>1.3.1</zip4j.version>
         <zookeeper.version>3.4.6</zookeeper.version>
@@ -84,7 +84,7 @@
         <xerces.version>2.9.1</xerces.version>
         <xalan.version>2.7.1</xalan.version>
         <owlapi.version>4.0.2</owlapi.version>
-        <webster.version>2.1.1</webster.version>
+        <webster.version>2.1.2</webster.version>
         <drewnoakes.version>2.8.1</drewnoakes.version>
         <jai-imageio.version>1.2.1</jai-imageio.version>
         <spark.version>1.5.1</spark.version>
