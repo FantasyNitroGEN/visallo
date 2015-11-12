@@ -124,7 +124,7 @@ public class FileImportTest {
         file.setVisibilitySource("");
         files.add(file);
         Priority priority = Priority.NORMAL;
-        List<Vertex> results = fileImport.importVertices(workspace, files, priority, user, authorizations);
+        List<Vertex> results = fileImport.importVertices(workspace, files, priority, false, user, authorizations);
         assertEquals(1, results.size());
 
         Vertex v1 = graph.getVertex(results.get(0).getId(), authorizations);

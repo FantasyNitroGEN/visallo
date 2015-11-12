@@ -263,6 +263,7 @@ public abstract class WorkspaceRepository {
 
                     ClientApiWorkspace.Vertex v = new ClientApiWorkspace.Vertex();
                     v.setVertexId(workspaceEntity.getEntityVertexId());
+                    v.setVisible(workspaceEntity.isVisible());
 
                     Integer graphPositionX = workspaceEntity.getGraphPositionX();
                     Integer graphPositionY = workspaceEntity.getGraphPositionY();
@@ -277,7 +278,7 @@ public abstract class WorkspaceRepository {
                         if (graphLayoutJson != null) {
                             v.setGraphLayoutJson(graphLayoutJson);
                         } else {
-                            v.setGraphLayoutJson(null);
+                            v.setGraphLayoutJson("{}");
                         }
                     }
 

@@ -90,7 +90,7 @@ public class FileImport {
 
                 LOGGER.debug("Importing file (%d/%d): %s", fileCount + 1, totalFileCount, f.getAbsolutePath());
                 try {
-                    importFile(f, queueDuplicates, conceptTypeIRI, null, visibilitySource, workspace, priority, user, authorizations);
+                    importFile(f, queueDuplicates, conceptTypeIRI, null, visibilitySource, workspace, false, priority, user, authorizations);
                     importedFileCount++;
                 } catch (Exception ex) {
                     LOGGER.error("Could not import %s", f.getAbsolutePath(), ex);
@@ -113,11 +113,30 @@ public class FileImport {
         return false;
     }
 
-    public Vertex importFile(File f, boolean queueDuplicates, String visibilitySource, Workspace workspace, Priority priority, User user, Authorizations authorizations) throws Exception {
-        return importFile(f, queueDuplicates, null, null, visibilitySource, workspace, priority, user, authorizations);
+    public Vertex importFile(
+            File f,
+            boolean queueDuplicates,
+            String visibilitySource,
+            Workspace workspace,
+            Priority priority,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
+        return importFile(f, queueDuplicates, null, null, visibilitySource, workspace, false, priority, user, authorizations);
     }
 
-    public Vertex importFile(File f, boolean queueDuplicates, String conceptId, ClientApiImportProperty[] properties, String visibilitySource, Workspace workspace, Priority priority, User user, Authorizations authorizations) throws Exception {
+    public Vertex importFile(
+            File f,
+            boolean queueDuplicates,
+            String conceptId,
+            ClientApiImportProperty[] properties,
+            String visibilitySource,
+            Workspace workspace,
+            boolean addToWorkspace,
+            Priority priority,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
         ensureInitialized();
 
         String hash = calculateFileHash(f);
@@ -128,8 +147,9 @@ public class FileImport {
             if (queueDuplicates) {
                 LOGGER.debug("pushing %s on to %s queue", vertex.getId(), workQueueNames.getGraphPropertyQueueName());
                 if (workspace != null) {
-                    this.workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
-                    this.workQueueRepository.pushGraphPropertyQueue(
+                    workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), addToWorkspace ? true : null, null, user);
+                    workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
+                    workQueueRepository.pushGraphPropertyQueue(
                             vertex,
                             MULTI_VALUE_KEY,
                             VisalloProperties.RAW.getPropertyName(),
@@ -138,7 +158,7 @@ public class FileImport {
                             priority
                     );
                 } else {
-                    this.workQueueRepository.pushGraphPropertyQueue(vertex, MULTI_VALUE_KEY, VisalloProperties.RAW.getPropertyName(), priority);
+                    workQueueRepository.pushGraphPropertyQueue(vertex, MULTI_VALUE_KEY, VisalloProperties.RAW.getPropertyName(), priority);
                 }
             }
             return vertex;
@@ -202,7 +222,7 @@ public class FileImport {
 
             String workspaceId = null;
             if (workspace != null) {
-                workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), null, null, user);
+                workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), addToWorkspace ? true : null, null, user);
                 workspaceId = workspace.getWorkspaceId();
             }
 
@@ -242,7 +262,14 @@ public class FileImport {
         }
     }
 
-    public List<Vertex> importVertices(Workspace workspace, List<FileOptions> files, Priority priority, User user, Authorizations authorizations) throws Exception {
+    public List<Vertex> importVertices(
+            Workspace workspace,
+            List<FileOptions> files,
+            Priority priority,
+            boolean addToWorkspace,
+            User user,
+            Authorizations authorizations
+    ) throws Exception {
         ensureInitialized();
 
         List<Vertex> vertices = new ArrayList<>();
@@ -252,7 +279,19 @@ public class FileImport {
                 continue;
             }
             LOGGER.debug("Processing file: %s", file.getFile().getAbsolutePath());
-            vertices.add(importFile(file.getFile(), true, file.getConceptId(), file.getProperties(), file.getVisibilitySource(), workspace, priority, user, authorizations));
+            Vertex vertex = importFile(
+                    file.getFile(),
+                    true,
+                    file.getConceptId(),
+                    file.getProperties(),
+                    file.getVisibilitySource(),
+                    workspace,
+                    addToWorkspace,
+                    priority,
+                    user,
+                    authorizations
+            );
+            vertices.add(vertex);
         }
         return vertices;
     }

@@ -110,6 +110,7 @@ public class ClientApiWorkspace implements ClientApiObject {
         private String vertexId;
         private GraphPosition graphPosition = new GraphPosition();
         private String graphLayoutJson;
+        private boolean visible;
 
         public String getVertexId() {
             return vertexId;
@@ -125,6 +126,14 @@ public class ClientApiWorkspace implements ClientApiObject {
 
         public void setGraphPosition(GraphPosition graphPosition) {
             this.graphPosition = graphPosition;
+        }
+
+        public boolean isVisible() {
+            return visible;
+        }
+
+        public void setVisible(boolean visible) {
+            this.visible = visible;
         }
 
         public String getGraphLayoutJson() {
