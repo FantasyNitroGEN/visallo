@@ -198,6 +198,7 @@ public class FileImport {
             VisalloProperties.CONTENT_HASH.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, hash, propertyMetadata, visibility);
             VisalloProperties.FILE_NAME.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, f.getName(), propertyMetadata, visibility);
             VisalloProperties.MODIFIED_DATE.updateProperty(changedProperties, null, vertexBuilder, new Date(f.lastModified()), propertyMetadata, visibility);
+            VisalloProperties.MODIFIED_BY.updateProperty(changedProperties, null, vertexBuilder, user.getUserId(), propertyMetadata, visibility);
             if (conceptId != null) {
                 VisalloProperties.CONCEPT_TYPE.updateProperty(changedProperties, null, vertexBuilder, conceptId, propertyMetadata, visibility);
             }
