@@ -230,6 +230,7 @@ public class TermMentionBuilder {
 
     private String createVertexId() {
         return TERM_MENTION_VERTEX_ID_PREFIX
+                + this.outVertex.getId()
                 + "-"
                 + this.propertyKey
                 + "-"
