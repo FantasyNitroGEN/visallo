@@ -1,19 +1,23 @@
 package org.visallo.ldap;
 
-import com.unboundid.ldap.sdk.extensions.StartTLSExtendedRequest;
-import org.visallo.core.exception.VisalloException;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Singleton;
 import com.unboundid.ldap.sdk.*;
+import com.unboundid.ldap.sdk.extensions.StartTLSExtendedRequest;
 import com.unboundid.util.ssl.SSLUtil;
 import com.unboundid.util.ssl.TrustStoreTrustManager;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.commons.lang.text.StrSubstitutor;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLSocketFactory;
+import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -99,10 +103,22 @@ public class LdapSearchServiceImpl implements LdapSearchService {
     }
 
     @Override
+    public SearchResult searchGroups(Map<String, String> attributes) {
+        return search(attributes, ldapSearchConfiguration.getGroupSearchFilter(),
+                ldapSearchConfiguration.getGroupSearchBase(), ldapSearchConfiguration.getGroupSearchScope());
+    }
+
+    @Override
+    public SearchResult searchPeople(Map<String, String> attributes) {
+        return search(attributes, ldapSearchConfiguration.getUserSearchFilter(),
+                ldapSearchConfiguration.getUserSearchBase(), ldapSearchConfiguration.getUserSearchScope());
+    }
+
+    @Override
     public SearchResultEntry searchPeople(X509Certificate certificate) {
         Filter filter = buildPeopleSearchFilter(certificate);
 
-        List<String> attributeNames = new ArrayList<String>(ldapSearchConfiguration.getUserAttributes());
+        List<String> attributeNames = new ArrayList<>(ldapSearchConfiguration.getUserAttributes());
         if (certificate != null) {
             attributeNames.add(ldapSearchConfiguration.getUserCertificateAttribute());
         }
@@ -138,7 +154,7 @@ public class LdapSearchServiceImpl implements LdapSearchService {
 
     @Override
     public Set<String> searchGroups(SearchResultEntry personEntry) {
-        Map<String, String> subs = new HashMap<String, String>();
+        Map<String, String> subs = new HashMap<>();
         subs.put("dn", personEntry.getDN());
         for (Attribute attr : personEntry.getAttributes()) {
             subs.put(attr.getName(), attr.getValue());
@@ -155,7 +171,7 @@ public class LdapSearchServiceImpl implements LdapSearchService {
                     ldapSearchConfiguration.getGroupNameAttribute()
             );
 
-            Set<String> groupNames = new HashSet<String>();
+            Set<String> groupNames = new HashSet<>();
             for (SearchResultEntry entry : results.getSearchEntries()) {
                 if (entry.hasAttribute(ldapSearchConfiguration.getGroupNameAttribute())) {
                     groupNames.add(entry.getAttributeValue(ldapSearchConfiguration.getGroupNameAttribute()));
@@ -170,11 +186,23 @@ public class LdapSearchServiceImpl implements LdapSearchService {
         }
     }
 
+    @Override
+    public LdapSearchConfiguration getConfiguration() {
+        try {
+            LdapSearchConfiguration configCopy = (LdapSearchConfiguration) BeanUtils.cloneBean(ldapSearchConfiguration);
+            configCopy.setUserAttributes(
+                    String.join(",", ImmutableList.copyOf(ldapSearchConfiguration.getUserAttributes())));
+            return configCopy;
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
     private Filter buildPeopleSearchFilter(X509Certificate certificate) {
         String certSubjectName = certificate.getSubjectX500Principal().getName();
         try {
             LdapName ldapDN = new LdapName(certSubjectName);
-            Map<String, Object> subs = new HashMap<String, Object>();
+            Map<String, Object> subs = new HashMap<>();
             for (Rdn rdn : ldapDN.getRdns()) {
                 subs.put(rdn.getType().toLowerCase(), rdn.getValue());
             }
@@ -189,7 +217,7 @@ public class LdapSearchServiceImpl implements LdapSearchService {
     }
 
     private SearchResultEntry getMatchingSearchResultEntry(X509Certificate certificate, Filter filter, SearchResult results) {
-        byte[] encodedCert = new byte[0];
+        byte[] encodedCert;
         try {
             encodedCert = certificate.getEncoded();
         } catch (CertificateEncodingException e) {
@@ -206,5 +234,20 @@ public class LdapSearchServiceImpl implements LdapSearchService {
         }
 
         throw new VisalloException("no results with matching certificate for LDAP search: " + filter);
+    }
+
+    private SearchResult search(Map<String, String> attributes, String searchFilter, String searchBase,
+                                SearchScope searchScope) {
+        try {
+            StrSubstitutor sub = new StrSubstitutor(attributes);
+            String filterStr = sub.replace(searchFilter);
+            Filter filter = Filter.create(filterStr);
+            return pool.search(searchBase, searchScope, filter);
+        } catch (LDAPException e) {
+            if (e.getResultCode() == ResultCode.NO_SUCH_OBJECT) {
+                throw new VisalloException("no results for LDAP search: " + attributes, e);
+            }
+            throw new VisalloException("search failed", e);
+        }
     }
 }

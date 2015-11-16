@@ -1,5 +1,8 @@
 package org.visallo.ldap;
 
+import com.google.common.collect.ImmutableMap;
+import com.unboundid.ldap.sdk.SearchResult;
+import org.junit.Before;
 import org.visallo.core.exception.VisalloException;
 import com.unboundid.ldap.listener.InMemoryDirectoryServer;
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
@@ -30,11 +33,18 @@ public class LdapSearchServiceTest {
     private static final String BIND_DN = "cn=root,dc=test,dc=visallo,dc=org";
     private static final String BIND_PASSWORD = "visallo";
     private static InMemoryDirectoryServer ldapServer;
+    private LdapSearchService service;
 
     @BeforeClass
     public static void setUp() throws Exception {
         ldapServer = configureInMemoryDirectoryServer();
         ldapServer.startListening();
+
+    }
+
+    @Before
+    public void before() throws Exception {
+        service = new LdapSearchServiceImpl(getServerConfig(ldapServer), getSearchConfig());
     }
 
     public static InMemoryDirectoryServer configureInMemoryDirectoryServer() throws Exception {
@@ -75,8 +85,7 @@ public class LdapSearchServiceTest {
     }
 
     @Test
-    public void searchForAliceWithMatchingCert() throws Exception {
-        LdapSearchService service = new LdapSearchServiceImpl(getServerConfig(ldapServer), getSearchConfig());
+    public void searchForAliceWithCert() throws Exception {
         SearchResultEntry result = service.searchPeople(getPersonCertificate("alice"));
 
         assertNotNull(result);
@@ -96,8 +105,7 @@ public class LdapSearchServiceTest {
     }
 
     @Test
-    public void searchForBob() throws Exception {
-        LdapSearchService service = new LdapSearchServiceImpl(getServerConfig(ldapServer), getSearchConfig());
+    public void searchForBobWithCert() throws Exception {
         SearchResultEntry result = service.searchPeople(getPersonCertificate("bob"));
 
         assertNotNull(result);
@@ -114,10 +122,39 @@ public class LdapSearchServiceTest {
         System.out.println(result.toLDIFString());
     }
 
+    @Test
+    public void searchForBobWithAttributes() {
+        SearchResult result = service.searchPeople(ImmutableMap.of("cn", "Bob Maluga"));
+        assertEquals(1, result.getEntryCount());
+        SearchResultEntry entry = result.getSearchEntries().get(0);
+        assertEquals("Bob Maluga", entry.getAttribute("cn").getValue());
+    }
+
     @Test(expected = VisalloException.class)
-    public void searchForNonExistentPerson() throws Exception {
-        LdapSearchService service = new LdapSearchServiceImpl(getServerConfig(ldapServer), getSearchConfig());
+    public void searchForNonExistentPersonWithCert() throws Exception {
         service.searchPeople(getPersonCertificate("diane"));
+    }
+
+    @Test
+    public void searchForNonExistentPersonWithAttributes() {
+        SearchResult result = service.searchPeople(ImmutableMap.of("cn", "Bob Marley"));
+        assertEquals(0, result.getEntryCount());
+    }
+
+    @Test
+    public void searchForAdminsGroupWithAttributes() throws Exception {
+        service = new LdapSearchServiceImpl(getServerConfig(ldapServer), getSearchConfigForGroups());
+        SearchResult result = service.searchGroups(ImmutableMap.of("cn", "admins"));
+        assertEquals(1, result.getEntryCount());
+        SearchResultEntry entry = result.getSearchEntries().get(0);
+        assertEquals("admins", entry.getAttribute("cn").getValue());
+    }
+
+    @Test
+    public void searchForNonExistentGroupWithAttributes() throws Exception {
+        service = new LdapSearchServiceImpl(getServerConfig(ldapServer), getSearchConfigForGroups());
+        SearchResult result = service.searchGroups(ImmutableMap.of("cn", "developers"));
+        assertEquals(0, result.getEntryCount());
     }
 
     private static String classpathResource(String name) {
@@ -151,6 +188,12 @@ public class LdapSearchServiceTest {
         searchConfig.setGroupSearchFilter("(uniqueMember=${dn})");
         searchConfig.setGroupSearchScope("sub");
         return searchConfig;
+    }
+
+    public static LdapSearchConfiguration getSearchConfigForGroups() {
+        LdapSearchConfiguration config = getSearchConfig();
+        config.setGroupSearchFilter("(cn=${cn})");
+        return config;
     }
 
     public static X509Certificate getPersonCertificate(String personName) throws IOException, LDIFException, CertificateException {
