@@ -127,7 +127,7 @@
                                       tofile="${project.build.directory}/dist/config/log4j.xml.EXAMPLE"/>
                                 <chmod file="${project.build.directory}/dist/bin/*.sh" perm="ugo+x"/>
                                 <property name="rm-redundant-libs-full-path" location="./rm-redundant-libs.sh"/>
-                                <exec executable="${rm-redundant-libs-full-path}" />
+                                <exec osfamily="unix" executable="${rm-redundant-libs-full-path}" />
                             </tasks>
                         </configuration>
                         <goals>

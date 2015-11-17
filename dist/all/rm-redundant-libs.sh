@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Removing redundant libraries"
+
 DIR=$(cd $(dirname "$0") && pwd)
 cd ${DIR}/target/dist/lib
 
