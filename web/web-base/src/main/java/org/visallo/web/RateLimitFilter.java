@@ -21,6 +21,7 @@ public class RateLimitFilter implements RequestResponseHandler {
         RateLimiter rateLimiter = getRateLimiterForUri(url);
         if (rateLimiter.tryAcquire(1, TimeUnit.SECONDS)) {
             chain.next(request, response);
+            return;
         }
         response.sendError(TOO_MANY_REQUESTS, "Rate limit reached");
     }
