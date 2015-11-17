@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
@@ -44,6 +45,7 @@ public class SaveOntologyProperty implements ParameterizedHandler {
             @Required(name = "dependentPropertyIris[]") String[] dependentPropertyIrisArg,
             @Required(name = "intents[]") String[] intents,
             @Optional(name = "concepts[]") String[] conceptIris,
+            @Optional(name = "domains[]") String[] domains,
             @Optional(name = "searchable", defaultValue = "true") boolean searchable,
             @Optional(name = "textIndexHints") String textIndexHints,
             @Optional(name = "addable", defaultValue = "true") boolean addable,
@@ -116,6 +118,8 @@ public class SaveOntologyProperty implements ParameterizedHandler {
         property.setProperty(OntologyProperties.VALIDATION_FORMULA.getPropertyName(), validationFormula, authorizations);
 
         property.updateIntents(StringArrayUtil.removeNullOrEmptyElements(intents), authorizations);
+
+        ontologyRepository.updatePropertyDomainIris(property, Sets.newHashSet(domains));
 
         ontologyRepository.clearCache();
 

@@ -175,6 +175,21 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
+        for (Concept concept : getConceptsWithProperties()) {
+            if (concept.getProperties().contains(property)) {
+                if (!domainIris.remove(concept.getIRI())) {
+                    concept.getProperties().remove(property);
+                }
+            }
+        }
+
+        for (String domainIri : domainIris) {
+            getConceptByIRI(domainIri).getProperties().add(property);
+        }
+    }
+
+    @Override
     protected void getOrCreateInverseOfRelationship(Relationship fromRelationship, Relationship inverseOfRelationship) {
         InMemoryRelationship fromRelationshipMem = (InMemoryRelationship) fromRelationship;
         InMemoryRelationship inverseOfRelationshipMem = (InMemoryRelationship) inverseOfRelationship;

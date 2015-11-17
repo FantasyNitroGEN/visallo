@@ -129,4 +129,6 @@ public interface OntologyRepository {
     void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes);
 
     void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris);
+
+    void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris);
 }

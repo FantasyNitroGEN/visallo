@@ -765,6 +765,27 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         vertexiumProperty.setDependentProperties(newDependentPropertyIris);
     }
 
+    @Override
+    public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
+        VertexiumOntologyProperty vertexiumProperty = (VertexiumOntologyProperty) property;
+
+        Iterable<EdgeVertexPair> existingConcepts = vertexiumProperty.getVertex().getEdgeVertexPairs(Direction.BOTH, LabelName.HAS_PROPERTY.toString(), getAuthorizations());
+        for (EdgeVertexPair existingConcept : existingConcepts) {
+            String conceptIri = OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(existingConcept.getVertex());
+            if (!domainIris.remove(conceptIri)) {
+                getGraph().softDeleteEdge(existingConcept.getEdge(), getAuthorizations());
+            }
+        }
+
+        for (String domainIri : domainIris) {
+            Concept concept = getConceptByIRI(domainIri);
+            if (concept == null) {
+                throw new VisalloException("Could not find domain with IRI " + domainIri);
+            }
+            findOrAddEdge(((VertexiumConcept) concept).getVertex(), ((VertexiumOntologyProperty) property).getVertex(), LabelName.HAS_PROPERTY.toString());
+        }
+    }
+
     private Vertex getParentConceptVertex(Vertex conceptVertex) {
         try {
             return Iterables.getOnlyElement(conceptVertex.getVertices(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations()), null);

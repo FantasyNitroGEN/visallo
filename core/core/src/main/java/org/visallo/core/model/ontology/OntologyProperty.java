@@ -253,4 +253,24 @@ public abstract class OntologyProperty {
                 throw new VisalloException("Could not get " + VisalloProperty.class.getName() + " for data type " + getDataType());
         }
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getName() + "{iri:" + getIri() + "}";
+    }
+
+    @Override
+    public int hashCode() {
+        return getIri().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof OntologyProperty)) {
+            return false;
+        }
+
+        String otherIri = ((OntologyProperty) obj).getIri();
+        return getIri().equals(otherIri);
+    }
 }

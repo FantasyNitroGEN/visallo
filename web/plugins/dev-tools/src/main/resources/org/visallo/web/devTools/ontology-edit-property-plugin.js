@@ -35,11 +35,13 @@ define([
             Promise.all([
                 Promise.require('fields/selection/selection'),
                 Promise.require('util/messages'),
-                this.dataRequest('ontology', 'properties')
+                this.dataRequest('ontology', 'properties'),
+                this.dataRequest('ontology', 'concepts')
             ]).done(function(results) {
                 var FieldSelection = results.shift(),
                     i18n = results.shift(),
                     properties = results.shift();
+                self.concepts = results.shift();
 
                 FieldSelection.attachTo(self.select('propertySelector'), {
                     properties: properties.list,
@@ -67,6 +69,7 @@ define([
                     validationFormula: this.$node.find('.validationFormula').val(),
                     possibleValues: this.$node.find('.possibleValues').val(),
                     intents: this.$node.find('.intents').val().split(/[\n\s,]+/),
+                    domains: this.$node.find('.domains').val().split(/[\n\s,]+/),
                     dependentPropertyIris: this.$node.find('.dependentPropertyIris')
                         .val().split(/[\n\s,]+/)
                 })
@@ -105,6 +108,16 @@ define([
                     }
                     self.updateFieldValue(key, value)
                 });
+
+                var domains = [];
+                _.each(self.concepts.byId, function(value, key) {
+                    _.each(value.properties, function(prop) {
+                        if(prop == data.property.title) {
+                            domains.push(key);
+                        }
+                    });
+                });
+                self.updateFieldValue('domains', domains.join('\n'));
             } else {
                 this.$node.find('.btn-primary').attr('disabled', true);
             }
