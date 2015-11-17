@@ -77,6 +77,22 @@ public class RdfTripleImportTest {
     }
 
     @Test
+    public void testImportPropertyMetadata() {
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1> \"hello world\"", metadata);
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata1> \"metadata value 1\"", null);
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2> \"metadata value 2\"", null);
+        rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2[S]> \"metadata value 2 S\"", null);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        Property prop1 = v1.getProperty(RdfTripleImport.MULTI_KEY, "http://visallo.org/test#prop1");
+        assertEquals("hello world", prop1.getValue());
+        assertEquals("metadata value 1", prop1.getMetadata().getValue("metadata1"));
+        assertEquals("metadata value 2", prop1.getMetadata().getValue("metadata2", new Visibility("")));
+        assertEquals("metadata value 2 S", prop1.getMetadata().getValue("metadata2", new Visibility("(S)|visallo")));
+    }
+
+    @Test
     public void testImportDateProperty() {
         rdfTripleImport.importRdfLine("<v1> <http://visallo.org/test#prop1> \"2015-05-21\"^^<" + RdfTripleImport.PROPERTY_TYPE_DATE + ">", metadata);
         graph.flush();

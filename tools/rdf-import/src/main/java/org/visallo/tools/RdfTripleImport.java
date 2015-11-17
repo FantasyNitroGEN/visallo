@@ -1,6 +1,8 @@
 package org.visallo.tools;
 
 import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
+import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
@@ -18,6 +20,8 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RdfTripleImport {
     public static final String MULTI_KEY = RdfTripleImport.class.getSimpleName();
@@ -39,6 +43,7 @@ public class RdfTripleImport {
     private final Authorizations authorizations;
     private final TimeZone timeZone;
     private final Visibility defaultVisibility;
+    private final Pattern METADATA_PATTERN = Pattern.compile("(.*)@(.*)");
     private final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
     private final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
     private final Map<String, Visibility> visibilityCache = new HashMap<>();
@@ -124,9 +129,26 @@ public class RdfTripleImport {
     }
 
     private void setProperty(String vertexId, Visibility elementVisibility, String label, RdfTriple.LiteralPart propertyValuePart, Metadata metadata, Visibility visibility) {
-        VertexBuilder m = graph.prepareVertex(vertexId, elementVisibility);
+        ElementMutation m;
         String propertyKey = MULTI_KEY;
         Visibility propertyVisibility = visibility;
+        String metadataKey = null;
+
+        Matcher metadataMatcher = METADATA_PATTERN.matcher(label);
+        if (metadataMatcher.matches()) {
+            label = metadataMatcher.group(1);
+            metadataKey = metadataMatcher.group(2);
+            Vertex v = graph.getVertex(vertexId, authorizations);
+            if (v == null) {
+                graph.flush();
+                v = graph.getVertex(vertexId, authorizations);
+            }
+            checkNotNull(v, "Could not find vertex with id " + vertexId + " to update metadata");
+            m = v.prepareMutation();
+        } else {
+            m = graph.prepareVertex(vertexId, elementVisibility);
+        }
+
         Matcher visibilityMatch = VISIBILITY_PATTERN.matcher(label);
         if (visibilityMatch.matches()) {
             label = visibilityMatch.group(1);
@@ -141,7 +163,23 @@ public class RdfTripleImport {
 
         String propertyName = label;
         Object propertyValue = getPropertyValue(propertyValuePart);
-        m.addPropertyValue(propertyKey, propertyName, propertyValue, metadata, propertyVisibility);
+        if (metadataKey != null) {
+            String metadataName;
+            Visibility metadataVisibility;
+
+            visibilityMatch = VISIBILITY_PATTERN.matcher(metadataKey);
+            if (visibilityMatch.matches()) {
+                metadataName = visibilityMatch.group(1);
+                metadataVisibility = getVisibility(visibilityMatch.group(2));
+            } else {
+                metadataName = metadataKey;
+                metadataVisibility = propertyVisibility;
+            }
+
+            ((ExistingElementMutation) m).setPropertyMetadata(propertyKey, propertyName, metadataName, propertyValue, metadataVisibility);
+        } else {
+            m.addPropertyValue(propertyKey, propertyName, propertyValue, metadata, propertyVisibility);
+        }
         m.save(authorizations);
     }
 

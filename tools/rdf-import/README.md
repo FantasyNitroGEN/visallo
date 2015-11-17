@@ -29,6 +29,15 @@ You can supply multi-value keys by appending `:key` to a property name.
 
 This will create two birthDate properties one with key `source1`, the other with `source2` which has a visibility of `SECRET`.
 
+### Metadata
+
+You can supply metadata by appending `@metadataKey` to a property name. You can also optionally append `@metadataKey` to include visibility on the metadata item.
+
+        <http://dbpedia.org/resource/Aristotle> <http://dbpedia.org/ontology/birthDate@modifiedDate> "2015-11-16"^^<http://www.w3.org/2001/XMLSchema#date?
+        <http://dbpedia.org/resource/Aristotle> <http://dbpedia.org/ontology/birthDate@modifiedBy[SECRET]> "Joe Ferner"
+
+This will create two birthDate properties one with key `source1`, the other with `source2` which has a visibility of `SECRET`.
+
 ### Binary file
 
 You can add binary content properties by specifying a type of `http://visallo.org#streamingPropertyValue`.
