@@ -623,7 +623,7 @@ define([
                         function(data) {
                             self.endRegionSelection();
                             self.trigger('updateWorkspace', {
-                                entityUpdates: data.vertices.map(function(vertex) {
+                                entityUpdates: data.elements.map(function(vertex) {
                                     return {
                                         vertexId: vertex.id,
                                         graphLayoutJson: {
