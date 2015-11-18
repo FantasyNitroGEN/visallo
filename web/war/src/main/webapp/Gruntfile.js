@@ -236,9 +236,12 @@ module.exports = function(grunt) {
                 coverageReporter: {
                     type: 'html',
                     dir: 'build/coverage/'
+                    subdir: '.'
                 },
                 junitReporter: {
-                    outputFile: 'build/test-results.xml',
+                    outputDir: 'build',
+                    outputFile: 'test-results.xml',
+                    useBrowserName: false,
                     suite: ''
                 }
             }

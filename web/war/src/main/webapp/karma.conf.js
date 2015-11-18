@@ -84,8 +84,7 @@ module.exports = function(config) {
 
             // Continuous Integration mode
             // if true, it capture browsers, run tests and exit
-            singleRun: false,
-
+            singleRun: false
         },
         coverageType = 'html',
         coverage = process.argv.filter(function(a, index) {
