@@ -202,24 +202,6 @@ module.exports = function(grunt) {
             }
         },
 
-        mochaSelenium: {
-            options: {
-                screenshotAfterEach: true,
-                screenshotDir: 'test/reports',
-                reporter: 'spec', // doc for html
-                viewport: { width: 900, height: 700 },
-                timeout: 30e3,
-                slow: 10e3,
-                implicitWaitTimeout: 100,
-                asyncScriptTimeout: 5000,
-                usePromises: true,
-                useChaining: true,
-                ignoreLeaks: false
-            },
-            firefox: { src: ['test/functional/spec/**/*.js' ], options: { browserName: 'firefox' } },
-            chrome: { src: ['test/functional/spec/**/*.js' ], options: { browserName: 'chrome' } }
-        },
-
         karma: {
             options: {
                 configFile: 'karma.conf.js',
@@ -255,7 +237,6 @@ module.exports = function(grunt) {
       grunt.loadNpmTasks('grunt-contrib-watch');
       grunt.loadNpmTasks('grunt-contrib-requirejs');
       grunt.loadNpmTasks('grunt-notify');
-      grunt.loadNpmTasks('grunt-mocha-selenium');
       grunt.loadNpmTasks('grunt-karma');
       grunt.loadNpmTasks('grunt-plato');
       grunt.loadNpmTasks('grunt-eslint');
@@ -270,13 +251,6 @@ module.exports = function(grunt) {
 
       grunt.registerTask('deps', 'Install Webapp Dependencies',
          ['bower:install', 'bower:prune', 'exec']);
-
-      grunt.registerTask('test:functional:chrome', 'Run JavaScript Functional Tests in Chrome',
-         ['mochaSelenium:chrome']);
-      grunt.registerTask('test:functional:firefox', 'Run JavaScript Functional Tests in Firefox',
-         ['mochaSelenium:firefox']);
-      grunt.registerTask('test:functional', 'Run JavaScript Functional Tests',
-         ['test:functional:chrome', 'test:functional:firefox']);
 
       grunt.registerTask('test:unit', 'Run JavaScript Unit Tests',
          ['karma:unit']);
