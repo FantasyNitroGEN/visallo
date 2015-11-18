@@ -8,6 +8,7 @@ import com.unboundid.ldap.sdk.extensions.StartTLSExtendedRequest;
 import com.unboundid.util.ssl.SSLUtil;
 import com.unboundid.util.ssl.TrustStoreTrustManager;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
@@ -17,7 +18,6 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLSocketFactory;
-import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -191,7 +191,7 @@ public class LdapSearchServiceImpl implements LdapSearchService {
         try {
             LdapSearchConfiguration configCopy = (LdapSearchConfiguration) BeanUtils.cloneBean(ldapSearchConfiguration);
             configCopy.setUserAttributes(
-                    String.join(",", ImmutableList.copyOf(ldapSearchConfiguration.getUserAttributes())));
+                    StringUtils.join(ImmutableList.copyOf(ldapSearchConfiguration.getUserAttributes()), ","));
             return configCopy;
         } catch (Exception e) {
             throw Throwables.propagate(e);
