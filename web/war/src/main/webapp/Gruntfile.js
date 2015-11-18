@@ -235,7 +235,7 @@ module.exports = function(grunt) {
                 reporters: ['progress', 'junit', 'coverage'],
                 coverageReporter: {
                     type: 'html',
-                    dir: 'build/coverage/'
+                    dir: 'build/coverage/',
                     subdir: '.'
                 },
                 junitReporter: {
