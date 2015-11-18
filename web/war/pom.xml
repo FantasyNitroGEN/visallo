@@ -152,7 +152,7 @@
                         </configuration>
                         <executions>
                             <execution>
-                                <id>install node and npm</id>
+                                <id>install-node-and-npm</id>
                                 <goals>
                                     <goal>install-node-and-npm</goal>
                                 </goals>
@@ -163,7 +163,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>npm install</id>
+                                <id>install-npm-modules</id>
                                 <goals>
                                     <goal>npm</goal>
                                 </goals>
@@ -179,9 +179,8 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>${plugin.maven.exec.version}</version>
                         <executions>
-                            <!-- Install all webapp dependencies -->
                             <execution>
-                                <id>WebApp Dependencies and Minification</id>
+                                <id>install-webapp-dependencies-and-minify</id>
                                 <phase>generate-resources</phase>
                                 <goals>
                                     <goal>exec</goal>
