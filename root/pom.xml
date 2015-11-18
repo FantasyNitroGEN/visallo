@@ -122,6 +122,7 @@
         <plugin.maven.site.version>3.3</plugin.maven.site.version>
         <plugin.maven.source.version>2.2.1</plugin.maven.source.version>
         <plugin.maven.surefire.version>2.16</plugin.maven.surefire.version>
+        <plugin.maven.antrun.version>1.8</plugin.maven.antrun.version>
         <plugin.build-helper-maven-plugin>1.9.1</plugin.build-helper-maven-plugin>
         <plugin.pmd.version>3.0.1</plugin.pmd.version>
         <plugin.sonar.version>4.0</plugin.sonar.version>

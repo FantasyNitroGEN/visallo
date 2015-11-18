@@ -22,4 +22,43 @@
         <module>client-api-codegen</module>
         <module>web-plugin-base</module>
     </modules>
+
+    <!--
+        This execution only works when at this level. It really belongs in 'war/pom.xml', but Maven insists on
+        attempting to download that module's war artifact during the clean phase, which makes no sense.
+    -->
+    <profiles>
+        <profile>
+            <id>clean-webapp</id>
+            <properties>
+                <webapp.dir>${basedir}/war/src/main/webapp</webapp.dir>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>${plugin.maven.antrun.version}</version>
+                        <inherited>false</inherited>
+                        <executions>
+                            <execution>
+                                <phase>clean</phase>
+                                <configuration>
+                                    <target>
+                                        <delete dir="${webapp.dir}/jsc"/>
+                                        <delete dir="${webapp.dir}/css"/>
+                                        <delete dir="${webapp.dir}/libs"/>
+                                        <delete dir="${webapp.dir}/node_modules"/>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
