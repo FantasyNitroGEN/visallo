@@ -28,6 +28,8 @@ public class OntologyPropertyDefinition {
     private String displayFormula;
     private ImmutableList<String> dependentPropertyIris;
     private String[] intents;
+    private boolean deleteable;
+    private boolean updateable;
 
     public OntologyPropertyDefinition(
             List<Concept> concepts,
@@ -177,5 +179,21 @@ public class OntologyPropertyDefinition {
     public OntologyPropertyDefinition setIntents(String[] intents) {
         this.intents = intents;
         return this;
+    }
+
+    public boolean getDeleteable() {
+        return deleteable;
+    }
+
+    public void setDeleteable(boolean deleteable) {
+        this.deleteable = deleteable;
+    }
+
+    public boolean getUpdateable() {
+        return updateable;
+    }
+
+    public void setUpdateable(boolean updateable) {
+        this.updateable = updateable;
     }
 }

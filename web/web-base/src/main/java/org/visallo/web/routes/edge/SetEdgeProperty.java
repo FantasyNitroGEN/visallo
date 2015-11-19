@@ -6,7 +6,8 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.visallo.core.config.Configuration;
+import org.vertexium.util.IterableUtils;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
@@ -16,6 +17,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VertexiumMetadataUtil;
@@ -27,7 +29,6 @@ import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
-import org.visallo.web.parameterProviders.JustificationTextParameterProviderFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ResourceBundle;
@@ -41,6 +42,7 @@ public class SetEdgeProperty implements ParameterizedHandler {
     private final WorkQueueRepository workQueueRepository;
     private final WorkspaceRepository workspaceRepository;
     private final GraphRepository graphRepository;
+    private final ACLProvider aclProvider;
 
     @Inject
     public SetEdgeProperty(
@@ -49,7 +51,8 @@ public class SetEdgeProperty implements ParameterizedHandler {
             final VisibilityTranslator visibilityTranslator,
             final WorkQueueRepository workQueueRepository,
             final WorkspaceRepository workspaceRepository,
-            final GraphRepository graphRepository
+            final GraphRepository graphRepository,
+            final ACLProvider aclProvider
     ) {
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
@@ -57,6 +60,7 @@ public class SetEdgeProperty implements ParameterizedHandler {
         this.workQueueRepository = workQueueRepository;
         this.workspaceRepository = workspaceRepository;
         this.graphRepository = graphRepository;
+        this.aclProvider = aclProvider;
     }
 
     @Handle
@@ -99,6 +103,17 @@ public class SetEdgeProperty implements ParameterizedHandler {
             throw new RuntimeException("Could not find property: " + propertyName);
         }
 
+        Edge edge = graph.getEdge(edgeId, authorizations);
+
+        // TODO: add and update property both come through here. Currently, we're only enforcing update.
+        if (!isComment) {
+            int propCount = IterableUtils.count(edge.getProperties(propertyKey, propertyName));
+            if (!aclProvider.canUpdateElement(edge, user) ||
+                    (propCount > 0 && !aclProvider.canUpdateProperty(edge, propertyKey, propertyName, user))) {
+                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, workspaceId);
+            }
+        }
+
         Object value;
         try {
             value = property.convertString(valueStr);
@@ -107,7 +122,6 @@ public class SetEdgeProperty implements ParameterizedHandler {
             throw new BadRequestException(ex.getMessage());
         }
 
-        Edge edge = graph.getEdge(edgeId, authorizations);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);

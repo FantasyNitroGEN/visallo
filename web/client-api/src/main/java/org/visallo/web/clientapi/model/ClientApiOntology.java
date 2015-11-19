@@ -48,6 +48,8 @@ public class ClientApiOntology implements ClientApiObject {
         private String glyphIconHref;
         private String glyphIconSelectedHref;
         private String color;
+        private Boolean deleteable;
+        private Boolean updateable;
         private List<String> intents = new ArrayList<String>();
         private List<String> addRelatedConceptWhiteList = new ArrayList<String>();
         private List<String> properties = new ArrayList<String>();
@@ -165,6 +167,22 @@ public class ClientApiOntology implements ClientApiObject {
             this.color = color;
         }
 
+        public Boolean getUpdateable() {
+            return updateable;
+        }
+
+        public void setUpdateable(Boolean updateable) {
+            this.updateable = updateable;
+        }
+
+        public Boolean getDeleteable() {
+            return deleteable;
+        }
+
+        public void setDeleteable(Boolean deleteable) {
+            this.deleteable = deleteable;
+        }
+
         @JsonInclude(JsonInclude.Include.NON_EMPTY)
         public Map<String, String> getMetadata() {
             return metadata;
@@ -199,6 +217,8 @@ public class ClientApiOntology implements ClientApiObject {
         private String validationFormula;
         private String displayFormula;
         private String[] dependentPropertyIris;
+        private boolean deleteable;
+        private boolean updateable;
         private List<String> intents = new ArrayList<String>();
 
         public String getTitle() {
@@ -247,6 +267,22 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setSortable(boolean sortable) {
             this.sortable = sortable;
+        }
+
+        public boolean isUpdateable() {
+            return updateable;
+        }
+
+        public void setUpdateable(boolean updateable) {
+            this.updateable = updateable;
+        }
+
+        public boolean isDeleteable() {
+            return deleteable;
+        }
+
+        public void setDeleteable(boolean deleteable) {
+            this.deleteable = deleteable;
         }
 
         public PropertyType getDataType() {
@@ -321,6 +357,8 @@ public class ClientApiOntology implements ClientApiObject {
         private String title;
         private String displayName;
         private Boolean userVisible;
+        private Boolean updateable;
+        private Boolean deleteable;
         private String titleFormula;
         private String subtitleFormula;
         private String timeFormula;
@@ -376,6 +414,22 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setUserVisible(Boolean userVisible) {
             this.userVisible = userVisible;
+        }
+
+        public Boolean getUpdateable() {
+            return updateable;
+        }
+
+        public void setUpdateable(Boolean updateable) {
+            this.updateable = updateable;
+        }
+
+        public Boolean getDeleteable() {
+            return deleteable;
+        }
+
+        public void setDeleteable(Boolean deleteable) {
+            this.deleteable = deleteable;
         }
 
         public List<String> getProperties() {

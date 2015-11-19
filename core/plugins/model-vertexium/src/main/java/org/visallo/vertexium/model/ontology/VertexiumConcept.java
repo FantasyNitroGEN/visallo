@@ -39,6 +39,8 @@ public class VertexiumConcept extends Concept {
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.ADDABLE.getPropertyName());
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.USER_VISIBLE.getPropertyName());
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.ONTOLOGY_FILE.getPropertyName());
+        PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.UPDATEABLE.getPropertyName());
+        PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.DELETEABLE.getPropertyName());
     }
 
     public VertexiumConcept(Vertex vertex) {
@@ -109,6 +111,16 @@ public class VertexiumConcept extends Concept {
     @Override
     public boolean getUserVisible() {
         return OntologyProperties.USER_VISIBLE.getPropertyValue(vertex, true);
+    }
+
+    @Override
+    public boolean getDeleteable() {
+        return OntologyProperties.DELETEABLE.getPropertyValue(vertex, true);
+    }
+
+    @Override
+    public boolean getUpdateable() {
+        return OntologyProperties.UPDATEABLE.getPropertyValue(vertex, true);
     }
 
     @Override

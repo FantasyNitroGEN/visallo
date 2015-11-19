@@ -12,6 +12,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.VisalloResourceBundleManager;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.notification.SystemNotificationSeverity;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiObject;
@@ -36,7 +37,6 @@ import static org.vertexium.util.CloseableUtils.closeQuietly;
 
 public class WebApp extends App {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WebApp.class);
-    private static final VisalloDefaultResultWriterFactory VISALLO_DEFAULT_RESULT_WRITER_FACTORY = new VisalloDefaultResultWriterFactory();
     private final Injector injector;
     private final boolean devMode;
     private final AppendableStaticResourceHandler pluginsJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
@@ -48,6 +48,7 @@ public class WebApp extends App {
     private final StyleAppendableHandler pluginsCssResourceHandler = new StyleAppendableHandler();
     private final List<String> pluginsCssResources = new ArrayList<>();
     private VisalloResourceBundleManager visalloResourceBundleManager = new VisalloResourceBundleManager();
+    private VisalloDefaultResultWriterFactory visalloDefaultResultWriterFactory;
     private LessCompiler lessCompiler;
     private ServletContext servletContext;
 
@@ -75,6 +76,7 @@ public class WebApp extends App {
         App.registerParameterValueConverter(SystemNotificationSeverity.class, new SystemNotificationSeverityValueConverter());
 
         App.registerParameterValueConverter(JSONObject.class, new JSONObjectParameterValueConverter());
+        visalloDefaultResultWriterFactory = new VisalloDefaultResultWriterFactory(injector.getInstance(ACLProvider.class));
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = "true".equals(config.get(Configuration.DEV_MODE, "false"));
@@ -100,7 +102,7 @@ public class WebApp extends App {
 
     @Override
     protected ResultWriterFactory getResultWriterFactory(Method handleMethod) {
-        return VISALLO_DEFAULT_RESULT_WRITER_FACTORY;
+        return visalloDefaultResultWriterFactory;
     }
 
     @Override

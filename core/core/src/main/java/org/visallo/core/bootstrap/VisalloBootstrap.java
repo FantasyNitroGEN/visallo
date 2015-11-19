@@ -27,6 +27,7 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
@@ -169,6 +170,9 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(EmailRepository.class)
                 .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY, SmtpEmailRepository.class))
+                .in(Scopes.SINGLETON);
+        bind(ACLProvider.class)
+                .toProvider(VisalloBootstrap.<ACLProvider>getConfigurableProvider(configuration, Configuration.ACL_PROVIDER_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(TimeRepository.class)
                 .toInstance(new TimeRepository());

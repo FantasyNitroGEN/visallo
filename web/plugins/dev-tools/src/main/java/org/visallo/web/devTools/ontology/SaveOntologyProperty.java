@@ -51,6 +51,8 @@ public class SaveOntologyProperty implements ParameterizedHandler {
             @Optional(name = "addable", defaultValue = "true") boolean addable,
             @Optional(name = "sortable", defaultValue = "true") boolean sortable,
             @Optional(name = "userVisible", defaultValue = "true") boolean userVisible,
+            @Optional(name = "deleteable", defaultValue = "true") boolean deleteable,
+            @Optional(name = "updateable", defaultValue = "true") boolean updateable,
             User user,
             Authorizations authorizations,
             VisalloResponse response
@@ -88,6 +90,8 @@ public class SaveOntologyProperty implements ParameterizedHandler {
             propertyDefinition.setAddable(addable);
             propertyDefinition.setSortable(sortable);
             propertyDefinition.setUserVisible(userVisible);
+            propertyDefinition.setDeleteable(deleteable);
+            propertyDefinition.setUpdateable(updateable);
             property = ontologyRepository.getOrCreateProperty(propertyDefinition);
         }
 
@@ -109,6 +113,8 @@ public class SaveOntologyProperty implements ParameterizedHandler {
         property.setProperty(OntologyProperties.SORTABLE.getPropertyName(), sortable, authorizations);
         property.setProperty(OntologyProperties.ADDABLE.getPropertyName(), addable, authorizations);
         property.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), userVisible, authorizations);
+        property.setProperty(OntologyProperties.DELETEABLE.getPropertyName(), deleteable, authorizations);
+        property.setProperty(OntologyProperties.UPDATEABLE.getPropertyName(), updateable, authorizations);
         if (possibleValues != null && possibleValues.trim().length() > 0) {
             possibleValues = JSON.toString(JSON.parse(possibleValues));
             property.setProperty(OntologyProperties.POSSIBLE_VALUES.getPropertyName(), possibleValues, authorizations);

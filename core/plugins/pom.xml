@@ -23,5 +23,6 @@
         <module>newuser-workspace-copy</module>
         <module>newuser-workspace-sharer</module>
         <module>geocoder-bing</module>
+        <module>model-ontology-acl-provider</module>
     </modules>
 </project>

@@ -7,9 +7,11 @@ import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceHelper;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.VisalloResponse;
@@ -20,14 +22,17 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 public class VertexRemove implements ParameterizedHandler {
     private final Graph graph;
     private final WorkspaceHelper workspaceHelper;
+    private ACLProvider aclProvider;
 
     @Inject
     public VertexRemove(
             final Graph graph,
-            final WorkspaceHelper workspaceHelper
+            final WorkspaceHelper workspaceHelper,
+            final ACLProvider aclProvider
     ) {
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
+        this.aclProvider = aclProvider;
     }
 
     @Handle
@@ -40,6 +45,10 @@ public class VertexRemove implements ParameterizedHandler {
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         if (vertex == null) {
             throw new VisalloResourceNotFoundException("Could not find vertex with id: " + graphVertexId);
+        }
+
+        if (!aclProvider.canDeleteElement(vertex, user)) {
+            throw new VisalloAccessDeniedException("Vertex " + graphVertexId + " is not deleteable", user, workspaceId);
         }
 
         SandboxStatus sandboxStatus = SandboxStatusUtil.getSandboxStatus(vertex, workspaceId);

@@ -65,7 +65,11 @@ public interface OntologyRepository {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
-            String displayName
+            String displayName,
+            String[] intents,
+            boolean userVisible,
+            boolean deleteable,
+            boolean updateable
     );
 
     OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition);

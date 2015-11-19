@@ -102,8 +102,12 @@ define([
                     {
                         title: i18n('detail.toolbar.add'),
                         submenu: [
-                            Toolbar.ITEMS.ADD_PROPERTY,
-                            Toolbar.ITEMS.ADD_IMAGE,
+                            _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, {
+                                cls: (vertex.hasOwnProperty('updateable') && !vertex.updateable) ? 'disabled' : null
+                            }),
+                            _.extend({}, Toolbar.ITEMS.ADD_IMAGE, {
+                                cls: (vertex.hasOwnProperty('updateable') && !vertex.updateable) ? 'disabled' : null
+                            }),
                             Toolbar.ITEMS.ADD_COMMENT
                         ]
                     },
@@ -111,9 +115,10 @@ define([
                         icon: 'img/glyphicons/white/glyphicons_157_show_lines@2x.png',
                         right: true,
                         submenu: [
-                            _.extend(Toolbar.ITEMS.DELETE_ITEM, {
+                            _.extend({}, Toolbar.ITEMS.DELETE_ITEM, {
                                 title: i18n('detail.toolbar.delete.entity'),
-                                subtitle: i18n('detail.toolbar.delete.entity.subtitle')
+                                subtitle: i18n('detail.toolbar.delete.entity.subtitle'),
+                                cls: (vertex.hasOwnProperty('deleteable') && !vertex.deleteable) ? 'disabled' : null
                             })
                         ]
                     }

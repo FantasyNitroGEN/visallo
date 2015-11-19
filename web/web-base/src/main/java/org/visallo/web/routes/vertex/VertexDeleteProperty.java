@@ -8,12 +8,14 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.VisalloResponse;
@@ -31,18 +33,21 @@ public class VertexDeleteProperty implements ParameterizedHandler {
     private final WorkspaceHelper workspaceHelper;
     private final OntologyRepository ontologyRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final ACLProvider aclProvider;
 
     @Inject
     public VertexDeleteProperty(
             final Graph graph,
             final WorkspaceHelper workspaceHelper,
             final OntologyRepository ontologyRepository,
-            final WorkspaceRepository workspaceRepository
+            final WorkspaceRepository workspaceRepository,
+            final ACLProvider aclProvider
     ) {
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
         this.ontologyRepository = ontologyRepository;
         this.workspaceRepository = workspaceRepository;
+        this.aclProvider = aclProvider;
     }
 
     @Handle
@@ -57,6 +62,10 @@ public class VertexDeleteProperty implements ParameterizedHandler {
         OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(propertyName);
 
         Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
+        if (!aclProvider.canDeleteProperty(graphVertex, propertyKey, propertyName, user)) {
+            throw new VisalloAccessDeniedException(propertyName + " is not deleteable", user, workspaceId);
+        }
+
         final List<Property> properties = new ArrayList<>();
 
         properties.addAll(toList(graphVertex.getProperties(propertyKey, propertyName)));

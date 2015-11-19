@@ -8,6 +8,7 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,6 +18,8 @@ public class InMemoryRelationship extends Relationship {
     private List<Relationship> inverseOfs = new ArrayList<>();
     private List<String> intents = new ArrayList<>();
     private boolean userVisible = true;
+    private boolean deleteable;
+    private boolean updateable;
     private String titleFormula;
     private String subtitleFormula;
     private String timeFormula;
@@ -27,11 +30,19 @@ public class InMemoryRelationship extends Relationship {
             String displayName,
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
-            Collection<OntologyProperty> properties
+            Collection<OntologyProperty> properties,
+            String[] intents,
+            boolean userVisible,
+            boolean deleteable,
+            boolean updateable
     ) {
         super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.relationshipIRI = relationshipIRI;
         this.displayName = displayName;
+        this.intents.addAll(Arrays.asList(intents));
+        this.userVisible = userVisible;
+        this.deleteable = deleteable;
+        this.updateable = updateable;
     }
 
     @Override
@@ -60,6 +71,15 @@ public class InMemoryRelationship extends Relationship {
     }
 
     @Override
+    public boolean getDeleteable() {
+        return deleteable;
+    }
+
+    @Override
+    public boolean getUpdateable() {
+        return updateable;
+    }
+
     public String getTitleFormula() {
         return titleFormula;
     }

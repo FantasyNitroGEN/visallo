@@ -15,10 +15,11 @@
 
       {{#if canEdit}}
       <li><button class="btn-edit btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
+      {{else}}
+          {{#if canAdd}}
+            <li><button class="btn-add btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.add' }}</button></li>
+          {{/if}}
       {{/if}}
-      {{#unless canEdit}}
-      <li><button class="btn-add btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.add' }}</button></li>
-      {{/unless}}
     {{/unless}}
 
     {{#if isComment}}

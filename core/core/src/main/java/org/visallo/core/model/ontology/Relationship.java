@@ -54,6 +54,10 @@ public abstract class Relationship {
 
     public abstract boolean getUserVisible();
 
+    public abstract boolean getDeleteable();
+
+    public abstract boolean getUpdateable();
+
     public abstract String[] getIntents();
 
     public Collection<OntologyProperty> getProperties() {
@@ -91,6 +95,8 @@ public abstract class Relationship {
             result.setDomainConceptIris(getDomainConceptIRIs());
             result.setRangeConceptIris(getRangeConceptIRIs());
             result.setUserVisible(getUserVisible());
+            result.setDeleteable(getDeleteable());
+            result.setUpdateable(getUpdateable());
             result.setTitleFormula(getTitleFormula());
             result.setSubtitleFormula(getSubtitleFormula());
             result.setTimeFormula(getTimeFormula());

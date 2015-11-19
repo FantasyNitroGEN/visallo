@@ -12,6 +12,8 @@ public class ClientApiProperty implements ClientApiObject {
     private boolean streamingPropertyValue;
     private Map<String, Object> metadata = new HashMap<String, Object>();
     private Object value;
+    private boolean updateable;
+    private boolean deleteable;
 
     public SandboxStatus getSandboxStatus() {
         return sandboxStatus;
@@ -55,6 +57,22 @@ public class ClientApiProperty implements ClientApiObject {
 
     public void setValue(Object value) {
         this.value = value;
+    }
+
+    public boolean isUpdateable() {
+        return updateable;
+    }
+
+    public void setUpdateable(boolean updateable) {
+        this.updateable = updateable;
+    }
+
+    public boolean isDeleteable() {
+        return deleteable;
+    }
+
+    public void setDeleteable(boolean deleteable) {
+        this.deleteable = deleteable;
     }
 
     @Override

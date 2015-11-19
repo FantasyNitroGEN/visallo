@@ -6,8 +6,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.Authorizations;
+import org.vertexium.ElementBuilder;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.web.RouteTestBase;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 
@@ -35,9 +37,15 @@ public class VertexSearchTest extends RouteTestBase {
 
     @Test
     public void testSearchRelated() throws Exception {
-        Vertex v1 = graph.addVertex("v1", visibility, authorizations);
-        Vertex v2 = graph.addVertex("v2", visibility, authorizations);
-        Vertex v3 = graph.addVertex("v3", visibility, authorizations);
+        ElementBuilder<Vertex> v1Mutation = graph.prepareVertex("v1", visibility);
+        ElementBuilder<Vertex> v2Mutation = graph.prepareVertex("v2", visibility);
+        ElementBuilder<Vertex> v3Mutation = graph.prepareVertex("v3", visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(v1Mutation, "testConcept", visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(v2Mutation, "testConcept", visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(v3Mutation, "testConcept", visibility);
+        Vertex v1 = v1Mutation.save(authorizations);
+        Vertex v2 = v2Mutation.save(authorizations);
+        Vertex v3 = v3Mutation.save(authorizations);
         graph.addEdge("e1", v1, v2, "label1", visibility, authorizations);
         graph.addEdge("e2", v1, v3, "label1", visibility, authorizations);
         graph.flush();

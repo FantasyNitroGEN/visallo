@@ -93,6 +93,22 @@ public class VertexiumOntologyProperty extends OntologyProperty {
         return b;
     }
 
+    public boolean getUpdateable() {
+        Boolean b = OntologyProperties.UPDATEABLE.getPropertyValue(vertex);
+        if (b == null) {
+            return true;
+        }
+        return b;
+    }
+
+    public boolean getDeleteable() {
+        Boolean b = OntologyProperties.DELETEABLE.getPropertyValue(vertex);
+        if (b == null) {
+            return true;
+        }
+        return b;
+    }
+
     @Override
     public boolean getAddable() {
         Boolean b = OntologyProperties.ADDABLE.getPropertyValue(vertex);

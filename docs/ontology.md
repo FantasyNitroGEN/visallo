@@ -55,6 +55,8 @@ the ontology into Visallo.
   * FULL_TEXT - Allow full text searching. Good for large text.
   * EXACT_MATCH - Allow exact matching. Good for multi-word known values.
 * **searchable** - Should this property show up in the UI for searching.
+* **deleteable** - Should this property be deleteable from the UI.
+* **updateable** - Should this property be updateable from the UI.
 * **displayType** - Specifies how the UI should display the value.
   * dateOnly
   * link
@@ -66,6 +68,11 @@ the ontology into Visallo.
           "M": "Male",
           "F": "Female"
         }
+        
+### ObjectProperty
+
+* **deleteable** - Should this property be deleteable from the UI.
+* **updateable** - Should this property be updateable from the UI.
 
 ### Class
 
@@ -81,6 +88,8 @@ the ontology into Visallo.
 * **subtitleFormula** - A javascript function used to display additional information in the search results.
 * **timeFormula** - A javascript function used to display additional information in the search results.
 * **addRelatedConceptWhiteList** - Limits what items can be added via the "Add Related" dialog.
+* **deleteable** - Should this entity be deleteable from the UI.
+* **updateable** - Should this entity be updateable from the UI.
 
 <a name="intent"/>
 ## Intents

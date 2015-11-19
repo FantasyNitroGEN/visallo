@@ -30,6 +30,13 @@ define([
             acceptedTypesRegex: /^image\/(jpe?g|png)$/i
         });
 
+        this.before('initialize', function(node, config) {
+            if (!config.hasOwnProperty('canEdit')) {
+                var entityUpdateable = config.data.updateable;
+                config.canEdit = Privileges.canEDIT && (entityUpdateable === undefined || entityUpdateable === true);
+            }
+        });
+
         this.after('initialize', function() {
             var self = this;
 
@@ -42,7 +49,7 @@ define([
 
             this.updateImageBackground();
 
-            if (Privileges.canEDIT) {
+            if (this.attr.canEdit) {
                 this.$node.html(template({
                     Privileges: Privileges
                 }));

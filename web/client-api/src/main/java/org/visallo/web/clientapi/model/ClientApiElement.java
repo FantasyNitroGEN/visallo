@@ -22,6 +22,9 @@ public abstract class ClientApiElement implements ClientApiObject {
     private String visibilitySource;
     private Double score;
     private Integer commonCount;
+    private Boolean deleteable;
+    private Boolean updateable;
+    private String conceptType;
 
     /**
      * search score
@@ -75,6 +78,30 @@ public abstract class ClientApiElement implements ClientApiObject {
 
     public void setVisibilitySource(String visibilitySource) {
         this.visibilitySource = visibilitySource;
+    }
+
+    public Boolean getDeleteable() {
+        return deleteable;
+    }
+
+    public void setDeleteable(Boolean deleteable) {
+        this.deleteable = deleteable;
+    }
+
+    public Boolean getUpdateable() {
+        return updateable;
+    }
+
+    public void setUpdateable(Boolean updateable) {
+        this.updateable = updateable;
+    }
+
+    public String getConceptType() {
+        return conceptType;
+    }
+
+    public void setConceptType(String conceptType) {
+        this.conceptType = conceptType;
     }
 
     @Override

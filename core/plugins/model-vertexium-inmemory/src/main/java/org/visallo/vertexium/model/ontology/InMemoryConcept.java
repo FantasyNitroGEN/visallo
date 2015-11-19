@@ -26,6 +26,8 @@ public class InMemoryConcept extends Concept {
     private byte[] glyphIconSelected;
     private byte[] mapGlyphIcon;
     private boolean userVisible = true;
+    private boolean updateable = true;
+    private boolean deleteable = true;
     private Boolean searchable;
     private Boolean addable;
     private Map<String, String> metadata = new HashMap<String, String>();
@@ -112,6 +114,16 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
+    public boolean getDeleteable() {
+        return deleteable;
+    }
+
+    @Override
+    public boolean getUpdateable() {
+        return updateable;
+    }
+
+    @Override
     public Map<String, String> getMetadata() {
         return this.metadata;
     }
@@ -158,6 +170,18 @@ public class InMemoryConcept extends Concept {
                 this.addable = (Boolean) value;
             } else {
                 this.addable = Boolean.parseBoolean((String) value);
+            }
+        } else if (OntologyProperties.UPDATEABLE.getPropertyName().equals(name)) {
+            if (value instanceof Boolean) {
+                this.updateable = (Boolean) value;
+            } else {
+                this.updateable = Boolean.parseBoolean((String) value);
+            }
+        } else if (OntologyProperties.DELETEABLE.getPropertyName().equals(name)) {
+            if (value instanceof Boolean) {
+                this.deleteable = (Boolean) value;
+            } else {
+                this.deleteable = Boolean.parseBoolean((String) value);
             }
         } else {
             metadata.put(name, value.toString());

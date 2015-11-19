@@ -560,7 +560,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             String validationFormula,
             String displayFormula,
             ImmutableList<String> dependentPropertyIris,
-            String[] intents
+            String[] intents,
+            boolean deleteable,
+            boolean updateable
     ) {
         checkNotNull(concepts, "vertex was null");
         OntologyProperty property = getOrCreatePropertyType(
@@ -579,7 +581,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 validationFormula,
                 displayFormula,
                 dependentPropertyIris,
-                intents
+                intents,
+                deleteable,
+                updateable
         );
         checkNotNull(property, "Could not find property: " + propertyIri);
 
@@ -618,7 +622,11 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
-            String displayName
+            String displayName,
+            String[] intents,
+            boolean userVisible,
+            boolean deleteable,
+            boolean updateable
     ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
@@ -629,6 +637,12 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         VisalloProperties.CONCEPT_TYPE.setProperty(builder, TYPE_RELATIONSHIP, VISIBILITY.getVisibility());
         OntologyProperties.ONTOLOGY_TITLE.setProperty(builder, relationshipIRI, VISIBILITY.getVisibility());
         OntologyProperties.DISPLAY_NAME.setProperty(builder, displayName, VISIBILITY.getVisibility());
+        OntologyProperties.USER_VISIBLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
+        OntologyProperties.DELETEABLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
+        OntologyProperties.UPDATEABLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
+        for (String intent : intents) {
+            OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
+        }
         Vertex relationshipVertex = builder.save(getAuthorizations());
 
         for (Concept domainConcept : domainConcepts) {
@@ -682,7 +696,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             String validationFormula,
             String displayFormula,
             ImmutableList<String> dependentPropertyIris,
-            String[] intents
+            String[] intents,
+            boolean deleteable,
+            boolean updateable
     ) {
         OntologyProperty typeProperty = getPropertyByIRI(propertyIri);
         if (typeProperty == null) {
@@ -698,6 +714,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             OntologyProperties.SEARCHABLE.setProperty(builder, searchable, VISIBILITY.getVisibility());
             OntologyProperties.SORTABLE.setProperty(builder, sortable, VISIBILITY.getVisibility());
             OntologyProperties.ADDABLE.setProperty(builder, addable, VISIBILITY.getVisibility());
+            OntologyProperties.DELETEABLE.setProperty(builder, deleteable, VISIBILITY.getVisibility());
+            OntologyProperties.UPDATEABLE.setProperty(builder, updateable, VISIBILITY.getVisibility());
             if (boost != null) {
                 OntologyProperties.BOOST.setProperty(builder, boost, VISIBILITY.getVisibility());
             }

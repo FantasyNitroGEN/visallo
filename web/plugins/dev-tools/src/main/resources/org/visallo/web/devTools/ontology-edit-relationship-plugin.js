@@ -59,10 +59,12 @@ define([
                 this.dataRequest('io-visallo-web-devTools', 'ontologyEditRelationship', {
                     relationship: this.currentRelationship,
                     displayName: this.$node.find('.displayName').val(),
+                    deleteable: this.$node.find('.deleteable').is(':checked'),
+                    updateable: this.$node.find('.updateable').is(':checked'),
                     titleFormula: this.$node.find('.titleFormula').val(),
                     subtitleFormula: this.$node.find('.subtitleFormula').val(),
                     timeFormula: this.$node.find('.timeFormula').val(),
-                    intents: this.$node.find('.intents').val().split(/[\n\s,]+/)
+                    intents: this.$node.find('.intents').val().split(/[\n\s,]+/),
                 })
                     .then(function() {
                         self.showSuccess('Saved, refresh to see changes');
@@ -80,6 +82,9 @@ define([
             if (data.relationship) {
                 this.currentRelationship = data.relationship.title;
                 this.$node.find('.btn-primary').removeAttr('disabled');
+
+                data.relationship.deleteable = data.relationship.deleteable !== false;
+                data.relationship.updateable = data.relationship.updateable !== false;
 
                 this.$node.find('*').not('.relationship-container *').val('').removeAttr('checked');
                 _.each(data.relationship, function(value, key) {

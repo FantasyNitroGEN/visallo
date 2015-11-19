@@ -79,6 +79,8 @@ define([
                     displayType: this.$node.find('.displayType').val(),
                     searchable: this.$node.find('.searchable').is(':checked'),
                     userVisible: this.$node.find('.userVisible').is(':checked'),
+                    deleteable: this.$node.find('.deleteable').is(':checked'),
+                    updateable: this.$node.find('.updateable').is(':checked'),
                     titleFormula: this.$node.find('.titleFormula').val(),
                     subtitleFormula: this.$node.find('.subtitleFormula').val(),
                     timeFormula: this.$node.find('.timeFormula').val(),
@@ -108,6 +110,12 @@ define([
                 }
                 if (!('searchable' in data.concept)) {
                     data.concept.searchable = true;
+                }
+                if (!('updateable' in data.concept)) {
+                    data.concept.updateable = true;
+                }
+                if (!('deleteable' in data.concept)) {
+                    data.concept.deleteable = true;
                 }
                 _.each(data.concept, function(value, key) {
                     if (key === 'addRelatedConceptWhiteList') {

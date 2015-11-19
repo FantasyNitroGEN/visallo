@@ -39,8 +39,9 @@ public class SaveOntologyConcept implements ParameterizedHandler {
             @Required(name = "addRelatedConceptWhiteList[]") String[] addRelatedConceptWhiteListArg,
             @Required(name = "intents[]") String[] intents,
             @Optional(name = "searchable", defaultValue = "true") boolean searchable,
-            @Optional(name = "addable", defaultValue = "true") boolean addable,
             @Optional(name = "userVisible", defaultValue = "true") boolean userVisible,
+            @Optional(name = "deleteable", defaultValue = "true") boolean deleteable,
+            @Optional(name = "updateable", defaultValue = "true") boolean updateable,
             User user,
             Authorizations authorizations,
             VisalloResponse response
@@ -75,8 +76,9 @@ public class SaveOntologyConcept implements ParameterizedHandler {
 
         concept.setProperty(OntologyProperties.DISPLAY_TYPE.getPropertyName(), displayType, authorizations);
         concept.setProperty(OntologyProperties.SEARCHABLE.getPropertyName(), searchable, authorizations);
-        concept.setProperty(OntologyProperties.ADDABLE.getPropertyName(), addable, authorizations);
         concept.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), userVisible, authorizations);
+        concept.setProperty(OntologyProperties.DELETEABLE.getPropertyName(), deleteable, authorizations);
+        concept.setProperty(OntologyProperties.UPDATEABLE.getPropertyName(), updateable, authorizations);
 
         if (titleFormula.length() != 0) {
             concept.setProperty(OntologyProperties.TITLE_FORMULA.getPropertyName(), titleFormula, authorizations);

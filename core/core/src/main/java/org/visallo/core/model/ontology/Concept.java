@@ -41,6 +41,10 @@ public abstract class Concept {
 
     public abstract boolean getUserVisible();
 
+    public abstract boolean getDeleteable();
+
+    public abstract boolean getUpdateable();
+
     public abstract Map<String, String> getMetadata();
 
     public abstract List<String> getAddRelatedConceptWhiteList();
@@ -83,6 +87,10 @@ public abstract class Concept {
             if (!getUserVisible()) {
                 concept.setUserVisible(getUserVisible());
             }
+
+            concept.setDeleteable(getDeleteable());
+            concept.setUpdateable(getUpdateable());
+
             if (hasGlyphIconResource()) {
                 concept.setGlyphIconHref("resource?id=" + URLEncoder.encode(getIRI(), "utf8"));
             }

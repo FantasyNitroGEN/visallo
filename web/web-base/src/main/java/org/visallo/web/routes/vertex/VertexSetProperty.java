@@ -7,6 +7,8 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
+import org.vertexium.util.IterableUtils;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
@@ -17,6 +19,7 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -45,6 +48,7 @@ public class VertexSetProperty implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
+    private final ACLProvider aclProvider;
 
     @Inject
     public VertexSetProperty(
@@ -53,7 +57,8 @@ public class VertexSetProperty implements ParameterizedHandler {
             final VisibilityTranslator visibilityTranslator,
             final WorkspaceRepository workspaceRepository,
             final WorkQueueRepository workQueueRepository,
-            final GraphRepository graphRepository
+            final GraphRepository graphRepository,
+            final ACLProvider aclProvider
     ) {
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
@@ -61,6 +66,7 @@ public class VertexSetProperty implements ParameterizedHandler {
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
+        this.aclProvider = aclProvider;
     }
 
     @Handle
@@ -87,18 +93,14 @@ public class VertexSetProperty implements ParameterizedHandler {
             throw new VisalloException("Parameter: 'value' or 'value[]' is required in the request");
         }
 
-        if (isComment && propertyKey == null) {
-            propertyKey = createCommentPropertyKey();
-        }
-
         if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
-        if (propertyName.equals(VisalloProperties.COMMENT.getPropertyName()) && request.getPathInfo().equals("/vertex/property")) {
+        if (isComment && request.getPathInfo().equals("/vertex/property")) {
             throw new VisalloException("Use /vertex/comment to save comment properties");
-        } else if (request.getPathInfo().equals("/vertex/comment") && !propertyName.equals(VisalloProperties.COMMENT.getPropertyName())) {
+        } else if (request.getPathInfo().equals("/vertex/comment") && !isComment) {
             throw new VisalloException("Use /vertex/property to save non-comment properties");
         }
 
@@ -106,12 +108,22 @@ public class VertexSetProperty implements ParameterizedHandler {
         workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
 
         if (propertyKey == null) {
-            propertyKey = this.graph.getIdGenerator().nextId();
+            propertyKey = isComment ? createCommentPropertyKey() : this.graph.getIdGenerator().nextId();
         }
 
         Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, this.visibilityTranslator.getDefaultVisibility());
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
         Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
+
+        // TODO: add and update property both come through here. Currently, we're only enforcing update.
+        if (!isComment) {
+            int propCount = IterableUtils.count(graphVertex.getProperties(propertyKey, propertyName));
+            if (!aclProvider.canUpdateElement(graphVertex, user) ||
+                    (propCount > 0 && !aclProvider.canUpdateProperty(graphVertex, propertyKey, propertyName, user))) {
+                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, workspaceId);
+            }
+        }
+
         List<SavePropertyResults> savePropertyResults = saveProperty(
                 graphVertex,
                 propertyKey,

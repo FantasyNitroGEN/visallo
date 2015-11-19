@@ -135,7 +135,9 @@ define([
                         {
                             title: i18n('detail.toolbar.add'),
                             submenu: [
-                                Toolbar.ITEMS.ADD_PROPERTY,
+                                _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, {
+                                    cls: (edge.hasOwnProperty('updateable') && !edge.updateable) ? 'disabled' : null
+                                }),
                                 Toolbar.ITEMS.ADD_COMMENT
                             ]
                         },
@@ -143,9 +145,10 @@ define([
                             icon: 'img/glyphicons/white/glyphicons_157_show_lines@2x.png',
                             right: true,
                             submenu: [
-                                _.extend(Toolbar.ITEMS.DELETE_ITEM, {
+                                _.extend({}, Toolbar.ITEMS.DELETE_ITEM, {
                                     title: i18n('detail.toolbar.delete.edge'),
-                                    subtitle: i18n('detail.toolbar.delete.edge.subtitle')
+                                    subtitle: i18n('detail.toolbar.delete.edge.subtitle'),
+                                    cls: (edge.hasOwnProperty('deleteable') && !edge.deleteable) ? 'disabled' : null
                                 })
                             ]
                         }

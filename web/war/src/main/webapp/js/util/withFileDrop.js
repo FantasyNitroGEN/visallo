@@ -18,6 +18,10 @@ define([
                 return console.warn('Implement handleFilesDropped');
             }
 
+            if (this.attr.canEdit === false) {
+                return;
+            }
+
             this.node.ondragover = function(e) {
                 e.dataTransfer.dropEffect = 'copy';
                 $(this).addClass('file-hover'); return false;

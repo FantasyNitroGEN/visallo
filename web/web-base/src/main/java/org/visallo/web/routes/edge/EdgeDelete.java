@@ -5,9 +5,11 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceHelper;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
@@ -23,16 +25,19 @@ public class EdgeDelete implements ParameterizedHandler {
     private final WorkspaceHelper workspaceHelper;
     private String entityHasImageIri;
     private final OntologyRepository ontologyRepository;
+    private final ACLProvider aclProvider;
 
     @Inject
     public EdgeDelete(
             final Graph graph,
             final WorkspaceHelper workspaceHelper,
-            final OntologyRepository ontologyRepository
+            final OntologyRepository ontologyRepository,
+            final ACLProvider aclProvider
     ) {
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
         this.ontologyRepository = ontologyRepository;
+        this.aclProvider = aclProvider;
 
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
         if (this.entityHasImageIri == null) {
@@ -52,6 +57,10 @@ public class EdgeDelete implements ParameterizedHandler {
         }
 
         Edge edge = graph.getEdge(edgeId, authorizations);
+        if (!aclProvider.canDeleteElement(edge, user)) {
+            throw new VisalloAccessDeniedException("Edge " + edgeId + " is not deleteable", user, workspaceId);
+        }
+
         Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
         Vertex inVertex = edge.getVertex(Direction.IN, authorizations);
 

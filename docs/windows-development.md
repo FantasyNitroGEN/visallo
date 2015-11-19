@@ -130,7 +130,7 @@ The following command loads an ontology that works well for general development:
 This command runs Visallo using the Jetty web server, with a username-only login, and with the backed services provided by the development docker container:
 
     mvn compile -am -pl web/war \
-        -P jetty-run,web-admin,web-auth-username-only,storage-accumulo,search-elasticsearch,queue-rabbitmq \
+        -P jetty-run,web-admin,web-auth-username-only,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology \
         -Dgrunt.target=development
 
 Use Chrome or Firefox to browse to `http://127.0.0.1:8443`. Internet Explorer is not currently supported.

@@ -143,7 +143,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             String validationFormula,
             String displayFormula,
             ImmutableList<String> dependentPropertyIris,
-            String[] intents
+            String[] intents,
+            boolean deleteable,
+            boolean updateable
     ) {
         checkNotNull(concepts, "concept was null");
         InMemoryOntologyProperty property = getOrCreatePropertyType(
@@ -162,7 +164,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 validationFormula,
                 displayFormula,
                 dependentPropertyIris,
-                intents
+                intents,
+                deleteable,
+                updateable
         );
         for (Concept concept : concepts) {
             concept.getProperties().add(property);
@@ -214,7 +218,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             String validationFormula,
             String displayFormula,
             ImmutableList<String> dependentPropertyIris,
-            String[] intents
+            String[] intents,
+            boolean deleteable,
+            boolean updateabale
     ) {
         InMemoryOntologyProperty property = (InMemoryOntologyProperty) getPropertyByIRI(propertyIri);
         if (property == null) {
@@ -234,6 +240,8 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             property.setValidationFormula(validationFormula);
             property.setDisplayFormula(displayFormula);
             property.setDependentPropertyIris(dependentPropertyIris);
+            property.setDeleteable(deleteable);
+            property.setUpdateable(updateabale);
             if (intents != null) {
                 for (String intent : intents) {
                     property.addIntent(intent);
@@ -366,7 +374,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
-            String displayName
+            String displayName,
+            String[] intents,
+            boolean userVisible,
+            boolean deleteable,
+            boolean updateable
     ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
@@ -395,7 +407,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 displayName,
                 domainConceptIris,
                 rangeConceptIris,
-                properties
+                properties,
+                intents,
+                userVisible,
+                deleteable,
+                updateable
         );
         relationshipsCache.put(relationshipIRI, inMemRelationship);
         return inMemRelationship;

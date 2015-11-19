@@ -87,6 +87,16 @@ public class VertexiumRelationship extends Relationship {
         return OntologyProperties.USER_VISIBLE.getPropertyValue(vertex, true);
     }
 
+    @Override
+    public boolean getDeleteable() {
+        return OntologyProperties.DELETEABLE.getPropertyValue(vertex, true);
+    }
+
+    @Override
+    public boolean getUpdateable() {
+        return OntologyProperties.UPDATEABLE.getPropertyValue(vertex, true);
+    }
+
     public Vertex getVertex() {
         return vertex;
     }

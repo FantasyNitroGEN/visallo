@@ -65,6 +65,10 @@ public abstract class OntologyProperty {
 
     public abstract String getDisplayFormula();
 
+    public abstract boolean getUpdateable();
+
+    public abstract boolean getDeleteable();
+
     public abstract ImmutableList<String> getDependentPropertyIris();
 
     public abstract String[] getIntents();
@@ -112,6 +116,8 @@ public abstract class OntologyProperty {
             result.setValidationFormula(getValidationFormula());
             result.setDisplayFormula(getDisplayFormula());
             result.setDependentPropertyIris(getDependentPropertyIris());
+            result.setDeleteable(getDeleteable());
+            result.setUpdateable(getUpdateable());
             if (getPossibleValues() != null) {
                 result.getPossibleValues().putAll(getPossibleValues());
             }

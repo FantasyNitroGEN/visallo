@@ -266,7 +266,7 @@ define([
             }
 
             if (data.fromPreviousValuePrompt !== true) {
-                if (previousValuesUniquedByKey && previousValuesUniquedByKey.length) {
+                if (data.property.updateable && previousValuesUniquedByKey && previousValuesUniquedByKey.length) {
                     this.previousValues = previousValuesUniquedByKey;
                     this.previousValuesPropertyName = propertyName;
                     this.select('previousValuesSelector')

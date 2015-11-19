@@ -5,7 +5,8 @@
   @highlight-color: darken(desaturate(@base-color, 5%), 5%);
   @submenu-color: @highlight-color;
   @submenu-highlight-color: darken(@highlight-color, 5%);
-  @subtitle-color: lighten(desaturate(@submenu-color, 50%), 50%);              
+  @subtitle-color: lighten(desaturate(@submenu-color, 50%), 50%);
+  @disabled-color: lighten(desaturate(@submenu-color, 50%), 30%);
 
   position: absolute;
   top: 100%;
@@ -110,9 +111,6 @@
           &:hover a {
             background: @submenu-highlight-color;
           }
-          &.disabled:hover a {
-            background: @highlight-color;
-          }
 
           a {
             cursor: pointer;            
@@ -131,7 +129,7 @@
               font-weight: normal;
               text-transform: none;
             }
-          }          
+          }
 
           input[type=file] {
             position: absolute;
@@ -146,6 +144,19 @@
             z-index: 1;
             cursor: pointer;              
             .opacity(0);
+          }
+
+          &.disabled {
+            &:hover a {
+              background: @highlight-color;
+            }
+            a, input[type=file] {
+              cursor: not-allowed;
+              color: @disabled-color;
+              .subtitle {
+                color: @disabled-color;
+              }
+            }
           }
         }
       }

@@ -651,6 +651,17 @@
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
+
+    <!-- http://visallo.org/dev#middleName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#middleName">
+        <rdfs:label xml:lang="en">Middle Name</rdfs:label>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:deleteable rdf:datatype="&xsd;boolean">false</visallo:deleteable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+    </owl:DatatypeProperty>
     
 
 

@@ -1,14 +1,14 @@
 package org.visallo.core.util;
 
-import org.vertexium.type.GeoPoint;
-import org.vertexium.type.GeoRect;
-import org.visallo.core.ingest.video.VideoFrameInfo;
-import org.visallo.core.ingest.video.VideoPropertyHelper;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
+import org.vertexium.type.GeoPoint;
+import org.vertexium.type.GeoRect;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.ingest.video.VideoFrameInfo;
+import org.visallo.core.ingest.video.VideoPropertyHelper;
+import org.visallo.core.model.properties.MediaVisalloProperties;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.web.clientapi.model.*;
 
 import java.util.ArrayList;
@@ -119,6 +119,10 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         if (visibilityJson != null) {
             clientApiElement.setVisibilitySource(visibilityJson.getSource());
         }
+
+        String conceptType = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element, null);
+        checkNotNull(conceptType, "Concept type cannot be null, element id: " + element.getId());
+        clientApiElement.setConceptType(conceptType);
     }
 
     public static List<ClientApiProperty> toClientApiProperties(Iterable<Property> properties, String workspaceId) {

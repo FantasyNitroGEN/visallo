@@ -25,6 +25,8 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private Double boost;
     private String validationFormula;
     private String displayFormula;
+    private boolean updateable;
+    private boolean deleteable;
     private ImmutableList<String> dependentPropertyIris = ImmutableList.of();
     private List<String> intents = new ArrayList<>();
 
@@ -93,6 +95,12 @@ public class InMemoryOntologyProperty extends OntologyProperty {
         return dependentPropertyIris;
     }
 
+    @Override
+    public boolean getDeleteable() { return deleteable; }
+
+    @Override
+    public boolean getUpdateable() { return updateable; }
+
     public String[] getIntents() {
         return this.intents.toArray(new String[this.intents.size()]);
     }
@@ -157,6 +165,10 @@ public class InMemoryOntologyProperty extends OntologyProperty {
         this.dependentPropertyIris = dependentPropertyIris == null ? ImmutableList.<String>of() : ImmutableList.copyOf(dependentPropertyIris);
     }
 
+    public void setUpdateable(boolean updateable) { this.updateable = updateable; }
+
+    public void setDeleteable(boolean deleteable) { this.deleteable = deleteable; }
+
     @Override
     public void setProperty(String name, Object value, Authorizations authorizations) {
         if (OntologyProperties.DISPLAY_TYPE.getPropertyName().equals(name)) {
@@ -190,6 +202,18 @@ public class InMemoryOntologyProperty extends OntologyProperty {
                 this.userVisible = (Boolean) value;
             } else {
                 this.userVisible = Boolean.parseBoolean((String) value);
+            }
+        } else if (OntologyProperties.DELETEABLE.getPropertyName().equals(name)) {
+            if (value instanceof Boolean) {
+                this.deleteable = (Boolean) value;
+            } else {
+                this.deleteable = Boolean.parseBoolean((String) value);
+            }
+        } else if (OntologyProperties.UPDATEABLE.getPropertyName().equals(name)) {
+            if (value instanceof Boolean) {
+                this.updateable = (Boolean) value;
+            } else {
+                this.updateable = Boolean.parseBoolean((String) value);
             }
         }
     }
