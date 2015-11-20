@@ -3,6 +3,7 @@ package org.visallo.core.externalResource;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.status.MetricEntry;
+import org.visallo.core.status.StatusRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.ExternalResourceRunnerStatus;
 import org.visallo.core.status.model.Status;
@@ -18,9 +19,15 @@ public class ExternalResourceRunner {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ExternalResourceRunner.class);
     private final Configuration config;
     private final User user;
+    private final StatusRepository statusRepository;
 
-    public ExternalResourceRunner(Configuration config, final User user) {
+    public ExternalResourceRunner(
+            Configuration config,
+            StatusRepository statusRepository,
+            final User user
+    ) {
         this.config = config;
+        this.statusRepository = statusRepository;
         this.user = user;
     }
 
@@ -57,7 +64,7 @@ public class ExternalResourceRunner {
     }
 
     private void startStatusServer(final List<RunningWorker> runningWorkers) {
-        new StatusServer(config, "externalResource", ExternalResourceRunner.class) {
+        new StatusServer(config, statusRepository, "externalResource", ExternalResourceRunner.class) {
             @Override
             protected ExternalResourceRunnerStatus createStatus() {
                 ExternalResourceRunnerStatus status = new ExternalResourceRunnerStatus();

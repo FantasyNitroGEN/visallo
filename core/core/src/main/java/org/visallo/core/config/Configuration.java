@@ -57,6 +57,7 @@ public class Configuration {
     public static final String HTTP_REPOSITORY = "repository.http";
     public static final String GEOCODER_REPOSITORY = "repository.geocoder";
     public static final String EMAIL_REPOSITORY = "repository.email";
+    public static final String STATUS_REPOSITORY = "repository.status";
     public static final String ONTOLOGY_REPOSITORY_OWL = "repository.ontology.owl";
     public static final String ACL_PROVIDER_REPOSITORY = "repository.acl";
     public static final String GRAPH_PROVIDER = "graph";

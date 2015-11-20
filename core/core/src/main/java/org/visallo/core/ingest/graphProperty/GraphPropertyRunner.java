@@ -19,6 +19,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.status.StatusRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.GraphPropertyRunnerStatus;
 import org.visallo.core.status.model.ProcessStatus;
@@ -40,6 +41,7 @@ import static org.vertexium.util.IterableUtils.toList;
 
 public class GraphPropertyRunner extends WorkerBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
+    private final StatusRepository statusRepository;
     private Graph graph;
     private Authorizations authorizations;
     private List<GraphPropertyThreadedWrapper> workerWrappers = Lists.newArrayList();
@@ -51,20 +53,23 @@ public class GraphPropertyRunner extends WorkerBase {
     private AtomicLong lastProcessedPropertyTime = new AtomicLong(0);
 
     @Inject
-    protected GraphPropertyRunner(WorkQueueRepository workQueueRepository, Configuration configuration) {
+    protected GraphPropertyRunner(
+            WorkQueueRepository workQueueRepository,
+            StatusRepository statusRepository,
+            Configuration configuration
+    ) {
         super(workQueueRepository, configuration);
+        this.statusRepository = statusRepository;
     }
 
     @Override
     public void process(Object messageId, JSONObject json) throws Exception {
         GraphPropertyMessage message = new GraphPropertyMessage(json);
-        if(!message.isValid()){
+        if (!message.isValid()) {
             throw new VisalloException(String.format("Cannot process unknown type of gpw message %s", json.toString()));
-        }
-        else if(message.canHandleByProperty()){
+        } else if (message.canHandleByProperty()) {
             safeExecuteHandlePropertyOnElements(message);
-        }
-        else{
+        } else {
             safeExecuteHandleAllEntireElements(message);
         }
     }
@@ -180,7 +185,7 @@ public class GraphPropertyRunner extends WorkerBase {
 
     @Override
     protected StatusServer createStatusServer() throws Exception {
-        return new StatusServer(configuration, "graphProperty", GraphPropertyRunner.class) {
+        return new StatusServer(configuration, statusRepository, "graphProperty", GraphPropertyRunner.class) {
             @Override
             protected ProcessStatus createStatus() {
                 GraphPropertyRunnerStatus status = new GraphPropertyRunnerStatus();
@@ -194,7 +199,7 @@ public class GraphPropertyRunner extends WorkerBase {
 
     private void safeExecuteHandleAllEntireElements(GraphPropertyMessage message) throws Exception {
         List<Element> elements = getElement(message);
-        for(Element element : elements){
+        for (Element element : elements) {
             safeExecuteHandleEntireElement(element, message);
         }
     }
@@ -206,43 +211,41 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    private List<Element> getVerticesFromMessage(GraphPropertyMessage message){
+    private List<Element> getVerticesFromMessage(GraphPropertyMessage message) {
         List<Element> vertices = Lists.newLinkedList();
 
-        for(String vertexId : message.getVertexIds()) {
+        for (String vertexId : message.getVertexIds()) {
             Vertex vertex = graph.getVertex(vertexId, this.authorizations);
             if (doesExist(vertex)) {
                 vertices.add(vertex);
-            }
-            else {
+            } else {
                 LOGGER.warn("Could not find vertex with id %s", vertexId);
             }
         }
         return vertices;
     }
 
-    private List<Element> getEdgesFromMessage(GraphPropertyMessage message){
+    private List<Element> getEdgesFromMessage(GraphPropertyMessage message) {
         List<Element> edges = Lists.newLinkedList();
 
-        for(String edgeId : message.getEdgeIds()) {
+        for (String edgeId : message.getEdgeIds()) {
             Edge edge = graph.getEdge(edgeId, this.authorizations);
             if (doesExist(edge)) {
                 edges.add(edge);
-            }
-            else {
+            } else {
                 LOGGER.warn("Could not find vertex with id %s", edgeId);
             }
         }
         return edges;
     }
 
-    private boolean doesExist(Element element){
+    private boolean doesExist(Element element) {
         return element != null;
     }
 
     private void safeExecuteHandlePropertyOnElements(GraphPropertyMessage message) throws Exception {
         List<Element> elements = getElement(message);
-        for(Element element : elements) {
+        for (Element element : elements) {
             Property property = null;
             if (StringUtils.isNotEmpty(message.getPropertyKey()) || StringUtils.isNotEmpty(message.getPropertyName())) {
                 if (message.getPropertyKey() == null) {
@@ -398,15 +401,13 @@ public class GraphPropertyRunner extends WorkerBase {
         return names;
     }
 
-    private List<Element> getElement(GraphPropertyMessage message){
+    private List<Element> getElement(GraphPropertyMessage message) {
         if (message.canHandleVertex()) {
             return getVerticesFromMessage(message);
-        }
-        else if(message.canHandleEdge()){
+        } else if (message.canHandleEdge()) {
             return getEdgesFromMessage(message);
-        }
-        else {
-            throw new VisalloException(String.format("Could not find %s or %s", GraphPropertyMessage.GRAPH_VERTEX_ID,  GraphPropertyMessage.GRAPH_EDGE_ID));
+        } else {
+            throw new VisalloException(String.format("Could not find %s or %s", GraphPropertyMessage.GRAPH_VERTEX_ID, GraphPropertyMessage.GRAPH_EDGE_ID));
         }
     }
 
@@ -416,7 +417,7 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    public UserRepository getUserRepository(){
+    public UserRepository getUserRepository() {
         return this.userRepository;
     }
 
@@ -446,19 +447,19 @@ public class GraphPropertyRunner extends WorkerBase {
     }
 
 
-    public void setAuthorizations(Authorizations authorizations){
+    public void setAuthorizations(Authorizations authorizations) {
         this.authorizations = authorizations;
     }
 
-    public long getLastProcessedTime(){
+    public long getLastProcessedTime() {
         return this.lastProcessedPropertyTime.get();
     }
 
-    public void setUser(User user){
+    public void setUser(User user) {
         this.user = user;
     }
 
-    public User getUser(){
+    public User getUser() {
         return this.user;
     }
 
