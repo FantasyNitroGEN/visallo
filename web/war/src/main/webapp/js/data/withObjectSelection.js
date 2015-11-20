@@ -55,7 +55,7 @@ define([], function() {
                         });
                     }
                 }
-            })
+            });
 
             this.on('searchTitle', this.onSearchTitle);
             this.on('searchRelated', this.onSearchRelated);
@@ -207,7 +207,7 @@ define([], function() {
                                 if (data && 'options' in data) {
                                     postData.options = data.options;
                                 }
-                                self.trigger('objectsSelected', postData);
+                                self.trigger(event.target, 'objectsSelected', postData);
                             });
                     });
             });
@@ -394,8 +394,8 @@ define([], function() {
                         ).then(function(edges) {
                             edgesById = _.indexBy(_.compact(edges), 'id');
                             edges.forEach(function(edge) {
-                                vertexIdsToRequest.push(edge.outVertexId)
-                                vertexIdsToRequest.push(edge.inVertexId)
+                                vertexIdsToRequest.push(edge.outVertexId);
+                                vertexIdsToRequest.push(edge.inVertexId);
                             });
                             if (vertexIdsToRequest.length) {
                                 return dataRequest('vertex', 'store', { vertexIds: _.unique(vertexIdsToRequest) });
@@ -407,10 +407,10 @@ define([], function() {
                                 var hadVertexIds = s.vertexIds.length;
                                 s.vertexIds = _.filter(s.vertexIds, function(vertexId) {
                                     return vertexId in verticesById;
-                                })
+                                });
                                 s.edgeIds = _.filter(s.edgeIds, function(edgeId) {
                                     return edgeId in edgesById;
-                                })
+                                });
                                 if (hadVertexIds) {
                                     if (s.vertexIds.length === 1) {
                                         s.title = F.vertex.title(verticesById[s.vertexIds[0]]);
@@ -438,7 +438,7 @@ define([], function() {
                                 } else {
                                     s.hide = true;
                                 }
-                            })
+                            });
                             notHidden = _.reject(selectedObjectsStack, function(s) {
                                 return s.hide;
                             });
