@@ -86,6 +86,9 @@ public class Configuration {
     public static final String STATUS_ENABLED = "status.enabled";
     public static final boolean STATUS_ENABLED_DEFAULT = true;
 
+    public static final String CURATOR_ENABLED = "curator.enabled";
+    public static final boolean CURATOR_ENABLED_DEFAULT = true;
+
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
 
