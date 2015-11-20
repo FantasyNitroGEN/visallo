@@ -64,7 +64,7 @@ public class CuratorUserSessionCounterRepositoryTest {
         )).createConfiguration();
 
         setUpMocks();
-        uscRepository = new CuratorUserSessionCounterRepository(curator, configuration);
+        uscRepository = new TestableCuratorUserSessionCounterRepository(curator, configuration);
 
         // Reset mocks invoked in the above constructor
         reset(curator, createBuilder, parentPathBuilder);
@@ -85,7 +85,7 @@ public class CuratorUserSessionCounterRepositoryTest {
 
     @Test
     public void newUserSessionCounterRepositoryShouldCreatePaths() throws Exception {
-        new CuratorUserSessionCounterRepository(curator, configuration);
+        new TestableCuratorUserSessionCounterRepository(curator, configuration);
         verify(parentPathBuilder).forPath(IDS_PATH);
         verifyNoMoreInteractions(parentPathBuilder);
     }
@@ -235,5 +235,16 @@ public class CuratorUserSessionCounterRepositoryTest {
 
     private long shortTimeAgo() {
         return now() - CuratorUserSessionCounterRepository.SESSION_UPDATE_DURATION + 10;
+    }
+
+    private static class TestableCuratorUserSessionCounterRepository extends CuratorUserSessionCounterRepository {
+        TestableCuratorUserSessionCounterRepository(CuratorFramework curatorFramework, Configuration configuration) {
+            super(curatorFramework, configuration);
+        }
+
+        @Override
+        protected void startOldSessionCleanup() {
+            // not for unit testing
+        }
     }
 }
