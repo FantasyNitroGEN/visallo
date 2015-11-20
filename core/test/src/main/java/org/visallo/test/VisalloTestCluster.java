@@ -22,6 +22,7 @@ import org.visallo.core.user.SystemUser;
 import org.visallo.core.util.ModelUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
 
 import java.io.File;
 import java.io.IOException;

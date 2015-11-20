@@ -28,6 +28,7 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
 import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.clientapi.model.Privilege;
 
