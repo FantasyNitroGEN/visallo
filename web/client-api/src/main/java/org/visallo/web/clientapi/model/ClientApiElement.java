@@ -24,7 +24,6 @@ public abstract class ClientApiElement implements ClientApiObject {
     private Integer commonCount;
     private Boolean deleteable;
     private Boolean updateable;
-    private String conceptType;
 
     /**
      * search score
@@ -94,14 +93,6 @@ public abstract class ClientApiElement implements ClientApiObject {
 
     public void setUpdateable(Boolean updateable) {
         this.updateable = updateable;
-    }
-
-    public String getConceptType() {
-        return conceptType;
-    }
-
-    public void setConceptType(String conceptType) {
-        this.conceptType = conceptType;
     }
 
     @Override

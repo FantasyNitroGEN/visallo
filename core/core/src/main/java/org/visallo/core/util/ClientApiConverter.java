@@ -120,9 +120,11 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             clientApiElement.setVisibilitySource(visibilityJson.getSource());
         }
 
-        String conceptType = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element, null);
-        checkNotNull(conceptType, "Concept type cannot be null, element id: " + element.getId());
-        clientApiElement.setConceptType(conceptType);
+        if (clientApiElement instanceof ClientApiVertex) {
+            ClientApiVertex clientApiVertex = (ClientApiVertex) clientApiElement;
+            String conceptType = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element, null);
+            clientApiVertex.setConceptType(conceptType);
+        }
     }
 
     public static List<ClientApiProperty> toClientApiProperties(Iterable<Property> properties, String workspaceId) {
