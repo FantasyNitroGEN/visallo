@@ -58,6 +58,7 @@ public class Configuration {
     public static final String HTTP_REPOSITORY = "repository.http";
     public static final String GEOCODER_REPOSITORY = "repository.geocoder";
     public static final String EMAIL_REPOSITORY = "repository.email";
+    public static final String STATUS_REPOSITORY = "repository.status";
     public static final String ONTOLOGY_REPOSITORY_OWL = "repository.ontology.owl";
     public static final String ACL_PROVIDER_REPOSITORY = "repository.acl";
     public static final String GRAPH_PROVIDER = "graph";
@@ -78,9 +79,13 @@ public class Configuration {
     public static final String DEFAULT_STATUS_ZK_PATH = "/visallo/status";
     public static final String STATUS_PORT_RANGE = "status.portRange";
     public static final String DEFAULT_STATUS_PORT_RANGE = "40000-41000";
-    public static final String STATUS_REFRESH_INTERVAL = "status.refreshInterval";
-    public static final int DEFAULT_STATUS_REFRESH_INTERVAL = 10;
     public static final String BROADCAST_EXCHANGE_NAME_CONFIGURATION = "rabbitmq.broadcastExchangeName";
+
+    public static final String STATUS_REFRESH_INTERVAL_SECONDS = "status.refreshIntervalSeconds";
+    public static final int STATUS_REFRESH_INTERVAL_SECONDS_DEFAULT = 10;
+    public static final String STATUS_ENABLED = "status.enabled";
+    public static final boolean STATUS_ENABLED_DEFAULT = true;
+
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
 

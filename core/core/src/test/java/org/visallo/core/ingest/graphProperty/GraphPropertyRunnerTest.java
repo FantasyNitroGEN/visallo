@@ -8,9 +8,11 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.vertexium.*;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.MetricsManager;
+import org.visallo.core.status.StatusRepository;
 
 import java.io.InputStream;
 import java.util.List;
@@ -36,11 +38,10 @@ public class GraphPropertyRunnerTest {
     private Graph _graph;
 
     @Before
-    public void before(){
-        _testSubject = new GraphPropertyRunner();
+    public void before() {
+        _testSubject = new GraphPropertyRunner(mock(WorkQueueRepository.class), mock(StatusRepository.class), mock(Configuration.class));
         _graph = mock(Graph.class);
         _testSubject.setGraph(_graph);
-        _testSubject.setWorkQueueRepository(mock(WorkQueueRepository.class));
     }
 
     @Test(expected = VisalloException.class)
@@ -52,7 +53,7 @@ public class GraphPropertyRunnerTest {
     @Test
     public void testHandlePropertyOnVertexIsHandledByGPWS() throws Exception {
         TestCountingGPWStub countingGPWStub = new TestCountingGPWStub();
-        
+
         JSONObject message = createVertexPropertyGPWMessage(VERTEX_ID, PROP_NAME + "0", PROP_KEY + "0");
         inflateVertexAndAddToGraph(VERTEX_ID, 1L);
         runTests(countingGPWStub, message);
@@ -103,7 +104,7 @@ public class GraphPropertyRunnerTest {
         int numProperties = 11;
         String[] ids = new String[numMessages];
 
-        for(int i = 0; i < numMessages; i++) {
+        for (int i = 0; i < numMessages; i++) {
             ids[i] = EDGE_ID + "_" + i;
             inflateEdgeAndAddToGraph(ids[i], numProperties);
         }
@@ -119,7 +120,7 @@ public class GraphPropertyRunnerTest {
         int numProperties = 11;
         String[] ids = new String[numMessages];
 
-        for(int i = 0; i < numMessages; i++) {
+        for (int i = 0; i < numMessages; i++) {
             ids[i] = VERTEX_ID + "_" + i;
             inflateVertexAndAddToGraph(ids[i], numProperties);
         }
@@ -133,7 +134,7 @@ public class GraphPropertyRunnerTest {
         Property prop = createProperty(PROP_NAME, PROP_KEY, PROP_VALUE);
         String[] ids = new String[numElements];
 
-        for(int i = 0; i < numElements; i++) {
+        for (int i = 0; i < numElements; i++) {
             ids[i] = VERTEX_ID + "_" + i;
             inflateVertexAndAddToGraph(ids[i], prop);
         }
@@ -175,22 +176,22 @@ public class GraphPropertyRunnerTest {
         stopInThread(graphPropertyThreadedWrapper);
     }
 
-    private void inflateVertexAndAddToGraph(String vertexId, long numProperties){
+    private void inflateVertexAndAddToGraph(String vertexId, long numProperties) {
         inflateVertexAndAddToGraph(vertexId, createNumProperties(numProperties));
     }
 
-    private void inflateVertexAndAddToGraph(String vertexId, Property... properties){
+    private void inflateVertexAndAddToGraph(String vertexId, Property... properties) {
         Vertex mockedVertex = createMockedVertex(vertexId, properties);
         registerVertexWithGraph(vertexId, mockedVertex);
     }
 
-    private void inflateEdgeAndAddToGraph(String edgeId, long numProperties){
+    private void inflateEdgeAndAddToGraph(String edgeId, long numProperties) {
         Property[] props = createNumProperties(numProperties);
         Edge mockedEdge = createMockedEdge(edgeId, props);
         registerEdgeWithGraph(edgeId, mockedEdge);
     }
 
-    private GraphPropertyThreadedWrapper createTestGPWThreadedWrapper(GraphPropertyWorker worker){
+    private GraphPropertyThreadedWrapper createTestGPWThreadedWrapper(GraphPropertyWorker worker) {
         GraphPropertyThreadedWrapper stubGraphPropertyThreadedWrapper = new GraphPropertyThreadedWrapper(worker);
         MetricsManager manager = mock(MetricsManager.class);
         when(manager.counter(anyString())).thenReturn(mock(Counter.class));
@@ -214,12 +215,12 @@ public class GraphPropertyRunnerTest {
             sleep();
         }
     }
-    
+
     private void sleep() throws InterruptedException {
         Thread.sleep(50L);
     }
 
-    private class TestCountingGPWStub extends GraphPropertyWorker{
+    private class TestCountingGPWStub extends GraphPropertyWorker {
         public AtomicLong isHandledCount = new AtomicLong(0);
         public AtomicLong isExecutingCount = new AtomicLong(0);
         public Set<Property> workedOnProperties = Sets.newHashSet();
@@ -245,17 +246,17 @@ public class GraphPropertyRunnerTest {
         return e;
     }
 
-    private Property[] createNumProperties(long num){
+    private Property[] createNumProperties(long num) {
         List<Property> props = Lists.newArrayList();
 
-        for(long i = 0; i < num; i++){
-            props.add(createProperty(PROP_NAME +  i, PROP_KEY + i, PROP_VALUE + i));
+        for (long i = 0; i < num; i++) {
+            props.add(createProperty(PROP_NAME + i, PROP_KEY + i, PROP_VALUE + i));
         }
 
         return props.toArray(new Property[0]);
     }
 
-    private Property createProperty(String name, String key, String value){
+    private Property createProperty(String name, String key, String value) {
         Property prop = mock(Property.class);
         when(prop.getName()).thenReturn(name);
         when(prop.getKey()).thenReturn(key);
@@ -263,12 +264,12 @@ public class GraphPropertyRunnerTest {
         return prop;
     }
 
-    private Vertex createMockedVertex(String id, Property... properties){
+    private Vertex createMockedVertex(String id, Property... properties) {
         List<Property> propList = Lists.newArrayList(properties);
         Vertex v = mock(Vertex.class);
         when(v.getId()).thenReturn(id);
         when(v.getProperties()).thenReturn(propList);
-        for(Property property : properties) {
+        for (Property property : properties) {
             when(v.getProperty(property.getKey(), property.getName())).thenReturn(property);
             when(v.getProperty(property.getName())).thenReturn(property);
         }
@@ -276,7 +277,7 @@ public class GraphPropertyRunnerTest {
         return v;
     }
 
-    private void registerVertexWithGraph(String id, Vertex v){
+    private void registerVertexWithGraph(String id, Vertex v) {
         when(_graph.getVertex(eq(id), any(Authorizations.class))).thenReturn(v);
     }
 
@@ -296,29 +297,29 @@ public class GraphPropertyRunnerTest {
         return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_VERTEX_ID, createStringJSONArray(vertexIds));
     }
 
-    private static JSONObject createVertexPropertyGPWMessage(String vertexId, String propertyName, String propertyKey){
+    private static JSONObject createVertexPropertyGPWMessage(String vertexId, String propertyName, String propertyKey) {
         return createVertexIdJSONGPWMessage(vertexId).put(GraphPropertyMessage.PROPERTY_KEY, propertyKey).put(GraphPropertyMessage.PROPERTY_NAME, propertyName);
     }
 
-    private static JSONObject createEdgeIdJSONGPWMessage(String edgeId, String propertyName, String propertyKey){
+    private static JSONObject createEdgeIdJSONGPWMessage(String edgeId, String propertyName, String propertyKey) {
         return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_EDGE_ID, edgeId);
     }
 
-    private static JSONObject createVertexIdJSONGPWMessage(String vertexId){
+    private static JSONObject createVertexIdJSONGPWMessage(String vertexId) {
         return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_VERTEX_ID, vertexId);
     }
 
-    private static JSONObject createEdgeIdJSONGPWMessage(String edgeId){
+    private static JSONObject createEdgeIdJSONGPWMessage(String edgeId) {
         return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_EDGE_ID, edgeId);
     }
 
-    private static JSONObject createTestJSONGPWMessage(){
+    private static JSONObject createTestJSONGPWMessage() {
         return new JSONObject().put(GraphPropertyMessage.PRIORITY, "1").put(GraphPropertyMessage.VISIBILITY_SOURCE, "").put(GraphPropertyMessage.WORKSPACE_ID, "wsId");
     }
 
-    private static JSONArray createStringJSONArray(String... strs){
+    private static JSONArray createStringJSONArray(String... strs) {
         JSONArray arr = new JSONArray();
-        for(String str : strs){
+        for (String str : strs) {
             arr.put(str);
         }
 
