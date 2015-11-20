@@ -81,7 +81,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
                 setSessionData(sessionPath, autoDelete);
             }
 
-            int count = countUserSessions(userId);
+            int count = getSessionCount(userId);
             LOGGER.debug("user session count for %s is %d", userId, count);
             return count;
         } catch (Exception e) {
@@ -113,7 +113,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
             if (sessionStat != null) {
                 curator.delete().forPath(sessionPath); // must be synchronous so count is accurate
             }
-            count = countUserSessions(userId);
+            count = getSessionCount(userId);
             LOGGER.debug("user session count for %s is %d", userId, count);
             if (count < 1) {
                 LOGGER.debug("deleting user %s with no remaining sessions", userId);
@@ -195,9 +195,14 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
         curator.setData().forPath(sessionPath, data); // Stat last modification time (mtime) will change
     }
 
-    private int countUserSessions(String userId) throws Exception {
-        Stat userStat = curator.checkExists().forPath(userPath(userId));
-        return userStat != null ? userStat.getNumChildren() : 0;
+    @Override
+    public int getSessionCount(String userId) {
+        try {
+            Stat userStat = curator.checkExists().forPath(userPath(userId));
+            return userStat != null ? userStat.getNumChildren() : 0;
+        } catch (Exception ex) {
+            throw new VisalloException("Could not get session count for user " + userId, ex);
+        }
     }
 
     protected void startOldSessionCleanup() {
