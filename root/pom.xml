@@ -43,6 +43,7 @@
 
         <!-- Dependency Versions -->
         <accumulo.version>1.6.1</accumulo.version>
+        <h2.version>1.4.188</h2.version>
         <ant.version>1.4.1</ant.version>
         <atmosphere.version>2.2.7</atmosphere.version>
         <commons.beanutils.version>1.9.1</commons.beanutils.version>
@@ -523,6 +524,11 @@
                 <version>${simple-orm.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.vertexium</groupId>
                 <artifactId>vertexium-core</artifactId>
                 <version>${vertexium.version}</version>
@@ -549,6 +555,11 @@
             </dependency>
             <dependency>
                 <groupId>org.vertexium</groupId>
+                <artifactId>vertexium-sql</artifactId>
+                <version>${vertexium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.vertexium</groupId>
                 <artifactId>vertexium-accumulo</artifactId>
                 <version>${vertexium.version}</version>
                 <exclusions>
@@ -561,6 +572,11 @@
             <dependency>
                 <groupId>org.vertexium</groupId>
                 <artifactId>vertexium-kryo-serializer</artifactId>
+                <version>${vertexium.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.vertexium</groupId>
+                <artifactId>vertexium-xstream-serializer</artifactId>
                 <version>${vertexium.version}</version>
             </dependency>
             <dependency>

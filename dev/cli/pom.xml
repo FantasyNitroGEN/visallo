@@ -36,7 +36,7 @@
 
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-model-rabbitmq</artifactId>
+            <artifactId>visallo-model-queue-rabbitmq</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

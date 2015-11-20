@@ -74,6 +74,17 @@
     
 
 
+    <!-- http://visallo.org#deleteable -->
+
+    <owl:AnnotationProperty rdf:about="http://visallo.org#deleteable">
+        <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:AnnotationProperty>
+    
+
+
     <!-- http://visallo.org#dependentPropertyIri -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#dependentPropertyIri">
@@ -255,6 +266,17 @@
         <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:AnnotationProperty>
+    
+
+
+    <!-- http://visallo.org#updateable -->
+
+    <owl:AnnotationProperty rdf:about="http://visallo.org#updateable">
+        <userVisible>false</userVisible>
+        <textIndexHints>NONE</textIndexHints>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:AnnotationProperty>
     

@@ -1,4 +1,4 @@
-package org.visallo.test;
+package org.visallo.model.queue.inmemory;
 
 import com.google.inject.Inject;
 import org.json.JSONObject;
