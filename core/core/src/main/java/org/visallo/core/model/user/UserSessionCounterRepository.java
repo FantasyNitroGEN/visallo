@@ -7,7 +7,6 @@ import com.google.inject.ImplementedBy;
  * Use {@link org.visallo.core.bootstrap.BootstrapBindingProvider} to bind to an implementation of
  * {@link UserSessionCounterRepository}.
  */
-@ImplementedBy(CuratorUserSessionCounterRepository.class)
 public interface UserSessionCounterRepository {
     /**
      * Create or update a user session.
