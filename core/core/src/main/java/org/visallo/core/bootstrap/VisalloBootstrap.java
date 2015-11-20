@@ -121,10 +121,12 @@ public class VisalloBootstrap extends AbstractModule {
         MetricsManager metricsManager = new JmxMetricsManager();
         bind(MetricsManager.class).toInstance(metricsManager);
 
-        LOGGER.debug("binding %s", CuratorFrameworkProvider.class.getName());
-        bind(CuratorFramework.class)
-                .toProvider(new CuratorFrameworkProvider(configuration))
-                .in(Scopes.SINGLETON);
+        if (configuration.getBoolean(Configuration.CURATOR_ENABLED, Configuration.CURATOR_ENABLED_DEFAULT)) {
+            LOGGER.debug("binding %s", CuratorFrameworkProvider.class.getName());
+            bind(CuratorFramework.class)
+                    .toProvider(new CuratorFrameworkProvider(configuration))
+                    .in(Scopes.SINGLETON);
+        }
 
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Traced.class), new TracedMethodInterceptor());
 
