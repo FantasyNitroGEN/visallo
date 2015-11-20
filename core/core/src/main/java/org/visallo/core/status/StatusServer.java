@@ -3,6 +3,7 @@ package org.visallo.core.status;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.Description;
@@ -12,9 +13,6 @@ import org.visallo.core.status.model.Status;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.CreateMode;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,19 +25,19 @@ import java.util.jar.Manifest;
 
 public abstract class StatusServer {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(StatusServer.class);
-    private final String zkPath;
-    private final CuratorFramework curatorFramework;
     private final Configuration configuration;
     private final HttpServer httpServer;
     private final Date startTime;
     private final String type;
-    private final Class<? extends StatusServer> sourceClass;
+    private final Class sourceClass;
+    private final StatusRepository.StatusHandle statusHandle;
+    private final StatusRepository statusRepository;
 
-    public StatusServer(Configuration configuration, CuratorFramework curatorFramework, String type, Class sourceClass) {
+    public StatusServer(Configuration configuration, StatusRepository statusRepository, String type, Class sourceClass) {
+        this.statusRepository = statusRepository;
         this.sourceClass = sourceClass;
         this.type = type;
         this.configuration = configuration;
-        this.curatorFramework = curatorFramework;
         this.startTime = new Date();
 
         String portRange = configuration.get(Configuration.STATUS_PORT_RANGE, Configuration.DEFAULT_STATUS_PORT_RANGE);
@@ -47,14 +45,13 @@ public abstract class StatusServer {
 
         String url = getUrl();
         LOGGER.debug("Using url: " + url);
-        String path = getPath(configuration, type);
         try {
             String hostname = InetAddress.getLocalHost().getHostName();
             String hostAddress = InetAddress.getLocalHost().getHostAddress();
             StatusData statusData = new StatusData(url, hostname, hostAddress);
-            this.zkPath = curatorFramework.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path, statusData.toBytes());
-        } catch (Exception e) {
-            throw new VisalloException("Could not create ZooKeeper EPHEMERAL node", e);
+            this.statusHandle = statusRepository.saveStatus(type, UUID.randomUUID().toString(), statusData);
+        } catch (UnknownHostException e) {
+            throw new VisalloException("Could not get local host address", e);
         }
     }
 
@@ -95,19 +92,6 @@ public abstract class StatusServer {
         throw new VisalloException("Could not start HTTP status server");
     }
 
-    protected String getPath(Configuration configuration, String type) {
-        String path = configuration.get(Configuration.STATUS_ZK_PATH, Configuration.DEFAULT_STATUS_ZK_PATH);
-        if (!path.endsWith("/")) {
-            path += "/";
-        }
-        path += type;
-        if (!path.endsWith("/")) {
-            path += "/";
-        }
-        path += UUID.randomUUID().toString();
-        return path;
-    }
-
     public void shutdown() {
         try {
             httpServer.stop(0);
@@ -115,11 +99,7 @@ public abstract class StatusServer {
             LOGGER.error("Could not stop http server", ex);
         }
 
-        try {
-            curatorFramework.delete().forPath(this.zkPath);
-        } catch (Throwable ex) {
-            LOGGER.error("Could not delete ZK path: " + this.zkPath, ex);
-        }
+        statusRepository.deleteStatus(this.statusHandle);
     }
 
     private class StatusHandler implements HttpHandler {

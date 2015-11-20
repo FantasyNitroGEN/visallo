@@ -6,4 +6,8 @@ public class TimeRepository {
     public Date getNow() {
         return new Date();
     }
+
+    public long currentTimeMillis() {
+        return System.currentTimeMillis();
+    }
 }

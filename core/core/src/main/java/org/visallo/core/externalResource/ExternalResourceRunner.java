@@ -3,13 +3,13 @@ package org.visallo.core.externalResource;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.status.MetricEntry;
+import org.visallo.core.status.StatusRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.ExternalResourceRunnerStatus;
 import org.visallo.core.status.model.Status;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.curator.framework.CuratorFramework;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,9 +19,15 @@ public class ExternalResourceRunner {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ExternalResourceRunner.class);
     private final Configuration config;
     private final User user;
+    private final StatusRepository statusRepository;
 
-    public ExternalResourceRunner(Configuration config, final User user) {
+    public ExternalResourceRunner(
+            Configuration config,
+            StatusRepository statusRepository,
+            final User user
+    ) {
         this.config = config;
+        this.statusRepository = statusRepository;
         this.user = user;
     }
 
@@ -46,8 +52,19 @@ public class ExternalResourceRunner {
 
     public Collection<RunningWorker> startAll() {
         final List<RunningWorker> runningWorkers = new ArrayList<>();
-        CuratorFramework curatorFramework = InjectHelper.getInstance(CuratorFramework.class);
-        new StatusServer(config, curatorFramework, "externalResource", ExternalResourceRunner.class) {
+        if (config.getBoolean(Configuration.STATUS_ENABLED, Configuration.STATUS_ENABLED_DEFAULT)) {
+            startStatusServer(runningWorkers);
+        }
+
+        Collection<ExternalResourceWorker> workers = InjectHelper.getInjectedServices(ExternalResourceWorker.class, config);
+        for (final ExternalResourceWorker worker : workers) {
+            runningWorkers.add(start(worker, user));
+        }
+        return runningWorkers;
+    }
+
+    private void startStatusServer(final List<RunningWorker> runningWorkers) {
+        new StatusServer(config, statusRepository, "externalResource", ExternalResourceRunner.class) {
             @Override
             protected ExternalResourceRunnerStatus createStatus() {
                 ExternalResourceRunnerStatus status = new ExternalResourceRunnerStatus();
@@ -57,12 +74,6 @@ public class ExternalResourceRunner {
                 return status;
             }
         };
-
-        Collection<ExternalResourceWorker> workers = InjectHelper.getInjectedServices(ExternalResourceWorker.class, config);
-        for (final ExternalResourceWorker worker : workers) {
-            runningWorkers.add(start(worker, user));
-        }
-        return runningWorkers;
     }
 
     private RunningWorker start(final ExternalResourceWorker worker, final User user) {

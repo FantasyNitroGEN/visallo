@@ -12,4 +12,9 @@ public class MockTimeRepository extends TimeRepository {
     public void setNow(Date now) {
         this.now = now;
     }
+
+    @Override
+    public long currentTimeMillis() {
+        return getNow().getTime();
+    }
 }

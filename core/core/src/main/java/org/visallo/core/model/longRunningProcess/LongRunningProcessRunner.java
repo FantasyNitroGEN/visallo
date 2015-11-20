@@ -8,6 +8,8 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.status.StatusRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.LongRunningProcessRunnerStatus;
 import org.visallo.core.status.model.ProcessStatus;
@@ -27,6 +29,17 @@ public class LongRunningProcessRunner extends WorkerBase {
     private WorkQueueNames workQueueNames;
     private Configuration configuration;
     private List<LongRunningProcessWorker> workers = new ArrayList<>();
+    private final StatusRepository statusRepository;
+
+    @Inject
+    public LongRunningProcessRunner(
+            WorkQueueRepository workQueueRepository,
+            StatusRepository statusRepository,
+            Configuration configuration
+    ) {
+        super(workQueueRepository, configuration);
+        this.statusRepository = statusRepository;
+    }
 
     public void prepare(Map map) {
         prepareUser(map);
@@ -58,7 +71,7 @@ public class LongRunningProcessRunner extends WorkerBase {
 
     @Override
     protected StatusServer createStatusServer() throws Exception {
-        return new StatusServer(configuration, getCuratorFramework(), "longRunningProcess", LongRunningProcessRunner.class) {
+        return new StatusServer(configuration, statusRepository, "longRunningProcess", LongRunningProcessRunner.class) {
             @Override
             protected ProcessStatus createStatus() {
                 LongRunningProcessRunnerStatus status = new LongRunningProcessRunnerStatus();

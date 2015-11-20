@@ -25,12 +25,14 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
+import org.visallo.core.status.StatusRepository;
 import org.visallo.core.time.TimeRepository;
 import org.visallo.core.trace.DefaultTraceRepository;
 import org.visallo.core.trace.TraceRepository;
@@ -147,6 +149,9 @@ public class VisalloBootstrap extends AbstractModule {
         bind(UserRepository.class)
                 .toProvider(VisalloBootstrap.<UserRepository>getConfigurableProvider(configuration, Configuration.USER_REPOSITORY))
                 .in(Scopes.SINGLETON);
+        bind(UserSessionCounterRepository.class)
+                .toProvider(VisalloBootstrap.<UserSessionCounterRepository>getConfigurableProvider(configuration, Configuration.USER_SESSION_COUNTER_REPOSITORY))
+                .in(Scopes.SINGLETON);
         bind(SearchRepository.class)
                 .toProvider(VisalloBootstrap.<SearchRepository>getConfigurableProvider(configuration, Configuration.SEARCH_REPOSITORY))
                 .in(Scopes.SINGLETON);
@@ -170,6 +175,9 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(EmailRepository.class)
                 .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY, SmtpEmailRepository.class))
+                .in(Scopes.SINGLETON);
+        bind(StatusRepository.class)
+                .toProvider(VisalloBootstrap.<StatusRepository>getConfigurableProvider(configuration, Configuration.STATUS_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(ACLProvider.class)
                 .toProvider(VisalloBootstrap.<ACLProvider>getConfigurableProvider(configuration, Configuration.ACL_PROVIDER_REPOSITORY))

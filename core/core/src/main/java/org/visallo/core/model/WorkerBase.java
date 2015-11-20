@@ -1,8 +1,7 @@
 package org.visallo.core.model;
 
-import com.google.inject.Inject;
-import org.apache.curator.framework.CuratorFramework;
 import org.json.JSONObject;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.WorkerTuple;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -11,9 +10,14 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 public abstract class WorkerBase {
+    private final boolean statusEnabled;
     private WorkQueueRepository workQueueRepository;
-    private CuratorFramework curatorFramework;
     private boolean shouldRun;
+
+    protected WorkerBase(WorkQueueRepository workQueueRepository, Configuration configuration) {
+        this.workQueueRepository = workQueueRepository;
+        this.statusEnabled = configuration.getBoolean(Configuration.STATUS_ENABLED, Configuration.STATUS_ENABLED_DEFAULT);
+    }
 
     public void run() throws Exception {
         VisalloLogger logger = VisalloLoggerFactory.getLogger(this.getClass());
@@ -23,7 +27,9 @@ public abstract class WorkerBase {
         shouldRun = true;
         StatusServer statusServer = null;
         try {
-            statusServer = createStatusServer();
+            if (statusEnabled) {
+                statusServer = createStatusServer();
+            }
             while (shouldRun) {
                 WorkerTuple tuple = workerSpout.nextTuple();
                 if (tuple == null) {
@@ -66,23 +72,7 @@ public abstract class WorkerBase {
 
     protected abstract String getQueueName();
 
-    @Inject
-    public final void setWorkQueueRepository(WorkQueueRepository workQueueRepository) {
-        this.workQueueRepository = workQueueRepository;
-    }
-
-    public WorkQueueRepository getWorkQueueRepository() {
+    protected WorkQueueRepository getWorkQueueRepository() {
         return workQueueRepository;
     }
-
-    @Inject
-    public final void setCuratorFramework(CuratorFramework curatorFramework) {
-        this.curatorFramework = curatorFramework;
-    }
-
-    public CuratorFramework getCuratorFramework() {
-        return curatorFramework;
-    }
-
-
 }
