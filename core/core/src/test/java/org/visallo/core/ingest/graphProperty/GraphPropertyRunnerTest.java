@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.vertexium.*;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.MetricsManager;
@@ -37,10 +38,9 @@ public class GraphPropertyRunnerTest {
 
     @Before
     public void before(){
-        _testSubject = new GraphPropertyRunner();
+        _testSubject = new GraphPropertyRunner(mock(WorkQueueRepository.class), mock(Configuration.class));
         _graph = mock(Graph.class);
         _testSubject.setGraph(_graph);
-        _testSubject.setWorkQueueRepository(mock(WorkQueueRepository.class));
     }
 
     @Test(expected = VisalloException.class)

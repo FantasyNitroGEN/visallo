@@ -9,7 +9,6 @@ import org.visallo.core.status.model.Status;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.curator.framework.CuratorFramework;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,8 +45,19 @@ public class ExternalResourceRunner {
 
     public Collection<RunningWorker> startAll() {
         final List<RunningWorker> runningWorkers = new ArrayList<>();
-        CuratorFramework curatorFramework = InjectHelper.getInstance(CuratorFramework.class);
-        new StatusServer(config, curatorFramework, "externalResource", ExternalResourceRunner.class) {
+        if (config.getBoolean(Configuration.STATUS_ENABLED, Configuration.STATUS_ENABLED_DEFAULT)) {
+            startStatusServer(runningWorkers);
+        }
+
+        Collection<ExternalResourceWorker> workers = InjectHelper.getInjectedServices(ExternalResourceWorker.class, config);
+        for (final ExternalResourceWorker worker : workers) {
+            runningWorkers.add(start(worker, user));
+        }
+        return runningWorkers;
+    }
+
+    private void startStatusServer(final List<RunningWorker> runningWorkers) {
+        new StatusServer(config, "externalResource", ExternalResourceRunner.class) {
             @Override
             protected ExternalResourceRunnerStatus createStatus() {
                 ExternalResourceRunnerStatus status = new ExternalResourceRunnerStatus();
@@ -57,12 +67,6 @@ public class ExternalResourceRunner {
                 return status;
             }
         };
-
-        Collection<ExternalResourceWorker> workers = InjectHelper.getInjectedServices(ExternalResourceWorker.class, config);
-        for (final ExternalResourceWorker worker : workers) {
-            runningWorkers.add(start(worker, user));
-        }
-        return runningWorkers;
     }
 
     private RunningWorker start(final ExternalResourceWorker worker, final User user) {

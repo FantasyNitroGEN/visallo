@@ -3,6 +3,7 @@ package org.visallo.core.status;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.Description;
@@ -35,11 +36,11 @@ public abstract class StatusServer {
     private final String type;
     private final Class<? extends StatusServer> sourceClass;
 
-    public StatusServer(Configuration configuration, CuratorFramework curatorFramework, String type, Class sourceClass) {
+    public StatusServer(Configuration configuration, String type, Class sourceClass) {
         this.sourceClass = sourceClass;
         this.type = type;
         this.configuration = configuration;
-        this.curatorFramework = curatorFramework;
+        this.curatorFramework = InjectHelper.getInstance(CuratorFramework.class);;
         this.startTime = new Date();
 
         String portRange = configuration.get(Configuration.STATUS_PORT_RANGE, Configuration.DEFAULT_STATUS_PORT_RANGE);

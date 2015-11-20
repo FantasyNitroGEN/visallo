@@ -17,6 +17,7 @@ import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.GraphPropertyRunnerStatus;
@@ -48,6 +49,11 @@ public class GraphPropertyRunner extends WorkerBase {
     private Configuration configuration;
     private VisibilityTranslator visibilityTranslator;
     private AtomicLong lastProcessedPropertyTime = new AtomicLong(0);
+
+    @Inject
+    protected GraphPropertyRunner(WorkQueueRepository workQueueRepository, Configuration configuration) {
+        super(workQueueRepository, configuration);
+    }
 
     @Override
     public void process(Object messageId, JSONObject json) throws Exception {
@@ -174,7 +180,7 @@ public class GraphPropertyRunner extends WorkerBase {
 
     @Override
     protected StatusServer createStatusServer() throws Exception {
-        return new StatusServer(configuration, getCuratorFramework(), "graphProperty", GraphPropertyRunner.class) {
+        return new StatusServer(configuration, "graphProperty", GraphPropertyRunner.class) {
             @Override
             protected ProcessStatus createStatus() {
                 GraphPropertyRunnerStatus status = new GraphPropertyRunnerStatus();
