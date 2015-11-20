@@ -49,12 +49,23 @@
                 </dependency>
             </dependencies>
         </profile>
+
         <profile>
             <id>queue-rabbitmq</id>
             <dependencies>
                 <dependency>
                     <groupId>org.visallo</groupId>
-                    <artifactId>visallo-model-rabbitmq</artifactId>
+                    <artifactId>visallo-model-queue-rabbitmq</artifactId>
+                    <version>${v5.visallo.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>queue-memory</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-model-queue-inmemory</artifactId>
                     <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>
