@@ -6,6 +6,8 @@ import com.google.inject.Singleton;
 import org.apache.commons.lang.SerializationException;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.leader.LeaderSelector;
+import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
@@ -28,6 +30,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
 
     protected static final String DEFAULT_BASE_PATH = "/visallo/userSessions";
     protected final static String IDS_SEGMENT = "/ids";
+    private static final String LEADER_SEGMENT = "/leader";
     protected final static int SESSION_UPDATE_DURATION = 60000;  // 1 minute
     protected final static int UNSEEN_SESSION_DURATION = 300000; // 5 minutes
 
@@ -57,6 +60,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
         } catch (Exception e) {
             throw new VisalloException("unable to create base path " + basePath, e);
         }
+        startOldSessionCleanup();
     }
 
     @Override
@@ -77,7 +81,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
                 setSessionData(sessionPath, autoDelete);
             }
 
-            int count = countUserSessions(userId);
+            int count = getSessionCount(userId);
             LOGGER.debug("user session count for %s is %d", userId, count);
             return count;
         } catch (Exception e) {
@@ -90,7 +94,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
         checkNotNull(userId, "userId cannot be null");
         try {
             ZKPaths.deleteChildren(curator.getZookeeperClient().getZooKeeper(), userPath(userId), true);
-        } catch(KeeperException.NoNodeException nne) {
+        } catch (KeeperException.NoNodeException nne) {
             LOGGER.warn("there were no sessions to delete for user: %s [%s : %s]", userId, nne.getPath(), nne.getMessage());
         } catch (Exception e) {
             throw new VisalloException("failed to delete sessions for user: " + userId, e);
@@ -109,7 +113,7 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
             if (sessionStat != null) {
                 curator.delete().forPath(sessionPath); // must be synchronous so count is accurate
             }
-            count = countUserSessions(userId);
+            count = getSessionCount(userId);
             LOGGER.debug("user session count for %s is %d", userId, count);
             if (count < 1) {
                 LOGGER.debug("deleting user %s with no remaining sessions", userId);
@@ -191,8 +195,44 @@ public class CuratorUserSessionCounterRepository implements UserSessionCounterRe
         curator.setData().forPath(sessionPath, data); // Stat last modification time (mtime) will change
     }
 
-    private int countUserSessions(String userId) throws Exception {
-        Stat userStat = curator.checkExists().forPath(userPath(userId));
-        return userStat != null ? userStat.getNumChildren() : 0;
+    @Override
+    public int getSessionCount(String userId) {
+        try {
+            Stat userStat = curator.checkExists().forPath(userPath(userId));
+            return userStat != null ? userStat.getNumChildren() : 0;
+        } catch (Exception ex) {
+            throw new VisalloException("Could not get session count for user " + userId, ex);
+        }
+    }
+
+    protected void startOldSessionCleanup() {
+        String leaderPath = basePath + LEADER_SEGMENT;
+        try {
+            tryCreate(leaderPath);
+        } catch (Exception e) {
+            throw new VisalloException("unable to create base path " + basePath, e);
+        }
+        LeaderSelector leaderSelector = new LeaderSelector(curator, leaderPath,
+                new LeaderSelectorListenerAdapter() {
+                    @Override
+                    public void takeLeadership(CuratorFramework client) throws Exception {
+                        try {
+                            LOGGER.debug("starting user session cleanup");
+                            while (true) {
+                                try {
+                                    deleteOldSessions();
+                                } catch (Exception e) {
+                                    LOGGER.error("failed to delete old sessions", e);
+                                }
+                                Thread.sleep(SESSION_UPDATE_DURATION);
+                            }
+                        } catch (InterruptedException e) {
+                            LOGGER.debug("stopping user session cleanup");
+                            throw e;
+                        }
+                    }
+                });
+        leaderSelector.autoRequeue();
+        leaderSelector.start();
     }
 }
