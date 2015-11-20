@@ -62,7 +62,7 @@ public class OntologyACLProvider extends ACLProvider {
     @Override
     public boolean canDeleteElement(ClientApiElement e) {
         if (e instanceof ClientApiVertex) {
-            Concept concept = getOntologyConceptFromElement(e.getConceptType());
+            Concept concept = getOntologyConceptFromElement(((ClientApiVertex) e).getConceptType());
             return concept.getDeleteable();
         } else if (e instanceof ClientApiEdge) {
             Relationship relationship = getOntologyRelationshipFromElement(((ClientApiEdge) e).getLabel());
@@ -81,7 +81,7 @@ public class OntologyACLProvider extends ACLProvider {
     @Override
     public boolean canUpdateElement(ClientApiElement e) {
         if (e instanceof ClientApiVertex) {
-            Concept concept = getOntologyConceptFromElement(e.getConceptType());
+            Concept concept = getOntologyConceptFromElement(((ClientApiVertex) e).getConceptType());
             return concept.getUpdateable();
         } else if (e instanceof ClientApiEdge) {
             Relationship relationship = getOntologyRelationshipFromElement(((ClientApiEdge) e).getLabel());
