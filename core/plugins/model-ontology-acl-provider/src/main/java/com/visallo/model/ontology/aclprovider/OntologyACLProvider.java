@@ -62,8 +62,13 @@ public class OntologyACLProvider extends ACLProvider {
     @Override
     public boolean canDeleteElement(ClientApiElement e) {
         if (e instanceof ClientApiVertex) {
-            Concept concept = getOntologyConceptFromElement(((ClientApiVertex) e).getConceptType());
-            return concept.getDeleteable();
+            String conceptType = ((ClientApiVertex) e).getConceptType();
+            if (conceptType != null) {
+                Concept concept = getOntologyConceptFromElement(conceptType);
+                return concept.getDeleteable();
+            } else {
+                return true;
+            }
         } else if (e instanceof ClientApiEdge) {
             Relationship relationship = getOntologyRelationshipFromElement(((ClientApiEdge) e).getLabel());
             return relationship.getDeleteable();
@@ -81,8 +86,13 @@ public class OntologyACLProvider extends ACLProvider {
     @Override
     public boolean canUpdateElement(ClientApiElement e) {
         if (e instanceof ClientApiVertex) {
-            Concept concept = getOntologyConceptFromElement(((ClientApiVertex) e).getConceptType());
-            return concept.getUpdateable();
+            String conceptType = ((ClientApiVertex) e).getConceptType();
+            if (conceptType != null) {
+                Concept concept = getOntologyConceptFromElement(conceptType);
+                return concept.getUpdateable();
+            } else {
+                return true;
+            }
         } else if (e instanceof ClientApiEdge) {
             Relationship relationship = getOntologyRelationshipFromElement(((ClientApiEdge) e).getLabel());
             return relationship.getUpdateable();

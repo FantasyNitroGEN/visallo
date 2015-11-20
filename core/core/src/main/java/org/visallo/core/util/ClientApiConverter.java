@@ -123,7 +123,6 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         if (clientApiElement instanceof ClientApiVertex) {
             ClientApiVertex clientApiVertex = (ClientApiVertex) clientApiElement;
             String conceptType = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element, null);
-            checkNotNull(conceptType, "Concept type cannot be null, element id: " + element.getId());
             clientApiVertex.setConceptType(conceptType);
         }
     }
