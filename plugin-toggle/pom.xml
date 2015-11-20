@@ -26,6 +26,36 @@
             </dependencies>
         </profile>
         <profile>
+            <id>storage-sql</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.vertexium</groupId>
+                    <artifactId>vertexium-sql</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.v5analytics.simpleorm</groupId>
+                    <artifactId>simple-orm-sql</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>storage-sql-h2</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.vertexium</groupId>
+                    <artifactId>vertexium-sql</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.v5analytics.simpleorm</groupId>
+                    <artifactId>simple-orm-sql</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>storage-accumulo</id>
             <dependencies>
                 <dependency>
@@ -40,12 +70,25 @@
                 <dependency>
                     <groupId>org.vertexium</groupId>
                     <artifactId>vertexium-accumulo</artifactId>
-                    <version>${vertexium.version}</version>
                 </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>serializer-kryo</id>
+            <dependencies>
                 <dependency>
                     <groupId>org.vertexium</groupId>
                     <artifactId>vertexium-kryo-serializer</artifactId>
-                    <version>${vertexium.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>serializer-xstream</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.vertexium</groupId>
+                    <artifactId>vertexium-xstream-serializer</artifactId>
                 </dependency>
             </dependencies>
         </profile>
