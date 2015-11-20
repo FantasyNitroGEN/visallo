@@ -51,6 +51,7 @@ public class Configuration {
     public static final String WORKSPACE_REPOSITORY = "repository.workspace";
     public static final String AUTHORIZATION_REPOSITORY = "repository.authorization";
     public static final String ONTOLOGY_REPOSITORY = "repository.ontology";
+    public static final String USER_SESSION_COUNTER_REPOSITORY = "repository.userSessionCounter";
     public static final String WORK_QUEUE_REPOSITORY = "repository.workQueue";
     public static final String LONG_RUNNING_PROCESS_REPOSITORY = "repository.longRunningProcess";
     public static final String SIMPLE_ORM_SESSION = "simpleOrmSession";
