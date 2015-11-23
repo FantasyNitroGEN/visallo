@@ -1,10 +1,12 @@
 package org.visallo.geoip;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -21,7 +23,26 @@ public class GeoIpRepository {
     private Map<Long, List<GeoIp>> geoIpLookupTable = new HashMap<>();
     private Map<Long, String> locationLookupTable = new HashMap<>();
 
-    public void loadGeoLocations(InputStream in) {
+    public GeoIpRepository(FileSystemRepository fileSystemRepository) {
+        String geoLite2CityBlocksIpv4HdfsPath = "/GeoLite2-City-Blocks-IPv4.csv";
+        LOGGER.debug("Loading %s", geoLite2CityBlocksIpv4HdfsPath);
+        try (InputStream in = fileSystemRepository.getInputStream(geoLite2CityBlocksIpv4HdfsPath)) {
+            loadGeoIp(in);
+        } catch (IOException e) {
+            throw new VisalloException("Could not close file", e);
+        }
+
+        String geoLite2CityLocationsEnHdfsPath = "/GeoLite2-City-Locations-en.csv";
+        LOGGER.debug("Loading %s", geoLite2CityLocationsEnHdfsPath);
+        try (InputStream in = fileSystemRepository.getInputStream(geoLite2CityLocationsEnHdfsPath)) {
+            loadGeoLocations(in);
+        } catch (IOException e) {
+            throw new VisalloException("Could not close file", e);
+        }
+    }
+
+    @VisibleForTesting
+    void loadGeoLocations(InputStream in) {
         try {
             CsvListReader csvReader = new CsvListReader(new InputStreamReader(in), CsvPreference.STANDARD_PREFERENCE);
             csvReader.read(); // skip title line
@@ -41,7 +62,7 @@ public class GeoIpRepository {
         }
     }
 
-    public void loadGeoLocationLine(List<String> parts) {
+    private void loadGeoLocationLine(List<String> parts) {
         if (parts.size() != 13) {
             throw new VisalloException("Invalid Geo location line. Expected 13 parts, found " + parts.size());
         }
@@ -54,7 +75,8 @@ public class GeoIpRepository {
         addLocation(id, Joiner.on(", ").skipNulls().join(continent, country, subdivision1, subdivision2, city));
     }
 
-    public void addLocation(long id, String location) {
+    @VisibleForTesting
+    void addLocation(long id, String location) {
         this.locationLookupTable.put(id, location);
     }
 
@@ -69,7 +91,8 @@ public class GeoIpRepository {
         return s;
     }
 
-    public void loadGeoIp(InputStream in) {
+    @VisibleForTesting
+    void loadGeoIp(InputStream in) {
         try {
             CsvListReader csvReader = new CsvListReader(new InputStreamReader(in), CsvPreference.STANDARD_PREFERENCE);
             csvReader.read(); // skip title line
@@ -89,7 +112,8 @@ public class GeoIpRepository {
         }
     }
 
-    public void addGeoIpLine(List<String> parts) {
+    @VisibleForTesting
+    void addGeoIpLine(List<String> parts) {
         if (parts.size() != 9) {
             throw new VisalloException("Invalid GeoIP line. Expected 9 parts, found " + parts.size());
         }
@@ -115,7 +139,8 @@ public class GeoIpRepository {
         addGeoIp(ip, bits, geonameId, new GeoPoint(latitude, longitude));
     }
 
-    public void addGeoIp(String ipAddress, int bits, Long geonameId, GeoPoint location) {
+    @VisibleForTesting
+    void addGeoIp(String ipAddress, int bits, Long geonameId, GeoPoint location) {
         long ipAddr = parseIpAddress(ipAddress);
         long key = getLookupTableKey(ipAddr);
         List<GeoIp> geoIps = geoIpLookupTable.get(key);

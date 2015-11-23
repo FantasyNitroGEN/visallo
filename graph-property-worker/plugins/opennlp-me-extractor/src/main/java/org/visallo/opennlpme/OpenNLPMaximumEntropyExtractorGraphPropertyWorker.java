@@ -1,5 +1,6 @@
 package org.visallo.opennlpme;
 
+import com.google.inject.Inject;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
@@ -9,8 +10,6 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.ObjectStream;
 import opennlp.tools.util.PlainTextByLineStream;
 import opennlp.tools.util.Span;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.vertexium.Element;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
@@ -19,6 +18,7 @@ import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionBuilder;
 import org.visallo.core.util.VisalloLogger;
@@ -34,15 +34,20 @@ import java.util.List;
 @Description("Extracts terms from text using an OpenNLP maximum entropy")
 public class OpenNLPMaximumEntropyExtractorGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OpenNLPMaximumEntropyExtractorGraphPropertyWorker.class);
-    public static final String PATH_PREFIX_CONFIG = "termextraction.opennlp.pathPrefix";
-    private static final String DEFAULT_PATH_PREFIX = "hdfs://";
     private static final int NEW_LINE_CHARACTER_LENGTH = 1;
+    private static final String PATH_PREFIX = "/" + OpenNLPMaximumEntropyExtractorGraphPropertyWorker.class.getName();
+    private final FileSystemRepository fileSystemRepository;
 
     private List<TokenNameFinder> finders;
     private Tokenizer tokenizer;
     private String locationIri;
     private String organizationIri;
     private String personIri;
+
+    @Inject
+    public OpenNLPMaximumEntropyExtractorGraphPropertyWorker(FileSystemRepository fileSystemRepository) {
+        this.fileSystemRepository = fileSystemRepository;
+    }
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
@@ -52,12 +57,8 @@ public class OpenNLPMaximumEntropyExtractorGraphPropertyWorker extends GraphProp
         this.organizationIri = getOntologyRepository().getRequiredConceptIRIByIntent("organization");
         this.personIri = getOntologyRepository().getRequiredConceptIRIByIntent("person");
 
-        String pathPrefix = (String) workerPrepareData.getConfiguration().get(PATH_PREFIX_CONFIG);
-        if (pathPrefix == null) {
-            pathPrefix = DEFAULT_PATH_PREFIX;
-        }
-        this.tokenizer = loadTokenizer(pathPrefix, workerPrepareData.getHdfsFileSystem());
-        this.finders = loadFinders(pathPrefix, workerPrepareData.getHdfsFileSystem());
+        this.tokenizer = loadTokenizer();
+        this.finders = loadFinders();
     }
 
     @Override
@@ -142,16 +143,17 @@ public class OpenNLPMaximumEntropyExtractorGraphPropertyWorker extends GraphProp
         return !(mimeType == null || !mimeType.startsWith("text"));
     }
 
-    protected List<TokenNameFinder> loadFinders(String pathPrefix, FileSystem fs)
+    protected List<TokenNameFinder> loadFinders()
             throws IOException {
-        Path finderHdfsPaths[] = {
-                new Path(pathPrefix + "/en-ner-location.bin"),
-                new Path(pathPrefix + "/en-ner-organization.bin"),
-                new Path(pathPrefix + "/en-ner-person.bin")};
+        String finderHdfsPaths[] = {
+                PATH_PREFIX + "/en-ner-location.bin",
+                PATH_PREFIX + "/en-ner-organization.bin",
+                PATH_PREFIX + "/en-ner-person.bin"
+        };
         List<TokenNameFinder> finders = new ArrayList<>();
-        for (Path finderHdfsPath : finderHdfsPaths) {
+        for (String finderPath : finderHdfsPaths) {
             TokenNameFinderModel model;
-            try (InputStream finderModelInputStream = fs.open(finderHdfsPath)) {
+            try (InputStream finderModelInputStream = fileSystemRepository.getInputStream(finderPath)) {
                 model = new TokenNameFinderModel(finderModelInputStream);
             }
             NameFinderME finder = new NameFinderME(model);
@@ -161,11 +163,11 @@ public class OpenNLPMaximumEntropyExtractorGraphPropertyWorker extends GraphProp
         return finders;
     }
 
-    protected Tokenizer loadTokenizer(String pathPrefix, FileSystem fs) throws IOException {
-        Path tokenizerHdfsPath = new Path(pathPrefix + "/en-token.bin");
+    protected Tokenizer loadTokenizer() throws IOException {
+        String tokenizerPath = PATH_PREFIX + "/en-token.bin";
 
         TokenizerModel tokenizerModel;
-        try (InputStream tokenizerModelInputStream = fs.open(tokenizerHdfsPath)) {
+        try (InputStream tokenizerModelInputStream = fileSystemRepository.getInputStream(tokenizerPath)) {
             tokenizerModel = new TokenizerModel(tokenizerModelInputStream);
         }
 

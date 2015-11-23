@@ -5,15 +5,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.inject.Inject;
 import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.hadoop.fs.FileSystem;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.UserRepository;
@@ -23,15 +20,6 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VersionUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 
 public abstract class CommandLineTool {
     protected VisalloLogger LOGGER;
@@ -47,7 +35,6 @@ public abstract class CommandLineTool {
     private OntologyRepository ontologyRepository;
     private VisibilityTranslator visibilityTranslator;
     private SimpleOrmSession simpleOrmSession;
-    private CuratorFramework curatorFramework;
 
     @Parameter(names = {"--help", "-h"}, description = "Print help", help = true)
     private boolean help;
@@ -133,10 +120,6 @@ public abstract class CommandLineTool {
             LOGGER.debug("shutting down %s", this.simpleOrmSession.getClass().getName());
             this.simpleOrmSession.close();
         }
-        if (this.curatorFramework != null) {
-            LOGGER.debug("shutting down %s", this.curatorFramework.getClass().getName());
-            this.curatorFramework.close();
-        }
     }
 
     protected abstract int run() throws Exception;
@@ -146,15 +129,6 @@ public abstract class CommandLineTool {
             configuration = ConfigurationLoader.load();
         }
         return configuration;
-    }
-
-    protected FileSystem getFileSystem() throws Exception {
-        String hdfsRootDir = getConfiguration().get(Configuration.HADOOP_URL, null);
-        if (hdfsRootDir == null) {
-            throw new VisalloException("Could not find configuration: " + Configuration.HADOOP_URL);
-        }
-        org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration();
-        return FileSystem.get(new URI(hdfsRootDir), hadoopConfiguration, "hadoop");
     }
 
     protected User getUser() {
@@ -203,15 +177,6 @@ public abstract class CommandLineTool {
     @Inject
     public final void setSimpleOrmSession(SimpleOrmSession simpleOrmSession) {
         this.simpleOrmSession = simpleOrmSession;
-    }
-
-    public CuratorFramework getCuratorFramework() {
-        return curatorFramework;
-    }
-
-    @Inject
-    public final void setCuratorFramework(CuratorFramework curatorFramework) {
-        this.curatorFramework = curatorFramework;
     }
 
     public SimpleOrmSession getSimpleOrmSession() {

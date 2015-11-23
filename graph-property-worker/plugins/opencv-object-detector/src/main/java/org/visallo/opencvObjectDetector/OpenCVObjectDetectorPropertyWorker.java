@@ -1,9 +1,5 @@
 package org.visallo.opencvObjectDetector;
 
-import com.google.inject.Inject;
-import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
@@ -13,7 +9,6 @@ import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.ArtifactDetectedObject;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
@@ -21,6 +16,7 @@ import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.util.VisalloLogger;
@@ -29,8 +25,6 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,9 +40,18 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
     public static final String OPENCV_CLASSIFIER_PATH_PREFIX = "objectdetection.classifier.";
     public static final String OPENCV_CLASSIFIER_PATH_SUFFIX = ".path";
     private static final String PROCESS = OpenCVObjectDetectorPropertyWorker.class.getName();
+    private final ArtifactThumbnailRepository artifactThumbnailRepository;
+    private final FileSystemRepository fileSystemRepository;
 
     private List<CascadeClassifierHolder> objectClassifiers = new ArrayList<>();
-    private ArtifactThumbnailRepository artifactThumbnailRepository;
+
+    public OpenCVObjectDetectorPropertyWorker(
+            ArtifactThumbnailRepository artifactThumbnailRepository,
+            FileSystemRepository fileSystemRepository
+    ) {
+        this.artifactThumbnailRepository = artifactThumbnailRepository;
+        this.fileSystemRepository = fileSystemRepository;
+    }
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
@@ -60,9 +63,10 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
         checkNotNull(conceptListString, OPENCV_CLASSIFIER_CONCEPT_LIST + " is a required configuration parameter");
         String[] classifierConcepts = conceptListString.split(",");
         for (String classifierConcept : classifierConcepts) {
-            String classifierFilePath = (String) workerPrepareData.getConfiguration().get(OPENCV_CLASSIFIER_PATH_PREFIX + classifierConcept + OPENCV_CLASSIFIER_PATH_SUFFIX);
-
-            File localFile = createLocalFile(classifierFilePath, workerPrepareData.getHdfsFileSystem());
+            String classifiedConfigPath = OPENCV_CLASSIFIER_PATH_PREFIX + classifierConcept + OPENCV_CLASSIFIER_PATH_SUFFIX;
+            String classifierFilePath = (String) workerPrepareData.getConfiguration().get(classifiedConfigPath);
+            checkNotNull(classifierFilePath, classifiedConfigPath + " is required");
+            File localFile = fileSystemRepository.getLocalFileFor(classifierFilePath);
             CascadeClassifier objectClassifier = new CascadeClassifier(localFile.getPath());
             String conceptIRI = getOntologyRepository().getRequiredConceptIRIByIntent(classifierConcept);
             addObjectClassifier(classifierConcept, objectClassifier, conceptIRI);
@@ -83,30 +87,6 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
 
     public void addObjectClassifier(String concept, CascadeClassifier objectClassifier, String conceptIRI) {
         objectClassifiers.add(new CascadeClassifierHolder(concept, objectClassifier, conceptIRI));
-    }
-
-    private File createLocalFile(String classifierFilePath, FileSystem fs) throws IOException {
-        File tempFile = File.createTempFile("visallo-opencv-objdetect", ".xml");
-        FileOutputStream fos = null;
-        InputStream in = null;
-        try {
-            if (!fs.exists(new Path(classifierFilePath))) {
-                throw new VisalloException("HDFS file " + classifierFilePath + " does not exist");
-            }
-            in = fs.open(new Path(classifierFilePath));
-            fos = new FileOutputStream(tempFile);
-            IOUtils.copy(in, fos);
-        } catch (IOException e) {
-            throw new VisalloException("Could not create local file", e);
-        } finally {
-            if (in != null) {
-                in.close();
-            }
-            if (fos != null) {
-                fos.close();
-            }
-        }
-        return tempFile;
     }
 
     @Override
@@ -170,11 +150,6 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
 
         String mimeType = VisalloProperties.MIME_TYPE_METADATA.getMetadataValue(property.getMetadata(), null);
         return !(mimeType == null || !mimeType.startsWith("image"));
-    }
-
-    @Inject
-    public void setArtifactThumbnailRepository(ArtifactThumbnailRepository artifactThumbnailRepository) {
-        this.artifactThumbnailRepository = artifactThumbnailRepository;
     }
 
     private class CascadeClassifierHolder {

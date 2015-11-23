@@ -1,9 +1,6 @@
 package org.visallo.zipCodeBoundaries;
 
 import com.google.inject.Inject;
-import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.FeatureSource;
@@ -17,12 +14,12 @@ import org.vertexium.type.GeoRect;
 import org.vertexium.util.ArrayUtils;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,9 +32,12 @@ public class ZipCodeBoundariesRepository {
     private final FeatureCollection collection;
 
     @Inject
-    public ZipCodeBoundariesRepository(Configuration configuration) {
+    public ZipCodeBoundariesRepository(
+            Configuration configuration,
+            FileSystemRepository fileSystemRepository
+    ) {
         try {
-            File tempShapeFile = copyShapeFileLocally(configuration);
+            File tempShapeFile = copyShapeFileLocally(configuration, fileSystemRepository);
 
             Map connect = new HashMap();
             connect.put("url", tempShapeFile.toURI().toURL());
@@ -55,28 +55,14 @@ public class ZipCodeBoundariesRepository {
         }
     }
 
-    protected File copyShapeFileLocally(Configuration configuration) throws IOException {
-        FileSystem hdfsFileSystem = configuration.getFileSystem();
+    protected File copyShapeFileLocally(Configuration configuration, FileSystemRepository fileSystemRepository) throws IOException {
         String pathPrefix = configuration.get(CONFIG_HDFS_PATH_PREFIX, CONFIG_HDFS_PATH_PREFIX_DEFAULT);
-        File tempShapeFile = copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shp");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shx");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.dbf");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.prj");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shp.iso.xml");
-        copyFileFromHdfsToLocal(hdfsFileSystem, pathPrefix, "cb_2014_us_zcta510_500k.shp.xml");
-        return tempShapeFile;
-    }
-
-    private File copyFileFromHdfsToLocal(FileSystem hdfsFileSystem, String pathPrefix, String fileName) throws IOException {
-        Path shapeFilePath = new Path(pathPrefix + "/" + fileName);
-        if (!hdfsFileSystem.exists(shapeFilePath)) {
-            throw new VisalloException("Could not find shape file: " + shapeFilePath);
-        }
-        File tempShapeFile = new File(System.getProperty("java.io.tmpdir"), fileName);
-        LOGGER.debug("Copying %s to %s", shapeFilePath, tempShapeFile.getAbsolutePath());
-        try (InputStream shapeInputStream = hdfsFileSystem.open(shapeFilePath)) {
-            FileUtils.copyInputStreamToFile(shapeInputStream, tempShapeFile);
-        }
+        File tempShapeFile = fileSystemRepository.getLocalFileFor(pathPrefix + "/cb_2014_us_zcta510_500k.shp");
+        fileSystemRepository.getLocalFileFor(pathPrefix + "/cb_2014_us_zcta510_500k.shx");
+        fileSystemRepository.getLocalFileFor(pathPrefix + "/cb_2014_us_zcta510_500k.dbf");
+        fileSystemRepository.getLocalFileFor(pathPrefix + "/cb_2014_us_zcta510_500k.prj");
+        fileSystemRepository.getLocalFileFor(pathPrefix + "/cb_2014_us_zcta510_500k.shp.iso.xml");
+        fileSystemRepository.getLocalFileFor(pathPrefix + "/cb_2014_us_zcta510_500k.shp.xml");
         return tempShapeFile;
     }
 
@@ -104,7 +90,7 @@ public class ZipCodeBoundariesRepository {
         try (FeatureIterator iterator = collection.features()) {
             while (iterator.hasNext()) {
                 Feature feature = iterator.next();
-                if(ArrayUtils.contains(zipCodes, Features.Feature.getZipCode(feature))) {
+                if (ArrayUtils.contains(zipCodes, Features.Feature.getZipCode(feature))) {
                     Features.Feature f = Features.Feature.create(feature);
                     if (f != null) {
                         results.add(f);

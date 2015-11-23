@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.util.ProcessUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.core.util.ProcessUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -155,6 +155,10 @@ public class FileConfigurationLoader extends ConfigurationLoader {
 
     @Override
     public File resolveFileName(String fileName) {
+        return resolveLocalFileName(fileName);
+    }
+
+    public static File resolveLocalFileName(String fileName) {
         List<File> configDirectories = getVisalloDirectoriesFromMostPriority("config");
         if (configDirectories.size() == 0) {
             throw new VisalloResourceNotFoundException("Could not find any valid config directories.");
@@ -165,6 +169,6 @@ public class FileConfigurationLoader extends ConfigurationLoader {
                 return f;
             }
         }
-        return new File(configDirectories.get(0), fileName);
+        throw new VisalloException("Could not find file: " + fileName);
     }
 }

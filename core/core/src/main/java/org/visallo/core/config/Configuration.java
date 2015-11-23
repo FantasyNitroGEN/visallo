@@ -4,7 +4,6 @@ import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
-import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloException;
@@ -21,7 +20,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.*;
 
 /**
@@ -39,10 +37,10 @@ public class Configuration {
     public static final String[] PROPERTY_PREFIXES_FOR_HADOOP_CONF = new String[]{"fs", "dfs", "hadoop", "mapreduce", "yarn"};
 
     public static final String BASE_URL = "base.url";
-    public static final String HADOOP_URL = "hadoop.url";
     public static final String HDFS_LIB_SOURCE_DIRECTORY = "hdfsLib.sourceDirectory";
     public static final String HDFS_LIB_TEMP_DIRECTORY = "hdfsLib.tempDirectory";
-    public static final String HDFS_LIB_HDFS_USER = "hdfsLib.user";
+    public static final String HDFS_USER_NAME = "hdfsUserName";
+    public static final String HDFS_USER_NAME_DEFAULT = "hadoop";
     public static final String ZK_SERVERS = "zookeeper.serverNames";
     public static final String LOCK_REPOSITORY = "repository.lock";
     public static final String TRACE_REPOSITORY = "repository.trace";
@@ -61,6 +59,7 @@ public class Configuration {
     public static final String STATUS_REPOSITORY = "repository.status";
     public static final String ONTOLOGY_REPOSITORY_OWL = "repository.ontology.owl";
     public static final String ACL_PROVIDER_REPOSITORY = "repository.acl";
+    public static final String FILE_SYSTEM_REPOSITORY = "repository.fileSystem";
     public static final String GRAPH_PROVIDER = "graph";
     public static final String VISIBILITY_TRANSLATOR = "security.visibilityTranslator";
     public static final String DEFAULT_PRIVILEGES = "newuser.privileges";
@@ -344,6 +343,14 @@ public class Configuration {
         return sb.toString();
     }
 
+    public org.apache.hadoop.conf.Configuration getHadoopConfiguration(org.apache.hadoop.conf.Configuration additionalConfiguration) {
+        org.apache.hadoop.conf.Configuration result = getHadoopConfiguration();
+        for (Map.Entry<String, String> entry : additionalConfiguration) {
+            result.set(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
     public org.apache.hadoop.conf.Configuration getHadoopConfiguration() {
         org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration();
 
@@ -423,30 +430,6 @@ public class Configuration {
         LOGGER.debug("Hadoop configuration:%n%s", sb.toString());
 
         return hadoopConfiguration;
-    }
-
-    @Deprecated
-    public org.apache.hadoop.conf.Configuration toHadoopConfiguration() {
-        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-        for (Object entryObj : this.toMap().entrySet()) {
-            Map.Entry entry = (Map.Entry) entryObj;
-            conf.set(entry.getKey().toString(), entry.getValue().toString());
-        }
-        return conf;
-    }
-
-    @Deprecated
-    public org.apache.hadoop.conf.Configuration toHadoopConfiguration(org.apache.hadoop.conf.Configuration additionalConfiguration) {
-        org.apache.hadoop.conf.Configuration hadoopConfig = toHadoopConfiguration();
-        hadoopConfig.setBoolean("mapred.used.genericoptionsparser", true); // eliminates warning on our version of hadoop
-        for (Map.Entry<String, String> toolConfItem : additionalConfiguration) {
-            hadoopConfig.set(toolConfItem.getKey(), toolConfItem.getValue());
-        }
-        return hadoopConfig;
-    }
-
-    public File resolveFileName(String fileName) {
-        return this.configurationLoader.resolveFileName(fileName);
     }
 
     public JSONObject toJSON(Locale locale) {
@@ -564,17 +547,5 @@ public class Configuration {
 
     public JSONObject getConfigurationInfo() {
         return configurationLoader.getConfigurationInfo();
-    }
-
-    public FileSystem getFileSystem() {
-        FileSystem hdfsFileSystem;
-        org.apache.hadoop.conf.Configuration conf = toHadoopConfiguration();
-        try {
-            String hdfsRootDir = get(Configuration.HADOOP_URL, null);
-            hdfsFileSystem = FileSystem.get(new URI(hdfsRootDir), conf, "hadoop");
-        } catch (Exception e) {
-            throw new VisalloException("Could not open hdfs filesystem", e);
-        }
-        return hdfsFileSystem;
     }
 }

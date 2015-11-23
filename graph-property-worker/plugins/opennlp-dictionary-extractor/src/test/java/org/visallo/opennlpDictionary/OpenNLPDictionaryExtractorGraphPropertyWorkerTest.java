@@ -1,13 +1,6 @@
 package org.visallo.opennlpDictionary;
 
 import com.google.common.collect.ImmutableMap;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestSetupBase;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.workQueue.Priority;
-import org.visallo.opennlpDictionary.model.DictionaryEntryRepository;
-import org.visallo.web.clientapi.model.VisibilityJson;
 import opennlp.tools.dictionary.Dictionary;
 import opennlp.tools.namefind.DictionaryNameFinder;
 import opennlp.tools.namefind.TokenNameFinder;
@@ -20,6 +13,15 @@ import org.vertexium.ElementBuilder;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
 import org.vertexium.inmemory.InMemoryAuthorizations;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestSetupBase;
+import org.visallo.core.model.file.ClassPathFileSystemRepository;
+import org.visallo.core.model.file.FileSystemRepository;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.Priority;
+import org.visallo.opennlpDictionary.model.DictionaryEntryRepository;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,28 +36,23 @@ import static org.vertexium.util.IterableUtils.toList;
 @RunWith(MockitoJUnitRunner.class)
 public class OpenNLPDictionaryExtractorGraphPropertyWorkerTest extends GraphPropertyWorkerTestSetupBase {
     private static final String RESOURCE_CONFIG_DIR = "/fs/conf/opennlp";
+    public static final String TEST_FS_ROOT = "/testFsRoot";
 
     @Mock
     private DictionaryEntryRepository dictionaryEntryRepository;
 
     @Override
     protected GraphPropertyWorker createGraphPropertyWorker() {
+        FileSystemRepository fileSystemRepository = new ClassPathFileSystemRepository(TEST_FS_ROOT);
+
         final List<TokenNameFinder> finders = loadFinders();
-        OpenNLPDictionaryExtractorGraphPropertyWorker worker = new OpenNLPDictionaryExtractorGraphPropertyWorker() {
+        OpenNLPDictionaryExtractorGraphPropertyWorker worker = new OpenNLPDictionaryExtractorGraphPropertyWorker(dictionaryEntryRepository, fileSystemRepository) {
             @Override
             protected List<TokenNameFinder> loadFinders() throws IOException {
                 return finders;
             }
         };
-        worker.setDictionaryEntryRepository(dictionaryEntryRepository);
         return worker;
-    }
-
-    @Override
-    protected Map<String, String> getAdditionalConfiguration() {
-        return ImmutableMap.of(
-                OpenNLPDictionaryExtractorGraphPropertyWorker.PATH_PREFIX_CONFIG,
-                "file:///" + getClass().getResource(RESOURCE_CONFIG_DIR).getFile());
     }
 
     @Test

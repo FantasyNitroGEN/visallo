@@ -4,15 +4,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
 import com.google.inject.Inject;
+import org.apache.commons.io.FilenameUtils;
 import org.visallo.core.cmdline.CommandLineTool;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.user.User;
 import org.visallo.opennlpDictionary.model.DictionaryEntryRepository;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Parameters(commandDescription = "Import dictionary files used by OpenNLPDictionaryExtractorGraphPropertyWorker")
 public class DictionaryImporter extends CommandLineTool {
     private DictionaryEntryRepository dictionaryEntryRepository;
+    private FileSystemRepository fileSystemRepository;
 
     @Parameter(names = {"--directory"}, required = true, arity = 1, description = "The directory to search for dictionary files")
     private String directory;
@@ -39,17 +37,17 @@ public class DictionaryImporter extends CommandLineTool {
     @Override
     protected int run() throws Exception {
         User user = getUser();
-        FileSystem fs = getFileSystem();
 
-        Path dictionaryPath = new Path(directory);
-        FileStatus[] files = fs.listStatus(dictionaryPath, new DictionaryPathFilter(this.extension));
-        for (FileStatus fileStatus : files) {
-            LOGGER.info("Importing dictionary file: " + fileStatus.getPath().toString());
-            String conceptName = FilenameUtils.getBaseName(fileStatus.getPath().toString());
+        for (String fileName : fileSystemRepository.list(directory)) {
+            if (!fileName.endsWith(extension)) {
+                continue;
+            }
+            LOGGER.info("Importing dictionary file: " + fileName);
+            String conceptName = FilenameUtils.getBaseName(fileName);
             conceptName = URLDecoder.decode(conceptName, "UTF-8");
             Concept concept = getOntologyRepository().getConceptByIRI(conceptName);
             checkNotNull(concept, "Could not find concept with name " + conceptName);
-            writeFile(fs.open(fileStatus.getPath()), conceptName, user);
+            writeFile(fileSystemRepository.getInputStream(fileName), conceptName, user);
         }
 
         return 0;
@@ -70,20 +68,8 @@ public class DictionaryImporter extends CommandLineTool {
         this.dictionaryEntryRepository = dictionaryEntryRepository;
     }
 
-    public static class DictionaryPathFilter implements PathFilter {
-        private String extension;
-
-        public DictionaryPathFilter(String extension) {
-            this.extension = extension;
-        }
-
-        @Override
-        public boolean accept(Path path) {
-            String ext = FilenameUtils.getExtension(path.toString());
-            if (ext == null) {
-                return false;
-            }
-            return ext.equals(this.extension);
-        }
+    @Inject
+    public void setFileSystemRepository(FileSystemRepository fileSystemRepository) {
+        this.fileSystemRepository = fileSystemRepository;
     }
 }

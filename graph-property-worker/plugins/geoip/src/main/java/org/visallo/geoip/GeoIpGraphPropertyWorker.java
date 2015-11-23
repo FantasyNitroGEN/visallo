@@ -1,7 +1,6 @@
 package org.visallo.geoip;
 
 import com.google.inject.Inject;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.vertexium.Element;
 import org.vertexium.Property;
@@ -31,8 +30,13 @@ public class GeoIpGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GeoIpGraphPropertyWorker.class);
     public static final String GEO_LOCATION_INTENT = "geoLocation";
     private static final Pattern IP_ADDRESS_REGEX = Pattern.compile("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$");
+    private final GeoIpRepository geoIpRepository;
     private GeoPointVisalloProperty geoLocationProperty;
-    private GeoIpRepository geoIpRepository;
+
+    @Inject
+    public GeoIpGraphPropertyWorker(GeoIpRepository geoIpRepository) {
+        this.geoIpRepository = geoIpRepository;
+    }
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
@@ -42,25 +46,6 @@ public class GeoIpGraphPropertyWorker extends GraphPropertyWorker {
 
         GeoIpGraphPropertyWorkerConfiguration configuration = new GeoIpGraphPropertyWorkerConfiguration();
         getConfiguration().setConfigurables(configuration, GeoIpGraphPropertyWorker.class.getName());
-
-        FileSystem fs = workerPrepareData.getHdfsFileSystem();
-        Path geoLite2CityBlocksIpv4HdfsPath = new Path(configuration.getPathPrefix() + "/GeoLite2-City-Blocks-IPv4.csv");
-        LOGGER.debug("Loading %s", geoLite2CityBlocksIpv4HdfsPath.toString());
-        if (!fs.exists(geoLite2CityBlocksIpv4HdfsPath)) {
-            throw new VisalloException("Could not find file: " + geoLite2CityBlocksIpv4HdfsPath);
-        }
-        try (InputStream in = fs.open(geoLite2CityBlocksIpv4HdfsPath)) {
-            this.geoIpRepository.loadGeoIp(in);
-        }
-
-        Path geoLite2CityLocationsEnHdfsPath = new Path(configuration.getPathPrefix() + "/GeoLite2-City-Locations-en.csv");
-        LOGGER.debug("Loading %s", geoLite2CityLocationsEnHdfsPath.toString());
-        if (!fs.exists(geoLite2CityLocationsEnHdfsPath)) {
-            throw new VisalloException("Could not find file: " + geoLite2CityLocationsEnHdfsPath);
-        }
-        try (InputStream in = fs.open(geoLite2CityLocationsEnHdfsPath)) {
-            this.geoIpRepository.loadGeoLocations(in);
-        }
     }
 
     @Override
@@ -97,10 +82,5 @@ public class GeoIpGraphPropertyWorker extends GraphPropertyWorker {
         }
 
         return true;
-    }
-
-    @Inject
-    public void setGeoIpRepository(GeoIpRepository geoIpRepository) {
-        this.geoIpRepository = geoIpRepository;
     }
 }

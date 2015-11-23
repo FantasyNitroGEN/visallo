@@ -85,14 +85,11 @@ public class GraphPropertyRunner extends WorkerBase {
     }
 
     public void prepareWorkers(GraphPropertyWorkerInitializer initializer) {
-        FileSystem hdfsFileSystem = getFileSystem();
-
-        List<TermMentionFilter> termMentionFilters = loadTermMentionFilters(hdfsFileSystem);
+        List<TermMentionFilter> termMentionFilters = loadTermMentionFilters();
 
         GraphPropertyWorkerPrepareData workerPrepareData = new GraphPropertyWorkerPrepareData(
                 configuration.toMap(),
                 termMentionFilters,
-                hdfsFileSystem,
                 this.user,
                 this.authorizations,
                 InjectHelper.getInjector());
@@ -143,18 +140,6 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    private FileSystem getFileSystem() {
-        FileSystem hdfsFileSystem;
-        org.apache.hadoop.conf.Configuration conf = configuration.toHadoopConfiguration();
-        try {
-            String hdfsRootDir = configuration.get(Configuration.HADOOP_URL, null);
-            hdfsFileSystem = FileSystem.get(new URI(hdfsRootDir), conf, "hadoop");
-        } catch (Exception e) {
-            throw new VisalloException("Could not open hdfs filesystem", e);
-        }
-        return hdfsFileSystem;
-    }
-
     public void addGraphPropertyThreadedWrappers(List<GraphPropertyThreadedWrapper> wrappers) {
         this.workerWrappers.addAll(wrappers);
     }
@@ -163,10 +148,9 @@ public class GraphPropertyRunner extends WorkerBase {
         this.workerWrappers.addAll(Lists.newArrayList(wrappers));
     }
 
-    private List<TermMentionFilter> loadTermMentionFilters(FileSystem hdfsFileSystem) {
+    private List<TermMentionFilter> loadTermMentionFilters() {
         TermMentionFilterPrepareData termMentionFilterPrepareData = new TermMentionFilterPrepareData(
                 configuration.toMap(),
-                hdfsFileSystem,
                 this.user,
                 this.authorizations,
                 InjectHelper.getInjector()

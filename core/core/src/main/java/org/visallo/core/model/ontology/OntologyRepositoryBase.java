@@ -1415,6 +1415,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         checkNotNull(conceptTypeIri, "conceptTypeIri cannot be null");
 
         Concept concept = getConceptByIRI(conceptTypeIri);
+        checkNotNull(concept, "Could not find concept with IRI: " + conceptTypeIri);
         if (includeChildNodes) {
             Set<Concept> childConcepts = getConceptAndAllChildren(concept);
             if (childConcepts.size() > 0) {

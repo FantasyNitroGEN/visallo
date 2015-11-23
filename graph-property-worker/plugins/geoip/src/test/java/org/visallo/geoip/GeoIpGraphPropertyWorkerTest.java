@@ -42,8 +42,7 @@ public class GeoIpGraphPropertyWorkerTest extends GraphPropertyWorkerTestBase {
         when(fileSystem.exists(eq(new Path("file:///test/GeoLite2-City-Blocks-IPv4.csv")))).thenReturn(true);
         when(fileSystem.exists(eq(new Path("file:///test/GeoLite2-City-Locations-en.csv")))).thenReturn(true);
 
-        gpw = new GeoIpGraphPropertyWorker();
-        gpw.setGeoIpRepository(geoIpRepository);
+        gpw = new GeoIpGraphPropertyWorker(geoIpRepository);
         gpw.setOntologyRepository(ontologyRepository);
     }
 
@@ -78,11 +77,6 @@ public class GeoIpGraphPropertyWorkerTest extends GraphPropertyWorkerTestBase {
         assertEquals(2, count(v1.getProperties()));
         GeoPoint foundGeoPoint = (GeoPoint) v1.getPropertyValue("k1", TEST_GEO_LOCATION_PROPERTY_IRI);
         assertEquals(expectedGeoPoint, foundGeoPoint);
-    }
-
-    @Override
-    protected FileSystem getFileSystem() {
-        return this.fileSystem;
     }
 
     @Override

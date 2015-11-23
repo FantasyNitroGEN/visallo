@@ -3,19 +3,31 @@ package org.visallo.geoip;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.file.FileSystemRepository;
 
 import java.io.ByteArrayInputStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class GeoIpRepositoryTest {
     private GeoIpRepository geoIpRepository;
 
+    @Mock
+    private FileSystemRepository fileSystemRepository;
+
     @Before
     public void setUp() {
-        geoIpRepository = new GeoIpRepository();
+        when(fileSystemRepository.getInputStream(any(String.class))).thenReturn(new ByteArrayInputStream("".getBytes()));
+
+        geoIpRepository = new GeoIpRepository(fileSystemRepository);
     }
 
     @Test

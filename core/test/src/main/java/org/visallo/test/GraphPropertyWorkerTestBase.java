@@ -3,7 +3,6 @@ package org.visallo.test;
 import com.google.inject.Injector;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -77,10 +76,10 @@ public abstract class GraphPropertyWorkerTestBase {
     }
 
     protected GraphPropertyWorkerPrepareData getWorkerPrepareData() {
-        return getWorkerPrepareData(null, null, null, null, null, null);
+        return getWorkerPrepareData(null, null, null, null, null);
     }
 
-    protected GraphPropertyWorkerPrepareData getWorkerPrepareData(Map configuration, List<TermMentionFilter> termMentionFilters, FileSystem fileSystem, User user, Authorizations authorizations, Injector injector) {
+    protected GraphPropertyWorkerPrepareData getWorkerPrepareData(Map configuration, List<TermMentionFilter> termMentionFilters, User user, Authorizations authorizations, Injector injector) {
         if (graphPropertyWorkerPrepareData == null) {
             if (configuration == null) {
                 configuration = getConfigurationMap();
@@ -94,16 +93,9 @@ public abstract class GraphPropertyWorkerTestBase {
             if (authorizations == null) {
                 authorizations = getGraphAuthorizations();
             }
-            if (fileSystem == null) {
-                fileSystem = getFileSystem();
-            }
-            graphPropertyWorkerPrepareData = new GraphPropertyWorkerPrepareData(configuration, termMentionFilters, fileSystem, user, authorizations, injector);
+            graphPropertyWorkerPrepareData = new GraphPropertyWorkerPrepareData(configuration, termMentionFilters, user, authorizations, injector);
         }
         return graphPropertyWorkerPrepareData;
-    }
-
-    protected FileSystem getFileSystem() {
-        return null;
     }
 
     protected User getUser() {

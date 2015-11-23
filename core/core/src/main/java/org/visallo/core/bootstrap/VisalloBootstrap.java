@@ -18,6 +18,7 @@ import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
 import org.visallo.core.http.DefaultHttpRepository;
 import org.visallo.core.http.HttpRepository;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.lock.CuratorLockRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
@@ -183,6 +184,9 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(ACLProvider.class)
                 .toProvider(VisalloBootstrap.<ACLProvider>getConfigurableProvider(configuration, Configuration.ACL_PROVIDER_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(FileSystemRepository.class)
+                .toProvider(VisalloBootstrap.<FileSystemRepository>getConfigurableProvider(configuration, Configuration.FILE_SYSTEM_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(TimeRepository.class)
                 .toInstance(new TimeRepository());

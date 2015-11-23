@@ -1,24 +1,25 @@
 package org.visallo.opennlpme;
 
-import com.google.common.collect.ImmutableMap;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestSetupBase;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.workQueue.Priority;
-import org.visallo.web.clientapi.model.VisibilityJson;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.Direction;
 import org.vertexium.ElementBuilder;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
 import org.vertexium.inmemory.InMemoryAuthorizations;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestSetupBase;
+import org.visallo.core.model.file.ClassPathFileSystemRepository;
+import org.visallo.core.model.file.FileSystemRepository;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.Priority;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,22 +27,18 @@ import static org.vertexium.util.IterableUtils.toList;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OpenNLPMaximumEntropyExtractorGraphPropertyWorkerTest extends GraphPropertyWorkerTestSetupBase {
-    private static final String RESOURCE_CONFIG_DIR = "/fs/conf/opennlp";
+    private static final String TEST_FS_ROOT = "/testFsRoot";
 
     private static final String text = "This is a sentenc®, written by Bob Robértson, who curréntly makes 2 million "
             + "a year. If by 1:30, you don't know what you are doing, you should go watch CNN and see "
             + "what the latest is on the Benghazi nonsense. I'm 47% sure that this test will pass, but will it?";
 
-    @Override
-    protected GraphPropertyWorker createGraphPropertyWorker() {
-        return new OpenNLPMaximumEntropyExtractorGraphPropertyWorker();
-    }
+    @Mock
+    private FileSystemRepository fileSystemRepository;
 
     @Override
-    protected Map<String, String> getAdditionalConfiguration() {
-        return ImmutableMap.of(
-                OpenNLPMaximumEntropyExtractorGraphPropertyWorker.PATH_PREFIX_CONFIG,
-                "file:///" + getClass().getResource(RESOURCE_CONFIG_DIR).getFile());
+    protected GraphPropertyWorker createGraphPropertyWorker() {
+        return new OpenNLPMaximumEntropyExtractorGraphPropertyWorker(new ClassPathFileSystemRepository(TEST_FS_ROOT));
     }
 
     @Test

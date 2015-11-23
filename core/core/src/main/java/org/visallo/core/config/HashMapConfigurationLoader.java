@@ -15,6 +15,6 @@ public class HashMapConfigurationLoader extends ConfigurationLoader {
 
     @Override
     public File resolveFileName(String fileName) {
-        return new FileConfigurationLoader(getInitParameters()).resolveFileName(fileName);
+        return FileConfigurationLoader.resolveLocalFileName(fileName);
     }
 }

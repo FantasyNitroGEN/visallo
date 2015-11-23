@@ -16,9 +16,9 @@ import static org.junit.Assert.assertEquals;
 @RunWith(JUnit4.class)
 public class OpenCVUtilsTest {
 
-    private static final String TEST_4_CHANNEL_IMAGE = "colbert-4channel.png";
-    private static final String TEST_3_CHANNEL_IMAGE = "colbert-3channel.png";
-    private static final String TEST_GRAYSCALE_IMAGE = "colbert-gray.png";
+    private static final String TEST_4_CHANNEL_IMAGE = "testFsRoot/colbert-4channel.png";
+    private static final String TEST_3_CHANNEL_IMAGE = "testFsRoot/colbert-3channel.png";
+    private static final String TEST_GRAYSCALE_IMAGE = "testFsRoot/colbert-gray.png";
 
     @Before
     public void setUp() throws Exception {

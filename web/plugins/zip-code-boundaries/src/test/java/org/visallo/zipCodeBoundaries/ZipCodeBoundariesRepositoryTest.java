@@ -3,15 +3,17 @@ package org.visallo.zipCodeBoundaries;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.FileSystem;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.vertexium.type.GeoPoint;
 import org.vertexium.type.GeoRect;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -23,6 +25,8 @@ import java.net.URLConnection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZipCodeBoundariesRepositoryTest {
@@ -33,13 +37,13 @@ public class ZipCodeBoundariesRepositoryTest {
     private Configuration configuration;
 
     @Mock
-    private FileSystem fileSystem;
+    private FileSystemRepository fileSystemRepository;
 
     @Before
     public void setUp() throws IOException {
-        zipCodeBoundariesRepository = new ZipCodeBoundariesRepository(configuration) {
+        when(fileSystemRepository.getLocalFileFor(any(String.class))).then(new Answer<Object>() {
             @Override
-            protected File copyShapeFileLocally(Configuration configuration) throws IOException {
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
                 File tempDir = new File(System.getProperty("java.io.tmpdir"));
                 File dir = new File(tempDir, "cb_2014_us_zcta510_500k");
                 File file = new File(dir, "cb_2014_us_zcta510_500k.shp");
@@ -50,7 +54,9 @@ public class ZipCodeBoundariesRepositoryTest {
                 }
                 return file;
             }
-        };
+        });
+
+        zipCodeBoundariesRepository = new ZipCodeBoundariesRepository(configuration, fileSystemRepository);
     }
 
     private void unzip(File zipFile, File dir) throws IOException {

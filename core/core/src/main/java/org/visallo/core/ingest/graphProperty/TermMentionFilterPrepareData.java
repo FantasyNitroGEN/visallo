@@ -1,22 +1,19 @@
 package org.visallo.core.ingest.graphProperty;
 
-import org.visallo.core.user.User;
-import org.vertexium.Authorizations;
 import com.google.inject.Injector;
-import org.apache.hadoop.fs.FileSystem;
+import org.vertexium.Authorizations;
+import org.visallo.core.user.User;
 
 import java.util.Map;
 
 public class TermMentionFilterPrepareData {
     private final Map configuration;
-    private final FileSystem hdfsFileSystem;
     private final User user;
     private final Authorizations authorizations;
     private final Injector injector;
 
-    public TermMentionFilterPrepareData(Map configuration, FileSystem hdfsFileSystem, User user, Authorizations authorizations, Injector injector) {
+    public TermMentionFilterPrepareData(Map configuration, User user, Authorizations authorizations, Injector injector) {
         this.configuration = configuration;
-        this.hdfsFileSystem = hdfsFileSystem;
         this.user = user;
         this.authorizations = authorizations;
         this.injector = injector;
@@ -36,9 +33,5 @@ public class TermMentionFilterPrepareData {
 
     public Injector getInjector() {
         return injector;
-    }
-
-    public FileSystem getHdfsFileSystem() {
-        return hdfsFileSystem;
     }
 }

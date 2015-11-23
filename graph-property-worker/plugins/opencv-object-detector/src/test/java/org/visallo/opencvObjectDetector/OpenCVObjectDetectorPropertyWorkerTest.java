@@ -1,23 +1,36 @@
 package org.visallo.opencvObjectDetector;
 
-import org.visallo.core.ingest.ArtifactDetectedObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.opencv.objdetect.CascadeClassifier;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.visallo.core.ingest.ArtifactDetectedObject;
+import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
+import org.visallo.core.model.file.ClassPathFileSystemRepository;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.test.GraphPropertyWorkerTestBase;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
 
-@RunWith(JUnit4.class)
-public class OpenCVObjectDetectorPropertyWorkerTest {
-    private static final String TEST_IMAGE = "cnn.jpg";
-    private static final String CLASSIFIER = "haarcascade_frontalface_alt.xml";
+@RunWith(MockitoJUnitRunner.class)
+public class OpenCVObjectDetectorPropertyWorkerTest extends GraphPropertyWorkerTestBase {
+    private static final String TEST_IMAGE = "testFsRoot/cnn.jpg";
+    public static final String TEST_FS_ROOT = "/testFsRoot";
+
+    @Mock
+    private ArtifactThumbnailRepository artifactThumbnailRepository;
+
+    @Mock
+    private OntologyRepository ontologyRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -26,13 +39,18 @@ public class OpenCVObjectDetectorPropertyWorkerTest {
 
     @Test
     public void testObjectDetection() throws Exception {
-        OpenCVObjectDetectorPropertyWorker objectDetector = new OpenCVObjectDetectorPropertyWorker();
+        when(ontologyRepository.getRequiredConceptIRIByIntent(eq("face"))).thenReturn("http://test.visallo.org/#face");
+
+        OpenCVObjectDetectorPropertyWorker objectDetector = new OpenCVObjectDetectorPropertyWorker(
+                artifactThumbnailRepository,
+                new ClassPathFileSystemRepository(TEST_FS_ROOT)
+        );
+        objectDetector.setOntologyRepository(ontologyRepository);
         objectDetector.loadNativeLibrary();
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         BufferedImage bImage = ImageIO.read(cl.getResourceAsStream(TEST_IMAGE));
+        objectDetector.prepare(getWorkerPrepareData());
 
-        CascadeClassifier objectClassifier = new CascadeClassifier(cl.getResource(CLASSIFIER).getPath());
-        objectDetector.addObjectClassifier("face", objectClassifier, "http://test.visallo.org/#face");
         List<ArtifactDetectedObject> detectedObjectList = objectDetector.detectObjects(bImage);
         assertTrue("Incorrect number of objects found", detectedObjectList.size() == 1);
 
@@ -42,5 +60,13 @@ public class OpenCVObjectDetectorPropertyWorkerTest {
         assertEquals(0.1828125, detectedObject.getY1(), 0.01);
         assertEquals(0.6220703125, detectedObject.getX2(), 0.01);
         assertEquals(0.5, detectedObject.getY2(), 0.01);
+    }
+
+    @Override
+    protected Map getConfigurationMap() {
+        Map result = super.getConfigurationMap();
+        result.put(OpenCVObjectDetectorPropertyWorker.OPENCV_CLASSIFIER_CONCEPT_LIST, "face");
+        result.put("objectdetection.classifier.face.path", "/haarcascade_frontalface_alt.xml");
+        return result;
     }
 }

@@ -1,18 +1,6 @@
 package org.visallo.opennlpDictionary;
 
 import com.google.inject.Inject;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
-import org.visallo.core.model.Description;
-import org.visallo.core.model.Name;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.termMention.TermMentionBuilder;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.opennlpDictionary.model.DictionaryEntry;
-import org.visallo.opennlpDictionary.model.DictionaryEntryRepository;
-import org.visallo.web.clientapi.model.VisibilityJson;
 import opennlp.tools.dictionary.Dictionary;
 import opennlp.tools.namefind.DictionaryNameFinder;
 import opennlp.tools.namefind.TokenNameFinder;
@@ -23,11 +11,22 @@ import opennlp.tools.util.ObjectStream;
 import opennlp.tools.util.PlainTextByLineStream;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.StringList;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.vertexium.Element;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.file.FileSystemRepository;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.termMention.TermMentionBuilder;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.opennlpDictionary.model.DictionaryEntry;
+import org.visallo.opennlpDictionary.model.DictionaryEntryRepository;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,29 +41,32 @@ import java.util.Map;
 public class OpenNLPDictionaryExtractorGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OpenNLPDictionaryExtractorGraphPropertyWorker.class);
     public static final String PATH_PREFIX_CONFIG = "termextraction.opennlp.pathPrefix";
-    private static final String DEFAULT_PATH_PREFIX = "/visallo/config/opennlp/";
     private static final int NEW_LINE_CHARACTER_LENGTH = 1;
+    private final DictionaryEntryRepository dictionaryEntryRepository;
+    private final FileSystemRepository fileSystemRepository;
 
     private List<TokenNameFinder> finders;
-    private DictionaryEntryRepository dictionaryEntryRepository;
     private Tokenizer tokenizer;
     private String locationIri;
     private String organizationIri;
     private String personIri;
 
+    @Inject
+    public OpenNLPDictionaryExtractorGraphPropertyWorker(
+            DictionaryEntryRepository dictionaryEntryRepository,
+            FileSystemRepository fileSystemRepository
+    ) {
+        this.dictionaryEntryRepository = dictionaryEntryRepository;
+        this.fileSystemRepository = fileSystemRepository;
+    }
+
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
         super.prepare(workerPrepareData);
-
         this.locationIri = getOntologyRepository().getRequiredConceptIRIByIntent("location");
         this.organizationIri = getOntologyRepository().getRequiredConceptIRIByIntent("organization");
         this.personIri = getOntologyRepository().getRequiredConceptIRIByIntent("person");
-
-        String pathPrefix = (String) workerPrepareData.getConfiguration().get(PATH_PREFIX_CONFIG);
-        if (pathPrefix == null) {
-            pathPrefix = DEFAULT_PATH_PREFIX;
-        }
-        this.tokenizer = loadTokenizer(pathPrefix, workerPrepareData.getHdfsFileSystem());
+        this.tokenizer = loadTokenizer();
         this.finders = loadFinders();
     }
 
@@ -158,11 +160,10 @@ public class OpenNLPDictionaryExtractorGraphPropertyWorker extends GraphProperty
         return finders;
     }
 
-    protected Tokenizer loadTokenizer(String pathPrefix, FileSystem fs) throws IOException {
-        Path tokenizerHdfsPath = new Path(pathPrefix + "/en-token.bin");
-
+    protected Tokenizer loadTokenizer() throws IOException {
+        String tokenizerFileName = "/en-token.bin";
         TokenizerModel tokenizerModel;
-        try (InputStream tokenizerModelInputStream = fs.open(tokenizerHdfsPath)) {
+        try (InputStream tokenizerModelInputStream = fileSystemRepository.getInputStream(tokenizerFileName)) {
             tokenizerModel = new TokenizerModel(tokenizerModelInputStream);
         }
 
@@ -186,10 +187,5 @@ public class OpenNLPDictionaryExtractorGraphPropertyWorker extends GraphProperty
 
     private StringList tokensToStringList(String tokens) {
         return new StringList(tokens.split(" "));
-    }
-
-    @Inject
-    public void setDictionaryEntryRepository(DictionaryEntryRepository dictionaryEntryRepository) {
-        this.dictionaryEntryRepository = dictionaryEntryRepository;
     }
 }
