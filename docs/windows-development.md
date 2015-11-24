@@ -114,7 +114,7 @@ Maven can be used to execute various command-line tools and the Visallo web appl
 Run this the first time, and whenever you need to clear all data or load a new ontology.
 
     mvn compile -am -pl tools/cli \
-        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq \
+        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology \
         -Dexec.args='FormatVisallo'
 
 ## Ontology
@@ -122,7 +122,7 @@ Run this the first time, and whenever you need to clear all data or load a new o
 The following command loads an ontology that works well for general development:
 
     mvn compile -am -pl tools/cli \
-        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq \
+        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology \
         -Dexec.args='OwlImport --in examples/ontology-dev/dev.owl'
 
 ## Web Server
@@ -137,7 +137,7 @@ Use Chrome or Firefox to browse to `http://127.0.0.1:8443`. Internet Explorer is
 
 If you want to modify JavaScript and CSS/Less without recompiling and restarting the web server each time, run the following commands in another Git Bash window:
 
-    cd $HMOME/visallo/web/war/src/main/webapp
+    cd $HOME/visallo/web/war/src/main/webapp
     grunt
 
 Refresh the Visallo web page to reload any changes.
