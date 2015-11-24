@@ -10,6 +10,7 @@ import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.ArtifactDetectedObject;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,9 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OpenCVObjectDetectorPropertyWorker.class);
     public static final String MULTI_VALUE_KEY_PREFIX = OpenCVObjectDetectorPropertyWorker.class.getName();
-    public static final String OPENCV_CLASSIFIER_CONCEPT_LIST = "objectdetection.classifierConcepts";
-    public static final String OPENCV_CLASSIFIER_PATH_PREFIX = "objectdetection.classifier.";
-    public static final String OPENCV_CLASSIFIER_PATH_SUFFIX = ".path";
+    public static final String OPENCV_CLASSIFIER_PATH_PREFIX = OpenCVObjectDetectorPropertyWorker.class.getName() + ".classifier.";
     private static final String PROCESS = OpenCVObjectDetectorPropertyWorker.class.getName();
     private final ArtifactThumbnailRepository artifactThumbnailRepository;
     private final FileSystemRepository fileSystemRepository;
@@ -61,20 +61,15 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
 
         loadNativeLibrary();
 
-        String conceptListString = (String) workerPrepareData.getConfiguration().get(OPENCV_CLASSIFIER_CONCEPT_LIST);
-        checkNotNull(conceptListString, OPENCV_CLASSIFIER_CONCEPT_LIST + " is a required configuration parameter");
-        String[] classifierConcepts = conceptListString.split(",");
-        for (String classifierConcept : classifierConcepts) {
-            String classifiedConfigPath = OPENCV_CLASSIFIER_PATH_PREFIX + classifierConcept + OPENCV_CLASSIFIER_PATH_SUFFIX;
-            String classifierFilePath = (String) workerPrepareData.getConfiguration().get(classifiedConfigPath);
-            checkNotNull(classifierFilePath, classifiedConfigPath + " is required");
-            File localFile = fileSystemRepository.getLocalFileFor(classifierFilePath);
+        Map<String, Map<String, String>> classifierConcepts = getConfiguration().getMultiValue(OPENCV_CLASSIFIER_PATH_PREFIX);
+        for (Map.Entry<String, Map<String, String>> classifierConceptEntry : classifierConcepts.entrySet()) {
+            String classifierConcept = classifierConceptEntry.getKey();
+            String classifierFilePath = classifierConceptEntry.getValue().get("path");
+            checkNotNull(classifierFilePath, "path is required");
+            File localFile = fileSystemRepository.getLocalFileFor("/" + OpenCVObjectDetectorPropertyWorker.class.getName() + "/" + classifierFilePath);
             CascadeClassifier objectClassifier = new CascadeClassifier(localFile.getPath());
             String conceptIRI = getOntologyRepository().getRequiredConceptIRIByIntent(classifierConcept);
             addObjectClassifier(classifierConcept, objectClassifier, conceptIRI);
-            if (!localFile.delete()) {
-                LOGGER.warn("Could not delete file: %s", localFile.getAbsolutePath());
-            }
         }
     }
 
@@ -83,7 +78,7 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
             System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         } catch (UnsatisfiedLinkError ex) {
             String javaLibraryPath = System.getProperty("java.library.path");
-            throw new RuntimeException("Could not find opencv library: " + Core.NATIVE_LIBRARY_NAME + " (java.library.path: " + javaLibraryPath + ")", ex);
+            throw new VisalloException("Could not find opencv library: " + Core.NATIVE_LIBRARY_NAME + " (java.library.path: " + javaLibraryPath + ")", ex);
         }
     }
 

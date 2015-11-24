@@ -45,6 +45,7 @@ public class OpenCVObjectDetectorPropertyWorkerTest extends GraphPropertyWorkerT
                 artifactThumbnailRepository,
                 new ClassPathFileSystemRepository(TEST_FS_ROOT)
         );
+        objectDetector.setConfiguration(getConfiguration());
         objectDetector.setOntologyRepository(ontologyRepository);
         objectDetector.loadNativeLibrary();
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -65,8 +66,7 @@ public class OpenCVObjectDetectorPropertyWorkerTest extends GraphPropertyWorkerT
     @Override
     protected Map getConfigurationMap() {
         Map result = super.getConfigurationMap();
-        result.put(OpenCVObjectDetectorPropertyWorker.OPENCV_CLASSIFIER_CONCEPT_LIST, "face");
-        result.put("objectdetection.classifier.face.path", "/haarcascade_frontalface_alt.xml");
+        result.put("org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorker.classifier.face.path", "/haarcascade_frontalface_alt.xml");
         return result;
     }
 }

@@ -40,7 +40,6 @@ import java.util.Map;
 @Description("Extracts terms from text using an OpenNLP dictionary file")
 public class OpenNLPDictionaryExtractorGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OpenNLPDictionaryExtractorGraphPropertyWorker.class);
-    public static final String PATH_PREFIX_CONFIG = "termextraction.opennlp.pathPrefix";
     private static final int NEW_LINE_CHARACTER_LENGTH = 1;
     private final DictionaryEntryRepository dictionaryEntryRepository;
     private final FileSystemRepository fileSystemRepository;
@@ -161,7 +160,7 @@ public class OpenNLPDictionaryExtractorGraphPropertyWorker extends GraphProperty
     }
 
     protected Tokenizer loadTokenizer() throws IOException {
-        String tokenizerFileName = "/en-token.bin";
+        String tokenizerFileName = "/" + OpenNLPDictionaryExtractorGraphPropertyWorker.class.getName() + "/en-token.bin";
         TokenizerModel tokenizerModel;
         try (InputStream tokenizerModelInputStream = fileSystemRepository.getInputStream(tokenizerFileName)) {
             tokenizerModel = new TokenizerModel(tokenizerModelInputStream);

@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 @Name("GeoIP")
 @Description("Geo-locate IP addresses")
 public class GeoIpGraphPropertyWorker extends GraphPropertyWorker {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GeoIpGraphPropertyWorker.class);
     public static final String GEO_LOCATION_INTENT = "geoLocation";
     private static final Pattern IP_ADDRESS_REGEX = Pattern.compile("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$");
     private final GeoIpRepository geoIpRepository;
