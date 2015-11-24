@@ -24,7 +24,7 @@ public class HdfsFileSystemRepository extends FileSystemRepository {
         hdfsFileSystem = getFileSystem(configuration);
     }
 
-    private FileSystem getFileSystem(Configuration configuration) {
+    public static FileSystem getFileSystem(Configuration configuration) {
         String hdfsUserName = configuration.get(Configuration.HDFS_USER_NAME, Configuration.HDFS_USER_NAME_DEFAULT);
         String fsDefaultFS = configuration.get("fs.defaultFS", null);
         try {

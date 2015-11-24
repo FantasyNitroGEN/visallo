@@ -21,20 +21,9 @@ import java.security.NoSuchAlgorithmException;
 @Description("Loads .jar files from a HDFS directory")
 public class HdfsLibLoader extends LibLoader {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(HdfsLibLoader.class);
-    private final FileSystemRepository fileSystemRepository;
-
-    @Inject
-    public HdfsLibLoader(FileSystemRepository fileSystemRepository) {
-        this.fileSystemRepository = fileSystemRepository;
-    }
 
     @Override
     public void loadLibs(Configuration configuration) {
-        if (!(fileSystemRepository instanceof HdfsFileSystemRepository)) {
-            LOGGER.warn("skipping HDFS lib loading. Must be using %s.", HdfsFileSystemRepository.class.getSimpleName());
-            return;
-        }
-
         LOGGER.info("Loading libs using %s", HdfsLibLoader.class.getName());
 
         String hdfsLibDirectory = configuration.get(Configuration.HDFS_LIB_SOURCE_DIRECTORY, null);
@@ -45,7 +34,7 @@ public class HdfsLibLoader extends LibLoader {
 
         File libDirectory = getLocalHdfsLibDirectory(configuration);
         try {
-            FileSystem fs = ((HdfsFileSystemRepository) fileSystemRepository).getHdfsFileSystem();
+            FileSystem fs = HdfsFileSystemRepository.getFileSystem(configuration);
             syncLib(fs, new Path(hdfsLibDirectory), libDirectory);
         } catch (Exception ex) {
             throw new VisalloException(String.format("Could not sync HDFS lib. %s -> %s", hdfsLibDirectory, libDirectory.getAbsolutePath()), ex);
