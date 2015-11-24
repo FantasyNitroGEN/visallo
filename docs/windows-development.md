@@ -133,7 +133,7 @@ This command runs Visallo using the Jetty web server, with a username-only login
         -P jetty-run,web-admin,web-auth-username-only,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology,serializer-kryo \
         -Dgrunt.target=development
 
-Use Chrome or Firefox to browse to `http://127.0.0.1:8443`. Internet Explorer is not currently supported.
+Use Chrome or Firefox to browse to `https://127.0.0.1:8443`. Internet Explorer is not currently supported.
 
 If you want to modify JavaScript and CSS/Less without recompiling and restarting the web server each time, run the following commands in another Git Bash window:
 
