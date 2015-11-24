@@ -34,7 +34,6 @@ public class Configuration {
     public static final String ENV_VARIABLE_HADOOP_CONF_DIR = "HADOOP_CONF_DIR";
     public static final String DEFAULT_HADOOP_CONF_DIR = "/etc/hadoop/conf";
     public static final String[] HADOOP_CONF_FILENAMES = new String[]{"core-site.xml", "hdfs-site.xml", "mapred-site.xml", "yarn-site.xml"};
-    public static final String[] PROPERTY_PREFIXES_FOR_HADOOP_CONF = new String[]{"fs", "dfs", "hadoop", "mapreduce", "yarn"};
 
     public static final String BASE_URL = "base.url";
     public static final String HDFS_LIB_SOURCE_DIRECTORY = "hdfsLib.sourceDirectory";
@@ -343,6 +342,26 @@ public class Configuration {
         return sb.toString();
     }
 
+    @Deprecated
+    public org.apache.hadoop.conf.Configuration toHadoopConfiguration() {
+        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+        for (Object entryObj : this.toMap().entrySet()) {
+            Map.Entry entry = (Map.Entry) entryObj;
+            conf.set(entry.getKey().toString(), entry.getValue().toString());
+        }
+        return conf;
+    }
+
+    @Deprecated
+    public org.apache.hadoop.conf.Configuration toHadoopConfiguration(org.apache.hadoop.conf.Configuration additionalConfiguration) {
+        org.apache.hadoop.conf.Configuration hadoopConfig = toHadoopConfiguration();
+        hadoopConfig.setBoolean("mapred.used.genericoptionsparser", true); // eliminates warning on our version of hadoop
+        for (Map.Entry<String, String> toolConfItem : additionalConfiguration) {
+            hadoopConfig.set(toolConfItem.getKey(), toolConfItem.getValue());
+        }
+        return hadoopConfig;
+    }
+
     public org.apache.hadoop.conf.Configuration getHadoopConfiguration(org.apache.hadoop.conf.Configuration additionalConfiguration) {
         org.apache.hadoop.conf.Configuration result = getHadoopConfiguration();
         for (Map.Entry<String, String> entry : additionalConfiguration) {
@@ -353,6 +372,12 @@ public class Configuration {
 
     public org.apache.hadoop.conf.Configuration getHadoopConfiguration() {
         org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration();
+
+        for (Object entryObj : this.toMap().entrySet()) {
+            Map.Entry entry = (Map.Entry) entryObj;
+            hadoopConfiguration.set(entry.getKey().toString(), entry.getValue().toString());
+        }
+        hadoopConfiguration.setBoolean("mapred.used.genericoptionsparser", true);
 
         File dir = null;
         String property = get(PROPERTY_HADOOP_CONF_DIR, null);
@@ -393,12 +418,6 @@ public class Configuration {
             }
         }
 
-        for (String prefix : PROPERTY_PREFIXES_FOR_HADOOP_CONF) {
-            for (Map.Entry<String, String> entry : getSubset(prefix).entrySet()) {
-                hadoopConfiguration.set(prefix + "." + entry.getKey(), entry.getValue(), Configuration.class.getName());
-            }
-        }
-
         StringBuilder sb = new StringBuilder();
         SortedSet<String> keys = new TreeSet<>();
         for (Map.Entry<String, String> entry : hadoopConfiguration) {
@@ -408,6 +427,9 @@ public class Configuration {
         boolean first = true;
         for (String key : keys) {
             String[] sources = hadoopConfiguration.getPropertySources(key);
+            if (sources == null) {
+                continue;
+            }
             String source = sources[sources.length - 1];
 
             if (source.endsWith("default.xml") && !LOGGER.isTraceEnabled()) {
