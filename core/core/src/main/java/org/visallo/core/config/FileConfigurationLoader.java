@@ -169,6 +169,6 @@ public class FileConfigurationLoader extends ConfigurationLoader {
                 return f;
             }
         }
-        throw new VisalloException("Could not find file: " + fileName);
+        throw new VisalloResourceNotFoundException("Could not find file: " + fileName);
     }
 }

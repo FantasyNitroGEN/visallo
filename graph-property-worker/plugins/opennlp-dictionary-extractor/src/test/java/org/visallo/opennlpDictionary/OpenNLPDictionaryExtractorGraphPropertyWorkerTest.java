@@ -1,6 +1,5 @@
 package org.visallo.opennlpDictionary;
 
-import com.google.common.collect.ImmutableMap;
 import opennlp.tools.dictionary.Dictionary;
 import opennlp.tools.namefind.DictionaryNameFinder;
 import opennlp.tools.namefind.TokenNameFinder;
@@ -27,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -35,7 +33,6 @@ import static org.vertexium.util.IterableUtils.toList;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OpenNLPDictionaryExtractorGraphPropertyWorkerTest extends GraphPropertyWorkerTestSetupBase {
-    private static final String RESOURCE_CONFIG_DIR = "/fs/conf/opennlp";
     public static final String TEST_FS_ROOT = "/testFsRoot";
 
     @Mock
