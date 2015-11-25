@@ -15,8 +15,10 @@ install:
 
 clean:
 	@rm -rf _book
+	@rm -rf node_modules
 
-clone: clean
+clone:
+	@rm -rf _book
 	@git clone git@github.com:v5analytics/docs.visallo.org _book && rm -rf _book/*
 
 push: clone build
