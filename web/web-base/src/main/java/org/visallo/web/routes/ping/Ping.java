@@ -13,13 +13,15 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.ping.PingUtil;
+import org.visallo.core.user.User;
 import org.visallo.web.parameterProviders.RemoteAddr;
 
 public class Ping implements ParameterizedHandler {
-    private final UserRepository userRepository;
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
     private final LongRunningProcessRepository longRunningProcessRepository;
+    private final User user;
+    private final Authorizations authorizations;
 
     @Inject
     public Ping(
@@ -29,21 +31,18 @@ public class Ping implements ParameterizedHandler {
             LongRunningProcessRepository longRunningProcessRepository,
             AuthorizationRepository authorizationRepository
     ) {
-        this.userRepository = userRepository;
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.longRunningProcessRepository = longRunningProcessRepository;
 
         PingUtil.setup(authorizationRepository, userRepository);
+        user = PingUtil.getUser(userRepository);
+        authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
     }
 
     @Handle
     @ContentType("text/plain")
-    public String ping(
-            @RemoteAddr String remoteAddr
-    ) {
-        Authorizations authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
-
+    public PingResponse ping(@RemoteAddr String remoteAddr) {
         // test search
         long startTime = System.currentTimeMillis();
         String vertexId = PingUtil.search(graph, authorizations);
@@ -62,9 +61,9 @@ public class Ping implements ParameterizedHandler {
         // test queues (and asynchronously test GPW and LRP)
         startTime = System.currentTimeMillis();
         PingUtil.enqueue(pingVertex, workQueueRepository, Priority.HIGH);
-        PingUtil.enqueue(pingVertex, longRunningProcessRepository, PingUtil.getUser(userRepository), authorizations);
+        PingUtil.enqueue(pingVertex, longRunningProcessRepository, user, authorizations);
         long enqueueTime = System.currentTimeMillis() - startTime;
 
-        return String.format("ok (search: %dms, retrieval: %dms, save: %dms, enqueue: %dms)", searchTime, retrievalTime, saveTime, enqueueTime);
+        return new PingResponse(searchTime, retrievalTime, saveTime, enqueueTime);
     }
 }
