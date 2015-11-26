@@ -1,5 +1,6 @@
 package org.visallo.opencvObjectDetector;
 
+import com.google.inject.Inject;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
@@ -45,6 +46,7 @@ public class OpenCVObjectDetectorPropertyWorker extends GraphPropertyWorker {
 
     private List<CascadeClassifierHolder> objectClassifiers = new ArrayList<>();
 
+    @Inject
     public OpenCVObjectDetectorPropertyWorker(
             ArtifactThumbnailRepository artifactThumbnailRepository,
             FileSystemRepository fileSystemRepository

@@ -2,6 +2,7 @@ package org.visallo.geoip;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.inject.Inject;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 import org.vertexium.type.GeoPoint;
@@ -23,8 +24,9 @@ public class GeoIpRepository {
     private Map<Long, List<GeoIp>> geoIpLookupTable = new HashMap<>();
     private Map<Long, String> locationLookupTable = new HashMap<>();
 
+    @Inject
     public GeoIpRepository(FileSystemRepository fileSystemRepository) {
-        String geoLite2CityBlocksIpv4HdfsPath = "/GeoLite2-City-Blocks-IPv4.csv";
+        String geoLite2CityBlocksIpv4HdfsPath = "/visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker/GeoLite2-City-Blocks-IPv4.csv";
         LOGGER.debug("Loading %s", geoLite2CityBlocksIpv4HdfsPath);
         try (InputStream in = fileSystemRepository.getInputStream(geoLite2CityBlocksIpv4HdfsPath)) {
             loadGeoIp(in);
@@ -32,7 +34,7 @@ public class GeoIpRepository {
             throw new VisalloException("Could not close file", e);
         }
 
-        String geoLite2CityLocationsEnHdfsPath = "/GeoLite2-City-Locations-en.csv";
+        String geoLite2CityLocationsEnHdfsPath = "/visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker/GeoLite2-City-Locations-en.csv";
         LOGGER.debug("Loading %s", geoLite2CityLocationsEnHdfsPath);
         try (InputStream in = fileSystemRepository.getInputStream(geoLite2CityLocationsEnHdfsPath)) {
             loadGeoLocations(in);

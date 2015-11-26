@@ -1,5 +1,6 @@
 package org.visallo.core.model.file;
 
+import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -20,6 +21,7 @@ public class HdfsFileSystemRepository extends FileSystemRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(HdfsFileSystemRepository.class);
     private final FileSystem hdfsFileSystem;
 
+    @Inject
     public HdfsFileSystemRepository(Configuration configuration) {
         hdfsFileSystem = getFileSystem(configuration);
     }
