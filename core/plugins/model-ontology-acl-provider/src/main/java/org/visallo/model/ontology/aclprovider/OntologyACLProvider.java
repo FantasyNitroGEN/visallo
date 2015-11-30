@@ -1,4 +1,4 @@
-package com.visallo.model.ontology.aclprovider;
+package org.visallo.model.ontology.aclprovider;
 
 import com.google.inject.Inject;
 import org.vertexium.Edge;
