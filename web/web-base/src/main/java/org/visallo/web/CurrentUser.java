@@ -45,7 +45,7 @@ public class CurrentUser {
     }
 
     public static String getUserId(HttpServletRequest request) {
-        return CurrentUser.getUserId(request.getSession());
+        return CurrentUser.getUserId(request.getSession(false));
     }
 
     public static void clearUserFromSession(HttpServletRequest request) {
@@ -63,7 +63,7 @@ public class CurrentUser {
         if (userId != null) {
             MDC.put(MDC_USER_ID, userId);
         }
-        String userName = getSessionUserName(request.getSession());
+        String userName = getSessionUserName(request.getSession(false));
         if (userName != null) {
             MDC.put(MDC_USER_NAME, userName);
         }
