@@ -120,7 +120,7 @@ public class VertexSetProperty implements ParameterizedHandler {
             int propCount = IterableUtils.count(graphVertex.getProperties(propertyKey, propertyName));
             if (!aclProvider.canUpdateElement(graphVertex, user) ||
                     (propCount > 0 && !aclProvider.canUpdateProperty(graphVertex, propertyKey, propertyName, user))) {
-                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, workspaceId);
+                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, graphVertexId);
             }
         }
 

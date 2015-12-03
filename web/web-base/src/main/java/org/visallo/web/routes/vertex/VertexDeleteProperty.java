@@ -63,7 +63,7 @@ public class VertexDeleteProperty implements ParameterizedHandler {
 
         Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
         if (!aclProvider.canDeleteProperty(graphVertex, propertyKey, propertyName, user)) {
-            throw new VisalloAccessDeniedException(propertyName + " is not deleteable", user, workspaceId);
+            throw new VisalloAccessDeniedException(propertyName + " is not deleteable", user, graphVertexId);
         }
 
         final List<Property> properties = new ArrayList<>();

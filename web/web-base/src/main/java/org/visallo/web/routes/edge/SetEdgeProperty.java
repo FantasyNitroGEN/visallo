@@ -110,7 +110,7 @@ public class SetEdgeProperty implements ParameterizedHandler {
             int propCount = IterableUtils.count(edge.getProperties(propertyKey, propertyName));
             if (!aclProvider.canUpdateElement(edge, user) ||
                     (propCount > 0 && !aclProvider.canUpdateProperty(edge, propertyKey, propertyName, user))) {
-                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, workspaceId);
+                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, edge.getId());
             }
         }
 

@@ -48,7 +48,8 @@ public class VertexRemove implements ParameterizedHandler {
         }
 
         if (!aclProvider.canDeleteElement(vertex, user)) {
-            throw new VisalloAccessDeniedException("Vertex " + graphVertexId + " is not deleteable", user, workspaceId);
+            throw new VisalloAccessDeniedException("Vertex " + graphVertexId + " is not deleteable", user,
+                    graphVertexId);
         }
 
         SandboxStatus sandboxStatus = SandboxStatusUtil.getSandboxStatus(vertex, workspaceId);
