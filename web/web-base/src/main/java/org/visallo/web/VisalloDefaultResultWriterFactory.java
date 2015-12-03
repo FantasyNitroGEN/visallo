@@ -12,6 +12,7 @@ import org.visallo.core.security.ACLProvider;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +48,7 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
             }
 
             @Override
-            protected void writeResult(HttpServletResponse response, Object result) throws IOException {
+            protected void writeResult(HttpServletRequest request, HttpServletResponse response, Object result) throws IOException {
                 if (result != null) {
                     response.setCharacterEncoding("UTF-8");
                     if (resultIsClientApiObject) {
@@ -64,7 +65,7 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                             response.flushBuffer();
                         }
                     } else {
-                        super.writeResult(response, result);
+                        super.writeResult(request, response, result);
                     }
                 }
             }
