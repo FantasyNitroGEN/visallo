@@ -12,6 +12,7 @@ public class ClientApiProperty implements ClientApiObject {
     private boolean streamingPropertyValue;
     private Map<String, Object> metadata = new HashMap<String, Object>();
     private Object value;
+    private boolean addable;
     private boolean updateable;
     private boolean deleteable;
 
@@ -57,6 +58,14 @@ public class ClientApiProperty implements ClientApiObject {
 
     public void setValue(Object value) {
         this.value = value;
+    }
+
+    public boolean isAddable() {
+        return addable;
+    }
+
+    public void setAddable(boolean addable) {
+        this.addable = addable;
     }
 
     public boolean isUpdateable() {

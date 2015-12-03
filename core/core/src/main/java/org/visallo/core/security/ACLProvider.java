@@ -27,6 +27,13 @@ public abstract class ACLProvider {
 
     public abstract boolean canAddProperty(ClientApiElement e, ClientApiProperty p, User user);
 
+    public boolean canAddOrUpdateProperty(Element e, String propertyKey, String propertyName, User user) {
+        return canUpdateElement(e, user) &&
+                (e.getProperty(propertyKey, propertyName) != null
+                        ? canUpdateProperty(e, propertyKey, propertyName, user)
+                        : canAddProperty(e, propertyKey, propertyName, user));
+    }
+
     public ClientApiObject appendACL(ClientApiObject clientApiObject, User user) {
         if (clientApiObject instanceof ClientApiElement) {
             ClientApiElement apiElement = (ClientApiElement) clientApiObject;
@@ -53,6 +60,7 @@ public abstract class ACLProvider {
         for (ClientApiProperty property : apiElement.getProperties()) {
             property.setUpdateable(canUpdateProperty(apiElement, property, user));
             property.setDeleteable(canDeleteProperty(apiElement, property, user));
+            property.setAddable(canAddProperty(apiElement, property, user));
         }
         apiElement.setUpdateable(canUpdateElement(apiElement, user));
         apiElement.setDeleteable(canDeleteElement(apiElement, user));
