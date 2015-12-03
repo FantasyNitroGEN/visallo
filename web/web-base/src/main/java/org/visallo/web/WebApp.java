@@ -12,6 +12,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.VisalloResourceBundleManager;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.notification.SystemNotificationSeverity;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -76,7 +77,8 @@ public class WebApp extends App {
         App.registerParameterValueConverter(SystemNotificationSeverity.class, new SystemNotificationSeverityValueConverter());
 
         App.registerParameterValueConverter(JSONObject.class, new JSONObjectParameterValueConverter());
-        visalloDefaultResultWriterFactory = new VisalloDefaultResultWriterFactory(injector.getInstance(ACLProvider.class));
+        visalloDefaultResultWriterFactory = new VisalloDefaultResultWriterFactory(
+                injector.getInstance(ACLProvider.class), injector.getInstance(UserRepository.class));
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = "true".equals(config.get(Configuration.DEV_MODE, "false"));

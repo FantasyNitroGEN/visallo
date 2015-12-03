@@ -39,8 +39,8 @@ public class OntologyACLProvider extends ACLProvider {
 
     @Override
     public boolean canDeleteProperty(Element e, String propertyKey, String propertyName, final User user) {
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-        return isComment || (canUpdateElement(e, user) && getDeleteableFromOntologyProperty(propertyName));
+        return isComment(propertyName)
+                || (canUpdateElement(e, user) && getDeleteableFromOntologyProperty(propertyName));
     }
 
     @Override
@@ -55,12 +55,18 @@ public class OntologyACLProvider extends ACLProvider {
 
     @Override
     public boolean canUpdateProperty(Element e, String propertyKey, String propertyName, final User user) {
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-        return isComment || (canUpdateElement(e, user) && getUpdateableFromOntologyProperty(propertyName));
+        return isComment(propertyName)
+                || (canUpdateElement(e, user) && getUpdateableFromOntologyProperty(propertyName));
     }
 
     @Override
-    public boolean canDeleteElement(ClientApiElement e) {
+    public boolean canAddProperty(Element e, String propertyKey, String propertyName, User user) {
+        return isComment(propertyName)
+                || (canUpdateElement(e, user) && getAddableFromOntologyProperty(propertyName));
+    }
+
+    @Override
+    public boolean canDeleteElement(ClientApiElement e, User user) {
         if (e instanceof ClientApiVertex) {
             String conceptType = ((ClientApiVertex) e).getConceptType();
             if (conceptType != null) {
@@ -78,13 +84,12 @@ public class OntologyACLProvider extends ACLProvider {
     }
 
     @Override
-    public boolean canDeleteProperty(ClientApiElement e, ClientApiProperty p) {
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(p.getName());
-        return isComment || (canUpdateElement(e) && getDeleteableFromOntologyProperty(p.getName()));
+    public boolean canDeleteProperty(ClientApiElement e, ClientApiProperty p, User user) {
+        return isComment(p.getName()) || (canUpdateElement(e, user) && getDeleteableFromOntologyProperty(p.getName()));
     }
 
     @Override
-    public boolean canUpdateElement(ClientApiElement e) {
+    public boolean canUpdateElement(ClientApiElement e, User user) {
         if (e instanceof ClientApiVertex) {
             String conceptType = ((ClientApiVertex) e).getConceptType();
             if (conceptType != null) {
@@ -102,9 +107,15 @@ public class OntologyACLProvider extends ACLProvider {
     }
 
     @Override
-    public boolean canUpdateProperty(ClientApiElement e, ClientApiProperty p) {
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(p.getName());
-        return isComment || (canUpdateElement(e) && getUpdateableFromOntologyProperty(p.getName()));
+    public boolean canUpdateProperty(ClientApiElement e, ClientApiProperty p, User user) {
+        return isComment(p.getName())
+                || (canUpdateElement(e, user) && getUpdateableFromOntologyProperty(p.getName()));
+    }
+
+    @Override
+    public boolean canAddProperty(ClientApiElement e, ClientApiProperty p, User user) {
+        return isComment(p.getName())
+                || (canUpdateElement(e, user) && getAddableFromOntologyProperty(p.getName()));
     }
 
     private Relationship getOntologyRelationshipFromElement(Element e) {
@@ -140,5 +151,14 @@ public class OntologyACLProvider extends ACLProvider {
     private boolean getUpdateableFromOntologyProperty(String propertyIri) {
         OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyIri);
         return property == null || property.getUpdateable();
+    }
+
+    private boolean getAddableFromOntologyProperty(String propertyIri) {
+        OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyIri);
+        return property == null || property.getAddable();
+    }
+
+    private boolean isComment(String propertyName) {
+        return VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
     }
 }

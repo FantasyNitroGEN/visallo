@@ -8,10 +8,14 @@ import com.v5analytics.webster.resultWriters.ResultWriterFactory;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.ACLProvider;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
+import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,10 +23,12 @@ import java.lang.reflect.Method;
 
 public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
     private ACLProvider aclProvider;
+    private UserRepository userRepository;
 
     @Inject
-    public VisalloDefaultResultWriterFactory(ACLProvider aclProvider) {
+    public VisalloDefaultResultWriterFactory(ACLProvider aclProvider, UserRepository userRepository) {
         this.aclProvider = aclProvider;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -47,12 +53,16 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
             }
 
             @Override
-            protected void writeResult(HttpServletResponse response, Object result) throws IOException {
+            protected void writeResult(HttpServletRequest request, HttpServletResponse response, Object result)
+                    throws IOException {
                 if (result != null) {
                     response.setCharacterEncoding("UTF-8");
                     if (resultIsClientApiObject) {
                         try {
-                            String jsonObject = ObjectMapperFactory.getInstance().writeValueAsString(aclProvider.appendACL((ClientApiObject) result));
+                            ClientApiObject clientApiObject = (ClientApiObject) result;
+                            User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+                            clientApiObject = aclProvider.appendACL(clientApiObject, user);
+                            String jsonObject = ObjectMapperFactory.getInstance().writeValueAsString(clientApiObject);
                             response.getWriter().write(jsonObject);
                         } catch (JsonProcessingException e) {
                             throw new VisalloException("Could not write json", e);
@@ -64,7 +74,7 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                             response.flushBuffer();
                         }
                     } else {
-                        super.writeResult(response, result);
+                        super.writeResult(request, response, result);
                     }
                 }
             }
