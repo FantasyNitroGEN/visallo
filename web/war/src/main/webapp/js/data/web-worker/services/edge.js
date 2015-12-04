@@ -82,6 +82,10 @@ define([
                 graphEdgeId: edgeId,
                 visibilitySource: visibilitySource
             });
+        },
+
+        acl: function(edgeId) {
+            return ajax('GET', '/edge/acl', { elementId: edgeId });
         }
     };
 

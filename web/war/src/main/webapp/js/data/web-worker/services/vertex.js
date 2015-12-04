@@ -44,7 +44,7 @@ define([
                     } else if (_.isString(value) && !value) {
                         delete options[key];
                     }
-                })
+                });
                 _.extend(params, options.otherFilters);
             }
 
@@ -257,6 +257,10 @@ define([
 
         unresolveDetectedObject: function(params) {
             return ajax('POST', '/vertex/unresolve-detected-object', params);
+        },
+
+        acl: function(vertexId) {
+            return ajax('GET', '/vertex/acl', { elementId: vertexId });
         }
     };
 

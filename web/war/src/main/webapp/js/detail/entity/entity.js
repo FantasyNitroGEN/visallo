@@ -28,15 +28,9 @@ define([
     PropertyForm) {
     'use strict';
 
-    var MAX_RELATIONS_TO_DISPLAY; // Loaded with configuration parameters
-
     return defineComponent(Entity, withTypeContent, withHighlighting, withDataRequest);
 
-    function defaultSort(x, y) {
-        return x === y ? 0 : x < y ? -1 : 1;
-    }
-
-    function Entity(withDropdown) {
+    function Entity() {
 
         this.defaultAttrs({
             glyphIconSelector: '.entity-glyphIcon',
@@ -53,13 +47,16 @@ define([
         });
 
         this.after('initialize', function() {
-            var self = this;
+            var self = this,
+                vertex = this.attr.data;
             this.$node.on('click.paneClick', this.onPaneClicked.bind(this));
 
             this.on(document, 'verticesUpdated', this.onVerticesUpdated);
             this.on('addImage', this.onAddImage);
 
-            this.loadEntity();
+            this.dataRequest('vertex', 'acl', vertex.id).done(function(acl) {
+                self.loadEntity(vertex, acl);
+            });
         });
 
         this.onAddImage = function(event, data) {
@@ -78,13 +75,13 @@ define([
             }
         };
 
-        this.loadEntity = function() {
-            var vertex = this.attr.data;
+        this.loadEntity = function(vertex, acl) {
+            var hasAddableProperties = _.where(acl.propertyAcls, { addable: true }).length > 0,
+                disableAdd = (vertex.hasOwnProperty('updateable') && !vertex.updateable) || !hasAddableProperties,
+                disabledAddMenuClass = disableAdd ? 'disabled' : null;
 
             this.trigger('finishedLoadingTypeContent');
 
-            this.vertex = vertex;
-            this.attr.data = vertex;
             this.$node.html(template({
                 vertex: vertex,
                 F: F
@@ -102,12 +99,8 @@ define([
                     {
                         title: i18n('detail.toolbar.add'),
                         submenu: [
-                            _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, {
-                                cls: (vertex.hasOwnProperty('updateable') && !vertex.updateable) ? 'disabled' : null
-                            }),
-                            _.extend({}, Toolbar.ITEMS.ADD_IMAGE, {
-                                cls: (vertex.hasOwnProperty('updateable') && !vertex.updateable) ? 'disabled' : null
-                            }),
+                            _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, { cls: disabledAddMenuClass }),
+                            _.extend({}, Toolbar.ITEMS.ADD_IMAGE, { cls: disabledAddMenuClass }),
                             Toolbar.ITEMS.ADD_COMMENT
                         ]
                     },
@@ -166,7 +159,7 @@ define([
                             })
                     );
                 }
-            })
+            });
             Promise.all(requirePromises).done(function() {
                 self.select('extensionsSelector').html(els);
             })

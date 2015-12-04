@@ -38,7 +38,7 @@ define([
                     (config.isComment ? config.isCommentCreator : true);
                 config.canDelete = (!config.property.hasOwnProperty('deleteable') || config.property.deleteable) &&
                                     config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson';
-                config.canAdd = config.ontologyProperty.addable && config.data.updateable;
+                config.canAdd = !config.property.hasOwnProperty('addable') || config.property.addable;
 
                 var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
                     config.ontologyProperty.dependentPropertyIris.length;
