@@ -79,6 +79,12 @@ public abstract class ACLProvider {
         return clientApiObject;
     }
 
+    public void appendACL(Collection<? extends ClientApiObject> clientApiObject, User user) {
+        for (ClientApiObject apiObject : clientApiObject) {
+            appendACL(apiObject, user);
+        }
+    }
+
     protected void appendACL(ClientApiElement apiElement, User user) {
         for (ClientApiProperty property : apiElement.getProperties()) {
             property.setUpdateable(canUpdateProperty(apiElement, property, user));
@@ -98,12 +104,6 @@ public abstract class ACLProvider {
         for (ClientApiVertexEdges.Edge vertexEdge : edges.getRelationships()) {
             appendACL(vertexEdge.getRelationship(), user);
             appendACL(vertexEdge.getVertex(), user);
-        }
-    }
-
-    public void appendACL(Collection<? extends ClientApiObject> clientApiObject, User user) {
-        for (ClientApiObject apiObject : clientApiObject) {
-            appendACL(apiObject, user);
         }
     }
 
