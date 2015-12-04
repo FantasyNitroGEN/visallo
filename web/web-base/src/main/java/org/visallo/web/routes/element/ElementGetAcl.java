@@ -1,11 +1,11 @@
 package org.visallo.web.routes.element;
 
-import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Element;
+import org.vertexium.ElementType;
 import org.vertexium.Graph;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
@@ -16,16 +16,18 @@ import org.visallo.web.clientapi.model.ClientApiElementAcl;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class ElementGetAcl implements ParameterizedHandler {
+public abstract class ElementGetAcl implements ParameterizedHandler {
     private Graph graph;
     private OntologyRepository ontologyRepository;
     private ACLProvider aclProvider;
+    private ElementType elementType;
 
-    @Inject
-    public ElementGetAcl(Graph graph, OntologyRepository ontologyRepository, ACLProvider aclProvider) {
+    protected ElementGetAcl(Graph graph, OntologyRepository ontologyRepository, ACLProvider aclProvider,
+                            ElementType elementType) {
         this.graph = graph;
         this.ontologyRepository = ontologyRepository;
         this.aclProvider = aclProvider;
+        this.elementType = elementType;
     }
 
     @Handle
@@ -35,19 +37,19 @@ public class ElementGetAcl implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        String type = request.getPathInfo().split("/")[1];
         Element element;
 
-        if (type.equals("vertex")) {
+        if (elementType == ElementType.VERTEX) {
             element = graph.getVertex(elementId, authorizations);
-        } else if (type.equals("edge")) {
+        } else if (elementType == ElementType.EDGE) {
             element = graph.getEdge(elementId, authorizations);
         } else {
-            throw new VisalloException("Unrecognized element type: " + type);
+            throw new VisalloException("Unrecognized element type: " + elementType.name());
         }
 
         if (element == null) {
-            throw new VisalloResourceNotFoundException(String.format("%s %s not found", type, elementId), elementId);
+            throw new VisalloResourceNotFoundException(
+                    String.format("%s %s not found", elementType.name(), elementId), elementId);
         }
 
         return aclProvider.elementACL(element, user, ontologyRepository);
