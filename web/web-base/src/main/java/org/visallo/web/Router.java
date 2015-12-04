@@ -201,7 +201,7 @@ public class Router extends HttpServlet {
             app.post("/long-running-process/cancel", authenticator, csrfProtector, LongRunningProcessCancel.class);
 
             app.get("/admin/all", authenticator, csrfProtector, AdminPrivilegeFilter.class, AdminList.class);
-            app.get("/admin/plugins", authenticator, csrfProtector, PluginList.class);
+            app.get("/admin/plugins", authenticator, csrfProtector, AdminPrivilegeFilter.class, PluginList.class);
             app.post("/admin/upload-ontology", authenticator, csrfProtector, AdminPrivilegeFilter.class, AdminUploadOntology.class);
 
             app.get("/ping", RateLimitFilter.class, Ping.class);
