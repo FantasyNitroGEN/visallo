@@ -7,12 +7,6 @@ define([
 
     var api = {
 
-        audit: function(edgeId) {
-            return ajax('GET', '/edge/audit', {
-                edgeId: edgeId
-            }).then(_.property('auditHistory'));
-        },
-
         create: function(options) {
             return ajax('POST', '/edge/create', options);
         },
@@ -89,7 +83,6 @@ define([
                 visibilitySource: visibilitySource
             });
         }
-
     };
 
     return api;

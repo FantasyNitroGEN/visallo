@@ -7,12 +7,6 @@ define([
 
     var api = {
 
-        audit: function(vertexId) {
-            return ajax('GET', '/vertex/audit', {
-                graphVertexId: vertexId
-            }).then(_.property('auditHistory'));
-        },
-
         queryForOptions: function(options) {
             var params = {},
                 q = _.isUndefined(options.query.query) ?
