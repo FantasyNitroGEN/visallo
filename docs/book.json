@@ -4,6 +4,9 @@
   "gitbook": "2.6.2",
   "language": "en",
   "direction": "ltr",
+  "styles": {
+    "website": "styles/website.css"
+  },
   "plugins": ["ga"],
   "pluginsConfig": {
     "ga": {
