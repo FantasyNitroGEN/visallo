@@ -11,6 +11,7 @@ import org.apache.hadoop.io.Text;
 import org.json.JSONObject;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.config.VisalloHadoopConfiguration;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -45,14 +46,14 @@ public class TheMovieDbCombine extends CommandLineTool {
 
         Path jsonSeqFilePath = new Path(jsonOut);
         SequenceFile.Writer jsonOut = SequenceFile.createWriter(
-                this.configuration.getHadoopConfiguration(),
+                VisalloHadoopConfiguration.getHadoopConfiguration(this.configuration),
                 SequenceFile.Writer.file(jsonSeqFilePath),
                 SequenceFile.Writer.keyClass(SequenceFileKey.class),
                 SequenceFile.Writer.valueClass(Text.class));
 
         Path imageSeqFilePath = new Path(imageOut);
         SequenceFile.Writer imageOut = SequenceFile.createWriter(
-                this.configuration.getHadoopConfiguration(),
+                VisalloHadoopConfiguration.getHadoopConfiguration(this.configuration),
                 SequenceFile.Writer.file(imageSeqFilePath),
                 SequenceFile.Writer.keyClass(SequenceFileKey.class),
                 SequenceFile.Writer.valueClass(BytesWritable.class));

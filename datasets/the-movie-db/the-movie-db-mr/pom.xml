@@ -12,4 +12,12 @@
 
     <artifactId>visallo-the-movie-db-mr</artifactId>
     <name>Visallo: Datasets: TheMovieDb MR</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-storage-hadoop</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

@@ -1,13 +1,11 @@
 package org.visallo.core.model.lock;
 
-import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
-
 import java.util.concurrent.Callable;
 
 public class NonLockingLockRepository extends LockRepository {
     @Override
     public Lock createLock(String lockName) {
-        return new Lock(null, lockName) {
+        return new Lock(lockName) {
             @Override
             public <T> T run(Callable<T> callable) {
                 try {
@@ -20,7 +18,7 @@ public class NonLockingLockRepository extends LockRepository {
     }
 
     @Override
-    public void leaderElection(String lockName, final LeaderLatchListener listener) {
+    public void leaderElection(String lockName, final LeaderListener listener) {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {

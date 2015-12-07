@@ -1,7 +1,5 @@
 package org.visallo.web.routes.vertex;
 
-import com.amazonaws.util.json.JSONArray;
-import com.amazonaws.util.json.JSONException;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
@@ -12,6 +10,8 @@ import org.apache.commons.fileupload.ParameterParser;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;

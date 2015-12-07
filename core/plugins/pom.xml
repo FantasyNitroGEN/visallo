@@ -19,6 +19,7 @@
         <module>model-ontology-acl-provider</module>
         <module>model-queue-inmemory</module>
         <module>model-queue-rabbitmq</module>
+        <module>model-storage-hadoop</module>
         <module>model-vertexium</module>
         <module>model-vertexium-accumulo</module>
         <module>model-vertexium-elasticsearch</module>

@@ -18,6 +18,7 @@ import org.vertexium.accumulo.mapreduce.ElementMapper;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.ConfigurationLoader;
+import org.visallo.core.config.VisalloHadoopConfiguration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VersionUtil;
 import org.visallo.core.util.VisalloLogger;
@@ -145,7 +146,7 @@ public abstract class VisalloMRBase extends Configured implements Tool {
     protected abstract void setupJob(Job job) throws Exception;
 
     protected JobConf getConfiguration(String[] args, org.visallo.core.config.Configuration visalloConfig) {
-        Configuration hadoopConfig = visalloConfig.toHadoopConfiguration(getConf());
+        Configuration hadoopConfig = VisalloHadoopConfiguration.toHadoopConfiguration(visalloConfig, getConf());
         hadoopConfig.set(ElementMapper.GRAPH_CONFIG_PREFIX, "graph.");
         JobConf result = new JobConf(hadoopConfig, this.getClass());
         JCommander j = new JCommander(this, args);

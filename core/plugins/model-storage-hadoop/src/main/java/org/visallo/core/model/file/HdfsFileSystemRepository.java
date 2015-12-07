@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.config.VisalloHadoopConfiguration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -34,7 +35,7 @@ public class HdfsFileSystemRepository extends FileSystemRepository {
         String hdfsUserName = configuration.get(Configuration.HDFS_USER_NAME, Configuration.HDFS_USER_NAME_DEFAULT);
         String fsDefaultFS = configuration.get("fs.defaultFS", null);
         try {
-            return FileSystem.get(new URI(fsDefaultFS), configuration.getHadoopConfiguration(), hdfsUserName);
+            return FileSystem.get(new URI(fsDefaultFS), VisalloHadoopConfiguration.getHadoopConfiguration(configuration), hdfsUserName);
         } catch (Exception e) {
             throw new VisalloException("Could not open hdfs filesystem: " + fsDefaultFS + " (user: " + hdfsUserName + ")", e);
         }

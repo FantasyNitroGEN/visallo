@@ -1,6 +1,5 @@
 package org.visallo.core.model.lock;
 
-import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -34,7 +33,7 @@ public class LockRepositoryTestBase {
             @Override
             public void run() {
                 LOGGER.debug("thread %s started", Thread.currentThread().getName());
-                lockRepository.leaderElection(lockName, new LeaderLatchListener() {
+                lockRepository.leaderElection(lockName, new LeaderListener() {
                     @Override
                     public void isLeader() {
                         String message = String.format("[thread: %s] isLeader: %s", Thread.currentThread().getName(), lockName);
