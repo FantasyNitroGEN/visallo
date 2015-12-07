@@ -45,19 +45,7 @@ public class CuratorLockRepositoryTest extends LockRepositoryTestBase {
 
     @Test
     public void testCreateLock() throws Exception {
-        List<String> messages = new ArrayList<>();
-        List<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            threads.add(createLockExercisingThread(lockRepository, "lockOne", i, messages));
-        }
-        for (int i = 5; i < 10; i++) {
-            threads.add(createLockExercisingThread(lockRepository, "lockTwo", i, messages));
-        }
-        for (Thread t : threads) {
-            t.start();
-            t.join();
-        }
-        assertEquals(threads.size(), messages.size());
+        super.testCreateLock(lockRepository);
     }
 
     @Test

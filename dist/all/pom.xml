@@ -60,6 +60,11 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-coordination-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-dist-tools</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -131,6 +136,11 @@
                                 </copy>
                                 <copy todir="${project.build.directory}/dist/lib/storage/sql">
                                     <fileset dir="${project.basedir}/../storage-sql/target/visallo-dist-storage-sql-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/coordination/zookeeper">
+                                    <fileset dir="${project.basedir}/../coordination-zookeeper/target/visallo-dist-coordination-zookeeper-${project.version}/lib">
                                         <include name="**/*"/>
                                     </fileset>
                                 </copy>

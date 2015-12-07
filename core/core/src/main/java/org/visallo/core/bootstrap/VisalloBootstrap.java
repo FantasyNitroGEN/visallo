@@ -3,12 +3,10 @@ package org.visallo.core.bootstrap;
 import com.google.inject.*;
 import com.google.inject.matcher.Matchers;
 import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.email.EmailRepository;
@@ -19,7 +17,6 @@ import org.visallo.core.geocoding.GeocoderRepository;
 import org.visallo.core.http.DefaultHttpRepository;
 import org.visallo.core.http.HttpRepository;
 import org.visallo.core.model.file.FileSystemRepository;
-import org.visallo.core.model.lock.CuratorLockRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -122,13 +119,6 @@ public class VisalloBootstrap extends AbstractModule {
         MetricsManager metricsManager = new JmxMetricsManager();
         bind(MetricsManager.class).toInstance(metricsManager);
 
-        if (configuration.getBoolean(Configuration.CURATOR_ENABLED, Configuration.CURATOR_ENABLED_DEFAULT)) {
-            LOGGER.debug("binding %s", CuratorFrameworkProvider.class.getName());
-            bind(CuratorFramework.class)
-                    .toProvider(new CuratorFrameworkProvider(configuration))
-                    .in(Scopes.SINGLETON);
-        }
-
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Traced.class), new TracedMethodInterceptor());
 
         bind(TraceRepository.class)
@@ -138,7 +128,7 @@ public class VisalloBootstrap extends AbstractModule {
                 .toProvider(getGraphProvider(configuration, Configuration.GRAPH_PROVIDER))
                 .in(Scopes.SINGLETON);
         bind(LockRepository.class)
-                .toProvider(VisalloBootstrap.<LockRepository>getConfigurableProvider(configuration, Configuration.LOCK_REPOSITORY, CuratorLockRepository.class))
+                .toProvider(VisalloBootstrap.<LockRepository>getConfigurableProvider(configuration, Configuration.LOCK_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(WorkQueueRepository.class)
                 .toProvider(VisalloBootstrap.<WorkQueueRepository>getConfigurableProvider(configuration, Configuration.WORK_QUEUE_REPOSITORY))
@@ -259,32 +249,6 @@ public class VisalloBootstrap extends AbstractModule {
 
     public static void shutdown() {
         visalloBootstrap = null;
-    }
-
-    private static class CuratorFrameworkProvider implements Provider<CuratorFramework> {
-        private String zookeeperConnectionString;
-        private RetryPolicy retryPolicy;
-
-        public CuratorFrameworkProvider(Configuration configuration) {
-            zookeeperConnectionString = configuration.get(Configuration.ZK_SERVERS, null);
-            if (zookeeperConnectionString == null) {
-                throw new VisalloException("Could not find configuration item: " + Configuration.ZK_SERVERS);
-            }
-            retryPolicy = new ExponentialBackoffRetry(1000, 6);
-        }
-
-        @Override
-        public CuratorFramework get() {
-            CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy);
-            client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
-                @Override
-                public void stateChanged(CuratorFramework client, ConnectionState newState) {
-                    LOGGER.debug("curator connection state changed to " + newState.name());
-                }
-            });
-            client.start();
-            return client;
-        }
     }
 
     public static <T> void bind(Binder binder, Configuration configuration, String propertyKey, Class<T> type, Class<? extends T> defaultClass) {

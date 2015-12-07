@@ -3,37 +3,40 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>visallo-tools-group</artifactId>
+        <artifactId>visallo-core-plugins-group</artifactId>
         <groupId>org.visallo</groupId>
         <version>1.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>visallo-tools-rdf-import</artifactId>
-    <packaging>jar</packaging>
-
-    <name>Visallo: Tools: RDF Import</name>
+    <artifactId>visallo-model-coordination-zookeeper</artifactId>
+    <name>Visallo: Core: Plugin: Model: Coordination: Zookeeper</name>
 
     <dependencies>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-core</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-gpw-rdf</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
         </dependency>
 
+        <!-- Test Dependencies -->
         <dependency>
-            <groupId>org.vertexium</groupId>
-            <artifactId>vertexium-inmemory</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>${curator.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
