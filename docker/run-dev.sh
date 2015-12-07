@@ -87,8 +87,19 @@ else
   LOCAL_PERSISTENT_DIR=${DIR}/visallo-dev-persistent
 fi
 
-${SUDO} cp ${DIR}/../config/visallo.properties ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/visallo.properties
-${SUDO} cp ${DIR}/../config/log4j.xml ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/log4j.xml
+${SUDO} cp -n \
+  ${DIR}/../docker/dev/config/visallo-ontology-minimal.properties \
+  ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/
+
+${SUDO} cp -n \
+  ${DIR}/../config/log4j.xml \
+  ${DIR}/../config/visallo.properties \
+  ${DIR}/../config/visallo-accumulo.properties \
+  ${DIR}/../config/visallo-elasticsearch.properties \
+  ${DIR}/../config/visallo-hadoop.properties \
+  ${DIR}/../config/visallo-rabbitmq.properties \
+  ${DIR}/../config/visallo-zookeeper.properties \
+  ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/
 
 (cd ${DIR} &&
   ${SUDO} docker run \

@@ -19,11 +19,15 @@ import java.util.List;
 
 public class HdfsFileSystemRepository extends FileSystemRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(HdfsFileSystemRepository.class);
+    private static final String CONFIG_PREFIX = HdfsFileSystemRepository.class.getName() + ".prefix";
+    private static final String CONFIG_PREFIX_DEFAULT = "/visallo/config/";
     private final FileSystem hdfsFileSystem;
+    private final String prefix;
 
     @Inject
     public HdfsFileSystemRepository(Configuration configuration) {
         hdfsFileSystem = getFileSystem(configuration);
+        prefix = configuration.get(CONFIG_PREFIX, CONFIG_PREFIX_DEFAULT);
     }
 
     public static FileSystem getFileSystem(Configuration configuration) {
@@ -54,9 +58,9 @@ public class HdfsFileSystemRepository extends FileSystemRepository {
 
     private Path getHdfsPath(String path) {
         try {
-            Path filePath = new Path(path);
+            Path filePath = new Path(prefix + path);
             if (!hdfsFileSystem.exists(filePath)) {
-                throw new VisalloException("Could not find file: " + filePath);
+                throw new VisalloException("Could not find file: " + hdfsFileSystem.getUri() + filePath);
             }
             return filePath;
         } catch (IOException ex) {

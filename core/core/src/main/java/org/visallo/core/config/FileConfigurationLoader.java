@@ -2,6 +2,7 @@ package org.visallo.core.config;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FilenameUtils;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.util.ProcessUtil;
@@ -109,10 +110,15 @@ public class FileConfigurationLoader extends ConfigurationLoader {
         if (files == null) {
             throw new VisalloException("Could not parse directory name: " + configDirectory);
         }
+        // sort similar to IntelliJ, visallo.properties should come before visallo-*.properties
         Arrays.sort(files, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
+                return getComparableFileName(o1).compareTo(getComparableFileName(o2));
+            }
+
+            private String getComparableFileName(File o1) {
+                return FilenameUtils.getBaseName(o1.getName()).toLowerCase();
             }
         });
         Map<String, String> properties = new HashMap<>();
