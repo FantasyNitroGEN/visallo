@@ -57,6 +57,7 @@ the ontology into Visallo.
 * **searchable** - Should this property show up in the UI for searching.
 * **deleteable** - Should this property be deleteable from the UI.
 * **updateable** - Should this property be updateable from the UI.
+* **addable** - Should this property be addable from the UI.
 * **displayType** - Specifies how the UI should display the value.
   * dateOnly
   * link
