@@ -26,7 +26,7 @@ public class GeoIpRepository {
 
     @Inject
     public GeoIpRepository(FileSystemRepository fileSystemRepository) {
-        String geoLite2CityBlocksIpv4HdfsPath = "/visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker/GeoLite2-City-Blocks-IPv4.csv";
+        String geoLite2CityBlocksIpv4HdfsPath = "/" + GeoIpRepository.class.getName() + "/GeoLite2-City-Blocks-IPv4.csv";
         LOGGER.debug("Loading %s", geoLite2CityBlocksIpv4HdfsPath);
         try (InputStream in = fileSystemRepository.getInputStream(geoLite2CityBlocksIpv4HdfsPath)) {
             loadGeoIp(in);
@@ -34,7 +34,7 @@ public class GeoIpRepository {
             throw new VisalloException("Could not close file", e);
         }
 
-        String geoLite2CityLocationsEnHdfsPath = "/visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker/GeoLite2-City-Locations-en.csv";
+        String geoLite2CityLocationsEnHdfsPath = "/" + GeoIpRepository.class.getName() + "/GeoLite2-City-Locations-en.csv";
         LOGGER.debug("Loading %s", geoLite2CityLocationsEnHdfsPath);
         try (InputStream in = fileSystemRepository.getInputStream(geoLite2CityLocationsEnHdfsPath)) {
             loadGeoLocations(in);

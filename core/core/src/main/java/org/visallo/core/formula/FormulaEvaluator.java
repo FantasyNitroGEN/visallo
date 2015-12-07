@@ -29,14 +29,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Evaluates JavaScript formulas (title, subtitle, etc) using Java's Rhino JavaScript interpreter.
+ */
 public class FormulaEvaluator {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FormulaEvaluator.class);
     public static final String CONFIGURATION_PARAMETER_MAX_THREADS = FormulaEvaluator.class.getName() + ".max.threads";
     public static final int CONFIGURATION_DEFAULT_MAX_THREADS = 1;
-
     private Configuration configuration;
     private OntologyRepository ontologyRepository;
-
     private ExecutorService executorService;
 
     private static final ThreadLocal<Map<String, Scriptable>> threadLocalScope = new ThreadLocal<Map<String, Scriptable>>() {
