@@ -1,16 +1,16 @@
 package org.visallo.core.bootstrap;
 
-import com.google.inject.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.Scopes;
 import com.google.inject.matcher.Matchers;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.email.EmailRepository;
-import org.visallo.core.email.SmtpEmailRepository;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
-import org.visallo.core.http.DefaultHttpRepository;
 import org.visallo.core.http.HttpRepository;
 import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.lock.LockRepository;
@@ -28,12 +28,10 @@ import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.StatusRepository;
 import org.visallo.core.time.TimeRepository;
-import org.visallo.core.trace.DefaultTraceRepository;
 import org.visallo.core.trace.TraceRepository;
 import org.visallo.core.trace.Traced;
 import org.visallo.core.trace.TracedMethodInterceptor;
 import org.visallo.core.user.User;
-import org.visallo.core.util.ClassUtil;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -118,7 +116,7 @@ public class VisalloBootstrap extends AbstractModule {
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Traced.class), new TracedMethodInterceptor());
 
         bind(TraceRepository.class)
-                .toProvider(VisalloBootstrap.<TraceRepository>getConfigurableProvider(configuration, Configuration.TRACE_REPOSITORY, DefaultTraceRepository.class))
+                .toProvider(VisalloBootstrap.<TraceRepository>getConfigurableProvider(configuration, Configuration.TRACE_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(Graph.class)
                 .toProvider(getGraphProvider(configuration, Configuration.GRAPH_PROVIDER))
@@ -157,13 +155,13 @@ public class VisalloBootstrap extends AbstractModule {
                 .toProvider(VisalloBootstrap.<SimpleOrmSession>getConfigurableProvider(configuration, Configuration.SIMPLE_ORM_SESSION))
                 .in(Scopes.SINGLETON);
         bind(HttpRepository.class)
-                .toProvider(VisalloBootstrap.<HttpRepository>getConfigurableProvider(configuration, Configuration.HTTP_REPOSITORY, DefaultHttpRepository.class))
+                .toProvider(VisalloBootstrap.<HttpRepository>getConfigurableProvider(configuration, Configuration.HTTP_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(GeocoderRepository.class)
-                .toProvider(VisalloBootstrap.<GeocoderRepository>getConfigurableProvider(configuration, Configuration.GEOCODER_REPOSITORY, DefaultGeocoderRepository.class))
+                .toProvider(VisalloBootstrap.<GeocoderRepository>getConfigurableProvider(configuration, Configuration.GEOCODER_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(EmailRepository.class)
-                .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY, SmtpEmailRepository.class))
+                .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(StatusRepository.class)
                 .toProvider(VisalloBootstrap.<StatusRepository>getConfigurableProvider(configuration, Configuration.STATUS_REPOSITORY))
@@ -247,22 +245,8 @@ public class VisalloBootstrap extends AbstractModule {
         visalloBootstrap = null;
     }
 
-    public static <T> void bind(Binder binder, Configuration configuration, String propertyKey, Class<T> type, Class<? extends T> defaultClass) {
-        String className = configuration.get(propertyKey, defaultClass.getName());
-        try {
-            Class<? extends T> klass = ClassUtil.forName(className);
-            binder.bind(type).to(klass).in(Scopes.SINGLETON);
-        } catch (Exception ex) {
-            throw new VisalloException("Failed to bind " + className + " as singleton instance of " + type.getName() + "(configure with " + propertyKey + ")", ex);
-        }
-    }
-
     public static <T> Provider<? extends T> getConfigurableProvider(final Configuration config, final String key) {
-        return getConfigurableProvider(config, key, null);
-    }
-
-    public static <T> Provider<? extends T> getConfigurableProvider(final Configuration config, final String key, Class<? extends T> defaultClass) {
-        Class<? extends T> configuredClass = config.getClass(key, defaultClass);
+        Class<? extends T> configuredClass = config.getClass(key);
         return configuredClass != null ? new ConfigurableProvider<>(configuredClass, config, key, null) : new NullProvider<T>();
     }
 
