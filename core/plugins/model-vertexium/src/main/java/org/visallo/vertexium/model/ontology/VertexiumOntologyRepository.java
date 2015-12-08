@@ -796,11 +796,19 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         }
 
         for (String domainIri : domainIris) {
+            Vertex domainVertex;
             Concept concept = getConceptByIRI(domainIri);
-            if (concept == null) {
-                throw new VisalloException("Could not find domain with IRI " + domainIri);
+            if (concept != null) {
+                domainVertex = ((VertexiumConcept) concept).getVertex();
+            } else {
+                Relationship relationship = getRelationshipByIRI(domainIri);
+                if (relationship != null) {
+                    domainVertex = ((VertexiumRelationship) relationship).getVertex();
+                } else {
+                    throw new VisalloException("Could not find domain with IRI " + domainIri);
+                }
             }
-            findOrAddEdge(((VertexiumConcept) concept).getVertex(), ((VertexiumOntologyProperty) property).getVertex(), LabelName.HAS_PROPERTY.toString());
+            findOrAddEdge(domainVertex, ((VertexiumOntologyProperty) property).getVertex(), LabelName.HAS_PROPERTY.toString());
         }
     }
 

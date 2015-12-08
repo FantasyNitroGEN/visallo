@@ -9,36 +9,17 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>visallo-dist-core</artifactId>
-    <name>Visallo Distribution: Core</name>
+    <artifactId>visallo-dist-storage-sql</artifactId>
+    <name>Visallo Distribution: Storage: SQL</name>
 
     <dependencies>
         <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- core/plugins -->
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-ontology-acl-provider</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-sql</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-geocoder-bing</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-newuser-workspace-copy</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-newuser-workspace-sharer</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-sql</artifactId>
         </dependency>
     </dependencies>
 
