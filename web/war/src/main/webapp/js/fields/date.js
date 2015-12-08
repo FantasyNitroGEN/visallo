@@ -145,17 +145,21 @@ define([
                         date;
 
                     if (_.isUndefined(millis) && _.isString(value) && value.length) {
-                        var looksLikeCorrectFormat = (/^\d+-\d+-\d+ \d+:\d+$/).test(value);
-                        if (looksLikeCorrectFormat) {
-                            var parsed = F.timezone.date(value, 'Etc/UTC');
-                            if (parsed) {
-                                date = parsed.toDate();
-                            }
+                        if ((/^-?[0-9]+$/).test(value)) {
+                            millis = parseInt(value, 10);
                         } else {
-                            date = F.date.looslyParseDate(value);
-                        }
-                        if (date) {
-                            millis = date.getTime();
+                            var looksLikeCorrectFormat = (/^\d+-\d+-\d+ \d+:\d+$/).test(value);
+                            if (looksLikeCorrectFormat) {
+                                var parsed = F.timezone.date(value, 'Etc/UTC');
+                                if (parsed) {
+                                    date = parsed.toDate();
+                                }
+                            } else {
+                                date = F.date.looslyParseDate(value);
+                            }
+                            if (date) {
+                                millis = date.getTime();
+                            }
                         }
                     } else if (isNaN(new Date(millis).getTime())) {
                         millis = null;
