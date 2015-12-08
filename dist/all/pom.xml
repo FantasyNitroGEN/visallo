@@ -35,6 +35,11 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-queue-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-dist-search-elasticsearch</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -46,6 +51,11 @@
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-dist-storage-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-storage-sql</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -99,6 +109,11 @@
                                         <include name="**/*"/>
                                     </fileset>
                                 </copy>
+                                <copy todir="${project.build.directory}/dist/lib/queue/inmemory">
+                                    <fileset dir="${project.basedir}/../queue-inmemory/target/visallo-dist-queue-inmemory-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
                                 <copy todir="${project.build.directory}/dist/lib/search/elasticsearch">
                                     <fileset dir="${project.basedir}/../search-elasticsearch/target/visallo-dist-search-elasticsearch-${project.version}/lib">
                                         <include name="**/*"/>
@@ -111,6 +126,11 @@
                                 </copy>
                                 <copy todir="${project.build.directory}/dist/lib/storage/inmemory">
                                     <fileset dir="${project.basedir}/../storage-inmemory/target/visallo-dist-storage-inmemory-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/storage/sql">
+                                    <fileset dir="${project.basedir}/../storage-sql/target/visallo-dist-storage-sql-${project.version}/lib">
                                         <include name="**/*"/>
                                     </fileset>
                                 </copy>
