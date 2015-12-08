@@ -22,6 +22,11 @@
         <!-- core/plugins -->
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-ontology-acl-provider</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-geocoder-bing</artifactId>
             <version>${project.version}</version>
         </dependency>
