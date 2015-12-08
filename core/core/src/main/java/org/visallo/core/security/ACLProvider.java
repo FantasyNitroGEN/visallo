@@ -107,7 +107,8 @@ public abstract class ACLProvider {
         }
     }
 
-    private void populatePropertyAcls(Concept concept, Element element, User user, List<ClientApiPropertyAcl> propertyAcls) {
+    private void populatePropertyAcls(Concept concept, Element element, User user,
+                                      List<ClientApiPropertyAcl> propertyAcls) {
         for (OntologyProperty ontologyProperty : concept.getProperties()) {
             String name = ontologyProperty.getTitle();
             List<Property> properties = IterableUtils.toList(element.getProperties(name));
