@@ -145,18 +145,19 @@ define([
 
         this.renderExtensions = function() {
             var self = this,
+                vertex = this.attr.data,
                 els = [],
                 requirePromises = [];
 
             registry.extensionsForPoint('org.visallo.detail.extensions').forEach(function(e) {
-                if (!_.isFunction(e.canHandle) || e.canHandle(self.vertex, F.vertex.prop(self.vertex, 'conceptType'))) {
+                if (!_.isFunction(e.canHandle) || e.canHandle(vertex, F.vertex.prop(vertex, 'conceptType'))) {
                     var div = $('<div>');
                     els.push(div);
                     requirePromises.push(
                         Promise.require(e.componentPath)
                             .then(function(C) {
                                 C.attachTo(div, {
-                                    vertex: self.vertex
+                                    vertex: vertex
                                 });
                             })
                     );
