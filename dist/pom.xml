@@ -21,7 +21,9 @@
         <module>web</module>
         <module>storage-accumulo</module>
         <module>storage-inmemory</module>
+        <module>storage-sql</module>
         <module>queue-rabbitmq</module>
+        <module>queue-inmemory</module>
         <module>search-elasticsearch</module>
         <module>tools</module>
     </modules>
