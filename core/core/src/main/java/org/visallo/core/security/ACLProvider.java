@@ -1,11 +1,12 @@
 package org.visallo.core.security;
 
+import org.vertexium.Edge;
 import org.vertexium.Element;
 import org.vertexium.Property;
+import org.vertexium.Vertex;
 import org.vertexium.util.IterableUtils;
-import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyProperty;
-import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.*;
@@ -48,11 +49,18 @@ public abstract class ACLProvider {
         elementAcl.setDeleteable(canDeleteElement(element, user));
 
         List<ClientApiPropertyAcl> propertyAcls = elementAcl.getPropertyAcls();
-        String conceptIri = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element);
-        while (conceptIri != null) {
-            Concept concept = ontologyRepository.getConceptByIRI(conceptIri);
-            populatePropertyAcls(concept, element, user, propertyAcls);
-            conceptIri = concept.getParentConceptIRI();
+        if (element instanceof Vertex) {
+            String iri = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element);
+            while (iri != null) {
+                Concept concept = ontologyRepository.getConceptByIRI(iri);
+                populatePropertyAcls(concept, element, user, propertyAcls);
+                iri = concept.getParentConceptIRI();
+            }
+        } else if (element instanceof Edge) {
+            Relationship relationship = ontologyRepository.getRelationshipByIRI(((Edge) element).getLabel());
+            populatePropertyAcls(relationship, element, user, propertyAcls);
+        } else {
+            throw new VisalloException("unsupported Element class " + element.getClass().getName());
         }
         return elementAcl;
     }
@@ -107,9 +115,9 @@ public abstract class ACLProvider {
         }
     }
 
-    private void populatePropertyAcls(Concept concept, Element element, User user,
+    private void populatePropertyAcls(HasOntologyProperties hasOntologyProperties, Element element, User user,
                                       List<ClientApiPropertyAcl> propertyAcls) {
-        for (OntologyProperty ontologyProperty : concept.getProperties()) {
+        for (OntologyProperty ontologyProperty : hasOntologyProperties.getProperties()) {
             String name = ontologyProperty.getTitle();
             List<Property> properties = IterableUtils.toList(element.getProperties(name));
             if (properties.isEmpty()) {

@@ -76,9 +76,11 @@ define([
         };
 
         this.loadEntity = function(vertex, acl) {
-            var hasAddableProperties = _.where(acl.propertyAcls, { addable: true }).length > 0,
-                disableAdd = (vertex.hasOwnProperty('updateable') && !vertex.updateable) || !hasAddableProperties,
-                disabledAddMenuClass = disableAdd ? 'disabled' : null;
+            var hasNoAddableProperties = _.where(acl.propertyAcls, { addable: true }).length === 0,
+                shouldPreventVertexUpdate = vertex.hasOwnProperty('updateable') && !vertex.updateable,
+                disableAddProperty = shouldPreventVertexUpdate || hasNoAddableProperties,
+                disabledAddPropertyClass = disableAddProperty ? 'disabled' : null,
+                disabledAddImageClass = shouldPreventVertexUpdate ? 'disabled' : null;
 
             this.trigger('finishedLoadingTypeContent');
 
@@ -99,8 +101,8 @@ define([
                     {
                         title: i18n('detail.toolbar.add'),
                         submenu: [
-                            _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, { cls: disabledAddMenuClass }),
-                            _.extend({}, Toolbar.ITEMS.ADD_IMAGE, { cls: disabledAddMenuClass }),
+                            _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, { cls: disabledAddPropertyClass }),
+                            _.extend({}, Toolbar.ITEMS.ADD_IMAGE, { cls: disabledAddImageClass }),
                             Toolbar.ITEMS.ADD_COMMENT
                         ]
                     },

@@ -6,11 +6,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.vertexium.Edge;
 import org.vertexium.Element;
 import org.vertexium.Property;
+import org.vertexium.Vertex;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiElementAcl;
@@ -31,9 +34,11 @@ public class ACLProviderTest {
     @Mock private OntologyProperty ontologyProperty1;
     @Mock private OntologyProperty ontologyProperty2;
     @Mock private OntologyProperty ontologyProperty3;
-    @Mock private Concept elementConcept;
+    @Mock private Concept vertexConcept;
     @Mock private Concept parentConcept;
-    @Mock private Element element;
+    @Mock private Vertex vertex;
+    @Mock private Edge edge;
+    @Mock private Relationship edgeRelationship;
     @Mock private Property elementProperty1;
     @Mock private Property elementProperty2a;
     @Mock private Property elementProperty2b;
@@ -52,23 +57,31 @@ public class ACLProviderTest {
         when(aclProvider.appendACL(any(ClientApiObject.class), any(User.class))).thenCallRealMethod();
         doCallRealMethod().when(aclProvider).appendACL(any(Collection.class), any(User.class));
 
-        when(ontologyRepository.getConceptByIRI("element")).thenReturn(elementConcept);
+        when(ontologyRepository.getConceptByIRI("vertex")).thenReturn(vertexConcept);
         when(ontologyRepository.getConceptByIRI("parent")).thenReturn(parentConcept);
+        when(ontologyRepository.getRelationshipByIRI("edge")).thenReturn(edgeRelationship);
 
-        when(elementConcept.getParentConceptIRI()).thenReturn("parent");
-        when(elementConcept.getProperties()).thenReturn(ImmutableList.of(ontologyProperty1, ontologyProperty2));
+        when(vertexConcept.getParentConceptIRI()).thenReturn("parent");
+        when(vertexConcept.getProperties()).thenReturn(ImmutableList.of(ontologyProperty1, ontologyProperty2));
 
         when(parentConcept.getParentConceptIRI()).thenReturn(null);
         when(parentConcept.getProperties()).thenReturn(ImmutableList.of(ontologyProperty3));
+
+        when(edgeRelationship.getProperties()).thenReturn(ImmutableList.of(ontologyProperty1, ontologyProperty2, ontologyProperty3));
 
         when(ontologyProperty1.getTitle()).thenReturn("prop1");
         when(ontologyProperty2.getTitle()).thenReturn("prop2");
         when(ontologyProperty3.getTitle()).thenReturn("prop3");
 
-        when(element.getPropertyValue(VisalloProperties.CONCEPT_TYPE.getPropertyName())).thenReturn("element");
-        when(element.getProperties("prop1")).thenReturn(ImmutableList.of(elementProperty1));
-        when(element.getProperties("prop2")).thenReturn(ImmutableList.of(elementProperty2a, elementProperty2b));
-        when(element.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
+        when(vertex.getPropertyValue(VisalloProperties.CONCEPT_TYPE.getPropertyName())).thenReturn("vertex");
+        when(vertex.getProperties("prop1")).thenReturn(ImmutableList.of(elementProperty1));
+        when(vertex.getProperties("prop2")).thenReturn(ImmutableList.of(elementProperty2a, elementProperty2b));
+        when(vertex.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
+
+        when(edge.getLabel()).thenReturn("edge");
+        when(edge.getProperties("prop1")).thenReturn(ImmutableList.of(elementProperty1));
+        when(edge.getProperties("prop2")).thenReturn(ImmutableList.of(elementProperty2a, elementProperty2b));
+        when(edge.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
 
         when(elementProperty1.getName()).thenReturn("prop1");
         when(elementProperty1.getKey()).thenReturn("keyA");
@@ -84,7 +97,16 @@ public class ACLProviderTest {
     }
 
     @Test
-    public void elementAclShouldPopulateClientApiElementAcl() {
+    public void vertexAclShouldPopulateClientApiElementAcl() {
+        elementAclShouldPopulateClientApiElementAcl(vertex);
+    }
+
+    @Test
+    public void edgeAclShouldPopulateClientApiElementAcl() {
+        elementAclShouldPopulateClientApiElementAcl(edge);
+    }
+
+    private void elementAclShouldPopulateClientApiElementAcl(Element element) {
         when(aclProvider.canUpdateElement(element, user)).thenReturn(true);
         when(aclProvider.canDeleteElement(element, user)).thenReturn(true);
 

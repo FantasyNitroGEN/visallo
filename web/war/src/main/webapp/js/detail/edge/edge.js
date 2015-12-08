@@ -40,6 +40,9 @@ define([
         });
 
         this.after('initialize', function() {
+            var self = this,
+                edge = this.attr.data;
+
             this.$node.on('click.paneClick', this.onPaneClicked.bind(this));
             this.on('click', {
                 vertexToVertexRelationshipSelector: this.onVertexToVertexRelationshipClicked
@@ -47,7 +50,9 @@ define([
 
             this.on(document, 'verticesUpdated', this.onVerticesUpdated);
 
-            this.loadRelationship();
+            this.dataRequest('edge', 'acl', edge.id).done(function(acl) {
+                self.loadRelationship(edge, acl);
+            });
         });
 
         this.onVerticesUpdated = function(event, data) {
@@ -90,13 +95,16 @@ define([
                 })
         };
 
-        this.loadRelationship = function() {
+        this.loadRelationship = function(edge, acl) {
             var self = this,
-                data = this.attr.data;
+                hasNoAddableProperties = _.where(acl.propertyAcls, { addable: true }).length === 0,
+                shouldPreventEdgeUpdate = edge.hasOwnProperty('updateable') && !edge.updateable,
+                disableAddProperty = shouldPreventEdgeUpdate || hasNoAddableProperties,
+                disabledAddPropertyClass = disableAddProperty ? 'disabled' : null;
 
             Promise.all([
                 this.dataRequest('ontology', 'ontology'),
-                this.dataRequest('edge', 'store', { edgeIds: [data.id] })
+                this.dataRequest('edge', 'store', { edgeIds: [edge.id] })
             ]).done(function(results) {
                 var ontology = results.shift(),
                     edges = results.shift(),
@@ -135,9 +143,7 @@ define([
                         {
                             title: i18n('detail.toolbar.add'),
                             submenu: [
-                                _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, {
-                                    cls: (edge.hasOwnProperty('updateable') && !edge.updateable) ? 'disabled' : null
-                                }),
+                                _.extend({}, Toolbar.ITEMS.ADD_PROPERTY, { cls: disabledAddPropertyClass }),
                                 Toolbar.ITEMS.ADD_COMMENT
                             ]
                         },

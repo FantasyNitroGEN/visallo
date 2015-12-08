@@ -10,7 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 
-public abstract class Concept {
+public abstract class Concept implements HasOntologyProperties {
     private final String parentConceptIRI;
     private final Collection<OntologyProperty> properties;
 
