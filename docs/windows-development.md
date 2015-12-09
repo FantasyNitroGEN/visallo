@@ -114,7 +114,7 @@ Maven can be used to execute various command-line tools and the Visallo web appl
 Run this the first time, and whenever you need to clear all data or load a new ontology.
 
     mvn compile -am -pl tools/cli \
-        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology,serializer-kryo \
+        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology,serializer-kryo,coordination-zookeeper,storage-hadoop \
         -Dexec.args='FormatVisallo'
 
 ## Ontology
@@ -122,7 +122,7 @@ Run this the first time, and whenever you need to clear all data or load a new o
 The following command loads an ontology that works well for general development:
 
     mvn compile -am -pl tools/cli \
-        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology,serializer-kryo \
+        -P run-cli,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology,serializer-kryo,coordination-zookeeper,storage-hadoop \
         -Dexec.args='OwlImport --in examples/ontology-dev/dev.owl'
 
 ## Web Server
@@ -130,7 +130,7 @@ The following command loads an ontology that works well for general development:
 This command runs Visallo using the Jetty web server, with a username-only login, and with the backed services provided by the development docker container:
 
     mvn compile -am -pl web/war \
-        -P jetty-run,web-admin,web-auth-username-only,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology,serializer-kryo \
+        -P jetty-run,web-admin,web-auth-username-only,storage-accumulo,search-elasticsearch,queue-rabbitmq,acl-ontology,serializer-kryo,coordination-zookeeper,storage-hadoop \
         -Dgrunt.target=development
 
 Use Chrome or Firefox to browse to `https://127.0.0.1:8443`. Internet Explorer is not currently supported.
