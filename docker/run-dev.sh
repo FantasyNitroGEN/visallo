@@ -1,4 +1,5 @@
 #!/bin/sh -e
+set -x
 
 DIR=$(cd $(dirname "$0") && pwd)
 
@@ -87,11 +88,11 @@ else
   LOCAL_PERSISTENT_DIR=${DIR}/visallo-dev-persistent
 fi
 
-${SUDO} cp -n \
+${SUDO} cp \
   ${DIR}/../docker/dev/config/visallo-ontology-minimal.properties \
   ${LOCAL_PERSISTENT_DIR}/opt/visallo/config/
 
-${SUDO} cp -n \
+${SUDO} cp \
   ${DIR}/../config/log4j.xml \
   ${DIR}/../config/visallo.properties \
   ${DIR}/../config/visallo-accumulo.properties \
