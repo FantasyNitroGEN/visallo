@@ -30,6 +30,6 @@ public class LocalFileSystemRepository extends FileSystemRepository {
 
     @Override
     public Iterable<String> list(String path) {
-        return Lists.newArrayList(new File(path).list());
+        return Lists.newArrayList(getLocalFileFor(path).list());
     }
 }
