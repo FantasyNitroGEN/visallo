@@ -5,7 +5,6 @@ import com.google.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.fs.FileSystem;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
@@ -30,7 +29,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.*;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

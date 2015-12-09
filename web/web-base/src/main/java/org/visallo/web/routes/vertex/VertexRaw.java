@@ -5,7 +5,6 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.apache.hadoop.util.LimitInputStream;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -14,6 +13,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.LimitInputStream;
 import org.visallo.web.BadRequestException;
 import org.visallo.web.VisalloResponse;
 

@@ -2,7 +2,6 @@ package org.visallo.core.model.lock;
 
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +50,7 @@ public abstract class LockRepository {
 
     public abstract Lock createLock(String lockName);
 
-    public abstract void leaderElection(String lockName, LeaderLatchListener listener);
+    public abstract void leaderElection(String lockName, LeaderListener listener);
 
     public abstract void shutdown();
 }

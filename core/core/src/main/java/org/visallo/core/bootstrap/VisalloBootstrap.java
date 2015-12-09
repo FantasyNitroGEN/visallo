@@ -1,25 +1,18 @@
 package org.visallo.core.bootstrap;
 
-import com.google.inject.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.Scopes;
 import com.google.inject.matcher.Matchers;
 import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.state.ConnectionState;
-import org.apache.curator.framework.state.ConnectionStateListener;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.email.EmailRepository;
-import org.visallo.core.email.SmtpEmailRepository;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.geocoding.DefaultGeocoderRepository;
 import org.visallo.core.geocoding.GeocoderRepository;
-import org.visallo.core.http.DefaultHttpRepository;
 import org.visallo.core.http.HttpRepository;
 import org.visallo.core.model.file.FileSystemRepository;
-import org.visallo.core.model.lock.CuratorLockRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -35,12 +28,10 @@ import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.StatusRepository;
 import org.visallo.core.time.TimeRepository;
-import org.visallo.core.trace.DefaultTraceRepository;
 import org.visallo.core.trace.TraceRepository;
 import org.visallo.core.trace.Traced;
 import org.visallo.core.trace.TracedMethodInterceptor;
 import org.visallo.core.user.User;
-import org.visallo.core.util.ClassUtil;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -122,23 +113,16 @@ public class VisalloBootstrap extends AbstractModule {
         MetricsManager metricsManager = new JmxMetricsManager();
         bind(MetricsManager.class).toInstance(metricsManager);
 
-        if (configuration.getBoolean(Configuration.CURATOR_ENABLED, Configuration.CURATOR_ENABLED_DEFAULT)) {
-            LOGGER.debug("binding %s", CuratorFrameworkProvider.class.getName());
-            bind(CuratorFramework.class)
-                    .toProvider(new CuratorFrameworkProvider(configuration))
-                    .in(Scopes.SINGLETON);
-        }
-
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Traced.class), new TracedMethodInterceptor());
 
         bind(TraceRepository.class)
-                .toProvider(VisalloBootstrap.<TraceRepository>getConfigurableProvider(configuration, Configuration.TRACE_REPOSITORY, DefaultTraceRepository.class))
+                .toProvider(VisalloBootstrap.<TraceRepository>getConfigurableProvider(configuration, Configuration.TRACE_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(Graph.class)
                 .toProvider(getGraphProvider(configuration, Configuration.GRAPH_PROVIDER))
                 .in(Scopes.SINGLETON);
         bind(LockRepository.class)
-                .toProvider(VisalloBootstrap.<LockRepository>getConfigurableProvider(configuration, Configuration.LOCK_REPOSITORY, CuratorLockRepository.class))
+                .toProvider(VisalloBootstrap.<LockRepository>getConfigurableProvider(configuration, Configuration.LOCK_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(WorkQueueRepository.class)
                 .toProvider(VisalloBootstrap.<WorkQueueRepository>getConfigurableProvider(configuration, Configuration.WORK_QUEUE_REPOSITORY))
@@ -171,13 +155,13 @@ public class VisalloBootstrap extends AbstractModule {
                 .toProvider(VisalloBootstrap.<SimpleOrmSession>getConfigurableProvider(configuration, Configuration.SIMPLE_ORM_SESSION))
                 .in(Scopes.SINGLETON);
         bind(HttpRepository.class)
-                .toProvider(VisalloBootstrap.<HttpRepository>getConfigurableProvider(configuration, Configuration.HTTP_REPOSITORY, DefaultHttpRepository.class))
+                .toProvider(VisalloBootstrap.<HttpRepository>getConfigurableProvider(configuration, Configuration.HTTP_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(GeocoderRepository.class)
-                .toProvider(VisalloBootstrap.<GeocoderRepository>getConfigurableProvider(configuration, Configuration.GEOCODER_REPOSITORY, DefaultGeocoderRepository.class))
+                .toProvider(VisalloBootstrap.<GeocoderRepository>getConfigurableProvider(configuration, Configuration.GEOCODER_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(EmailRepository.class)
-                .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY, SmtpEmailRepository.class))
+                .toProvider(VisalloBootstrap.<EmailRepository>getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(StatusRepository.class)
                 .toProvider(VisalloBootstrap.<StatusRepository>getConfigurableProvider(configuration, Configuration.STATUS_REPOSITORY))
@@ -261,48 +245,8 @@ public class VisalloBootstrap extends AbstractModule {
         visalloBootstrap = null;
     }
 
-    private static class CuratorFrameworkProvider implements Provider<CuratorFramework> {
-        private String zookeeperConnectionString;
-        private RetryPolicy retryPolicy;
-
-        public CuratorFrameworkProvider(Configuration configuration) {
-            zookeeperConnectionString = configuration.get(Configuration.ZK_SERVERS, null);
-            if (zookeeperConnectionString == null) {
-                throw new VisalloException("Could not find configuration item: " + Configuration.ZK_SERVERS);
-            }
-            retryPolicy = new ExponentialBackoffRetry(1000, 6);
-        }
-
-        @Override
-        public CuratorFramework get() {
-            CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeperConnectionString, retryPolicy);
-            client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
-                @Override
-                public void stateChanged(CuratorFramework client, ConnectionState newState) {
-                    LOGGER.debug("curator connection state changed to " + newState.name());
-                }
-            });
-            client.start();
-            return client;
-        }
-    }
-
-    public static <T> void bind(Binder binder, Configuration configuration, String propertyKey, Class<T> type, Class<? extends T> defaultClass) {
-        String className = configuration.get(propertyKey, defaultClass.getName());
-        try {
-            Class<? extends T> klass = ClassUtil.forName(className);
-            binder.bind(type).to(klass).in(Scopes.SINGLETON);
-        } catch (Exception ex) {
-            throw new VisalloException("Failed to bind " + className + " as singleton instance of " + type.getName() + "(configure with " + propertyKey + ")", ex);
-        }
-    }
-
     public static <T> Provider<? extends T> getConfigurableProvider(final Configuration config, final String key) {
-        return getConfigurableProvider(config, key, null);
-    }
-
-    public static <T> Provider<? extends T> getConfigurableProvider(final Configuration config, final String key, Class<? extends T> defaultClass) {
-        Class<? extends T> configuredClass = config.getClass(key, defaultClass);
+        Class<? extends T> configuredClass = config.getClass(key);
         return configuredClass != null ? new ConfigurableProvider<>(configuredClass, config, key, null) : new NullProvider<T>();
     }
 

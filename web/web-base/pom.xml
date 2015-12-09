@@ -55,6 +55,10 @@
             <artifactId>jetty-nosql</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.v5analytics.webster</groupId>
             <artifactId>webster</artifactId>
         </dependency>

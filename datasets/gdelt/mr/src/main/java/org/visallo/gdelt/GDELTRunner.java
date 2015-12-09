@@ -17,6 +17,7 @@ import org.vertexium.accumulo.AccumuloGraphConfiguration;
 import org.vertexium.accumulo.mapreduce.AccumuloElementOutputFormat;
 import org.vertexium.accumulo.mapreduce.ElementMapper;
 import org.visallo.core.config.ConfigurationLoader;
+import org.visallo.core.config.VisalloHadoopConfiguration;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -62,7 +63,7 @@ public class GDELTRunner extends Configured implements Tool {
         String inFileName = args[args.length - 1];
         LOGGER.info("Using config:\n" + visalloConfig);
 
-        Configuration hadoopConfig = visalloConfig.getHadoopConfiguration();
+        Configuration hadoopConfig = VisalloHadoopConfiguration.getHadoopConfiguration(visalloConfig);
         hadoopConfig.set(ElementMapper.GRAPH_CONFIG_PREFIX, "graph.");
         LOGGER.info("inFileName: %s", inFileName);
         hadoopConfig.set("in", inFileName);

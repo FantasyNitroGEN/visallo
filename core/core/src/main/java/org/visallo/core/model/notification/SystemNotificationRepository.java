@@ -3,9 +3,9 @@ package org.visallo.core.model.notification;
 import com.google.inject.Inject;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.lock.LeaderListener;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -121,7 +121,7 @@ public class SystemNotificationRepository extends NotificationRepository {
             @Override
             public void run() {
                 enabled = false;
-                lockRepository.leaderElection(LOCK_NAME, new LeaderLatchListener() {
+                lockRepository.leaderElection(LOCK_NAME, new LeaderListener() {
                     @Override
                     public void isLeader() {
                         LOGGER.debug("using successfully acquired lock (%s)", Thread.currentThread().getName());

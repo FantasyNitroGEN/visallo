@@ -1,9 +1,9 @@
 package org.visallo.core.model.lock;
 
-import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LockRepositoryTestBase {
@@ -33,7 +33,7 @@ public class LockRepositoryTestBase {
             @Override
             public void run() {
                 LOGGER.debug("thread %s started", Thread.currentThread().getName());
-                lockRepository.leaderElection(lockName, new LeaderLatchListener() {
+                lockRepository.leaderElection(lockName, new LeaderListener() {
                     @Override
                     public void isLeader() {
                         String message = String.format("[thread: %s] isLeader: %s", Thread.currentThread().getName(), lockName);
@@ -55,5 +55,23 @@ public class LockRepositoryTestBase {
         t.setName("LeaderElectingThread-" + threadIndex);
         t.setDaemon(true);
         return t;
+    }
+
+    protected void testCreateLock(LockRepository lockRepository) throws InterruptedException {
+        List<String> messages = new ArrayList<>();
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            threads.add(createLockExercisingThread(lockRepository, "lockOne", i, messages));
+        }
+        for (int i = 5; i < 10; i++) {
+            threads.add(createLockExercisingThread(lockRepository, "lockTwo", i, messages));
+        }
+        for (Thread t : threads) {
+            t.start();
+            t.join();
+        }
+        if (threads.size() != messages.size()) {
+            throw new RuntimeException("Expected " + threads.size() + " found " + messages.size());
+        }
     }
 }

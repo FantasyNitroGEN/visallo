@@ -1,6 +1,6 @@
 package org.visallo.web;
 
-import org.mortbay.servlet.GzipFilter;
+import org.eclipse.jetty.servlets.GzipFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;

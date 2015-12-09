@@ -1,12 +1,10 @@
 package org.visallo.geoip;
 
 import com.google.inject.Inject;
-import org.apache.hadoop.fs.Path;
 import org.vertexium.Element;
 import org.vertexium.Property;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.type.GeoPoint;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
@@ -16,8 +14,6 @@ import org.visallo.core.model.properties.types.GeoPointVisalloProperty;
 import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.properties.types.StringVisalloProperty;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
