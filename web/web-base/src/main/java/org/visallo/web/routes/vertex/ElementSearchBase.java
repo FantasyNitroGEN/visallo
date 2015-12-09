@@ -56,6 +56,7 @@ public abstract class ElementSearchBase {
         QueryAndData queryAndData = getQuery(request, authorizations);
         applyFiltersToQuery(queryAndData, filterJson);
         applyConceptTypeFilterToQuery(queryAndData, request);
+        applyEdgeLabelFilterToQuery(queryAndData, request);
         applySortToQuery(queryAndData, request);
         applyAggregationsToQuery(queryAndData, request);
 
@@ -331,6 +332,16 @@ public abstract class ElementSearchBase {
         if (conceptType != null) {
             boolean includeChildNodesBoolean = includeChildNodes == null || !includeChildNodes.equals("false");
             ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, includeChildNodesBoolean);
+        }
+    }
+
+    protected void applyEdgeLabelFilterToQuery(QueryAndData queryAndData, HttpServletRequest request) {
+        final String edgeLabel = VisalloBaseParameterProvider.getOptionalParameter(request, "edgeLabel");
+        final String includeChildNodes = VisalloBaseParameterProvider.getOptionalParameter(request, "includeChildNodes");
+        Query query = queryAndData.getQuery();
+        if (edgeLabel != null) {
+            boolean includeChildNodesBoolean = includeChildNodes == null || !includeChildNodes.equals("false");
+            ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, includeChildNodesBoolean);
         }
     }
 
