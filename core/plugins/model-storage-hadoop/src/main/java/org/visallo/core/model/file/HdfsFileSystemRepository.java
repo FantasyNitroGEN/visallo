@@ -82,7 +82,7 @@ public class HdfsFileSystemRepository extends FileSystemRepository {
     public Iterable<String> list(String path) {
         List<String> results = new ArrayList<>();
         try {
-            FileStatus[] statuses = hdfsFileSystem.listStatus(new Path(path));
+            FileStatus[] statuses = hdfsFileSystem.listStatus(getHdfsPath(path));
             for (FileStatus status : statuses) {
                 results.add(status.getPath().getName());
             }
