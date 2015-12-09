@@ -1,4 +1,4 @@
-.PHONY: serve build check install clean clone push
+.PHONY: serve build check install clean clone push link-check
 
 serve: install
 	@./node_modules/.bin/gitbook serve
@@ -28,3 +28,6 @@ push: clone build
 		git commit -m "$$message" && \
 		git push && \
 		popd
+
+link-check:
+	linkchecker --check-extern --ignore-url 'http://visallo-dev.*' http://localhost:4000/index.html

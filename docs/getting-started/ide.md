@@ -2,7 +2,7 @@
 # Prereqs
 
 * Setup [configuration](configuration.md) on your host machine.
-* Install [dependencies](dependencies.md) on your host machine.
+* Install [dependencies](../dependencies.md) on your host machine.
 
 # IntelliJ
 
@@ -20,4 +20,4 @@
 
 * Working directory: `$MODULE_DIR$/../..`
 
-![Jetty Web Server](img/ide-jetty-webserver.jpg)
+![Jetty Web Server](ide-jetty-webserver.jpg)

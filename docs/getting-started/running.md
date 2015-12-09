@@ -1,6 +1,6 @@
 # Running Visallo
 
-This guide covers running Visallo within the development Docker container. The steps below describe the quickest method for getting Visallo up and running in a development capacity. You'll eventually want to spend time understanding how to [create a custom ontology](ontology.md) and [develop Visallo extensions](extension-points.md).
+This guide covers running Visallo within the development Docker container. The steps below describe the quickest method for getting Visallo up and running in a development capacity. You'll eventually want to spend time understanding how to [create a custom ontology](ontology.md) and [develop Visallo extensions](../extension-points/index.md).
 
 ## Run the Web Application
 

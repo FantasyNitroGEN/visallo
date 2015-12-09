@@ -14,7 +14,7 @@ In order to work with Visallo as a developer, it's recommended that:
 
 If that sounds like you, then continue reading to get started.
 
-## Understand the [Architecture](architecture.md)
+## Understand the [Architecture](architecture-overview.md)
 
 Visallo has a lot of components but an easy to understand architecture. Learning a little about the core components
 discussed in this section will help you better understand the project.
@@ -47,7 +47,7 @@ can connect to.
 
 Running Visallo is a challenging, but rewarding, endeavor. Learn about your options for getting help in this section.
 
-## [Contributing](../CONTRIBUTING.md)
+## [Contributing](contributing.md)
 
 Once you've made changes that you want to share with the community, the next step is to submit those changes back via a
 pull request.

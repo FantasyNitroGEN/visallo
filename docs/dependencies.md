@@ -25,7 +25,7 @@ Some optional Visallo features require the installation of additional dependenci
 | -------- | ----------------------------------------------------- | -------------------------------- | ------------ |
 | text     | resolution of location terms to geolocations          | clavin                           | [CLAVIN](http://clavin.bericotechnologies.com/) |
 | text     | translation of foreign language text to English       | translate <br /> translator-bing | Bing Translate API Key <br /> see [graph-property-worker/plugins/translator-bing/README.md](https://github.com/v5analytics/visallo/blob/master/graph-property-worker/plugins/translator-bing/README.md) |
-| media    | conversion of video files to web compatible formats   | _n/a - base topology feature_    | [FFmpeg](https://www.ffmpeg.org/) <br /> see [FFmpeg Setup](ffmpeg-setup.md) |
+| media    | conversion of video files to web compatible formats   | _n/a - base topology feature_    | [FFmpeg](https://www.ffmpeg.org/) <br /> see [FFmpeg Setup](extras/ffmpeg-setup.md) |
 | media    | closed caption transcription of video files           | ccextractor                      | [CCExtractor](http://ccextractor.sourceforge.net/) |
 | media    | face detection in images and video frames             | opencv-object-detector           | [OpenCV](http://opencv.org/) |
 | media    | speech to text transcription of audio and video files | sphinx                           | [CMU Sphinx](http://cmusphinx.sourceforge.net/) |

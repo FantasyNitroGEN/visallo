@@ -31,7 +31,7 @@ Or, copy it to the web server's lib directory `/opt/visallo/lib` or for docker `
 
 This is the easiest way to expose the plugin to all web servers. The Visallo web application will automatically add the JAR file to the classpath.
 
-To learn more about extending Visallo with plugins, please [read this](../web/war/src/main/webapp/README.md).
+To learn more about extending Visallo with plugins, please [read this](../extension-points/index.md).
 
 
 ## Graph Property Workers

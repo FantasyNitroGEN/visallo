@@ -9,7 +9,7 @@ The diagram below shows the major software components used by Visallo. Visallo-s
 these layers, but is not shown in the diagram. There are numerous other libraries not listed. Take a look at the parent
 [POM file](https://github.com/v5analytics/visallo/blob/master/root/pom.xml) or run `mvn dependency:tree` to get a feel for all the libraries involved.
 
-![Visallo Software Stack](img/visallo-software-stack.png)
+![Visallo Software Stack](visallo-software-stack.png)
 
 ## Security
 
@@ -21,7 +21,7 @@ Visallo provides a REST API to access and manipulate the graph while keeping you
 
 ## Extensibility
 
-Visallo has many [extension points](extension-points.md), from the underlying data store to data processing algorithms to UI plugins. As data is added to the system these extension points are used to analyze and transform the data into usable intelligence. Visallo Enterprise relies on the open extension points provided by Visallo open source to enhance your experience in meaningful and actionable ways, giving you more insight into your data.
+Visallo has many [extension points](../extension-points/index.md), from the underlying data store to data processing algorithms to UI plugins. As data is added to the system these extension points are used to analyze and transform the data into usable intelligence. Visallo Enterprise relies on the open extension points provided by Visallo open source to enhance your experience in meaningful and actionable ways, giving you more insight into your data.
 
 ## Ingestion Pipeline
 
@@ -38,7 +38,7 @@ process further.
 
 Visallo-provided `GraphPropertyWorker` implementations are found in the `visallo-graph-property-worker-plugins-group` module.
 Each is implemented as a plugin and will automatically run if found in the classpath. Please see
-the [features](features.md) page for more information about each plugin.
+the [features](../features.md) page for more information about each plugin.
 
 ### Map Reduce Ingestion
 

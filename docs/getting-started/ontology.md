@@ -4,7 +4,7 @@ Visallo uses OWL files to define what type of entities you can create, what prop
 can connect to. Visallo has extended the OWL file to include additional attributes that will change how Visallo
 works.
 
-For an example see the [dev ontology](../examples/ontology-dev/).
+For an example see the [dev ontology](https://github.com/v5analytics/visallo/tree/master/examples/ontology-dev).
 
 ## Loading an ontology via configuration
 
@@ -28,16 +28,16 @@ the ontology into Visallo.
 
 * Click the "Admin" tool button.
 
-  ![Admin Tool](img/admin.jpg)
+  ![Admin Tool](../img/admin.jpg)
 
 * Click the "Upload Ontology" button.
 
-  ![Upload Ontology](img/upload-ontology.jpg)
+  ![Upload Ontology](ontology-upload.jpg)
 
 * Click the "Select File..." button and select you zip file. Assuming your OWL file has `owl:Ontology/rdf:about`
   then the document IRI is not required.
 
-  ![Ontology Select File](img/ontology-select-file.jpg)
+  ![Ontology Select File](ontology-select-file.jpg)
 
 * Click "Upload"
 
