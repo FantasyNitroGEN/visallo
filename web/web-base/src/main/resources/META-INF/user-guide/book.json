@@ -1,0 +1,12 @@
+{
+  "title": "Visallo User Guide",
+  "description": "User guide for Visallo, the open source big data platform for analytical tools and visualizations that help PEOPLE solve ambiguous problems.",
+  "language": "en",
+  "direction": "ltr",
+  "variables": {
+    "productName": "Visallo"
+  },
+  "styles": {
+    "website": "styles/website.css"
+  }
+}

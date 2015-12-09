@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import org.visallo.core.exception.VisalloException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -26,6 +27,16 @@ public class ProcessRunner {
     }
 
     public Process execute(final String programName, final String[] programArgs, OutputStream out, final String logPrefix) throws IOException, InterruptedException {
+        return execute(null, programName, programArgs, out, logPrefix);
+    }
+
+    public Process execute(
+            File workingDirectory,
+            final String programName,
+            final String[] programArgs,
+            OutputStream out,
+            final String logPrefix
+    ) throws IOException, InterruptedException {
         final List<String> arguments = Lists.newArrayList(programName);
         for (String programArg : programArgs) {
             if (programArg == null) {
@@ -35,6 +46,9 @@ public class ProcessRunner {
         }
 
         final ProcessBuilder procBuilder = new ProcessBuilder(arguments);
+        if (workingDirectory != null) {
+            procBuilder.directory(workingDirectory);
+        }
         final Map<String, String> sortedEnv = new TreeMap<>(procBuilder.environment());
 
         LOGGER.info("%s Running: %s", logPrefix, arrayToString(arguments));

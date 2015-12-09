@@ -15,7 +15,7 @@ First, build the web application. This only needs to be run once:
 Then, run the web application using Jetty:
 
         mvn -am -pl web/war \
-            -P-build-webapp,jetty-run,web-admin,web-auth-username-only,storage-accumulo,queue-rabbitmq,search-elasticsearch,acl-ontology,coordination-zookeeper,storage-hadoop \
+            -P-build-webapp,-build-user-guide,jetty-run,web-admin,web-auth-username-only,storage-accumulo,queue-rabbitmq,search-elasticsearch,acl-ontology,coordination-zookeeper,storage-hadoop \
             compile
 
 The preceding `mvn` command will start the Visallo web application with a minimum number of features running. The `-P` option to the Maven command above specifies which profiles are included when starting Jetty. A profile groups a set of dependencies that make up a feature. Running the following command will list all of the available profiles that can be run.

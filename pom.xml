@@ -46,18 +46,18 @@
     </repositories>
 
     <modules>
+        <module>common</module>
         <module>core</module>
         <module>datasets</module>
+        <module>dev</module>
+        <module>docker</module>
         <module>examples</module>
         <module>graph-property-worker</module>
-        <module>tools</module>
-        <module>web</module>
-        <module>dev</module>
         <module>integration-test</module>
-        <module>common</module>
-        <module>docker</module>
         <module>plugin-toggle</module>
         <module>dist</module>
+        <module>tools</module>
+        <module>web</module>
     </modules>
 
     <dependencies>
