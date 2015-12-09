@@ -7,7 +7,6 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -115,13 +114,8 @@ public class VertexSetProperty implements ParameterizedHandler {
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
         Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
 
-        // TODO: add and update property both come through here. Currently, we're only enforcing update.
         if (!isComment) {
-            int propCount = IterableUtils.count(graphVertex.getProperties(propertyKey, propertyName));
-            if (!aclProvider.canUpdateElement(graphVertex, user) ||
-                    (propCount > 0 && !aclProvider.canUpdateProperty(graphVertex, propertyKey, propertyName, user))) {
-                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, workspaceId);
-            }
+            ensureCanUpdate(graphVertex, propertyKey, propertyName, user);
         }
 
         List<SavePropertyResults> savePropertyResults = saveProperty(
@@ -260,6 +254,13 @@ public class VertexSetProperty implements ParameterizedHandler {
     private String createCommentPropertyKey() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         return dateFormat.format(new Date());
+    }
+
+    private void ensureCanUpdate(Vertex vertex, String propertyKey, String propertyName, User user) {
+        if (!aclProvider.canAddOrUpdateProperty(vertex, propertyKey, propertyName, user)) {
+            throw new VisalloAccessDeniedException(propertyName + " cannot be set due to ACL restriction", user,
+                    vertex.getId());
+        }
     }
 
     private static class SavePropertyResults {

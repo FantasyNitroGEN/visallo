@@ -1,74 +1,145 @@
 package org.visallo.core.security;
 
+import org.vertexium.Edge;
 import org.vertexium.Element;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
+import org.vertexium.util.IterableUtils;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.ontology.*;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.*;
 
 import java.util.Collection;
+import java.util.List;
 
 public abstract class ACLProvider {
-    public abstract boolean canDeleteElement(Element e, final User user);
+    public abstract boolean canDeleteElement(Element element, User user);
 
-    public abstract boolean canDeleteProperty(Element e, String propertyKey, String propertyName, final User user);
+    public abstract boolean canDeleteProperty(Element element, String propertyKey, String propertyName, User user);
 
-    public abstract boolean canUpdateElement(Element e, final User user);
+    public abstract boolean canUpdateElement(Element element, User user);
 
-    public abstract boolean canUpdateProperty(Element e, String propertyKey, String propertyName, final User user);
+    public abstract boolean canUpdateProperty(Element element, String propertyKey, String propertyName, User user);
 
-    public abstract boolean canDeleteElement(ClientApiElement e);
+    public abstract boolean canAddProperty(Element element, String propertyKey, String propertyName, User user);
 
-    public abstract boolean canDeleteProperty(ClientApiElement e, ClientApiProperty p);
+    public abstract boolean canDeleteElement(ClientApiElement element, User user);
 
-    public abstract boolean canUpdateElement(ClientApiElement e);
+    public abstract boolean canDeleteProperty(ClientApiElement element, ClientApiProperty p, User user);
 
-    public abstract boolean canUpdateProperty(ClientApiElement e, ClientApiProperty p);
+    public abstract boolean canUpdateElement(ClientApiElement element, User user);
 
-    public ClientApiObject appendACL(ClientApiObject clientApiObject) {
+    public abstract boolean canUpdateProperty(ClientApiElement element, ClientApiProperty p, User user);
+
+    public abstract boolean canAddProperty(ClientApiElement element, ClientApiProperty p, User user);
+
+    public boolean canAddOrUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
+        return canUpdateElement(element, user) &&
+                (element.getProperty(propertyKey, propertyName) != null
+                        ? canUpdateProperty(element, propertyKey, propertyName, user)
+                        : canAddProperty(element, propertyKey, propertyName, user));
+    }
+
+    public ClientApiElementAcl elementACL(Element element, User user, OntologyRepository ontologyRepository) {
+        ClientApiElementAcl elementAcl = new ClientApiElementAcl();
+        elementAcl.setAddable(true);
+        elementAcl.setUpdateable(canUpdateElement(element, user));
+        elementAcl.setDeleteable(canDeleteElement(element, user));
+
+        List<ClientApiPropertyAcl> propertyAcls = elementAcl.getPropertyAcls();
+        if (element instanceof Vertex) {
+            String iri = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element);
+            while (iri != null) {
+                Concept concept = ontologyRepository.getConceptByIRI(iri);
+                populatePropertyAcls(concept, element, user, propertyAcls);
+                iri = concept.getParentConceptIRI();
+            }
+        } else if (element instanceof Edge) {
+            Relationship relationship = ontologyRepository.getRelationshipByIRI(((Edge) element).getLabel());
+            populatePropertyAcls(relationship, element, user, propertyAcls);
+        } else {
+            throw new VisalloException("unsupported Element class " + element.getClass().getName());
+        }
+        return elementAcl;
+    }
+
+    public ClientApiObject appendACL(ClientApiObject clientApiObject, User user) {
         if (clientApiObject instanceof ClientApiElement) {
             ClientApiElement apiElement = (ClientApiElement) clientApiObject;
-            appendACL(apiElement);
+            appendACL(apiElement, user);
         } else if (clientApiObject instanceof ClientApiWorkspaceVertices) {
-            appendACL(((ClientApiWorkspaceVertices) clientApiObject).getVertices());
+            appendACL(((ClientApiWorkspaceVertices) clientApiObject).getVertices(), user);
         } else if (clientApiObject instanceof ClientApiVertexMultipleResponse) {
-            appendACL(((ClientApiVertexMultipleResponse) clientApiObject).getVertices());
+            appendACL(((ClientApiVertexMultipleResponse) clientApiObject).getVertices(), user);
         } else if (clientApiObject instanceof ClientApiEdgeMultipleResponse) {
-            appendACL(((ClientApiEdgeMultipleResponse) clientApiObject).getEdges());
+            appendACL(((ClientApiEdgeMultipleResponse) clientApiObject).getEdges(), user);
         } else if (clientApiObject instanceof ClientApiElementSearchResponse) {
-            appendACL(((ClientApiElementSearchResponse) clientApiObject).getElements());
+            appendACL(((ClientApiElementSearchResponse) clientApiObject).getElements(), user);
         } else if (clientApiObject instanceof ClientApiEdgeSearchResponse) {
-            appendACL(((ClientApiEdgeSearchResponse) clientApiObject).getResults());
+            appendACL(((ClientApiEdgeSearchResponse) clientApiObject).getResults(), user);
         } else if (clientApiObject instanceof ClientApiVertexEdges) {
             ClientApiVertexEdges vertexEdges = (ClientApiVertexEdges) clientApiObject;
-            appendACL(vertexEdges);
+            appendACL(vertexEdges, user);
         }
 
         return clientApiObject;
     }
 
-    protected void appendACL(ClientApiElement apiElement) {
-        for (ClientApiProperty property : apiElement.getProperties()) {
-            property.setUpdateable(canUpdateProperty(apiElement, property));
-            property.setDeleteable(canDeleteProperty(apiElement, property));
+    public void appendACL(Collection<? extends ClientApiObject> clientApiObject, User user) {
+        for (ClientApiObject apiObject : clientApiObject) {
+            appendACL(apiObject, user);
         }
-        apiElement.setUpdateable(canUpdateElement(apiElement));
-        apiElement.setDeleteable(canDeleteElement(apiElement));
+    }
+
+    protected void appendACL(ClientApiElement apiElement, User user) {
+        for (ClientApiProperty property : apiElement.getProperties()) {
+            property.setUpdateable(canUpdateProperty(apiElement, property, user));
+            property.setDeleteable(canDeleteProperty(apiElement, property, user));
+            property.setAddable(canAddProperty(apiElement, property, user));
+        }
+        apiElement.setUpdateable(canUpdateElement(apiElement, user));
+        apiElement.setDeleteable(canDeleteElement(apiElement, user));
 
         if (apiElement instanceof ClientApiEdgeWithVertexData) {
-            appendACL(((ClientApiEdgeWithVertexData) apiElement).getSource());
-            appendACL(((ClientApiEdgeWithVertexData) apiElement).getTarget());
+            appendACL(((ClientApiEdgeWithVertexData) apiElement).getSource(), user);
+            appendACL(((ClientApiEdgeWithVertexData) apiElement).getTarget(), user);
         }
     }
 
-    protected void appendACL(ClientApiVertexEdges edges) {
+    protected void appendACL(ClientApiVertexEdges edges, User user) {
         for (ClientApiVertexEdges.Edge vertexEdge : edges.getRelationships()) {
-            appendACL(vertexEdge.getRelationship());
-            appendACL(vertexEdge.getVertex());
+            appendACL(vertexEdge.getRelationship(), user);
+            appendACL(vertexEdge.getVertex(), user);
         }
     }
 
-    public void appendACL(Collection<? extends ClientApiObject> clientApiObject) {
-        for (ClientApiObject apiObject : clientApiObject) {
-            appendACL(apiObject);
+    private void populatePropertyAcls(HasOntologyProperties hasOntologyProperties, Element element, User user,
+                                      List<ClientApiPropertyAcl> propertyAcls) {
+        for (OntologyProperty ontologyProperty : hasOntologyProperties.getProperties()) {
+            String name = ontologyProperty.getTitle();
+            List<Property> properties = IterableUtils.toList(element.getProperties(name));
+            if (properties.isEmpty()) {
+                ClientApiPropertyAcl propertyAcl = newClientApiPropertyAcl(element, null, name, user);
+                propertyAcls.add(propertyAcl);
+            } else {
+                for (Property property : properties) {
+                    String key = property.getKey();
+                    ClientApiPropertyAcl propertyAcl = newClientApiPropertyAcl(element, key, name, user);
+                    propertyAcls.add(propertyAcl);
+                }
+            }
         }
+    }
+
+    private ClientApiPropertyAcl newClientApiPropertyAcl(Element element, String key, String name, User user) {
+        ClientApiPropertyAcl propertyAcl = new ClientApiPropertyAcl();
+        propertyAcl.setKey(key);
+        propertyAcl.setName(name);
+        propertyAcl.setAddable(canAddProperty(element, key, name, user));
+        propertyAcl.setUpdateable(canUpdateProperty(element, key, name, user));
+        propertyAcl.setDeleteable(canDeleteProperty(element, key, name, user));
+        return propertyAcl;
     }
 }

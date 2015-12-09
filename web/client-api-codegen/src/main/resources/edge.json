@@ -251,6 +251,26 @@
                     ]
                 }
             ]
+        },
+        {
+            "path": "/edge/acl",
+            "operations": [
+                {
+                    "method": "GET",
+                    "summary": "Gets the full access-control specification for an edge and its properties",
+                    "type": "ClientApiElementAcl",
+                    "nickname": "getAcl",
+                    "parameters": [
+                        {
+                            "name": "elementId",
+                            "description": "edge id",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "models": {

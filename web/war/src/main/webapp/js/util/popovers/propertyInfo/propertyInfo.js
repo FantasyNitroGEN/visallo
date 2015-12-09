@@ -34,11 +34,11 @@ define([
                 config.isCommentCreator = config.isComment &&
                     config.property.metadata &&
                     config.property.metadata['http://visallo.org#modifiedBy'] === visalloData.currentUser.id;
-                config.canEdit = (!config.property.hasOwnProperty('updateable') || config.property.updateable) &&
+                config.canEdit = config.property.updateable !== false &&
                     (config.isComment ? config.isCommentCreator : true);
-                config.canDelete = (!config.property.hasOwnProperty('deleteable') || config.property.deleteable) &&
-                                    config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson';
-                config.canAdd = config.ontologyProperty.addable && config.data.updateable;
+                config.canDelete = config.property.deleteable !== false &&
+                    config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson';
+                config.canAdd = config.property.addable !== false;
 
                 var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
                     config.ontologyProperty.dependentPropertyIris.length;

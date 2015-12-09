@@ -60,7 +60,7 @@ public class DeleteEdgeProperty implements ParameterizedHandler {
         Edge edge = graph.getEdge(edgeId, authorizations);
 
         if (!aclProvider.canDeleteProperty(edge, propertyKey, propertyName, user)) {
-            throw new VisalloAccessDeniedException(propertyName + " is not deleteable", user, workspaceId);
+            throw new VisalloAccessDeniedException(propertyName + " is not deleteable", user, edge.getId());
         }
 
         // add the vertex to the workspace so that the changes show up in the diff panel

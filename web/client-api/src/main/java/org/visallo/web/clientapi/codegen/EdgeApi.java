@@ -4,6 +4,7 @@ import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
 import org.visallo.web.clientapi.model.ClientApiEdgesExistsResponse;
+import org.visallo.web.clientapi.model.ClientApiElementAcl;
 import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
 import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyValues;
 import com.sun.jersey.multipart.FormDataMultiPart;
@@ -333,6 +334,53 @@ public class EdgeApi {
       String response = apiInvoker.invokeAPI(basePath, path, "POST", queryParams, postBody, headerParams, formParams, contentType);
       if(response != null){
         return (ClientApiEdgesExistsResponse) ApiInvoker.deserialize(response, "", ClientApiEdgesExistsResponse.class);
+      }
+      else {
+        return null;
+      }
+    } catch (ApiException ex) {
+      if(ex.getCode() == 404) {
+      	return null;
+      }
+      else {
+        throw ex;
+      }
+    }
+  }
+  public ClientApiElementAcl getAcl (String elementId) throws ApiException {
+    Object postBody = null;
+    // verify required params are set
+    if(elementId == null ) {
+       throw new ApiException(400, "missing required params");
+    }
+    // create path and map variables
+    String path = "/edge/acl".replaceAll("\\{format\\}","json");
+
+    // query params
+    Map<String, String> queryParams = new HashMap<String, String>();
+    Map<String, String> headerParams = new HashMap<String, String>();
+    Map<String, String> formParams = new HashMap<String, String>();
+
+    if(!"null".equals(String.valueOf(elementId)))
+      queryParams.put("elementId", String.valueOf(elementId));
+    String[] contentTypes = {
+      "application/json"};
+
+    String contentType = contentTypes.length > 0 ? contentTypes[0] : "application/json";
+
+    if(contentType.startsWith("multipart/form-data")) {
+      boolean hasFields = false;
+      FormDataMultiPart mp = new FormDataMultiPart();
+      if(hasFields)
+        postBody = mp;
+    }
+    else {
+      }
+
+    try {
+      String response = apiInvoker.invokeAPI(basePath, path, "GET", queryParams, postBody, headerParams, formParams, contentType);
+      if(response != null){
+        return (ClientApiElementAcl) ApiInvoker.deserialize(response, "", ClientApiElementAcl.class);
       }
       else {
         return null;

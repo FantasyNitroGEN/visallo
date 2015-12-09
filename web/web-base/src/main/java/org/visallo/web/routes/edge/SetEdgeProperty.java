@@ -6,7 +6,6 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -105,13 +104,8 @@ public class SetEdgeProperty implements ParameterizedHandler {
 
         Edge edge = graph.getEdge(edgeId, authorizations);
 
-        // TODO: add and update property both come through here. Currently, we're only enforcing update.
         if (!isComment) {
-            int propCount = IterableUtils.count(edge.getProperties(propertyKey, propertyName));
-            if (!aclProvider.canUpdateElement(edge, user) ||
-                    (propCount > 0 && !aclProvider.canUpdateProperty(edge, propertyKey, propertyName, user))) {
-                throw new VisalloAccessDeniedException(propertyName + " is not updateable", user, workspaceId);
-            }
+            ensureCanUpdate(edge, propertyKey, propertyName, user);
         }
 
         Object value;
@@ -146,5 +140,12 @@ public class SetEdgeProperty implements ParameterizedHandler {
         this.workQueueRepository.pushGraphPropertyQueue(edge, null, propertyName, workspaceId, visibilitySource, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
+    }
+
+    private void ensureCanUpdate(Edge edge, String propertyKey, String propertyName, User user) {
+        if (!aclProvider.canAddOrUpdateProperty(edge, propertyKey, propertyName, user)) {
+            throw new VisalloAccessDeniedException(propertyName + " cannot be set due to ACL restriction", user,
+                    edge.getId());
+        }
     }
 }

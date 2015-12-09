@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class Relationship {
+public abstract class Relationship implements HasOntologyProperties {
     private final String parentIRI;
     private final List<String> domainConceptIRIs;
     private final List<String> rangeConceptIRIs;

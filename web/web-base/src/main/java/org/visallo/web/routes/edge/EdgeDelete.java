@@ -58,7 +58,7 @@ public class EdgeDelete implements ParameterizedHandler {
 
         Edge edge = graph.getEdge(edgeId, authorizations);
         if (!aclProvider.canDeleteElement(edge, user)) {
-            throw new VisalloAccessDeniedException("Edge " + edgeId + " is not deleteable", user, workspaceId);
+            throw new VisalloAccessDeniedException("Edge " + edgeId + " is not deleteable", user, edge.getId());
         }
 
         Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);

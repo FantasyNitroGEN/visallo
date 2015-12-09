@@ -7,12 +7,6 @@ define([
 
     var api = {
 
-        audit: function(vertexId) {
-            return ajax('GET', '/vertex/audit', {
-                graphVertexId: vertexId
-            }).then(_.property('auditHistory'));
-        },
-
         queryForOptions: function(options) {
             var params = {},
                 q = _.isUndefined(options.query.query) ?
@@ -50,7 +44,7 @@ define([
                     } else if (_.isString(value) && !value) {
                         delete options[key];
                     }
-                })
+                });
                 _.extend(params, options.otherFilters);
             }
 
@@ -263,6 +257,10 @@ define([
 
         unresolveDetectedObject: function(params) {
             return ajax('POST', '/vertex/unresolve-detected-object', params);
+        },
+
+        acl: function(vertexId) {
+            return ajax('GET', '/vertex/acl', { elementId: vertexId });
         }
     };
 

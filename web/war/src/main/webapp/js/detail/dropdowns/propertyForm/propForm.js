@@ -43,7 +43,7 @@ define([
 
         this.before('initialize', function(n, c) {
             c.manualOpen = true;
-        })
+        });
 
         this.after('initialize', function() {
             var self = this,
@@ -105,23 +105,31 @@ define([
 
         this.setupPropertySelectionField = function() {
             var self = this,
-                req;
+                ontologyRequest,
+                aclRequest;
 
             if (F.vertex.isEdge(this.attr.data)) {
-                req = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label)
+                ontologyRequest = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label);
+                aclRequest = this.dataRequest('edge', 'acl', this.attr.data.id);
             } else {
-                req = this.dataRequest('ontology', 'propertiesByConceptId', F.vertex.prop(this.attr.data, 'conceptType'))
+                ontologyRequest = this.dataRequest('ontology', 'propertiesByConceptId',
+                    F.vertex.prop(this.attr.data, 'conceptType'));
+                aclRequest = this.dataRequest('vertex', 'acl', this.attr.data.id);
             }
 
-            req.done(function(properties) {
+            Promise.all([ontologyRequest, aclRequest]).done(function(results) {
+                var ontologyProperties = results[0],
+                    acl = results[1];
+
                 FieldSelection.attachTo(self.select('propertyListSelector'), {
-                    properties: properties.list,
+                    properties: ontologyProperties.list,
                     focus: true,
-                    placeholder: i18n('property.form.field.selection.placeholder')
+                    placeholder: i18n('property.form.field.selection.placeholder'),
+                    unsupportedProperties: _.pluck(_.where(acl.propertyAcls, { addable: false }), 'name')
                 });
                 self.manualOpen();
             });
-        }
+        };
 
         this.onVertexSelected = function(event, data) {
             event.stopPropagation();
@@ -432,7 +440,7 @@ define([
             } else {
                 this.select('saveButtonSelector').attr('disabled', true);
             }
-        }
+        };
 
         this.onPropertyChange = function(event, data) {
             this.propertyInvalid = false;
@@ -457,7 +465,7 @@ define([
                             longitude: valueArray[2]
                         });
                     }
-                }
+                };
 
             if (isCompoundField) {
                 this.currentValue = _.map(data.values, transformValue);

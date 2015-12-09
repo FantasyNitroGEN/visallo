@@ -74,8 +74,7 @@ define([
                         source: function() {
                             return _.chain(self.propertiesForSource)
                                     .filter(function(p) {
-                                        var visible = p.userVisible !== false,
-                                            addable = p.addable !== false;
+                                        var visible = p.userVisible !== false;
 
                                         if (self.attr.showAdminProperties) {
                                             return true;
@@ -108,7 +107,7 @@ define([
                                             return visible && p.searchable !== false;
                                         }
 
-                                        return visible && addable;
+                                        return visible;
                                     })
                                     .map(function(p) {
                                         var name = displayName(p),
