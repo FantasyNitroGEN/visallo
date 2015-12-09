@@ -22,8 +22,11 @@ import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public abstract class ElementSearchBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchBase.class);
@@ -162,12 +165,25 @@ public abstract class ElementSearchBase {
 
     private ClientApiSearchResponse.AggregateResult toClientApiHistogramResult(HistogramResult agg) {
         ClientApiSearchResponse.HistogramAggregateResult result = new ClientApiSearchResponse.HistogramAggregateResult();
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        Pattern isDate = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T.*");
         for (HistogramBucket histogramBucket : agg.getBuckets()) {
             ClientApiSearchResponse.HistogramAggregateResult.Bucket b = new ClientApiSearchResponse.HistogramAggregateResult.Bucket(
                     histogramBucket.getCount(),
                     toClientApiNestedResults(histogramBucket.getNestedResults())
             );
-            result.getBuckets().put(histogramBucket.getKey().toString(), b);
+            String key = histogramBucket.getKey().toString();
+            if (isDate.matcher(key).matches()) {
+                try {
+                    Date date = df.parse(key);
+                    if (date != null) {
+                        key = String.valueOf(date.getTime());
+                    }
+                } catch (ParseException pe) {
+                    LOGGER.warn("Unable to parse histogram date", pe);
+                }
+            }
+            result.getBuckets().put(key, b);
         }
         return result;
     }
