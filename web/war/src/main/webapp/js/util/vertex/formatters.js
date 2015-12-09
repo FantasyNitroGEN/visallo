@@ -215,24 +215,11 @@ define([
 
             },
 
-            hasMetadata: function(property) {
-                var status = V.sandboxStatus(property),
-                    modifiedBy = property['http://visallo.org#modifiedBy'],
-                    modifiedDate = property['http://visallo.org#modifiedDate'],
-                    sourceTimezone = property['http://visallo.org#sourceTimezone'],
-                    confidence = property['http://visallo.org#confidence'],
-                    justification = property['http://visallo.org#justification'],
-                    source = property._sourceMetadata;
-
-                return (
-                    status ||
-                    justification ||
-                    source ||
-                    modifiedBy ||
-                    modifiedDate ||
-                    sourceTimezone ||
-                    confidence
-                );
+            hasMetadata: function(property, metadataPropertyNames) {
+                return (V.sandboxStatus(property) && metadataPropertyNames.indexOf('sandboxStatus') > -1) ||
+                    _.some(metadataPropertyNames, function(name) {
+                        return !_.isUndefined(property.metadata[name]);
+                    });
             },
 
             concept: function(vertex) {

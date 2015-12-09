@@ -78,7 +78,8 @@ define([
                         self.ontologyProperties,
                         self.showMoreExpanded,
                         parseInt(self.config['properties.multivalue.defaultVisibleCount'], 10),
-                        expandedSections
+                        expandedSections,
+                        self.config
                     )
                 );
         };
@@ -486,7 +487,8 @@ define([
         }
     }
 
-    function createPropertyGroups(vertex, ontologyProperties, showMoreExpanded, maxItemsBeforeHidden, expandedSections) {
+    function createPropertyGroups(vertex, ontologyProperties, showMoreExpanded, maxItemsBeforeHidden, expandedSections,
+                                  config) {
         this.enter()
             .insert('tbody', '.buttons-row')
             .attr('class', function(d, groupIndex, j) {
@@ -538,7 +540,8 @@ define([
                           ontologyProperties,
                           totalPropertyCountsByName,
                           maxItemsBeforeHidden,
-                          showMoreExpanded
+                          showMoreExpanded,
+                          config
                 )
             )
 
@@ -549,7 +552,8 @@ define([
                               ontologyProperties,
                               totalPropertyCountsByName,
                               maxItemsBeforeHidden,
-                              showMoreExpanded) {
+                              showMoreExpanded,
+                              config) {
 
         this.enter()
             .append('tr')
@@ -598,12 +602,12 @@ define([
                     }
                 ];
             })
-            .call(_.partial(createPropertyRow, vertex, ontologyProperties, maxItemsBeforeHidden));
+            .call(_.partial(createPropertyRow, vertex, ontologyProperties, maxItemsBeforeHidden, config));
 
         this.exit().remove();
     }
 
-    function createPropertyRow(vertex, ontologyProperties, maxItemsBeforeHidden) {
+    function createPropertyRow(vertex, ontologyProperties, maxItemsBeforeHidden, config) {
         this.enter()
             .append('td')
             .each(function(datum) {
@@ -731,8 +735,11 @@ define([
                         }
 
                         $infoButton.toggle(Boolean(
-                            !property.hideInfo &&
-                            (Privileges.canEDIT || F.vertex.hasMetadata(property))
+                            !property.hideInfo && (
+                                F.vertex.isEdge(vertex) ||
+                                (Privileges.canEDIT && property.updateable !== false) ||
+                                ontologyProperty.searchable ||
+                                F.vertex.hasMetadata(property, config['properties.metadata.propertyNames'].split(',')))
                         ));
 
                         if (displayType && F.vertex.properties[displayType]) {
