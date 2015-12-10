@@ -25,4 +25,7 @@
 * Extras
     * [FFmpeg Setup](extras/ffmpeg-setup.md)
     * [Sizing](extras/sizing.md)
+* Infrastructure
+    * Storage
+        * [Accumulo](infrastructure/storage/accumulo.md)
 * [Glossary](GLOSSARY.md)
