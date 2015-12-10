@@ -513,7 +513,7 @@ define([
                     return self.setConceptFilter(data.parameters.conceptType);
                 })
                 .then(function() {
-                    return self.setEdgeTypeFilter(data.parameters.edgeType);
+                    return self.setEdgeTypeFilter(data.parameters.edgeLabel);
                 })
                 .then(function() {
                     var sortRaw = data.parameters['sort[]'],
