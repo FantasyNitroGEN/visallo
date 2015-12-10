@@ -1,5 +1,4 @@
 #!/bin/sh -e
-set -x
 
 DIR=$(cd $(dirname "$0") && pwd)
 
