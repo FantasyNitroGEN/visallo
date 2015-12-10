@@ -11,8 +11,49 @@ define([
 
     return defineComponent(GeoLocationField, withPropertyField, withDataRequest);
 
+    // 39° 2' 36.96" N
+    // 77° 29' 15" W
+    // 39.0436° N
+    // 77.4875° W
+    // 39.0436
+    // 77.4875
     function makeNumber(v) {
-        return P.number.parseFloat(v);
+        var result;
+        var isNegative = false;
+        if (_.isString(v)) {
+            v = v.trim();
+            if (v.substr(-1) === 'N' || v.substr(-1) === 'E') {
+                v = v.slice(0, -1).trim();
+                isNegative = false;
+            } else if (v.substr(-1) === 'S' || v.substr(-1) === 'W') {
+                v = v.slice(0, -1).trim();
+                isNegative = true;
+            }
+            var m = v.match(/(.+)[°º]((.+)'((.+)")?)?/);
+            if (m) {
+                if (m[1]) {
+                    var min = 0, sec = 0;
+                    var deg = P.number.parseFloat(m[1].trim());
+                    if (m[3]) {
+                        min = P.number.parseFloat(m[3].trim());
+                        if (m[5]) {
+                            sec = P.number.parseFloat(m[5].trim());
+                        }
+                    }
+                    result = deg + min / 60.0 + sec / (60.0 * 60.0);
+                }
+            }
+        }
+        if (!result || _.isNaN(result)) {
+            result = P.number.parseFloat(v);
+        }
+        if (_.isNaN(result)) {
+            return;
+        }
+        if (isNegative) {
+            result = -result;
+        }
+        return result;
     }
 
     function splitLatLon(latLonStr) {
@@ -58,19 +99,22 @@ define([
                     self.setupDescriptionTypeahead();
                     self.on(self.select('descriptionSelector'), 'focus blur', self.onFocusDescription);
                     fulfill();
-                    self.trigger('fieldRendered')
+                    self.trigger('fieldRendered');
 
                     self.on('paste', {
                         latSelector: function(event) {
                             _.defer(function() {
                                 var pastedValue = $(event.target).val();
                                 if (pastedValue.length) {
-                                    self.setValue(pastedValue);
-                                    self.triggerFieldUpdated();
+                                    var parsedValue = splitLatLon(pastedValue);
+                                    if (parsedValue) {
+                                        self.setValue(parsedValue);
+                                        self.triggerFieldUpdated();
 
-                                    self.select('latSelector')
-                                        .add(self.select('lonSelector'))
-                                        .animatePop();
+                                        self.select('latSelector')
+                                          .add(self.select('lonSelector'))
+                                          .animatePop();
+                                    }
                                 }
                             })
                         }
