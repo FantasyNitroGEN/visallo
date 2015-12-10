@@ -80,6 +80,7 @@ define([
         this.onUpdateHistogramExtent = function(event, data) {
             this.trigger('selectObjects', {
                 vertexIds: data.vertexIds,
+                edgeIds: data.edgeIds,
                 options: {
                     fromHistogram: true
                 }

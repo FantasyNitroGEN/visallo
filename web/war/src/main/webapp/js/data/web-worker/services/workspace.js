@@ -66,16 +66,26 @@ define([
                 workspaceId = null;
             }
 
+            var workspace = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspace'),
+                edgeIds;
+
             return (property.title === 'ALL_DATES' ?
-                Promise.require('data/web-worker/services/ontology')
-                    .then(function(o) {
-                        return o.ontology();
-                    }) :
+                Promise.all([
+                        Promise.require('data/web-worker/services/ontology').then(function(o) {
+                            return o.ontology();
+                        }),
+                        (edgeIds = _.pluck(store.getObjects(workspace.workspaceId, 'workspaceEdges'), 'edgeId')).length ?
+                            Promise.require('data/web-worker/services/edge').then(function(edge) {
+                                return edge.multiple({ edgeIds: edgeIds })
+                            }) : Promise.resolve([])
+                    ]) :
                 Promise.resolve())
-                    .then(function(ontology) {
-                        var ontologyConcepts = ontology && ontology.concepts,
+                    .then(function(results) {
+                        var ontology = results && results.shift(),
+                            edges = results && results.shift().edges,
+                            ontologyConcepts = ontology && ontology.concepts,
+                            ontologyRelationships = ontology && ontology.relationships,
                             ontologyProperties = ontology && ontology.properties,
-                            workspace = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspace'),
                             filteredVertexIds = store.getObject(workspace.workspaceId, 'filteredVertexIds'),
                             vertexIds = _.chain(workspace.vertices)
                                 .omit(filteredVertexIds || [])
@@ -84,39 +94,44 @@ define([
                             vertices = store.getObjects(workspace.workspaceId, 'vertex', vertexIds),
                             foundOntologyProperties = [],
                             foundYPropertiesByConcept = {},
-                            values = _.chain(vertices)
+                            values = _.chain(vertices.concat(edges || []))
                                 .compact()
                                 .map(function(v) {
-                                    var conceptProperty = _.findWhere(v.properties, { name: 'http://visallo.org#conceptType'}),
-                                        conceptPropertyIri = conceptProperty && conceptProperty.value ||
-                                            'http://www.w3.org/2002/07/owl#Thing',
+                                    var isEdge = ('label' in v && 'inVertexId' in v && 'outVertexId' in v),
+                                        conceptProperty = !isEdge && _.findWhere(v.properties, { name: 'http://visallo.org#conceptType'}),
+                                        conceptPropertyIri = isEdge ? v.label : (
+                                            conceptProperty && conceptProperty.value || 'http://www.w3.org/2002/07/owl#Thing'
+                                        ),
                                         properties = ontologyProperties ?
-                                        _.filter(v.properties, function(p) {
-                                            var ontologyProperty = ontologyProperties.byTitle[p.name],
-                                                matched = ontologyProperty && ontologyProperty.dataType === property.dataType && ontologyProperty.userVisible !== false;
+                                            _.filter(v.properties, function(p) {
+                                                var ontologyProperty = ontologyProperties.byTitle[p.name],
+                                                    matched = ontologyProperty && ontologyProperty.dataType === property.dataType && ontologyProperty.userVisible !== false;
 
-                                            if (matched) {
-                                                var found = _.find(foundOntologyProperties, function(f) {
-                                                    return f.property.title === ontologyProperty.title;
-                                                });
-                                                if (found) {
-                                                    if (conceptPropertyIri &&
-                                                        found.concepts.indexOf(conceptPropertyIri) === -1) {
-                                                        found.concepts.push(conceptPropertyIri);
-                                                    }
-                                                } else {
-                                                    foundOntologyProperties.push({
-                                                        property: ontologyProperty,
-                                                        concepts: conceptPropertyIri ? [conceptPropertyIri] : []
+                                                if (matched) {
+                                                    var found = _.find(foundOntologyProperties, function(f) {
+                                                        return f.property.title === ontologyProperty.title;
                                                     });
+                                                    if (found) {
+                                                        if (conceptPropertyIri &&
+                                                            found.concepts.indexOf(conceptPropertyIri) === -1) {
+                                                            found.concepts.push(conceptPropertyIri);
+                                                        }
+                                                    } else {
+                                                        foundOntologyProperties.push({
+                                                            property: ontologyProperty,
+                                                            concepts: conceptPropertyIri ? [conceptPropertyIri] : []
+                                                        });
+                                                    }
                                                 }
-                                            }
 
-                                            return matched;
-                                        }) :
-                                        _.where(v.properties, { name: property.title }),
-
-                                        concept = ontologyConcepts && ontologyConcepts.byId[conceptPropertyIri],
+                                                return matched;
+                                            }) :
+                                            _.where(v.properties, { name: property.title }),
+                                        ontologyByType = isEdge ?
+                                            ontologyRelationships && ontologyRelationships.byTitle :
+                                            ontologyConcepts && ontologyConcepts.byId,
+                                        parentTypeField = isEdge ? 'parentIri' : 'parentConcept',
+                                        concept = ontologyByType[conceptPropertyIri],
                                         eligibleYTypes = 'double integer currency number'.split(' '),
                                         foundYProperties = conceptPropertyIri && foundYPropertiesByConcept[conceptPropertyIri];
 
@@ -129,10 +144,18 @@ define([
                                                     foundYProperties.push(p);
                                                 }
                                             }
-                                            concept = concept.parentConcept &&
-                                                ontologyConcepts &&
-                                                ontologyConcepts.byId[concept.parentConcept];
+                                            concept = concept.parentConcept && ontologyByType[concept[parentTypeField]];
                                         }
+
+                                        v.properties.forEach(function(prop) {
+                                            if (!_.findWhere(foundYProperties, { title: prop.name })) {
+                                                var p = ontologyProperties.byTitle[prop.name];
+                                                if (p && p.userVisible !== false && ~eligibleYTypes.indexOf(p.dataType)) {
+                                                    foundYProperties.push(p);
+                                                }
+                                            }
+                                        });
+
                                         foundYPropertiesByConcept[conceptPropertyIri] = foundYProperties;
                                     }
 
@@ -149,14 +172,16 @@ define([
                                     }
 
                                     return _.map(properties, function(p) {
-                                        var ontologyProperty = ontologyProperties && ontologyProperties.byTitle[p.name];
-                                        return {
-                                            vertexId: v.id,
-                                            conceptIri: conceptPropertyIri,
-                                            propertyIri: ontologyProperty && ontologyProperty.title,
-                                            value: p.value,
-                                            yValues: yValues
-                                        };
+                                        var ontologyProperty = ontologyProperties && ontologyProperties.byTitle[p.name],
+                                            base = {
+                                                conceptIri: conceptPropertyIri,
+                                                propertyIri: ontologyProperty && ontologyProperty.title,
+                                                value: p.value,
+                                                yValues: yValues
+                                            };
+
+                                        base[isEdge ? 'edgeId' : 'vertexId'] = v.id;
+                                        return base;
                                     })
                                 })
                                 .flatten(true)
