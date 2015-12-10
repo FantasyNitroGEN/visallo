@@ -218,7 +218,7 @@ define([
             hasMetadata: function(property, metadataPropertyNames) {
                 return (V.sandboxStatus(property) && metadataPropertyNames.indexOf('sandboxStatus') > -1) ||
                     _.some(metadataPropertyNames, function(name) {
-                        return !_.isUndefined(property.metadata[name]);
+                        return property.metadata && !_.isUndefined(property.metadata[name]);
                     });
             },
 

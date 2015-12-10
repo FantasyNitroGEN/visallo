@@ -734,15 +734,15 @@ define([
                                 vertex);
                         }
 
-                        var isEdge = F.vertex.isEdge(vertex),
-                            isEditable = (Privileges.canEDIT &&
-                            (property.updateable !== false || property.deleteable !== false)),
-                            hasVisibleMetadata = isEdge ? false : F.vertex.hasMetadata(property,
-                                config['properties.metadata.propertyNames'].split(','));
+                        var isEditable = (
+                                Privileges.canEDIT &&
+                                (property.updateable !== false || property.deleteable !== false)
+                            ),
+                            metadataPropertyNames = (config['properties.metadata.propertyNames'] || '').split(','),
+                            hasVisibleMetadata = F.vertex.hasMetadata(property, metadataPropertyNames);
 
                         $infoButton.toggle(Boolean(
                             !property.hideInfo && (
-                                isEdge ||
                                 isEditable ||
                                 ontologyProperty.searchable ||
                                 hasVisibleMetadata)
