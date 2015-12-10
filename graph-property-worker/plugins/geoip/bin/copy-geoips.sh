@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ZIP_URL=http://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip
-HDFS_DIR=/visallo/config/org.visallo.geoip.GeoIpGraphPropertyWorker
+HDFS_DIR=/visallo/config/org.visallo.geoip.GeoIpRepository
 
 hdfs dfs -ls ${HDFS_DIR} &> /dev/null
 if [ $? -ne 0 ]; then
@@ -14,5 +14,5 @@ if [ $? -ne 0 ]; then
   fi
   echo "uploading files to ${HDFS_DIR}..."
   hdfs dfs -mkdir -p ${HDFS_DIR}
-  hdfs dfs -put ${unzipped_dir}/* ${HDFS_DIR}
+  hdfs dfs -put ${unzipped_dir}/GeoLite2-City-CSV*/* ${HDFS_DIR}
 fi

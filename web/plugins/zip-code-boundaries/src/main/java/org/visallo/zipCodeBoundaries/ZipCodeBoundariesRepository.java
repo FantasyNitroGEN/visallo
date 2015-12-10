@@ -28,7 +28,7 @@ import java.util.Map;
 public class ZipCodeBoundariesRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ZipCodeBoundariesRepository.class);
     public static final String CONFIG_HDFS_PATH_PREFIX = ZipCodeBoundariesRepository.class.getName() + ".pathPrefix";
-    public static final String CONFIG_HDFS_PATH_PREFIX_DEFAULT = "/visallo/config/" + ZipCodeBoundariesRepository.class.getName();
+    public static final String CONFIG_HDFS_PATH_PREFIX_DEFAULT = ZipCodeBoundariesRepository.class.getName();
     private final FeatureCollection collection;
 
     @Inject
