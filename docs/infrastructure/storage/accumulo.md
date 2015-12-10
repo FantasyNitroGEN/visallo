@@ -2,6 +2,8 @@
 
 Accumulo is the preferred storage platform for large graphs. It provides server side security using the built-in Accumulo's visibility strings. The Accumulo storage does not provide the searching functionality, for that you will need to use one of the search storage engines such as Elasticsearch.
 
+[Example Configuration](https://github.com/v5analytics/visallo/blob/master/config/visallo-accumulo.properties)
+
 ### History
 
 By default Visallo is configured to retain all history in Accumulo. If you don't need this you can run the following:

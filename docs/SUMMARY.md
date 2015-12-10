@@ -26,6 +26,12 @@
     * [FFmpeg Setup](extras/ffmpeg-setup.md)
     * [Sizing](extras/sizing.md)
 * Infrastructure
+    * Coordination
+        * [Zookeeper](infrastructure/coordination/zookeeper.md)
+    * Queue
+        * [RabbitMQ](infrastructure/queue/rabbitmq.md)
     * Storage
         * [Accumulo](infrastructure/storage/accumulo.md)
+        * [Elasticsearch](infrastructure/storage/elasticsearch.md)
+        * [SQL](infrastructure/storage/sql.md)
 * [Glossary](GLOSSARY.md)
