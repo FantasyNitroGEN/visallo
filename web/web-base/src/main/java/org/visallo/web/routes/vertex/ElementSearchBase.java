@@ -22,11 +22,16 @@ import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public abstract class ElementSearchBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchBase.class);
+    private static final DateFormat bucketDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static final Pattern dateTimePattern = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T.*");
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
     private int defaultSearchResultCount;
@@ -168,7 +173,18 @@ public abstract class ElementSearchBase {
                     histogramBucket.getCount(),
                     toClientApiNestedResults(histogramBucket.getNestedResults())
             );
-            result.getBuckets().put(histogramBucket.getKey().toString(), b);
+            String key = histogramBucket.getKey().toString();
+            if (dateTimePattern.matcher(key).matches()) {
+                try {
+                    Date date = bucketDateFormat.parse(key);
+                    if (date != null) {
+                        key = String.valueOf(date.getTime());
+                    }
+                } catch (ParseException pe) {
+                    LOGGER.warn("Unable to parse histogram date", pe);
+                }
+            }
+            result.getBuckets().put(key, b);
         }
         return result;
     }
