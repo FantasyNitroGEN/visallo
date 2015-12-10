@@ -127,15 +127,13 @@ public class WebApp extends App {
 
     private void register(String name, String type, String pathPrefix, Boolean includeInPage) {
         String resourcePath = (pathPrefix + name).replaceAll("^/", "");
-        if (devMode || !includeInPage) {
+        if (isDevModeEnabled() || !includeInPage) {
             get("/" + resourcePath, new StaticResourceHandler(this.getClass(), name, type));
             if (includeInPage) {
                 pluginsJsResources.add(resourcePath);
             }
         } else {
-            if (includeInPage) {
-                pluginsJsResourceHandler.appendResource(name);
-            }
+            pluginsJsResourceHandler.appendResource(name);
         }
     }
 
@@ -165,7 +163,7 @@ public class WebApp extends App {
 
     public void registerCss(String cssResourceName) {
         String resourcePath = "css" + cssResourceName;
-        if (devMode) {
+        if (isDevModeEnabled()) {
             get("/" + resourcePath, new StaticResourceHandler(this.getClass(), cssResourceName, "text/css"));
             pluginsCssResources.add(resourcePath);
         } else {
@@ -175,7 +173,7 @@ public class WebApp extends App {
 
     public void registerLess(final String lessResourceName) {
         String resourcePath = "css" + lessResourceName + ".css";
-        if (devMode) {
+        if (isDevModeEnabled()) {
             get("/" + resourcePath, new LessResourceHandler(lessResourceName));
             pluginsCssResources.add(resourcePath);
         } else {

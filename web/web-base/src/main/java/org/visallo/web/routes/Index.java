@@ -34,12 +34,6 @@ public class Index implements ParameterizedHandler {
     );
 
     private String indexHtml;
-    private Boolean devMode;
-
-    @Inject
-    protected Index(Configuration configuration) {
-        devMode = "true".equals(configuration.get(Configuration.DEV_MODE, "false"));
-    }
 
     @Handle
     public void handle(
@@ -53,7 +47,7 @@ public class Index implements ParameterizedHandler {
     }
 
     private String getIndexHtml(HttpServletRequest request, WebApp app, ResourceBundle resourceBundle) throws IOException {
-        if (indexHtml == null || devMode) {
+        if (indexHtml == null || app.isDevModeEnabled()) {
             Map<String, Object> context = new HashMap<>();
             context.put(PLUGIN_JS_RESOURCES_PARAM, app.getPluginsJsResources());
             context.put(PLUGIN_CSS_RESOURCES_PARAM, app.getPluginsCssResources());
