@@ -50,6 +50,7 @@ define([
             this.on(document, 'workspaceLoaded', this.onWorkspaceLoaded);
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'verticesUpdated', this.onVerticesUpdated);
+            this.on(document, 'edgesUpdated', this.onEdgesUpdated);
             this.on('propertyConfigChanged', this.onPropertyConfigChanged);
             this.on('fitHistogram', this.onFitHistogram);
 
@@ -92,6 +93,14 @@ define([
                 edgeIds: selectedEdgeIds
             };
             this.updateBarSelection(this.currentSelected);
+        };
+
+        this.onEdgesUpdated = function() {
+            var self = this;
+
+            this.renderChart().then(function() {
+                self.updateBarSelection(self.currentSelected);
+            });
         };
 
         this.onVerticesUpdated = function() {
@@ -275,8 +284,6 @@ define([
                 });
             }
 
-            this.$node.find('svg').remove();
-
             var vals = results[0],
                 isDate = this.attr.property.dataType === 'date',
                 isDateTime = isDate && this.attr.property.displayType !== 'dateOnly';
@@ -320,6 +327,20 @@ define([
                     .tickSize(5, 0)
                     .orient('bottom'),
 
+                brushedTextFormat = xAxis.tickFormat(),
+
+                format = (function() {
+                    var format = isDate && '%Y-%m-%d';
+                    if (isDateTime) {
+                        format += ' %I %p';
+                    }
+                    format = format && d3.time.format(format);
+                    if (format) {
+                        brushedTextFormat = format;
+                    }
+                    return format;
+                })(),
+
                 yAxis = this.yAxis = d3.svg.axis()
                     .scale(yScale)
                     .ticks(1)
@@ -349,102 +370,188 @@ define([
 
                 zoom = this.zoom = createZoomBehavior(),
 
-                brush = this.brush = d3.svg.brush()
-                    .x(zoom.x())
+                brush = (this.brush || (this.brush = d3.svg.brush()
                     .on('brush', _.throttle(function() {
                         updateBrushInfo();
                         updateFocusInfo();
-                    }, 1000 / 30)),
+                        brush.x(zoom.x());
+                    }, 1000 / 30))))
+                    //.call(function() {
+                        //if (this.currentExtent) {
+                            //brush = this.brush.extent(this.currentExtent);
+                        //}
+                    //})
+                    .x(zoom.x()),
 
-                svgOuter = this.svg = d3.select(this.node).append('svg')
+                focus = null,
+
+                svgOuter = this.svg = d3.select(this.node)
+                    .selectAll('svg')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('svg')
+                            .on('mousemove', mousemove)
+                            .on('mouseover', function() {
+                                focus.style('display', null);
+                            })
+                            .on('mouseout', function() {
+                                if (!d3.event.toElement || $(d3.event.toElement).closest('svg').length === 0) {
+                                    focus.style('display', 'none');
+                                }
+                            });
+                    })
                     .attr('width', width + margin.left + margin.right)
                     .attr('height', height + margin.top + margin.bottom)
                     .call(zoom),
 
-                preventDragOverGraph = svgOuter.append('rect')
-                    .attr({
-                        class: 'preventDrag',
-                        x: 0,
-                        y: 0,
-                        width: '100%',
-                        height: height + margin.top
+                preventDragOverGraph = svgOuter
+                    .selectAll('rect.preventDrag')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('rect').attr({
+                            class: 'preventDrag',
+                            x: 0,
+                            y: 0,
+                            width: '100%'
+                        })
                     })
+                    .attr('height', height + margin.top)
                     .on('mousedown', function() {
                         d3.event.stopPropagation();
                     }),
 
-                axisOverlay = svgOuter.append('rect')
+                axisOverlay = svgOuter
+                    .selectAll('rect.axis-overlay')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('rect').attr({
+                            class: 'axis-overlay',
+                            x: 0,
+                            width: '100%'
+                        })
+                    })
                     .attr({
-                        class: 'axis-overlay',
-                        x: 0,
                         y: height + margin.top,
-                        width: '100%',
                         height: margin.bottom
                     }),
 
                 svg = svgOuter
-                    .append('g')
+                    .selectAll('g.root')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('g').attr('class', 'root');
+                    })
                     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')'),
 
-                svgBackground = svg.append('g'),
+                svgBackground = svg
+                    .selectAll('g.background')
+                    .data([1])
+                    .call(function() {
+                        this.enter()
+                            .append('g').attr('class', 'background')
+                            .call(function() {
+                                this.append('g').attr('class', 'focus').style('display', 'none')
+                                    .call(function() {
+                                        this.append('text').attr('text-anchor', 'middle');
+                                        this.append('rect')
+                                            .attr('class', 'scrub')
+                                            .attr('width', 1)
+                                            .attr('height', margin.bottom * 0.6);
+                                    })
+                                this.append('g').attr({
+                                    class: 'x axis'
+                                })
+                            })
 
-                focus = this.focus = svgBackground.append('g')
-                    .attr('class', 'focus')
-                    .style('display', 'none'),
+                        this.select('g.axis')
+                            .attr('transform', 'translate(0,' + height + ')')
+                            .call(xAxis);
 
-                gBrush = svg.append('g')
-                    .attr('class', 'brush')
-                    .on('mousedown', function() {
-                        d3.event.stopPropagation();
-                    }).call(brush),
+                        focus = self.focus = this.select('.focus')
+                            .call(function() {
+                                this.select('text').attr('y', height + margin.bottom - 5)
+                                this.select('rect').attr('y', height)
+                            })
+                    }),
 
-                barGroup = this.barGroup = gBrush.insert('g', '.extent')
-                    .attr('class', 'barGroup'),
+                gBrush = svg
+                    .selectAll('g.brush')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('g').attr('class', 'brush')
+                            .on('mousedown', function() {
+                                d3.event.stopPropagation();
+                            })
+
+                    })
+                    .call(brush),
+
+                barGroup = this.barGroup = gBrush
+                    .selectAll('g.barGroup')
+                    .data([1])
+                    .call(function() {
+                        this.enter().insert('g', '.extent').attr('class', 'barGroup')
+                    }),
 
                 bars = this.createBars(data),
 
-                gBrushRects = gBrush.selectAll('rect')
+                gBrushRects = d3.selectAll(this.$node.find('g.brush rect').not('.barGroup rect').toArray())
                     .attr('height', height + BRUSH_PADDING * 2),
 
-                gBrushText = gBrush.append('g')
-                    .style('display', 'none')
-                    .attr('class', 'brushText'),
-
-                gBrushTextStartBackground = gBrushText.append('rect')
-                    .attr({
-                        x: 0.5,
-                        y: 0.5,
-                        height: BRUSH_BACKGROUND_HEIGHT
+                gBrushText = gBrush
+                    .selectAll('g.brushText')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('g').style('display', 'none').attr('class', 'brushText')
                     }),
 
-                gBrushTextEndBackground = gBrushText.append('rect')
+                gBrushTextStartBackground = gBrushText
+                    .selectAll('rect.textstartbg')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('rect').attr({
+                            class: 'textstartbg',
+                            x: 0.5,
+                            y: 0.5
+                        })
+                    })
+                    .attr('height', BRUSH_BACKGROUND_HEIGHT),
+
+                gBrushTextEndBackground = gBrushText
+                    .selectAll('rect.textendbg')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('rect').attr({
+                            class: 'textendbg',
+                            x: 0.5
+                        })
+                    })
                     .attr({
-                        x: 0.5,
                         y: height - BRUSH_BACKGROUND_HEIGHT,
                         height: BRUSH_BACKGROUND_HEIGHT
                     }),
 
-                gBrushTextStart = gBrushText.append('text')
-                    .attr({
-                        x: BRUSH_TEXT_PADDING,
-                        y: Math.max(0, BRUSH_BACKGROUND_HEIGHT - BRUSH_PADDING - BRUSH_TEXT_PADDING)
+                gBrushTextStart = gBrushText
+                    .selectAll('text.textstart')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('text').attr({
+                            class: 'textstart',
+                            x: BRUSH_TEXT_PADDING,
+                            y: Math.max(0, BRUSH_BACKGROUND_HEIGHT - BRUSH_PADDING - BRUSH_TEXT_PADDING)
+                        })
                     }),
 
-                gBrushTextEnd = gBrushText.append('text')
-                    .attr({
-                        y: height + BRUSH_PADDING - BRUSH_TEXT_PADDING,
-                        'text-anchor': 'end'
-                    });
-
-            svgOuter.on('mousemove', mousemove)
-                    .on('mouseover', function() {
-                        focus.style('display', null);
+                gBrushTextEnd = gBrushText
+                    .selectAll('text.textend')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('text').attr({
+                            class: 'textend',
+                            'text-anchor': 'end'
+                        })
                     })
-                    .on('mouseout', function() {
-                        if (!d3.event.toElement || $(d3.event.toElement).closest('svg').length === 0) {
-                            focus.style('display', 'none');
-                        }
-                    });
+                    .attr('y', height + BRUSH_PADDING - BRUSH_TEXT_PADDING);
 
             if (isDate) {
                 xAxis.tickFormat(d3.time.format.utc.multi([
@@ -480,27 +587,16 @@ define([
                 });
             }
 
-            focus.append('text')
-                .attr('y', height + margin.bottom - 5)
-                .attr('text-anchor', 'middle');
-
-            focus.append('rect')
-                .attr('class', 'scrub')
-                .attr('y', height)
-                .attr('width', 1)
-                .attr('height', margin.bottom * 0.6);
-
-            svgBackground.append('g')
-                .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
-                .call(xAxis);
-
             if (this.attr.includeYAxis) {
-                svg.append('g')
-                    .attr('class', 'y axis')
+                svg.selectAll('g.y')
+                    .data([1])
+                    .call(function() {
+                        this.enter().append('g')
+                            .attr('class', 'y axis')
+                            .selectAll('.tick text')
+                            .attr('transform', 'translate(0,6)');
+                    })
                     .call(yAxis)
-                    .selectAll('.tick text')
-                    .attr('transform', 'translate(0,6)');
             }
 
             function calculateValuesExtent() {
@@ -563,10 +659,8 @@ define([
                 return scale.domain(valuesExtent).range([0, width]);
             }
 
-            var brushedTextFormat = xAxis.tickFormat();
-
             function updateBrushInfo() {
-                var extent = brush.extent(),
+                var extent = self.brush.extent(),
                     delta = extent[1] - extent[0],
                     width = Math.max(0, xScale(
                              isDate ?
@@ -606,7 +700,7 @@ define([
             }
             this.clearBrush = function() {
                 this.currentSelected = {};
-                gBrush.call(brush.clear());
+                gBrush.call(self.brush.clear());
                 delete self.currentExtent;
                 updateBrushInfo();
             }
@@ -617,14 +711,6 @@ define([
                 updateFocusInfo();
             }
 
-            var format = isDate && '%Y-%m-%d';
-            if (isDateTime) {
-                format += ' %I %p';
-            }
-            format = format && d3.time.format(format);
-            if (format) {
-                brushedTextFormat = format;
-            }
             function updateFocusInfo() {
                 if (mouse !== null) {
                     var x0 = xScale.invert(mouse - margin.left);
@@ -651,14 +737,14 @@ define([
                 dx = firstNonEmpty ? firstNonEmpty.values[0].dx : 0,
                 barLayers = this.barGroup.selectAll('.barlayer').data(data.reverse(), function(d) {
                     return d.conceptIri;
-                }),
+                }).order(),
                 bars = barLayers.selectAll('.bar').data(function(groupData) {
                     return groupData.values;
                 }, function(d) {
                     return d[0].conceptIri + d.x.getTime();
-                }),
+                }).order(),
                 isDate = this.attr.property.dataType === 'date',
-                animationDuration = skipAnimation ? 0 : 250,
+                animationDuration = skipAnimation ? 0 : 2500,
                 hasData = this.data && this.data.length;
 
             this.select('noDataMessageSelector').css('display', hasData ? 'none' : 'block');
@@ -697,8 +783,8 @@ define([
                     )
                     .transition('height-animation').duration(animationDuration)
                     .attr('height', function(d) {
-                        return height - yScale(d.y + d.y0);
-                    });
+                        return height - yScale(d.y);
+                    })
 
             var exitingBars = bars.exit().transition('height-animation').duration(animationDuration);
             exitingBars.attr('transform', function(d) {

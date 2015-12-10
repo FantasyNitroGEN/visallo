@@ -290,6 +290,7 @@ define([
                     if (resemblesEdge(json)) {
                         if (cacheDecisions.shouldCacheEdgeAtUrl(json, url)) {
                             cacheEdges(workspaceId, [json]);
+                            cacheWorkspaceEdgeIfVerticesInWorkspace(workspaceId, json);
                             var edgeVertices = _.compact([json.source, json.target].map(function(v) {
                                 if (v && resemblesVertex(v)) {
                                     return v;
@@ -357,7 +358,7 @@ define([
         workspaceCaches[workspaceId] = {
             vertices: new Cache(),
             edges: new Cache(),
-            workspaceEdges: {},
+            workspaceEdges: [],
             cachedIds: {}
         };
 
@@ -383,6 +384,28 @@ define([
     function cacheWorkspaceEdges(workspaceId, workspaceEdges) {
         var workspaceCache = cacheForWorkspace(workspaceId);
         workspaceCache.workspaceEdges = workspaceEdges;
+    }
+
+    function cacheWorkspaceEdgeIfVerticesInWorkspace(workspaceId, edge) {
+        var workspaceVertices = api.getObject(workspaceId, 'workspace').vertices,
+            workspaceEdges = api.getObject(workspaceId, 'workspaceEdges');
+
+        if (edge.outVertexId in workspaceVertices && edge.inVertexId in workspaceVertices) {
+            var existingWorkspaceEdgeIndex = _.findIndex(workspaceEdges, function(workspaceEdge) {
+                    return workspaceEdge.edgeId === edge.id
+                }),
+                minimalJson = {
+                    edgeId: edge.id,
+                    inVertexId: edge.inVertexId,
+                    label: edge.label,
+                    outVertexId: edge.outVertexId
+                };
+            if (existingWorkspaceEdgeIndex >= 0) {
+                workspaceEdges.splice(existingWorkspaceEdgeIndex, 1, minimalJson);
+            } else {
+                workspaceEdges.push(minimalJson);
+            }
+        }
     }
 
     function cacheVertices(workspaceId, vertices, priority) {
