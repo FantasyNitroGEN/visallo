@@ -744,7 +744,7 @@ define([
                     return d[0].conceptIri + d.x.getTime();
                 }).order(),
                 isDate = this.attr.property.dataType === 'date',
-                animationDuration = skipAnimation ? 0 : 2500,
+                animationDuration = skipAnimation ? 0 : 250,
                 hasData = this.data && this.data.length;
 
             this.select('noDataMessageSelector').css('display', hasData ? 'none' : 'block');
