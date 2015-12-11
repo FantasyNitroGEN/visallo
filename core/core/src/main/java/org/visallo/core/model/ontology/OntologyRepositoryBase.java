@@ -553,7 +553,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
             List<Relationship> domainRelationships = new ArrayList<>();
             for (OWLAnnotation domainAnnotation : getObjectPropertyDomains(o, dataTypeProperty)) {
-                String domainClassUri = domainAnnotation.getValue().toString();
+                String domainClassUri = removeExtraQuotes(domainAnnotation.getValue().toString());
                 Relationship domainRelationship = getRelationshipByIRI(domainClassUri);
                 if (domainRelationship == null) {
                     LOGGER.error("Could not find relationship with uri: %s", domainClassUri);
@@ -590,6 +590,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         } catch (Throwable ex) {
             throw new VisalloException("Failed to load data property: " + propertyIRI, ex);
         }
+    }
+
+    private String removeExtraQuotes(String str) {
+        if (str.startsWith("\"") && str.endsWith("\"")) {
+            str = str.substring(1, str.length() - 1);
+        }
+        return str;
     }
 
     @Override

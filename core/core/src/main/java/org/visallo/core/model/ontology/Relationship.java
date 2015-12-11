@@ -138,4 +138,11 @@ public abstract class Relationship implements HasOntologyProperties {
         }
         return results;
     }
+
+    @Override
+    public String toString() {
+        return "Relationship{" +
+                "iri='" + getIRI() + '\'' +
+                '}';
+    }
 }
