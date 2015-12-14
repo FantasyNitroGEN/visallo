@@ -77,7 +77,8 @@ define([
                         this.select('ol.inner-list')
                             .selectAll('li')
                             .data(function(d) {
-                                return _.tap(d[1], function(l) {
+                                return _.chain(d[1])
+                                  .tap(function(l) {
                                     if (l.length) {
                                         l.forEach(function(d) {
                                             if (!d.name && d.className) {
@@ -89,7 +90,11 @@ define([
                                         });
                                     }
                                     return l;
-                                });
+                                  })
+                                  .sortBy(function(p) {
+                                    return (p.name || p.className).toLowerCase();
+                                  })
+                                  .value();
                             })
                             .call(function() {
                                 this.enter()
