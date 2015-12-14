@@ -64,7 +64,7 @@ public class UserGuide implements ParameterizedHandler {
                     }
                 }
             } else {
-                response.respondWithHtml("The User Guild is not available.");
+                response.respondWithHtml("The User Guide is not available.");
             }
     }
 
