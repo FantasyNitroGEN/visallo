@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 
 public abstract class ElementSearchBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchBase.class);
-    private static final DateFormat bucketDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final Pattern dateTimePattern = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T.*");
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
@@ -167,6 +166,7 @@ public abstract class ElementSearchBase {
     }
 
     private ClientApiSearchResponse.AggregateResult toClientApiHistogramResult(HistogramResult agg) {
+        DateFormat bucketDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         ClientApiSearchResponse.HistogramAggregateResult result = new ClientApiSearchResponse.HistogramAggregateResult();
         for (HistogramBucket histogramBucket : agg.getBuckets()) {
             ClientApiSearchResponse.HistogramAggregateResult.Bucket b = new ClientApiSearchResponse.HistogramAggregateResult.Bucket(
