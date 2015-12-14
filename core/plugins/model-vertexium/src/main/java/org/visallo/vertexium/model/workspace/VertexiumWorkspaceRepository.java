@@ -452,6 +452,150 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         });
     }
 
+    @Override
+    public Dashboard findDashboardById(String workspaceId, String dashboardId, User user) {
+        LOGGER.debug("findDashboardById(dashboardId: %s, userId: %s)", dashboardId, user.getUserId());
+        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
+        Vertex dashboardVertex = getGraph().getVertex(dashboardId, authorizations);
+        if (dashboardVertex == null) {
+            return null;
+        }
+        if (!hasReadPermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspaceId, user, workspaceId);
+        }
+        return dashboardVertexToDashboard(workspaceId, dashboardVertex, authorizations);
+    }
+
+    @Override
+    public void deleteDashboard(String workspaceId, String dashboardId, User user) {
+        LOGGER.debug("deleteDashboard(dashboardId: %s, userId: %s)", dashboardId, user.getUserId());
+        if (!hasWritePermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspaceId, user, workspaceId);
+        }
+        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
+
+        Vertex dashboardVertex = getGraph().getVertex(dashboardId, authorizations);
+        Iterable<Vertex> dashboardItemVertices = dashboardVertex.getVertices(Direction.OUT, WorkspaceProperties.DASHBOARD_TO_DASHBOARD_ITEM_RELATIONSHIP_IRI, authorizations);
+        for (Vertex dashboardItemVertex : dashboardItemVertices) {
+            getGraph().softDeleteVertex(dashboardItemVertex, authorizations);
+        }
+        getGraph().softDeleteVertex(dashboardVertex, authorizations);
+        getGraph().flush();
+    }
+
+    @Override
+    public Collection<Dashboard> findAllDashboardsForWorkspace(final String workspaceId, User user) {
+        LOGGER.debug("findAllDashboardsForWorkspace(workspaceId: %s, userId: %s)", workspaceId, user.getUserId());
+        final Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
+        final Vertex workspaceVertex = getVertex(workspaceId, user);
+        if (workspaceVertex == null) {
+            return null;
+        }
+        if (!hasReadPermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspaceId, user, workspaceId);
+        }
+        Iterable<Vertex> dashboardVertices = workspaceVertex.getVertices(Direction.OUT, WorkspaceProperties.WORKSPACE_TO_DASHBOARD_RELATIONSHIP_IRI, authorizations);
+        return toList(Iterables.transform(dashboardVertices, new Function<Vertex, Dashboard>() {
+            @Override
+            public Dashboard apply(Vertex dashboardVertex) {
+                return dashboardVertexToDashboard(workspaceId, dashboardVertex, authorizations);
+            }
+        }));
+    }
+
+    @Override
+    public DashboardItem findDashboardItemById(String workspaceId, String dashboardItemId, User user) {
+        LOGGER.debug("findDashboardItemById(dashboardItemId: %s, userId: %s)", dashboardItemId, user.getUserId());
+        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
+        Vertex dashboardItemVertex = getGraph().getVertex(dashboardItemId, authorizations);
+        if (dashboardItemVertex == null) {
+            return null;
+        }
+        if (!hasReadPermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspaceId, user, workspaceId);
+        }
+        return dashboardItemVertexToDashboardItem(dashboardItemVertex);
+    }
+
+    @Override
+    public void deleteDashboardItem(String workspaceId, String dashboardItemId, User user) {
+        LOGGER.debug("deleteDashboardItem(dashboardItemId: %s, userId: %s)", dashboardItemId, user.getUserId());
+        if (!hasWritePermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspaceId, user, workspaceId);
+        }
+        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
+        getGraph().softDeleteVertex(dashboardItemId, authorizations);
+        getGraph().flush();
+    }
+
+    private DashboardItem dashboardItemVertexToDashboardItem(Vertex dashboardItemVertex) {
+        String dashboardItemId = dashboardItemVertex.getId();
+        String extensionId = WorkspaceProperties.DASHBOARD_ITEM_EXTENSION_ID.getPropertyValue(dashboardItemVertex, null);
+        String dashboardItemTitle = WorkspaceProperties.TITLE.getPropertyValue(dashboardItemVertex, null);
+        String configuration = WorkspaceProperties.DASHBOARD_ITEM_CONFIGURATION.getPropertyValue(dashboardItemVertex, null);
+        return new DashboardItem(dashboardItemId, extensionId, dashboardItemTitle, configuration);
+    }
+
+    @Override
+    public String addOrUpdateDashboardItem(String workspaceId, String dashboardId, String dashboardItemId, String title, String configuration, String extensionId, User user) {
+        LOGGER.debug("addOrUpdateDashboardItem(workspaceId: %s, dashboardId: %s, dashboardItemId: %s, userId: %s)", workspaceId, dashboardId, dashboardItemId, user.getUserId());
+        if (!hasWritePermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspaceId, user, workspaceId);
+        }
+        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
+        Visibility visibility = VISIBILITY.getVisibility();
+        VertexBuilder dashboardItemVertexBuilder = getGraph().prepareVertex(dashboardItemId, visibility);
+        WorkspaceProperties.DASHBOARD_ITEM_EXTENSION_ID.setProperty(dashboardItemVertexBuilder, extensionId == null ? "" : extensionId, visibility);
+        WorkspaceProperties.TITLE.setProperty(dashboardItemVertexBuilder, title == null ? "" : title, visibility);
+        WorkspaceProperties.DASHBOARD_ITEM_CONFIGURATION.setProperty(dashboardItemVertexBuilder, configuration == null ? "" : configuration, visibility);
+        Vertex dashboardItemVertex = dashboardItemVertexBuilder.save(authorizations);
+
+        if (dashboardId != null) {
+            Vertex dashboardVertex = getGraph().getVertex(dashboardId, authorizations);
+            checkNotNull(dashboardVertex, "Could not find dashboard vertex with id: " + dashboardId);
+
+            String edgeId = dashboardVertex.getId() + "_hasDashboardItem_" + dashboardItemVertex.getId();
+            getGraph().addEdge(edgeId, dashboardVertex, dashboardItemVertex, WorkspaceProperties.DASHBOARD_TO_DASHBOARD_ITEM_RELATIONSHIP_IRI, visibility, authorizations);
+        }
+
+        getGraph().flush();
+
+        return dashboardItemVertex.getId();
+    }
+
+    private Dashboard dashboardVertexToDashboard(String workspaceId, Vertex dashboardVertex, Authorizations authorizations) {
+        String title = WorkspaceProperties.TITLE.getPropertyValue(dashboardVertex);
+        Iterable<Vertex> dashboardItemVertices = dashboardVertex.getVertices(Direction.OUT, WorkspaceProperties.DASHBOARD_TO_DASHBOARD_ITEM_RELATIONSHIP_IRI, authorizations);
+        List<DashboardItem> items = toList(Iterables.transform(dashboardItemVertices, new Function<Vertex, DashboardItem>() {
+            @Override
+            public DashboardItem apply(Vertex dashboardItemVertex) {
+                return dashboardItemVertexToDashboardItem(dashboardItemVertex);
+            }
+        }));
+        return new Dashboard(dashboardVertex.getId(), workspaceId, title, items);
+    }
+
+    @Override
+    public String addOrUpdateDashboard(String workspaceId, String dashboardId, String title, User user) {
+        LOGGER.debug("addOrUpdateDashboard(workspaceId: %s, dashboardId: %s, userId: %s)", workspaceId, dashboardId, user.getUserId());
+        if (!hasWritePermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspaceId, user, workspaceId);
+        }
+        Vertex workspaceVertex = getVertex(workspaceId, user);
+        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
+        Visibility visibility = VISIBILITY.getVisibility();
+        VertexBuilder dashboardVertexBuilder = getGraph().prepareVertex(dashboardId, visibility);
+        WorkspaceProperties.TITLE.setProperty(dashboardVertexBuilder, title == null ? "" : title, visibility);
+        Vertex dashboardVertex = dashboardVertexBuilder.save(authorizations);
+
+        String edgeId = workspaceVertex.getId() + "_hasDashboard_" + dashboardVertex.getId();
+        getGraph().addEdge(edgeId, workspaceVertex, dashboardVertex, WorkspaceProperties.WORKSPACE_TO_DASHBOARD_RELATIONSHIP_IRI, visibility, authorizations);
+
+        getGraph().flush();
+
+        return dashboardVertex.getId();
+    }
+
     private void createEdge(Vertex workspaceVertex, Vertex otherVertex, GraphPosition graphPosition, String graphLayoutJson, Boolean visible, Authorizations authorizations) {
         String workspaceVertexId = workspaceVertex.getId();
         String entityVertexId = otherVertex.getId();

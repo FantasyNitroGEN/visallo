@@ -104,6 +104,16 @@
     
 
 
+    <!-- http://visallo.org/workspace#toEntity/graphLayoutJson -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#toEntity/graphLayoutJson">
+        <visallo:userVisible>false</visallo:userVisible>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://visallo.org/workspace#toEntity/graphPositionX -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#toEntity/graphPositionX">
@@ -121,17 +131,7 @@
         <rdfs:range rdf:resource="&xsd;integer"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
-
-
-
-    <!-- http://visallo.org/workspace#toEntity/graphLayoutJson -->
-
-    <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#toEntity/graphLayoutJson">
-        <visallo:userVisible>false</visallo:userVisible>
-        <rdfs:range rdf:resource="&xsd;string"/>
-        <rdfs:domain rdf:resource="&owl;Thing"/>
-    </owl:DatatypeProperty>
-
+    
 
 
     <!-- http://visallo.org/workspace#toEntity/visible -->
