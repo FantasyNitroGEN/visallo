@@ -10,6 +10,12 @@
   .above-graph(2);
   .disable-text-selection;
 
+  .empty {
+    list-style: none;
+    font-style: italic;
+    color: #999;
+  }
+
   .notification {
     list-style: none;
     padding: 0.5em 1em;
@@ -129,6 +135,55 @@
         margin-top: -6px;
         .rotate(45deg);
       }
+    }
+  }
+}
+
+
+.dashboard-pane .grid-stack-item {
+  .notifications {
+    cursor: default;
+    z-index: 1;
+    position: static;
+    overflow: auto;
+    background: fadeout(white, 10%);
+
+    .notification {
+      background: none;
+      margin: 0.25em 0;
+      h1, h2 {
+        color: black;
+        text-shadow: none;
+      }
+      padding-left: 28px;
+
+      &.info {
+        h1 {
+          color: @notification-info;
+        }
+        &:before {
+          background: @notification-info;
+        }
+      }
+
+      &.warning {
+        h1 {
+          color: @notification-warning;
+        }
+        &:before {
+          background: @notification-warning;
+        }
+      }
+
+      &.critical {
+        h1 {
+          color: @notification-critical;
+        }
+        &:before {
+          border-bottom-color: @notification-critical;
+        }
+      }
+
     }
   }
 }

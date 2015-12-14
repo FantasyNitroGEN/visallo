@@ -1,5 +1,5 @@
 
-define(['jquery', 'jqueryui'], function() {
+define(['jquery', 'jquery-ui/draggable'], function() {
     'use strict';
 
     $.ui.plugin.add('draggable', 'multi', {
@@ -99,10 +99,6 @@ define(['jquery', 'jqueryui'], function() {
         },
 
         start: function(e, ui) {
-            if (arguments.length > 2) {
-                console.warn('Switch plugin to use [instance] argument instead of data');
-            }
-
             var instance = this.data('ui-draggable'),
                 helper = ui.helper,
                 anchor = $(this),

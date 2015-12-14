@@ -126,6 +126,7 @@ define([
                     self.on('upUp', self.move);
                     self.on('contextmenu', self.onContextMenu);
                     self.on(document, 'workspaceUpdated', self.onWorkspaceUpdated);
+                    self.trigger('renderFinished');
 
                     _.defer(function() {
                         self.$node.scrollTop(0);

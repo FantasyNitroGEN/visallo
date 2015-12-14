@@ -1,0 +1,35 @@
+<section>
+  <label>Search</label>
+  <select class="search">
+    {{#if loading}}
+      <option value="">Loading...</option>
+    {{else}}
+      {{#if searches }}
+        <option value="">Choose Saved Search</option>
+      {{else}}
+        <option value="">No saved searches available</option>
+      {{/if}}
+
+      {{#each searches}}
+        <option value="{{ id }}" {{#if selected}}selected{{/if}}>{{ name }}</option>
+      {{/each}}
+    {{/if}}
+  </select>
+</section>
+
+<section class="aggregation" style="display:none; margin-bottom: 1em;"></section>
+
+<section class="sort" style="display:none">
+  <label>Sort</label>
+  <div class="sort-fields"></div>
+</section>
+
+<section class="limit" style="display:none">
+  <label>Limit Results</label>
+  <select>
+    {{#each limits}}
+    <option value="{{ value }}" {{#if selected}}selected{{/if}}>{{ name }}</option>
+    {{/each}}
+  </select>
+</section>
+

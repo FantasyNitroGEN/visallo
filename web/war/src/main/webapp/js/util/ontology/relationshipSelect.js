@@ -3,12 +3,14 @@ define([
     'hbs!./relationships',
     'hbs!./relationship',
     'util/withDataRequest',
+    'util/requirejs/promise!util/service/ontologyPromise',
     './withSelect'
 ], function(
     defineComponent,
     template,
     relationshipTemplate,
     withDataRequest,
+    ontology,
     withSelect) {
     'use strict';
 
@@ -35,7 +37,7 @@ define([
         });
 
         this.onSetRelationshipId = function(event, data) {
-            var relationship = data && data.relationshipId && this.ontology.relationships.byTitle[data.relationshipId];
+            var relationship = data && data.relationshipId && ontology.relationships.byTitle[data.relationshipId];
             this.select('fieldSelector').val(relationship && relationship.displayName || '');
         };
 
@@ -51,9 +53,8 @@ define([
         this.setupTypeahead = function() {
             var self = this;
 
-            this.dataRequest('ontology', 'ontology')
+            Promise.resolve(ontology)
                 .then(function(ontology) {
-                    self.ontology = ontology;
                     if (self.attr.sourceConcept && self.attr.targetConcept) {
                         return self.dataRequest('ontology', 'relationshipsBetween',
                             self.attr.sourceConcept,
@@ -67,8 +68,7 @@ define([
                         self.limitedToSourceDest = limitedToSourceDest;
                     }
 
-                    var ontology = self.ontology,
-                        ontologyConcepts = ontology.concepts,
+                    var ontologyConcepts = ontology.concepts,
                         relationshipOntology = ontology.relationships,
                         transformed = self.transformRelationships(),
                         placeholderForRelationships = function() {
@@ -140,10 +140,10 @@ define([
 
         this.transformRelationships = function() {
             var self = this,
-                list = this.limitedToSourceDest || this.ontology.relationships.list;
+                list = this.limitedToSourceDest || ontology.relationships.list;
 
             if (this.attr.limitParentConceptId) {
-                list = _.chain(this.ontology.relationships.groupedBySourceDestConcepts)
+                list = _.chain(ontology.relationships.groupedBySourceDestConcepts)
                     .map(function(r, key) {
                         return ~key.indexOf(self.attr.limitParentConceptId) ? r : undefined;
                     })

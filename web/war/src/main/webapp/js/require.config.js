@@ -3,6 +3,11 @@
 var require = {
     baseUrl: 'jsc',
     waitSeconds: 0,
+    map: {
+        '*': {
+            'lodash': 'underscore'
+        }
+    },
     paths: {
         'arbor': '../libs/cytoscape/lib/arbor',
         'async': '../libs/requirejs-plugins/src/async',
@@ -16,17 +21,20 @@ var require = {
         'colorjs': '../libs/color-js/color',
         'cytoscape': '../libs/cytoscape/dist/cytoscape.min',
         'd3': '../libs/d3/d3.min',
+        'd3-tip': '../libs/d3-tip/index',
+        'd3-plugins': '../libs/d3-plugins',
         'duration-js': '../libs/duration.js/duration',
         'easing': '../libs/jquery.easing/js/jquery.easing',
         'ejs': '../libs/ejs/ejs',
         'flight': '../libs/flight',
         'goog': '../libs/requirejs-plugins/src/goog',
         'gremlins': '../libs/gremlins.js/gremlins.min',
+        'gridstack': '../libs/gridstack/dist/gridstack.min',
         'hbs': '../libs/require-handlebars-plugin/hbs',
         'handlebars': '../libs/require-handlebars-plugin/hbs/handlebars',
         'jstz': '../libs/jstz-detect/jstz.min',
         'jquery': '../libs/jquery/jquery.min',
-        'jqueryui': '../libs/jquery-ui/ui/minified/jquery-ui.min',
+        'jquery-ui': '../libs/jquery-ui/ui',
         'jquery-scrollstop': '../libs/jquery-scrollstop/jquery.scrollstop',
         'jscache': '../libs/jscache/cache',
         'less': 'util/requirejs/less',
@@ -53,7 +61,7 @@ var require = {
     shim: {
         'arbor': { deps: ['jquery'] },
         'atmosphere': { init: function() { return $.atmosphere; }, deps: ['jquery'] },
-        'bootstrap': { exports: 'window', deps: ['jquery', 'jqueryui'] },
+        'bootstrap': { exports: 'window', deps: ['jquery'] },
         'bootstrap-datepicker': { exports: 'window', deps: ['bootstrap'] },
         'bootstrap-timepicker': { exports: 'window', deps: ['bootstrap'] },
         'bluebird': { exports: 'Promise' },
@@ -61,11 +69,11 @@ var require = {
         'colorjs': { init: function() { return this.net.brehaut.Color; } },
         'cytoscape': { exports: 'cytoscape', deps: ['arbor', 'easing'] },
         'd3': { exports: 'd3' },
+        'd3-plugins/geo/tile/tile': { exports: 'd3', deps: ['d3'] },
         'duration-js': { exports: 'Duration' },
-        'easing': { init: function() { return $.easing; }, deps: ['jquery', 'jqueryui'] },
+        'easing': { init: function() { return $.easing; }, deps: ['jquery'] },
         'ejs': { exports: 'ejs' },
         'jquery': { exports: 'jQuery' },
-        'jqueryui': { init: function() { return $.ui; }, deps: ['jquery'] },
         'jstz': { exports: 'jstz' },
         'openlayers': { exports: 'OpenLayers' },
         'pathfinding': { exports: 'PF' },
@@ -79,7 +87,6 @@ var require = {
         'videojs': { exports: 'videojs' }
     }
 };
-
 
 if (typeof window !== 'undefined') {
     if ('define' in window) {

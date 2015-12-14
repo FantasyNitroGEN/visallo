@@ -37,7 +37,7 @@ define([], function() {
                     }
                 });
 
-                require(['jqueryui'], function() {
+                require(['jquery-ui/droppable'], function() {
                     droppable.droppable({
                         tolerance: 'pointer',
                         accept: function(item) {
@@ -78,7 +78,8 @@ define([], function() {
                                 if (graphVisible) {
                                     ui.helper.toggleClass('draggable-invisible', enabled);
                                 } else if (dashboardVisible) {
-                                    $('.dialog-popover').hide();
+                                    $(event.target).closest('.dialog-popover').data('preventTeardown', true);
+
                                     var count = 0;
                                     self.on(document, 'didToggleDisplay', function didToggle(event, data) {
                                         count++;

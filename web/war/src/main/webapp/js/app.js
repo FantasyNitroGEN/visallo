@@ -230,7 +230,7 @@ define([
             this.triggerPaneResized();
             this.dataRequest('config', 'properties')
                 .done(function(properties) {
-                    var name = graphPane.data(DATA_MENUBAR_NAME),
+                    var name = dashboardPane.data(DATA_MENUBAR_NAME),
                         defaultKey = 'menubar.default.selected';
 
                     if (properties[defaultKey]) {
@@ -271,7 +271,10 @@ define([
             this.on(document, 'workspaceLoaded', function handler() {
                 self.off(document, 'workspaceLoaded', handler);
                 require(['notifications/notifications'], function(Notifications) {
-                    Notifications.attachTo(self.$node);
+                    Notifications.attachTo(self.$node, {
+                        emptyMessage: false,
+                        showInformational: false
+                    });
                 });
             });
             this.trigger('loadCurrentWorkspace');
@@ -486,6 +489,9 @@ define([
                 },
                 showLoginComponent = function() {
                     self.trigger('didLogout');
+
+                    $('.dialog-popover').remove();
+
                     require(['login'], function(Login) {
                         $(document.body)
                             .removeClass('animatelogin animateloginstart')
