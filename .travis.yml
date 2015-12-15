@@ -3,5 +3,4 @@ jdk:
   - oraclejdk8
 install:
   - mvn -f root/pom.xml install
-  - mvn -q install -DskipTests=true -P-build-webapp
-script: mvn test -Ptest-exclude-native,-build-webapp -DlogQuiet
+script: mvn -B test -Ptest-exclude-native,-build-webapp,-build-user-guide -DlogQuiet
