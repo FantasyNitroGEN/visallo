@@ -55,11 +55,8 @@ public class FileConfigurationLoader extends ConfigurationLoader {
     public static List<File> getVisalloDirectoriesFromLeastPriority(String subDirectory) {
         List<File> results = new ArrayList<>();
 
-        if (ProcessUtil.isWindows()) {
-            addVisalloSubDirectory(results, DEFAULT_WINDOWS_LOCATION, subDirectory);
-        } else {
-            addVisalloSubDirectory(results, DEFAULT_UNIX_LOCATION, subDirectory);
-        }
+        String defaultVisalloDir = getDefaultVisalloDir();
+        addVisalloSubDirectory(results, defaultVisalloDir, subDirectory);
 
         String appData = System.getProperty("appdata");
         if (appData != null && appData.length() > 0) {
@@ -72,8 +69,17 @@ public class FileConfigurationLoader extends ConfigurationLoader {
         }
 
         addVisalloSubDirectory(results, System.getenv(ENV_VISALLO_DIR), subDirectory);
+        addVisalloSubDirectory(results, System.getProperty(ENV_VISALLO_DIR, null), subDirectory);
 
         return ImmutableList.copyOf(results);
+    }
+
+    public static String getDefaultVisalloDir() {
+        if (ProcessUtil.isWindows()) {
+            return DEFAULT_WINDOWS_LOCATION;
+        } else {
+            return DEFAULT_UNIX_LOCATION;
+        }
     }
 
     private static void addVisalloSubDirectory(List<File> results, String location, String subDirectory) {
