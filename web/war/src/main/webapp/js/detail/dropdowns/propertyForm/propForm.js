@@ -254,7 +254,9 @@ define([
                 sandboxStatus = vertexProperty && vertexProperty.sandboxStatus,
                 isExistingProperty = typeof vertexProperty !== 'undefined',
                 previousValues = disablePreviousValuePrompt !== true && F.vertex.props(this.attr.data, propertyName),
-                previousValuesUniquedByKey = previousValues && _.unique(previousValues, _.property('key'));
+                previousValuesUniquedByKey = previousValues && _.unique(previousValues, _.property('key')),
+                previousValuesUniquedByKeyUpdateable = _.where(previousValuesUniquedByKey, {updateable: true});
+
 
             this.currentValue = this.attr.attemptToCoerceValue || previousValue;
             if (this.currentValue && _.isObject(this.currentValue) && ('latitude' in this.currentValue)) {
@@ -274,16 +276,16 @@ define([
             }
 
             if (data.fromPreviousValuePrompt !== true) {
-                if (data.property.updateable && previousValuesUniquedByKey && previousValuesUniquedByKey.length) {
-                    this.previousValues = previousValuesUniquedByKey;
+                if (previousValuesUniquedByKeyUpdateable && previousValuesUniquedByKeyUpdateable.length) {
+                    this.previousValues = previousValuesUniquedByKeyUpdateable;
                     this.previousValuesPropertyName = propertyName;
                     this.select('previousValuesSelector')
                         .show()
                         .find('.active').removeClass('active')
                         .addBack()
-                        .find('.edit-previous span').text(previousValuesUniquedByKey.length)
+                        .find('.edit-previous span').text(previousValuesUniquedByKeyUpdateable.length)
                         .addBack()
-                        .find('.edit-previous small').toggle(previousValuesUniquedByKey.length > 1);
+                        .find('.edit-previous small').toggle(previousValuesUniquedByKeyUpdateable.length > 1);
 
                     this.select('justificationSelector').hide();
                     this.select('visibilitySelector').hide();
