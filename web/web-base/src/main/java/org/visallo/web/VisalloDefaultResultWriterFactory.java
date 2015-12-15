@@ -7,6 +7,7 @@ import com.v5analytics.webster.resultWriters.ResultWriterBase;
 import com.v5analytics.webster.resultWriters.ResultWriterFactory;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.ACLProvider;
@@ -22,13 +23,21 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 
 public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
+    public static final String WEB_RESPONSE_HEADER_X_FRAME_OPTIONS = "web.response.header.X-Frame-Options";
+    public static final String WEB_RESPONSE_HEADER_X_FRAME_OPTIONS_DEFAULT = "DENY";
+    private final String responseHeaderXFrameOptions;
     private ACLProvider aclProvider;
     private UserRepository userRepository;
 
     @Inject
-    public VisalloDefaultResultWriterFactory(ACLProvider aclProvider, UserRepository userRepository) {
+    public VisalloDefaultResultWriterFactory(
+            ACLProvider aclProvider,
+            UserRepository userRepository,
+            Configuration configuration
+    ) {
         this.aclProvider = aclProvider;
         this.userRepository = userRepository;
+        this.responseHeaderXFrameOptions = configuration.get(WEB_RESPONSE_HEADER_X_FRAME_OPTIONS, WEB_RESPONSE_HEADER_X_FRAME_OPTIONS_DEFAULT);
     }
 
     @Override
@@ -56,6 +65,9 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
             protected void writeResult(HttpServletRequest request, HttpServletResponse response, Object result)
                     throws IOException {
                 if (result != null) {
+                    if (!response.containsHeader("X-Frame-Options")) {
+                        response.addHeader("X-Frame-Options", responseHeaderXFrameOptions);
+                    }
                     response.setCharacterEncoding("UTF-8");
                     if (resultIsClientApiObject) {
                         try {
