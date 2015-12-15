@@ -16,11 +16,12 @@
     <name>Visallo: Dev</name>
 
     <modules>
-        <module>jetty-server</module>
-        <module>graph-property-worker-local</module>
-        <module>tomcat-server</module>
-        <module>import-local</module>
         <module>cli</module>
+        <module>graph-property-worker-local</module>
+        <module>import-local</module>
+        <module>jetty-server</module>
+        <module>quick-start</module>
+        <module>tomcat-server</module>
     </modules>
 
 </project>

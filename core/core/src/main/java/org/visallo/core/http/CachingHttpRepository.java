@@ -15,7 +15,7 @@ import java.util.List;
 
 public class CachingHttpRepository extends HttpRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(CachingHttpRepository.class);
-    private static final String CONFIG_CACHE_DIR = "cachingHttp.cacheDir";
+    public static final String CONFIG_CACHE_DIR = "cachingHttp.cacheDir";
     private static final String INDEX_FILE_NAME = "index";
     private File cacheDir;
 
