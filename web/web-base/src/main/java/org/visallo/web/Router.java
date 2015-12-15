@@ -259,25 +259,34 @@ public class Router extends HttpServlet {
         } catch (ConnectionClosedException cce) {
             LOGGER.debug("Connection closed by client", cce);
         } catch (Exception e) {
-            if (e.getCause() instanceof VisalloResourceNotFoundException) {
-                handleNotFound(response, (VisalloResourceNotFoundException) e.getCause());
-                return;
-            }
-            if (e.getCause() instanceof BadRequestException) {
-                handleBadRequest(response, (BadRequestException) e.getCause());
-                return;
-            }
-            if (e.getCause() instanceof VisalloAccessDeniedException) {
-                handleAccessDenied(response, (VisalloAccessDeniedException) e.getCause());
-                return;
-            }
-            throw new ServletException(e);
+            handleException(response, e);
         } finally {
             if (trace != null) {
                 trace.close();
             }
             Trace.off();
             CurrentUser.clearUserFromLogMappedDiagnosticContexts();
+        }
+    }
+
+    private void handleException(HttpServletResponse response, Exception e) throws IOException, ServletException {
+        if (e.getCause() instanceof VisalloResourceNotFoundException) {
+            handleNotFound(response, (VisalloResourceNotFoundException) e.getCause());
+            return;
+        }
+        if (e.getCause() instanceof BadRequestException) {
+            handleBadRequest(response, (BadRequestException) e.getCause());
+            return;
+        }
+        if (e.getCause() instanceof VisalloAccessDeniedException) {
+            handleAccessDenied(response, (VisalloAccessDeniedException) e.getCause());
+            return;
+        }
+
+        if (app.isDevModeEnabled()) {
+            throw new ServletException(e);
+        } else {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 

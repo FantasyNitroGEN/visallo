@@ -81,7 +81,7 @@ public class WebApp extends App {
                 injector.getInstance(ACLProvider.class), injector.getInstance(UserRepository.class));
 
         Configuration config = injector.getInstance(Configuration.class);
-        this.devMode = "true".equals(config.get(Configuration.DEV_MODE, "false"));
+        this.devMode = config.getBoolean(Configuration.DEV_MODE, Configuration.DEV_MODE_DEFAULT);
 
         if (!devMode) {
             String pluginsJsRoute = "plugins.js";
