@@ -1,6 +1,5 @@
 package org.visallo.web;
 
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.atmosphere.cache.UUIDBroadcasterCache;
@@ -45,7 +44,6 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
     public static final String GZIP_FILTER_NAME = "gzip";
-    private UserRepository userRepository;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -108,11 +106,6 @@ public class ApplicationBootstrap implements ServletContextListener {
         } else {
             System.out.println(message);
         }
-    }
-
-    @Inject
-    public void setUserRepository(UserRepository userProvider) {
-        this.userRepository = userProvider;
     }
 
     private void setupInjector(ServletContext context, Configuration config) {
