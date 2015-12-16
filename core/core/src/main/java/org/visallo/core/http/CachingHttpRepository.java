@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.config.FileConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -21,7 +22,7 @@ public class CachingHttpRepository extends HttpRepository {
     @Inject
     public CachingHttpRepository(Configuration configuration) {
         super(configuration);
-        String cacheDirString = configuration.get(CONFIG_CACHE_DIR, "/opt/visallo/httpCache");
+        String cacheDirString = configuration.get(CONFIG_CACHE_DIR, getDefaultHttpCacheDir());
         cacheDir = new File(cacheDirString);
         if (!cacheDir.exists()) {
             if (!cacheDir.mkdirs()) {
@@ -29,6 +30,11 @@ public class CachingHttpRepository extends HttpRepository {
             }
         }
         LOGGER.info("Using cache dir: %s", cacheDir.getAbsolutePath());
+    }
+
+    private String getDefaultHttpCacheDir() {
+        File visalloDir = new File(FileConfigurationLoader.getDefaultVisalloDir());
+        return new File(visalloDir, "httpCache").getAbsolutePath();
     }
 
     @Override
