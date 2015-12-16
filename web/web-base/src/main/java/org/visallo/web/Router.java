@@ -286,6 +286,7 @@ public class Router extends HttpServlet {
         if (app.isDevModeEnabled()) {
             throw new ServletException(e);
         } else {
+            LOGGER.warn("", e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
