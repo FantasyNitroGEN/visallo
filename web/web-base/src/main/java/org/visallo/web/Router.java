@@ -259,7 +259,7 @@ public class Router extends HttpServlet {
         } catch (ConnectionClosedException cce) {
             LOGGER.debug("Connection closed by client", cce);
         } catch (Exception e) {
-            handleException(response, e);
+            handleException(request, response, e);
         } finally {
             if (trace != null) {
                 trace.close();
@@ -269,7 +269,8 @@ public class Router extends HttpServlet {
         }
     }
 
-    private void handleException(HttpServletResponse response, Exception e) throws IOException, ServletException {
+    private void handleException(HttpServletRequest request, HttpServletResponse response, Exception e)
+            throws IOException, ServletException {
         if (e.getCause() instanceof VisalloResourceNotFoundException) {
             handleNotFound(response, (VisalloResourceNotFoundException) e.getCause());
             return;
@@ -283,10 +284,11 @@ public class Router extends HttpServlet {
             return;
         }
 
+        String message = String.format("Unhandled exception for %s %s", request.getMethod(), request.getRequestURI());
         if (app.isDevModeEnabled()) {
-            throw new ServletException(e);
+            throw new ServletException(message, e);
         } else {
-            LOGGER.warn("", e);
+            LOGGER.warn(message, e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
