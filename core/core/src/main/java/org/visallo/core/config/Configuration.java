@@ -1,7 +1,6 @@
 package org.visallo.core.config;
 
 import org.apache.commons.beanutils.ConvertUtilsBean;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.json.JSONObject;
@@ -15,8 +14,6 @@ import org.visallo.core.util.ClassUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -79,6 +76,7 @@ public class Configuration {
     public static final int STATUS_REFRESH_INTERVAL_SECONDS_DEFAULT = 10;
     public static final String STATUS_ENABLED = "status.enabled";
     public static final boolean STATUS_ENABLED_DEFAULT = true;
+    public static final String SYSTEM_PROPERTY_PREFIX = "visallo.";
 
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
@@ -88,12 +86,28 @@ public class Configuration {
     public Configuration(final ConfigurationLoader configurationLoader, final Map<?, ?> config) {
         this.configurationLoader = configurationLoader;
         this.visalloResourceBundleManager = new VisalloResourceBundleManager();
+        addConfigMapEntries(config);
+        addSystemProperties();
+        resolvePropertyReferences();
+    }
+
+    private void addConfigMapEntries(Map<?, ?> config) {
         for (Map.Entry entry : config.entrySet()) {
             if (entry.getValue() != null) {
                 set(entry.getKey().toString(), entry.getValue());
             }
         }
-        resolvePropertyReferences();
+    }
+
+    private void addSystemProperties() {
+        for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+            String key = entry.getKey().toString();
+            if (key.startsWith(SYSTEM_PROPERTY_PREFIX)) {
+                key = key.substring(SYSTEM_PROPERTY_PREFIX.length());
+                Object value = entry.getValue();
+                set(key, value);
+            }
+        }
     }
 
     private void resolvePropertyReferences() {
