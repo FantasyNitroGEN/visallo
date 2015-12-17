@@ -16,6 +16,7 @@ import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
@@ -129,6 +130,9 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(LongRunningProcessRepository.class)
                 .toProvider(VisalloBootstrap.<LongRunningProcessRepository>getConfigurableProvider(configuration, Configuration.LONG_RUNNING_PROCESS_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(DirectoryRepository.class)
+                .toProvider(VisalloBootstrap.<DirectoryRepository>getConfigurableProvider(configuration, Configuration.DIRECTORY_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(VisibilityTranslator.class)
                 .toProvider(VisalloBootstrap.<VisibilityTranslator>getConfigurableProvider(configuration, Configuration.VISIBILITY_TRANSLATOR))

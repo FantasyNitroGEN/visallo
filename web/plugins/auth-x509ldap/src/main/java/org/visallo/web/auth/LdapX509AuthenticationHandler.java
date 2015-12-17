@@ -2,18 +2,18 @@ package org.visallo.web.auth;
 
 import com.google.inject.Inject;
 import com.unboundid.ldap.sdk.SearchResultEntry;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.ldap.LdapSearchService;
+import org.visallo.model.directory.LdapSearchService;
 import org.visallo.web.X509AuthenticationHandler;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.vertexium.Graph;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
@@ -31,7 +31,12 @@ public class LdapX509AuthenticationHandler extends X509AuthenticationHandler {
     private LdapX509AuthenticationConfiguration ldapX509AuthenticationConfiguration;
 
     @Inject
-    public LdapX509AuthenticationHandler(final UserRepository userRepository, final Graph graph, final LdapSearchService ldapSearchService, final Configuration configuration) {
+    public LdapX509AuthenticationHandler(
+            final UserRepository userRepository,
+            final Graph graph,
+            final LdapSearchService ldapSearchService,
+            final Configuration configuration
+    ) {
         super(userRepository, graph);
         this.ldapSearchService = ldapSearchService;
 
@@ -134,6 +139,9 @@ public class LdapX509AuthenticationHandler extends X509AuthenticationHandler {
 
     private X509Certificate getHeaderClientCert(HttpServletRequest request) throws NoSuchAlgorithmException, CertificateException {
         String pemCertText = request.getHeader(ldapX509AuthenticationConfiguration.getClientCertHeader());
+        if (pemCertText == null) {
+            throw new VisalloException("Could not find certificate header: " + ldapX509AuthenticationConfiguration.getClientCertHeader());
+        }
         pemCertText = pemCertText.replaceAll("-----(BEGIN|END) CERTIFICATE-----", "");
         pemCertText = pemCertText.replaceAll("\\n", "");
         byte[] certBytes = Base64.decodeBase64(pemCertText);

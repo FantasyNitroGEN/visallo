@@ -1,4 +1,4 @@
-package org.visallo.ldap;
+package org.visallo.model.directory;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -24,12 +24,12 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 
 @Singleton
-public class LdapSearchServiceImpl implements LdapSearchService {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LdapSearchServiceImpl.class);
+public class LdapSearchService {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LdapSearchService.class);
     private LDAPConnectionPool pool;
     private LdapSearchConfiguration ldapSearchConfiguration;
 
-    public LdapSearchServiceImpl(LdapServerConfiguration serverConfig, LdapSearchConfiguration searchConfig) throws GeneralSecurityException, LDAPException {
+    public LdapSearchService(LdapServerConfiguration serverConfig, LdapSearchConfiguration searchConfig) throws GeneralSecurityException, LDAPException {
         TrustStoreTrustManager tsManager = new TrustStoreTrustManager(
                 serverConfig.getTrustStore(),
                 serverConfig.getTrustStorePassword().toCharArray(),
@@ -102,19 +102,16 @@ public class LdapSearchServiceImpl implements LdapSearchService {
         ldapSearchConfiguration = searchConfig;
     }
 
-    @Override
     public SearchResult searchGroups(Map<String, String> attributes) {
         return search(attributes, ldapSearchConfiguration.getGroupSearchFilter(),
                 ldapSearchConfiguration.getGroupSearchBase(), ldapSearchConfiguration.getGroupSearchScope());
     }
 
-    @Override
     public SearchResult searchPeople(Map<String, String> attributes) {
         return search(attributes, ldapSearchConfiguration.getUserSearchFilter(),
                 ldapSearchConfiguration.getUserSearchBase(), ldapSearchConfiguration.getUserSearchScope());
     }
 
-    @Override
     public SearchResultEntry searchPeople(X509Certificate certificate) {
         Filter filter = buildPeopleSearchFilter(certificate);
 
@@ -152,7 +149,6 @@ public class LdapSearchServiceImpl implements LdapSearchService {
         }
     }
 
-    @Override
     public Set<String> searchGroups(SearchResultEntry personEntry) {
         Map<String, String> subs = new HashMap<>();
         subs.put("dn", personEntry.getDN());
@@ -186,7 +182,6 @@ public class LdapSearchServiceImpl implements LdapSearchService {
         }
     }
 
-    @Override
     public LdapSearchConfiguration getConfiguration() {
         try {
             LdapSearchConfiguration configCopy = (LdapSearchConfiguration) BeanUtils.cloneBean(ldapSearchConfiguration);

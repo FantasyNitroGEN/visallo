@@ -12,15 +12,11 @@
     <artifactId>visallo-web-auth-x509ldap</artifactId>
     <name>Visallo: Web: Plugin: x509/LDAP Authentication</name>
 
-    <properties>
-        <unboundid.ldapsdk.version>2.3.6</unboundid.ldapsdk.version>
-    </properties>
-
     <dependencies>
         <dependency>
-            <groupId>com.unboundid</groupId>
-            <artifactId>unboundid-ldapsdk</artifactId>
-            <version>${unboundid.ldapsdk.version}</version>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-directory-ldap</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

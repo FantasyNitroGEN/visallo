@@ -1,17 +1,13 @@
-package org.visallo.web.auth;
+package org.visallo.model.directory;
 
-import org.visallo.core.bootstrap.BootstrapBindingProvider;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
-import org.visallo.ldap.LdapSearchConfiguration;
-import org.visallo.ldap.LdapSearchService;
-import org.visallo.ldap.LdapSearchServiceImpl;
-import org.visallo.ldap.LdapServerConfiguration;
 import com.google.inject.Binder;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
+import org.visallo.core.bootstrap.BootstrapBindingProvider;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
 
-public class LdapX509AuthenticationProviderBootstrapBindingProvider implements BootstrapBindingProvider {
+public class LdapProviderBootstrapBindingProvider  implements BootstrapBindingProvider {
     @Override
     public void addBindings(Binder binder, final Configuration configuration) {
         binder.bind(LdapSearchService.class)
@@ -25,7 +21,7 @@ public class LdapX509AuthenticationProviderBootstrapBindingProvider implements B
                         configuration.setConfigurables(ldapSearchConfiguration, "ldap");
 
                         try {
-                            return new LdapSearchServiceImpl(ldapServerConfiguration, ldapSearchConfiguration);
+                            return new LdapSearchService(ldapServerConfiguration, ldapSearchConfiguration);
                         } catch (Exception e) {
                             throw new VisalloException("failed to configure ldap search service", e);
                         }
@@ -34,3 +30,4 @@ public class LdapX509AuthenticationProviderBootstrapBindingProvider implements B
                 .in(Scopes.SINGLETON);
     }
 }
+
