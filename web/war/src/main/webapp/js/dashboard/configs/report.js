@@ -68,7 +68,7 @@ define([
             });
         });
 
-        this.onChange = function() {
+        this.onChange = function(event) {
             this.attr.item.configuration.reportRenderer = $(event.target).val();
 
             this.trigger('configurationChanged', {
