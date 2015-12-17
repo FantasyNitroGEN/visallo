@@ -10,13 +10,13 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.mortbay.util.ajax.JSON;
 import org.vertexium.Authorizations;
 import org.vertexium.TextIndexHint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.user.User;
+import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.StringArrayUtil;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.PropertyType;
@@ -116,7 +116,7 @@ public class SaveOntologyProperty implements ParameterizedHandler {
         property.setProperty(OntologyProperties.DELETEABLE.getPropertyName(), deleteable, authorizations);
         property.setProperty(OntologyProperties.UPDATEABLE.getPropertyName(), updateable, authorizations);
         if (possibleValues != null && possibleValues.trim().length() > 0) {
-            possibleValues = JSON.toString(JSON.parse(possibleValues));
+            possibleValues = JSONUtil.parse(possibleValues).toString();
             property.setProperty(OntologyProperties.POSSIBLE_VALUES.getPropertyName(), possibleValues, authorizations);
         }
 
