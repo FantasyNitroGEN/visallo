@@ -1,5 +1,6 @@
 package org.visallo.core.config;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
@@ -15,11 +16,15 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Searches for visallo configuration directories in this order:
- * - ${ENV_VISALLO_DIR}
+ * By default searches for visallo configuration directories in this order:
+ * - Location specified by system property VISALLO_DIR
+ * - Location specified by environment variable VISALLO_DIR
  * - ${user.home}/.visallo
  * - ${appdata}/Visallo
- * - DEFAULT_UNIX_LOCATION or DEFAULT_WINDOWS_LOCATION
+ * - /opt/visallo/ or c:/opt/visallo/
+ * <p/>
+ * You can override the default search order using a system property or environment property VISALLO_CONFIGURATION_LOADER_SEARCH_ORDER.
+ * The default is: systemProperty,env,userHome,appdata,defaultDir
  */
 public class FileConfigurationLoader extends ConfigurationLoader {
     /**
@@ -28,6 +33,15 @@ public class FileConfigurationLoader extends ConfigurationLoader {
     public static final String ENV_VISALLO_DIR = "VISALLO_DIR";
     public static final String DEFAULT_UNIX_LOCATION = "/opt/visallo/";
     public static final String DEFAULT_WINDOWS_LOCATION = "c:/opt/visallo/";
+
+    public static final String ENV_SEARCH_LOCATIONS = "VISALLO_CONFIGURATION_LOADER_SEARCH_LOCATIONS";
+    public static final String ENV_SEARCH_LOCATIONS_DEFAULT = Joiner.on(",").join(new String[]{
+            SearchLocation.SystemProperty.getValue(),
+            SearchLocation.EnvironmentVariable.getValue(),
+            SearchLocation.UserHome.getValue(),
+            SearchLocation.AppData.getValue(),
+            SearchLocation.VisalloDefaultDirectory.getValue()
+    });
 
     public FileConfigurationLoader(Map initParameters) {
         super(initParameters);
@@ -49,29 +63,65 @@ public class FileConfigurationLoader extends ConfigurationLoader {
     }
 
     public static List<File> getVisalloDirectoriesFromMostPriority(String subDirectory) {
-        return Lists.reverse(getVisalloDirectoriesFromLeastPriority(subDirectory));
+        List<File> results = new ArrayList<>();
+
+        List<SearchLocation> searchLocations = getSearchLocations();
+        for (SearchLocation searchLocation : searchLocations) {
+            switch (searchLocation) {
+                case AppData:
+                    String appData = System.getProperty("appdata");
+                    if (appData != null && appData.length() > 0) {
+                        addVisalloSubDirectory(results, new File(new File(appData), "Visallo").getAbsolutePath(), subDirectory);
+                    }
+                    break;
+
+                case EnvironmentVariable:
+                    addVisalloSubDirectory(results, System.getenv(ENV_VISALLO_DIR), subDirectory);
+                    break;
+
+                case SystemProperty:
+                    addVisalloSubDirectory(results, System.getProperty(ENV_VISALLO_DIR, null), subDirectory);
+                    break;
+
+                case UserHome:
+                    String userHome = System.getProperty("user.home");
+                    if (userHome != null && userHome.length() > 0) {
+                        addVisalloSubDirectory(results, new File(new File(userHome), ".visallo").getAbsolutePath(), subDirectory);
+                    }
+                    break;
+
+                case VisalloDefaultDirectory:
+                    String defaultVisalloDir = getDefaultVisalloDir();
+                    addVisalloSubDirectory(results, defaultVisalloDir, subDirectory);
+                    break;
+
+                default:
+                    throw new VisalloException("Unhandled search type: " + searchLocation);
+            }
+        }
+
+        return ImmutableList.copyOf(results);
     }
 
     public static List<File> getVisalloDirectoriesFromLeastPriority(String subDirectory) {
-        List<File> results = new ArrayList<>();
+        return Lists.reverse(getVisalloDirectoriesFromMostPriority(subDirectory));
+    }
 
-        String defaultVisalloDir = getDefaultVisalloDir();
-        addVisalloSubDirectory(results, defaultVisalloDir, subDirectory);
-
-        String appData = System.getProperty("appdata");
-        if (appData != null && appData.length() > 0) {
-            addVisalloSubDirectory(results, new File(new File(appData), "Visallo").getAbsolutePath(), subDirectory);
+    private static List<SearchLocation> getSearchLocations() {
+        String locationsString = System.getProperty(ENV_SEARCH_LOCATIONS);
+        if (locationsString == null) {
+            locationsString = System.getenv(ENV_SEARCH_LOCATIONS);
+            if (locationsString == null) {
+                locationsString = ENV_SEARCH_LOCATIONS_DEFAULT;
+            }
         }
 
-        String userHome = System.getProperty("user.home");
-        if (userHome != null && userHome.length() > 0) {
-            addVisalloSubDirectory(results, new File(new File(userHome), ".visallo").getAbsolutePath(), subDirectory);
+        String[] locationItems = locationsString.split(",");
+        List<SearchLocation> searchLocations = new ArrayList<>();
+        for (String locationItem : locationItems) {
+            searchLocations.add(SearchLocation.parse(locationItem));
         }
-
-        addVisalloSubDirectory(results, System.getenv(ENV_VISALLO_DIR), subDirectory);
-        addVisalloSubDirectory(results, System.getProperty(ENV_VISALLO_DIR, null), subDirectory);
-
-        return ImmutableList.copyOf(results);
+        return searchLocations;
     }
 
     public static String getDefaultVisalloDir() {
@@ -178,5 +228,37 @@ public class FileConfigurationLoader extends ConfigurationLoader {
             }
         }
         throw new VisalloResourceNotFoundException("Could not find file: " + fileName);
+    }
+
+    public enum SearchLocation {
+        VisalloDefaultDirectory("defaultDir"),
+        AppData("appdata"),
+        UserHome("userHome"),
+        EnvironmentVariable("env"),
+        SystemProperty("systemProperty");
+
+        private final String value;
+
+        SearchLocation(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return getValue();
+        }
+
+        public static SearchLocation parse(String searchType) {
+            for (SearchLocation type : SearchLocation.values()) {
+                if (type.name().equalsIgnoreCase(searchType) || type.getValue().equalsIgnoreCase(searchType)) {
+                    return type;
+                }
+            }
+            throw new VisalloException("Could not parse search type: " + searchType);
+        }
     }
 }
