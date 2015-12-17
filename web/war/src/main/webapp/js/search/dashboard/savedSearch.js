@@ -12,7 +12,7 @@ define([
             var self = this;
 
             if (this.attr.item.configuration.searchId) {
-                this.$node.html('Loading...');
+                this.$node.text(i18n('dashboard.savedsearches.loading'));
                 this.dataRequest('search', 'run',
                     this.attr.item.configuration.searchId,
                     this.attr.item.configuration.searchParameters

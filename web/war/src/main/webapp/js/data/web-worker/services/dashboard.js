@@ -29,13 +29,13 @@ define(['../util/ajax'], function(ajax) {
                 })
         },
 
-        dashboarditemdelete: function(itemId) {
+        dashboardItemDelete: function(itemId) {
             return ajax('DELETE', '/dashboard/item', {
                 dashboardItemId: itemId
             });
         },
 
-        dashboardnew: function(options) {
+        dashboardNew: function(options) {
             var params = {};
             if (options && options.title) {
                 params.title = options.title;
@@ -52,11 +52,11 @@ define(['../util/ajax'], function(ajax) {
             return ajax('POST', '/dashboard', params);
         },
 
-        dashboardupdate: function(params) {
+        dashboardUpdate: function(params) {
             return ajax('POST', '/dashboard', params);
         },
 
-        dashboarditemupdate: function(item) {
+        dashboardItemUpdate: function(item) {
             return ajax('POST', '/dashboard/item', {
                 dashboardItemId: item.id,
                 extensionId: item.extensionId,
@@ -65,7 +65,7 @@ define(['../util/ajax'], function(ajax) {
             });
         },
 
-        dashboarditemnew: function(dashboardId, item) {
+        dashboardItemNew: function(dashboardId, item) {
             if (!dashboardId) throw new Error('dashboardId required if new item');
 
             var params = {

@@ -26,6 +26,24 @@ define([
     require) {
     'use strict';
 
+    registry.documentExtensionPoint('org.visallo.web.dashboard.item',
+        'Add items that can be placed on dashboards',
+        function(e) {
+            return (_.isString(e.componentPath) || _.isObject(e.report));
+        }
+    );
+
+    registry.documentExtensionPoint('org.visallo.web.dashboard.reportrenderer',
+        'Define custom report renderers for dashboard',
+        function(e) {
+            return _.isFunction(e.supportsResponse) &&
+                _.isString(e.identifier) &&
+                e.identifier &&
+                _.isString(e.label) &&
+                e.componentPath;
+        }
+    );
+
     var reportRenderers,
         extensions,
         extensionsById,
@@ -143,8 +161,8 @@ define([
                         .addClass('error')
                         .append(
                             $('<h1>')
-                                .text('Error')
-                                .append('<div>There was an error displaying this card</div>')
+                                .text(i18n('dashboard.error'))
+                                .append($('<div>').text(i18n('dashboard.error.description')))
                         )
                 );
         };
@@ -185,7 +203,7 @@ define([
             }
             if (changed) {
                 this.configuringItem = cloned;
-                this.request('dashboarditemupdate', data.item);
+                this.request('dashboardItemUpdate', data.item);
             }
         };
 
@@ -234,7 +252,7 @@ define([
 
                 if (newTitle.length) {
                     this.dashboard.title = newTitle;
-                    this.request('dashboardupdate', {
+                    this.request('dashboardUpdate', {
                         dashboardId: this.dashboard.id,
                         title: newTitle
                     })
@@ -275,7 +293,9 @@ define([
                     finished = Promise.resolve();
                     $header.attr('readonly', true);
                 } else {
-                    $edit.text('Done Editing').append('<small> (ESC)</small>');
+                    $edit
+                        .text(i18n('dashboard.title.editing.done'))
+                        .append($('<small>').text(' ' + i18n('dashboard.title.editing.done.key')));
                     this.$node.addClass('editing');
                     this.gridstack.enable();
                     finished = this.createDashboardItemToGridStack();
@@ -303,7 +323,7 @@ define([
                 itemId = gridItem.data('item-id');
 
             if (itemId) {
-                this.request('dashboarditemdelete', itemId)
+                this.request('dashboardItemDelete', itemId)
                     .done(function() {
                         self.gridstack.batch_update();
                         self.gridstack.remove_widget(gridItem);
@@ -348,7 +368,7 @@ define([
                     return self.createDashboardItemComponent(node, item)
                 })
                 .then(function() {
-                    return self.request('dashboarditemnew', self.dashboard.id, item)
+                    return self.request('dashboardItemNew', self.dashboard.id, item)
                 })
                 .done(function(result) {
                     item.id = result.dashboardItemId;
@@ -396,8 +416,7 @@ define([
                         }
                         item.configuration.metrics = _.pick(gridItem, 'x', 'y', 'width', 'height');
 
-                        // FIXME: combine to one request for all items
-                        return self.request('dashboarditemupdate', item);
+                        return self.request('dashboardItemUpdate', item);
                     }
                 },
                 { concurrency: 1 }
@@ -603,33 +622,17 @@ define([
                     if (dashboards.length) {
                         return dashboards[0];
                     }
-                    var items = [
-                        {
-                            extensionId: 'org-visallo-web-dashboard-welcome',
-                            configuration: { metrics: { x: 0, y: 0, width: 6, height: 5 } }
-                        },
-                        {
-                            extensionId: 'org-visallo-web-dashboard-concept-counts',
-                            configuration: { metrics: { x: 6, y: 0, width: 3, height: 2 }, reportRenderer: 'org-visallo-pie' }
-                        },
-                        {
-                            extensionId: 'org-visallo-web-notifications',
-                            configuration: { metrics: { x: 9, y: 0, width: 3, height: 2 } }
-                        },
-                        {
-                            extensionId: 'org-visallo-web-dashboard-edge-counts',
-                            configuration: { metrics: { x: 6, y: 2, width: 6, height: 3 }, reportRenderer: 'org-visallo-bar-vertical' }
-                        }
-                    ];
-
-                    return self.request('dashboardnew', { items: items })
-                        .then(function(result) {
-                            if (result.itemIds && result.itemIds.length === items.length) {
-                                items.forEach(function(item) {
-                                    item.id = result.itemIds.shift();
+                    return Promise.require('dashboard/defaultLayout')
+                        .then(function(items) {
+                            return self.request('dashboardNew', { items: items })
+                                .then(function(result) {
+                                    if (result.itemIds && result.itemIds.length === items.length) {
+                                        items.forEach(function(item) {
+                                            item.id = result.itemIds.shift();
+                                        })
+                                    }
+                                    return { id: result.id, items: items, title: '' };
                                 })
-                            }
-                            return { id: result.id, items: items, title: '' };
                         })
                 })
                 .then(function(dashboard) {

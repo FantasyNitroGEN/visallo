@@ -280,14 +280,6 @@ define([
                 .call(function() {
                     this.enter().append('li').style({ 'flex-wrap': 'wrap', display: 'flex'})
                         .call(function() {
-                            // FIXME: when multiple are supported
-                            //this.append('button').attr('class', 'add-icon')
-                                //.on('click', function() {
-                                    //var aggregation = self.aggregations[$(d3.event.target).closest('li').index()];
-                                    //_.defer(function() {
-                                        //self.add({ parentAggregation: aggregation });
-                                    //})
-                                //})
                             this.append('span')
                                 .style({flex: 1, cursor: 'pointer'})
                                 .on('click', self.editAggregation.bind(self));

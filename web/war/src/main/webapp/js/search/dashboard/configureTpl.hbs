@@ -2,12 +2,12 @@
   <label>Search</label>
   <select class="search">
     {{#if loading}}
-      <option value="">Loading...</option>
+      <option value="">{{ i18n 'dashboard.savedsearches.loading' }}</option>
     {{else}}
       {{#if searches }}
-        <option value="">Choose Saved Search</option>
+        <option value="">{{ i18n 'dashboard.savedsearches.choose' }}</option>
       {{else}}
-        <option value="">No saved searches available</option>
+        <option value="">{{ i18n 'dashboard.savedsearches.none' }}</option>
       {{/if}}
 
       {{#each searches}}
@@ -20,12 +20,12 @@
 <section class="aggregation" style="display:none; margin-bottom: 1em;"></section>
 
 <section class="sort" style="display:none">
-  <label>Sort</label>
+  <label>{{ i18n 'dashboard.savedsearches.sort' }}</label>
   <div class="sort-fields"></div>
 </section>
 
 <section class="limit" style="display:none">
-  <label>Limit Results</label>
+  <label>{{ i18n 'dashboard.savedsearches.limit' }}</label>
   <select>
     {{#each limits}}
     <option value="{{ value }}" {{#if selected}}selected{{/if}}>{{ name }}</option>

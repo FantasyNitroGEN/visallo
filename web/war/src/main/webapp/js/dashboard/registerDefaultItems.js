@@ -1,13 +1,6 @@
 define(['configuration/plugins/registry'], function(registry) {
     'use strict';
 
-    registry.documentExtensionPoint('org.visallo.web.dashboard.item',
-        'Add items that can be placed on dashboards',
-        function(e) {
-            return (_.isString(e.componentPath) || _.isObject(e.report));
-        }
-    );
-
     registry.registerExtension('org.visallo.web.dashboard.item', {
         title: 'Saved Search',
         description: 'Run a saved search',

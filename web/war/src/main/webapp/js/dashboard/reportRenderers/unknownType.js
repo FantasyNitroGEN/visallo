@@ -28,12 +28,6 @@ define([
                     extension: this.attr.extension,
                     item: this.attr.item
                 });
-                //require([renderer.componentPath], function(Renderer) {
-                    //Renderer.attachTo(self.node, _.extend({}, self.attr, {
-                        //result: data
-                    //}));
-                    //self.teardown();
-                //})
             } else {
                 this.trigger('showError', 'No renderer found that supports response', data);
             }

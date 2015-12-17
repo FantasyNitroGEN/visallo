@@ -36,21 +36,14 @@ define([
                     error = function(message, isError) {
                         $('<div>')
                             .text(message)
-                            .css({
-                                padding: '0.5em',
-                                color: 'rgb(111, 111, 111)',
-                                'font-weight': 'bold',
-                                'font-size': '90%',
-                                'text-align': 'center',
-                                'font-style': 'italic'
-                            })
+                            .addClass('message')
                             .appendTo($list.empty());
                     },
                     finishedRender = this.dataRequest('dashboard', 'postData', this.attr.searchUrl || '/element/search', this.attr.search || {})
                         .then(function(results) {
                             if (_.isEmpty(results.elements)) {
                                 $list.removeClass('loading-small-animate');
-                                error('No Results Found');
+                                error(i18n('dashboard.search.results.none'));
                             } else {
                                 return new Promise(function(f) {
                                     self.on(self.popover, 'renderFinished', function finished() {
@@ -66,7 +59,7 @@ define([
                         })
                         .catch(function() {
                             $list.removeClass('loading-small-animate');
-                            error('Server Error');
+                            error(i18n('dashboard.search.results.error'));
                         })
                         .then(position);
 

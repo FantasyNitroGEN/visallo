@@ -4,17 +4,6 @@ define([
 ], function(registry, ontology) {
     'use strict';
 
-    registry.documentExtensionPoint('org.visallo.web.dashboard.reportrenderer',
-        'Define custom report renderers for dashboard',
-        function(e) {
-            return _.isFunction(e.supportsResponse) &&
-                _.isString(e.identifier) &&
-                e.identifier &&
-                _.isString(e.label) &&
-                e.componentPath;
-        }
-    );
-
     registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
         identifier: 'org-visallo-element-list',
         supportsResponse: function(data) {
