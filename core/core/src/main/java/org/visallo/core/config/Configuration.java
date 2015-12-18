@@ -43,6 +43,7 @@ public class Configuration {
     public static final String USER_SESSION_COUNTER_REPOSITORY = "repository.userSessionCounter";
     public static final String WORK_QUEUE_REPOSITORY = "repository.workQueue";
     public static final String LONG_RUNNING_PROCESS_REPOSITORY = "repository.longRunningProcess";
+    public static final String DIRECTORY_REPOSITORY = "repository.directory";
     public static final String SIMPLE_ORM_SESSION = "simpleOrmSession";
     public static final String HTTP_REPOSITORY = "repository.http";
     public static final String GEOCODER_REPOSITORY = "repository.geocoder";

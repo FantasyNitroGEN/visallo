@@ -1,4 +1,4 @@
-package org.visallo.ldap;
+package org.visallo.model.directory;
 
 import org.visallo.core.config.Configurable;
 import org.visallo.core.exception.VisalloException;

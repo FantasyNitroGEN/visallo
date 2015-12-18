@@ -1,4 +1,4 @@
-package org.visallo.ldap;
+package org.visallo.model.directory;
 
 public enum LdapServerConnectionType {
     LDAPS,

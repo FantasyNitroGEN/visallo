@@ -36,6 +36,7 @@ import org.visallo.web.routes.notification.SystemNotificationDelete;
 import org.visallo.web.routes.notification.SystemNotificationSave;
 import org.visallo.web.routes.notification.UserNotificationMarkRead;
 import org.visallo.web.routes.ontology.Ontology;
+import org.visallo.web.routes.directory.DirectorySearch;
 import org.visallo.web.routes.ping.Ping;
 import org.visallo.web.routes.ping.PingStats;
 import org.visallo.web.routes.resource.MapMarkerImage;
@@ -203,6 +204,8 @@ public class Router extends HttpServlet {
             app.get("/user/all", authenticator, csrfProtector, UserList.class);
             app.post("/user/all", authenticator, csrfProtector, UserList.class);
             app.get("/user", authenticator, csrfProtector, AdminPrivilegeFilter.class, UserGet.class);
+
+            app.get("/directory/search", authenticator, csrfProtector, DirectorySearch.class);
 
             app.get("/long-running-process", authenticator, csrfProtector, LongRunningProcessById.class);
             app.delete("/long-running-process", authenticator, csrfProtector, LongRunningProcessDelete.class);
