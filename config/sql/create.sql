@@ -1,4 +1,4 @@
-CREATE TABLE visallo_systemnotifications (
+CREATE TABLE IF NOT EXISTS visallo_systemNotifications (
   id VARCHAR(100) PRIMARY KEY,
   visibility VARCHAR(100) NOT NULL,
   severity VARCHAR(255),
@@ -10,7 +10,7 @@ CREATE TABLE visallo_systemnotifications (
   startDate TIMESTAMP
 );
 
-CREATE TABLE visallo_usernotifications (
+CREATE TABLE IF NOT EXISTS visallo_userNotifications (
   id VARCHAR(100) PRIMARY KEY,
   visibility VARCHAR(100) NOT NULL,
   sentDate TIMESTAMP,
@@ -24,7 +24,7 @@ CREATE TABLE visallo_usernotifications (
   userId TEXT
 );
 
-CREATE TABLE visallo_jettysession (
+CREATE TABLE IF NOT EXISTS visallo_jettySession (
   id VARCHAR(100) PRIMARY KEY,
   visibility VARCHAR(100) NOT NULL,
   data BLOB,
@@ -34,14 +34,14 @@ CREATE TABLE visallo_jettysession (
   version BIGINT
 );
 
-CREATE TABLE visallo_artifactthumbnail (
+CREATE TABLE IF NOT EXISTS visallo_artifactThumbnail (
   id VARCHAR(100) PRIMARY KEY,
   visibility VARCHAR(100) NOT NULL,
   format VARCHAR(100) NOT NULL,
   data LONGBLOB
 );
 
-CREATE TABLE visallo_dictionaryEntry (
+CREATE TABLE IF NOT EXISTS visallo_dictionaryEntry (
   id VARCHAR(100) PRIMARY KEY,
   visibility varchar(100) NOT NULL,
   concept TEXT,
@@ -49,24 +49,24 @@ CREATE TABLE visallo_dictionaryEntry (
   resolvedName TEXT
 );
 
-create table visallo_vertex (
+CREATE TABLE IF NOT EXISTS visallo_vertex (
   id varchar(255) primary key,
   object longtext not null
 );
 
-create table visallo_edge (
+CREATE TABLE IF NOT EXISTS visallo_edge (
   id varchar(255) primary key,
   in_vertex_id varchar(255),
   out_vertex_id varchar(255),
   object longtext not null
 );
 
-create table visallo_metadata (
+CREATE TABLE IF NOT EXISTS visallo_metadata (
   id varchar(255) primary key,
   object longtext not null
 );
 
-create table visallo_streaming_properties (
+CREATE TABLE IF NOT EXISTS visallo_streaming_properties (
   id varchar(255) primary key,
   data longblob not null,
   type varchar(255) not null,
