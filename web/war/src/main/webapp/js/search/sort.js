@@ -3,7 +3,8 @@ define([
     'fields/selection/selection',
     'hbs!./sortTpl',
     'util/requirejs/promise!util/service/ontologyPromise',
-    'd3'
+    'd3',
+    'jquery-ui/sortable'
 ], function(
     defineComponent,
     FieldSelection,
@@ -121,7 +122,7 @@ define([
                                 this.append('a');
                                 this.append('span');
                             })
-                            this.append('button').attr('class', 'remove-sort').html('&times');
+                            this.append('button').attr('class', 'remove-sort remove-icon').html('&times');
                         })
                     this.exit().remove();
                 })

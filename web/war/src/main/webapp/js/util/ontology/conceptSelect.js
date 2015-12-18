@@ -3,12 +3,14 @@ define([
     'hbs!./concepts',
     'hbs!./concept',
     'util/withDataRequest',
+    'util/requirejs/promise!util/service/ontologyPromise',
     './withSelect'
 ], function(
     defineComponent,
     template,
     conceptTemplate,
     withDataRequest,
+    ontology,
     withSelect) {
     'use strict';
 
@@ -40,8 +42,16 @@ define([
         });
 
         this.onSelectConceptId = function(event, data) {
-            var concept = data && data.conceptId && this.conceptsById[data.conceptId];
-            this.select('fieldSelector').val(concept && concept.displayName || '');
+            var self = this;
+            Promise.resolve(
+                this.conceptsById ||
+                Promise.resolve(ontology.concepts).then(this.transformConcepts.bind(this))
+            )
+                .then(function() {
+                    var concept = data && data.conceptId && self.conceptsById[data.conceptId];
+                    self.select('fieldSelector').val(concept && concept.displayName || '');
+                })
+                .done();
         };
 
         this.showTypeahead = function() {
@@ -71,7 +81,7 @@ define([
         this.setupTypeahead = function() {
             var self = this;
 
-            this.dataRequest('ontology', 'concepts')
+            Promise.resolve(ontology.concepts)
                 .then(this.transformConcepts.bind(this))
                 .done(function(concepts) {
                     concepts.splice(0, 0, self.attr.defaultText);

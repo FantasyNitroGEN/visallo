@@ -1,0 +1,19 @@
+<section>
+  <label>Limit</label>
+  <select>
+    {{#each limits}}
+    <option value="{{value}}" {{#if selected}}selected{{/if}}>{{ display }}</option>
+    {{/each}}
+  </select>
+  <input {{#unless showOther}}style="display:none;"{{/unless}} type="number" value="{{ currentLimit }}">
+</section>
+<section>
+  <label>Color</label>
+  <ul class="color-picker">
+    {{#each colors}}
+    <li class="{{#if noColor}}no-color{{/if}} {{#if selected}}selected{{/if}}"
+        style="background-color:{{color}}"
+        data-color="{{color}}">{{#if noColor}}None{{/if}}</li>
+    {{/each}}
+  </ul>
+</section>

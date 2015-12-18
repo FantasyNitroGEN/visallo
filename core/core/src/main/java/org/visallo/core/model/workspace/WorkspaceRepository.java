@@ -720,6 +720,20 @@ public abstract class WorkspaceRepository {
         });
     }
 
+    public abstract Dashboard findDashboardById(String workspaceId, String dashboardId, User user);
+
+    public abstract void deleteDashboard(String workspaceId, String dashboardId, User user);
+
+    public abstract Collection<Dashboard> findAllDashboardsForWorkspace(String workspaceId, User user);
+
+    public abstract DashboardItem findDashboardItemById(String workspaceId, String dashboardItemId, User user);
+
+    public abstract void deleteDashboardItem(String workspaceId, String dashboardItemId, User user);
+
+    public abstract String addOrUpdateDashboardItem(String workspaceId, String dashboardId, String dashboardItemId, String title, String configuration, String extensionId, User user);
+
+    public abstract String addOrUpdateDashboard(String workspaceId, String dashboardId, String title, User user);
+
     public static class Update {
         private final String vertexId;
         private final Boolean visible;

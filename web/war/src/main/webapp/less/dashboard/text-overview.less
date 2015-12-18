@@ -1,0 +1,71 @@
+.dashboardConfigurePopover .color-picker {
+  display: flex;
+  flex-wrap: wrap;
+
+  li {
+    opacity: 0.3;
+    flex: 1 1 17%;
+    min-height: 1.5em;
+    margin: 1px; 
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  li.selected, li:hover {
+    opacity: 1;
+  }
+
+  .no-color {
+    border: 1px solid #CECECE;
+    text-align: center;
+  }
+}
+
+.grid-stack-item {
+  .text-overview {
+    list-style: none;
+    margin: 0;    
+    display: flex;
+    flex-wrap: wrap;
+
+    li {
+      border-radius: 2px;
+      flex: 0 0 auto;
+      float: left;
+      margin-bottom: 0.5em;
+      margin-right: 0.5em;    
+      max-width: none;   
+      padding: 0.5em;
+      white-space: nowrap;
+      color: white;
+      &.clickable {
+        cursor: pointer;
+      }
+      &.light {
+        color: black;
+      }
+    }
+    li h1, li h2 {
+      margin: 0;
+      padding: 0;
+      line-height: 1.5em;
+      display: block;
+      width: auto;
+      font-family: HelveticaNeue-Thin, Arial;
+    }
+    li h1 {
+        font-size: 200%;
+        font-weight: normal
+    }
+    li h2 {
+        font-size: 130%;
+        opacity: 0.8;
+        font-weight: normal;
+        max-width: 10em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+  }
+}
+

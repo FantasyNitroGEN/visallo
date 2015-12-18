@@ -1,0 +1,45 @@
+.dashboard-pane {
+    .choropleth {
+        background-color: rgb(240, 237, 229);
+    }
+
+    .geohash {
+        background-color: rgb(240, 237, 229);
+    }
+
+    svg.vector-map {
+        .data path {
+            opacity: 0.7;
+        }
+
+        .tiles {
+            pointer-events: none;
+        }
+
+        .tile {
+          position: absolute;
+          width: 256px;
+          height: 256px;
+        }
+
+        .tile path {
+          fill: none;
+          stroke: none;
+          display: none;
+        }
+
+        .tile .earth path { display:block; fill: rgb(240, 237, 229); }
+        .tile .water, .tile .lake, .tile .ocean { display:block; fill: #9FC2FF; stroke: #9FC2FF; }
+        .tile .water-layer, .tile .river, .tile .stream, .tile .canal { display:block; stroke: #9DD9D2; stroke-width: 1.5px;}
+        .tile .riverbank { display:block; fill: #9DD9D2; }
+        .tile .minor_road { display:block; stroke: rgb(209,203,192); stroke-width: 1px; }
+        .tile .major_road { display:block; stroke: rgb(209,203,192); stroke-width: 1.25px; }
+        .tile .highway { display:block; stroke: #fa4a48; stroke-width: 1.5px; }
+        .tile .buildings-layer { display:block; stroke: #987284; stroke-width: 0.15px; }
+        .tile .rail { display:block; stroke: #503D3F; stroke-width: 0.5px; }
+        .tile .state { display:block; stroke: #503D3F; stroke-width: 0.5px; }
+        .tile .country { display:block; stroke: #503D3F; stroke-width: 0.7px; }
+        .tile .landuse path { display:block; fill: rgb(240, 237, 229); }
+        .tile .water .water { display:none; }
+    }
+}

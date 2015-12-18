@@ -9,12 +9,11 @@ import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.ingest.video.VideoPropertyHelper;
 import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workspace.Dashboard;
+import org.visallo.core.model.workspace.DashboardItem;
 import org.visallo.web.clientapi.model.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -204,6 +203,34 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             result.metadata.put(entry.getKey(), toClientApiValue(entry.getValue()));
         }
         result.value = toClientApiValue(hpv.getValue());
+        return result;
+    }
+
+    public static ClientApiDashboards toClientApiDashboards(Collection<Dashboard> dashboards) {
+        ClientApiDashboards result = new ClientApiDashboards();
+        for (Dashboard dashboard : dashboards) {
+            result.dashboards.add(toClientApiDashboard(dashboard));
+        }
+        return result;
+    }
+
+    public static ClientApiDashboard toClientApiDashboard(Dashboard dashboard) {
+        ClientApiDashboard result = new ClientApiDashboard();
+        result.id = dashboard.getId();
+        result.workspaceId = dashboard.getWorkspaceId();
+        result.title = dashboard.getTitle();
+        for (DashboardItem dashboardItem : dashboard.getItems()) {
+            result.items.add(toClientApiDashboardItem(dashboardItem));
+        }
+        return result;
+    }
+
+    private static ClientApiDashboard.Item toClientApiDashboardItem(DashboardItem dashboardItem) {
+        ClientApiDashboard.Item result = new ClientApiDashboard.Item();
+        result.id = dashboardItem.getId();
+        result.extensionId = dashboardItem.getExtensionId();
+        result.title = dashboardItem.getTitle();
+        result.configuration = dashboardItem.getConfiguration();
         return result;
     }
 

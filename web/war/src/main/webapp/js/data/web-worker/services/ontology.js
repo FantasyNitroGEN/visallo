@@ -184,11 +184,14 @@ define([
                                         child.color = node.color;
                                     } else if (
                                         [
-                                            'http://visallo.org/user#user',
-                                            'http://visallo.org/workspace#workspace',
                                             'http://visallo.org/longRunningProcess#longRunningProcess',
+                                            'http://visallo.org/ping#ping',
                                             'http://visallo.org/search#savedSearch',
-                                            'http://visallo.org/termMention#termMention'
+                                            'http://visallo.org/termMention#termMention',
+                                            'http://visallo.org/user#user',
+                                            'http://visallo.org/workspace#dashboard',
+                                            'http://visallo.org/workspace#dashboardItem',
+                                            'http://visallo.org/workspace#workspace'
                                         ].indexOf(child.id) === -1
                                     ) {
                                         if (!_.contains(ignoreColorWarnings, child.id)) {

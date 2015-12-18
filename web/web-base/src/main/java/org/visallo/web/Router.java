@@ -23,6 +23,7 @@ import org.visallo.web.routes.admin.AdminList;
 import org.visallo.web.routes.admin.AdminUploadOntology;
 import org.visallo.web.routes.admin.PluginList;
 import org.visallo.web.routes.config.Configuration;
+import org.visallo.web.routes.dashboard.*;
 import org.visallo.web.routes.edge.*;
 import org.visallo.web.routes.element.ElementSearch;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessById;
@@ -190,6 +191,12 @@ public class Router extends HttpServlet {
             app.delete("/workspace", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceDelete.class);
             app.post("/workspace/publish", authenticator, csrfProtector, PublishPrivilegeFilter.class, WorkspacePublish.class);
             app.post("/workspace/undo", authenticator, csrfProtector, EditPrivilegeFilter.class, WorkspaceUndo.class);
+
+            app.get("/dashboard/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardAll.class);
+            app.post("/dashboard", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardUpdate.class);
+            app.delete("/dashboard", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardDelete.class);
+            app.post("/dashboard/item", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardItemUpdate.class);
+            app.delete("/dashboard/item", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardItemDelete.class);
 
             app.get("/user/me", authenticator, csrfProtector, MeGet.class);
             app.post("/user/ui-preferences", authenticator, csrfProtector, UserSetUiPreferences.class);

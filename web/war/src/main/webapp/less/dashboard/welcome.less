@@ -1,0 +1,44 @@
+.welcome-spotlight {
+  .transition(~"opacity ease-out 0.2s");
+}
+.org-visallo-welcome {
+  color: #555;
+  p.welcome {
+    font-size: 120%;
+    color: #333;
+  }
+  p.welcome-sub {
+    color: #444;
+  }
+  h2 {
+    font-size: 100%;
+    line-height: 100%;
+    margin: 1em 0 0.5em 0;
+    color: #0088cc;  
+    font-style: italic;
+    div { display: none; }
+
+    &.has-icon div {
+      display: inline-block;
+      width: 3.5ex;
+      height: 3.5ex;
+      background-color: #0088cc;
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+      box-sizing: border-box;
+      margin-right: 0.5em;
+      border-radius: 3px;
+      border: 0.6ex solid #0088cc;
+      position: relative;
+      top: 0.8ex;
+    }
+  }
+
+  span[data-selector] {
+    font-style: italic;
+    font-weight: bold;
+    color: #676767;
+    text-decoration: underline;
+  }
+}

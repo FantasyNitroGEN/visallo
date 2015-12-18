@@ -126,6 +126,10 @@ define([
 
             this.insertExtensions();
 
+            BUTTONS.forEach(function(button) {
+                self.$node.find('.' + button).attr('data-identifier', button);
+            });
+
             Object.keys(TOOLTIPS).forEach(function(selectorClass) {
                 self.$node.find('.' + selectorClass).tooltip({
                     placement: 'right',
@@ -187,6 +191,7 @@ define([
                     }, item.options),
                     newItem = $('<li>')
                         .addClass(cls)
+                        .attr('data-identifier', item.identifier)
                         .append(
                             $('<a>')
                             .text(item.title)

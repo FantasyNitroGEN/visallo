@@ -2,6 +2,7 @@
 
 @import "util/constants";
 @import "util/animation";
+@import "util/buttons";
 @import "util/button-loading";
 @import "util/controls";
 @import "util/collapsible";
@@ -41,9 +42,11 @@
 
 @import "../libs/video.js/dist/video-js/video-js.min.css";
 @import (less) "../libs/jquery-ui/themes/ui-lightness/jquery-ui.css";
-@import (less) "../libs/jquery-ui/themes/ui-lightness/jquery.ui.theme.css";
+@import (less) "../libs/jquery-ui/themes/ui-lightness/theme.css";
 @import (less) "../libs/openlayers/theme/default/style.css";
+@import "../libs/gridstack/dist/gridstack.min.css";
 
+@import "dashboard/dashboard";
 @import "sync/sync";
 @import "fields/fields";
 @import "login/login";
@@ -175,7 +178,7 @@ html.fullscreenDetails {
   top: 0;
   bottom: 0;
   width: @menubar-width + 1px;
-  .above-graph(10);
+  z-index: @menubar-zIndex;
 
   @import "menubar/menubar";
 }
@@ -237,8 +240,6 @@ html.fullscreenDetails {
 .dashboard-pane {
   .fullscreen;
   left: @menubar-width;
-
-  @import "dashboard/dashboard";
 }
 
 .help-dialog {
@@ -373,8 +374,7 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"], in
 }
 
 @import "util/badge-loading.less";
-
-
+@import "util/div-loading.less";
 @import "util/scrollbars.less";
 
 .component-highlighter {

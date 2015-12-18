@@ -13,6 +13,7 @@
 }
 
 .dialog-popover {
+  z-index: @menubar-zIndex;
 
   .popover {
     min-width: 13em;
@@ -90,7 +91,7 @@
       }
     }
 
-    button {
+    button.btn {
       width: 100%;
       margin: 0.25em 0;
       white-space: nowrap;
@@ -109,6 +110,7 @@
   @import "addToWorkspace";
   @import "addRelated";
   @import "savedSearch";
+  @import "searchResults";
 }
 
 

@@ -197,7 +197,6 @@ function(jQuery,
                     require([
                         'moment',
                         'bootstrap',
-                        'jqueryui',
                         'easing',
                         'jquery-scrollstop',
                         'bootstrap-datepicker',

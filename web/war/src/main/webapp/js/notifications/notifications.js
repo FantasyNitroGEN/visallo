@@ -9,6 +9,14 @@ define([
 
     function Notifications() {
 
+        this.attributes({
+            allowDismiss: true,
+            animated: true,
+            emptyMessage: true,
+            showInformational: true,
+            showUserDismissed: false
+        });
+
         this.after('initialize', function() {
             var self = this;
 
@@ -113,8 +121,8 @@ define([
                         }
                     }
                 })
-                this.update();
             }
+            this.update();
             this.trigger('notificationCountUpdated', { count: this.stack.length });
         };
 
@@ -182,20 +190,19 @@ define([
 
             d3.select(this.$container[0])
                 .selectAll('.notification')
-                .data(this.stack, function(n) {
+                .data(this.stack || [], function(n) {
                     return n.id;
                 })
                 .call(function() {
-                    var newOnes = this.enter()
-                        .append('li')
-                            .attr('class', 'notification')
-                            .style('opacity', 0)
-                            .style('left', '-50px')
-                            .call(function() {
-                                this.append('h1')
-                                this.append('h2')
-                                this.append('button').style('display', 'none');
-                            })
+                    var newOnes = this.enter().append('li')
+                        .attr('class', 'notification')
+                        .style('opacity', 0)
+                        .style('left', '-50px')
+                        .call(function() {
+                            this.append('h1')
+                            this.append('h2')
+                            this.append('button').style('display', 'none');
+                        })
 
                     this.on('click', function(clicked) {
                         var clickedButton = $(d3.event.target).is('button');
@@ -275,6 +282,12 @@ define([
                     exiting.remove()
                 });
 
+            if (this.attr.emptyMessage) {
+                this.$container.find('.empty').remove();
+                if (!this.stack.length) {
+                    this.$container.append('<li class="empty">No Notifications Found</li>');
+                }
+            }
         };
 
     }

@@ -1,0 +1,38 @@
+<label><header>Aggregation</header><button class="btn btn-link btn-mini add-aggregation">Add</button></label>
+<div>
+  <div class="form" style="display:none">
+    <select class="aggregation">
+      {{#each aggregations}}
+      <option value="{{ value }}" {{#if selected}}selected{{/if}}>{{ name }}</option>
+      {{/each}}
+    </select>
+
+    <div class="agg term" style="display:none">
+      <div class="property-select"></div>
+    </div>
+    <div class="agg histogram" style="display:none">
+      <div class="property-select"></div>
+      <div class="interval_section" style="display: flex;">
+        <input class="interval" type="text" value="20" placeholder="Interval">
+        <input style="flex: 1; display: none;" class="date_interval interval_value" type="text" value="20" placeholder="Interval">
+        <select class="date_interval interval_units" style="display: none; flex: 1; margin-left: 0.5em; min-width: 6em;">
+          {{#each intervalUnits}}
+            <option value="{{ value }}">{{ label }}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+    <div class="agg geohash" style="display:none">
+      <div class="property-select"></div>
+      <select class="precision">
+        {{#each precisions}}
+        <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="agg statistics" style="display:none">
+      <div class="property-select"></div>
+    </div>
+  </div>
+  <ul class="aggregations"></ul>
+</div>

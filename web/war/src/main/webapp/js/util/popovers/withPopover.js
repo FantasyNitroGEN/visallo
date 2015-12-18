@@ -10,7 +10,8 @@ define([], function() {
     function withPopover() {
 
         this.defaultAttrs({
-            withPopoverInputSelector: 'input,select'
+            withPopoverInputSelector: 'input,select',
+            hideDialog: false
         })
 
         this.before('teardown', function() {
@@ -112,7 +113,9 @@ define([], function() {
                 });
 
             if (allBlank) {
-                this.teardown();
+                if (!this.dialog.data('preventTeardown')) {
+                    this.teardown();
+                }
             } else {
                 this.dialogPosition = data.position;
                 this.positionDialog();
