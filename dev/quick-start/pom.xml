@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.visallo</groupId>
+        <artifactId>visallo-root</artifactId>
+        <version>1.1-SNAPSHOT</version>
+        <relativePath>../../root</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>visallo-dev-quick-start</artifactId>
+    <packaging>jar</packaging>
+    <name>Visallo: Dev: Quick Start</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-jetty-server</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet.api.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-queue-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-ontology-acl-provider</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-elasticsearch-singledocument</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-auth-username-only</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-tika-mime-type</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-mime-type-ontology-mapper</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-tika-text-extractor</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-email-extractor</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-phone-number-extractor</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-opennlp-me-extractor</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-zipcode-extractor</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.build.directory}/../src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/generated-resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="${project.build.directory}/generated-resources/org/visallo/quickStart/config"/>
+                                <copy todir="${project.build.directory}/generated-resources/org/visallo/quickStart/config/">
+                                    <fileset file="../../config/visallo.properties"/>
+                                    <fileset file="../../config/visallo-elasticsearch-inprocess.properties"/>
+                                    <fileset file="../../config/visallo-sql.properties"/>
+                                    <fileset file="../../config/visallo-MimeTypeOntologyMapperGraphPropertyWorker.properties"/>
+                                </copy>
+
+                                <mkdir dir="${project.build.directory}/generated-resources/org/visallo/quickStart/config/org.visallo.opennlpme.OpenNLPMaximumEntropyExtractorGraphPropertyWorker/"/>
+                                <copy todir="${project.build.directory}/generated-resources/org/visallo/quickStart/config/org.visallo.opennlpme.OpenNLPMaximumEntropyExtractorGraphPropertyWorker/">
+                                    <fileset dir="../../config/org.visallo.opennlpme.OpenNLPMaximumEntropyExtractorGraphPropertyWorker/"/>
+                                </copy>
+
+                                <mkdir dir="${project.build.directory}/generated-resources/org/visallo/quickStart/sql"/>
+                                <copy todir="${project.build.directory}/generated-resources/org/visallo/quickStart/sql/">
+                                    <fileset file="../../config/sql/create.sql"/>
+                                </copy>
+
+                                <mkdir dir="${project.build.directory}/generated-resources/org/visallo/quickStart/lib"/>
+                                <copy todir="${project.build.directory}/generated-resources/org/visallo/quickStart/lib/">
+                                    <fileset file="../../graph-property-worker/plugins/tika-mime-type/target/visallo-gpw-tika-mime-type-${project.version}.jar"/>
+                                    <fileset file="../../graph-property-worker/plugins/mime-type-ontology-mapper/target/visallo-gpw-mime-type-ontology-mapper-${project.version}.jar"/>
+                                    <fileset file="../../graph-property-worker/plugins/tika-text-extractor/target/visallo-gpw-tika-text-extractor-${project.version}.jar"/>
+                                    <fileset file="../../graph-property-worker/plugins/email-extractor/target/visallo-gpw-email-extractor-${project.version}.jar"/>
+                                    <fileset file="../../graph-property-worker/plugins/phone-number-extractor/target/visallo-gpw-phone-number-extractor-${project.version}.jar"/>
+                                    <fileset file="../../graph-property-worker/plugins/opennlp-me-extractor/target/visallo-gpw-opennlp-me-extractor-${project.version}.jar"/>
+                                    <fileset file="../../graph-property-worker/plugins/zipcode-extractor/target/visallo-gpw-zipcode-extractor-${project.version}.jar"/>
+                                </copy>
+
+                                <zip
+                                        destfile="${project.build.directory}/generated-resources/org/visallo/quickStart/webapp.zip"
+                                        basedir="${project.build.directory}/../../../web/war/src/main/webapp/"
+                                        excludes="node/**, node_modules/**, test/**"
+                                />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml
+                    </dependencyReducedPomLocation>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>org.visallo.quickStart.QuickStartJettyWebServer</mainClass>
+                        </transformer>
+                    </transformers>
+                    <artifactSet combine.self="override">
+                    </artifactSet>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedClassifierName>with-dependencies</shadedClassifierName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>run-quick-start</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <configuration>
+                            <mainClass>org.visallo.quickStart.QuickStartJettyWebServer</mainClass>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>run-quick-start</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

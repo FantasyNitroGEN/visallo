@@ -71,7 +71,9 @@ public class JettyWebServer extends WebServer {
 
         server.start();
 
-        LOGGER.info("Listening on http port %d and https port %d", httpPort, httpsPort);
+        String message = String.format("Listening on http port %d and https port %d", httpPort, httpsPort);
+        LOGGER.info(message);
+        System.out.println(message);
 
         if (!dontJoin) {
             server.join();
