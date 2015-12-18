@@ -9,7 +9,7 @@ done
 DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 
 WEBAPP=$DIR
-NODE=$WEBAPP/../../../node
+NODE=$WEBAPP/node
 NODE_MODULES=$WEBAPP/node_modules
 
 export PATH=$NODE:$NODE_MODULES/bower/bin:$NODE_MODULES/grunt-cli/bin:$PATH
