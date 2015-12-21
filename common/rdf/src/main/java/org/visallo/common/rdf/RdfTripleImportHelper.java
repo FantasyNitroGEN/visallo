@@ -61,6 +61,7 @@ public class RdfTripleImportHelper {
         importRdfTriple(
                 new FileInputStream(inputFile),
                 metadata,
+                inputFile.getParentFile(),
                 timeZone,
                 defaultVisibility,
                 authorizations
@@ -70,6 +71,7 @@ public class RdfTripleImportHelper {
     private void importRdfTriple(
             InputStream inputStream,
             Metadata metadata,
+            File workingDir,
             TimeZone timeZone,
             Visibility defaultVisibility,
             Authorizations authorizations
@@ -77,13 +79,14 @@ public class RdfTripleImportHelper {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;
         while ((line = reader.readLine()) != null) {
-            importRdfLine(line, metadata, timeZone, defaultVisibility, authorizations);
+            importRdfLine(line, metadata, workingDir, timeZone, defaultVisibility, authorizations);
         }
     }
 
     public void importRdfLine(
             String line,
             Metadata metadata,
+            File workingDir,
             TimeZone timeZone,
             Visibility defaultVisibility,
             Authorizations authorizations
@@ -92,7 +95,7 @@ public class RdfTripleImportHelper {
             return;
         }
         RdfTriple rdfTriple = RdfTripleParser.parseLine(line);
-        if (importRdfTriple(rdfTriple, metadata, timeZone, defaultVisibility, authorizations)) {
+        if (importRdfTriple(rdfTriple, metadata, workingDir, timeZone, defaultVisibility, authorizations)) {
             return;
         }
 
@@ -102,6 +105,7 @@ public class RdfTripleImportHelper {
     public boolean importRdfTriple(
             RdfTriple rdfTriple,
             Metadata metadata,
+            File workingDir,
             TimeZone timeZone,
             Visibility defaultVisibility,
             Authorizations authorizations
@@ -130,7 +134,7 @@ public class RdfTripleImportHelper {
         }
 
         if (third instanceof RdfTriple.LiteralPart) {
-            setProperty(vertexId, vertexVisibility, label, (RdfTriple.LiteralPart) third, metadata, timeZone, defaultVisibility, authorizations);
+            setProperty(vertexId, vertexVisibility, label, (RdfTriple.LiteralPart) third, metadata, workingDir, timeZone, defaultVisibility, authorizations);
             return true;
         }
 
@@ -166,6 +170,7 @@ public class RdfTripleImportHelper {
             String label,
             RdfTriple.LiteralPart propertyValuePart,
             Metadata metadata,
+            File workingDir,
             TimeZone timeZone,
             Visibility visibility,
             Authorizations authorizations
@@ -203,7 +208,7 @@ public class RdfTripleImportHelper {
         }
 
         String propertyName = label;
-        Object propertyValue = getPropertyValue(propertyValuePart, timeZone);
+        Object propertyValue = getPropertyValue(propertyValuePart, workingDir, timeZone);
         if (metadataKey != null) {
             String metadataName;
             Visibility metadataVisibility;
@@ -224,7 +229,7 @@ public class RdfTripleImportHelper {
         m.save(authorizations);
     }
 
-    private Object getPropertyValue(RdfTriple.LiteralPart propertyValuePart, TimeZone timeZone) {
+    private Object getPropertyValue(RdfTriple.LiteralPart propertyValuePart, File workingDir, TimeZone timeZone) {
         if (propertyValuePart.getType() == null) {
             return propertyValuePart.getString();
         }
@@ -252,7 +257,13 @@ public class RdfTripleImportHelper {
             case PROPERTY_TYPE_GEOLOCATION:
                 return GeoPoint.parse(propertyValuePart.getString());
             case PROPERTY_TYPE_STREAMING_PROPERTY_VALUE:
-                File file = new File(propertyValuePart.getString());
+                String path = propertyValuePart.getString();
+                File file;
+                if (new File(path).isAbsolute()) {
+                    file = new File(path);
+                } else {
+                    file = new File(workingDir, path);
+                }
                 if (!file.exists()) {
                     throw new VisalloException("File not found: " + file.getAbsolutePath());
                 }

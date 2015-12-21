@@ -30,11 +30,13 @@ public class RdfTripleImportHelperTest {
     private Metadata metadata;
     private TimeZone timeZone;
     private Visibility visibility;
+    private File workingDir;
 
     @Before
     public void setUp() {
         graph = InMemoryGraph.create();
         metadata = new Metadata();
+        workingDir = new File(".");
         visibility = new Visibility("");
         authorizations = graph.createAuthorizations("A");
         timeZone = TimeZone.getDefault();
@@ -47,7 +49,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportConceptType() {
         String line = "<v1> <" + RdfTripleImportHelper.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -62,7 +64,7 @@ public class RdfTripleImportHelperTest {
         graph.flush();
 
         String line = "<v1[A]> <" + RdfTripleImportHelper.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         v1 = graph.getVertex("v1", authorizations);
@@ -74,7 +76,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportProperty() {
         String line = "<v1> <http://visallo.org/test#prop1> \"hello world\"";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -83,10 +85,10 @@ public class RdfTripleImportHelperTest {
 
     @Test
     public void testImportPropertyMetadata() {
-        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1> \"hello world\"", metadata, timeZone, visibility, authorizations);
-        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata1> \"metadata value 1\"", null, timeZone, visibility, authorizations);
-        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2> \"metadata value 2\"", null, timeZone, visibility, authorizations);
-        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2[S]> \"metadata value 2 S\"", null, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1> \"hello world\"", metadata, workingDir, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata1> \"metadata value 1\"", null, workingDir, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2> \"metadata value 2\"", null, workingDir, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2[S]> \"metadata value 2 S\"", null, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -100,7 +102,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportDateProperty() {
         String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE + ">";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -112,7 +114,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportDateTimeNoTimeZoneProperty() {
         String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE_TIME + ">";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -128,7 +130,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportDateTimeWithGMTTimeZoneProperty() {
         String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22Z\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE_TIME + ">";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -142,7 +144,7 @@ public class RdfTripleImportHelperTest {
         TimeZone tz = TimeZone.getTimeZone("America/Anchorage");
         String timeZoneOffset = "-0" + Math.abs(tz.getOffset(new VisalloDate(2015, Calendar.MAY, 21).getEpoch()) / 1000 / 60 / 60) + ":00";
         String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22" + timeZoneOffset + "\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE_TIME + ">";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -154,7 +156,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportGeoPoint() {
         String line = "<v1> <http://visallo.org/test#prop1> \"Dulles International Airport, VA [38.955589294433594, -77.44930267333984]\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_GEOLOCATION + ">";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -167,7 +169,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportPropertyWithKey() {
         String line = "<v1> <http://visallo.org/test#prop1:key1> \"hello world\"";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -177,7 +179,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportPropertyVisibility() {
         String line = "<v1> <http://visallo.org/test#prop1[A]> \"hello world\"";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -190,7 +192,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportPropertyVisibilityAndKey() {
         String line = "<v1> <http://visallo.org/test#prop1:key1[A]> \"hello world\"";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -208,7 +210,7 @@ public class RdfTripleImportHelperTest {
         FileUtils.writeStringToFile(file, "hello world");
 
         String line = "<v1> <http://visallo.org/test#prop1> \"" + file.getAbsolutePath() + "\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE + ">";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -220,7 +222,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportStreamingPropertyValueInline() throws IOException {
         String line = "<v1> <http://visallo.org/test#prop1> \"hello world\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE + ">";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -232,7 +234,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportEdge() {
         String line = "<v1> <http://visallo.org/test#edgeLabel1> <v2>";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -246,7 +248,7 @@ public class RdfTripleImportHelperTest {
     @Test
     public void testImportEdgeWithVisibility() {
         String line = "<v1> <http://visallo.org/test#edgeLabel1[A]> <v2>";
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
