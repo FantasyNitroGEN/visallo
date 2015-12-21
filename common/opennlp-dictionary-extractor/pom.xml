@@ -3,27 +3,31 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>visallo-tools-group</artifactId>
+        <artifactId>visallo-common</artifactId>
         <groupId>org.visallo</groupId>
         <version>1.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>visallo-tools-rdf-import</artifactId>
-    <packaging>jar</packaging>
-
-    <name>Visallo: Tools: RDF Import</name>
+    <artifactId>visallo-common-opennlp-dictionary-extractor</artifactId>
+    <name>Visallo: Common: OpenNLP Dictionary Extractor</name>
 
     <dependencies>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-core</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-common-rdf</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
