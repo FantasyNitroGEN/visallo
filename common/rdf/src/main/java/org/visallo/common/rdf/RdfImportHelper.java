@@ -53,7 +53,7 @@ public class RdfImportHelper {
             User user,
             Authorizations authorizations
     ) throws IOException {
-        File inputFile = findRdfFile(input);
+        File inputFile = RdfFileLocator.findBestFile(input);
 
         LOGGER.info("Importing file: %s", inputFile.getAbsolutePath());
         if (inputFile.getName().endsWith(".nt")) {
@@ -70,33 +70,6 @@ public class RdfImportHelper {
             }
         }
         graph.flush();
-    }
-
-    private File findRdfFile(File input) {
-        if (input.isFile()) {
-            return input;
-        }
-
-        File firstFile = null;
-        File[] files = input.listFiles();
-        if (files == null) {
-            throw new VisalloException("Could not get files from: " + input.getAbsolutePath());
-        }
-        for (File file : files) {
-            if (file.isFile()) {
-                if (firstFile == null) {
-                    firstFile = file;
-                }
-                String fileName = file.getAbsolutePath().toLowerCase();
-                if (fileName.endsWith(".nt") || fileName.endsWith(".xml")) {
-                    return file;
-                }
-            }
-        }
-        if (firstFile == null) {
-            throw new VisalloException("Could not find RDF file in directory: " + input.getAbsolutePath());
-        }
-        return firstFile;
     }
 
     private void importFileRdfTriple(
