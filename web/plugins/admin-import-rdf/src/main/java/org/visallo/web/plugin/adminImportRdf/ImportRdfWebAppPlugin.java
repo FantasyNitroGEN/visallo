@@ -7,7 +7,7 @@ import org.visallo.web.AuthenticationHandler;
 import org.visallo.web.VisalloCsrfHandler;
 import org.visallo.web.WebApp;
 import org.visallo.web.WebAppPlugin;
-import org.visallo.web.privilegeFilters.EditPrivilegeFilter;
+import org.visallo.web.privilegeFilters.AdminPrivilegeFilter;
 
 import javax.servlet.ServletContext;
 
@@ -29,7 +29,7 @@ public class ImportRdfWebAppPlugin implements WebAppPlugin {
 
         app.registerResourceBundle("/org/visallo/web/plugin/adminImportRdf/messages.properties");
 
-        app.post("/admin/import-rdf", authenticator, csrfProtector, EditPrivilegeFilter.class, ImportRdf.class);
+        app.post("/admin/import-rdf", authenticator, csrfProtector, AdminPrivilegeFilter.class, ImportRdf.class);
     }
 }
 
