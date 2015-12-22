@@ -17,6 +17,7 @@ import org.visallo.vertexium.mapreduce.VisalloElementMapperBase;
 import org.visallo.vertexium.mapreduce.VisalloMRBase;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.TimeZone;
@@ -31,6 +32,7 @@ public class RdfTripleImportMapper extends VisalloElementMapperBase<LongWritable
     private Visibility visibility;
     private Authorizations authorizations;
     private TimeZone timeZone;
+    private File workingDir;
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
@@ -39,6 +41,7 @@ public class RdfTripleImportMapper extends VisalloElementMapperBase<LongWritable
         authorizations = getGraph().createAuthorizations();
         String timeZoneId = context.getConfiguration().get(RdfTripleImportMR.CONFIG_TIME_ZONE, RdfTripleImportMR.CONFIG_TIME_ZONE_DEFAULT);
         timeZone = TimeZone.getTimeZone(timeZoneId);
+        workingDir = new File(".");
         rdfTripleImportHelper = new RdfTripleImportHelper(getGraph());
         InjectHelper.inject(this);
         visibilityJson = new VisibilityJson();
@@ -59,7 +62,7 @@ public class RdfTripleImportMapper extends VisalloElementMapperBase<LongWritable
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, metadataVisibility);
         VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), metadataVisibility);
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, metadataVisibility);
-        rdfTripleImportHelper.importRdfLine(line, metadata, timeZone, visibility, authorizations);
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
     }
 
     @Inject
