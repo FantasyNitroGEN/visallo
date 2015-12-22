@@ -80,11 +80,6 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-gpw-rdf</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-tika-mime-type</artifactId>
             <version>${project.version}</version>
         </dependency>

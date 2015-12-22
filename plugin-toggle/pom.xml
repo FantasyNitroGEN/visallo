@@ -172,6 +172,11 @@
                     <artifactId>visallo-web-requeue</artifactId>
                     <version>${v5.visallo.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-web-admin-import-rdf</artifactId>
+                    <version>${v5.visallo.version}</version>
+                </dependency>
             </dependencies>
         </profile>
         <profile>
@@ -565,16 +570,6 @@
                 <dependency>
                     <groupId>org.visallo</groupId>
                     <artifactId>visallo-gpw-zipcode-extractor</artifactId>
-                    <version>${v5.visallo.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>gpw-rdf</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-gpw-rdf</artifactId>
                     <version>${v5.visallo.version}</version>
                 </dependency>
             </dependencies>

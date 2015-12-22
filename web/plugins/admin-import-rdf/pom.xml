@@ -10,6 +10,14 @@
         <relativePath>../../web-plugin-base</relativePath>
     </parent>
 
-    <artifactId>visallo-web-requeue</artifactId>
-    <name>Visallo: Web: Plugin: Requeue</name>
+    <artifactId>visallo-web-admin-import-rdf</artifactId>
+    <name>Visallo: Web: Plugins: Admin Import RDF</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-common-rdf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

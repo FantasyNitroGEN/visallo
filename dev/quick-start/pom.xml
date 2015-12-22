@@ -64,6 +64,13 @@
 
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-admin-import-rdf</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-tika-mime-type</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
@@ -152,6 +159,7 @@
                                     <fileset file="../../graph-property-worker/plugins/phone-number-extractor/target/visallo-gpw-phone-number-extractor-${project.version}.jar"/>
                                     <fileset file="../../graph-property-worker/plugins/opennlp-me-extractor/target/visallo-gpw-opennlp-me-extractor-${project.version}.jar"/>
                                     <fileset file="../../graph-property-worker/plugins/zipcode-extractor/target/visallo-gpw-zipcode-extractor-${project.version}.jar"/>
+                                    <fileset file="../../web/plugins/admin-import-rdf/target/visallo-web-admin-import-rdf-${project.version}.jar"/>
                                 </copy>
 
                                 <zip

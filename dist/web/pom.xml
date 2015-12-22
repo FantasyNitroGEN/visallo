@@ -83,6 +83,11 @@
             <artifactId>visallo-web-terms-of-use</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-admin-import-rdf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -11,7 +11,6 @@ import org.visallo.core.util.VisalloLoggerFactory;
 
 @Parameters(commandDescription = "Deletes all tables from Accumulo, indexes from ElasticSearch, queues from RabbitMQ")
 public class FormatVisallo extends CommandLineTool {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FormatVisallo.class);
     private AuthorizationRepository authorizationRepository;
 
     public static void main(String[] args) throws Exception {
