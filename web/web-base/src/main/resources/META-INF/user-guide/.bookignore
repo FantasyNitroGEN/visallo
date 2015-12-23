@@ -1,3 +1,4 @@
 Makefile
 package.json
 short-urls.properties
+install.sh
