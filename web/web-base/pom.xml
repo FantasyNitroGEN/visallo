@@ -150,12 +150,12 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <workingDirectory>src/main/resources/META-INF/user-guide</workingDirectory>
-                                    <executable>make</executable>
-                                    <commandlineArgs>install</commandlineArgs>
+                                    <executable>bash</executable>
+                                    <commandlineArgs>${basedir}/src/main/resources/META-INF/user-guide/install.sh</commandlineArgs>
                                 </configuration>
                             </execution>
                         </executions>
+
                     </plugin>
                 </plugins>
             </build>
