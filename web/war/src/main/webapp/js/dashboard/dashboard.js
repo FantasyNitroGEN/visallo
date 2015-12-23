@@ -633,6 +633,10 @@ define([
                     }
 
                     if (layouts.length) {
+                        if (layouts.length > 1) {
+                            console.warn(layouts.length + ' org.visallo.web.dashboard.layout extensions were found.'
+                            + ' Only the first one will be used.');
+                        }
                         return self.requestDashboards(layouts[0]);
                     } else {
                         return Promise.require('dashboard/defaultLayout')
