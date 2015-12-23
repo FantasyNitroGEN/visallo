@@ -44,9 +44,17 @@ define([
         }
     );
 
+    registry.documentExtensionPoint('org.visallo.web.dashboard.layout',
+        'Define dashboard layout for new workspaces',
+        function(e) {
+            return _.isArray(e);
+        }
+    );
+
     var reportRenderers,
         extensions,
         extensionsById,
+        layouts,
         ConfigPopover,
         defaultGridOptions = Object.freeze({
             width: 4,
@@ -74,18 +82,19 @@ define([
 
             reportRenderers = registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer');
             extensions = registry.extensionsForPoint('org.visallo.web.dashboard.item');
+            layouts = registry.extensionsForPoint('org.visallo.web.dashboard.layout');
             extensionsById = _.indexBy(extensions, 'identifier');
 
             this.request = this.dataRequest.bind(this, 'dashboard');
 
             // TODO: make utility loading interface
-            this.$node.text('Loading...')
+            this.$node.text('Loading...');
 
             this.on('click', function(e) {
                 if ($(e.target).is('.grid-scroller, .grid-stack, .grid-stack-item, .item-content')) {
                     self.trigger('selectObjects');
                 }
-            })
+            });
             this.on('click', {
                 editDashboardSelector: this.onEditDashboard,
                 configureItemSelector: this.onConfigure,
@@ -142,7 +151,7 @@ define([
             items.forEach(function(item) {
                 var $gridItem = self.$node.find('.grid-stack-item').filter(function() {
                   return $(this).data('item-id') === item.id;
-                })
+                });
                 $gridItem.find('.item-content').trigger('refreshData');
             });
         };
@@ -524,7 +533,7 @@ define([
                 console.error('No component to render for ', extension);
                 $(node).trigger('finishedLoading');
             }
-        }
+        };
 
         this.renderItems = function() {
             if (!this.dashboard.items.length) {
@@ -622,18 +631,19 @@ define([
                     if (dashboards.length) {
                         return dashboards[0];
                     }
-                    return Promise.require('dashboard/defaultLayout')
-                        .then(function(items) {
-                            return self.request('dashboardNew', { items: items })
-                                .then(function(result) {
-                                    if (result.itemIds && result.itemIds.length === items.length) {
-                                        items.forEach(function(item) {
-                                            item.id = result.itemIds.shift();
-                                        })
-                                    }
-                                    return { id: result.id, items: items, title: '' };
-                                })
-                        })
+
+                    if (layouts.length) {
+                        if (layouts.length > 1) {
+                            console.warn(layouts.length + ' org.visallo.web.dashboard.layout extensions were found.'
+                            + ' Only the first one will be used.');
+                        }
+                        return self.requestDashboards(layouts[0]);
+                    } else {
+                        return Promise.require('dashboard/defaultLayout')
+                            .then(function(items) {
+                                return self.requestDashboards(items);
+                            });
+                    }
                 })
                 .then(function(dashboard) {
                     self.dashboard = dashboard;
@@ -649,6 +659,18 @@ define([
                     self.renderItems();
                 })
                 .done();
+        };
+
+        this.requestDashboards = function(items) {
+            return this.request('dashboardNew', { items: items })
+                .then(function(result) {
+                    if (result.itemIds && result.itemIds.length === items.length) {
+                        items.forEach(function(item) {
+                            item.id = result.itemIds.shift();
+                        })
+                    }
+                    return { id: result.id, items: items, title: '' };
+                });
         };
 
         this.adjustHeader = function() {
