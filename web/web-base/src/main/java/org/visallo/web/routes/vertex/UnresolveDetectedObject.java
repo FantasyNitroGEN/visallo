@@ -60,6 +60,7 @@ public class UnresolveDetectedObject implements ParameterizedHandler {
             visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
         }
 
+        long timestamp = System.currentTimeMillis();
         // remove edge
         graph.softDeleteEdge(edge, authorizations);
 
@@ -68,7 +69,7 @@ public class UnresolveDetectedObject implements ParameterizedHandler {
 
         graph.flush();
 
-        this.workQueueRepository.pushEdgeDeletion(edge);
+        this.workQueueRepository.pushEdgeDeletion(edge, timestamp, Priority.HIGH);
         this.workQueueRepository.pushGraphPropertyQueue(
                 artifactVertex,
                 multiValueKey,

@@ -7,10 +7,8 @@ import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
@@ -36,12 +34,13 @@ public class DeleteEdge implements ParameterizedHandler {
             Authorizations authorizations
     ) throws Exception {
         LOGGER.debug("deleting edge: %s", edgeId);
+        long timestamp = System.currentTimeMillis();
         Edge edge = graph.getEdge(edgeId, authorizations);
         graph.softDeleteEdge(edge, authorizations);
         graph.flush();
         LOGGER.info("deleted edge: %s", edgeId);
 
-        this.workQueueRepository.pushEdgeDeletion(edge);
+        this.workQueueRepository.pushEdgeDeletion(edge, timestamp, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
     }

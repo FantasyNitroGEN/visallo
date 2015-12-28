@@ -10,6 +10,7 @@ import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
@@ -22,17 +23,20 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 public class VertexRemove implements ParameterizedHandler {
     private final Graph graph;
     private final WorkspaceHelper workspaceHelper;
-    private ACLProvider aclProvider;
+    private final ACLProvider aclProvider;
+    private final WorkQueueRepository workQueueRepository;
 
     @Inject
     public VertexRemove(
             final Graph graph,
             final WorkspaceHelper workspaceHelper,
-            final ACLProvider aclProvider
+            final ACLProvider aclProvider,
+            final WorkQueueRepository workQueueRepository
     ) {
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
         this.aclProvider = aclProvider;
+        this.workQueueRepository = workQueueRepository;
     }
 
     @Handle
