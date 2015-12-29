@@ -120,15 +120,10 @@ public abstract class ACLProvider {
         for (OntologyProperty ontologyProperty : hasOntologyProperties.getProperties()) {
             String name = ontologyProperty.getTitle();
             List<Property> properties = IterableUtils.toList(element.getProperties(name));
-            if (properties.isEmpty()) {
-                ClientApiPropertyAcl propertyAcl = newClientApiPropertyAcl(element, null, name, user);
+            for (Property property : properties) {
+                String key = property.getKey();
+                ClientApiPropertyAcl propertyAcl = newClientApiPropertyAcl(element, key, name, user);
                 propertyAcls.add(propertyAcl);
-            } else {
-                for (Property property : properties) {
-                    String key = property.getKey();
-                    ClientApiPropertyAcl propertyAcl = newClientApiPropertyAcl(element, key, name, user);
-                    propertyAcls.add(propertyAcl);
-                }
             }
         }
     }
