@@ -65,6 +65,10 @@ public abstract class GraphPropertyWorker {
 
     public abstract boolean isHandled(Element element, Property property);
 
+    public boolean isDeleteElementHandled(Element element, Property property) {
+        return false;
+    };
+
     public abstract void execute(InputStream in, GraphPropertyWorkData data) throws Exception;
 
     public boolean isLocalFileRequired() {

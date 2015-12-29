@@ -1,14 +1,12 @@
 package org.visallo.core.ingest.graphProperty;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.util.JSONUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GraphPropertyMessage {
@@ -19,6 +17,8 @@ public class GraphPropertyMessage {
     public static final String WORKSPACE_ID = "workspaceId";
     public static final String VISIBILITY_SOURCE = "visibilitySource";
     public static final String PRIORITY = "priority";
+    public static final String IS_ELEMENT_DELETED = "isElementDeleted";
+    public static final String BEFORE_ELEMENT_DELETE_TIMESTAMP = "beforeElementDeleteTimestamp";
 
     private JSONObject _obj;
 
@@ -63,6 +63,10 @@ public class GraphPropertyMessage {
     public List<String> getEdgeIds(){
         return getListOfItemsFromJSONKey(_obj, GRAPH_EDGE_ID);
     }
+
+    public boolean isElementDeleted() { return _obj.optBoolean(IS_ELEMENT_DELETED, false); }
+
+    public long getBeforeElementDeleteTimestamp() { return _obj.optLong(BEFORE_ELEMENT_DELETE_TIMESTAMP, -1L); }
 
     public boolean canHandleVertex(){
         return canHandleElementById(getVertexIds());

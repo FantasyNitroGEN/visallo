@@ -197,7 +197,12 @@ public class GraphPropertyRunner extends WorkerBase {
         List<Element> vertices = Lists.newLinkedList();
 
         for (String vertexId : message.getVertexIds()) {
-            Vertex vertex = graph.getVertex(vertexId, this.authorizations);
+            Vertex vertex;
+            if (message.isElementDeleted()) {
+                vertex = graph.getVertex(vertexId, FetchHint.ALL, message.getBeforeElementDeleteTimestamp(), this.authorizations);
+            } else {
+                vertex = graph.getVertex(vertexId, this.authorizations);
+            }
             if (doesExist(vertex)) {
                 vertices.add(vertex);
             } else {
@@ -211,11 +216,16 @@ public class GraphPropertyRunner extends WorkerBase {
         List<Element> edges = Lists.newLinkedList();
 
         for (String edgeId : message.getEdgeIds()) {
-            Edge edge = graph.getEdge(edgeId, this.authorizations);
+            Edge edge;
+            if (message.isElementDeleted()) {
+                edge = graph.getEdge(edgeId, FetchHint.ALL, message.getBeforeElementDeleteTimestamp(), this.authorizations);
+            } else {
+                edge = graph.getEdge(edgeId, this.authorizations);
+            }
             if (doesExist(edge)) {
                 edges.add(edge);
             } else {
-                LOGGER.warn("Could not find vertex with id %s", edgeId);
+                LOGGER.warn("Could not find edge with id %s", edgeId);
             }
         }
         return edges;
@@ -249,7 +259,7 @@ public class GraphPropertyRunner extends WorkerBase {
     private void safeExecuteHandlePropertyOnElement(Element element, Property property, GraphPropertyMessage message) throws Exception {
         String propertyText = getPropertyText(property);
 
-        List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property);
+        List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property, message.isElementDeleted());
         if (interestedWorkerWrappers.size() == 0) {
             LOGGER.debug("Could not find interested workers for element %s property %s", element.getId(), propertyText);
             return;
@@ -266,7 +276,8 @@ public class GraphPropertyRunner extends WorkerBase {
                 property,
                 message.getWorkspaceId(),
                 message.getVisibilitySource(),
-                message.getPriority()
+                message.getPriority(),
+                message.isElementDeleted()
         );
 
         LOGGER.debug("Begin work on element %s property %s", element.getId(), propertyText);
@@ -355,7 +366,7 @@ public class GraphPropertyRunner extends WorkerBase {
         return false;
     }
 
-    private List<GraphPropertyThreadedWrapper> findInterestedWorkers(Element element, Property property) {
+    private List<GraphPropertyThreadedWrapper> findInterestedWorkers(Element element, Property property, boolean isDeleted) {
         Set<String> graphPropertyWorkerWhiteList = IterableUtils.toSet(VisalloProperties.GRAPH_PROPERTY_WORKER_WHITE_LIST.getPropertyValues(element));
         Set<String> graphPropertyWorkerBlackList = IterableUtils.toSet(VisalloProperties.GRAPH_PROPERTY_WORKER_BLACK_LIST.getPropertyValues(element));
 
@@ -368,7 +379,12 @@ public class GraphPropertyRunner extends WorkerBase {
             if (graphPropertyWorkerBlackList.contains(graphPropertyWorkerName)) {
                 continue;
             }
-            if (wrapper.getWorker().isHandled(element, property)) {
+            GraphPropertyWorker worker = wrapper.getWorker();
+            if (isDeleted) {
+                if (worker.isDeleteElementHandled(element, property)){
+                    interestedWorkers.add(wrapper);
+                }
+            } else if (worker.isHandled(element, property)) {
                 interestedWorkers.add(wrapper);
             }
         }
@@ -437,12 +453,12 @@ public class GraphPropertyRunner extends WorkerBase {
         return this.lastProcessedPropertyTime.get();
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public User getUser() {
         return this.user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override

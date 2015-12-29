@@ -7,6 +7,7 @@ import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -34,12 +35,13 @@ public class DeleteVertex implements ParameterizedHandler {
             Authorizations authorizations
     ) throws Exception {
         LOGGER.debug("deleting vertex: %s", graphVertexId);
+        long timestamp = System.currentTimeMillis();
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         graph.softDeleteVertex(vertex, authorizations);
         graph.flush();
         LOGGER.info("deleted vertex: %s", graphVertexId);
 
-        this.workQueueRepository.pushVertexDeletion(vertex);
+        this.workQueueRepository.pushVertexDeletion(vertex, timestamp, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
     }

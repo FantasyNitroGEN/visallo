@@ -8,6 +8,7 @@ import org.vertexium.*;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
@@ -26,18 +27,21 @@ public class EdgeDelete implements ParameterizedHandler {
     private String entityHasImageIri;
     private final OntologyRepository ontologyRepository;
     private final ACLProvider aclProvider;
+    private final WorkQueueRepository workQueueRepository;
 
     @Inject
     public EdgeDelete(
             final Graph graph,
             final WorkspaceHelper workspaceHelper,
             final OntologyRepository ontologyRepository,
-            final ACLProvider aclProvider
-    ) {
+            final ACLProvider aclProvider,
+            final WorkQueueRepository workQueueRepository
+            ) {
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
         this.ontologyRepository = ontologyRepository;
         this.aclProvider = aclProvider;
+        this.workQueueRepository = workQueueRepository;
 
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
         if (this.entityHasImageIri == null) {

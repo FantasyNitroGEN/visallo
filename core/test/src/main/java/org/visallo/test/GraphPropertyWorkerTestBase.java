@@ -157,10 +157,14 @@ public abstract class GraphPropertyWorkerTestBase {
     }
 
     protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in) {
-        return run(gpw, workerPrepareData, e, prop, in, null, null);
+        return run(gpw, workerPrepareData, e, prop, in, null, false, null);
     }
 
-    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, String workspaceId, String visibilitySource) {
+    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, boolean isDeleted) {
+        return run(gpw, workerPrepareData, e, prop, in, null, isDeleted, null);
+    }
+
+    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, String workspaceId, boolean isDeleted, String visibilitySource) {
         try {
             gpw.setConfiguration(getConfiguration());
             gpw.setGraph(getGraph());
@@ -186,7 +190,8 @@ public abstract class GraphPropertyWorkerTestBase {
                     prop,
                     workspaceId,
                     visibilitySource,
-                    Priority.NORMAL
+                    Priority.NORMAL,
+                    isDeleted
             );
             if (gpw.isLocalFileRequired() && executeData.getLocalFile() == null && in != null) {
                 byte[] data = IOUtils.toByteArray(in);

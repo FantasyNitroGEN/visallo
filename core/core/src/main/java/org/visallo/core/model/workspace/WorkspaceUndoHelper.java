@@ -185,7 +185,7 @@ public class WorkspaceUndoHelper {
                         graph.flush();
                         workQueueRepository.broadcastUndoPropertyDelete(vertex, propertyKey, propertyName);
                     } else {
-                        workspaceHelper.deleteProperty(vertex, property, false, workspaceId, Priority.HIGH, authorizations);
+                        workspaceHelper.deleteProperty(vertex, property, false, workspaceId, Priority.HIGH,  authorizations);
                         graph.flush();
                         workQueueRepository.broadcastUndoProperty(vertex, propertyKey, propertyName);
                     }

@@ -29,10 +29,10 @@ public class WorkspaceHelper {
     private final UserRepository userRepository;
     private final WorkQueueRepository workQueueRepository;
     private final Graph graph;
-    private String entityHasImageIri;
-    private String artifactContainsImageOfEntityIri;
     private final OntologyRepository ontologyRepository;
     private final WorkspaceRepository workspaceRepository;
+    private String entityHasImageIri;
+    private String artifactContainsImageOfEntityIri;
 
     @Inject
     public WorkspaceHelper(
@@ -61,6 +61,19 @@ public class WorkspaceHelper {
         }
     }
 
+    public static String getWorkspaceIdOrNullIfPublish(String workspaceId, boolean shouldPublish, User user) {
+        if (shouldPublish) {
+            if (user.getPrivileges().contains(Privilege.PUBLISH)) {
+                workspaceId = null;
+            } else {
+                throw new VisalloAccessDeniedException("The publish parameter was sent in the request, but the user does not have publish privilege.", user, "publish");
+            }
+        } else if (workspaceId == null) {
+            throw new VisalloException("workspaceId parameter required");
+        }
+        return workspaceId;
+    }
+
     public void unresolveTerm(Vertex termMention, Authorizations authorizations) {
         Vertex outVertex = termMentionRepository.findOutVertex(termMention, authorizations);
         if (outVertex == null) {
@@ -70,9 +83,10 @@ public class WorkspaceHelper {
         String resolveEdgeId = VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID.getPropertyValue(termMention, null);
         if (resolveEdgeId != null) {
             Edge resolveEdge = graph.getEdge(resolveEdgeId, authorizations);
+            long timestamp = System.currentTimeMillis();
             graph.softDeleteEdge(resolveEdge, authorizations);
             graph.flush();
-            workQueueRepository.pushEdgeDeletion(resolveEdge);
+            workQueueRepository.pushEdgeDeletion(resolveEdge, timestamp, Priority.HIGH);
         }
 
         termMentionRepository.delete(termMention, authorizations);
@@ -82,6 +96,10 @@ public class WorkspaceHelper {
     }
 
     public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
+        deleteProperty(e, property, propertyIsPublic, workspaceId, priority, false, null, authorizations);
+    }
+
+    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, boolean isElementDeleted, Long beforeElementDeleteTimestamp, Authorizations authorizations) {
         if (propertyIsPublic) {
             e.markPropertyHidden(property, new Visibility(workspaceId), authorizations);
         } else {
@@ -94,7 +112,7 @@ public class WorkspaceHelper {
 
         graph.flush();
 
-        workQueueRepository.pushGraphPropertyQueue(e, property, priority);
+        workQueueRepository.pushGraphPropertyQueue(e, property, isElementDeleted, beforeElementDeleteTimestamp, priority);
     }
 
     public void deleteEdge(
@@ -108,8 +126,9 @@ public class WorkspaceHelper {
             User user
     ) {
         ensureOntologyIrisInitialized();
+        long timestamp = System.currentTimeMillis();
 
-        deleteProperties(edge, workspaceId, priority, authorizations, user);
+        deleteProperties(edge, workspaceId, priority, true, timestamp, authorizations, user);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
@@ -134,7 +153,6 @@ public class WorkspaceHelper {
             }
 
             graph.flush();
-            this.workQueueRepository.pushEdgeDeletion(edge);
         } else {
             graph.softDeleteEdge(edge, authorizations);
 
@@ -152,9 +170,9 @@ public class WorkspaceHelper {
             }
 
             graph.flush();
-            this.workQueueRepository.pushEdgeDeletion(edge);
         }
 
+        this.workQueueRepository.pushEdgeDeletion(edge, timestamp, Priority.HIGH);
         graph.flush();
     }
 
@@ -167,22 +185,23 @@ public class WorkspaceHelper {
         }
     }
 
-    private void deleteProperties(Element e, String workspaceId, Priority priority, Authorizations authorizations, User user) {
+    private void deleteProperties(Element e, String workspaceId, Priority priority, boolean isElementDeleted, Long beforeDeleteTimestamp, Authorizations authorizations, User user) {
         List<Property> properties = IterableUtils.toList(e.getProperties());
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
 
         for (int i = 0; i < sandboxStatuses.length; i++) {
             boolean propertyIsPublic = (sandboxStatuses[i] == SandboxStatus.PUBLIC);
             Property property = properties.get(i);
-            deleteProperty(e, property, propertyIsPublic, workspaceId, priority, authorizations);
+            deleteProperty(e, property, propertyIsPublic, workspaceId, priority, isElementDeleted, beforeDeleteTimestamp, authorizations);
         }
     }
 
     public void deleteVertex(Vertex vertex, String workspaceId, boolean isPublicVertex, Priority priority, Authorizations authorizations, User user) {
         LOGGER.debug("BEGIN deleteVertex(vertexId: %s, workspaceId: %s, isPublicVertex: %b, user: %s)", vertex.getId(), workspaceId, isPublicVertex, user.getUsername());
         ensureOntologyIrisInitialized();
+        long timestamp = System.currentTimeMillis();
 
-        deleteProperties(vertex, workspaceId, priority, authorizations, user);
+        deleteProperties(vertex, workspaceId, priority, true, timestamp, authorizations, user);
 
         // make sure the entity is on the workspace so that it shows up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);
@@ -192,7 +211,7 @@ public class WorkspaceHelper {
 
             graph.markVertexHidden(vertex, workspaceVisibility, authorizations);
             graph.flush();
-            workQueueRepository.pushVertexDeletion(vertex);
+            workQueueRepository.pushVertexDeletion(vertex, timestamp, Priority.HIGH);
         } else {
             VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
             visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
@@ -220,13 +239,15 @@ public class WorkspaceHelper {
                         // remove property
                         VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
                         graph.softDeleteEdge(edge, authorizations);
-                        workQueueRepository.pushEdgeDeletion(edge);
+                        workQueueRepository.pushEdgeDeletion(edge, timestamp, Priority.HIGH);
                         workQueueRepository.pushGraphPropertyQueue(
                                 outVertex,
                                 multiValueKey,
                                 VisalloProperties.DETECTED_OBJECT.getPropertyName(),
                                 workspaceId,
                                 visibilityJson.getSource(),
+                                false,
+                                null,
                                 priority
                         );
                     }
@@ -251,7 +272,7 @@ public class WorkspaceHelper {
             LOGGER.debug("soft delete vertex");
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
-            this.workQueueRepository.pushVertexDeletion(vertex);
+            this.workQueueRepository.pushVertexDeletion(vertex, timestamp, Priority.HIGH);
         }
 
         graph.flush();
@@ -268,18 +289,5 @@ public class WorkspaceHelper {
                 unresolveTerm(termMention, authorizations);
             }
         }
-    }
-
-    public static String getWorkspaceIdOrNullIfPublish(String workspaceId, boolean shouldPublish, User user) {
-        if (shouldPublish) {
-            if (user.getPrivileges().contains(Privilege.PUBLISH)) {
-                workspaceId = null;
-            } else {
-                throw new VisalloAccessDeniedException("The publish parameter was sent in the request, but the user does not have publish privilege.", user, "publish");
-            }
-        } else if (workspaceId == null) {
-            throw new VisalloException("workspaceId parameter required");
-        }
-        return workspaceId;
     }
 }
