@@ -4,13 +4,17 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Direction;
+import org.vertexium.Edge;
+import org.vertexium.Graph;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.SandboxStatusUtil;
@@ -28,18 +32,21 @@ public class EdgeSetVisibility implements ParameterizedHandler {
     private final WorkQueueRepository workQueueRepository;
     private final WorkspaceRepository workspaceRepository;
     private final GraphRepository graphRepository;
+    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
     public EdgeSetVisibility(
-            final Graph graph,
-            final WorkQueueRepository workQueueRepository,
-            final WorkspaceRepository workspaceRepository,
-            final GraphRepository graphRepository
+            Graph graph,
+            WorkQueueRepository workQueueRepository,
+            WorkspaceRepository workspaceRepository,
+            GraphRepository graphRepository,
+            VisibilityTranslator visibilityTranslator
     ) {
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.workspaceRepository = workspaceRepository;
         this.graphRepository = graphRepository;
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     @Handle
@@ -56,7 +63,7 @@ public class EdgeSetVisibility implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Could not find edge: " + graphEdgeId);
         }
 
-        if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
+        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }

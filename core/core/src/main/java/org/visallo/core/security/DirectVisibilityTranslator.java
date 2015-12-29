@@ -28,12 +28,10 @@ public class DirectVisibilityTranslator extends VisibilityTranslator {
     public Visibility toVisibilityNoSuperUser(VisibilityJson visibilityJson) {
         StringBuilder visibilityString = new StringBuilder();
 
-        List<String> required = new ArrayList<String>();
+        List<String> required = new ArrayList<>();
 
         String source = visibilityJson.getSource();
-        if (source != null && source.trim().length() > 0) {
-            required.add(source.trim());
-        }
+        addSourceToRequiredVisibilities(required, source);
 
         Set<String> workspaces = visibilityJson.getWorkspaces();
         if (workspaces != null) {
@@ -50,6 +48,12 @@ public class DirectVisibilityTranslator extends VisibilityTranslator {
                     .append(")");
         }
         return new Visibility(visibilityString.toString());
+    }
+
+    protected void addSourceToRequiredVisibilities(List<String> required, String source) {
+        if (source != null && source.trim().length() > 0) {
+            required.add(source.trim());
+        }
     }
 
     @Override

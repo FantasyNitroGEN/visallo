@@ -9,6 +9,7 @@ import org.vertexium.*;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JsonSerializer;
@@ -28,16 +29,19 @@ public class EdgeCreate implements ParameterizedHandler {
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
+    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
     public EdgeCreate(
-            final Graph graph,
-            final WorkQueueRepository workQueueRepository,
-            final GraphRepository graphRepository
+            Graph graph,
+            WorkQueueRepository workQueueRepository,
+            GraphRepository graphRepository,
+            VisibilityTranslator visibilityTranslator
     ) {
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     @Handle
@@ -57,7 +61,7 @@ public class EdgeCreate implements ParameterizedHandler {
         Vertex inVertex = graph.getVertex(inVertexId, authorizations);
         Vertex outVertex = graph.getVertex(outVertexId, authorizations);
 
-        if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
+        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
