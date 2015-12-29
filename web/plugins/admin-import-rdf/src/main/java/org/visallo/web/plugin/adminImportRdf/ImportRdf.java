@@ -14,6 +14,7 @@ import org.vertexium.util.FilterIterable;
 import org.visallo.common.rdf.RdfImportHelper;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -35,10 +36,15 @@ import static org.vertexium.util.IterableUtils.toList;
 public class ImportRdf implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImportRdf.class);
     private final RdfImportHelper rdfImportHelper;
+    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
-    public ImportRdf(RdfImportHelper rdfImportHelper) {
+    public ImportRdf(
+            RdfImportHelper rdfImportHelper,
+            VisibilityTranslator visibilityTranslator
+    ) {
         this.rdfImportHelper = rdfImportHelper;
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     @Handle
@@ -46,7 +52,7 @@ public class ImportRdf implements ParameterizedHandler {
             HttpServletRequest request,
             @Optional(name = "priority", defaultValue = "NORMAL") String priorityString,
             @Optional(name = "timeZone", defaultValue = "GMT") String timeZoneId,
-            @Optional(name = "visibility", defaultValue = "") String visibilityString,
+            @Optional(name = "visibility", defaultValue = "") String visibilitySource,
             User user,
             Authorizations authorizations
     ) throws IOException, ServletException {
@@ -61,7 +67,7 @@ public class ImportRdf implements ParameterizedHandler {
         File tempDirectory = savePartToTemp(part);
         try {
             TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
-            Visibility visibility = new Visibility(visibilityString);
+            Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
             rdfImportHelper.importRdf(tempDirectory, timeZone, priority, visibility, user, authorizations);
             return VisalloResponse.SUCCESS;
         } finally {

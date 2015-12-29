@@ -72,7 +72,7 @@ public class MetadataGraphPropertyWorker extends GraphPropertyWorker {
         if (visibilitySource == null) {
             visibility = data.getVisibility();
         } else {
-            visibility = new Visibility(visibilitySource);
+            visibility = getVisibilityTranslator().toVisibility(visibilitySource).getVisibility();
         }
 
         Metadata metadata = new Metadata();

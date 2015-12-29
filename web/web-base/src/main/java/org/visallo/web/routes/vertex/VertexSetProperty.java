@@ -92,7 +92,7 @@ public class VertexSetProperty implements ParameterizedHandler {
             throw new VisalloException("Parameter: 'value' or 'value[]' is required in the request");
         }
 
-        if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
+        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }

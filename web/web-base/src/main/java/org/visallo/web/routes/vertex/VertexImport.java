@@ -15,13 +15,13 @@ import org.json.JSONException;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
-import org.vertexium.Visibility;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.FileImport;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
@@ -50,17 +50,20 @@ public class VertexImport implements ParameterizedHandler {
     private final Graph graph;
     private final FileImport fileImport;
     private final WorkspaceRepository workspaceRepository;
+    private final VisibilityTranslator visibilityTranslator;
     private Authorizations authorizations;
 
     @Inject
     public VertexImport(
-            final Graph graph,
-            final FileImport fileImport,
-            final WorkspaceRepository workspaceRepository
+            Graph graph,
+            FileImport fileImport,
+            WorkspaceRepository workspaceRepository,
+            VisibilityTranslator visibilityTranslator
     ) {
         this.graph = graph;
         this.fileImport = fileImport;
         this.workspaceRepository = workspaceRepository;
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     protected static String getFilename(Part part) {
@@ -156,7 +159,7 @@ public class VertexImport implements ParameterizedHandler {
                 addPropertiesToFilesList(files, propertiesIndex.getAndIncrement(), properties);
             } else if (part.getName().equals("visibilitySource")) {
                 String visibilitySource = IOUtils.toString(part.getInputStream(), "UTF8");
-                if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
+                if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
                     invalidVisibilities.add(visibilitySource);
                 }
                 addVisibilityToFilesList(files, visibilitySourceIndex.getAndIncrement(), visibilitySource);

@@ -7,13 +7,13 @@ import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
-import org.vertexium.Visibility;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.SandboxStatusUtil;
@@ -31,18 +31,21 @@ public class VertexSetVisibility implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
+    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
     public VertexSetVisibility(
-            final Graph graph,
-            final WorkspaceRepository workspaceRepository,
-            final WorkQueueRepository workQueueRepository,
-            final GraphRepository graphRepository
+            Graph graph,
+            WorkspaceRepository workspaceRepository,
+            WorkQueueRepository workQueueRepository,
+            GraphRepository graphRepository,
+            VisibilityTranslator visibilityTranslator
     ) {
         this.graph = graph;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     @Handle
@@ -54,7 +57,7 @@ public class VertexSetVisibility implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        if (!graph.isVisibilityValid(new Visibility(visibilitySource), authorizations)) {
+        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
