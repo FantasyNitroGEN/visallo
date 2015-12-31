@@ -230,7 +230,7 @@ define([
                     this.classed('warning', function(n) {
                         return (/WARNING/i).test(n.severity);
                     });
-                    this.classed('info', function(n) {
+                    this.classed('informational', function(n) {
                         return !n.severity || (/INFO/i).test(n.severity);
                     });
                     this.classed('canDismiss', function(n) {
