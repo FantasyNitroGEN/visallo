@@ -207,7 +207,7 @@ define([
                 node.find('.grid-stack-item-content > h1 span').text(
                     data.item.title || data.extension.title
                 );
-            } else if (changed) {
+            } else if (changed && data.recreate !== false) {
                 this.createDashboardItemComponent(node, data.item);
             }
             if (changed) {
