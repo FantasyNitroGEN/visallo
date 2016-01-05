@@ -70,15 +70,16 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                     }
                     response.setCharacterEncoding("UTF-8");
                     if (resultIsClientApiObject) {
+                        ClientApiObject clientApiObject = (ClientApiObject) result;
+                        User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+                        clientApiObject = aclProvider.appendACL(clientApiObject, user);
+                        String jsonObject;
                         try {
-                            ClientApiObject clientApiObject = (ClientApiObject) result;
-                            User user = VisalloBaseParameterProvider.getUser(request, userRepository);
-                            clientApiObject = aclProvider.appendACL(clientApiObject, user);
-                            String jsonObject = ObjectMapperFactory.getInstance().writeValueAsString(clientApiObject);
-                            response.getWriter().write(jsonObject);
+                            jsonObject = ObjectMapperFactory.getInstance().writeValueAsString(clientApiObject);
                         } catch (JsonProcessingException e) {
-                            throw new VisalloException("Could not write json", e);
+                            throw new VisalloException("Could not convert clientApiObject to string", e);
                         }
+                        response.getWriter().write(jsonObject);
                     } else if (resultIsInputStream) {
                         try (InputStream in = (InputStream) result) {
                             IOUtils.copy(in, response.getOutputStream());

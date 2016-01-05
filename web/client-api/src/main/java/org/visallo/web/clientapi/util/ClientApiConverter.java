@@ -14,6 +14,8 @@ public class ClientApiConverter {
             return toClientApiValue((JSONArray) value);
         } else if (value instanceof JSONObject) {
             return toClientApiValueInternal((JSONObject) value);
+        } else if (JSONObject.NULL.equals(value)) {
+            return null;
         } else if (value instanceof String) {
             return toClientApiValue((String) value);
         } else if (value instanceof Date) {
