@@ -29,7 +29,7 @@ function _message {
 type javac &>/dev/null || _usage 'Java compiler (javac) not found in your PATH'
 type docker-machine &>/dev/null || _usage 'docker-machine not found in your PATH'
 
-_message 'Creating Docker virtial machine'
+_message 'Creating Docker virtual machine'
 docker-machine create \
   --driver virtualbox \
   --virtualbox-memory 8192 \
