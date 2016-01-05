@@ -12,7 +12,7 @@ define([
             var self = this;
 
             if (this.attr.item.configuration.searchId) {
-                this.on(document, 'refreshData', this.loadItems);
+                this.on('refreshData', this.loadItems);
                 this.loadItems();
             } else {
                 this.$node
