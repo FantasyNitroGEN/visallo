@@ -65,7 +65,7 @@ public abstract class GraphPropertyWorker {
 
     public abstract boolean isHandled(Element element, Property property);
 
-    public boolean isDeleteElementHandled(Element element, Property property) {
+    public boolean isDeleteHandled(Element element, Property property) {
         return false;
     };
 

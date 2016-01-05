@@ -136,7 +136,7 @@ public class GraphPropertyWorkData {
                 ", property=" + property +
                 ", workspaceId='" + workspaceId + '\'' +
                 ", priority=" + priority +
-                ", isElementDeleted=" + isElementDeleted +
+                ", isDeletion=" + isElementDeleted +
                 '}';
     }
 }
