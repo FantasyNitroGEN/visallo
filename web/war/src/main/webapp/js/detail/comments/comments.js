@@ -302,8 +302,6 @@ define([
                 sourceInfo = data && data.sourceInfo,
                 commentRow = (comment || path) && $(event.target).closest('li').children('ul');
 
-            this.$node.find('button.info').popover('hide');
-
             if (commentRow && commentRow.length) {
                 root.insertBefore(commentRow)
                 if (path) {
