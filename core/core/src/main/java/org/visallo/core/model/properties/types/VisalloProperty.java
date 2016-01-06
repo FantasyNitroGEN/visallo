@@ -109,9 +109,9 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
     ) {
         Object currentValue = getPropertyValue(element, propertyKey);
         if (currentValue != null) {
-            removeProperty(m, propertyKey, visibility);
             long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
-            changedPropertiesOut.add(new VisalloPropertyUpdateRemove(this, propertyKey, beforeDeletionTimestamp));
+            removeProperty(m, propertyKey, visibility);
+            changedPropertiesOut.add(new VisalloPropertyUpdateRemove(this, propertyKey, beforeDeletionTimestamp, true, false));
         }
     }
 

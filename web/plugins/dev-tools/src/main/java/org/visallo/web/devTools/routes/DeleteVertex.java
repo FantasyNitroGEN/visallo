@@ -35,13 +35,13 @@ public class DeleteVertex implements ParameterizedHandler {
             Authorizations authorizations
     ) throws Exception {
         LOGGER.debug("deleting vertex: %s", graphVertexId);
-        long timestamp = System.currentTimeMillis();
+        long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         graph.softDeleteVertex(vertex, authorizations);
         graph.flush();
         LOGGER.info("deleted vertex: %s", graphVertexId);
 
-        this.workQueueRepository.pushVertexDeletion(vertex, timestamp, Priority.HIGH);
+        this.workQueueRepository.pushVertexDeletion(vertex, beforeDeletionTimestamp, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
     }

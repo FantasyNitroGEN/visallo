@@ -72,9 +72,9 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
     ) {
         Object currentValue = getPropertyValue(element);
         if (currentValue != null) {
-            removeProperty(m, visibility);
             long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
-            changedPropertiesOut.add(new VisalloPropertyUpdateRemove(this, beforeDeletionTimestamp));
+            removeProperty(m, visibility);
+            changedPropertiesOut.add(new VisalloPropertyUpdateRemove(this, beforeDeletionTimestamp, true, false));
         }
     }
 
