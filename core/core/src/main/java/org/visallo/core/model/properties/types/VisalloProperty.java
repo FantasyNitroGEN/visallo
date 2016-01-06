@@ -3,6 +3,8 @@ package org.visallo.core.model.properties.types;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.List;
 import static com.google.common.collect.Iterables.*;
 
 public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<TRaw, TGraph> {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VisalloProperty.class);
+
     protected VisalloProperty(String propertyName) {
         super(propertyName);
     }
@@ -26,11 +30,13 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         element.addPropertyValue(multiKey, getPropertyName(), wrap(value), metadata, visibility, authorizations);
     }
 
-    public final void addPropertyValue(final ElementMutation<?> mutation,
-                                       final String multiKey,
-                                       final TRaw value,
-                                       final Metadata metadata,
-                                       final Visibility visibility) {
+    public final void addPropertyValue(
+            final ElementMutation<?> mutation,
+            final String multiKey,
+            final TRaw value,
+            final Metadata metadata,
+            final Visibility visibility
+    ) {
         mutation.addPropertyValue(multiKey, getPropertyName(), wrap(value), metadata, visibility);
     }
 
@@ -94,6 +100,21 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         elementMutation.alterPropertyVisibility(propertyKey, getPropertyName(), newVisibility);
     }
 
+    public void removeProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            String propertyKey,
+            Visibility visibility
+    ) {
+        Object currentValue = getPropertyValue(element, propertyKey);
+        if (currentValue != null) {
+            removeProperty(m, propertyKey, visibility);
+            long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
+            changedPropertiesOut.add(new VisalloPropertyUpdateRemove(this, propertyKey, beforeDeletionTimestamp));
+        }
+    }
+
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
      */
@@ -122,9 +143,11 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             Visibility visibility
     ) {
         if (newValue == null) {
+            LOGGER.error("passing a null value to updateProperty will not be allowed in the future: %s", this);
             return;
         }
         if (newValue instanceof String && ((String) newValue).length() == 0) {
+            LOGGER.error("passing an empty string value to updateProperty will not be allowed in the future: %s", this);
             return;
         }
         Object currentValue = null;

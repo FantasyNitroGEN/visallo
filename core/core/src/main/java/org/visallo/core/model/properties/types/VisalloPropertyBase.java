@@ -45,4 +45,9 @@ public abstract class VisalloPropertyBase<TRaw, TGraph> {
             return unwrap(input);
         }
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getName() + "{propertyName='" + propertyName + "'}";
+    }
 }

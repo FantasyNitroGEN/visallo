@@ -3,10 +3,14 @@ package org.visallo.core.model.properties.types;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.List;
 
 public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<TRaw, TGraph> {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SingleValueVisalloProperty.class);
+
     protected SingleValueVisalloProperty(String propertyName) {
         super(propertyName);
     }
@@ -60,6 +64,20 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         elementMutation.alterPropertyVisibility(getPropertyName(), newVisibility);
     }
 
+    public void removeProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            Visibility visibility
+    ) {
+        Object currentValue = getPropertyValue(element);
+        if (currentValue != null) {
+            removeProperty(m, visibility);
+            long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
+            changedPropertiesOut.add(new VisalloPropertyUpdateRemove(this, beforeDeletionTimestamp));
+        }
+    }
+
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
      */
@@ -86,9 +104,11 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             Visibility visibility
     ) {
         if (newValue == null) {
+            LOGGER.error("passing a null value to updateProperty will not be allowed in the future: %s", this);
             return;
         }
         if (newValue instanceof String && ((String) newValue).length() == 0) {
+            LOGGER.error("passing an empty string value to updateProperty will not be allowed in the future: %s", this);
             return;
         }
         Object currentValue = null;

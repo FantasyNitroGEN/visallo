@@ -198,8 +198,8 @@ public class GraphPropertyRunner extends WorkerBase {
 
         for (String vertexId : message.getVertexIds()) {
             Vertex vertex;
-            if (message.isElementDeleted()) {
-                vertex = graph.getVertex(vertexId, FetchHint.ALL, message.getBeforeElementDeleteTimestamp(), this.authorizations);
+            if (message.isDeletion()) {
+                vertex = graph.getVertex(vertexId, FetchHint.ALL, message.getBeforeDeleteTimestamp(), this.authorizations);
             } else {
                 vertex = graph.getVertex(vertexId, this.authorizations);
             }
@@ -217,8 +217,8 @@ public class GraphPropertyRunner extends WorkerBase {
 
         for (String edgeId : message.getEdgeIds()) {
             Edge edge;
-            if (message.isElementDeleted()) {
-                edge = graph.getEdge(edgeId, FetchHint.ALL, message.getBeforeElementDeleteTimestamp(), this.authorizations);
+            if (message.isDeletion()) {
+                edge = graph.getEdge(edgeId, FetchHint.ALL, message.getBeforeDeleteTimestamp(), this.authorizations);
             } else {
                 edge = graph.getEdge(edgeId, this.authorizations);
             }
@@ -259,14 +259,27 @@ public class GraphPropertyRunner extends WorkerBase {
     private void safeExecuteHandlePropertyOnElement(Element element, Property property, GraphPropertyMessage message) throws Exception {
         String propertyText = getPropertyText(property);
 
-        List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property, message.isElementDeleted());
+        List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property, message.isDeletion());
         if (interestedWorkerWrappers.size() == 0) {
-            LOGGER.debug("Could not find interested workers for element %s property %s", element.getId(), propertyText);
+            LOGGER.debug(
+                    "Could not find interested workers for %s %s property %s (%s)",
+                    element instanceof Vertex ? "vertex" : "edge",
+                    element.getId(),
+                    propertyText,
+                    message.isDeletion() ? "deletion" : "update"
+            );
             return;
         }
         if (LOGGER.isDebugEnabled()) {
             for (GraphPropertyThreadedWrapper interestedWorkerWrapper : interestedWorkerWrappers) {
-                LOGGER.debug("interested worker for element %s property %s: %s", element.getId(), propertyText, interestedWorkerWrapper.getWorker().getClass().getName());
+                LOGGER.debug(
+                        "interested worker for %s %s property %s: %s (%s)",
+                        element instanceof Vertex ? "vertex" : "edge",
+                        element.getId(),
+                        propertyText,
+                        interestedWorkerWrapper.getWorker().getClass().getName(),
+                        message.isDeletion() ? "deletion" : "update"
+                );
             }
         }
 
@@ -277,7 +290,7 @@ public class GraphPropertyRunner extends WorkerBase {
                 message.getWorkspaceId(),
                 message.getVisibilitySource(),
                 message.getPriority(),
-                message.isElementDeleted()
+                message.isDeletion()
         );
 
         LOGGER.debug("Begin work on element %s property %s", element.getId(), propertyText);
@@ -381,7 +394,7 @@ public class GraphPropertyRunner extends WorkerBase {
             }
             GraphPropertyWorker worker = wrapper.getWorker();
             if (isDeleted) {
-                if (worker.isDeleteElementHandled(element, property)){
+                if (worker.isDeleteHandled(element, property)) {
                     interestedWorkers.add(wrapper);
                 }
             } else if (worker.isHandled(element, property)) {
