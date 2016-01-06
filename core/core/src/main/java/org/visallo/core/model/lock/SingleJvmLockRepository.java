@@ -1,5 +1,7 @@
 package org.visallo.core.model.lock;
 
+import org.visallo.core.exception.VisalloException;
+
 import java.util.concurrent.Callable;
 
 public class SingleJvmLockRepository extends LockRepository {
@@ -14,7 +16,7 @@ public class SingleJvmLockRepository extends LockRepository {
                         return callable.call();
                     }
                 } catch (Exception ex) {
-                    throw new RuntimeException("Failed to run in lock", ex);
+                    throw new VisalloException("Failed to run in lock", ex);
                 }
             }
         };

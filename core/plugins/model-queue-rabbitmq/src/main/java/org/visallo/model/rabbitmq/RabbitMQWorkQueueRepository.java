@@ -10,8 +10,6 @@ import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.externalResource.ExternalResourceWorker;
-import org.visallo.core.externalResource.QueueExternalResourceWorker;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
@@ -26,11 +24,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RabbitMQWorkQueueRepository.class);
-    private static final String DEFAULT_BROADCAST_EXCHANGE_NAME = "exBroadcast";
+    public static final String CONFIG_BROADCAST_EXCHANGE_NAME = "rabbitmq.broadcastExchangeName";
+    public static final String CONFIG_BROADCAST_EXCHANGE_NAME_DEFAULT = "exBroadcast";
 
     private final Connection connection;
     private final Channel channel;
@@ -151,24 +153,11 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
     }
 
     @Override
-    public void format() {
+    protected void deleteQueue(String queueName) {
         try {
-            LOGGER.info("deleting queue: %s", workQueueNames.getGraphPropertyQueueName());
-            LOGGER.info("deleting queue: %s", workQueueNames.getLongRunningProcessQueueName());
-            channel.queueDelete(workQueueNames.getGraphPropertyQueueName());
-            channel.queueDelete(workQueueNames.getLongRunningProcessQueueName());
-
-            Collection<ExternalResourceWorker> externalResourceWorkers =
-                    InjectHelper.getInjectedServices(ExternalResourceWorker.class, configuration);
-            for (ExternalResourceWorker externalResourceWorker : externalResourceWorkers) {
-                if (!(externalResourceWorker instanceof QueueExternalResourceWorker)) {
-                    continue;
-                }
-                String queueName = ((QueueExternalResourceWorker) externalResourceWorker).getQueueName();
-                channel.queueDelete(queueName);
-            }
+            channel.queueDelete(queueName);
         } catch (IOException e) {
-            throw new VisalloException("Could not delete queues", e);
+            throw new VisalloException("Could not delete queue: " + queueName, e);
         }
     }
 
@@ -215,6 +204,6 @@ public class RabbitMQWorkQueueRepository extends WorkQueueRepository {
     }
 
     private String getExchangeName() {
-        return this.configuration.get(Configuration.BROADCAST_EXCHANGE_NAME_CONFIGURATION, DEFAULT_BROADCAST_EXCHANGE_NAME);
+        return getConfiguration().get(CONFIG_BROADCAST_EXCHANGE_NAME, CONFIG_BROADCAST_EXCHANGE_NAME_DEFAULT);
     }
 }

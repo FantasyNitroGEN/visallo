@@ -15,7 +15,7 @@ public class ClassUtil {
         try {
             return (Class<? extends T>) Class.forName(className);
         } catch (ClassNotFoundException e) {
-            throw new VisalloException("Could not load class " + className);
+            throw new VisalloException("Could not load class " + className, e);
         }
     }
 
