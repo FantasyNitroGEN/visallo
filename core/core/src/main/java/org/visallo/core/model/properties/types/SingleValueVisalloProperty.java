@@ -10,6 +10,7 @@ import java.util.List;
 
 public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<TRaw, TGraph> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SingleValueVisalloProperty.class);
+
     protected SingleValueVisalloProperty(String propertyName) {
         super(propertyName);
     }
@@ -69,10 +70,7 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             ElementMutation m,
             Visibility visibility
     ) {
-        Object currentValue = null;
-        if (element != null) {
-            currentValue = getPropertyValue(element);
-        }
+        Object currentValue = getPropertyValue(element);
         if (currentValue != null) {
             removeProperty(m, visibility);
             long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
