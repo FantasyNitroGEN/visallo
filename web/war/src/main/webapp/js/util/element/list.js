@@ -288,8 +288,10 @@ define([
                 if (itemState.inMap) el.addClass('map-displayed');
             });
 
+            this.applyDraggable(el.children('a.draggable'));
+
             return el;
-        }
+        };
 
         this.addItems = function(items) {
             var self = this,
@@ -305,9 +307,8 @@ define([
                 this.$node.children('ul').append(added);
             }
 
-            this.applyDraggable(added.children('a.draggable'));
             this.loadVisibleResultPreviews();
-        }
+        };
 
         this.onAddInfiniteItems = function(evt, data) {
             var loading = this.$node.find('.infinite-loading');
