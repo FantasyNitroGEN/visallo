@@ -6,7 +6,9 @@ import org.vertexium.*;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
+import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -21,7 +23,10 @@ import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static org.vertexium.util.IterableUtils.toList;
 
 @Singleton
 public class WorkspaceHelper {
@@ -182,6 +187,47 @@ public class WorkspaceHelper {
         }
         if (this.artifactContainsImageOfEntityIri == null) {
             this.artifactContainsImageOfEntityIri = ontologyRepository.getRelationshipIRIByIntent("artifactContainsImageOfEntity");
+        }
+    }
+
+    public void deleteProperties(Element e,
+                                 String propertyKey,
+                                 String propertyName,
+                                 OntologyProperty ontologyProperty,
+                                 String workspaceId,
+                                 Authorizations authorizations, User user) {
+        List<Property> properties = new ArrayList<>();
+        properties.addAll(toList(e.getProperties(propertyKey, propertyName)));
+
+        if (properties.size() == 0) {
+            throw new VisalloResourceNotFoundException(String.format("Could not find property %s:%s on %s", propertyName, propertyKey, e));
+        }
+
+        properties.addAll(toList(e.getProperties(propertyKey, propertyName)));
+        if (ontologyProperty != null) {
+            for (String dependentPropertyIri : ontologyProperty.getDependentPropertyIris()) {
+                properties.addAll(toList(e.getProperties(propertyKey, dependentPropertyIri)));
+            }
+        }
+
+        if (e instanceof Edge) {
+            Edge edge = (Edge) e;
+            // add the vertex to the workspace so that the changes show up in the diff panel
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+        } else if (e instanceof Vertex) {
+            // add the vertex to the workspace so that the changes show up in the diff panel
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, e.getId(), null, null, user);
+        } else {
+            throw new VisalloException("element is not an edge or vertex: " + e);
+        }
+
+        SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
+
+        for (int i = 0; i < sandboxStatuses.length; i++) {
+            boolean propertyIsPublic = (sandboxStatuses[i] == SandboxStatus.PUBLIC);
+            Property property = properties.get(i);
+            deleteProperty(e, property, propertyIsPublic, workspaceId, Priority.HIGH, authorizations);
         }
     }
 
