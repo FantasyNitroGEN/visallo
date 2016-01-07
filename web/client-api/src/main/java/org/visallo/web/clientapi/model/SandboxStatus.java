@@ -11,7 +11,7 @@ public enum SandboxStatus {
         if (visibility == null) {
             return SandboxStatus.PUBLIC;
         }
-        if (!visibility.contains(workspaceId)) {
+        if (workspaceId == null || !visibility.contains(workspaceId)) {
             return SandboxStatus.PUBLIC;
         }
         return SandboxStatus.PRIVATE;
@@ -25,7 +25,7 @@ public enum SandboxStatus {
         if (workspacesList == null || workspacesList.size() == 0) {
             return SandboxStatus.PUBLIC;
         }
-        if (!workspacesList.contains(workspaceId)) {
+        if (workspaceId == null || !workspacesList.contains(workspaceId)) {
             return SandboxStatus.PUBLIC;
         }
         return SandboxStatus.PRIVATE;

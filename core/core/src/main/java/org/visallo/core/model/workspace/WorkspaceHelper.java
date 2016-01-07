@@ -95,12 +95,15 @@ public class WorkspaceHelper {
         graph.flush();
     }
 
-    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
+    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId,
+                               Priority priority, Authorizations authorizations) {
         deleteProperty(e, property, propertyIsPublic, workspaceId, priority, false, null, authorizations);
     }
 
-    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, boolean isElementDeleted, Long beforeElementDeleteTimestamp, Authorizations authorizations) {
-        if (propertyIsPublic) {
+    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId,
+                               Priority priority, boolean isElementDeleted, Long beforeElementDeleteTimestamp,
+                               Authorizations authorizations) {
+        if (propertyIsPublic && workspaceId != null) {
             e.markPropertyHidden(property, new Visibility(workspaceId), authorizations);
         } else {
             e.softDeleteProperty(property.getKey(), property.getName(), property.getVisibility(), authorizations);

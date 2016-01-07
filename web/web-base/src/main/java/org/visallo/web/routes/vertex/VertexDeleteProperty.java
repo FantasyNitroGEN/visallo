@@ -8,10 +8,12 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -34,6 +36,7 @@ public class VertexDeleteProperty implements ParameterizedHandler {
     private final OntologyRepository ontologyRepository;
     private final WorkspaceRepository workspaceRepository;
     private final ACLProvider aclProvider;
+    private final boolean autoPublishComments;
 
     @Inject
     public VertexDeleteProperty(
@@ -41,13 +44,16 @@ public class VertexDeleteProperty implements ParameterizedHandler {
             final WorkspaceHelper workspaceHelper,
             final OntologyRepository ontologyRepository,
             final WorkspaceRepository workspaceRepository,
-            final ACLProvider aclProvider
+            final ACLProvider aclProvider,
+            final Configuration configuration
     ) {
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
         this.ontologyRepository = ontologyRepository;
         this.workspaceRepository = workspaceRepository;
         this.aclProvider = aclProvider;
+        this.autoPublishComments = configuration.getBoolean(Configuration.COMMENTS_AUTO_PUBLISH,
+                Configuration.DEFAULT_COMMENTS_AUTO_PUBLISH);
     }
 
     @Handle
@@ -79,8 +85,16 @@ public class VertexDeleteProperty implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException(String.format("Could not find property %s:%s on %s", propertyName, propertyKey, graphVertexId));
         }
 
+        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
+
+        if (isComment && autoPublishComments) {
+            workspaceId = null;
+        }
+
         // add the vertex to the workspace so that the changes show up in the diff panel
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
+        if (workspaceId != null) {
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
+        }
 
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
 

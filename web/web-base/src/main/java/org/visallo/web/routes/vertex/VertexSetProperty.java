@@ -7,6 +7,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -16,7 +17,6 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.security.VisibilityTranslator;
@@ -48,6 +48,7 @@ public class VertexSetProperty implements ParameterizedHandler {
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
     private final ACLProvider aclProvider;
+    private final boolean autoPublishComments;
 
     @Inject
     public VertexSetProperty(
@@ -57,7 +58,8 @@ public class VertexSetProperty implements ParameterizedHandler {
             final WorkspaceRepository workspaceRepository,
             final WorkQueueRepository workQueueRepository,
             final GraphRepository graphRepository,
-            final ACLProvider aclProvider
+            final ACLProvider aclProvider,
+            final Configuration configuration
     ) {
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
@@ -66,6 +68,8 @@ public class VertexSetProperty implements ParameterizedHandler {
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
         this.aclProvider = aclProvider;
+        this.autoPublishComments = configuration.getBoolean(Configuration.COMMENTS_AUTO_PUBLISH,
+                Configuration.DEFAULT_COMMENTS_AUTO_PUBLISH);
     }
 
     @Handle
@@ -86,8 +90,6 @@ public class VertexSetProperty implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-
         if (valueStr == null && valuesStr == null) {
             throw new VisalloException("Parameter: 'value' or 'value[]' is required in the request");
         }
@@ -97,14 +99,18 @@ public class VertexSetProperty implements ParameterizedHandler {
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
+        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
+
+        if (isComment && autoPublishComments) {
+            workspaceId = null;
+        }
+
         if (isComment && request.getPathInfo().equals("/vertex/property")) {
             throw new VisalloException("Use /vertex/comment to save comment properties");
         } else if (request.getPathInfo().equals("/vertex/comment") && !isComment) {
             throw new VisalloException("Use /vertex/property to save non-comment properties");
         }
 
-        // add the vertex to the workspace so that the changes show up in the diff panel
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
 
         if (propertyKey == null) {
             propertyKey = isComment ? createCommentPropertyKey() : this.graph.getIdGenerator().nextId();
@@ -135,9 +141,10 @@ public class VertexSetProperty implements ParameterizedHandler {
         );
         graph.flush();
 
-        Workspace workspace = workspaceRepository.findById(workspaceId, user);
-
-        this.workspaceRepository.updateEntityOnWorkspace(workspace, graphVertex.getId(), null, null, user);
+        if (workspaceId != null) {
+            // add the vertex to the workspace so that the changes show up in the diff panel
+            this.workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertex.getId(), null, null, user);
+        }
 
         for (SavePropertyResults savePropertyResult : savePropertyResults) {
             this.workQueueRepository.pushGraphPropertyQueue(
