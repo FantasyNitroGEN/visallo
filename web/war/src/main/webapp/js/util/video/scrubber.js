@@ -12,7 +12,7 @@ define([
         POSTER = 1,
         FRAMES = 2;
 
-    videojs.options.flash.swf = '../libs/video.js/dist/video-js/video-js.swf';
+    videojs.options.flash.swf = '../libs/video.js/dist/video-js.swf';
 
     return defineComponent(VideoScrubber, withDataRequest);
 

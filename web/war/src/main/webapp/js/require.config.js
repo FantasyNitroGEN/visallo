@@ -56,7 +56,7 @@ var require = {
         'tpl': '../libs/requirejs-ejs/rejs',
         'underscore': '../libs/underscore/underscore-min',
         'underscore.inflection': '../libs/underscore.inflection/lib/underscore.inflection',
-        'videojs': '../libs/video.js/dist/video-js/video'
+        'videojs': '../libs/video.js/dist/video'
     },
     shim: {
         'arbor': { deps: ['jquery'] },

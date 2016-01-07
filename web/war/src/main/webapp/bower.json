@@ -38,7 +38,7 @@
     "threejs": "git://github.com/mrdoob/three.js/#r67",
     "underscore": "~1.8.0",
     "underscore.inflection": "jharwig/underscore.inflection#~1.2.1",
-    "video.js": "4.5.2"
+    "video.js": "5.4.4"
   },
   "devDependencies": {
     "sinon": "~1.10.3",
