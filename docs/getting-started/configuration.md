@@ -14,9 +14,11 @@ If you are running the dev docker container you will need to copy (or symlink) t
         log4j.xml
         visallo.properties
         visallo-accumulo.properties
+        visallo-development.properties
         visallo-elasticsearch.properties
         visallo-hadoop.properties
         visallo-rabbitmq.properties
+        visallo-webapp.properties
         visallo-zookeeper.properties
 
 These files must be copied (or symlinked) into a `${VISALLO_DIR}/config` directory.

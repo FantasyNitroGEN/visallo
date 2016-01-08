@@ -2,6 +2,12 @@
 
 In the majority of cases, most Visallo components can be built by simply opening a terminal to the component root directory and running `mvn package`. The two most common components that are a little less straight-forward are the web application and yarn ingest components. Additional instructions for both can be found below.
 
+<a name="root-module"/>
+## Root Module Installation
+
+You must install the Visallo `root` module before building or running anything. You can do that by running the following Maven command from the `$PROJECT_DIR/root` directory.
+
+        mvn install
 
 ## Web Application
 
