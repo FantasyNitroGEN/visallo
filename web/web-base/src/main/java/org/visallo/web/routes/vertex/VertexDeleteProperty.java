@@ -7,11 +7,12 @@ import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workspace.WorkspaceHelper;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
 import org.visallo.web.VisalloResponse;
@@ -22,22 +23,23 @@ public class VertexDeleteProperty implements ParameterizedHandler {
     private final Graph graph;
     private final WorkspaceHelper workspaceHelper;
     private final OntologyRepository ontologyRepository;
-    private final WorkspaceRepository workspaceRepository;
     private final ACLProvider aclProvider;
+    private final boolean autoPublishComments;
 
     @Inject
     public VertexDeleteProperty(
             final Graph graph,
             final WorkspaceHelper workspaceHelper,
             final OntologyRepository ontologyRepository,
-            final WorkspaceRepository workspaceRepository,
-            final ACLProvider aclProvider
+            final ACLProvider aclProvider,
+            final Configuration configuration
     ) {
         this.graph = graph;
         this.workspaceHelper = workspaceHelper;
         this.ontologyRepository = ontologyRepository;
-        this.workspaceRepository = workspaceRepository;
         this.aclProvider = aclProvider;
+        this.autoPublishComments = configuration.getBoolean(Configuration.COMMENTS_AUTO_PUBLISH,
+                Configuration.DEFAULT_COMMENTS_AUTO_PUBLISH);
     }
 
     @Handle
@@ -56,7 +58,13 @@ public class VertexDeleteProperty implements ParameterizedHandler {
             throw new VisalloAccessDeniedException(propertyName + " is not deleteable", user, graphVertexId);
         }
 
-        workspaceHelper.deleteProperties(graphVertex, propertyKey, propertyName, ontologyProperty, workspaceId, authorizations, user);
+        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
+        if (isComment && autoPublishComments) {
+            workspaceId = null;
+        }
+
+        workspaceHelper.deleteProperties(graphVertex, propertyKey, propertyName, ontologyProperty, workspaceId,
+                authorizations, user);
 
         return VisalloResponse.SUCCESS;
     }

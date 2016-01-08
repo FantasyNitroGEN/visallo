@@ -19,15 +19,23 @@ import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.vertexium.util.IterableUtils.toList;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GraphRepositoryTest {
     private static final String WORKSPACE_ID = "testWorkspaceId";
     private static final String ENTITY_1_VERTEX_ID = "entity1Id";
+    private static final Visibility SECRET_VISALLO_VIZ = new VisalloVisibility(
+            Visibility.and(ImmutableSet.of("secret"))).getVisibility();
+    private static final Visibility SECRET_AND_WORKSPACE_VISALLO_VIZ = new VisalloVisibility(
+            Visibility.and(ImmutableSet.of("secret", WORKSPACE_ID))).getVisibility();
+    private static final Visibility WORKSPACE_VIZ = new Visibility(WORKSPACE_ID);
 
     private GraphRepository graphRepository;
     private InMemoryGraph graph;
@@ -42,7 +50,7 @@ public class GraphRepositoryTest {
 
     @Before
     public void setup() throws Exception {
-        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap());
+        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap<String, Object>());
         QueueIdGenerator idGenerator = new QueueIdGenerator();
         VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
         graph = InMemoryGraph.create(config, idGenerator, new DefaultSearchIndex(config));
@@ -57,30 +65,30 @@ public class GraphRepositoryTest {
 
     @Test
     public void testSetWorkspaceOnlyChangePropertyTwice() {
-        Vertex entity1Vertex = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
+        Vertex vertex = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
                 .save(defaultAuthorizations);
 
         final Authorizations workspaceAuthorizations = graph.createAuthorizations(WORKSPACE_ID);
 
-        setProperty(entity1Vertex, "newValue1", WORKSPACE_ID, workspaceAuthorizations);
+        setProperty(vertex, "newValue1", WORKSPACE_ID, workspaceAuthorizations);
 
-        entity1Vertex = graph.getVertex(entity1Vertex.getId(), defaultAuthorizations);
-        List<Property> properties = toList(entity1Vertex.getProperties());
+        vertex = graph.getVertex(vertex.getId(), defaultAuthorizations);
+        List<Property> properties = toList(vertex.getProperties());
         assertEquals(0, properties.size());
 
-        entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
-        properties = toList(entity1Vertex.getProperties());
+        vertex = graph.getVertex(vertex.getId(), workspaceAuthorizations);
+        properties = toList(vertex.getProperties());
         assertEquals(1, properties.size());
         assertEquals("newValue1", properties.get(0).getValue());
 
-        setProperty(entity1Vertex, "newValue2", WORKSPACE_ID, workspaceAuthorizations);
+        setProperty(vertex, "newValue2", WORKSPACE_ID, workspaceAuthorizations);
 
-        entity1Vertex = graph.getVertex(entity1Vertex.getId(), defaultAuthorizations);
-        properties = toList(entity1Vertex.getProperties());
+        vertex = graph.getVertex(vertex.getId(), defaultAuthorizations);
+        properties = toList(vertex.getProperties());
         assertEquals(0, properties.size());
 
-        entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
-        properties = toList(entity1Vertex.getProperties());
+        vertex = graph.getVertex(vertex.getId(), workspaceAuthorizations);
+        properties = toList(vertex.getProperties());
         assertEquals(1, properties.size());
         assertEquals("newValue2", properties.get(0).getValue());
     }
@@ -89,24 +97,24 @@ public class GraphRepositoryTest {
     public void testSandboxPropertyChangesShouldUpdateSameProperty() {
         final Authorizations authorizations = graph.createAuthorizations("foo", "bar", "baz", WORKSPACE_ID);
 
-        Vertex entity1Vertex = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
+        Vertex vertex = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
                 .save(authorizations);
 
         // new property with visibility
         String propertyValue = "newValue1";
-        setProperty(entity1Vertex, propertyValue, null, "foo", WORKSPACE_ID, authorizations);
+        setProperty(vertex, propertyValue, null, "foo", WORKSPACE_ID, authorizations);
 
-        List<Property> properties = toList(entity1Vertex.getProperties());
-        final Visibility fooVisibility = new VisalloVisibility(Visibility.and(ImmutableSet.of("foo", WORKSPACE_ID)))
+        List<Property> properties = toList(vertex.getProperties());
+        Visibility fooVisibility = new VisalloVisibility(Visibility.and(ImmutableSet.of("foo", WORKSPACE_ID)))
                 .getVisibility();
         assertEquals(1, properties.size());
         assertEquals(propertyValue, properties.get(0).getValue());
         assertEquals(fooVisibility, properties.get(0).getVisibility());
 
         // existing property, new visibility
-        setProperty(entity1Vertex, propertyValue, "foo", "bar", WORKSPACE_ID, authorizations);
+        setProperty(vertex, propertyValue, "foo", "bar", WORKSPACE_ID, authorizations);
 
-        properties = toList(entity1Vertex.getProperties());
+        properties = toList(vertex.getProperties());
         Visibility barVisibility = new VisalloVisibility(Visibility.and(ImmutableSet.of("bar", WORKSPACE_ID)))
                 .getVisibility();
         assertEquals(1, properties.size());
@@ -115,24 +123,104 @@ public class GraphRepositoryTest {
 
         // existing property, new value
         propertyValue = "newValue2";
-        setProperty(entity1Vertex, propertyValue, null, "bar", WORKSPACE_ID, authorizations);
+        setProperty(vertex, propertyValue, null, "bar", WORKSPACE_ID, authorizations);
 
-        properties = toList(entity1Vertex.getProperties());
+        properties = toList(vertex.getProperties());
         assertEquals(1, properties.size());
         assertEquals(propertyValue, properties.get(0).getValue());
         assertEquals(barVisibility, properties.get(0).getVisibility());
 
         // existing property, new visibility,  new value
-// TODO: needs fix to InMemoryGraph to be able to handle simultaneous change to both value and visibility
-//        propertyValue = "newValue3";
-//        setProperty(entity1Vertex, propertyValue, "bar", "baz", WORKSPACE_ID, authorizations);
-//
-//        properties = toList(entity1Vertex.getProperties());
-//        final Visibility bazVisibility = new VisalloVisibility(Visibility.and(ImmutableSet.of("baz", WORKSPACE_ID)))
-//                .getVisibility();
-//        assertEquals(1, properties.size());
-//        assertEquals(propertyValue, properties.get(0).getValue());
-//        assertEquals(bazVisibility, properties.get(0).getVisibility());
+        propertyValue = "newValue3";
+        setProperty(vertex, propertyValue, "bar", "baz", WORKSPACE_ID, authorizations);
+
+        properties = toList(vertex.getProperties());
+        Visibility bazVisibility = new VisalloVisibility(Visibility.and(ImmutableSet.of("baz", WORKSPACE_ID)))
+                .getVisibility();
+        assertEquals(1, properties.size());
+        assertEquals(propertyValue, properties.get(0).getValue());
+        assertEquals(bazVisibility, properties.get(0).getVisibility());
+    }
+
+    @Test
+    public void existingPublicPropertySavedWithWorkspaceIsSandboxed() {
+        final Authorizations authorizations = graph.createAuthorizations("secret", WORKSPACE_ID);
+
+        Vertex vertex = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
+                .save(authorizations);
+
+        // save property without workspace, which will be public
+
+        String publicValue = "publicValue";
+        setProperty(vertex, publicValue, null, "secret", null, authorizations);
+
+        List<Property> properties = toList(vertex.getProperties());
+
+        assertEquals(1, properties.size());
+        Property property = properties.get(0);
+        assertEquals(publicValue, property.getValue());
+        assertEquals(SECRET_VISALLO_VIZ, property.getVisibility());
+        assertFalse(property.getHiddenVisibilities().iterator().hasNext());
+
+        // save property with workspace, which will be sandboxed
+
+        String sandboxedValue = "sandboxedValue";
+        setProperty(vertex, sandboxedValue, null, "secret", WORKSPACE_ID, authorizations);
+
+        properties = toList(vertex.getProperties());
+
+        assertEquals(2, properties.size());
+
+        property = properties.get(0); // the sandboxed property
+
+        assertEquals(sandboxedValue, property.getValue());
+        assertEquals(SECRET_AND_WORKSPACE_VISALLO_VIZ, property.getVisibility());
+        assertFalse(property.getHiddenVisibilities().iterator().hasNext());
+
+        property = properties.get(1); // the public property
+        Iterator<Visibility> hiddenVisibilities = property.getHiddenVisibilities().iterator();
+        assertEquals(publicValue, property.getValue());
+        assertEquals(SECRET_VISALLO_VIZ, property.getVisibility());
+        assertTrue(hiddenVisibilities.hasNext());
+        assertEquals(WORKSPACE_VIZ, hiddenVisibilities.next());
+    }
+
+    @Test
+    public void newPropertySavedWithoutWorkspaceIsPublic() {
+        final Authorizations authorizations = graph.createAuthorizations("secret");
+
+        Vertex vertex = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
+                .save(authorizations);
+
+        String propertyValue = "newValue";
+        setProperty(vertex, propertyValue, null, "secret", null, authorizations);
+
+        List<Property> properties = toList(vertex.getProperties());
+
+        assertEquals(1, properties.size());
+        Property property = properties.get(0);
+        assertEquals(propertyValue, property.getValue());
+        assertEquals(SECRET_VISALLO_VIZ, property.getVisibility());
+        assertFalse(property.getHiddenVisibilities().iterator().hasNext());
+    }
+
+    @Test
+    public void newPropertySavedWithWorkspaceIsSandboxed() {
+        final Authorizations authorizations = graph.createAuthorizations("secret", WORKSPACE_ID);
+
+        Vertex vertex = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
+                .save(authorizations);
+
+        String propertyValue = "newValue";
+        setProperty(vertex, propertyValue, null, "secret", WORKSPACE_ID, authorizations);
+
+        List<Property> properties = toList(vertex.getProperties());
+
+        assertEquals(1, properties.size());
+        Property property = properties.get(0);
+        assertEquals(propertyValue, property.getValue());
+        assertEquals(SECRET_AND_WORKSPACE_VISALLO_VIZ, property.getVisibility());
+        assertFalse(property.getHiddenVisibilities().iterator().hasNext());
     }
 
     private void setProperty(Vertex vertex, String value, String workspaceId, Authorizations workspaceAuthorizations) {

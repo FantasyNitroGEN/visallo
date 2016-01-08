@@ -71,7 +71,8 @@ public class Configuration {
     public static final String DEFAULT_STATUS_ZK_PATH = "/visallo/status";
     public static final String STATUS_PORT_RANGE = "status.portRange";
     public static final String DEFAULT_STATUS_PORT_RANGE = "40000-41000";
-
+    public static final String COMMENTS_AUTO_PUBLISH = "comments.autoPublish";
+    public static final boolean DEFAULT_COMMENTS_AUTO_PUBLISH = false;
     public static final String STATUS_REFRESH_INTERVAL_SECONDS = "status.refreshIntervalSeconds";
     public static final int STATUS_REFRESH_INTERVAL_SECONDS_DEFAULT = 10;
     public static final String STATUS_ENABLED = "status.enabled";
