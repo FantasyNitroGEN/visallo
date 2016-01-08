@@ -5,6 +5,8 @@ define([
     defineComponent, withDataRequest) {
     'use strict';
 
+    var preferenceName = 'snapToGrid';
+
     return defineComponent(SnapToGridToggle, withDataRequest);
 
     function SnapToGridToggle() {
@@ -12,7 +14,6 @@ define([
         this.after('initialize', function() {
             var self = this,
                 cy = this.attr.cy,
-                preferenceName = 'snapToGrid',
                 preferenceValue = visalloData.currentUser.uiPreferences[preferenceName],
                 snapToGrid = preferenceValue === 'true';
 
@@ -26,13 +27,26 @@ define([
             this.$node
                 .find('input').on('change', function() {
                     var checked = $(this).is(':checked');
-                    visalloData.currentUser.uiPreferences[preferenceName] = '' + checked;
                     self.trigger('toggleSnapToGrid', {
                         snapToGrid: checked
                     });
-                    self.dataRequest('user', 'preference', preferenceName, checked);
+                    self.updatePreference(checked);
                 });
+
+            this.on(document, 'toggleSnapToGrid', this.onToggleSnapToGrid);
         });
 
+        this.onToggleSnapToGrid = function(event, data) {
+            if (!data) return;
+
+            var checked = data.snapToGrid;
+            this.$node.find('input').prop('checked', checked);
+            this.updatePreference(data.snapToGrid);
+        }
+
+        this.updatePreference = function(checked) {
+                visalloData.currentUser.uiPreferences[preferenceName] = '' + checked;
+                this.dataRequest('user', 'preference', preferenceName, checked);
+        }
     }
 });

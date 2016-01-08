@@ -1047,6 +1047,9 @@ define([
         };
 
         this.onContextMenuLayout = function(layout, opts) {
+            this.trigger('toggleSnapToGrid', {
+                snapToGrid: false
+            });
             this.runLayout(layout, undefined, opts);
         };
 
