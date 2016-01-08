@@ -142,7 +142,9 @@ public class ApplicationBootstrap implements ServletContextListener {
         addAtmosphereServlet(context, config);
         addDebugFilter(context);
         addCacheFilter(context);
-        addGzipFilter(context);
+        if (config.getBoolean(Configuration.HTTP_GZIP_ENABLED, Configuration.HTTP_GZIP_ENABLED_DEFAULT)) {
+            addGzipFilter(context);
+        }
         LOGGER.warn("JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
     }
 
