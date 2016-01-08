@@ -18,7 +18,7 @@
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-jetty-server</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -41,12 +41,12 @@
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-model-queue-inmemory</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-ontology-acl-provider</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.vertexium</groupId>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-web-auth-username-only</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
@@ -65,50 +65,50 @@
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-web-admin-import-rdf</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-tika-mime-type</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-mime-type-ontology-mapper</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-tika-text-extractor</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-email-extractor</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-phone-number-extractor</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-opennlp-me-extractor</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-gpw-zipcode-extractor</artifactId>
-            <version>${project.version}</version>
+            <version>${v5.visallo.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
