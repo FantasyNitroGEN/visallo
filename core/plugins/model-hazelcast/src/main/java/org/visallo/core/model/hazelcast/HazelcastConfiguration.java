@@ -204,19 +204,23 @@ public class HazelcastConfiguration {
         return performSqlReplacements(sql, name, type);
     }
 
-    public String getJdbcLoadAllKeysSql(String name, StoreType type) {
+    public String getJdbcSelectKeysSql(String name, StoreType type) {
         return performSqlReplacements("SELECT id FROM %tableName%", name, type);
     }
 
-    public String getJdbcStoreSql(String name, StoreType type) {
+    public String getJdbcInsertSql(String name, StoreType type) {
         return performSqlReplacements("INSERT INTO %tableName% (id,data) VALUES (:id,:data)", name, type);
     }
 
-    public String getJdbcDeleteSql(String name, StoreType type) {
+    public String getJdbcUpdateByKeySql(String name, StoreType type) {
+        return performSqlReplacements("UPDATE %tableName% SET data=:data WHERE id=:id", name, type);
+    }
+
+    public String getJdbcDeleteByKeySql(String name, StoreType type) {
         return performSqlReplacements("DELETE FROM %tableName% WHERE id=:id", name, type);
     }
 
-    public String getJdbcLoadSql(String name, StoreType type) {
+    public String getJdbcSelectByKeySql(String name, StoreType type) {
         return performSqlReplacements("SELECT id,data FROM %tableName% WHERE id=:id", name, type);
     }
 
