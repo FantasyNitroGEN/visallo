@@ -80,6 +80,11 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-dist-hazelcast</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-web-war</artifactId>
             <version>${project.version}</version>
             <classifier>classes</classifier>
@@ -108,6 +113,11 @@
                                 </copy>
                                 <copy todir="${project.build.directory}/dist/lib/gpw">
                                     <fileset dir="${project.basedir}/../gpw/target/visallo-dist-gpw-${project.version}/lib">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${project.build.directory}/dist/lib/hazelcast">
+                                    <fileset dir="${project.basedir}/../hazelcast/target/visallo-dist-hazelcast-${project.version}/lib">
                                         <include name="**/*"/>
                                     </fileset>
                                 </copy>

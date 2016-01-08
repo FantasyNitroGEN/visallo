@@ -4,7 +4,8 @@ import org.visallo.core.exception.VisalloException;
 
 import java.io.*;
 
-public class StatusData {
+public class StatusData implements Serializable {
+    private static final long serialVersionUID = -8820411686759963863L;
     private final String url;
     private final String hostName;
     private final String hostAddress;
