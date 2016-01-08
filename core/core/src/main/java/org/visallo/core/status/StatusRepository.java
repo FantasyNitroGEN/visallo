@@ -15,7 +15,7 @@ public interface StatusRepository {
         private final String group;
         private final String instance;
 
-        protected StatusHandle(String group, String instance) {
+        public StatusHandle(String group, String instance) {
             this.group = group;
             this.instance = instance;
         }

@@ -4,8 +4,11 @@ package org.visallo.core.model.workQueue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.externalResource.ExternalResourceWorker;
+import org.visallo.core.externalResource.QueueExternalResourceWorker;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
@@ -24,6 +27,8 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.UserStatus;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +36,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkQueueRepository {
     protected static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkQueueRepository.class);
-    protected final Configuration configuration;
-    protected final WorkQueueNames workQueueNames;
+    private final Configuration configuration;
+    private final WorkQueueNames workQueueNames;
     private final Graph graph;
 
     protected WorkQueueRepository(Graph graph, WorkQueueNames workQueueNames, Configuration configuration) {
@@ -724,7 +729,31 @@ public abstract class WorkQueueRepository {
 
     public abstract void flush();
 
-    public abstract void format();
+    public void format() {
+        for (String queueName : getQueueNames()) {
+            LOGGER.info("deleting queue: %s", queueName);
+            deleteQueue(queueName);
+        }
+    }
+
+    protected abstract void deleteQueue(String queueName);
+
+    protected Iterable<String> getQueueNames() {
+        List<String> queueNames = new ArrayList<>();
+        queueNames.add(getWorkQueueNames().getGraphPropertyQueueName());
+        queueNames.add(getWorkQueueNames().getLongRunningProcessQueueName());
+
+        Collection<ExternalResourceWorker> externalResourceWorkers =
+                InjectHelper.getInjectedServices(ExternalResourceWorker.class, getConfiguration());
+        for (ExternalResourceWorker externalResourceWorker : externalResourceWorkers) {
+            if (!(externalResourceWorker instanceof QueueExternalResourceWorker)) {
+                continue;
+            }
+            String queueName = ((QueueExternalResourceWorker) externalResourceWorker).getQueueName();
+            queueNames.add(queueName);
+        }
+        return queueNames;
+    }
 
     public Graph getGraph() {
         return graph;
@@ -861,5 +890,13 @@ public abstract class WorkQueueRepository {
 
     public static abstract class BroadcastConsumer {
         public abstract void broadcastReceived(JSONObject json);
+    }
+
+    protected WorkQueueNames getWorkQueueNames() {
+        return workQueueNames;
+    }
+
+    protected Configuration getConfiguration() {
+        return configuration;
     }
 }

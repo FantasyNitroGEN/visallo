@@ -99,6 +99,11 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
         queues.clear();
     }
 
+    @Override
+    protected void deleteQueue(String queueName) {
+        queues.remove(queueName);
+    }
+
     public static List<JSONObject> getQueue(String queueName) {
         List<JSONObject> queue = queues.get(queueName);
         if (queue == null) {
