@@ -34,13 +34,13 @@ public class DeleteEdge implements ParameterizedHandler {
             Authorizations authorizations
     ) throws Exception {
         LOGGER.debug("deleting edge: %s", edgeId);
-        long timestamp = System.currentTimeMillis();
+        long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
         Edge edge = graph.getEdge(edgeId, authorizations);
         graph.softDeleteEdge(edge, authorizations);
         graph.flush();
         LOGGER.info("deleted edge: %s", edgeId);
 
-        this.workQueueRepository.pushEdgeDeletion(edge, timestamp, Priority.HIGH);
+        this.workQueueRepository.pushEdgeDeletion(edge, beforeDeletionTimestamp, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
     }

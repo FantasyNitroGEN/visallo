@@ -198,8 +198,8 @@ public class GraphPropertyRunner extends WorkerBase {
 
         for (String vertexId : message.getVertexIds()) {
             Vertex vertex;
-            if (message.isDeletion()) {
-                vertex = graph.getVertex(vertexId, FetchHint.ALL, message.getBeforeDeleteTimestamp(), this.authorizations);
+            if (message.getStatus() == ElementOrPropertyStatus.DELETION || message.getStatus() == ElementOrPropertyStatus.HIDDEN) {
+                vertex = graph.getVertex(vertexId, FetchHint.ALL, message.getBeforeActionTimestamp(), this.authorizations);
             } else {
                 vertex = graph.getVertex(vertexId, this.authorizations);
             }
@@ -217,8 +217,8 @@ public class GraphPropertyRunner extends WorkerBase {
 
         for (String edgeId : message.getEdgeIds()) {
             Edge edge;
-            if (message.isDeletion()) {
-                edge = graph.getEdge(edgeId, FetchHint.ALL, message.getBeforeDeleteTimestamp(), this.authorizations);
+            if (message.getStatus() == ElementOrPropertyStatus.DELETION || message.getStatus() == ElementOrPropertyStatus.HIDDEN) {
+                edge = graph.getEdge(edgeId, FetchHint.ALL, message.getBeforeActionTimestamp(), this.authorizations);
             } else {
                 edge = graph.getEdge(edgeId, this.authorizations);
             }
@@ -258,15 +258,16 @@ public class GraphPropertyRunner extends WorkerBase {
 
     private void safeExecuteHandlePropertyOnElement(Element element, Property property, GraphPropertyMessage message) throws Exception {
         String propertyText = getPropertyText(property);
+        ElementOrPropertyStatus status = message.getStatus();
 
-        List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property, message.isDeletion());
+        List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property, status);
         if (interestedWorkerWrappers.size() == 0) {
             LOGGER.debug(
                     "Could not find interested workers for %s %s property %s (%s)",
                     element instanceof Vertex ? "vertex" : "edge",
                     element.getId(),
                     propertyText,
-                    message.isDeletion() ? "deletion" : "update"
+                    status
             );
             return;
         }
@@ -278,7 +279,7 @@ public class GraphPropertyRunner extends WorkerBase {
                         element.getId(),
                         propertyText,
                         interestedWorkerWrapper.getWorker().getClass().getName(),
-                        message.isDeletion() ? "deletion" : "update"
+                        status
                 );
             }
         }
@@ -290,7 +291,7 @@ public class GraphPropertyRunner extends WorkerBase {
                 message.getWorkspaceId(),
                 message.getVisibilitySource(),
                 message.getPriority(),
-                message.isDeletion()
+                status
         );
 
         LOGGER.debug("Begin work on element %s property %s", element.getId(), propertyText);
@@ -379,7 +380,7 @@ public class GraphPropertyRunner extends WorkerBase {
         return false;
     }
 
-    private List<GraphPropertyThreadedWrapper> findInterestedWorkers(Element element, Property property, boolean isDeleted) {
+    private List<GraphPropertyThreadedWrapper> findInterestedWorkers(Element element, Property property, ElementOrPropertyStatus status) {
         Set<String> graphPropertyWorkerWhiteList = IterableUtils.toSet(VisalloProperties.GRAPH_PROPERTY_WORKER_WHITE_LIST.getPropertyValues(element));
         Set<String> graphPropertyWorkerBlackList = IterableUtils.toSet(VisalloProperties.GRAPH_PROPERTY_WORKER_BLACK_LIST.getPropertyValues(element));
 
@@ -393,15 +394,36 @@ public class GraphPropertyRunner extends WorkerBase {
                 continue;
             }
             GraphPropertyWorker worker = wrapper.getWorker();
-            if (isDeleted) {
-                if (worker.isDeleteHandled(element, property)) {
-                    interestedWorkers.add(wrapper);
-                }
+            if (status == ElementOrPropertyStatus.DELETION) {
+                addDeletedWorkers(interestedWorkers, worker, wrapper, element, property);
+            } else if (status == ElementOrPropertyStatus.HIDDEN) {
+                addHiddenWorkers(interestedWorkers, worker, wrapper, element, property);
+            } else if (status == ElementOrPropertyStatus.UNHIDDEN) {
+                addUnhiddenWorkers(interestedWorkers, worker, wrapper, element, property);
             } else if (worker.isHandled(element, property)) {
                 interestedWorkers.add(wrapper);
             }
         }
+
         return interestedWorkers;
+    }
+
+    private void addDeletedWorkers(List<GraphPropertyThreadedWrapper> interestedWorkers, GraphPropertyWorker worker, GraphPropertyThreadedWrapper wrapper, Element element, Property property) {
+        if (worker.isDeleteHandled(element, property)) {
+            interestedWorkers.add(wrapper);
+        }
+    }
+
+    private void addHiddenWorkers(List<GraphPropertyThreadedWrapper> interestedWorkers, GraphPropertyWorker worker, GraphPropertyThreadedWrapper wrapper, Element element, Property property) {
+        if (worker.isHiddenHandled(element, property)) {
+            interestedWorkers.add(wrapper);
+        }
+    }
+
+    private void addUnhiddenWorkers(List<GraphPropertyThreadedWrapper> interestedWorkers, GraphPropertyWorker worker, GraphPropertyThreadedWrapper wrapper, Element element, Property property) {
+        if (worker.isUnhiddenHandled(element, property)) {
+            interestedWorkers.add(wrapper);
+        }
     }
 
     private String[] graphPropertyThreadedWrapperToNames(List<GraphPropertyThreadedWrapper> interestedWorkerWrappers) {

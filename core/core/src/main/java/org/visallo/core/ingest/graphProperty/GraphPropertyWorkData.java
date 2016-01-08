@@ -16,7 +16,7 @@ public class GraphPropertyWorkData {
     private final String visibilitySource;
     private final Priority priority;
     private File localFile;
-    private boolean isElementDeleted;
+    private ElementOrPropertyStatus status;
 
     public GraphPropertyWorkData(
             VisibilityTranslator visibilityTranslator,
@@ -32,7 +32,6 @@ public class GraphPropertyWorkData {
         this.workspaceId = workspaceId;
         this.visibilitySource = visibilitySource;
         this.priority = priority;
-        this.isElementDeleted = false;
     }
 
     public GraphPropertyWorkData(
@@ -42,7 +41,7 @@ public class GraphPropertyWorkData {
             String workspaceId,
             String visibilitySource,
             Priority priority,
-            boolean isElementDeleted
+            ElementOrPropertyStatus status
     ) {
         this.visibilityTranslator = visibilityTranslator;
         this.element = element;
@@ -50,7 +49,7 @@ public class GraphPropertyWorkData {
         this.workspaceId = workspaceId;
         this.visibilitySource = visibilitySource;
         this.priority = priority;
-        this.isElementDeleted = isElementDeleted;
+        this.status = status;
     }
 
     public Element getElement() {
@@ -85,7 +84,7 @@ public class GraphPropertyWorkData {
         return priority;
     }
 
-    public boolean isElementDeleted() { return isElementDeleted; }
+    public ElementOrPropertyStatus getPropertyStatus() { return status; }
 
     // TODO this is a weird method. I'm not sure what this should be used for
     public VisibilityJson getVisibilitySourceJson() {
@@ -136,7 +135,7 @@ public class GraphPropertyWorkData {
                 ", property=" + property +
                 ", workspaceId='" + workspaceId + '\'' +
                 ", priority=" + priority +
-                ", isDeletion=" + isElementDeleted +
+                ", status=" + status +
                 '}';
     }
 }

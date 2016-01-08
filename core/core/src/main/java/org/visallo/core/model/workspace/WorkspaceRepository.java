@@ -13,11 +13,13 @@ import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
@@ -36,7 +38,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 
 public abstract class WorkspaceRepository {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceRepository.class);
     public static final String TO_ENTITY_ID_SEPARATOR = "_TO_ENTITY_";
     public static final String VISIBILITY_STRING = "workspace";
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
@@ -45,12 +46,13 @@ public abstract class WorkspaceRepository {
     public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = WorkspaceProperties.WORKSPACE_TO_USER_RELATIONSHIP_IRI;
     public static final String WORKSPACE_ID_PREFIX = "WORKSPACE_";
     public static final String OWL_IRI = "http://visallo.org/workspace";
-    private String entityHasImageIri;
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceRepository.class);
     private final Graph graph;
     private final VisibilityTranslator visibilityTranslator;
     private final TermMentionRepository termMentionRepository;
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;
+    private String entityHasImageIri;
 
     protected WorkspaceRepository(
             final Graph graph,
@@ -69,6 +71,10 @@ public abstract class WorkspaceRepository {
         if (this.entityHasImageIri == null) {
             LOGGER.warn("'entityHasImage' intent has not been defined. Please update your ontology.");
         }
+    }
+
+    public static String getWorkspaceToEntityEdgeId(String workspaceVertexId, String entityVertexId) {
+        return workspaceVertexId + TO_ENTITY_ID_SEPARATOR + entityVertexId;
     }
 
     public abstract void delete(Workspace workspace, User user);
@@ -315,10 +321,6 @@ public abstract class WorkspaceRepository {
         updateEntityOnWorkspace(workspace, vertexId, visible, graphPosition, user);
     }
 
-    public static String getWorkspaceToEntityEdgeId(String workspaceVertexId, String entityVertexId) {
-        return workspaceVertexId + TO_ENTITY_ID_SEPARATOR + entityVertexId;
-    }
-
     public ClientApiWorkspacePublishResponse publish(ClientApiPublishItem[] publishData, String workspaceId, Authorizations authorizations) {
         if (this.entityHasImageIri == null) {
             this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage");
@@ -485,9 +487,10 @@ public abstract class WorkspaceRepository {
 
     private void publishVertex(Vertex vertex, ClientApiPublishItem.Action action, Authorizations authorizations, String workspaceId) throws IOException {
         if (action == ClientApiPublishItem.Action.DELETE || WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
+            long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
-            workQueueRepository.broadcastPublishVertexDelete(vertex);
+            workQueueRepository.pushPublishedVertexDeletion(vertex, beforeDeletionTimestamp, Priority.HIGH);
             return;
         }
 
@@ -533,10 +536,11 @@ public abstract class WorkspaceRepository {
     }
 
     private void publishProperty(Element element, ClientApiPublishItem.Action action, String key, String name, String workspaceId, Authorizations authorizations) {
+        long beforeActionTimestamp = System.currentTimeMillis() - 1;
         if (action == ClientApiPublishItem.Action.DELETE) {
             element.softDeleteProperty(key, name, authorizations);
             graph.flush();
-            workQueueRepository.broadcastPublishPropertyDelete(element, key, name);
+            workQueueRepository.pushPublishedPropertyDeletion(element, key, name, beforeActionTimestamp, Priority.HIGH);
             return;
         }
         ExistingElementMutation elementMutation = element.prepareMutation();
@@ -562,11 +566,12 @@ public abstract class WorkspaceRepository {
                 if (publicProperty == null) {
                     element.softDeleteProperty(key, name, new Visibility(workspaceId), authorizations);
                     graph.flush();
-                    workQueueRepository.broadcastPublishPropertyDelete(element, key, name);
+                    workQueueRepository.pushPublishedPropertyDeletion(element, key, name, beforeActionTimestamp, Priority.HIGH);
                     foundProperty = true;
                 }
             } else if (sandboxStatus == SandboxStatus.PUBLIC_CHANGED) {
                 element.softDeleteProperty(key, name, propertyVisibility, authorizations);
+                workQueueRepository.pushPublishedPropertyDeletion(element, key, name, beforeActionTimestamp, Priority.HIGH);
                 if (publicProperty != null) {
                     element.markPropertyVisible(publicProperty, new Visibility(workspaceId), authorizations);
 
@@ -584,6 +589,7 @@ public abstract class WorkspaceRepository {
                         newVisibility = publicVisibility;
                     }
                     element.addPropertyValue(key, name, property.getValue(), metadata, newVisibility, authorizations);
+                    workQueueRepository.pushGraphPropertyQueue(element, key, name, ElementOrPropertyStatus.UNHIDDEN, beforeActionTimestamp, Priority.HIGH);
                 }
                 graph.flush();
                 workQueueRepository.broadcastPublishProperty(element, key, name);
@@ -643,9 +649,10 @@ public abstract class WorkspaceRepository {
             Authorizations authorizations
     ) {
         if (action == ClientApiPublishItem.Action.DELETE || WorkspaceDiffHelper.isPublicDelete(edge, authorizations)) {
+            long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
             graph.softDeleteEdge(edge, authorizations);
             graph.flush();
-            workQueueRepository.broadcastPublishEdgeDelete(edge);
+            workQueueRepository.pushPublishedEdgeDeletion(edge, beforeDeletionTimestamp, Priority.HIGH);
             return;
         }
 

@@ -6,6 +6,9 @@ import org.vertexium.*;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
+import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -20,7 +23,10 @@ import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static org.vertexium.util.IterableUtils.toList;
 
 @Singleton
 public class WorkspaceHelper {
@@ -83,10 +89,10 @@ public class WorkspaceHelper {
         String resolveEdgeId = VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID.getPropertyValue(termMention, null);
         if (resolveEdgeId != null) {
             Edge resolveEdge = graph.getEdge(resolveEdgeId, authorizations);
-            long timestamp = System.currentTimeMillis();
+            long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
             graph.softDeleteEdge(resolveEdge, authorizations);
             graph.flush();
-            workQueueRepository.pushEdgeDeletion(resolveEdge, timestamp, Priority.HIGH);
+            workQueueRepository.pushEdgeDeletion(resolveEdge, beforeDeletionTimestamp, Priority.HIGH);
         }
 
         termMentionRepository.delete(termMention, authorizations);
@@ -95,18 +101,15 @@ public class WorkspaceHelper {
         graph.flush();
     }
 
-    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId,
-                               Priority priority, Authorizations authorizations) {
-        deleteProperty(e, property, propertyIsPublic, workspaceId, priority, false, null, authorizations);
-    }
-
-    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId,
-                               Priority priority, boolean isElementDeleted, Long beforeElementDeleteTimestamp,
-                               Authorizations authorizations) {
+    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
+        long beforeActionTimestamp = System.currentTimeMillis() - 1;
+        ElementOrPropertyStatus status;
         if (propertyIsPublic && workspaceId != null) {
             e.markPropertyHidden(property, new Visibility(workspaceId), authorizations);
+            status = ElementOrPropertyStatus.HIDDEN;
         } else {
             e.softDeleteProperty(property.getKey(), property.getName(), property.getVisibility(), authorizations);
+            status = ElementOrPropertyStatus.DELETION;
         }
 
         if (e instanceof Vertex) {
@@ -115,7 +118,7 @@ public class WorkspaceHelper {
 
         graph.flush();
 
-        workQueueRepository.pushGraphPropertyQueue(e, property, isElementDeleted, beforeElementDeleteTimestamp, priority);
+        workQueueRepository.pushGraphPropertyQueue(e, property, status, beforeActionTimestamp, priority);
     }
 
     public void deleteEdge(
@@ -129,9 +132,9 @@ public class WorkspaceHelper {
             User user
     ) {
         ensureOntologyIrisInitialized();
-        long timestamp = System.currentTimeMillis();
+        long beforeActionTimestamp = System.currentTimeMillis() - 1;
 
-        deleteProperties(edge, workspaceId, priority, true, timestamp, authorizations, user);
+        deleteProperties(edge, workspaceId, priority, authorizations, user);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
@@ -156,6 +159,7 @@ public class WorkspaceHelper {
             }
 
             graph.flush();
+            this.workQueueRepository.pushEdgeHidden(edge, beforeActionTimestamp, Priority.HIGH);
         } else {
             graph.softDeleteEdge(edge, authorizations);
 
@@ -173,10 +177,8 @@ public class WorkspaceHelper {
             }
 
             graph.flush();
+            this.workQueueRepository.pushEdgeDeletion(edge, beforeActionTimestamp, Priority.HIGH);
         }
-
-        this.workQueueRepository.pushEdgeDeletion(edge, timestamp, Priority.HIGH);
-        graph.flush();
     }
 
     private void ensureOntologyIrisInitialized() {
@@ -188,23 +190,64 @@ public class WorkspaceHelper {
         }
     }
 
-    private void deleteProperties(Element e, String workspaceId, Priority priority, boolean isElementDeleted, Long beforeDeleteTimestamp, Authorizations authorizations, User user) {
+    public void deleteProperties(Element e,
+                                 String propertyKey,
+                                 String propertyName,
+                                 OntologyProperty ontologyProperty,
+                                 String workspaceId,
+                                 Authorizations authorizations, User user) {
+        List<Property> properties = new ArrayList<>();
+        properties.addAll(toList(e.getProperties(propertyKey, propertyName)));
+
+        if (properties.size() == 0) {
+            throw new VisalloResourceNotFoundException(String.format("Could not find property %s:%s on %s", propertyName, propertyKey, e));
+        }
+
+        properties.addAll(toList(e.getProperties(propertyKey, propertyName)));
+        if (ontologyProperty != null) {
+            for (String dependentPropertyIri : ontologyProperty.getDependentPropertyIris()) {
+                properties.addAll(toList(e.getProperties(propertyKey, dependentPropertyIri)));
+            }
+        }
+
+        if (e instanceof Edge) {
+            Edge edge = (Edge) e;
+            // add the vertex to the workspace so that the changes show up in the diff panel
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+        } else if (e instanceof Vertex) {
+            // add the vertex to the workspace so that the changes show up in the diff panel
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, e.getId(), null, null, user);
+        } else {
+            throw new VisalloException("element is not an edge or vertex: " + e);
+        }
+
+        SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
+
+        for (int i = 0; i < sandboxStatuses.length; i++) {
+            boolean propertyIsPublic = (sandboxStatuses[i] == SandboxStatus.PUBLIC);
+            Property property = properties.get(i);
+            deleteProperty(e, property, propertyIsPublic, workspaceId, Priority.HIGH, authorizations);
+        }
+    }
+
+    private void deleteProperties(Element e, String workspaceId, Priority priority, Authorizations authorizations, User user) {
         List<Property> properties = IterableUtils.toList(e.getProperties());
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
 
         for (int i = 0; i < sandboxStatuses.length; i++) {
             boolean propertyIsPublic = (sandboxStatuses[i] == SandboxStatus.PUBLIC);
             Property property = properties.get(i);
-            deleteProperty(e, property, propertyIsPublic, workspaceId, priority, isElementDeleted, beforeDeleteTimestamp, authorizations);
+            deleteProperty(e, property, propertyIsPublic, workspaceId, priority, authorizations);
         }
     }
 
     public void deleteVertex(Vertex vertex, String workspaceId, boolean isPublicVertex, Priority priority, Authorizations authorizations, User user) {
         LOGGER.debug("BEGIN deleteVertex(vertexId: %s, workspaceId: %s, isPublicVertex: %b, user: %s)", vertex.getId(), workspaceId, isPublicVertex, user.getUsername());
         ensureOntologyIrisInitialized();
-        long timestamp = System.currentTimeMillis();
+        long beforeActionTimestamp = System.currentTimeMillis() - 1;
 
-        deleteProperties(vertex, workspaceId, priority, true, timestamp, authorizations, user);
+        deleteProperties(vertex, workspaceId, priority, authorizations, user);
 
         // make sure the entity is on the workspace so that it shows up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);
@@ -214,7 +257,7 @@ public class WorkspaceHelper {
 
             graph.markVertexHidden(vertex, workspaceVisibility, authorizations);
             graph.flush();
-            workQueueRepository.pushVertexDeletion(vertex, timestamp, Priority.HIGH);
+            workQueueRepository.pushVertexHidden(vertex, beforeActionTimestamp, Priority.HIGH);
         } else {
             VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
             visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
@@ -242,15 +285,15 @@ public class WorkspaceHelper {
                         // remove property
                         VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
                         graph.softDeleteEdge(edge, authorizations);
-                        workQueueRepository.pushEdgeDeletion(edge, timestamp, Priority.HIGH);
+                        workQueueRepository.pushEdgeDeletion(edge, beforeActionTimestamp, Priority.HIGH);
                         workQueueRepository.pushGraphPropertyQueue(
                                 outVertex,
                                 multiValueKey,
                                 VisalloProperties.DETECTED_OBJECT.getPropertyName(),
                                 workspaceId,
                                 visibilityJson.getSource(),
-                                false,
-                                null,
+                                ElementOrPropertyStatus.DELETION,
+                                beforeActionTimestamp,
                                 priority
                         );
                     }
@@ -275,7 +318,7 @@ public class WorkspaceHelper {
             LOGGER.debug("soft delete vertex");
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
-            this.workQueueRepository.pushVertexDeletion(vertex, timestamp, Priority.HIGH);
+            this.workQueueRepository.pushVertexDeletion(vertex, beforeActionTimestamp, Priority.HIGH);
         }
 
         graph.flush();
