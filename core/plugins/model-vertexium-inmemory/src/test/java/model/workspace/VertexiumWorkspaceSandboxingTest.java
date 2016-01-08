@@ -9,6 +9,7 @@ import org.junit.runners.Parameterized;
 import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.visallo.core.formula.FormulaEvaluator;
+import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
@@ -18,6 +19,7 @@ import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.vertexium.model.ontology.InMemoryOntologyProperty;
 import org.visallo.web.clientapi.model.*;
 import org.visallo.web.clientapi.model.ClientApiPublishItem.Action;
+import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff.EdgeItem;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff.PropertyItem;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff.VertexItem;
 
@@ -26,7 +28,8 @@ import java.util.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * This test class covers workspace diff, publish, and undo functionality.
@@ -55,8 +58,8 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
 
     @Parameterized.Parameters
     public static Iterable<Object[]> initialVisibilitySources() {
-        return Arrays.asList(new Object[][] {
-                { DEFAULT_VISIBILITY.getVisibilityString() }, { OTHER_VISIBILITY_SOURCE }
+        return Arrays.asList(new Object[][]{
+                {DEFAULT_VISIBILITY.getVisibilityString()}, {OTHER_VISIBILITY_SOURCE}
         });
     }
 
@@ -100,6 +103,12 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 .thenReturn(Collections.<Vertex>emptyList());
         when(termMentionRepository.findResolvedTo(anyString(), any(Authorizations.class)))
                 .thenReturn(Collections.<Vertex>emptyList());
+        when(termMentionRepository.findByEdgeId(anyString(), anyString(), any(Authorizations.class)))
+                .thenReturn(Collections.<Vertex>emptyList());
+        when(termMentionRepository.findByEdgeForEdge(any(Edge.class), any(Authorizations.class)))
+                .thenReturn(Collections.<Vertex>emptyList());
+        when(ontologyRepository.getPropertyByIRI(VisalloProperties.VISIBILITY_JSON.getPropertyName()))
+                .thenReturn(new InMemoryOntologyProperty());
     }
 
     @Test
@@ -494,11 +503,137 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         assertNull(graph.getVertex(vertexId, workspaceAuthorizations));
     }
 
+    @Test
+    public void sandboxedPublicPropertyDeletionShouldPushHiddenStatus() {
+        changePublicPropertyValueOnWorkspace();
+        graph.flush();
+        publishWorkspaceDiffs();
+
+        entity1Vertex = graph.getVertex(entity1Vertex.getId(), workspaceAuthorizations);
+        Property property = entity1Vertex.getProperty("key1", "prop1");
+        assertNotNull(property);
+        workspaceHelper.deleteProperty(entity1Vertex, property, true, WORKSPACE_ID, Priority.HIGH, workspaceAuthorizations);
+        verify(workQueueRepository).pushGraphPropertyQueue(eq(entity1Vertex), eq(property), eq(ElementOrPropertyStatus.HIDDEN), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedPropertyUndoShouldPushDeletionStatus() {
+        changePublicPropertyValueOnWorkspace();
+        List<ClientApiWorkspaceDiff.PropertyItem> diffs = getDiffsFromWorkspace(ClientApiWorkspaceDiff.PropertyItem.class);
+        undoPropertyDiffs(diffs);
+        verify(workQueueRepository).pushPropertyDeletion(eq(entity1Vertex), eq("key1"), eq("prop1"), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedPublicPropertyDeletionUndoShouldPushUnhiddenStatus() {
+        markPublicPropertyHiddenOnWorkspace();
+        List<ClientApiWorkspaceDiff.PropertyItem> diffs = getDiffsFromWorkspace(ClientApiWorkspaceDiff.PropertyItem.class);
+        undoPropertyDiffs(diffs);
+        verify(workQueueRepository).pushPropertyUnhide(eq(entity1Vertex), eq("key1"), eq("prop1"), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void publishedPublicPropertyDeletionShouldPushDeletionStatus() {
+        markPublicPropertyHiddenOnWorkspace();
+        publishWorkspaceDiffs();
+        verify(workQueueRepository).pushPublishedPropertyDeletion(eq(entity1Vertex), eq("key1"), eq("prop1"), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedVertexUndoShouldPushDeletionStatus() {
+        Vertex vertex = newVertexOnWorkspace();
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        undoWorkspace(diffs);
+        verify(workQueueRepository).pushVertexDeletion(eq(vertex), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedPublicVertexDeletionShouldPushHiddenStatus() {
+        workspaceHelper.deleteVertex(entity1Vertex, workspace.getWorkspaceId(), true, Priority.HIGH, workspaceAuthorizations, user1);
+        verify(workQueueRepository).pushVertexHidden(eq(entity1Vertex), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedPublicVertexDeletionUndoShouldPushUnhiddenStatus() {
+        markPublicVertexHiddenOnWorkspace();
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        undoWorkspace(diffs);
+        verify(workQueueRepository).pushVertexUnhidden(eq(entity1Vertex), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void publishedPublicVertexDeletionShouldPushDeletionStatus() {
+        markPublicVertexHiddenOnWorkspace();
+        publishWorkspaceDiffs();
+        verify(workQueueRepository).pushPublishedVertexDeletion(eq(entity1Vertex), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedEdgeUndoShouldPushDeletionStatus() {
+        Edge edge = newEdgeOnWorkspace();
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        undoWorkspace(diffs);
+        verify(workQueueRepository).pushEdgeDeletion(eq(edge), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedPublicEdgeDeletionShouldPushHiddenStatus() {
+        Edge edge = newEdgeOnWorkspace();
+        publishWorkspaceDiffs();
+
+        Vertex v1 = graph.getVertex("v1", workspaceAuthorizations);
+        Vertex v2 = graph.getVertex("v2", workspaceAuthorizations);
+
+        workspaceHelper.deleteEdge(workspace.getWorkspaceId(), edge, v1, v2, true, Priority.HIGH, workspaceAuthorizations, user1);
+        verify(workQueueRepository).pushEdgeHidden(eq(edge), any(Long.class), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void sandboxedPublicEdgeDeletionUndoShouldPushUnhiddenStatus() {
+        Edge edge = newEdgeOnWorkspace();
+        publishWorkspaceDiffs();
+
+        Vertex v1 = graph.getVertex("v1", workspaceAuthorizations);
+        Vertex v2 = graph.getVertex("v2", workspaceAuthorizations);
+
+        workspaceHelper.deleteEdge(workspace.getWorkspaceId(), edge, v1, v2, true, Priority.HIGH, workspaceAuthorizations, user1);
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        undoWorkspace(diffs);
+        verify(workQueueRepository).pushEdgeUnhidden(eq(edge), eq(Priority.HIGH));
+    }
+
+    @Test
+    public void publishedPublicEdgeDeletionShouldPushDeletionStatus() {
+        Edge edge = newEdgeOnWorkspace();
+        publishWorkspaceDiffs();
+
+        Vertex v1 = graph.getVertex("v1", workspaceAuthorizations);
+        Vertex v2 = graph.getVertex("v2", workspaceAuthorizations);
+
+        workspaceHelper.deleteEdge(workspace.getWorkspaceId(), edge, v1, v2, true, Priority.HIGH, workspaceAuthorizations, user1);
+        publishWorkspaceDiffs();
+        verify(workQueueRepository).pushPublishedEdgeDeletion(eq(edge), any(Long.class), eq(Priority.HIGH));
+    }
+
+    private Edge newEdgeOnWorkspace() {
+        when(ontologyRepository.getPropertyByIRI(VisalloProperties.MODIFIED_BY.getPropertyName()))
+                .thenReturn(new InMemoryOntologyProperty());
+        Vertex v1 = graph.prepareVertex("v1", initialVisibility).save(workspaceAuthorizations);
+        Vertex v2 = graph.prepareVertex("v2", initialVisibility).save(workspaceAuthorizations);
+        EdgeBuilder edgeBuilder = graph.prepareEdge("edge1", v1, v2, "label1", initialWorkspaceViz);
+        VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, initialVisibilityJson, initialWorkspaceViz);
+        VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, "testUser", initialWorkspaceViz);
+        Edge edge = edgeBuilder.save(workspaceAuthorizations);
+        graph.flush();
+
+        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), true, null, user1);
+        workspaceRepository.updateEntityOnWorkspace(workspace, v2.getId(), true, null, user1);
+        return edge;
+    }
+
     private Vertex newVertexOnWorkspace() {
         when(injector.getInstance(OntologyRepository.class)).thenReturn(ontologyRepository);
         when(ontologyRepository.getPropertyByIRI(VisalloProperties.CONCEPT_TYPE.getPropertyName()))
-                .thenReturn(new InMemoryOntologyProperty());
-        when(ontologyRepository.getPropertyByIRI(VisalloProperties.VISIBILITY_JSON.getPropertyName()))
                 .thenReturn(new InMemoryOntologyProperty());
         InMemoryOntologyProperty titleOntologyProp = new InMemoryOntologyProperty();
         titleOntologyProp.setUserVisible(true);
@@ -552,9 +687,10 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
 
     private void publishWorkspaceDiffs() {
         List<VertexItem> vertexDiffs = getDiffsFromWorkspace(VertexItem.class);
+        List<EdgeItem> edgeDiffs = getDiffsFromWorkspace(EdgeItem.class);
         List<PropertyItem> propertyDiffs = getDiffsFromWorkspace(PropertyItem.class);
 
-        assertTrue("no diffs were found to publish", vertexDiffs.size() + propertyDiffs.size() > 0);
+        assertTrue("no diffs were found to publish", vertexDiffs.size() + propertyDiffs.size() + edgeDiffs.size() > 0);
 
         List<ClientApiPublishItem> vertexItems = new ArrayList<>();
         for (VertexItem diff : vertexDiffs) {
@@ -575,8 +711,16 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
             propertyItems.add(publishItem);
         }
 
-        ClientApiPublishItem[] allPublishItems = Lists.newArrayList(Iterables.concat(vertexItems, propertyItems))
-                .toArray(new ClientApiPublishItem[vertexDiffs.size() + propertyDiffs.size()]);
+        List<ClientApiPublishItem> edgeItems = new ArrayList<>();
+        for (EdgeItem diff : edgeDiffs) {
+            ClientApiRelationshipPublishItem publishItem = new ClientApiRelationshipPublishItem();
+            publishItem.setEdgeId(diff.getEdgeId());
+            publishItem.setAction(diff.isDeleted() ? Action.DELETE : Action.ADD_OR_UPDATE);
+            edgeItems.add(publishItem);
+        }
+
+        ClientApiPublishItem[] allPublishItems = Lists.newArrayList(Iterables.concat(vertexItems, propertyItems, edgeItems))
+                .toArray(new ClientApiPublishItem[vertexDiffs.size() + propertyDiffs.size() + edgeDiffs.size()]);
 
         ClientApiWorkspacePublishResponse response =
                 workspaceRepository.publish(allPublishItems, workspace.getWorkspaceId(), workspaceAuthorizations);
@@ -624,6 +768,10 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     private void markPublicPropertyHiddenOnWorkspace() {
         entity1Vertex.markPropertyHidden("key1", "prop1", initialVisibility, new Visibility(workspace.getWorkspaceId()),
                 workspaceAuthorizations);
+    }
+
+    private void markPublicVertexHiddenOnWorkspace() {
+        graph.markVertexHidden(entity1Vertex, new Visibility(workspace.getWorkspaceId()), workspaceAuthorizations);
     }
 
     private void changePublicPropertyValueOnWorkspace() {

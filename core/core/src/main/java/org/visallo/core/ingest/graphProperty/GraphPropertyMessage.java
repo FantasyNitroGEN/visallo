@@ -17,8 +17,8 @@ public class GraphPropertyMessage {
     public static final String WORKSPACE_ID = "workspaceId";
     public static final String VISIBILITY_SOURCE = "visibilitySource";
     public static final String PRIORITY = "priority";
-    public static final String IS_DELETION = "isDeletion";
-    public static final String BEFORE_DELETE_TIMESTAMP = "beforeDeleteTimestamp";
+    public static final String STATUS = "status";
+    public static final String BEFORE_ACTION_TIMESTAMP = "beforeActionTimestamp";
 
     private JSONObject _obj;
 
@@ -64,9 +64,12 @@ public class GraphPropertyMessage {
         return getListOfItemsFromJSONKey(_obj, GRAPH_EDGE_ID);
     }
 
-    public boolean isDeletion() { return _obj.optBoolean(IS_DELETION, false); }
+    public ElementOrPropertyStatus getStatus() {
+        String status = _obj.optString(STATUS, null);
+        return ElementOrPropertyStatus.safeParse(status);
+    }
 
-    public long getBeforeDeleteTimestamp() { return _obj.optLong(BEFORE_DELETE_TIMESTAMP, -1L); }
+    public long getBeforeActionTimestamp() { return _obj.optLong(BEFORE_ACTION_TIMESTAMP, -1L); }
 
     public boolean canHandleVertex(){
         return canHandleElementById(getVertexIds());

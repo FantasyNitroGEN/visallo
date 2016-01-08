@@ -17,10 +17,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
-import org.visallo.core.ingest.graphProperty.TermMentionFilter;
+import org.visallo.core.ingest.graphProperty.*;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -157,14 +154,22 @@ public abstract class GraphPropertyWorkerTestBase {
     }
 
     protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in) {
-        return run(gpw, workerPrepareData, e, prop, in, null, false, null);
+        return run(gpw, workerPrepareData, e, prop, in, null, null, null);
     }
 
-    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, boolean isDeleted) {
-        return run(gpw, workerPrepareData, e, prop, in, null, isDeleted, null);
+    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, ElementOrPropertyStatus status) {
+        return run(gpw, workerPrepareData, e, prop, in, null, status, null);
     }
 
-    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, String workspaceId, boolean isDeleted, String visibilitySource) {
+    protected boolean run(
+            GraphPropertyWorker gpw,
+            GraphPropertyWorkerPrepareData workerPrepareData,
+            Element e,
+            Property prop,
+            InputStream in,
+            String workspaceId,
+            ElementOrPropertyStatus status,
+            String visibilitySource) {
         try {
             gpw.setConfiguration(getConfiguration());
             gpw.setGraph(getGraph());
@@ -191,7 +196,7 @@ public abstract class GraphPropertyWorkerTestBase {
                     workspaceId,
                     visibilitySource,
                     Priority.NORMAL,
-                    isDeleted
+                    status
             );
             if (gpw.isLocalFileRequired() && executeData.getLocalFile() == null && in != null) {
                 byte[] data = IOUtils.toByteArray(in);

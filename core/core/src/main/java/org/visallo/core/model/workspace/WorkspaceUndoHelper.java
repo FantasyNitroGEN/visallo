@@ -56,7 +56,7 @@ public class WorkspaceUndoHelper {
                     // TODO see WorkspaceHelper.deleteVertex for all the other things we need to bring back
                     graph.markVertexVisible(vertex, new Visibility(workspaceId), authorizations);
                     graph.flush();
-                    workQueueRepository.broadcastUndoVertexDelete(vertex);
+                    workQueueRepository.pushVertexUnhidden(vertex, Priority.HIGH);
                 } else if (SandboxStatusUtil.getSandboxStatus(vertex, workspaceId) == SandboxStatus.PUBLIC) {
                     String msg = "Cannot undo a public vertex";
                     LOGGER.warn(msg);
@@ -108,7 +108,7 @@ public class WorkspaceUndoHelper {
                     // TODO see workspaceHelper.deleteEdge for all the other things we need to bring back
                     graph.markEdgeVisible(edge, new Visibility(workspaceId), authorizations);
                     graph.flush();
-                    workQueueRepository.broadcastUndoEdgeDelete(edge);
+                    workQueueRepository.pushEdgeUnhidden(edge, Priority.HIGH);
                 } else if (SandboxStatusUtil.getSandboxStatus(edge, workspaceId) == SandboxStatus.PUBLIC) {
                     String error_msg = "Cannot undo a public edge";
                     LOGGER.warn(error_msg);
@@ -170,7 +170,7 @@ public class WorkspaceUndoHelper {
                             LOGGER.debug("un-hiding property: %s (workspaceId: %s)", property, workspaceId);
                             vertex.markPropertyVisible(property, new Visibility(workspaceId), authorizations);
                             graph.flush();
-                            workQueueRepository.broadcastUndoPropertyDelete(vertex, propertyKey, propertyName);
+                            workQueueRepository.pushPropertyUnhide(vertex, propertyKey, propertyName, Priority.HIGH);
                         }
                     } else if (propertySandboxStatus == SandboxStatus.PUBLIC) {
                         String error_msg = "Cannot undo a public property";
@@ -178,14 +178,18 @@ public class WorkspaceUndoHelper {
                         undoItem.setErrorMessage(error_msg);
                         workspaceUndoResponse.addFailure(undoItem);
                     } else if (propertySandboxStatus == SandboxStatus.PUBLIC_CHANGED) {
+                        long beforeActionTimestamp = System.currentTimeMillis() - 1;
                         vertex.softDeleteProperty(propertyKey, propertyName, property.getVisibility(), authorizations);
                         if (publicProperty != null) {
                             vertex.markPropertyVisible(publicProperty, new Visibility(workspaceId), authorizations);
+                            graph.flush();
+                            workQueueRepository.pushPropertyUnhide(vertex, propertyKey, propertyName, Priority.HIGH);
+                        } else {
+                            graph.flush();
+                            workQueueRepository.pushPropertyDeletion(vertex, propertyKey, propertyName, beforeActionTimestamp, Priority.HIGH);
                         }
-                        graph.flush();
-                        workQueueRepository.broadcastUndoPropertyDelete(vertex, propertyKey, propertyName);
                     } else {
-                        workspaceHelper.deleteProperty(vertex, property, false, workspaceId, Priority.HIGH,  authorizations);
+                        workspaceHelper.deleteProperty(vertex, property, false, workspaceId, Priority.HIGH, authorizations);
                         graph.flush();
                         workQueueRepository.broadcastUndoProperty(vertex, propertyKey, propertyName);
                     }

@@ -69,6 +69,14 @@ public abstract class GraphPropertyWorker {
         return false;
     };
 
+    public boolean isHiddenHandled(Element element, Property property) {
+        return false;
+    };
+
+    public boolean isUnhiddenHandled(Element element, Property property) {
+        return false;
+    };
+
     public abstract void execute(InputStream in, GraphPropertyWorkData data) throws Exception;
 
     public boolean isLocalFileRequired() {
