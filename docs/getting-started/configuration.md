@@ -1,11 +1,11 @@
 
 # Configuration
 
-## Docker
+## Inside Docker Container
 
 If you are running Visallo processes in Docker using `docker/run-dev.sh` no additional steps are required, `run-dev.sh` will copy the example files to `docker/visallo-dev-persistent/opt/visallo/config` which is mapped to `/opt/visallo/config` inside the Docker container.
 
-## Outside of Docker
+## Outside Docker Container
 
 If you would like to run and develop Visallo outside of docker there are several required configuration properties that must be specified before starting Visallo.
 

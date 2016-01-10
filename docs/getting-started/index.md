@@ -12,7 +12,9 @@ In order to work with Visallo as a developer, it's recommended that:
 * You know JavaScript, as the UI is very JavaScript heavy.
 * You're familiar with common big data tools, including the Hadoop stack, Accumulo.
 
-If that sounds like you, then continue reading to get started.
+If that sounds like you, then please keep in mind the following conventions you'll encounter while reading this guide.
+
+* Any reference to `$PROJECT_DIR` refers to the directory into which you've cloned the Visallo source code. Unless otherwise stated, all commands are run from this directory.
 
 ## Understand the [Architecture](architecture-overview.md)
 

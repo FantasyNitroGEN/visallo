@@ -93,7 +93,7 @@ It is a known issue that some unit tests fail on Windows. The following are expe
 
 1. (Inside of the docker-machine VM) Pull the docker image:
 
-   *This only needs to be run the first time, or when a the docker configuration changes (files in the `docker` directory).*
+   *This only needs to be run the first time, or when the docker configuration changes (files in the `docker` directory).*
 
         docker pull visallo/dev
 

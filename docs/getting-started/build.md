@@ -5,9 +5,27 @@ In the majority of cases, most Visallo components can be built by simply opening
 <a name="root-module"/>
 ## Root Module Installation
 
-You must install the Visallo `root` module before building or running anything. You can do that by running the following Maven command from the `$PROJECT_DIR/root` directory.
+You'll need to install the Visallo `root` Maven module after you've cloned the [source code](source-code.md) and any time you pull the latest Visallo source code.
 
-        mvn install
+        mvn install -f root/pom.xml
+
+## Smoke Test
+
+You should make sure everything compiles and tests pass before going any further. Otherwise, it's hard to reason about what might be wrong when things later fail.
+
+Compile all modules, building the web app resources for development (which is faster):
+
+    mvn compile -Dgrunt.target=development
+
+Run all unit tests, continuing on failures and without failing the build:
+
+    mvn test -fn -Dgrunt.target=development
+
+It is a known issue that some unit tests fail on Windows. The following are expected to fail:
+* `org.visallo.core.formula.FormulaEvaluatorTest`
+* `org.visallo.tesseract.TesseractGraphPropertyWorkerTest`
+* `org.visallo.opencvObjectDetector.OpenCVUtilsTest`
+* `org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorkerTest`
 
 ## Web Application
 
@@ -18,7 +36,6 @@ From the root directory of the Visallo project, run
         mvn package -pl web/war -am -DskipTests -Dsource.skip=true
 
 The previous command will create a WAR file in the `web/war/target` directory.
-
 
 <a name="web-plugin"/>
 ## Web Application Plugins
