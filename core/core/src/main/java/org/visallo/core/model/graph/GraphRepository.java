@@ -164,7 +164,10 @@ public class GraphRepository {
         }
 
         Property publicProperty = element.getProperty(propertyKey, propertyName);
-        if (publicProperty != null && SandboxStatus.getFromVisibilityString(publicProperty.getVisibility().getVisibilityString(), workspaceId) == SandboxStatus.PUBLIC) {
+        // only public properties in a workspace will be sandboxed (hidden from the workspace)
+        if (publicProperty != null && workspaceId != null &&
+                SandboxStatus.getFromVisibilityString(publicProperty.getVisibility().getVisibilityString(), workspaceId)
+                        == SandboxStatus.PUBLIC) {
             // changing a public property, so hide it from the workspace
             element.markPropertyHidden(publicProperty, new Visibility(workspaceId), authorizations);
         } else if (isUpdate && oldVisibilitySource != null && !oldVisibilitySource.equals(newVisibilitySource)) {

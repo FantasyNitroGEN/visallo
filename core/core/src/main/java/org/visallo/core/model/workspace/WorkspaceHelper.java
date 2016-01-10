@@ -104,7 +104,7 @@ public class WorkspaceHelper {
     public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
         long beforeActionTimestamp = System.currentTimeMillis() - 1;
         ElementOrPropertyStatus status;
-        if (propertyIsPublic) {
+        if (propertyIsPublic && workspaceId != null) {
             e.markPropertyHidden(property, new Visibility(workspaceId), authorizations);
             status = ElementOrPropertyStatus.HIDDEN;
         } else {

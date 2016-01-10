@@ -35,7 +35,9 @@ public class VisibilityJson {
     }
 
     public void addWorkspace(String workspaceId) {
-        workspaces.add(workspaceId);
+        if (workspaceId != null) {
+            workspaces.add(workspaceId);
+        }
     }
 
     @Override
@@ -81,16 +83,14 @@ public class VisibilityJson {
         return json;
     }
 
-    public static VisibilityJson updateVisibilitySourceAndAddWorkspaceId(VisibilityJson visibilityJson, String visibilitySource, String workspaceId) {
+    public static VisibilityJson updateVisibilitySourceAndAddWorkspaceId(VisibilityJson visibilityJson,
+                                                                         String visibilitySource, String workspaceId) {
         if (visibilityJson == null) {
             visibilityJson = new VisibilityJson();
         }
 
         visibilityJson.setSource(visibilitySource);
-
-        if (workspaceId != null) {
-            visibilityJson.addWorkspace(workspaceId);
-        }
+        visibilityJson.addWorkspace(workspaceId);
 
         return visibilityJson;
     }

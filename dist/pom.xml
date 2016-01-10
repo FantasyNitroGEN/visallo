@@ -18,6 +18,7 @@
         <module>coordination-zookeeper</module>
         <module>core</module>
         <module>gpw</module>
+        <module>hazelcast</module>
         <module>client-api</module>
         <module>web</module>
         <module>storage-accumulo</module>

@@ -139,6 +139,16 @@
             </dependencies>
         </profile>
         <profile>
+            <id>hazelcast</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-model-hazelcast</artifactId>
+                    <version>${v5.visallo.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>coordination-zookeeper</id>
             <dependencies>
                 <dependency>
