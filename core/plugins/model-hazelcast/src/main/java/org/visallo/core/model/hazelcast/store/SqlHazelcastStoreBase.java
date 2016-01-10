@@ -7,13 +7,15 @@ import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.Update;
 import org.visallo.core.model.hazelcast.HazelcastConfiguration;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public abstract class SqlHazelcastStoreBase<TKey, TValue> {
-    private final String loadAllKeysSql;
-    private final String storeSql;
-    private final String deleteSql;
-    private final String loadSql;
+    private final String selectKeysSql;
+    private final String insertSql;
+    private final String updateByKeySql;
+    private final String deleteByKeySql;
+    private final String selectByKeySql;
     private final DBI dbi;
 
     public SqlHazelcastStoreBase(String name, StoreType type, HazelcastConfiguration hazelcastConfiguration) {
@@ -28,24 +30,34 @@ public abstract class SqlHazelcastStoreBase<TKey, TValue> {
         try (Handle handle = dbi.open()) {
             handle.execute(hazelcastConfiguration.getJdbcCreateSql(name, type));
         }
-        this.loadAllKeysSql = hazelcastConfiguration.getJdbcLoadAllKeysSql(name, type);
-        this.storeSql = hazelcastConfiguration.getJdbcStoreSql(name, type);
-        this.deleteSql = hazelcastConfiguration.getJdbcDeleteSql(name, type);
-        this.loadSql = hazelcastConfiguration.getJdbcLoadSql(name, type);
+        this.selectKeysSql = hazelcastConfiguration.getJdbcSelectKeysSql(name, type);
+        this.insertSql = hazelcastConfiguration.getJdbcInsertSql(name, type);
+        this.updateByKeySql = hazelcastConfiguration.getJdbcUpdateByKeySql(name, type);
+        this.deleteByKeySql = hazelcastConfiguration.getJdbcDeleteByKeySql(name, type);
+        this.selectByKeySql = hazelcastConfiguration.getJdbcSelectByKeySql(name, type);
     }
 
     protected void store(TKey key, TValue value) {
         try (Handle handle = dbi.open()) {
-            Update stmt = handle.createStatement(storeSql)
-                    .bind(HazelcastConfiguration.SQL_KEY_COLUMN, key);
-            setDataInPreparedStatement(stmt, value);
-            stmt.execute();
+            try {
+                Update stmt = handle.createStatement(insertSql)
+                        .bind(HazelcastConfiguration.SQL_KEY_COLUMN, key);
+                setDataInPreparedStatement(stmt, value);
+                if (stmt.execute() == 0) {
+                    throw new SQLException("Failed to insert item expected more than 0 rows effected. Attempting to update instead.");
+                }
+            } catch (SQLException ex) {
+                Update stmt = handle.createStatement(updateByKeySql)
+                        .bind(HazelcastConfiguration.SQL_KEY_COLUMN, key);
+                setDataInPreparedStatement(stmt, value);
+                stmt.execute();
+            }
         }
     }
 
     protected void delete(TKey key) {
         try (Handle handle = dbi.open()) {
-            handle.createStatement(deleteSql)
+            handle.createStatement(deleteByKeySql)
                     .bind(HazelcastConfiguration.SQL_KEY_COLUMN, key)
                     .execute();
         }
@@ -53,7 +65,7 @@ public abstract class SqlHazelcastStoreBase<TKey, TValue> {
 
     protected TValue load(TKey key) {
         try (Handle handle = dbi.open()) {
-            Map<String, Object> first = handle.createQuery(loadSql)
+            Map<String, Object> first = handle.createQuery(selectByKeySql)
                     .bind(HazelcastConfiguration.SQL_KEY_COLUMN, key)
                     .first();
             if (first == null) {
@@ -65,7 +77,7 @@ public abstract class SqlHazelcastStoreBase<TKey, TValue> {
 
     protected Iterable<TKey> loadAllKeysIterable() {
         try (Handle handle = dbi.open()) {
-            Query<Map<String, Object>> query = handle.createQuery(loadAllKeysSql);
+            Query<Map<String, Object>> query = handle.createQuery(selectKeysSql);
             List<TKey> results = new ArrayList<>();
             for (Map<String, Object> row : query) {
                 results.add(getKeyFromQueryRow(row));
