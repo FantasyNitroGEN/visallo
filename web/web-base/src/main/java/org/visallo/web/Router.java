@@ -194,10 +194,10 @@ public class Router extends HttpServlet {
             app.post("/workspace/undo", authenticator, csrfProtector, EditPrivilegeFilter.class, WorkspaceUndo.class);
 
             app.get("/dashboard/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardAll.class);
-            app.post("/dashboard", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardUpdate.class);
-            app.delete("/dashboard", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardDelete.class);
-            app.post("/dashboard/item", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardItemUpdate.class);
-            app.delete("/dashboard/item", authenticator, csrfProtector, EditPrivilegeFilter.class, DashboardItemDelete.class);
+            app.post("/dashboard", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardUpdate.class);
+            app.delete("/dashboard", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardDelete.class);
+            app.post("/dashboard/item", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardItemUpdate.class);
+            app.delete("/dashboard/item", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardItemDelete.class);
 
             app.get("/user/me", authenticator, csrfProtector, MeGet.class);
             app.post("/user/ui-preferences", authenticator, csrfProtector, UserSetUiPreferences.class);
