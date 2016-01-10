@@ -274,9 +274,9 @@ define([
                     self.$node.find('.user').each(function() {
                         $(this).text(usersById[$(this).data('userId')]);
                     })
-                })
+                });
 
-            this.$node.find('.collapsible .badge').text(
+            this.$node.find('.badge').text(
                 F.number.pretty(commentsTreeResponse.total)
             );
             this.$node.find('.collapsible-header').toggle(commentsTreeResponse.total > 0);
