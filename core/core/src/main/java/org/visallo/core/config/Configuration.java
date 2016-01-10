@@ -79,6 +79,9 @@ public class Configuration {
     public static final boolean STATUS_ENABLED_DEFAULT = true;
     public static final String SYSTEM_PROPERTY_PREFIX = "visallo.";
 
+    public static final String HTTP_GZIP_ENABLED = "http.gzipEnabled";
+    public static final boolean HTTP_GZIP_ENABLED_DEFAULT = true;
+
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
 
