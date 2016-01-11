@@ -45,6 +45,10 @@ section will help you understand the options.
 Visallo uses OWL files to define what type of entities you can create, what properties they can have and what they
 can connect to.
 
+## Try [Quick-Start](quickstart.md)
+
+If you're short on time, you can quickly run a limited Visallo application with minimum fuss.
+
 ## [Getting Help](help.md)
 
 Running Visallo is a challenging, but rewarding, endeavor. Learn about your options for getting help in this section.
