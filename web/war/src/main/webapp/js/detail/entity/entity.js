@@ -4,7 +4,7 @@ define([
     './image/image',
     '../properties/properties',
     '../relationships/relationships',
-    '../comments/comments',
+    'comments/comments',
     '../withTypeContent',
     '../withHighlighting',
     '../toolbar/toolbar',

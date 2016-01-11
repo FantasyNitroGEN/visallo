@@ -11,7 +11,7 @@ define([
     '../dropdowns/termForm/termForm',
     '../properties/properties',
     '../relationships/relationships',
-    '../comments/comments',
+    'comments/comments',
     'tpl!./artifact',
     'tpl!./transcriptEntry',
     'hbs!./transcriptEntries',

@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    '../withDropdown',
+    'util/withDropdown',
     'tpl!./termForm',
     'tpl!util/alert',
     'util/vertex/formatters',

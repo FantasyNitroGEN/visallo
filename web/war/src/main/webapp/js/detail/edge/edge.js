@@ -3,7 +3,7 @@ define([
     '../withTypeContent',
     '../withHighlighting',
     '../toolbar/toolbar',
-    '../comments/comments',
+    'comments/comments',
     'tpl!./edge',
     'detail/properties/properties',
     'util/vertex/formatters',
