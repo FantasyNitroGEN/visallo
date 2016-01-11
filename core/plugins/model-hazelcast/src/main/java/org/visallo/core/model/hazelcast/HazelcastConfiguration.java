@@ -189,7 +189,8 @@ public class HazelcastConfiguration {
         String sqlType;
         switch (type) {
             case MAP:
-                sqlType = "VARCHAR(1000)";
+                // mysql has a limit on the size of indexed strings (http://dev.mysql.com/doc/refman/5.6/en/innodb-restrictions.html)
+                sqlType = "VARCHAR(760)";
                 break;
             case QUEUE:
                 sqlType = "INTEGER";
