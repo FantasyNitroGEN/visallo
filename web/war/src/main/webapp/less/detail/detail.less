@@ -7,9 +7,54 @@
   color: #aaa;
 }
 
-.content {
+.vertex-draggable {
+  cursor: move;
+}
 
+.content {
+  display: flex;
   padding: 0;
+
+  .org-visallo-layout-root {
+    flex: 1;        
+    overflow-x: hidden;
+
+    @bg: #555;
+    .org-visallo-layout-header-text {
+      padding: 0.5em;   
+      background: @bg;
+      .org-visallo-layout-text {
+        text-shadow: 0 0px 20px rgba(0, 0, 0, 0.2), 0 0px 2px #000000;
+        color: white;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        &.subtitle {
+          font-variant: small-caps;
+          text-transform: lowercase;
+          font-weight: bold;
+        }
+      }
+    }
+
+    .edge-heading {
+      text-align: center;
+      .edge-label {
+        font-variant: small-caps;
+        text-transform: lowercase;
+        font-style: italic;
+        color: lighten(@bg, 50%);
+        font-weight: bold;
+        border-top: 1px solid darken(@bg, 10%);
+        border-bottom: 1px solid darken(@bg, 10%);
+        background: darken(@bg, 5%);
+        margin: 0.5em -0.5em;
+      }
+    }
+
+    .org-visallo-layout-elements-list {
+      border-top: 1px solid @pane-border;
+    }
+  }
 
   &.loading {
 
@@ -31,46 +76,19 @@
     }
   }
 
-  .type-content > .nav-with-background > .preview, .content > .preview {
-    height: 240px;
-    cursor: pointer;
-    background: rgba(0, 0, 0, 0.05);
-    margin-top: 1px;
-    overflow: hidden;
+  .org-visallo-video {
+    .video-preview {
+      height: 240px;
+      cursor: pointer;
+      margin-top: 1px;
+      overflow: hidden;
+    }
   }
-  .type-content > .nav-with-background > .audio-preview {
-    margin-top: 1em;
+  .org-visallo-video .video-preview, .org-visallo-image {
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .type-content {
-
-    &.custom-entity-image .entity-background {
-        height: 14em;
-        h1 {
-          bottom: 1.5em;
-          top: auto;
-        }
-        .subtitle {
-          top: auto;
-          bottom: 0.25em;
-        }        
-    }
-
-    &.custom-entity-image .entity-background .entity-glyphIcon {
-        width: 100%;   
-        height: 100%;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        margin: 0;
-        padding: 0;
-        background-position: center center;
-    }
-
-    &.custom-entity-image .nav-with-background {
-        margin-top: 16.5em;
-    }
 
     .detail-overlay {
       position: absolute;
@@ -172,17 +190,6 @@
     cursor: pointer;
   }
 
-  .entity-background {
-
-  
-  .relationship-header {    
-    text-align: center;
-    margin-bottom: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0.5em 0;
-  }
-  }
   .vertex-to-vertex-relationship {
     font-size: 90%;   
     line-height: 1.1em;    
@@ -263,7 +270,7 @@
     }
   }
   
-  .texts {
+  .org-visallo-texts {
     margin: 0;
     .text-section {
       margin: 1px 0;
@@ -324,58 +331,6 @@
   }
 
   .multiple {
-
-    .details-container { display:none; }
-
-    &.viewing-vertex {
-      margin: 0;
-      padding: 0;
-
-      .multiple-container { 
-        display:none;
-      }
-      .details-container { 
-        position: absolute;
-        top: 0;
-        bottom: 200px;
-        width: 100%;
-        left: 0;
-        right: 0;
-        display:block; 
-        .box-sizing(border-box);
-      }
-      .elements-list, .edge-list {
-        position: absolute;
-        height: 200px;
-        bottom: 0;
-        overflow: auto;
-        width: 100%;
-        left: 0;
-        right: 0;
-        padding: 0;
-        margin: 0;
-        .box-sizing(border-box);
-
-
-        ul.multi-select.nav-list {
-          margin: 0;
-          padding: 0;
-        }
-
-        .detail-pane .content .elements-list > ul.multi-select.nav-list li {
-          padding: 0;
-        }
-               
-        ul li ul {
-          right: 0;
-        }
-
-        li a {          
-          margin: 0;
-        }
-      }
-    }
-
     svg, .svg-container {
 
       .histogram-bar {
@@ -410,41 +365,6 @@
       }
     }
     
-    &:not(.viewing-vertex) {          
-      .elements-list, .edge-list {
-        .active a {
-          color: #0088cc;        
-          text-shadow: none;
-          background: inherit;
-          .source, .date {
-            color: #555;
-          }
-
-          ul li.graph button {
-            background-image: url(../img/glyphicons/glyphicons_326_share@2x.png);
-          }
-          ul li.map button {
-            background-image: url(../img/glyphicons/glyphicons_242_google_maps@2x.png);
-          }
-
-          .preview {
-            display: block;
-          }
-          .active-preview {
-            display: none;
-          }
-        }
-      }
-    }
-
-    .elements-list, .edge-list {
-       border-top: 1px solid #eee;
-    }
-    .multi-select {
-      margin: 0;
-      padding-left: 16px;
-    }
-
     ul.histograms {
       list-style: none;
       padding: 0;
@@ -463,77 +383,6 @@
         }
       }
     }
-
-    &.edges {
-      .multiple-container {
-        margin-bottom: 0em;
-      }
-      .comp-toolbar {
-        height: 3px;
-      }
-      &.viewing-vertex {
-        .comp-toolbar {
-          height: 2em;
-        }
-        .edge-list .nav-list {
-          padding: 0;
-        }
-      }
-      .spacer {
-        height: 10em;
-      }
-      .edge-list {
-        margin-top: 3px;
-      }
-      .entity-background {
-        .relationship-header {
-          padding: 0;
-        }
-        .relation {
-          font-size: 85%;
-          color: white;
-          font-variant: small-caps;
-          text-transform: lowercase;
-          margin-bottom: 0.5em;
-          margin-top: 0.2em;
-          position: relative;
-
-          .badge {
-            .opacity(60);
-            float: none;
-            position: absolute;
-            top: 50%;
-            margin-top: -0.55em;
-            margin-right: 1em;
-            margin-left: 0.5em;
-          }
-          /*.relation::after {*/
-            /*content: '';*/
-            /*position: absolute;*/
-            /*width: 0;*/
-            /*height: 0;*/
-            /*left: 50%;*/
-            /*margin-left: -4px;*/
-            /*bottom: -15px;*/
-            /*border-width: 8px 4px;*/
-            /*border-color: #999 transparent transparent transparent;*/
-            /*border-style: solid;*/
-            /*z-index: -1;*/
-          /*}*/
-          /*.relation::before {*/
-            /*content: '';*/
-            /*position: absolute;*/
-            /*background: #999;*/
-            /*width: 2px;*/
-            /*height: 28px;*/
-            /*left: 50%;*/
-            /*margin-left: -1px;*/
-            /*top: 1px;*/
-            /*z-index: -1;*/
-        /*}*/
-        }
-      }
-    }
   }
 
   .image-preview, .background-scrubber {
@@ -542,13 +391,13 @@
     @import "./facebox";
   }
 
-  .image-preview {
+  .org-visallo-image {
     background-size: 100% 100%;
     background-repeat: no-repeat;
     display: inline-block;
     max-width: 100%;
     position: relative;
-    margin: 0 0 -1.3em 0;
+    /*margin: 0 0 -1.3em 0;*/
     width: 100%;
     overflow: hidden;
 
@@ -557,13 +406,14 @@
       width: 125px;
       margin: 2em auto -1em;
       cursor: default;
+      background-color: inherit;
       background-image: url(../img/loading-large.png);
       background-size: auto 125px;
       min-height: 125px;
       background-position: center;
       .spin(10s);
       .animation-play-state(running);
-      .artifact-image {
+      .image-preview {
         display: none;
       }
     }
@@ -573,9 +423,9 @@
   }
 
 
-  .image-preview {
+  .org-visallo-image {
     text-align: center;      
-    .artifact-image {
+    .image-preview {
       max-width: 100%;
       position: relative;
       display: inline-block;
@@ -604,7 +454,7 @@
   @import "comments";
   @import "toolbar";
 
-  .properties, .comments {
+  .org-visallo-properties, .org-visallo-comments {
     button.info {
       background: darken(@pane-background, 20%) url(../img/glyphicons/white/glyphicons_195_circle_info.png);
       height: 16px;
@@ -646,121 +496,6 @@
     margin: 1em 0;       
   }
 
-  .artifact-title {
-    padding: 1em 1em 0 1em;
-    margin: 0; 
-    font-size: 130%;    
-  }
-  
-  .artifact-header {    
-    margin: 0;
-    padding: 0;
-  }
-
-  .nav-with-background {  
-    overflow: auto;    
-    margin: 8em 0 0 0;
-    padding: 0;
-    position: absolute;
-    top: 0;    
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%; 
-
-    .relationships {
-
-      .entity {
-        border-bottom-width:0;
-        &:hover {
-          border-bottom-width: 1px;
-        }
-      }
-
-      .rel-arrow {
-        color: #222;
-        text-shadow: 0 1px 0 white;
-        font-family: sans-serif;
-        font-size: 130%;
-      }
-
-      ul li.nav-header { margin: 1.5em 0 0 0; padding:0; }
-      .nav-list { padding-top: 0; }
-
-      .references {
-        padding: 0;
-        margin: 0 -1em;
-        .multi-select {
-          padding-right: 0;
-        }
-      }
-    }
-
-    .underneath {      
-      .buttons {
-        text-align: right;
-      }
-    }
-  }
-
-  .entity-background {
-    position: absolute;
-    background: #444;   
-    width: 100%;    
-    height: 6em;
-    top: 0;
-    margin: 0;
-    padding: 0 1em;    
-    z-index: 1;
-    .box-sizing(border-box);
-
-    &.loading {
-      background: #444;
-      width: 100%;
-            
-      .entity-glyphIcon {
-        background-color: transparent;
-        background-image: url(../img/loading-large.png) !important;
-        background-size: auto 125px !important;
-        background-position: center;
-        .spin(10s);
-        .animation-play-state(running);
-        .opacity(10);
-        &:after, &:before, * {display: none; }
-      }
-    }
-    
-    h1 {
-      white-space: nowrap;
-      display: inline-block; 
-      top: 0.5em;
-      color: white;      
-      font-size: 150%;
-      left: 0;
-      right: 0;          
-      overflow: hidden;
-      padding: 0 0.75em;
-      position: absolute;
-      text-overflow: ellipsis;
-      text-shadow: 0 0px 20px rgba(0,0,0,0.2), 0 0px 2px rgba(0,0,0,1);
-      z-index: 4;
-      margin: 0;
-    }    
-
-    & > .subtitle {
-      font-size: 120%;
-      font-weight: bold;
-      position: absolute;
-      top: 2.2em;
-      padding-left: .2ex;
-      display: inline-block;
-      margin-bottom: 0.5em;      
-      color: fadeOut(white, 15%);     
-      font-variant: small-caps;
-      text-transform: lowercase;   
-    }
-  }
-
   h1 {
     color: #555;
     text-shadow: 0 2px 0 white;
@@ -770,7 +505,6 @@
   }
 
   li.relationships { margin-top: 0; }
-
   li.relationship {
     margin-bottom: 1em;
 
@@ -783,62 +517,95 @@
     }
   }
 
-  .entity-glyphIcon {
-    position: absolute;
-    margin: 0 -1em;    
-    width: 100%;
-    height: 100%;
-    background-size: auto 65%;
-    background-repeat: no-repeat;
-    background-position: right 1em center;
-    background-color: #444;
-    
-    &.shake {
-      .shake;
+  .vertex-header {
+    position: relative;
+    .org-visallo-layout-text {
+      z-index: 2;
+      &.subtitle {
+        pointer-events: none;
+      }
     }
-    &.custom-image {
-      background-size: cover;
+    &.custom-entity-image {
+      height: 10em;
+      .entity-glyphicon {
+          background-position: center center;
+      }
     }
-    &.upload-available {
+    &.loading .entity-glyphicon {
+      background-color: transparent;
+      background-image: url(../img/loading-large.png) !important;
+      background-size: auto 75%;
+      background-position: center;
+      .spin(10s);
+      .animation-play-state(running);
+      .opacity(10);
+      &:after, &:before, * {display: none; }
+      &.custom-image {
+        background-size: auto 75% !important;
+      }
+    }
+    .entity-glyphicon {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-size: auto 65%;
+      background-repeat: no-repeat;
+      background-position: right 1em center;
+      background-color: transparent;
+      z-index: 2;
+      
+      &.shake {
+        .shake;
+      }
+      &.custom-image {
+        background-size: cover;
+      }
+      &.upload-available {
 
-      &.uploading input {
+        &.uploading input {
+          display: none;
+        }
+        input, canvas {
+          display: block;
+        }
+      }
+      input {
+        z-index: 3;
+        cursor: pointer;
         display: none;
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
       }
-      input, canvas {
-        display: block;
+      canvas {
+        display: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
       }
-    }
-    input {
-      z-index: 3;
-      cursor: pointer;
-      display: none;
-      position: absolute;
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-    }
-    canvas {
-      display: none;
-      position: absolute;
-      width: 100%;
-      height: 100%;
     }
   }
+
 
   .validation-error{
     background-color: red;
   }
 
-  .vertex, .artifact {
-    cursor: pointer;
-    border-bottom: 1px dotted black;
-  }
-  .property.resolved {
-    cursor: pointer;
-    font-style: italic;
-  }
+  .org-visallo-texts {
+    .vertex, .artifact {
+      cursor: pointer;
+      border-bottom: 1px dotted black;
+    }
+    .property.resolved {
+      cursor: pointer;
+      font-style: italic;
+    }
 
-  .resolved {
-    font-weight: bold;
+    .resolved {
+      font-weight: bold;
+    }
   }
 }

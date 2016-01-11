@@ -74,7 +74,7 @@ define([
                 .call(
                     _.partial(
                         createPropertyGroups,
-                        self.attr.data,
+                        self.data,
                         self.ontologyProperties,
                         self.showMoreExpanded,
                         parseInt(self.config['properties.multivalue.defaultVisibleCount'], 10),
@@ -86,7 +86,7 @@ define([
 
         this.transformPropertiesForUpdate = function(properties) {
             var self = this,
-                model = self.attr.data,
+                model = self.data,
                 isEdge = F.vertex.isEdge(model),
                 dependentPropertyIris = this.dependentPropertyIris,
                 compoundPropertiesByNameToKeys = {},
@@ -139,11 +139,11 @@ define([
                         if (!visibility) {
                             properties.push({
                                 name: VISIBILITY_NAME,
-                                value: self.attr.data[VISIBILITY_NAME]
+                                value: self.data[VISIBILITY_NAME]
                             });
                         }
 
-                        var sandboxStatus = F.vertex.sandboxStatus(self.attr.data);
+                        var sandboxStatus = F.vertex.sandboxStatus(self.data);
                         if (sandboxStatus) {
                             properties.push({
                                 name: SANDBOX_STATUS_NAME,
@@ -158,7 +158,7 @@ define([
                         // dependent properties have multiple keys
                         _.each(compoundPropertiesByNameToKeys, function(compoundInfo, compoundKey) {
                             _.each(compoundInfo.keys, function(value, key) {
-                                var matching = F.vertex.props(self.attr.data, compoundInfo.property.title, key),
+                                var matching = F.vertex.props(self.data, compoundInfo.property.title, key),
                                     first = matching && _.first(matching),
                                     property = {
                                         compoundProperty: true,
@@ -174,19 +174,6 @@ define([
                                 properties.push(property);
                             });
                         });
-
-                        if (isEdge && model.label) {
-                            var ontologyRelationship = self.ontologyRelationships.byTitle[model.label];
-                            properties.push({
-                                name: RELATIONSHIP_LABEL,
-                                displayName: i18n('detail.edge.type'),
-                                hideInfo: true,
-                                hideVisibility: true,
-                                value: ontologyRelationship ?
-                                    ontologyRelationship.displayName :
-                                    model.label
-                            });
-                        }
                     })
                     .sortBy(function(property) {
                         var value = F.vertex.prop(model, property.name, property.key);
@@ -243,10 +230,14 @@ define([
         };
 
         this.after('initialize', function() {
+            this.data = this.attr.data;
+
             var self = this,
-                properties = this.attr.data.properties,
+                properties = this.data.properties,
                 node = this.node,
                 root = d3.select(node);
+
+            node.classList.add('org-visallo-properties');
 
             this.showMoreExpanded = {};
             this.tableRoot = root
@@ -256,7 +247,7 @@ define([
 
             var ontologyLoaded = Promise.all([
                 this.dataRequest('ontology', 'ontology'),
-                this.dataRequest('ontology', 'propertiesByConceptId', F.vertex.prop(self.attr.data, 'conceptType')),
+                this.dataRequest('ontology', 'propertiesByConceptId', F.vertex.prop(self.data, 'conceptType')),
                 this.dataRequest('config', 'properties')
             ]).then(function(results) {
                 var ontology = results.shift(),
@@ -290,14 +281,10 @@ define([
             this.on('addProperty', this.onAddProperty);
             this.on('deleteProperty', this.onDeleteProperty);
             this.on('editProperty', this.onEditProperty);
-            this.on(document, 'verticesUpdated', function(e, d) {
+            this.on('modelUpdated', function(event, data) {
+                self.data = data.model;
                 ontologyLoaded.done(function() {
-                    self.onVerticesUpdated(e, d);
-                })
-            });
-            this.on(document, 'edgesUpdated', function(e, d) {
-                ontologyLoaded.done(function() {
-                    self.onEdgesUpdated(e, d);
+                    self.update(data.model.properties)
                 })
             });
 
@@ -312,28 +299,12 @@ define([
             }
         });
 
-        this.onEdgesUpdated = function(event, data) {
-            var edge = _.findWhere(data.edges, { id: this.attr.data.id });
-            if (edge) {
-                this.attr.data = edge;
-                this.update(edge.properties);
-            }
-        };
-
-        this.onVerticesUpdated = function(event, data) {
-            var vertex = _.findWhere(data.vertices, { id: this.attr.data.id });
-            if (vertex) {
-                this.attr.data = vertex;
-                this.update(vertex.properties)
-            }
-        };
-
         this.onDeleteProperty = function(event, data) {
             var self = this,
-                vertexId = data.vertexId || this.attr.data.id;
+                vertexId = data.vertexId || this.data.id;
 
             this.dataRequest(
-                    F.vertex.isEdge(this.attr.data) ? 'edge' : 'vertex',
+                    F.vertex.isEdge(this.data) ? 'edge' : 'vertex',
                     'deleteProperty',
                     vertexId, data.property
                 ).then(this.closePropertyForm.bind(this))
@@ -341,7 +312,7 @@ define([
         };
 
         this.onAddProperty = function(event, data) {
-            var vertexId = data.vertexId || this.attr.data.id;
+            var vertexId = data.vertexId || this.data.id;
 
             if (data.property.name === 'http://visallo.org#visibilityJson') {
                 var visibilitySource = data.property.visibilitySource || '';
@@ -394,7 +365,7 @@ define([
 
             PropertyForm.teardownAll();
             PropertyForm.attachTo(root, {
-                data: this.attr.data,
+                data: this.data,
                 property: property
             });
         };
@@ -476,7 +447,7 @@ define([
             this.reload();
         } else if ($target.is('.info')) {
             var datum = d3.select($target.closest('.property-value').get(0)).datum();
-            this.showPropertyInfo($target, this.attr.data, datum.property);
+            this.showPropertyInfo($target, this.data, datum.property);
         } else {
             processed = false;
         }

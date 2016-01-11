@@ -120,7 +120,7 @@ define([
                     classes = [];
 
                 e.edges.forEach(function(edge) {
-                    edgeIdToGroupedCyEdgeId[edge.id] = cyEdgeId;
+                    edgeIdToGroupedCyEdgeId[edge.edgeId || edge.id] = cyEdgeId;
                 });
 
                 var data = {
@@ -891,6 +891,7 @@ define([
         };
 
         this.cyNodesForVertexIds = function(cy, vertexIds) {
+            if (_.isEmpty(vertexIds)) return cy.collection();
             var selector = vertexIds.map(function(vId) {
                 return '#' + toCyId(vId);
             }).join(',');
@@ -899,6 +900,7 @@ define([
         };
 
         this.cyEdgesForEdgeIds = function(cy, edgeIds) {
+            if (_.isEmpty(edgeIds)) return cy.collection();
             var selector = _.compact(edgeIds.map(function(eId) {
                 var cyEdgeId = edgeIdToGroupedCyEdgeId[eId];
                 if (cyEdgeId) {
@@ -913,17 +915,17 @@ define([
             return cytoscape.Collection(cy, []);
         };
 
-        this.onFocusVertices = function(e, data) {
+        this.onFocusElements = function(e, data) {
             this.cytoscapeReady(function(cy) {
-                var vertexIds = data.vertexIds;
                 this.hoverDelay = _.delay(function() {
-                    this.cyNodesForVertexIds(cy, vertexIds).addClass('focus');
-                    this.cyEdgesForEdgeIds(cy, vertexIds).addClass('focus');
+                    cy.elements('.focus').removeClass('focus');
+                    this.cyNodesForVertexIds(cy, data.vertexIds || []).addClass('focus');
+                    this.cyEdgesForEdgeIds(cy, data.edgeIds || []).addClass('focus');
                 }.bind(this), HOVER_FOCUS_DELAY_SECONDS * 1000);
             });
         };
 
-        this.onDefocusVertices = function(e, data) {
+        this.onDefocusElements = function(e, data) {
             clearTimeout(this.hoverDelay);
             this.cytoscapeReady(function(cy) {
                 cy.elements('.focus').removeClass('focus');
@@ -1850,8 +1852,10 @@ define([
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
             this.on(document, 'devicePixelRatioChanged', this.onDevicePixelRatioChanged);
             this.on(document, 'menubarToggleDisplay', this.onMenubarToggleDisplay);
-            this.on(document, 'focusVertices', this.onFocusVertices);
-            this.on(document, 'defocusVertices', this.onDefocusVertices);
+            this.on(document, 'focusVertices', this.onFocusElements);
+            this.on(document, 'defocusVertices', this.onDefocusElements);
+            this.on(document, 'focusElements', this.onFocusElements);
+            this.on(document, 'defocusElements', this.onDefocusElements);
             this.on(document, 'focusPaths', this.onFocusPaths);
             this.on(document, 'defocusPaths', this.onDefocusPaths);
             this.on(document, 'edgesLoaded', this.onEdgesLoaded);

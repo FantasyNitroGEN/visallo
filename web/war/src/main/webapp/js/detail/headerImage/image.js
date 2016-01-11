@@ -30,13 +30,6 @@ define([
             acceptedTypesRegex: /^image\/(jpe?g|png)$/i
         });
 
-        this.before('initialize', function(node, config) {
-            if (!config.hasOwnProperty('canEdit')) {
-                var entityUpdateable = config.data.updateable;
-                config.canEdit = Privileges.canEDIT && (entityUpdateable === undefined || entityUpdateable === true);
-            }
-        });
-
         this.after('initialize', function() {
             var self = this;
 
@@ -49,7 +42,9 @@ define([
 
             this.updateImageBackground();
 
-            if (this.attr.canEdit) {
+            var entityUpdateable = this.attr.data.updateable;
+            var canEdit = Privileges.canEDIT && (entityUpdateable === undefined || entityUpdateable === true);
+            if (canEdit && !this.isArtifactDisplayType()) {
                 this.$node.html(template({
                     Privileges: Privileges
                 }));
@@ -77,7 +72,7 @@ define([
 
         this.onSetImage = function(e, data) {
             this.handleFilesDropped(data.files);
-        }
+        };
 
         this.onGraphPaddingUpdated = function(event, data) {
             if (data.padding.r && this.imageNaturalSize) {
@@ -126,7 +121,7 @@ define([
                         'cover'
                 );
             }
-        }
+        };
 
         this.srcForGlyphIconUrl = function(url) {
             if (url === F.vertex.imageDetail(this.attr.data)) {
@@ -135,29 +130,43 @@ define([
             return url || '';
         };
 
+        this.isArtifactDisplayType = function() {
+            var concept = F.vertex.concept(this.attr.data);
+            if (concept && concept.displayType) {
+                return (/^(audio|video|image)$/).test(concept.displayType);
+            }
+            return false;
+        }
+
         this.updateImageBackground = function(src) {
             var self = this,
                 imageUrl = this.srcForGlyphIconUrl(src || F.vertex.imageDetail(this.attr.data)),
                 customImage = !!(src || !F.vertex.imageIsFromConcept(this.attr.data));
 
+            if (this.isArtifactDisplayType()) {
+                customImage = false;
+            }
+
             if (imageUrl && customImage) {
-                self.$node.closest('.entity-background').addClass('loading');
+                self.$node.closest('.vertex-header').addClass('loading');
                 var image = new Image();
                 image.onload = function() {
                     self.imageNaturalSize = [image.naturalWidth, image.naturalHeight];
                     self.updateImageBackgroundSize();
-                    self.$node.closest('.entity-background').removeClass('loading');
+                    self.$node.closest('.vertex-header').removeClass('loading');
                 }
                 image.onerror = function() {
-                    self.$node.closest('.entity-background').removeClass('loading');
+                    self.$node.closest('.vertex-header').removeClass('loading');
                 }
                 image.src = imageUrl;
             }
+
             this.$node
                 .addClass('accepts-file')
                 .css({ backgroundImage: 'url("' + imageUrl + '")' })
                 .toggleClass('custom-image', customImage)
-                .closest('.type-content').toggleClass('custom-entity-image', customImage);
+                .parent()
+                .toggleClass('custom-entity-image', customImage);
         };
 
         this.onFileChange = function(e) {

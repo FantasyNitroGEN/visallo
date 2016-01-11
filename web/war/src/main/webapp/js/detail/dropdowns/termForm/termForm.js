@@ -204,6 +204,7 @@ define([
                         self.trigger('termCreated', data);
 
                         self.trigger(document, 'loadEdges');
+                        self.trigger('closeDropdown');
 
                         _.defer(self.teardown.bind(self));
                     })
@@ -215,6 +216,7 @@ define([
                         self.highlightTerm(data);
 
                         self.trigger(document, 'loadEdges');
+                        self.trigger('closeDropdown');
 
                         _.defer(self.teardown.bind(self));
                     })
@@ -253,7 +255,7 @@ define([
             if (this.unresolve) {
                 self.unresolveDetectedObject({
                     vertexId: this.attr.artifactData.id,
-                    multiValueKey: this.attr.dataInfo.propertyKey
+                    multiValueKey: this.attr.dataInfo.key || this.attr.dataInfo.propertyKey
                 });
             } else {
                 self.resolveDetectedObject(parameters);
@@ -266,6 +268,7 @@ define([
                 .then(function(data) {
                     self.trigger('termCreated', data);
                     self.trigger(document, 'loadEdges');
+                    self.trigger('closeDropdown');
                     _.defer(self.teardown.bind(self));
                 })
                 .catch(this.requestFailure.bind(this))
@@ -276,6 +279,7 @@ define([
             this.dataRequest('vertex', 'unresolveDetectedObject', parameters)
                 .then(function(data) {
                     self.trigger(document, 'loadEdges');
+                    self.trigger('closeDropdown');
                     _.defer(self.teardown.bind(self));
                 })
                 .catch(this.requestFailure.bind(this))
@@ -495,7 +499,10 @@ define([
                 r.selectNodeContents(dd.get(0));
                 transcriptIndex = dd.data('index');
             } else {
-                r.selectNodeContents(this.$node.closest('.text').get(0));
+                var $text = this.$node.closest('.text');
+                if ($text.length) {
+                    r.selectNodeContents($text.get(0));
+                }
             }
             r.setEnd(range.startContainer, range.startOffset);
             var l = r.toString().length;

@@ -46,7 +46,7 @@ define([
                 textPropertyKey = metadata.textPropertyKey,
                 offsets = [metadata.startOffset, metadata.endOffset];
 
-            this.trigger('selectObjects', {
+            this.trigger(document, 'selectObjects', {
                 vertexIds: [vertexId],
                 focus: {
                     vertexId: vertexId,

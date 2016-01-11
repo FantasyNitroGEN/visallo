@@ -131,6 +131,7 @@ define([
                     _.defer(function() {
                         self.$node.scrollTop(0);
                     })
+                    self.trigger('listRendered');
             });
         });
 
@@ -186,7 +187,7 @@ define([
                 if (vertexId) selectedVertexIds.push(vertexId);
                 if (edgeId) selectedEdgeIds.push(edgeId);
 
-                this.trigger(document, 'defocusVertices');
+                this.trigger(document, 'defocusElements');
                 this.trigger('selectObjects', { vertexIds: selectedVertexIds, edgeIds: selectedEdgeIds });
             }
         };
@@ -218,6 +219,7 @@ define([
             this.on(document, 'verticesDeleted', this.onVerticesDeleted);
             this.on(document, 'edgesDeleted', this.onEdgesDeleted);
             this.on(document, 'objectsSelected', this.onObjectsSelected);
+            this.on('objectsSelected', this.onObjectsSelected);
             this.on(document, 'switchWorkspace', this.onWorkspaceClear);
             this.on(document, 'workspaceDeleted', this.onWorkspaceClear);
             this.on(document, 'workspaceLoaded', this.onWorkspaceLoaded);
@@ -229,14 +231,19 @@ define([
                 return;
             } else if (this.disableHover) {
                 this.disableHover = 'defocused';
-                return this.trigger(document, 'defocusVertices');
+                return this.trigger(document, 'defocusElements');
             }
 
-            var id = $(evt.target).closest('.element-item').children('a').data('vertexId');
-            if (evt.type === 'mouseenter' && id) {
-                this.trigger(document, 'focusVertices', { vertexIds: [id] });
+            var $anchor = $(evt.target).closest('.element-item').children('a'),
+                vertexId = $anchor.data('vertexId'),
+                edgeId = $anchor.data('edgeId');
+
+            if (evt.type === 'mouseenter' && vertexId) {
+                this.trigger(document, 'focusElements', { vertexIds: [vertexId] });
+            } else if (evt.type === 'mouseenter' && edgeId) {
+                this.trigger(document, 'focusElements', { edgeIds: [edgeId] });
             } else {
-                this.trigger(document, 'defocusVertices');
+                this.trigger(document, 'defocusElements');
             }
         };
 
@@ -359,6 +366,7 @@ define([
                 zIndex: 100,
                 distance: 10,
                 multi: true,
+                limitSelectionToSingle: this.attr.singleSelection === true,
                 start: function(ev, ui) {
                     $(ui.helper).addClass('vertex-dragging');
                 },
@@ -384,7 +392,7 @@ define([
                 return;
             }
 
-            this.trigger(document, 'defocusVertices');
+            this.trigger(document, 'defocusElements');
             this.trigger('selectObjects', selection);
         };
 
@@ -446,13 +454,15 @@ define([
         this.onObjectsSelected = function(event, data) {
             var self = this,
                 vertexIds = _.pluck(data.vertices, 'id'),
-                edgeIds = _.pluck(data.edges, 'id');
+                edgeIds = _.pluck(data.edges, 'id'),
+                total = vertexIds.length + edgeIds.length;
 
             this.$node.children('ul').children('.active').removeClass('active');
 
             if (vertexIds.length === 0 && edgeIds.length === 0) {
                 return;
             }
+            if (this.attr.showSelected === false && total > 1) return;
 
             this.$node.addClass('active');
             this.select('itemSelector').each(function(idx, item) {

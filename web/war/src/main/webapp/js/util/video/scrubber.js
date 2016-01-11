@@ -10,7 +10,8 @@ define([
 
     var NUMBER_FRAMES = 0, // Populated by config
         POSTER = 1,
-        FRAMES = 2;
+        FRAMES = 2,
+        MAX_DIMENSIONS = [450, 300];
 
     videojs.options.flash.swf = '../libs/video.js/dist/video-js.swf';
 
@@ -35,6 +36,7 @@ define([
 
         this.after('initialize', function() {
             this.$node
+                .addClass('org-visallo-video-scrubber')
                 .toggleClass('disableScrubbing', true)
                 .toggleClass('allowPlayback', false);
 
@@ -60,15 +62,17 @@ define([
         this.getVideoDimensions = function() {
             var dim = this.attr.videoDimensions;
             if (!dim || isNaN(dim[0]) || isNaN(dim[1])) {
-                this.attr.videoDimensions = dim = [360, 240];
+                this.attr.videoDimensions = dim = [MAX_DIMENSIONS[0], MAX_DIMENSIONS[1]]
             }
             return dim;
         };
 
         this.updateCss = function(applyTemplate) {
+            if (this.videoStarted) return;
+
             var dim = this.posterFrameDimensions,
-                maxHeight = dim[1] > dim[0] ? 360 : 240,
-                dimContainer = [this.$node.width(), Math.min(dim[1], maxHeight)],
+                maxHeight = dim[1] > dim[0] ? MAX_DIMENSIONS[0] : MAX_DIMENSIONS[1],
+                dimContainer = [Math.min(this.$node.width(), 360), Math.min(dim[1], maxHeight)],
                 ratioImage = dim[0] / dim[1],
                 ratioContainer = dimContainer[0] / dimContainer[1],
                 scaled = (

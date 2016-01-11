@@ -60,6 +60,11 @@ define([
             return Promise.resolve(workspace && workspace.vertices || []);
         },
 
+        storeEdges: function(workspaceId) {
+            var workspaceEdges = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspaceEdges');
+            return Promise.resolve(workspaceEdges || []);
+        },
+
         histogramValues: function(workspaceId, property) {
             if (arguments.length === 1) {
                 property = arguments[0];

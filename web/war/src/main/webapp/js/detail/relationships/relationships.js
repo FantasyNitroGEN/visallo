@@ -21,27 +21,32 @@ define([
     function Relationships() {
 
         this.defaultAttrs({
-            relationshipsHeaderSelector: '.relationships section.collapsible h1',
+            relationshipsHeaderSelector: 'section.collapsible h1',
             relationshipsPagingButtonsSelector: 'section.collapsible .paging button'
         });
 
         this.after('initialize', function() {
-            this.$node.empty();
+            this.$node.empty().addClass('org-visallo-relationships');
 
             this.on('click', {
                 relationshipsHeaderSelector: this.onToggleRelationships,
                 relationshipsPagingButtonsSelector: this.onPageRelationships
             });
-            this.on(document, 'verticesUpdated', this.onVerticesUpdated);
+
+            this.data = this.attr.data;
+            this.on('modelUpdated', function(event, data) {
+                this.data = data.model;
+                this.update();
+            });
 
             this.update();
         });
 
         this.onVerticesUpdated = function(event, data) {
-            var matching = _.findWhere(data.vertices, { id: this.attr.data.id });
+            var matching = _.findWhere(data.vertices, { id: this.data.id });
 
             if (matching) {
-                this.attr.data = matching;
+                this.data = matching;
                 this.update();
             }
         };
@@ -67,7 +72,7 @@ define([
 
             $badge.addClass('loading');
 
-            this.dataRequest('vertex', 'edges', this.attr.data.id, {
+            this.dataRequest('vertex', 'edges', this.data.id, {
                 offset: paging.offset,
                 size: paging.size,
                 edgeLabel: $section.data('label')
@@ -154,7 +159,7 @@ define([
                 MAX_RELATIONS_TO_DISPLAY = parseInt(config['vertex.relationships.maxPerSection'], 10);
 
                 var hasEntityLabel = config['ontology.intent.relationship.artifactHasEntity'],
-                    relations = _.map(self.attr.data.edgeLabels, function(label) {
+                    relations = _.map(self.data.edgeLabels, function(label) {
                         var relation = {
                                 label: label,
                                 displayName: label

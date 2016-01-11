@@ -122,14 +122,6 @@ define([
                     );
                 }
             );
-            registry.documentExtensionPoint('org.visallo.detail.toolbar',
-                'Add detail pane toolbar items',
-                function(e) {
-                    return e === 'DIVIDER' || (
-                        ('event' in e) && ('title' in e)
-                        );
-                }
-            );
 
             document.addEventListener('mousewheel', preventPinchToZoom, true);
             this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
@@ -776,10 +768,11 @@ define([
                 $pane = $(event.target),
                 sizePaneName = $pane.data('sizePreference'),
                 widthPaneName = !sizePaneName && $pane.data('widthPreference'),
+                heightPaneName = !sizePaneName && $pane.data('heightPreference'),
                 nameToPref = function(name) {
                     return name && ('pane-' + name);
                 },
-                prefName = nameToPref(sizePaneName || widthPaneName),
+                prefName = nameToPref(sizePaneName || widthPaneName || heightPaneName),
                 userPrefs = user.uiPreferences,
                 value = userPrefs && prefName in userPrefs && userPrefs[prefName];
 
@@ -791,6 +784,8 @@ define([
                 }
             } else if (widthPaneName && value) {
                 $pane.width(parseInt(value, 10));
+            } else if (heightPaneName && value) {
+                $pane.height(parseInt(value, 10));
             } else if (!prefName && !$pane.is('.facebox')) {
                 console.warn(
                     'No data-width-preference or data-size-preference ' +
@@ -809,7 +804,9 @@ define([
         this.onResizeStopSave = function(event, ui) {
             var sizePaneName = ui.helper.data('sizePreference'),
                 widthPaneName = ui.helper.data('widthPreference'),
-                key = 'pane-',
+                heightPaneName = ui.helper.data('heightPreference'),
+                keyPrefix = 'pane-',
+                key = keyPrefix,
                 value;
 
             if (sizePaneName) {
@@ -818,9 +815,14 @@ define([
             } else if (widthPaneName) {
                 key += widthPaneName;
                 value = ui.element.width();
+            } else if (heightPaneName) {
+                key += heightPaneName;
+                value = ui.element.height();
             }
 
-            this.dataRequest('user', 'preference', key, value)
+            if (key !== keyPrefix && !_.isUndefined(value)) {
+                this.dataRequest('user', 'preference', key, value)
+            }
         };
 
         this.collapseAllPanes = function() {

@@ -1,5 +1,5 @@
 
-.comp-toolbar {
+.org-visallo-toolbar {
   @base-color: @blue-color;
   @shadow-color: darken(@base-color, 20%);
   @highlight-color: darken(desaturate(@base-color, 5%), 5%);
@@ -8,13 +8,10 @@
   @subtitle-color: lighten(desaturate(@submenu-color, 50%), 50%);
   @disabled-color: lighten(desaturate(@submenu-color, 50%), 30%);
 
-  position: absolute;
-  top: 100%;
   background: @base-color;
-  left: 0;
-  width: 100%;    
   height: 2em;
   z-index: @pane-resize-zIndex + 1;
+  position: relative;
   .disable-text-selection;
 
 
@@ -72,6 +69,10 @@
       
       &:hover > a, &.active > a {        
         background: @highlight-color;
+      }
+      &.disabled:hover > a {
+        background: @base-color;
+        cursor: default;
       }
       &.pull-right {        
         float: right;
