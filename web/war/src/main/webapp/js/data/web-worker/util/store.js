@@ -96,10 +96,12 @@ define([
 
             removeWorkspaceVertexIds: function(workspaceId, vertexIds) {
                 if (vertexIds.length) {
-                    var workspace = api.getObject(workspaceId, 'workspace');
-                    workspace.vertices = _.omit(workspace.vertices, vertexIds);
+                    var workspace = api.getObject(workspaceId, 'workspace'),
+                        vertexIdsAsArray = _.isArray(vertexIds) ? vertexIds : [vertexIds];
 
-                    vertexIds.forEach(function(vertexId) {
+                    workspace.vertices = _.omit(workspace.vertices, vertexIdsAsArray);
+
+                    vertexIdsAsArray.forEach(function(vertexId) {
                         api.removeObject(workspaceId, 'vertex', vertexId);
                     })
                 }

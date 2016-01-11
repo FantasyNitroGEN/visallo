@@ -4,7 +4,7 @@ define([
     'flight/lib/registry',
     'tpl!./appFullscreenDetails',
     'tpl!./appFullscreenDetailsError',
-    'detail/detail',
+    'detail/item/item',
     'util/vertex/formatters',
     'util/withDataRequest',
     'util/jquery.removePrefixedClasses'
@@ -39,7 +39,7 @@ define([
                 e.stopPropagation();
                 e.preventDefault();
 
-                var vertexIds = d.vertexIds || (d.vertices ? _.pluck(d.vertices, 'id') : null);
+                var vertexIds = d.vertexIds || (d.objects ? _.pluck(d.objects, 'id') : null);
                 if (vertexIds) {
                     vertexIds = _.isArray(vertexIds) ? vertexIds : [vertexIds];
                     self.updateVertices({
@@ -56,7 +56,7 @@ define([
             this.on('click', this.clearFlashing.bind(this));
             $(window).focus(this.clearFlashing.bind(this));
 
-            this.vertices = [];
+            this.objects = [];
             this.fullscreenIdentifier = Math.floor((1 + Math.random()) * 0xFFFFFF).toString(16).substring(1);
             this.$node.addClass('fullscreen-details');
 
@@ -69,12 +69,12 @@ define([
         };
 
         this.updateLocationHash = function() {
-            location.hash = F.vertexUrl.fragmentUrl(this.vertices, this.attr.workspaceId);
+            location.hash = F.vertexUrl.fragmentUrl(this.objects, this.attr.workspaceId);
         };
 
         this.updateLayout = function() {
-            var entities = _.filter(this.vertices, filterEntity).length,
-                artifacts = _.filter(this.vertices, filterArtifacts).length,
+            var entities = _.filter(this.objects, filterEntity).length,
+                artifacts = _.filter(this.objects, filterArtifacts).length,
                 verts = entities + artifacts;
 
             this.$node
@@ -96,7 +96,7 @@ define([
             document.title = this.titleForVertices();
         };
 
-        this.handleNoVertices = function() {
+        this.handleNoObjects = function() {
             var requiredFallback = this.attr.workspaceId !== visalloData.currentWorkspaceId;
 
             document.title = requiredFallback ?
@@ -105,7 +105,7 @@ define([
 
             this.select('noResultsSelector')
                 .html(errorTemplate({
-                    vertices: this.attr.graphVertexIds,
+                    objects: this.attr.vertexIds.concat(this.attr.edgeIds),
                     somePublished: false,
                     requiredFallback: requiredFallback,
                     noWorkspaceGiven: !this.attr.workspaceId
@@ -114,35 +114,42 @@ define([
         };
 
         this.handleVerticesFailed = function() {
-            this.handleNoVertices();
+            this.handleNoObjects();
         };
 
-        this.handleVerticesLoaded = function(vertices, data) {
-            var fallbackToPublic = this.attr.workspaceId !== visalloData.currentWorkspaceId;
+        this.handleObjectsLoaded = function(objects, data) {
+            var self = this,
+                fallbackToPublic = this.attr.workspaceId !== visalloData.currentWorkspaceId;
 
             Detail.teardownAll();
             this.$node.find('.detail-pane').remove();
 
-            if (vertices.length === 0) {
-                return this.handleNoVertices();
+            if (objects.length === 0) {
+                return this.handleNoObjects();
             }
 
-            this.vertices = _.sortBy(vertices, function(v) {
-                var descriptors = [],
-                    concept = F.vertex.concept(v);
+            this.objects = _.chain(objects)
+                .sortBy(function(v) {
+                    var descriptors = [],
+                        concept = F.vertex.concept(v);
 
-                // Image/Video/Audio before documents
-                descriptors.push(
-                    F.vertex.displayType(v) === 'document' ? '1' : '0'
-                );
+                    // Image/Video/Audio before documents
+                    descriptors.push(
+                        F.vertex.displayType(v) === 'document' ? '1' : '0'
+                    );
 
-                // Sort by title
-                descriptors.push(F.vertex.title(v).toLowerCase());
-                return descriptors.join('');
-            });
+                    // Sort by title
+                    descriptors.push(F.vertex.title(v).toLowerCase());
+                    return descriptors.join('');
+                })
+                .sortBy(function(v) {
+                    return v.type === 'vertex' ? 0 : 1;
+                })
+                .value();
 
             // Find vertices not found and insert at beginning
-            var notFoundIds = _.difference(this.attr.graphVertexIds, _.pluck(this.vertices, 'id')),
+            var objectIds = this.attr.vertexIds.concat(this.attr.edgeIds),
+                notFoundIds = _.difference(objectIds, _.pluck(this.objects, 'id')),
                 notFound = _.map(notFoundIds, function(nId) {
                     return {
                         id: nId,
@@ -153,11 +160,11 @@ define([
                     };
                 });
 
-            this.vertices.splice.apply(this.vertices, [0, 0].concat(notFound));
+            this.objects.splice.apply(this.objects, [0, 0].concat(notFound));
             if (notFound.length || fallbackToPublic) {
                 this.select('noResultsSelector')
                     .html(errorTemplate({
-                        vertices: notFoundIds,
+                        objects: notFoundIds,
                         requiredFallback: fallbackToPublic,
                         somePublished: true,
                         workspaceTitle: this.workspaceTitle,
@@ -167,7 +174,7 @@ define([
                 this.loadWorkspaces();
             }
 
-            this.vertices.forEach(function(v) {
+            this.objects.forEach(function(v) {
                 if (v.notFound) return;
 
                 var node = filterEntity(v) ?
@@ -175,17 +182,22 @@ define([
                         this.$node.find('.artifacts-container'),
                     type = filterArtifacts(v) ? 'artifact' : 'entity',
                     subType = F.vertex.displayType(v),
-                    $newPane = $('<div class="detail-pane visible highlight-none"><div class="content"/></div>')
+                    $newPane = $('<div class="detail-pane visible highlight-none">')
                         .addClass('type-' + type +
                                   (subType ? (' subType-' + subType) : '') +
                                   ' ' + F.className.to(v.id))
+                        .append('<div class="content">')
                         .appendTo(node)
-                        .find('.content');
+                        .find('.content')
+                        .append('<div class="type-content">')
+                        .find('.type-content');
 
-                Detail.attachTo($newPane, {
-                    loadGraphVertexData: v,
-                    highlightStyle: 2
+                this.on('finishedLoadingTypeContent', function handler() {
+                    this.off('finishedLoadingTypeContent', handler);
+                    this.$node.find('.org-visallo-layout-body').css('flex', 'none');
+                    this.$node.find('.org-visallo-layout-root').css('overflow', 'visible');
                 });
+                Detail.attachTo($newPane, { model: v });
             }.bind(this));
 
             if (data && data.preventRecursiveUrlChange !== true) {
@@ -239,8 +251,21 @@ define([
                 self.actualWorkspaceId = workspace.workspaceId;
                 self.off(document, 'workspaceLoaded', loaded);
 
-                self.dataRequest('vertex', 'store', { vertexIds: self.attr.graphVertexIds })
-                    .then(self.handleVerticesLoaded.bind(self))
+                Promise.all([
+                        self.attr.vertexIds.length ?
+                            self.dataRequest('vertex', 'store', {
+                                vertexIds: self.attr.vertexIds
+                            }) : Promise.resolve([]),
+                        self.attr.edgeIds.length ?
+                            self.dataRequest('edge', 'store', {
+                                edgeIds: self.attr.edgeIds
+                            }) : Promise.resolve([])
+                    ])
+                    .then(function(results) {
+                        var vertices = results.shift(),
+                            edges = results.shift();
+                        self.handleObjectsLoaded(_.compact(vertices.concat(edges)));
+                    })
                     .catch(self.handleVerticesFailed.bind(self))
             });
             if (workspaceId) {
@@ -304,7 +329,7 @@ define([
 
             if (willAdd) {
                 return this.dataRequest('vertex', 'store', {
-                    vertexIds: _.uniq(data.add.concat(_.pluck(this.vertices, 'id')))
+                    vertexIds: _.uniq(data.add.concat(_.pluck(this.objects, 'id')))
                 })
                     .then(function(vertices) {
                         self.handleVerticesLoaded(vertices, data);
@@ -322,7 +347,7 @@ define([
                     }
                 });
 
-                this.vertices = _.reject(this.vertices, function(v) {
+                this.objects = _.reject(this.objects, function(v) {
                     return _.contains(data.remove, v.id);
                 });
             }
@@ -341,7 +366,7 @@ define([
                 return;
             }
 
-            var existingVertexIds = _.pluck(this.vertices, 'id'),
+            var existingVertexIds = _.pluck(this.objects, 'id'),
                 newVertices = _.reject(vertexIds, function(v) {
                     return existingVertexIds.indexOf(v) >= 0;
                 });
@@ -390,11 +415,11 @@ define([
         };
 
         this.titleForVertices = function() {
-            if (!this.vertices || this.vertices.length === 0) {
+            if (!this.objects || this.objects.length === 0) {
                 return i18n('fullscreen.loading');
             }
 
-            var sorted = _.sortBy(this.vertices, function(v) {
+            var sorted = _.sortBy(this.objects, function(v) {
                 return v.notFound ? 1 : -1;
             });
 

@@ -57,7 +57,7 @@ define([
             var range = rangy.createRange(),
                 highlighter = rangy.createHighlighter();
 
-            highlighter.addClassApplier(rangy.createCssClassApplier('highlight', {
+            highlighter.addClassApplier(rangy.createClassApplier('highlight', {
                 ignoreWhiteSpace: true,
                 tagNames: ['span']
             }));

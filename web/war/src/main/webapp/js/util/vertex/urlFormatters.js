@@ -11,6 +11,9 @@ define([], function() {
             url: function(vertices, workspaceId) {
                 return window.location.href.replace(/#.*$/, '') +
                     '#v=' + _.map(vertices, function(v) {
+                        if (_.isObject(v) && 'type' in v) {
+                            return encodeURIComponent(v.type.substring(0, 1) + v.id);
+                        }
                         return encodeURIComponent(_.isString(v) ? v : v.id);
                     }).join(',') +
                     '&w=' + encodeURIComponent(workspaceId);
@@ -47,13 +50,29 @@ define([], function() {
                         };
                     }
 
-                    return {
-                        vertexIds: _.map(match[2].split(','), function(v) {
+                    var objects = _.map(match[2].split(','), function(v) {
                             return decodeURIComponent(v);
                         }),
+                        data = _.chain(objects)
+                            .groupBy(function(o) {
+                                var match = o.match(/^(v|e).*/);
+                                if (match) {
+                                    if (match[1] === 'v') return 'vertexIds';
+                                    if (match[1] === 'e') return 'edgeIds';
+                                }
+                                return 'vertexIds';
+                            })
+                            .mapObject(function(ids) {
+                                return ids.map(function(val) {
+                                    return val.substring(1);
+                                });
+                            })
+                            .value();
+
+                    return _.extend({ vertexIds: [], edgeIds: [] }, data, {
                         workspaceId: decodeURIComponent(match[3] || ''),
                         type: type[match[1]]
-                    };
+                    });
                 }
                 return null;
             }

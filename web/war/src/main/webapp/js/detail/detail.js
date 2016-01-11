@@ -14,9 +14,9 @@ define([
         }
     );
 
-    return defineComponent(Detail, withDataRequest);
+    return defineComponent(DetailPane, withDataRequest);
 
-    function Detail() {
+    function DetailPane() {
 
         this.defaultAttrs({
             mapCoordinatesSelector: '.map-coordinates',
@@ -30,15 +30,12 @@ define([
             this.on('finishedLoadingTypeContent', this.onFinishedTypeContent);
 
             this.on(document, 'objectsSelected', this.onObjectsSelected);
+            this.on(document, 'selectObjects', this.onSelectObjects);
             this.preventDropEventsFromPropagating();
 
             this.before('teardown', this.teardownComponents);
 
             this.$node.html(template({}));
-
-            if (this.attr.loadGraphVertexData) {
-                this.onObjectsSelected(null, { vertices: [this.attr.loadGraphVertexData] });
-            }
         });
 
         this.onFinishedTypeContent = function() {
@@ -56,14 +53,18 @@ define([
             this.trigger('mapCenter', $target.data());
         };
 
+        this.onSelectObjects = function(event, data) {
+            this.collapsed = !this.$node.closest('.detail-pane').is('.visible');
+        };
+
         this.onObjectsSelected = function(evt, data) {
             var self = this,
                 vertices = data.vertices,
                 edges = data.edges,
-                moduleName, moduleData, moduleName2;
+                moduleName, moduleData, moduleName2,
+                pane = this.$node.closest('.detail-pane');
 
             if (!vertices.length && !edges.length) {
-                var pane = this.$node.closest('.detail-pane');
 
                 this.cancelTransitionTeardown = false;
 
@@ -82,49 +83,31 @@ define([
             this.$node.addClass('loading');
 
             vertices = _.unique(vertices, 'id');
+            edges = _.unique(edges, 'id');
 
-            if (vertices.length > 1) {
-                moduleName = 'multiple';
-                moduleData = {
-                    vertices: vertices
-                };
-            } else if (vertices.length === 1) {
-                var vertex = vertices[0],
-                    concept = F.vertex.concept(vertex),
-                    type = F.vertex.displayType(vertex);
-
-                if (type === 'edge') {
-                    moduleName = type;
-                } else {
-                    moduleName = F.vertex.isArtifact(vertex) ? 'artifact' : 'entity';
-                }
-                moduleData = vertex;
-            } else if (edges.length > 1) {
-                moduleName = 'multiple';
-                moduleName2 = 'edges';
-                moduleData = {
-                    edges: edges
-                };
-            } else {
-                moduleName = 'edge';
-                moduleData = edges[0];
-            }
-
-            moduleName = moduleName.toLowerCase();
-
-            require([
-                'detail/' + moduleName + '/' + (moduleName2 || moduleName)
-            ], function(Module) {
-                Module.attachTo(self.select('detailTypeContentSelector'), {
-                    data: moduleData,
-                    highlightStyle: self.attr.highlightStyle,
+            Promise.all([
+                Promise.require('detail/item/item'),
+                this.collapsed ?
+                    new Promise(function(f) {
+                        pane.on(TRANSITION_END, function(e) {
+                            if (/transform/.test(e.originalEvent && e.originalEvent.propertyName)) {
+                                pane.off(TRANSITION_END);
+                                f();
+                            }
+                        });
+                    }) :
+                    Promise.resolve()
+            ]).done(function(results) {
+                var Module = results.shift();
+                Module.attachTo(self.select('detailTypeContentSelector').teardownAllComponents(), {
+                    model: vertices.concat(edges),
                     focus: data.focus
                 });
-            });
+            })
         };
 
         this.teardownComponents = function() {
-            this.select('detailTypeContentSelector').teardownAllComponents();
+            this.select('detailTypeContentSelector').teardownAllComponents().empty();
         }
     }
 });

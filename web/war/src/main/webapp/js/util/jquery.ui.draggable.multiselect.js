@@ -57,7 +57,10 @@ define(['jquery', 'jquery-ui/draggable'], function() {
                     lastSelection = list.data('lastSelection'),
                     selected = list.find('.active');
 
-                if (evt.shiftKey && lastSelection) {
+                if (inst.options.limitSelectionToSingle) {
+                    selected.removeClass('active');
+                    $target.addClass('active');
+                } else if (evt.shiftKey && lastSelection) {
 
                     // Handle contiguous selection
                     var targetIndex = $target.index(),
@@ -68,14 +71,9 @@ define(['jquery', 'jquery-ui/draggable'], function() {
                         .andSelf()
                         .addClass('active');
                     }
-
                 } else if (evt.metaKey) {
-
-                    // Just add this
                     $target.addClass('active');
-
                 } else {
-
                     selected.not($target).removeClass('active');
                     $target.addClass('active');
                 }

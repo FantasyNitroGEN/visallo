@@ -26,7 +26,7 @@
     "jstz-detect": "~1.0.5",
     "moment-timezone": "0.4.0",
     "openlayers": "git://github.com/v5analytics/openlayers.git",
-    "rangy-official": "1.3.0-alpha.20140921",
+    "rangy": "1.3.0",
     "require-handlebars-plugin": "~0.8.0",
     "require-less": "~0.1.2",
     "requirejs": "~2.1.9",

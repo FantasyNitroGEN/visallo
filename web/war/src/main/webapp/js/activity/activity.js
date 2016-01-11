@@ -47,7 +47,7 @@ define([
 
     function Activity() {
 
-        this.defaultAttrs({
+        this.attributes({
             typesSelector: '.types',
             deleteButtonSelector: 'button.delete',
             cancelButtonSelector: 'button.cancel',

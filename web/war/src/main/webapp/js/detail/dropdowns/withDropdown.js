@@ -91,7 +91,10 @@ define(['util/withFormFieldErrors'], function(withFormFieldErrors) {
         this.after('initialize', function() {
             this.$node.closest('.text').addClass('dropdown');
             this.on('click', {
-                cancelButtonSelector: this.teardown
+                cancelButtonSelector: function() {
+                    this.trigger('closeDropdown');
+                    this.teardown();
+                }
             });
             if (!this.attr.manualOpen) {
                 _.defer(this.open.bind(this));

@@ -1,30 +1,20 @@
 define([
     'flight/lib/component',
-    'flight/lib/registry',
-    '../withTypeContent',
-    '../toolbar/toolbar',
-    'tpl!./multiple',
-    'tpl!./histogram',
-    'util/element/list',
     'util/vertex/formatters',
-    'util/withDataRequest'
-], function(
-    defineComponent,
-    registry,
-    withTypeContent,
-    Toolbar,
-    template,
-    histogramTemplate,
-    ElementList,
-    F,
-    withDataRequest) {
+    'd3',
+    'util/requirejs/promise!util/service/ontologyPromise'
+], function(defineComponent, F, d3, ontology) {
     'use strict';
 
     var HISTOGRAM_STYLE = 'max', // max or sum
+        GRAPH_TYPE = 'GRAPH_TYPE',
+        EDGE_LABEL = 'edgeLabel',
+        CONCEPT_TYPE = 'http://visallo.org#conceptType',
+        MIN_VALUES_PRESENT_TO_DISPLAY = 1,
         BAR_HEIGHT = 25,
         PADDING = 5,
         ANIMATION_DURATION = 400,
-        BINABLE_TYPES = 'double date currency integer number'.split(' '), // TODO: heading
+        BINABLE_TYPES = 'double date currency integer number'.split(' '),
         SCALE_COLOR_BASED_ON_WIDTH = false,
         SCALE_COLOR_BASED_ON_WIDTH_RANGE = ['#00A1F8', '#0088cc'],
         SCALE_OPACITY_BASED_ON_WIDTH = true,
@@ -35,282 +25,75 @@ define([
         MAX_BINS_FOR_NON_HISTOGRAM_TYPES = 5,
         OTHER_PLACEHOLDER = '${OTHER-CATEGORY}';
 
-    return defineComponent(Multiple, withTypeContent, withDataRequest);
+    return defineComponent(PropertyHistograms);
 
-    function propertyDisplayName(properties, pair) {
-        var o = properties.byTitle[pair[0]];
+    function PropertyHistograms() {
 
-        return o && o.displayName || o;
-    }
-
-    function propertyValueDisplay(concepts, properties, bin) {
-        var propertyValue = bin[0],
-            propertyName = bin.name,
-            display = propertyValue;
-
-        if (propertyName === 'http://visallo.org#conceptType' && concepts.byId[propertyValue]) {
-            display = concepts.byId[propertyValue].displayName;
-        } else if (display === OTHER_PLACEHOLDER) {
-            display = i18n('detail.multiple.histogram.other');
-        } else if (properties.byTitle[propertyName]) {
-            if ('dx' in bin) {
-                display =
-                    F.vertex.propDisplay(propertyName, bin.x) +
-                    ' – ' +
-                    F.vertex.propDisplay(propertyName, bin.x + bin.dx);
-            } else {
-                display = F.vertex.propDisplay(propertyName, propertyValue);
-            }
-        }
-        if (display === '') return i18n('detail.multiple.histogram.blank');
-        return display;
-    }
-
-    function shouldDisplayProperty(properties, property) {
-        var propertyName = property.name;
-
-        if (propertyName === 'http://visallo.org#conceptType') {
-            return true;
-        } else {
-            var ontology = properties.byTitle[propertyName];
-            if (ontology && ~NO_HISTOGRAM_DATATYPES.indexOf(ontology.dataType)) {
-                return false;
-            }
-            return !!(ontology && ontology.userVisible);
-        }
-    }
-
-    function positionTextNumber() {
-        var self = this,
-            t = this.previousSibling,
-            tX = (t.x.baseVal[0] || t.x.baseVal.getItem(0)).value,
-            getWidthOfNodeByClass = function(cls) {
-                var node = self.parentNode;
-                while ((node = node.nextSibling)) {
-                    if (node.classList.contains(cls)) {
-                        return node.getBBox().width;
-                    }
-                }
-                return 0;
-            },
-            textWidth = getWidthOfNodeByClass('on-bar-text'),
-            textNumberWidth = getWidthOfNodeByClass('on-number-bar-text'),
-            barRect = this.parentNode.nextSibling,
-            barWidthVal = barRect.width.baseVal,
-            barWidth = barWidthVal.value,
-            remainingBarWidth = barWidth - textWidth - tX - PADDING;
-
-        if (remainingBarWidth <= textNumberWidth) {
-            this.setAttribute('x', Math.max(barWidth, tX + textWidth) + PADDING);
-            this.setAttribute('text-anchor', 'start');
-            this.setAttribute('dx', 0);
-        } else {
-            this.setAttribute('x', barWidthVal.valueAsString);
-            this.setAttribute('dx', -PADDING);
-            this.setAttribute('text-anchor', 'end');
-        }
-    }
-
-    function Multiple() {
-        var d3;
-
-        this.defaultAttrs({
-            histogramSelector: '.multiple .histogram',
-            histogramListSelector: '.multiple .histograms',
-            elementListSelector: '.multiple .elements-list',
-            histogramBarSelector: 'g.histogram-bar',
-            toolbarSelector: '.comp-toolbar'
-        });
+        this.attributes({
+            model: null,
+            histogramSelector: '.histogram',
+            histogramListSelector: '.histograms',
+            histogramBarSelector: 'g.histogram-bar'
+        })
 
         this.before('teardown', function() {
             this.$node.off('mouseenter mouseleave');
         });
 
         this.after('initialize', function() {
-            var self = this,
-                vertices = this.attr.data.vertices || [],
-                edges = this.attr.data.edges || [],
-                vertexIds = _.pluck(vertices, 'id'),
-                edgeIds = _.pluck(edges, 'id');
+            var self = this;
 
-            this.displayingIds = vertexIds.concat(edgeIds);
-
-            this.$node.html(template({
-                vertices: vertices,
-                edges: edges
-            }));
+            this.$node.addClass('multiple').html('<ul class="histograms">');
 
             this.on('click', {
                 histogramBarSelector: this.histogramClick
             });
             this.$node.on('mouseenter mouseleave', '.histogram-bar', this.histogramHover.bind(this));
 
-            this.on('selectObjects', this.onSelectObjects);
-            this.on(document, 'verticesUpdated', this.onVerticesUpdated);
-            this.onGraphPaddingUpdated = _.debounce(this.onGraphPaddingUpdated.bind(this), 100);
-            this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
+            this.renderHistograms(this.attr.model, { duration: 0 });
 
-            Promise.all([
-                Promise.require('d3'),
-                vertexIds.length ?
-                    this.dataRequest('vertex', 'store', { vertexIds: vertexIds }) :
-                    this.dataRequest('edge', 'store', { edgeIds: edgeIds }),
-                this.dataRequest('ontology', 'concepts'),
-                this.dataRequest('ontology', 'properties')
-            ]).done(function(results) {
-                var _d3 = results.shift(),
-                    verticesOrEdges = results.shift(),
-                    concepts = results.shift(),
-                    properties = results.shift();
-
-                d3 = _d3;
-
-                if (vertexIds.length) {
-                    ElementList.attachTo(self.select('elementListSelector'), {
-                        items: vertices,
-                        usageContext: 'detail/multiple'
-                    });
-                }
-
-                Toolbar.attachTo(self.select('toolbarSelector'), {
-                    toolbar: [
-                        {
-                            title: i18n('detail.toolbar.open'),
-                            submenu: [
-                                Toolbar.ITEMS.FULLSCREEN
-                            ].concat(self.selectionHistory())
-                        }
-                    ],
-                    objects: { vertices: vertices }
-                });
-
-                self.drawHistograms = _.partial(self.renderHistograms, _, concepts, properties);
-                self.select('histogramSelector').remove();
-                if (vertexIds.length) {
-                    self.drawHistograms(vertices, { duration: 0 });
-                }
-            });
-
+            this.on('modelUpdated', function(event, data) {
+                self.renderHistograms(data.model);
+            })
         });
 
-        this.onVerticesUpdated = function(event, data) {
-            var self = this;
-            if (data && data.vertices) {
-                var intersection = _.intersection(this.displayingIds, _.pluck(data.vertices, 'id'));
-                if (intersection.length) {
-                    this.dataRequest('vertex', 'store', { vertexIds: this.displayingIds })
-                        .done(function(vertices) {
-                            self.drawHistograms(vertices);
-                        });
-                }
-            }
-        };
-
-        this.onGraphPaddingUpdated = function(event, data) {
-            if (d3 && !this.previousPaddingRight ||
-                data.padding.r !== this.previousPaddingRight) {
-                this.previousPaddingRight = data.padding.r;
-
-                d3.selectAll('defs .text-number')
-                    .each(positionTextNumber);
-            }
-        };
-
-        this.onSelectObjects = function(event, data) {
-            if (data && data.options && data.options.ignoreMultipleSelectionOverride) {
-                return;
-            }
-            event.stopPropagation();
-            var $verticesList = this.$node.find('.elements-list'),
-                max = 200,
-                height = _.reduce(
-                    $verticesList.find('li.element-item').toArray(),
-                     function(sum, el) {
-                         if (sum > max) {
-                             return sum;
-                         }
-                         return sum + $(el).height();
-                     }, 0
-                ),
-                calculatedHeight = Math.min(max, height + 4);
-
-            this.$node.find('.details-container').css('bottom', calculatedHeight + 'px');
-            $verticesList.hide().height(calculatedHeight + 'px');
-            this.$node.find('.multiple').addClass('viewing-vertex');
-
-            var self = this,
-                detailsContainer = this.$node.find('.details-container'),
-                detailsContent = detailsContainer.find('.content'),
-                instanceInfos = registry.findInstanceInfoByNode(detailsContent[0]),
-                promise;
-            if (instanceInfos.length) {
-                instanceInfos.forEach(function(info) {
-                    info.instance.teardown();
-                });
-            }
-
-            if (data && data.vertexIds) {
-                if (!_.isArray(data.vertexIds)) {
-                    data.vertexIds = [data.vertexIds];
-                }
-                promise = this.dataRequest('vertex', 'store', { vertexIds: data.vertexIds });
-            } else {
-                promise = Promise.resolve(data && data.vertices || []);
-            }
-            promise.done(function(vertices) {
-                if (vertices.length === 0) {
-                    return;
-                }
-
-                var first = vertices[0], moduleName;
-                if (self._selectedGraphId === first.id) {
-                    self.$node.find('.multiple').removeClass('viewing-vertex');
-                    self.$node.find('.elements-list').show().find('.active').removeClass('active');
-                    self._selectedGraphId = null;
-                    return;
-                }
-
-                var type = F.vertex.displayType(first);
-                if (type === 'edge') {
-                    moduleName = type;
-                } else {
-                    moduleName = F.vertex.isArtifact(first) ? 'artifact' : 'entity';
-                }
-
-                self._selectedGraphId = first.id;
-                require([
-                    'detail/' + moduleName + '/' + moduleName
-                ], function(Module) {
-                    Module.attachTo(detailsContent, {
-                        data: first
-                    });
-                    self.$node.find('.elements-list').show();
-                });
-            });
-        };
-
-        this.renderHistograms = function(vertices, concepts, properties, options) {
+        this.renderHistograms = function(elements, options) {
             var self = this,
                 opacityScale = d3.scale.linear().domain([0, 100]).range(SCALE_OPACITY_BASED_ON_WIDTH_RANGE),
                 colorScale = d3.scale.linear().domain([0, 100]).range(SCALE_COLOR_BASED_ON_WIDTH_RANGE),
                 animationDuration = (options && _.isNumber(options.duration)) || ANIMATION_DURATION;
 
-            if (!concepts || !properties) {
-                return;
-            }
-
-            var propertySections = _.chain(vertices)
-                    .map(function(vertex) {
-                        return vertex.properties.map(function(p) {
-                            return $.extend({ vertexId: vertex.id }, p);
-                        });
+            var propertySections = _.chain(elements)
+                    .map(function(element) {
+                        var minimalElement = {
+                                elementType: element.type,
+                                elementId: element.id
+                            },
+                            typeProperty = {
+                                name: GRAPH_TYPE,
+                                value: element.type
+                            },
+                            extras = [typeProperty];
+                        if (element.type === 'edge') {
+                            extras.push({ value: element.label, name: EDGE_LABEL});
+                        }
+                        return element.properties.concat(extras).map(function(p) {
+                            return $.extend({}, p, minimalElement);
+                        })
                     })
                     .flatten()
-                    .filter(_.partial(shouldDisplayProperty, properties))
+                    .filter(shouldDisplayProperty)
                     .groupBy('name')
                     .pairs()
+                    .each(function(pair) {
+                        if (pair[0] === CONCEPT_TYPE) {
+                            pair[1] = _.reject(pair[1], function(element) {
+                                return element.elementType === 'edge';
+                            })
+                        }
+                    })
                     .filter(function(pair) {
-                        var ontologyProperty = properties.byTitle[pair[0]];
+                        var ontologyProperty = ontology.properties.byTitle[pair[0]];
                         if (ontologyProperty && ~BINABLE_TYPES.indexOf(ontologyProperty.dataType)) {
                             return true;
                         }
@@ -356,7 +139,7 @@ define([
                                     for (var j = 0; j < toMove[i][1].length; j++) {
                                         pair[1].push({
                                             value: OTHER_PLACEHOLDER,
-                                            vertexId: toMove[i][1][j].vertexId
+                                            elementId: toMove[i][1][j].elementId
                                         });
                                     }
                                 }
@@ -375,21 +158,25 @@ define([
                         return true;
                     })
                     .filter(function(pair) {
-                        return pair[1].length > 1;
+                        return pair[1].length >= MIN_VALUES_PRESENT_TO_DISPLAY;
                     })
                     .sortBy(function(pair) {
-                        var ontologyProperty = properties.byTitle[pair[0]],
+                        var ontologyProperty = ontology.properties.byTitle[pair[0]],
                             value = pair[0];
 
-                        if (value === 'http://visallo.org#conceptType') {
+                        if (value === GRAPH_TYPE) {
                             return '0';
                         }
-
+                        if (value === CONCEPT_TYPE) {
+                            return '1';
+                        }
+                        if (value === EDGE_LABEL) {
+                            return '2';
+                        }
                         if (ontologyProperty && ontologyProperty.displayName) {
                             value = ontologyProperty.displayName;
                         }
-
-                        return '1' + value.toLowerCase();
+                        return '3' + value.toLowerCase();
                     })
                     .sortBy(function(pair) {
                         return pair[1].length * -1;
@@ -415,10 +202,10 @@ define([
                         this.order()
                             .call(function() {
                                 this.select('.nav-header')
-                                    .text(_.partial(propertyDisplayName, properties))
+                                    .text(propertyDisplayName)
                                     .append('span')
                                     .text(function(d) {
-                                        var ontologyProperty = properties.byTitle[d[0]],
+                                        var ontologyProperty = ontology.properties.byTitle[d[0]],
                                             values = _.pluck(d[1], 'value');
 
 
@@ -431,7 +218,7 @@ define([
                                         this.transition()
                                             .duration(animationDuration)
                                             .attr('height', function(d) {
-                                                var ontologyProperty = properties.byTitle[d[0]],
+                                                var ontologyProperty = ontology.properties.byTitle[d[0]],
                                                     values = _.pluck(d[1], 'value');
 
                                                 d.values = values;
@@ -469,10 +256,10 @@ define([
                                             yScale = d3.scale.ordinal();
 
                                             bins = bins.map(function(bin) {
+                                                    bin.elements = _.clone(bin);
                                                     bin.xScale = xScale;
                                                     bin.yScale = yScale;
                                                     bin.name = d[0];
-                                                    bin.vertexIds = _.pluck(bin, 'vertexId');
                                                     for (var i = 0; i < bin.length; i++) {
                                                         bin[i] = bin[i].value;
                                                     }
@@ -493,8 +280,7 @@ define([
                                         xScale = d3.scale.linear()
                                             .range([0, 100]);
 
-                                        var groupedByValue = _.groupBy(d[1], 'value'),
-                                            displayValue = _.partial(propertyValueDisplay, concepts, properties);
+                                        var groupedByValue = _.groupBy(d[1], 'value');
                                         yScale = d3.scale.ordinal()
                                             .domain(
                                                 _.chain(values)
@@ -506,8 +292,9 @@ define([
 
                                                     var bin = [f];
                                                     bin.name = d[0];
+                                                    var value = propertyValueDisplay(bin);
                                                     return (100 - groupedByValue[f].length) +
-                                                        displayValue(bin);
+                                                        String(value).toLowerCase();
                                                 })
                                                 .value()
                                             );
@@ -518,7 +305,7 @@ define([
                                                     bin.xScale = xScale;
                                                     bin.yScale = yScale;
                                                     bin.name = d[0];
-                                                    bin.vertexIds = _.pluck(bin[1], 'vertexId');
+                                                    bin.elements = bin[1];
                                                     bin[1] = bin[1].length;
                                                     return bin;
                                                 })
@@ -574,8 +361,8 @@ define([
                                             .remove();
 
                                         this.order()
-                                            .attr('data-vertex-ids', function(d) {
-                                                return JSON.stringify(d.vertexIds || []);
+                                            .attr('data-element-ids', function(d) {
+                                                return JSON.stringify(d.elementIds || []);
                                             })
                                             .transition()
                                             .duration(animationDuration)
@@ -610,7 +397,7 @@ define([
 
                                                 this.select('.text')
                                                     .attr('id', textId)
-                                                    .text(_.partial(propertyValueDisplay, concepts, properties))
+                                                    .text(propertyValueDisplay)
                                                     .each(setTextY(0.15));
 
                                                 this.select('.text-number')
@@ -737,18 +524,120 @@ define([
         };
 
         this.histogramHover = function(event, object) {
-            var vertexIds = $(event.target).closest('g').data('vertexIds'),
+            var ids = eventToElementIdMap(event),
                 eventName = event.type === 'mouseenter' ? 'focus' : 'defocus';
-
-            this.trigger(document, eventName + 'Vertices', { vertexIds: vertexIds });
+            this.trigger(document, eventName + 'Elements', ids);
         };
 
-        this.histogramClick = function(event, object) {
-            var vertexIds = $(event.target).closest('g').data('vertexIds');
-
-            this.trigger(document, 'selectObjects', { vertexIds: vertexIds });
-            this.trigger(document, 'defocusVertices', { vertexIds: vertexIds });
+        this.histogramClick = function(event) {
+            var ids = eventToElementIdMap(event);
+            if (ids) {
+                this.trigger(document, 'selectObjects', ids);
+                this.trigger(document, 'defocusElements');
+            }
         };
+    }
 
+    function eventToElementIdMap(event) {
+        var bar = $(event.target).closest('g'),
+            elements = bar.length && d3.select(bar.get(0)).datum().elements,
+            ids = elements && _.chain(elements)
+                .groupBy('elementType')
+                .mapObject(function(elements) {
+                    return _.pluck(elements, 'elementId')
+                })
+                .value();
+        if (ids) {
+            return {
+                vertexIds: ids.vertex,
+                edgeIds: ids.edge
+            }
+        }
+    }
+
+    function propertyDisplayName(pair) {
+        if (pair[0] === EDGE_LABEL) {
+            return i18n('detail.multiple.histogram.edgeLabel');
+        }
+        if (pair[0] === GRAPH_TYPE) {
+            return i18n('detail.multiple.histogram.graph_type');
+        }
+        var o = ontology.properties.byTitle[pair[0]];
+        return o && o.displayName || o;
+    }
+
+    function propertyValueDisplay(bin) {
+        var propertyValue = bin[0],
+            propertyName = bin.name,
+            display = propertyValue;
+
+        if (propertyName === GRAPH_TYPE) {
+            display = i18n('detail.multiple.histogram.graph_type.' + display);
+        } else if (propertyName === CONCEPT_TYPE && ontology.concepts.byId[propertyValue]) {
+            display = ontology.concepts.byId[propertyValue].displayName;
+        } else if (propertyName === EDGE_LABEL && ontology.relationships.byTitle[propertyValue]) {
+            display = ontology.relationships.byTitle[propertyValue].displayName;
+        } else if (display === OTHER_PLACEHOLDER) {
+            display = i18n('detail.multiple.histogram.other');
+        } else if (ontology.properties.byTitle[propertyName]) {
+            if ('dx' in bin) {
+                display =
+                    F.vertex.propDisplay(propertyName, bin.x) +
+                    ' – ' +
+                    F.vertex.propDisplay(propertyName, bin.x + bin.dx);
+            } else {
+                display = F.vertex.propDisplay(propertyName, propertyValue);
+            }
+        }
+        if (display === '') return i18n('detail.multiple.histogram.blank');
+        return display;
+    }
+
+
+    function shouldDisplayProperty(property) {
+        var propertyName = property.name;
+
+        if (propertyName === CONCEPT_TYPE ||
+           propertyName === GRAPH_TYPE ||
+           propertyName === EDGE_LABEL) {
+            return true;
+        } else {
+            var ontologyProperty = ontology.properties.byTitle[propertyName];
+            if (ontologyProperty && ~NO_HISTOGRAM_DATATYPES.indexOf(ontologyProperty.dataType)) {
+                return false;
+            }
+            return !!(ontologyProperty && ontologyProperty.userVisible);
+        }
+    }
+
+    function positionTextNumber() {
+        var self = this,
+            t = this.previousSibling,
+            tX = (t.x.baseVal[0] || t.x.baseVal.getItem(0)).value,
+            getWidthOfNodeByClass = function(cls) {
+                var node = self.parentNode;
+                while ((node = node.nextSibling)) {
+                    if (node.classList.contains(cls)) {
+                        return node.getBBox().width;
+                    }
+                }
+                return 0;
+            },
+            textWidth = getWidthOfNodeByClass('on-bar-text'),
+            textNumberWidth = getWidthOfNodeByClass('on-number-bar-text'),
+            barRect = this.parentNode.nextSibling,
+            barWidthVal = barRect.width.baseVal,
+            barWidth = barWidthVal.value,
+            remainingBarWidth = barWidth - textWidth - tX - PADDING;
+
+        if (remainingBarWidth <= textNumberWidth) {
+            this.setAttribute('x', Math.max(barWidth, tX + textWidth) + PADDING);
+            this.setAttribute('text-anchor', 'start');
+            this.setAttribute('dx', 0);
+        } else {
+            this.setAttribute('x', barWidthVal.valueAsString);
+            this.setAttribute('dx', -PADDING);
+            this.setAttribute('text-anchor', 'end');
+        }
     }
 });

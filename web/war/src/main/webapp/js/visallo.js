@@ -106,13 +106,17 @@ function(jQuery,
      */
     function loadApplicationTypeBasedOnUrlHash(e) {
         var toOpen = F.vertexUrl.parametersInUrl(location.href),
-
-            ids = toOpen && toOpen.vertexIds,
+            vertexIds = toOpen && toOpen.vertexIds,
+            edgeIds = toOpen && toOpen.edgeIds,
+            toOpenIds = (
+                (vertexIds && vertexIds.length) ||
+                (edgeIds && edgeIds.length)
+            ),
 
             workspaceId = toOpen && toOpen.workspaceId,
 
             // Is this the popoout details app? ids passed to hash?
-            popoutDetails = !!(toOpen && toOpen.type === 'FULLSCREEN' && ids.length),
+            popoutDetails = !!(toOpen && toOpen.type === 'FULLSCREEN' && toOpenIds),
 
             // If this is a hash change
             event = e && e.originalEvent,
@@ -126,7 +130,8 @@ function(jQuery,
 
         if (event && isPopoutUrl(event.oldURL) && isPopoutUrl(event.newURL)) {
             return $('#app').trigger('vertexUrlChanged', {
-                graphVertexIds: ids,
+                vertexIds: vertexIds,
+                edgeIds: edgeIds,
                 workspaceId: workspaceId
             });
         }
@@ -232,7 +237,8 @@ function(jQuery,
                                         FullScreenApp = comp;
                                         FullScreenApp.teardownAll();
                                         FullScreenApp.attachTo('#app', {
-                                            graphVertexIds: ids,
+                                            vertexIds: vertexIds,
+                                            edgeIds: edgeIds,
                                             workspaceId: workspaceId
                                         });
                                     }
@@ -253,7 +259,7 @@ function(jQuery,
                                         }
                                         App.teardownAll();
                                         var appOptions = {};
-                                        if (toOpen && toOpen.type === 'ADD' && ids.length) {
+                                        if (toOpen && toOpen.type === 'ADD' && vertexIds.length) {
                                             appOptions.addVertexIds = toOpen;
                                         }
                                         if (toOpen && toOpen.type === 'ADMIN' && toOpen.section && toOpen.name) {
