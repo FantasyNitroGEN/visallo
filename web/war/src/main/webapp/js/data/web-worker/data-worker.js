@@ -69,7 +69,7 @@ function setupWebsocket() {
 
     if (supportedInWorker) {
         self.window = self;
-        importScripts(BASE_URL + '/libs/atmosphere-javascript/modules/javascript/target/javascript-2.2.11/javascript/atmosphere-min.js?' + cacheBreaker);
+        importScripts(BASE_URL + '/libs/atmosphere.js/lib/atmosphere.js?' + cacheBreaker);
         atmosphere.util.getAbsoluteURL = function() {
             return publicData.atmosphereConfiguration.url;
         }

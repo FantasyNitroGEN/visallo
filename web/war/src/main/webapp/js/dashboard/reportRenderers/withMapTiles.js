@@ -1,6 +1,6 @@
 define([
     'd3',
-    'd3-plugins/geo/tile/tile'
+    'd3-plugins/tile/amd/index'
 ], function(
     d3) {
     'use strict';

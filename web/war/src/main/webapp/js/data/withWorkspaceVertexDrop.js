@@ -37,7 +37,7 @@ define([], function() {
                     }
                 });
 
-                require(['jquery-ui/droppable'], function() {
+                require(['jquery-ui'], function() {
                     droppable.droppable({
                         tolerance: 'pointer',
                         accept: function(item) {

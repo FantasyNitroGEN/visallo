@@ -4,7 +4,7 @@ define([
     'hbs!./sortTpl',
     'util/requirejs/promise!util/service/ontologyPromise',
     'd3',
-    'jquery-ui/sortable'
+    'jquery-ui'
 ], function(
     defineComponent,
     FieldSelection,

@@ -1,5 +1,5 @@
 
-define(['jquery', 'jquery-ui/draggable'], function() {
+define(['jquery', 'jquery-ui'], function() {
     'use strict';
 
     $.ui.plugin.add('draggable', 'multi', {
