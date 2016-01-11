@@ -1,6 +1,7 @@
 /data/
 target/
-.idea
+.idea/*
+!.idea/runConfigurations/
 *.iml
 .vagrant
 .settings/
