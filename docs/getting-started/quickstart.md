@@ -18,7 +18,7 @@ From the root project directory, use the following command. This only needs to b
 
         mvn -am -pl dev/quick-start package -DskipTests
 
-The application jar file will be built at `dev/quick-start/target/visallo-dev-quick-start-1.1-SNAPSHOT.jar`
+The application jar file will be built at `dev/quick-start/target/visallo-dev-quick-start-*-SNAPSHOT.jar`.
 
 ## Running
 
@@ -26,7 +26,7 @@ There are two ways to run:
 
 1. From the root project directory, use the following command:
 
-        java -jar dev/quick-start/target/visallo-dev-quick-start-1.1-SNAPSHOT.jar
+        java -jar dev/quick-start/target/visallo-dev-quick-start-*-SNAPSHOT.jar
 
    Running this way sends output to the console.
 
