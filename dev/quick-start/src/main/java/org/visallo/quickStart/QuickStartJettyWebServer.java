@@ -13,6 +13,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.http.CachingHttpRepository;
 import org.visallo.quickStart.gui.VisalloWindow;
 import org.visallo.web.JettyWebServer;
+import org.visallo.web.WebConfiguration;
 import org.visallo.web.WebServer;
 
 import java.io.File;
@@ -25,8 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QuickStartJettyWebServer {
-    private static PrintStream guiOut;
-    private static VisalloWindow visalloWindow;
 
     private static class Arguments {
         @Parameter(names = {"--help", "-h"}, description = "Print help", help = true)
@@ -71,13 +70,14 @@ public class QuickStartJettyWebServer {
 
     private void checkForConsole() {
         if (System.console() == null && System.getProperty("debugger") == null) {
-            visalloWindow = new VisalloWindow(WebServer.DEFAULT_SERVER_PORT);
-            guiOut = new PrintStream(visalloWindow.getOutputStream());
+            VisalloWindow visalloWindow = new VisalloWindow(WebServer.DEFAULT_SERVER_PORT);
+            PrintStream guiOut = new PrintStream(visalloWindow.getOutputStream());
             System.setOut(guiOut);
             System.setErr(guiOut);
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private File getH2Location(QuickStartWorkingDirectory workingDirectory) {
         File h2Location = workingDirectory.getFile("h2/visallo");
         h2Location.getParentFile().mkdirs();
@@ -104,6 +104,7 @@ public class QuickStartJettyWebServer {
         addOntologyToSystemProperties(workingDirectory);
         System.setProperty("visallo.sql.connectionString", "jdbc:h2:file:" + h2Location + ";AUTO_SERVER=TRUE");
         System.setProperty("visallo." + CachingHttpRepository.CONFIG_CACHE_DIR, workingDirectory.getFile("httpCache").getAbsolutePath());
+        System.setProperty("visallo." + WebConfiguration.FIELD_JUSTIFICATION_VALIDATION, "OPTIONAL");
         File elasticsearchDirectory = workingDirectory.getFile("elasticsearch");
         System.setProperty("visallo.graph.search." + ElasticSearchSearchIndexConfiguration.IN_PROCESS_NODE_DATA_PATH, new File(elasticsearchDirectory, "data").getAbsolutePath());
         System.setProperty("visallo.graph.search." + ElasticSearchSearchIndexConfiguration.IN_PROCESS_NODE_LOGS_PATH, new File(elasticsearchDirectory, "logs").getAbsolutePath());
