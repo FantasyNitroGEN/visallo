@@ -1,6 +1,4 @@
-
-Activity Plugin
-=====================
+# Activity Plugin
 
 Plugin to configure the user interface for activity items
 

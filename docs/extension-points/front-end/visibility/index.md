@@ -1,17 +1,16 @@
-** Deprecated **
-
-Visibility Plugin
-=================
+# Visibility Plugin
 
 Plugin to configure the user interface for displaying and editing visibility authorization strings.
 
-The visibility component requires two flightjs components:
+The visibility component requires two flightjs components registered for viewing and editing:
 
-    visibilityEditor.js
-    visibilityDisplay.js
+    registry.registerExtension('org.visallo.visibility', {
+        editorComponentPath: 'myEditor',
+        viewerComponentPath: 'myViewer'
+    })
 
 
-## Visibility Editor
+## Visibility Editor Component
 
 Describes the form for editing visibility values.
 
@@ -44,7 +43,7 @@ Visibility plugins event contract.
             valid: [ true | false ] 
         })
 
-## Visibility Display
+## Visibility Display Component
 
 Describes the display of visibility values.
 

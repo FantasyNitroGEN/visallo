@@ -1,9 +1,9 @@
 
 # Prereqs
 
-* Setup [configuration](configuration.md) on your host machine.
+* Setup [configuration](../getting-started/configuration.md) on your host machine.
 * Install [dependencies](../dependencies.md) on your host machine.
-* Install the [root module](build.md#root-module) on your host machine.
+* Install the [root module](../getting-started/build.md#root-module) on your host machine.
 
 # IntelliJ
 
