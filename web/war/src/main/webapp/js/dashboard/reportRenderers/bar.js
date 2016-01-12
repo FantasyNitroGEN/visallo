@@ -242,6 +242,9 @@ define([
                                                 d3.select(this)
                                                     .attr('dx', band / -2)
                                                     .style('text-anchor', 'start')
+                                            } else {
+                                                d3.select(this)
+                                                    .attr('dx', null)
                                             }
                                         })
                                         .call(overflowEllipsis, dataScale.rangeBand())
