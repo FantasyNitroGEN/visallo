@@ -39,7 +39,7 @@
         * [Vertex Menu](extension-points/front-end/vertexMenu/index.md)
         * [Visibility](extension-points/front-end/visibility/index.md)
 * [Front End](front-end/index.md)
-* [Admin URLs](front-end/admin-urls.md)
+* [Admin URLs](admin-urls.md)
 * Extras
     * [FFmpeg Setup](extras/ffmpeg-setup.md)
     * [Sizing](extras/sizing.md)
