@@ -22,19 +22,19 @@ define(['util/vertex/urlFormatters'], function(f) {
         })
 
         it('should have be able to extract vertices from urls', function() {
-            var p = f.vertexUrl.parametersInUrl('#v=1%2C,2%20x&w=')
+            var p = f.vertexUrl.parametersInUrl('#v=v1%2C,v2%20x&w=')
 
             p.should.have.property('vertexIds').that.deep.equals(['1,', '2 x'])
             p.should.have.property('workspaceId').that.equals('')
 
-            p = f.vertexUrl.parametersInUrl(location.href + '#v=1%2C,2%20x')
+            p = f.vertexUrl.parametersInUrl(location.href + '#v=v1%2C,v2%20x')
 
             p.should.have.property('vertexIds').that.deep.equals(['1,', '2 x'])
             p.should.have.property('workspaceId').that.equals('')
         })
 
         it('should have be able to extract vertices and workspace from urls', function() {
-            var p = f.vertexUrl.parametersInUrl(location.href + '#v=1%2C,2%20x&w=my%20big%20workspace')
+            var p = f.vertexUrl.parametersInUrl(location.href + '#v=v1%2C,v2%20x&w=my%20big%20workspace')
 
             p.should.have.property('vertexIds').that.deep.equals(['1,', '2 x'])
             p.should.have.property('workspaceId').that.equals('my big workspace')
