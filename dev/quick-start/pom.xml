@@ -152,14 +152,14 @@
 
                                 <mkdir dir="${project.build.directory}/generated-resources/org/visallo/quickStart/lib"/>
                                 <copy todir="${project.build.directory}/generated-resources/org/visallo/quickStart/lib/">
-                                    <fileset file="../../graph-property-worker/plugins/tika-mime-type/target/visallo-gpw-tika-mime-type-${project.version}.jar"/>
-                                    <fileset file="../../graph-property-worker/plugins/mime-type-ontology-mapper/target/visallo-gpw-mime-type-ontology-mapper-${project.version}.jar"/>
-                                    <fileset file="../../graph-property-worker/plugins/tika-text-extractor/target/visallo-gpw-tika-text-extractor-${project.version}.jar"/>
-                                    <fileset file="../../graph-property-worker/plugins/email-extractor/target/visallo-gpw-email-extractor-${project.version}.jar"/>
-                                    <fileset file="../../graph-property-worker/plugins/phone-number-extractor/target/visallo-gpw-phone-number-extractor-${project.version}.jar"/>
-                                    <fileset file="../../graph-property-worker/plugins/opennlp-me-extractor/target/visallo-gpw-opennlp-me-extractor-${project.version}.jar"/>
-                                    <fileset file="../../graph-property-worker/plugins/zipcode-extractor/target/visallo-gpw-zipcode-extractor-${project.version}.jar"/>
-                                    <fileset file="../../web/plugins/admin-import-rdf/target/visallo-web-admin-import-rdf-${project.version}.jar"/>
+                                    <fileset file="../../graph-property-worker/plugins/tika-mime-type/target/visallo-gpw-tika-mime-type-${v5.visallo.version}.jar" />
+                                    <fileset file="../../graph-property-worker/plugins/mime-type-ontology-mapper/target/visallo-gpw-mime-type-ontology-mapper-${v5.visallo.version}.jar" />
+                                    <fileset file="../../graph-property-worker/plugins/tika-text-extractor/target/visallo-gpw-tika-text-extractor-${v5.visallo.version}.jar" />
+                                    <fileset file="../../graph-property-worker/plugins/email-extractor/target/visallo-gpw-email-extractor-${v5.visallo.version}.jar" />
+                                    <fileset file="../../graph-property-worker/plugins/phone-number-extractor/target/visallo-gpw-phone-number-extractor-${v5.visallo.version}.jar" />
+                                    <fileset file="../../graph-property-worker/plugins/opennlp-me-extractor/target/visallo-gpw-opennlp-me-extractor-${v5.visallo.version}.jar" />
+                                    <fileset file="../../graph-property-worker/plugins/zipcode-extractor/target/visallo-gpw-zipcode-extractor-${v5.visallo.version}.jar" />
+                                    <fileset file="../../web/plugins/admin-import-rdf/target/visallo-web-admin-import-rdf-${v5.visallo.version}.jar" />
                                 </copy>
 
                                 <zip
