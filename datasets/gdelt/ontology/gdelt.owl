@@ -1205,6 +1205,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/gdelt#actorName">
         <rdfs:label xml:lang="en">Name</rdfs:label>
         <rdfs:domain rdf:resource="http://visallo.org/gdelt#gdeltActor"/>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
