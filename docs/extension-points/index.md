@@ -6,4 +6,4 @@ Visallo is possible in the following areas:
 
 * [Ingestion](ingestion/index.md)
 * [Analytics](analytics.md)
-* [User Interface](front-end.md)
+* [User Interface](front-end/index.md)

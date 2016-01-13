@@ -102,10 +102,10 @@ function start_spark {
 function ensure_visallo_config {
   start_msg "Visallo Config"
   hadoop fs -mkdir -p /visallo/lib
-  hadoop fs -mkdir -p /visallo/config/opencv
-  hadoop fs -mkdir -p /visallo/config/opennlp
-  hadoop fs -put /opt/visallo-source/config/opencv/haarcascade_frontalface_alt.xml /visallo/config/opencv/
-  hadoop fs -put /opt/visallo-source/config/opennlp/* /visallo/config/opennlp/
+  hadoop fs -mkdir -p /visallo/config/org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorker
+  hadoop fs -mkdir -p /visallo/config/org.visallo.opennlpme.OpenNLPMaximumEntropyExtractorGraphPropertyWorker
+  hadoop fs -put /opt/visallo-source/config/org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorker/haarcascade_frontalface_alt.xml /visallo/config/org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorker/
+  hadoop fs -put /opt/visallo-source/config/org.visallo.opennlpme.OpenNLPMaximumEntropyExtractorGraphPropertyWorker/* /visallo/config/org.visallo.opennlpme.OpenNLPMaximumEntropyExtractorGraphPropertyWorker/
   hadoop fs -chmod -R a+w /visallo/
 }
 

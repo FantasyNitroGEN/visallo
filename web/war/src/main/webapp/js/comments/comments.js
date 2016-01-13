@@ -85,11 +85,17 @@ define([
 
     function Comments() {
 
+        this.attributes({
+            data: null
+        });
+
         this.after('initialize', function() {
             this.on('editComment', this.onEditComment);
-            if (this.attr.vertex) {
+
+            this.type = F.vertex.isEdge(this.attr.data) ? 'edge' : 'vertex';
+            if (this.type === 'vertex') {
                 this.on(document, 'verticesUpdated', this.onVerticesUpdated);
-            } else if (this.attr.edge) {
+            } else if (this.type === 'edge') {
                 this.on(document, 'edgesUpdated', this.onEdgesUpdated);
             }
 
@@ -97,9 +103,7 @@ define([
             this.on('editProperty', this.onEditProperty);
             this.on('deleteProperty', this.onDeleteProperty);
 
-            this.attr.data = this.attr.vertex || this.attr.edge;
-            this.attr.type = this.attr.vertex ? 'vertex' : 'edge';
-            this.$node.html(template({}));
+            this.$node.addClass('org-visallo-comments').html(template({}));
             this.update();
         });
 
@@ -288,7 +292,7 @@ define([
 
         this.onDeleteProperty = function(event, data) {
             var self = this;
-            this.dataRequest(this.attr.type, 'deleteProperty',
+            this.dataRequest(this.type, 'deleteProperty',
                 this.attr.data.id, data.property
             ).then(function() {
                 $(event.target).popover('hide');
@@ -316,7 +320,7 @@ define([
             CommentForm.teardownAll();
             CommentForm.attachTo(root, {
                 data: this.attr.data,
-                type: this.attr.type,
+                type: this.type,
                 path: path,
                 sourceInfo: sourceInfo,
                 comment: comment

@@ -169,7 +169,7 @@ public class VertexUploadImage implements ParameterizedHandler {
         return VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(visibilityJson, visibilitySource, workspaceId);
     }
 
-    private ElementBuilder<Vertex> convertToArtifact(
+    protected ElementBuilder<Vertex> convertToArtifact(
             final Part file,
             String title,
             VisibilityJson visibilityJson,

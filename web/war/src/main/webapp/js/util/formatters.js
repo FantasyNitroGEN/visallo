@@ -164,6 +164,9 @@ define([
                 } else if (value === 0) {
                     return '0s';
                 } else {
+                    if (_.isNumber(value)) {
+                        value = Math.round(value);
+                    }
                     return new Duration(value + 's').toString().replace(/(ms|[wdhms])/g, '$1 ').trim()
                 }
             }

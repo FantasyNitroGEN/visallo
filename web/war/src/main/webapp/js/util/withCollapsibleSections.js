@@ -5,18 +5,19 @@ define([], function() {
 
     function withCollapsibleSections() {
 
-        this.defaultAttrs({
-            collapsibleSectionSelector: '.collapsible .collapsible-header'
+        this.attributes({
+            collapsibleToggleSelector: '.collapsible .collapsible-header'
         });
 
         this.after('initialize', function() {
             this.on('click', {
-                collapsibleSectionSelector: this.onToggleCollapsibleSection
+                collapsibleToggleSelector: this.onToggleCollapsibleSection
             });
         });
 
         this.onToggleCollapsibleSection = function(event) {
             $(event.target).closest('.collapsible').toggleClass('expanded');
+            event.stopPropagation();
         }
     }
 });

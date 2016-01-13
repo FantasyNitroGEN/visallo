@@ -52,6 +52,7 @@ define(['util/formatters'], function(f) {
                 f.number.duration(1).should.equal('1s');
                 f.number.duration(90).should.equal('1m 30s');
                 f.number.duration(7654).should.equal('2h 7m 34s');
+                f.number.duration(6844.003256).should.equal('1h 54m 4s');
             })
         });
 

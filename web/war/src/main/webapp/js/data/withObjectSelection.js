@@ -48,11 +48,14 @@ define([], function() {
             this.on('verticesDeleted', function(event, data) {
                 if (selectedObjects) {
                     if (selectedObjects.vertices.length) {
-                        this.trigger('selectObjects', {
-                            vertices: _.reject(selectedObjects.vertices, function(v) {
+                        var newSelection = _.reject(selectedObjects.vertices, function(v) {
                                 return ~data.vertexIds.indexOf(v.id)
-                            })
-                        });
+                            });
+                        if (selectedObjects.vertices.length !== newSelection.length) {
+                            this.trigger('selectObjects', {
+                                vertices: newSelection
+                            });
+                        }
                     }
                 }
             });
@@ -72,10 +75,18 @@ define([], function() {
             var self = this;
 
             this.dataRequestPromise.done(function(dataRequest) {
-                dataRequest('workspace', 'store')
-                    .done(function(vertices) {
-                        self.trigger('selectObjects', { vertexIds: _.keys(vertices) });
-                    })
+                Promise.all([
+                    dataRequest('workspace', 'store'),
+                    dataRequest('workspace', 'storeEdges')
+                ]).done(function(results) {
+                    var vertices = results.shift(),
+                        edges = results.shift();
+
+                    self.trigger('selectObjects', {
+                        vertexIds: _.keys(vertices),
+                        edgeIds: _.pluck(edges, 'edgeId')
+                    });
+                });
             })
         };
 
@@ -144,8 +155,6 @@ define([], function() {
                 promises = [];
 
             this.dataRequestPromise.done(function(dataRequest) {
-                var hasSomeVertices = false;
-
                 if (data && data.vertexIds) {
                     if (!_.isArray(data.vertexIds)) {
                         data.vertexIds = [data.vertexIds];
@@ -153,17 +162,13 @@ define([], function() {
                     promises.push(
                         dataRequest('vertex', 'store', { vertexIds: data.vertexIds })
                     );
-                    hasSomeVertices = data.vertexIds.length > 0;
                 } else if (data && data.vertices) {
                     promises.push(Promise.resolve(data.vertices));
-                    hasSomeVertices = data.vertices.length > 0;
                 } else {
                     promises.push(Promise.resolve([]));
                 }
 
-                if (hasSomeVertices) {
-                    promises.push(Promise.resolve([]));
-                } else if (data && data.edgeIds && data.edgeIds.length) {
+                if (data && data.edgeIds && data.edgeIds.length) {
                     promises.push(
                         dataRequest('edge', 'store', { edgeIds: data.edgeIds })
                     );
@@ -176,7 +181,13 @@ define([], function() {
                 Promise.all(promises)
                     .done(function(result) {
                         var vertices = _.compact(result[0] || []),
-                            edges = _.compact(result[1] || []);
+                            edges = _.compact(result[1] || []),
+                            selectedObjectsToIds = function(obj) {
+                                return {
+                                    vertices: _.pluck(obj && obj.vertices || [], 'id'),
+                                    edges: _.pluck(obj && obj.edges || [], 'id')
+                                };
+                            };
 
                         if (!edges.length && !vertices.length && hasItems) {
                             return;
@@ -184,12 +195,15 @@ define([], function() {
 
                         selectedObjects = {
                             vertices: vertices,
-                            edges: vertices.length ? [] : edges
+                            edges: edges
                         };
 
                         if (previousSelectedObjects &&
                             selectedObjects &&
-                            _.isEqual(previousSelectedObjects, selectedObjects)) {
+                            _.isEqual(
+                                selectedObjectsToIds(previousSelectedObjects),
+                                selectedObjectsToIds(selectedObjects)
+                            )) {
                             return;
                         }
 
@@ -200,7 +214,12 @@ define([], function() {
                                 var transformedObjects = defaultNoObjectsOrData(selectedObjects);
                                 self.setPublicApi('selectedObjects', transformedObjects);
 
-                                var postData = _.clone(selectedObjects);
+                                var postData = _.chain(selectedObjects)
+                                    .clone()
+                                    .mapObject(function(value) {
+                                        return _.clone(value);
+                                    })
+                                    .value();
                                 if (data && 'focus' in data) {
                                     postData.focus = data.focus;
                                 }

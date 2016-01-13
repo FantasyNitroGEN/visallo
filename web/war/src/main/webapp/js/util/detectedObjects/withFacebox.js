@@ -5,23 +5,26 @@ define(['hbs!./withFaceboxTpl'], function(tpl) {
 
     function withFacebox() {
 
-        this.defaultAttrs({
+        this.attributes({
             boxSelector: '.facebox',
             boxEditingSelector: '.facebox.editing'
         })
 
         this.initializeFacebox = function(container) {
+            var root = this.$node.closest('.org-visallo-layout-root');
+
             this.container = container.append(tpl({}));
             this.setupEditingFacebox();
 
-            this.on('DetectedObjectEnter', this.onHover);
-            this.on('DetectedObjectLeave', this.onHoverLeave);
-            this.on('DetectedObjectEdit', this.onEdit);
-            this.on('DetectedObjectDoneEditing', this.onDoneEditing);
+            this.on(root, 'detectedObjectEnter', this.onHover);
+            this.on(root, 'detectedObjectLeave', this.onHoverLeave);
+            this.on(root, 'detectedObjectEdit', this.onDetectedObjectEdit);
+            this.on(root, 'detectedObjectDoneEditing', this.onDoneEditing);
         }
 
         this.setupEditingFacebox = function() {
-            var self = this;
+            var self = this,
+                debouncedTrigger = _.debounce(convertToPercentageAndTrigger, 250);
 
             this.on('click', function(event) {
                 if (self.preventClick) {
@@ -50,7 +53,7 @@ define(['hbs!./withFaceboxTpl'], function(tpl) {
                     });
                     $(document).on('mouseup.facebox', function(evt) {
                         $(document).off('.facebox');
-                        convertToPercentageAndTrigger(evt, { element: facebox });
+                        debouncedTrigger(evt, { element: facebox });
                     });
 
                     return;
@@ -99,7 +102,7 @@ define(['hbs!./withFaceboxTpl'], function(tpl) {
                         $(document).off('mouseup.facebox mousemove.facebox');
                         self.currentlyEditing = 'NEW';
                         self.preventClick = true;
-                        convertToPercentageAndTrigger(evt, { element: box });
+                        debouncedTrigger(evt, { element: box });
                     });
 
                 box.css(startPosition).hide();
@@ -111,11 +114,11 @@ define(['hbs!./withFaceboxTpl'], function(tpl) {
                     handles: 'all',
                     minWidth: 5,
                     minHeight: 5,
-                    stop: convertToPercentageAndTrigger
+                    stop: debouncedTrigger
                 }).draggable({
                     containment: 'parent',
                     cursor: 'move',
-                    stop: convertToPercentageAndTrigger
+                    stop: debouncedTrigger
                 });
 
             function convertToPercentageAndTrigger(event, ui) {
@@ -137,7 +140,7 @@ define(['hbs!./withFaceboxTpl'], function(tpl) {
                     height: h * 100 + '%'
                 });
 
-                self.trigger('DetectedObjectCoordsChange', {
+                self.trigger('detectedObjectCoordsChange', {
                     id: self.currentlyEditing,
                     x1: l.toFixed(2) + '',
                     x2: (l + w).toFixed(2) + '',
@@ -159,19 +162,25 @@ define(['hbs!./withFaceboxTpl'], function(tpl) {
                 x = value.x1 * 100,
                 y = value.y1 * 100;
 
-            if (options.viewing) {
-                box.resizable('disable').draggable('disable')
-            } else if (options.editing) {
-                box.resizable('enable').draggable('enable')
-            }
-
-            box.css({
+            this.select('boxSelector').not('.editing').hide();
+            box.show();
+            _.defer(function() {
+                if (options.viewing) {
+                    if (box.is('.ui-resizable')) {
+                        box.resizable('disable').draggable('disable')
+                    }
+                } else if (options.editing) {
+                    if (box.is('.ui-resizable')) {
+                        box.resizable('enable').draggable('enable')
+                    }
+                }
+                box.css({
                     width: w + '%',
                     height: h + '%',
                     left: x + '%',
                     top: y + '%'
                 })
-                .show();
+            })
         };
 
         this.showFaceboxForEdit = function(property) {
@@ -196,16 +205,22 @@ define(['hbs!./withFaceboxTpl'], function(tpl) {
             toHide.hide();
         };
 
-        this.onEdit = function(event, property) {
-            if (property.value.resolvedVertexId) {
-                this.currentlyEditing = property.resolvedVertexId;
-                this.showFaceboxForView(property);
-            } else if (property.isNew) {
-                this.currentlyEditing = 'NEW';
-                this.showFaceboxForEdit(property);
+        this.onDetectedObjectEdit = function(event, data) {
+            if (!data) {
+                return this.trigger('detectedObjectDoneEditing');
+            }
+
+            this.select('boxSelector').show();
+
+            if (data.property && data.property.resolvedVertexId) {
+                this.currentlyEditing = data.property.resolvedVertexId;
+                this.showFaceboxForView(data);
+            } else if (data.property) {
+                this.currentlyEditing = data.property.key;
+                this.showFaceboxForEdit(data);
             } else {
-                this.currentlyEditing = property.key;
-                this.showFaceboxForEdit(property);
+                this.currentlyEditing = 'NEW';
+                this.showFaceboxForEdit(data);
             }
         };
 

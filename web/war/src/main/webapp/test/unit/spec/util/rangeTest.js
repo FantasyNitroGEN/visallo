@@ -33,11 +33,16 @@ define([
                 var node = $('<div>More</div><div class="text">This is <span>a</span> sentence</div><p>hahah</p>')
                     .appendTo(document.body);
 
-                expect(r.createSnippetFromNode(node.find('span')[0], undefined, node.filter('.text')[0])).to.equal(
+                expect(r.createSnippetFromNode(node.find('span')[0], 3, node.filter('.text')[0])).to.equal(
                     'This is <span class="selection">a</span> sentence'
                 )
+            })
+            
+            it('should not include text outside of the div', function() {
+                var node = $('<p>More</p><div class="text">This is <span>a</span> sentence</div><div>haha</div>')
+                    .appendTo(document.body);
 
-                expect(r.createSnippetFromNode(node.find('span')[0], undefined, node.filter('.text')[0])).to.equal(
+                expect(r.createSnippetFromNode(node.find('span')[0], 3, node.filter('.text')[0])).to.equal(
                     'This is <span class="selection">a</span> sentence'
                 )
             })
