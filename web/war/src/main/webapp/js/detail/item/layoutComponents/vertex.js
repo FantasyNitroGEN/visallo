@@ -24,7 +24,7 @@ define([
             children: [
                 { componentPath: 'detail/video/video' },
                 { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'detail/comments/comments', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', modelAttribute: 'data' },
                 { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
                 { componentPath: 'detail/text/text' }
             ]
@@ -36,7 +36,7 @@ define([
                 { componentPath: 'detail/image/image' },
                 { componentPath: 'detail/detectedObjects/detectedObjects' },
                 { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'detail/comments/comments', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', modelAttribute: 'data' },
                 { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
                 { componentPath: 'detail/text/text' }
             ]
@@ -47,7 +47,7 @@ define([
             children: [
                 { componentPath: 'detail/audio/audio' },
                 { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'detail/comments/comments', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', modelAttribute: 'data' },
                 { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
                 { componentPath: 'detail/text/text' }
             ]
