@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    '../withDropdown',
+    'util/withDropdown',
     'tpl!./deleteForm',
     'tpl!util/alert',
     'util/withDataRequest',

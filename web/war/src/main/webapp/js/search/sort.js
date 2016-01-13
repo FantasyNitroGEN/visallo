@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'fields/selection/selection',
+    'util/ontology/propertySelect',
     'hbs!./sortTpl',
     'util/requirejs/promise!util/service/ontologyPromise',
     'd3',

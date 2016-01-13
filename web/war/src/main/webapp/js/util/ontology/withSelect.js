@@ -1,5 +1,17 @@
-define([], function() {
+define(['util/service/propertiesPromise'], function(config) {
     'use strict';
+
+    withSelect.maxItemsFromConfiguration = function(key) {
+        var maxItems = -1;
+
+        if (key in config) {
+            maxItems = parseInt(config[key], 10);
+        }
+        if (maxItems === -1 || isNaN(maxItems)) {
+            return Number.MAX_VALUE;
+        }
+        return maxItems;
+    }
 
     return withSelect;
 

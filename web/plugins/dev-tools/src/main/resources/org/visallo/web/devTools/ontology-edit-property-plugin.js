@@ -33,7 +33,7 @@ define([
             this.$node.html(template({}));
 
             Promise.all([
-                Promise.require('fields/selection/selection'),
+                Promise.require('util/ontology/propertySelect'),
                 Promise.require('util/messages'),
                 this.dataRequest('ontology', 'properties'),
                 this.dataRequest('ontology', 'concepts')
@@ -116,7 +116,7 @@ define([
                 var domains = [];
                 _.each(self.concepts.byId, function(value, key) {
                     _.each(value.properties, function(prop) {
-                        if(prop == data.property.title) {
+                        if (prop === data.property.title) {
                             domains.push(key);
                         }
                     });

@@ -10,7 +10,7 @@
     <name>Visallo: Examples: CLI</name>
 
     <properties>
-        <vertexium.version>2.2.4</vertexium.version>
+        <vertexium.version>2.2.5</vertexium.version>
     </properties>
 
     <dependencies>

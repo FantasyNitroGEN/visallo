@@ -242,8 +242,16 @@ define([
                                                 d3.select(this)
                                                     .attr('dx', band / -2)
                                                     .style('text-anchor', 'start')
+                                            } else {
+                                                d3.select(this)
+                                                    .attr('dx', null)
                                             }
                                         })
+                                        .each(function() {
+                                            d3.select(this)
+                                                .attr('dy', '.55em')
+                                        })
+                                        .call(overflowEllipsis, dataScale.rangeBand())
                                 }
                             })
                     }),
@@ -517,6 +525,20 @@ define([
                     return 'translate(0,' + offset + ')';
                 }
                 return 'translate(' + offset + ',0)';
+            }
+
+            function overflowEllipsis(text, width) {
+                text.each(function() {
+                    var textEl = d3.select(this);
+                    var textLength = textEl.node().getComputedTextLength();
+                    var text = textEl.text();
+
+                    while (textLength > width && text.length > 0) {
+                        text = text.slice(0, -1);
+                        textEl.text(text + '...');
+                        textLength = textEl.node().getComputedTextLength();
+                    }
+                });
             }
         };
     }

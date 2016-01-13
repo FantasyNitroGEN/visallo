@@ -134,38 +134,40 @@ define([
         expandRangeByWords: function(range, numberWords, splitBeforeAfterOutput, limitToContainer) {
 
             var e = rangy.createRange(),
-                i = 0;
+                i = 0,
+                options = {
+                    includeBlockContentTrailingSpace: false,
+                    includePreLineTrailingSpace: false,
+                    includeTrailingSpace: false
+                },
+                maxLoop = 1000;
+
             e.setStart(range.startContainer, range.startOffset);
             e.setEnd(range.endContainer, range.endOffset);
 
             // Move range start to include n more of words
-            e.moveStart('word', -numberWords);
+            e.moveStart('word', -numberWords, options);
             if (limitToContainer) {
                 i = 0;
                 while (e.startContainer !== limitToContainer &&
                        $(e.startContainer).closest(limitToContainer).length === 0) {
-                    if (++i > 4) {
-                        break;
-                    }
-                    e.moveStart('word', 1);
-                    e.moveStart('character', 1);
+                    if (++i > maxLoop) break;
+                    e.moveStart('character', 1, options);
+                }
+                if (i) {
+                    e.moveStart('character', -1, options);
                 }
             }
 
             // Move range end to include n more words
-            e.moveEnd('word', numberWords);
+            e.moveEnd('word', numberWords, options);
 
             if (limitToContainer) {
                 i = 0;
                 while (e.endContainer !== limitToContainer &&
                        $(e.endContainer).closest(limitToContainer).length === 0) {
-                    if (++i > 4) {
-                        break;
-                    }
-                    e.moveEnd('word', -1);
-                }
-                if (i > 0) {
-                    e.setEndAfter(e.endContainer)
+                    if (++i > maxLoop) break;
+                    e.moveEnd('character', -1, options);
                 }
             }
 

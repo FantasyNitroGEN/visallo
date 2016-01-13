@@ -21,7 +21,8 @@ define([
         this.defaultAttrs({
             defaultText: i18n('relationship.field.placeholder'),
             fieldSelector: 'input',
-            limitParentConceptId: ''
+            limitParentConceptId: '',
+            maxItems: withSelect.maxItemsFromConfiguration('typeahead.edgeLabels.maxItems')
         });
 
         this.after('initialize', function() {
@@ -85,7 +86,7 @@ define([
 
                     field.typeahead({
                         minLength: 0,
-                        items: Number.MAX_VALUE,
+                        items: self.attr.maxItems,
                         source: function(query) {
                             var relationships = self.transformRelationships(),
                                 placeholder = placeholderForRelationships(relationships);

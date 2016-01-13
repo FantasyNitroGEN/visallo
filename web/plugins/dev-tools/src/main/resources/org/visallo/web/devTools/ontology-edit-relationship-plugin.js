@@ -35,7 +35,7 @@ define([
             this.$node.html(template({}));
 
             Promise.all([
-                Promise.require('fields/selection/selection'),
+                Promise.require('util/ontology/propertySelect'),
                 Promise.require('util/messages'),
                 this.dataRequest('ontology', 'relationships')
             ]).done(function(results) {
@@ -64,7 +64,7 @@ define([
                     titleFormula: this.$node.find('.titleFormula').val(),
                     subtitleFormula: this.$node.find('.subtitleFormula').val(),
                     timeFormula: this.$node.find('.timeFormula').val(),
-                    intents: this.$node.find('.intents').val().split(/[\n\s,]+/),
+                    intents: this.$node.find('.intents').val().split(/[\n\s,]+/)
                 })
                     .then(function() {
                         self.showSuccess('Saved, refresh to see changes');

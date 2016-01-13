@@ -28,7 +28,7 @@ define([], function() {
             identifier: 'org.visallo.layout.body',
             children: [
                 { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'detail/comments/comments', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', modelAttribute: 'data' },
                 { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
                 { componentPath: 'detail/text/text' }
             ]

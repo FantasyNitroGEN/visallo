@@ -1,9 +1,9 @@
 define([
     'require',
     'flight/lib/component',
-    '../withDropdown',
+    'util/withDropdown',
     'tpl!./propForm',
-    'fields/selection/selection',
+    'util/ontology/propertySelect',
     'tpl!util/alert',
     'util/withTeardown',
     'util/vertex/vertexSelect',

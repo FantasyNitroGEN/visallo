@@ -16,12 +16,12 @@
   padding: 0;
 
   .org-visallo-layout-root {
-    flex: 1;        
+    flex: 1;
     overflow-x: hidden;
 
     @bg: #555;
     .org-visallo-layout-header-text {
-      padding: 0.5em;   
+      padding: 0.5em;
       background: @bg;
       .org-visallo-layout-text {
         text-shadow: 0 0px 20px rgba(0, 0, 0, 0.2), 0 0px 2px #000000;
@@ -364,7 +364,7 @@
         }
       }
     }
-    
+
     ul.histograms {
       list-style: none;
       padding: 0;
@@ -451,46 +451,7 @@
 
 
   @import "properties";
-  @import "comments";
   @import "toolbar";
-
-  .org-visallo-properties, .org-visallo-comments {
-    button.info {
-      background: darken(@pane-background, 20%) url(../img/glyphicons/white/glyphicons_195_circle_info.png);
-      height: 16px;
-      width: 16px;
-      border-radius: 13px;
-      margin: 1px 1px 1px 0.5em;
-      outline: none;
-      opacity: 1;
-      background-repeat: no-repeat;
-      background-size: auto 89%;
-      background-position: center;
-      border: 0;
-      position: relative;
-
-      &:hover {
-        background-color: @blue-color;
-        width: 18px;
-        height: 18px;
-        left: -1px;
-        margin: 0px 0px 0px 0.5em;
-      }
-      &:active {
-        top: 1px;
-      }
-      // Larger click target
-      &:after {
-        content: '';
-        position: absolute;
-        background: transparent;
-        width: 200%;
-        height: 200%;
-        top: -50%;
-        left: -50%;
-      }
-    }
-  }
   
   .properties .buttons .underneath {
     margin: 1em 0;       
@@ -555,7 +516,7 @@
       background-position: right 1em center;
       background-color: transparent;
       z-index: 2;
-      
+
       &.shake {
         .shake;
       }

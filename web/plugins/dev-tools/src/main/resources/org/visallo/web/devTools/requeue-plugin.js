@@ -4,7 +4,7 @@ define([
     'hbs!org/visallo/web/devTools/templates/requeue',
     'util/formatters',
     'util/ontology/conceptSelect',
-    'fields/selection/selection',
+    'util/ontology/propertySelect',
     'util/ontology/relationshipSelect',
     'util/withDataRequest'
 ], function(
