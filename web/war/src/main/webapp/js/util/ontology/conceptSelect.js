@@ -24,7 +24,8 @@ define([
             showAdminConcepts: false,
             onlySearchable: false,
             restrictConcept: '',
-            limitRelatedToConceptId: ''
+            limitRelatedToConceptId: '',
+            maxItems: withSelect.maxItemsFromConfiguration('typeahead.concepts.maxItems')
         });
 
         this.after('initialize', function() {
@@ -114,7 +115,7 @@ define([
 
                     field.typeahead({
                         minLength: 0,
-                        items: Number.MAX_VALUE,
+                        items: self.attr.maxItems,
                         source: concepts,
                         matcher: function(concept) {
                             if ($.trim(this.query) === '') {

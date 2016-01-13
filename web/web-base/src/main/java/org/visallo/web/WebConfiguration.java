@@ -26,6 +26,9 @@ public class WebConfiguration {
     public static final String NOTIFICATIONS_LOCAL_AUTO_DISMISS_SECONDS = PREFIX + "notifications.local.autoDismissSeconds";
     public static final String NOTIFICATIONS_SYSTEM_AUTO_DISMISS_SECONDS = PREFIX + "notifications.system.autoDismissSeconds";
     public static final String NOTIFICATIONS_USER_AUTO_DISMISS_SECONDS = PREFIX + "notifications.user.autoDismissSeconds";
+    public static final String TYPEAHEAD_PROPERTIES_MAX_ITEMS = PREFIX + "typeahead.properties.maxItems";
+    public static final String TYPEAHEAD_CONCEPTS_MAX_ITEMS = PREFIX + "typeahead.concepts.maxItems";
+    public static final String TYPEAHEAD_EDGE_LABELS_MAX_ITEMS = PREFIX + "typeahead.edgeLabels.maxItems";
     public static final String PROPERTIES_MULTIVALUE_DEFAULT_VISIBLE_COUNT = PREFIX + "properties.multivalue.defaultVisibleCount";
     public static final String PROPERTIES_METADATA_PROPERTY_NAMES = PREFIX + "properties.metadata.propertyNames";
     public static final String PROPERTIES_METADATA_PROPERTY_NAMES_DISPLAY = PREFIX + "properties.metadata.propertyNamesDisplay";
@@ -77,6 +80,10 @@ public class WebConfiguration {
         DEFAULTS.put(NOTIFICATIONS_LOCAL_AUTO_DISMISS_SECONDS, "2");
         DEFAULTS.put(NOTIFICATIONS_SYSTEM_AUTO_DISMISS_SECONDS, "-1");
         DEFAULTS.put(NOTIFICATIONS_USER_AUTO_DISMISS_SECONDS, "5");
+
+        DEFAULTS.put(TYPEAHEAD_CONCEPTS_MAX_ITEMS, "-1");
+        DEFAULTS.put(TYPEAHEAD_PROPERTIES_MAX_ITEMS, "-1");
+        DEFAULTS.put(TYPEAHEAD_EDGE_LABELS_MAX_ITEMS, "-1");
 
         // Hide multivalue properties after this count
         DEFAULTS.put(PROPERTIES_MULTIVALUE_DEFAULT_VISIBLE_COUNT, "2");
