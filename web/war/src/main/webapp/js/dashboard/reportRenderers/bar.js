@@ -247,6 +247,10 @@ define([
                                                     .attr('dx', null)
                                             }
                                         })
+                                        .each(function() {
+                                            d3.select(this)
+                                                .attr('dy', '.55em')
+                                        })
                                         .call(overflowEllipsis, dataScale.rangeBand())
                                 }
                             })
