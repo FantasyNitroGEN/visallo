@@ -4,7 +4,7 @@ define(['configuration/plugins/registry'], function(registry) {
     registry.documentExtensionPoint('org.visallo.visibility',
         'Implement custom interface for visibility display and editing',
         function(e) {
-            return _.isString(e.editorComponentPath) &&
+            return _.isString(e.editorComponentPath) ||
                 _.isString(e.viewerComponentPath)
         }
     );
@@ -34,19 +34,27 @@ define(['configuration/plugins/registry'], function(registry) {
     }
 
     var promises = {
-        editor: Promise.require(visibilityExtensions[0].editorComponentPath).then(_.partial(setComponent, 'editor')),
-        viewer: Promise.require(visibilityExtensions[0].viewerComponentPath).then(_.partial(setComponent, 'viewer'))
-    };
+            editor: Promise.require(
+                visibilityExtensions[0].editorComponentPath || defaultVisibility.editorComponentPath
+            ).then(_.partial(setComponent, 'editor')),
+            viewer: Promise.require(
+                visibilityExtensions[0].viewerComponentPath || defaultVisibility.viewerComponentPath
+            ).then(_.partial(setComponent, 'viewer'))
+        },
+        internalAttach = function(Component, node, attrs) {
+            $(node).teardownComponent(Component);
+            Component.attachTo(node, attrs);
+        };
 
     return {
         attachComponent: function(type, node, attrs) {
             if (components[type]) {
-                components[type].attachTo(node, attrs);
+                internalAttach(components[type], node, attrs);
             } else {
                 promises[type].then(function(C) {
-                    C.attachTo(node, attrs);
+                    internalAttach(C, node, attrs);
                 });
             }
         }
-    }
-})
+    };
+});

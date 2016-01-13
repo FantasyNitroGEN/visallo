@@ -4,13 +4,15 @@ define([
     './urlFormatters',
     './formula',
     'util/messages',
-    'util/requirejs/promise!../service/ontologyPromise'
+    'util/requirejs/promise!../service/ontologyPromise',
+    'util/visibility/util'
 ], function(
     F,
     vertexUrl,
     formula,
     i18n,
-    ontology) {
+    ontology,
+    visibilityUtil) {
     'use strict';
 
     var propertiesByTitle = ontology.properties.byTitle,
@@ -103,10 +105,10 @@ define([
                 // for example: geoLocation: function(...) { el.textContent = 'coords'; }
 
                 visibility: function(el, property) {
-                    $('<i>').text((
-                        property.value &&
-                        property.value.source
-                    ) || i18n('visibility.blank')).appendTo(el);
+                    visibilityUtil.attachComponent('viewer', el, {
+                        property: property,
+                        value: property.value && property.value.source
+                    })
                 },
 
                 geoLocation: function(el, property) {
