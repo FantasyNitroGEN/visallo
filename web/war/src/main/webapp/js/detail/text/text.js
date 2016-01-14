@@ -164,13 +164,8 @@ define([
                 this.mouseDown = true;
             }
 
-            if ($(event.target).closest('.opens-dropdown').length === 0 &&
-                $(event.target).closest('.underneath').length === 0 &&
-                !($(event.target).parent().hasClass('currentTranscript')) &&
-                !($(event.target).hasClass('alert alert-error'))) {
-                if (event.type === 'mouseup' || event.type === 'dblclick') {
-                    this.handleSelectionChange();
-                }
+            if (isTextSelectable(event) && (event.type === 'mouseup' || event.type === 'dblclick')) {
+                this.handleSelectionChange();
             }
         };
 
@@ -985,5 +980,12 @@ define([
             }
         };
 
+    }
+
+    function isTextSelectable(event) {
+        return ($(event.target).closest('.opens-dropdown').length === 0 &&
+            $(event.target).closest('.underneath').length === 0 &&
+            !($(event.target).parent().hasClass('currentTranscript')) &&
+            !($(event.target).hasClass('alert alert-error')));
     }
 });
