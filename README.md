@@ -4,7 +4,7 @@
 
 As the volume of data we collect has continued to grow, so too has the challenge of figuring out how best to leverage it. The problem has shifted from not having enough data to having too much. A whole "big data" industry has sprung up in record time to help customers deal with this problem. Dozens to hundreds of libraries, tools, and products have sprung up to fulfill the promise of fixing your data problem. While some are very good, it's unlikely that any are built specifically for your business problems. That's why we built Visallo.
 
-[Get started with Visallo](http://docs.visallo.org/getting-started.html)
+[Get started with Visallo](http://docs.visallo.org/getting-started/index.html)
 
 ## How is Visallo different?
 
