@@ -8,6 +8,8 @@ define([
     template) {
     'use strict';
 
+    var SPOTLIGHT_SHOW_DELAY_MS = 350;
+
     return defineComponent(Welcome);
 
     function Welcome() {
@@ -68,6 +70,17 @@ define([
         });
 
         this.onSpotlight = function(event) {
+            if (this.onSpotlightInterval) {
+                clearTimeout(this.onSpotlightInterval)
+            }
+            if (event.type !== 'mouseout') {
+                this.onSpotlightInterval = _.delay(this.onSpotlightNoDelay.bind(this, event), SPOTLIGHT_SHOW_DELAY_MS);
+                return;
+            }
+            this.onSpotlightNoDelay(event);
+        };
+
+        this.onSpotlightNoDelay = function(event) {
             var srcElement = event.target,
                 selector = srcElement.dataset && srcElement.dataset.selector,
                 valid = _.contains(['click', 'mouseover'], event.type),
