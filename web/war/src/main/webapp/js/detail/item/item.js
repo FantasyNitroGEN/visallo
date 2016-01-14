@@ -90,8 +90,9 @@ define([
             return promise.then(function() {
                 var childNode = el.childNodes[childNodeIndex++],
                     $childNode = $(childNode);
-                    if ('componentPath' in child) {
-                        return Promise.require(child.componentPath)
+
+                if ('componentPath' in child) {
+                    return Promise.require(child.componentPath)
                         .then(function(Component) {
                             var index = -1,
                                 existingNode = _.find(el.childNodes, function(el, i) {
@@ -122,37 +123,35 @@ define([
         });
     }
 
-    function renderLayoutComponent(el, model, layoutComponent, config, rootModel, deferredAttachments) {
-        if (_.isFunction(layoutComponent.render)) {
-            return Promise.resolve(layoutComponent.render(el, model, config, layoutComponent));
-        }
-
-        $(el).empty();
-
-        var childrenAndModel;
-
+    function zipChildrenWithModels(layoutComponent, model) {
         if ('collectionItem' in layoutComponent) {
             if (!_.isArray(model)) {
                 console.error('LayoutComponent', layoutComponent, 'model', model);
                 throw new Error('Collection layout item is not passed an array');
             }
 
-            childrenAndModel = model.map(function(modelItem) {
+            return model.map(function(modelItem) {
                 return {
                     child: layoutComponent.collectionItem,
                     model: modelItem
                 }
             });
-        } else {
-            childrenAndModel = layoutComponent.children.map(function(child) {
-                return {
-                    child: child,
-                    model: model
-                }
-            })
+        }
+        return layoutComponent.children.map(function(child) {
+            return {
+                child: child,
+                model: model
+            }
+        });
+    }
+
+    function renderLayoutComponent(el, model, layoutComponent, config, rootModel, deferredAttachments) {
+        if (_.isFunction(layoutComponent.render)) {
+            return Promise.resolve(layoutComponent.render(el, model, config, layoutComponent));
         }
 
-        return Promise.all(childrenAndModel.map(function(childAndModel) {
+        return Promise.all(
+            zipChildrenWithModels(layoutComponent, model).map(function(childAndModel) {
                 var child = childAndModel.child,
                     model = childAndModel.model,
                     $el = $('<div>'),
@@ -161,7 +160,7 @@ define([
                             child.className,
                             packageNameToCssClass(child.ref)
                         ]).forEach(function(cls) {
-                            addClasesToElement(cls, el);
+                            addClassesToElement(cls, el);
                         });
                 return (_.isFunction(child.model) ?
                     Promise.resolve(child.model(model)) :
@@ -229,7 +228,7 @@ define([
                         layoutComponent.className,
                         packageNameToCssClass(layoutComponent.identifier)
                     ]).forEach(function(cls) {
-                        addClasesToElement(cls, el);
+                        addClassesToElement(cls, el);
                     })
 
                 return Promise.resolve(
@@ -243,7 +242,10 @@ define([
 
     function initializeLayout(layoutConfig, el, domElements, childrenConfig) {
         if (!layoutConfig) {
-            return $(el).html(domElements)
+            if (el.childNodes.length === 0) {
+                $(el).html(domElements)
+            }
+            return
         }
         if (!layoutConfig.type) throw new Error('No layout type parameter specified');
         var type = _.findWhere(registry.extensionsForPoint('org.visallo.layout.type'), { type: layoutConfig.type });
@@ -412,7 +414,7 @@ define([
         return true;
     }
 
-    function addClasesToElement(classes, element) {
+    function addClassesToElement(classes, element) {
         var split = _.isString(classes) ? _.compact(classes.split(/\s+/)) : classes;
         split.forEach(function(cls) {
             element.classList.add(cls);
