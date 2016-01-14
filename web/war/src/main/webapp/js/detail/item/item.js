@@ -20,7 +20,7 @@ define([
         if (!_.isFunction(e.applyTo) && _.isObject(e.applyTo)) {
             return e.applyTo.type || e.applyTo.conceptIri || e.applyTo.edgeLabel || e.applyTo.displayType;
         }
-        return _.isArray(e.children) || _.isFunction(e.render);
+        return _.isArray(e.children) || _.isFunction(e.render) || _.isObject(e.collectionItem);
     })
     registry.documentExtensionPoint('org.visallo.layout.type', 'Layout Type', function(e) {
         return _.isString(e.type) && _.isString(e.componentPath);
@@ -129,8 +129,33 @@ define([
 
         $(el).empty();
 
-        return Promise.all(layoutComponent.children.map(function(child) {
-                var $el = $('<div>'),
+        var childrenAndModel;
+
+        if ('collectionItem' in layoutComponent) {
+            if (!_.isArray(model)) {
+                console.error('LayoutComponent', layoutComponent, 'model', model);
+                throw new Error('Collection layout item is not passed an array');
+            }
+
+            childrenAndModel = model.map(function(modelItem) {
+                return {
+                    child: layoutComponent.collectionItem,
+                    model: modelItem
+                }
+            });
+        } else {
+            childrenAndModel = layoutComponent.children.map(function(child) {
+                return {
+                    child: child,
+                    model: model
+                }
+            })
+        }
+
+        return Promise.all(childrenAndModel.map(function(childAndModel) {
+                var child = childAndModel.child,
+                    model = childAndModel.model,
+                    $el = $('<div>'),
                     el = $el.get(0),
                     cls = _.compact([
                             child.className,

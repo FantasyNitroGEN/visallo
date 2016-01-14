@@ -5,7 +5,7 @@ define([], function() {
         {
             identifier: 'org.visallo.layout.text',
             render: function(el, model, config) {
-                if (config && config.style) {
+                if (config && config.style && _.isString(config.style)) {
                     var cls = config.style;
                     switch (config.style) {
                       case 'title':
