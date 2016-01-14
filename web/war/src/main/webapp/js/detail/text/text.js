@@ -66,6 +66,7 @@ define([
             var self = this;
 
             this.on('mousedown mouseup click dblclick contextmenu', this.trackMouse);
+            this.on(document, 'keyup', this.handleKeyup);
 
             this.updateEntityAndArtifactDraggablesNoDelay = this.updateEntityAndArtifactDraggables;
             this.updateEntityAndArtifactDraggables = _.throttle(this.updateEntityAndArtifactDraggables.bind(this), 250);
@@ -165,6 +166,12 @@ define([
             }
 
             if (isTextSelectable(event) && (event.type === 'mouseup' || event.type === 'dblclick')) {
+                this.handleSelectionChange();
+            }
+        };
+
+        this.handleKeyup = function(event) {
+            if (event.shiftKey && isTextSelectable(event)) {
                 this.handleSelectionChange();
             }
         };
