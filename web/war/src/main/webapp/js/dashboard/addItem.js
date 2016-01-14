@@ -28,7 +28,7 @@ define([
 
             this.$node
                 .removeClass('add')
-                .addClass('list')
+                .addClass('list overflow-y-scroll')
                 .html(
                     $('<ul>').append(
                         $.map(_.sortBy(extensions, function(e) {
