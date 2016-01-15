@@ -50,3 +50,4 @@ Describes the display of visibility values.
 ### Attributes
 
 * `value`: Current visibility value
+* `property`: Current property
