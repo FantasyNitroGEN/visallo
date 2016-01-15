@@ -27,11 +27,12 @@ module.exports = function(config) {
                 {pattern: 'test/assets/*', included: false},
 
                 // Included libs
-                'libs/jquery/jquery.js',
+                'libs/jquery/dist/jquery.js',
                 'libs/bootstrap/docs/assets/js/bootstrap.js',
 
                 // Libraries
                 {pattern: 'libs/**/*.js', included: false},
+                {pattern: 'node_modules/chai*/*.js', included: false},
 
                 // Test Files
                 {pattern: 'test/unit/spec/**/*.js', included: false},

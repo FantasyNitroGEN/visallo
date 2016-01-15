@@ -5,42 +5,16 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
-        clean: ['jsc', 'css'],
-
-        bower: {
-          install: {
-              options: {
-                  targetDir: './libs',
-                  install: true,
-                  copy: false,
-                  quiet: true
-              }
-          },
-          prune: {
-              options: {
-                  targetDir: './libs',
-                  copy: false,
-                  offline: true,
-                  quiet: true
-              }
-          }
+        clean: {
+            src: ['jsc', 'css'],
+            libs: ['libs']
         },
 
         exec: {
-            buildOpenlayers: {
-                command: 'python build.py -c none full ../OpenLayers.debug.js',
-                stdout: false,
-                cwd: 'libs/openlayers/build'
-            },
             buildPathFinding: {
-                command: 'npm install -q && make',
+                command: 'npm install -q && node_modules/gulp/bin/gulp.js compile',
                 stdout: false,
-                cwd: 'libs/PathFinding.js'
-            },
-            buildAtmosphere: {
-                command: 'mvn clean package',
-                stdout: false,
-                cwd: 'libs/atmosphere-javascript/modules/javascript'
+                cwd: 'node_modules/pathfinding'
             }
         },
 
@@ -202,6 +176,9 @@ module.exports = function(grunt) {
             }
         },
 
+        'copy-frontend': {
+        },
+
         karma: {
             options: {
                 configFile: 'karma.conf.js',
@@ -230,7 +207,6 @@ module.exports = function(grunt) {
         }
       });
 
-      grunt.loadNpmTasks('grunt-bower-task');
       grunt.loadNpmTasks('grunt-exec');
       grunt.loadNpmTasks('grunt-contrib-clean');
       grunt.loadNpmTasks('grunt-contrib-less');
@@ -240,6 +216,7 @@ module.exports = function(grunt) {
       grunt.loadNpmTasks('grunt-karma');
       grunt.loadNpmTasks('grunt-plato');
       grunt.loadNpmTasks('grunt-eslint');
+      grunt.loadTasks('grunt-tasks');
 
       // Speed up lint by only checking changed files
       // ensure we still ignore files though
@@ -250,7 +227,7 @@ module.exports = function(grunt) {
       });
 
       grunt.registerTask('deps', 'Install Webapp Dependencies',
-         ['bower:install', 'bower:prune', 'exec']);
+         ['clean:libs', 'exec', 'copy-frontend']);
 
       grunt.registerTask('test:unit', 'Run JavaScript Unit Tests',
          ['karma:unit']);
@@ -261,9 +238,9 @@ module.exports = function(grunt) {
          ['deps', 'test:style', 'karma:ci']);
 
       grunt.registerTask('development', 'Build js/less for development',
-         ['clean', 'eslint:development', 'less:development', 'less:developmentContrast', 'requirejs:development']);
+         ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'requirejs:development']);
       grunt.registerTask('production', 'Build js/less for production',
-         ['clean', 'eslint:ci', 'less:production', 'less:productionContrast', 'requirejs:production']);
+         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'requirejs:production']);
 
       grunt.registerTask('default', ['development', 'watch']);
 };

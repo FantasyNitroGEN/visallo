@@ -17,8 +17,8 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
         baseUrl: '/base/js',
 
         paths: {
-            chai: '../libs/chai/chai',
-            'chai-datetime': '../libs/chai-datetime/chai-datetime',
+            chai: '../node_modules/chai/chai',
+            'chai-datetime': '../node_modules/chai-datetime/chai-datetime',
             'mocha-flight': '../test/unit/utils/mocha-flight',
 
             // MOCKS

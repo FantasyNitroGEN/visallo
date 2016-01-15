@@ -8,4 +8,4 @@ node_modules/npm-install: package.json
 	touch node_modules/npm-install
 
 clean:
-	rm -rf node_modules libs jsc build
+	rm -rf node_modules libs jsc css build
