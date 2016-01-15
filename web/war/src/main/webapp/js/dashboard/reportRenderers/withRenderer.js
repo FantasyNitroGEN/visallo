@@ -303,10 +303,9 @@ define([
                         .append($('<h1>').text(titleFunction(d, i, n)))
                         .append($('<h2>').text(detailFunction(d, i, n)))
                         .html()
-                });
-
+                })
+                .attr('id', 'tip' + (Math.floor((Math.random() * 10000)) + 1));
             svg.call(tip);
-
             tip.show = _.wrap(tip.show, function(fn) {
                 var args = _.toArray(arguments).slice(1);
                 $('.dashboard-d3tip').empty();
