@@ -1,4 +1,7 @@
-define(['util/formatters'], function(f) {
+define([
+    'util/formatters',
+    'moment-timezone'
+], function(f, moment) {
 
     describe('formatters', function() {
 
@@ -250,7 +253,7 @@ define(['util/formatters'], function(f) {
             })
 
             it('should format dates when string thats actually a time millis', function() {
-                f.date.dateString('1396310400000').should.equal('2014-03-31')
+                f.date.dateString('1396310400000').should.equal(moment(1396310400000).format('YYYY-MM-DD'));
             })
 
             it('should format to prefered format with time', function() {
