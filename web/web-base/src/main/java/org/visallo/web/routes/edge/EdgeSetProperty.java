@@ -144,7 +144,7 @@ public class EdgeSetProperty implements ParameterizedHandler {
             workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
         }
 
-        workQueueRepository.pushGraphPropertyQueue(edge, null, propertyName, workspaceId, visibilitySource, Priority.HIGH);
+        workQueueRepository.pushGraphPropertyQueue(edge, propertyKey, propertyName, workspaceId, visibilitySource, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
     }
