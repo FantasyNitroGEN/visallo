@@ -100,8 +100,8 @@ public class VertexSetProperty implements ParameterizedHandler {
         }
 
         boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-
-        if (isComment && autoPublishComments) {
+        boolean autoPublish = isComment && autoPublishComments;
+        if (autoPublish) {
             workspaceId = null;
         }
 
@@ -111,21 +111,20 @@ public class VertexSetProperty implements ParameterizedHandler {
             throw new VisalloException("Use /vertex/property to save non-comment properties");
         }
 
-
         if (propertyKey == null) {
-            propertyKey = isComment ? createCommentPropertyKey() : this.graph.getIdGenerator().nextId();
+            propertyKey = isComment ? createCommentPropertyKey() : graph.getIdGenerator().nextId();
         }
 
-        Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, this.visibilityTranslator.getDefaultVisibility());
+        Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, visibilityTranslator.getDefaultVisibility());
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
-        Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
+        Vertex vertex = graph.getVertex(graphVertexId, authorizations);
 
         if (!isComment) {
-            ensureCanUpdate(graphVertex, propertyKey, propertyName, user);
+            ensureCanUpdate(vertex, propertyKey, propertyName, user);
         }
 
         List<SavePropertyResults> savePropertyResults = saveProperty(
-                graphVertex,
+                vertex,
                 propertyKey,
                 propertyName,
                 valueStr,
@@ -141,14 +140,14 @@ public class VertexSetProperty implements ParameterizedHandler {
         );
         graph.flush();
 
-        if (workspaceId != null) {
+        if (!autoPublish) {
             // add the vertex to the workspace so that the changes show up in the diff panel
-            this.workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertex.getId(), null, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);
         }
 
         for (SavePropertyResults savePropertyResult : savePropertyResults) {
-            this.workQueueRepository.pushGraphPropertyQueue(
-                    graphVertex,
+            workQueueRepository.pushGraphPropertyQueue(
+                    vertex,
                     savePropertyResult.getPropertyKey(),
                     savePropertyResult.getPropertyName(),
                     workspaceId,
@@ -158,14 +157,14 @@ public class VertexSetProperty implements ParameterizedHandler {
         }
 
         if (sourceInfo != null) {
-            this.workQueueRepository.pushTextUpdated(sourceInfo.vertexId);
+            workQueueRepository.pushTextUpdated(sourceInfo.vertexId);
         }
 
-        return ClientApiConverter.toClientApi(graphVertex, workspaceId, authorizations);
+        return ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
     }
 
     private List<SavePropertyResults> saveProperty(
-            Vertex graphVertex,
+            Vertex vertex,
             String propertyKey,
             String propertyName,
             String valueStr,
@@ -191,10 +190,7 @@ public class VertexSetProperty implements ParameterizedHandler {
         if (propertyName.equals(VisalloProperties.COMMENT.getPropertyName())) {
             value = valueStr;
         } else {
-            OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyName);
-            if (property == null) {
-                throw new RuntimeException("Could not find property: " + propertyName);
-            }
+            OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
 
             if (property.hasDependentPropertyIris()) {
                 if (valuesStr == null) {
@@ -208,7 +204,7 @@ public class VertexSetProperty implements ParameterizedHandler {
                 List<SavePropertyResults> results = new ArrayList<>();
                 for (String dependentPropertyIri : property.getDependentPropertyIris()) {
                     results.addAll(saveProperty(
-                            graphVertex,
+                            vertex,
                             propertyKey,
                             dependentPropertyIri,
                             valuesStr[valuesIndex++],
@@ -241,7 +237,7 @@ public class VertexSetProperty implements ParameterizedHandler {
         }
 
         VisibilityAndElementMutation<Vertex> setPropertyResult = graphRepository.setProperty(
-                graphVertex,
+                vertex,
                 propertyName,
                 propertyKey,
                 value,

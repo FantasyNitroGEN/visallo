@@ -40,6 +40,8 @@ public interface OntologyRepository {
 
     OntologyProperty getPropertyByIRI(String propertyIRI);
 
+    OntologyProperty getRequiredPropertyByIRI(String propertyIRI);
+
     Relationship getRelationshipByIRI(String propertyIRI);
 
     boolean hasRelationshipByIRI(String relationshipIRI);

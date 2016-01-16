@@ -1115,6 +1115,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Override
+    public OntologyProperty getRequiredPropertyByIRI(String propertyIRI) {
+        OntologyProperty property = getPropertyByIRI(propertyIRI);
+        if (property == null) {
+            throw new VisalloException("Could not find property by IRI: " + propertyIRI);
+        }
+        return property;
+    }
+
     public Relationship getRelationshipByIRI(String relationshipIRI) {
         for (Relationship rel : getRelationships()) {
             if (rel.getIRI().equals(relationshipIRI)) {

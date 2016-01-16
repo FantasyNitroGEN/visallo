@@ -163,8 +163,8 @@ public class Router extends HttpServlet {
             app.get("/vertex/count", authenticator, csrfProtector, ReadPrivilegeFilter.class, VertexGetCount.class);
             app.get("/vertex/acl", authenticator, csrfProtector, ReadPrivilegeFilter.class, VertexGetAcl.class);
 
-            app.post("/edge/property", authenticator, csrfProtector, EditPrivilegeFilter.class, SetEdgeProperty.class);
-            app.post("/edge/comment", authenticator, csrfProtector, CommentPrivilegeFilter.class, SetEdgeProperty.class);
+            app.post("/edge/property", authenticator, csrfProtector, EditPrivilegeFilter.class, EdgeSetProperty.class);
+            app.post("/edge/comment", authenticator, csrfProtector, CommentPrivilegeFilter.class, EdgeSetProperty.class);
             app.delete("/edge", authenticator, csrfProtector, EditPrivilegeFilter.class, EdgeDelete.class);
             app.delete("/edge/property", authenticator, csrfProtector, EditPrivilegeFilter.class, EdgeDeleteProperty.class);
             app.get("/edge/property/history", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeGetPropertyHistory.class);
