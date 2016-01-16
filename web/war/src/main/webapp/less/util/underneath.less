@@ -1,0 +1,31 @@
+.underneath {
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0 1em;
+  color: #666;
+  float: left;
+  width: 100%;
+  .transition(~"height ease-in 0.3s");
+  .box-sizing(border-box);
+
+  .form {
+    padding: 1em 1em;
+    margin: 1em -1em;
+    .box-shadow(~"inset 0 -1px 0 " darken(@pane-background, 6%));
+    .gradient(top, @pane-background, darken(@pane-background, 3%));
+  }
+
+  .buttons {
+    clear: both;
+    text-align: right;
+
+    .btn-danger { float: left; }
+
+    .badge.loading {
+      float: none;
+      position: relative;
+      top: 1ex;
+    }
+  }
+}
