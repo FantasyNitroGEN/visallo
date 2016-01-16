@@ -100,6 +100,7 @@
             'jquery-scrollstop': { exports: 'jQuery', deps: ['jquery'] },
             'underscore': { exports: '_' },
             'videojs': { exports: 'videojs' }
-        }
+        },
+        amdWrap: []
     };
 }));

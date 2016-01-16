@@ -1,4 +1,7 @@
 /*globals module:false*/
+
+var requireConfig = require('./js/require.config');
+
 module.exports = function(grunt) {
     'use strict';
 
@@ -83,6 +86,15 @@ module.exports = function(grunt) {
                     optimize: 'uglify2',
                     generateSourceMaps: true
                 }
+            }
+        },
+
+        amdwrap: {
+            wrapNodeModules: {
+                expand: true,
+                cwd: 'libs/',
+                src: requireConfig.amdWrap,
+                dest: 'libs/amd-wrap'
             }
         },
 
@@ -212,6 +224,7 @@ module.exports = function(grunt) {
       grunt.loadNpmTasks('grunt-contrib-less');
       grunt.loadNpmTasks('grunt-contrib-watch');
       grunt.loadNpmTasks('grunt-contrib-requirejs');
+      grunt.loadNpmTasks('grunt-amd-wrap');
       grunt.loadNpmTasks('grunt-notify');
       grunt.loadNpmTasks('grunt-karma');
       grunt.loadNpmTasks('grunt-plato');
@@ -227,7 +240,7 @@ module.exports = function(grunt) {
       });
 
       grunt.registerTask('deps', 'Install Webapp Dependencies',
-         ['clean:libs', 'exec', 'copy-frontend']);
+         ['clean:libs', 'exec', 'copy-frontend', 'amdwrap']);
 
       grunt.registerTask('test:unit', 'Run JavaScript Unit Tests',
          ['karma:unit']);
