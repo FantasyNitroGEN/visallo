@@ -15,6 +15,7 @@
     "d3": "3.5.12",
     "d3-plugins-dist": "3.1.4",
     "d3-tip": "0.6.7",
+    "deep-freeze-strict": "1.1.1",
     "domReady": "requirejs/domReady.git#2.0.1",
     "duration-js": "3.5.1",
     "ejs": "2.3.4",

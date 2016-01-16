@@ -6,7 +6,8 @@ define([
     'util/requirejs/promise!util/service/ontologyPromise',
     'configuration/plugins/registry',
     'require',
-    'd3-tip'
+    'd3-tip',
+    'deep-freeze-strict'
 ], function(
     withDataRequest,
     F,
@@ -15,7 +16,8 @@ define([
     ontology,
     registry,
     require,
-    d3tip) {
+    d3tip,
+    deepFreeze) {
     'use strict';
 
     var NO_DATA = 'NO_DATA_MARKER',
@@ -440,19 +442,6 @@ define([
 
     function resultsIncludeAggregations(result) {
         return result && !_.isEmpty(result.aggregates);
-    }
-
-    function deepFreeze(o) {
-      Object.freeze(o);
-      Object.getOwnPropertyNames(o).forEach(function(prop) {
-        if (o.hasOwnProperty(prop) &&
-            o[prop] !== null &&
-            (typeof o[prop] === 'object' || typeof o[prop] === 'function') &&
-            !Object.isFrozen(o[prop])) {
-          deepFreeze(o[prop]);
-        }
-      });
-      return o;
     }
 });
 

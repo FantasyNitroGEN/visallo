@@ -39,6 +39,7 @@
             'd3': '../libs/d3/d3.min',
             'd3-tip': '../libs/d3-tip/index',
             'd3-plugins': '../libs/d3-plugins-dist/dist/mbostock',
+            'deep-freeze-strict': '../libs/amd-wrap/deep-freeze-strict/index',
             'duration-js': '../libs/duration-js/duration',
             'easing': '../libs/jquery.easing/jquery.easing.1.3',
             'ejs': '../libs/ejs/ejs',
@@ -101,6 +102,8 @@
             'underscore': { exports: '_' },
             'videojs': { exports: 'videojs' }
         },
-        amdWrap: []
+        amdWrap: [
+            'deep-freeze-strict/index.js'
+        ]
     };
 }));
