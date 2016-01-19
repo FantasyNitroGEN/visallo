@@ -6,6 +6,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -32,8 +33,8 @@ import org.visallo.web.parameterProviders.JustificationText;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ResourceBundle;
 
-public class SetEdgeProperty implements ParameterizedHandler {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SetEdgeProperty.class);
+public class EdgeSetProperty implements ParameterizedHandler {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EdgeSetProperty.class);
 
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
@@ -42,16 +43,18 @@ public class SetEdgeProperty implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
     private final GraphRepository graphRepository;
     private final ACLProvider aclProvider;
+    private final boolean autoPublishComments;
 
     @Inject
-    public SetEdgeProperty(
+    public EdgeSetProperty(
             final OntologyRepository ontologyRepository,
             final Graph graph,
             final VisibilityTranslator visibilityTranslator,
             final WorkQueueRepository workQueueRepository,
             final WorkspaceRepository workspaceRepository,
             final GraphRepository graphRepository,
-            final ACLProvider aclProvider
+            final ACLProvider aclProvider,
+            final Configuration configuration
     ) {
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
@@ -60,6 +63,8 @@ public class SetEdgeProperty implements ParameterizedHandler {
         this.workspaceRepository = workspaceRepository;
         this.graphRepository = graphRepository;
         this.aclProvider = aclProvider;
+        this.autoPublishComments = configuration.getBoolean(Configuration.COMMENTS_AUTO_PUBLISH,
+                Configuration.DEFAULT_COMMENTS_AUTO_PUBLISH);
     }
 
     @Handle
@@ -78,17 +83,15 @@ public class SetEdgeProperty implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-
-        if (propertyKey == null) {
-            propertyKey = this.graph.getIdGenerator().nextId();
-        }
-
-        Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, visibilityTranslator.getDefaultVisibility());
-
         if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
+        }
+
+        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
+        boolean autoPublish = isComment && autoPublishComments;
+        if (autoPublish) {
+            workspaceId = null;
         }
 
         if (isComment && request.getPathInfo().equals("/edge/property")) {
@@ -97,12 +100,13 @@ public class SetEdgeProperty implements ParameterizedHandler {
             throw new VisalloException("Use /edge/property to save non-comment properties");
         }
 
-        OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyName);
-        if (property == null) {
-            throw new RuntimeException("Could not find property: " + propertyName);
-        }
+        OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
 
         Edge edge = graph.getEdge(edgeId, authorizations);
+
+        if (propertyKey == null) {
+            propertyKey = graph.getIdGenerator().nextId();
+        }
 
         if (!isComment) {
             ensureCanUpdate(edge, propertyKey, propertyName, user);
@@ -116,10 +120,7 @@ public class SetEdgeProperty implements ParameterizedHandler {
             throw new BadRequestException(ex.getMessage());
         }
 
-
-        // add the vertex to the workspace so that the changes show up in the diff panel
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+        Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, visibilityTranslator.getDefaultVisibility());
 
         VisibilityAndElementMutation<Edge> setPropertyResult = graphRepository.setProperty(
                 edge,
@@ -137,7 +138,13 @@ public class SetEdgeProperty implements ParameterizedHandler {
         );
         setPropertyResult.elementMutation.save(authorizations);
 
-        this.workQueueRepository.pushGraphPropertyQueue(edge, null, propertyName, workspaceId, visibilitySource, Priority.HIGH);
+        if (!autoPublish) {
+            // add the vertex to the workspace so that the changes show up in the diff panel
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+        }
+
+        workQueueRepository.pushGraphPropertyQueue(edge, propertyKey, propertyName, workspaceId, visibilitySource, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
     }

@@ -134,7 +134,7 @@ public class WorkspaceHelper {
         ensureOntologyIrisInitialized();
         long beforeActionTimestamp = System.currentTimeMillis() - 1;
 
-        deleteProperties(edge, workspaceId, priority, authorizations, user);
+        deleteProperties(edge, workspaceId, priority, authorizations);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
@@ -210,16 +210,18 @@ public class WorkspaceHelper {
             }
         }
 
-        if (e instanceof Edge) {
-            Edge edge = (Edge) e;
-            // add the vertex to the workspace so that the changes show up in the diff panel
-            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
-            workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
-        } else if (e instanceof Vertex) {
-            // add the vertex to the workspace so that the changes show up in the diff panel
-            workspaceRepository.updateEntityOnWorkspace(workspaceId, e.getId(), null, null, user);
-        } else {
-            throw new VisalloException("element is not an edge or vertex: " + e);
+        if (workspaceId != null) {
+            if (e instanceof Edge) {
+                Edge edge = (Edge) e;
+                // add the vertex to the workspace so that the changes show up in the diff panel
+                workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
+                workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+            } else if (e instanceof Vertex) {
+                // add the vertex to the workspace so that the changes show up in the diff panel
+                workspaceRepository.updateEntityOnWorkspace(workspaceId, e.getId(), null, null, user);
+            } else {
+                throw new VisalloException("element is not an edge or vertex: " + e);
+            }
         }
 
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
@@ -231,7 +233,7 @@ public class WorkspaceHelper {
         }
     }
 
-    private void deleteProperties(Element e, String workspaceId, Priority priority, Authorizations authorizations, User user) {
+    private void deleteProperties(Element e, String workspaceId, Priority priority, Authorizations authorizations) {
         List<Property> properties = IterableUtils.toList(e.getProperties());
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
 
@@ -247,7 +249,7 @@ public class WorkspaceHelper {
         ensureOntologyIrisInitialized();
         long beforeActionTimestamp = System.currentTimeMillis() - 1;
 
-        deleteProperties(vertex, workspaceId, priority, authorizations, user);
+        deleteProperties(vertex, workspaceId, priority, authorizations);
 
         // make sure the entity is on the workspace so that it shows up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);

@@ -51,10 +51,11 @@ public class VertexDeleteProperty implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(propertyName);
+        OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIRI(propertyName);
 
-        Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
-        if (!aclProvider.canDeleteProperty(graphVertex, propertyKey, propertyName, user)) {
+        Vertex vertex = graph.getVertex(graphVertexId, authorizations);
+
+        if (!aclProvider.canDeleteProperty(vertex, propertyKey, propertyName, user)) {
             throw new VisalloAccessDeniedException(propertyName + " is not deleteable", user, graphVertexId);
         }
 
@@ -63,7 +64,7 @@ public class VertexDeleteProperty implements ParameterizedHandler {
             workspaceId = null;
         }
 
-        workspaceHelper.deleteProperties(graphVertex, propertyKey, propertyName, ontologyProperty, workspaceId,
+        workspaceHelper.deleteProperties(vertex, propertyKey, propertyName, ontologyProperty, workspaceId,
                 authorizations, user);
 
         return VisalloResponse.SUCCESS;
