@@ -53,6 +53,7 @@ define([
             resolvableSelector: '.vertex, .property',
             resolvedSelector: '.vertex.resolved',
             textSelector: '.text',
+            textContainerHeaderSelector: '.org-visallo-texts .text-section h1',
             model: null
         });
 
@@ -76,7 +77,8 @@ define([
                 this.updateText();
             });
             this.on('click', {
-                resolvableSelector: this.onResolvableClick
+                resolvableSelector: this.onResolvableClick,
+                textContainerHeaderSelector: this.onTextHeaderClicked
             });
             this.on('focusOnSnippet', this.onFocusOnSnippet);
             //this.on('contextmenu', {
@@ -132,6 +134,20 @@ define([
                 if (data.startOffset && data.endOffset) {
                     this.trigger('copydocumenttext', data);
                 }
+            }
+        };
+
+        this.onTextHeaderClicked = function(event) {
+            var $section = $(event.target)
+                .closest('.text-section')
+                .siblings('.expanded').removeClass('expanded')
+                .end(),
+                propertyKey = $section.data('key');
+
+            if ($section.hasClass('expanded')) {
+                $section.removeClass('expanded');
+            } else {
+                this.openText(propertyKey);
             }
         };
 
