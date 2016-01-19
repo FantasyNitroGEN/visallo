@@ -124,6 +124,7 @@ define([
             var load = _.once(this.loadWorkspaceAndListenOn.bind(this, this.onWorkspaceLoaded));
             this.on(document, 'didToggleDisplay', function(event, data) {
                 if (data.name === 'dashboard' && data.visible) {
+                    this.adjustHeader();
                     load();
                 }
             })
@@ -691,10 +692,13 @@ define([
 
         this.adjustHeader = function() {
             var $input = this.$node.find('h1.header input'),
-                $span = $('<span>').text($input.val()).insertAfter($input.next('button'));
+                $span = $('<span>').text($input.val()).insertAfter($input.next('button')),
+                outerWidth = $span.outerWidth();
 
-            $input.width(($span.outerWidth() + 2) + 'px');
-            $span.remove();
+            if (outerWidth) {
+                $input.width((outerWidth + 2) + 'px');
+                $span.remove();
+            }
         };
     }
 });
