@@ -56,6 +56,7 @@ define([
         extensionsById,
         layouts,
         ConfigPopover,
+        ignoreGridStackChange = false,
         defaultGridOptions = Object.freeze({
             width: 4,
             height: 4,
@@ -294,6 +295,7 @@ define([
                 var finished;
                 if (this.$node.hasClass('editing')) {
                     $edit.text('Edit');
+                    ignoreGridStackChange = true;
                     this.$node.find('.new-item').each(function() {
                         self.gridstack.remove_widget(this);
                     });
@@ -317,6 +319,7 @@ define([
                         console.error(error)
                     })
                     .then(function() {
+                        ignoreGridStackChange = false;
                         self.gridstack.commit();
                     })
             }
@@ -334,10 +337,12 @@ define([
             if (itemId) {
                 this.request('dashboardItemDelete', itemId)
                     .done(function() {
+                        ignoreGridStackChange = true;
                         self.gridstack.batch_update();
                         self.gridstack.remove_widget(gridItem);
                         self.createDashboardItemToGridStack().then(function() {
                             self.gridstack.commit();
+                            ignoreGridStackChange = false;
                         });
                     })
             }
@@ -361,6 +366,7 @@ define([
                     }
                 };
 
+            ignoreGridStackChange = true;
             this.gridstack.batch_update();
             this.gridstack.remove_widget($(event.target).closest('.grid-stack-item'));
             this.gridstack.add_widget(node,
@@ -374,6 +380,7 @@ define([
             Promise.resolve(this.createDashboardItemToGridStack())
                 .then(function() {
                     self.gridstack.commit();
+                    ignoreGridStackChange = false;
                     return self.createDashboardItemComponent(node, item)
                 })
                 .then(function() {
@@ -398,6 +405,10 @@ define([
         };
 
         this.onGridChange = function(el, items) {
+            if (ignoreGridStackChange) {
+                return;
+            }
+
             var self = this,
                 validItems = _.reject(items, function(item) {
                     return $(item.el).hasClass('new-item');
@@ -454,14 +465,17 @@ define([
 
             var newItem = this.$node.find('.new-item');
             if (newItem.length) {
+                ignoreGridStackChange = true;
                 this.gridstack.remove_widget(newItem);
             }
 
             return this.createNewDashboardItem()
                 .then(function(newItem) {
+                    ignoreGridStackChange = true;
                     self.gridstack.add_widget(newItem);
                     self.gridstack.movable(newItem, false);
                     self.gridstack.resizable(newItem, false);
+                    ignoreGridStackChange = false;
                 });
         };
 
