@@ -8,6 +8,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.twitter.TwitterOntology;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -28,19 +29,23 @@ public class UserVertexLoader {
     private final WorkQueueRepository workQueueRepository;
     private final UserRepository userRepository;
     private final Authorizations authorizations;
+    private LoaderConstants loaderConstants;
 
     /**
      * @param graph         The underlying graph data store instance, not null
      * @param workQueueRepo The work queue used to store pending operations, not null
      * @param userRepo      The system user repository used for retrieving users known to the system, not null
+     *                      loaderConstants = new LoaderConstants(translator);
      */
     @Inject
-    public UserVertexLoader(final Graph graph, final WorkQueueRepository workQueueRepo, final UserRepository userRepo) {
+    public UserVertexLoader(final Graph graph, final WorkQueueRepository workQueueRepo, final UserRepository userRepo,
+                            final VisibilityTranslator visibilityTranslator) {
         this.graph = checkNotNull(graph);
         workQueueRepository = checkNotNull(workQueueRepo);
         userRepository = checkNotNull(userRepo);
 
         authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
+        loaderConstants = new LoaderConstants(visibilityTranslator);
     }
 
     /**
@@ -81,20 +86,20 @@ public class UserVertexLoader {
 
 
     private Vertex createTwitterUserVertex(final UserVertexDetails userDetails, final String vertexId) {
-        final VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, LoaderConstants.EMPTY_VISIBILITY);
+        final VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, loaderConstants.getEmptyVisibility());
 
         // Set core ontology properties
-        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_USER, LoaderConstants.EMPTY_VISIBILITY);
-        VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, LoaderConstants.EMPTY_VISIBILITY);
-        VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, userDetails.getName(), LoaderConstants.EMPTY_VISIBILITY);
+        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_USER, loaderConstants.getEmptyVisibility());
+        VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, loaderConstants.getEmptyVisibility());
+        VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, userDetails.getName(), loaderConstants.getEmptyVisibility());
 
 
         // Add tweet properties
-        TwitterOntology.SCREEN_NAME.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, userDetails.getScreenName(), LoaderConstants.EMPTY_VISIBILITY);
+        TwitterOntology.SCREEN_NAME.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, userDetails.getScreenName(), loaderConstants.getEmptyVisibility());
 
         final String profileImageUrl = userDetails.getProfileImageUrl();
         if (!Strings.isNullOrEmpty(profileImageUrl)) {
-            TwitterOntology.PROFILE_IMAGE_URL.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, profileImageUrl, LoaderConstants.EMPTY_VISIBILITY);
+            TwitterOntology.PROFILE_IMAGE_URL.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, profileImageUrl, loaderConstants.getEmptyVisibility());
         }
 
         final Vertex userVertex = vertexBuilder.save(authorizations);

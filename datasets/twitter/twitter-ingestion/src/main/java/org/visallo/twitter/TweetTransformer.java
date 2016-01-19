@@ -34,6 +34,7 @@ public final class TweetTransformer {
     private final Authorizations authorizations;
     private final UserVertexLoader userLoader;
     private final TweetVertexLoader tweetLoader;
+    private LoaderConstants loaderConstants;
 
     private final Cache<String, Vertex> urlVertexCache = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
     private final Cache<String, Vertex> hashtagVertexCache = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();
@@ -58,6 +59,7 @@ public final class TweetTransformer {
         tweetLoader = checkNotNull(tweetVertexLoader);
 
         authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
+        loaderConstants = new LoaderConstants(translator);
     }
 
 
@@ -85,7 +87,7 @@ public final class TweetTransformer {
     private void createTweetedEdge(final Vertex userVertex, final Vertex tweetVertex) {
         final String tweetedEdgeId = userVertex.getId() + "_TWEETED_" + tweetVertex.getId();
 
-        graph.addEdge(tweetedEdgeId, userVertex, tweetVertex, TwitterOntology.EDGE_LABEL_TWEETED, LoaderConstants.EMPTY_VISIBILITY, authorizations);
+        graph.addEdge(tweetedEdgeId, userVertex, tweetVertex, TwitterOntology.EDGE_LABEL_TWEETED, loaderConstants.getEmptyVisibility(), authorizations);
         graph.flush();
     }
 
@@ -101,7 +103,7 @@ public final class TweetTransformer {
         final Vertex retweetedTweet = transformTweetStatus(retweetedStatus, priority);
         final String retweetEdgeId = tweetVertex.getId() + "_RETWEET_" + retweetedTweet.getId();
 
-        graph.addEdge(retweetEdgeId, retweetedTweet, tweetVertex, TwitterOntology.EDGE_LABEL_RETWEET, LoaderConstants.EMPTY_VISIBILITY, authorizations);
+        graph.addEdge(retweetEdgeId, retweetedTweet, tweetVertex, TwitterOntology.EDGE_LABEL_RETWEET, loaderConstants.getEmptyVisibility(), authorizations);
         graph.flush();
     }
 
@@ -138,11 +140,11 @@ public final class TweetTransformer {
 
         urlVertex = graph.getVertex(vertexId, authorizations);
         if (urlVertex == null) {
-            VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, LoaderConstants.EMPTY_VISIBILITY);
+            VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, loaderConstants.getEmptyVisibility());
 
-            VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_URL, LoaderConstants.EMPTY_VISIBILITY);
-            VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, LoaderConstants.EMPTY_VISIBILITY);
-            VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, url, LoaderConstants.EMPTY_VISIBILITY);
+            VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_URL, loaderConstants.getEmptyVisibility());
+            VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, loaderConstants.getEmptyVisibility());
+            VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, url, loaderConstants.getEmptyVisibility());
 
             urlVertex = vertexBuilder.save(authorizations);
             graph.flush();
@@ -157,7 +159,7 @@ public final class TweetTransformer {
 
     private Edge createReferencesUrlEdge(Vertex tweetVertex, Vertex urlVertex) {
         final String mentionedEdgeId = tweetVertex.getId() + "_REFURL_" + urlVertex.getId();
-        final Edge edge = graph.addEdge(mentionedEdgeId, tweetVertex, urlVertex, TwitterOntology.EDGE_LABEL_REFERENCED_URL, LoaderConstants.EMPTY_VISIBILITY, authorizations);
+        final Edge edge = graph.addEdge(mentionedEdgeId, tweetVertex, urlVertex, TwitterOntology.EDGE_LABEL_REFERENCED_URL, loaderConstants.getEmptyVisibility(), authorizations);
         graph.flush();
 
         return edge;
@@ -177,7 +179,7 @@ public final class TweetTransformer {
 
     private Edge createMentionedEdge(Vertex tweetVertex, Vertex userVertex) {
         final String mentionedEdgeId = tweetVertex.getId() + "_MENTIONED_" + userVertex.getId();
-        final Edge edge = graph.addEdge(mentionedEdgeId, tweetVertex, userVertex, TwitterOntology.EDGE_LABEL_MENTIONED, LoaderConstants.EMPTY_VISIBILITY, authorizations);
+        final Edge edge = graph.addEdge(mentionedEdgeId, tweetVertex, userVertex, TwitterOntology.EDGE_LABEL_MENTIONED, loaderConstants.getEmptyVisibility(), authorizations);
         graph.flush();
 
         return edge;
@@ -205,11 +207,11 @@ public final class TweetTransformer {
 
         hashtagVertex = graph.getVertex(vertexId, authorizations);
         if (hashtagVertex == null) {
-            final VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, LoaderConstants.EMPTY_VISIBILITY);
+            final VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, loaderConstants.getEmptyVisibility());
 
-            VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_HASHTAG, LoaderConstants.EMPTY_VISIBILITY);
-            VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, LoaderConstants.EMPTY_VISIBILITY);
-            VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, hashtagText, LoaderConstants.EMPTY_VISIBILITY);
+            VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_HASHTAG, loaderConstants.getEmptyVisibility());
+            VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, loaderConstants.getEmptyVisibility());
+            VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, hashtagText, loaderConstants.getEmptyVisibility());
 
             hashtagVertex = vertexBuilder.save(authorizations);
             graph.flush();
@@ -225,7 +227,7 @@ public final class TweetTransformer {
 
     private Edge createTaggedEdge(Vertex tweetVertex, Vertex hashtagVertex) {
         final String mentionedEdgeId = tweetVertex.getId() + "_TAGGED_" + hashtagVertex.getId();
-        final Edge edge = graph.addEdge(mentionedEdgeId, tweetVertex, hashtagVertex, TwitterOntology.EDGE_LABEL_TAGGED, LoaderConstants.EMPTY_VISIBILITY, authorizations);
+        final Edge edge = graph.addEdge(mentionedEdgeId, tweetVertex, hashtagVertex, TwitterOntology.EDGE_LABEL_TAGGED, loaderConstants.getEmptyVisibility(), authorizations);
         graph.flush();
 
         return edge;
