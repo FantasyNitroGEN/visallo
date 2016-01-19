@@ -60,7 +60,6 @@ public final class TweetVertexLoader {
         final String vertexId = "TWEET_" + status.getId();
         final Vertex tweetVertex = createTweetVertex(status, vertexId);
 
-        workQueueRepository.pushGraphPropertyQueue(tweetVertex, VisalloProperties.RAW.getProperty(tweetVertex), priority);
         workQueueRepository.pushGraphPropertyQueue(tweetVertex, VisalloProperties.TEXT.getProperty(tweetVertex, LoaderConstants.MULTI_VALUE_KEY), priority);
 
         return tweetVertex;
@@ -75,13 +74,13 @@ public final class TweetVertexLoader {
         final String rawJson = TwitterObjectFactory.getRawJSON(parsedStatus);
         final StreamingPropertyValue rawValue = new StreamingPropertyValue(new ByteArrayInputStream(rawJson.getBytes(Charsets.UTF_8)), byte[].class);
         rawValue.searchIndex(false);
-        VisalloProperties.RAW.setProperty(vertexBuilder, rawValue, LoaderConstants.EMPTY_VISIBILITY);
+        LoaderConstants.TWITTER_RAW_JSON.setProperty(vertexBuilder, rawValue, LoaderConstants.EMPTY_VISIBILITY);
 
         final String statusText = parsedStatus.getText();
         StreamingPropertyValue textValue = new StreamingPropertyValue(new ByteArrayInputStream(statusText.getBytes()), String.class);
 
         final Metadata textMetadata = new Metadata();
-        VisalloProperties.TEXT_DESCRIPTION_METADATA.setMetadata(textMetadata, "Tweet Text", visibilityTranslator.getDefaultVisibility());
+        VisalloProperties.TEXT_DESCRIPTION_METADATA.setMetadata(textMetadata, "Tweet Text", LoaderConstants.EMPTY_VISIBILITY);
         VisalloProperties.TEXT.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, textValue, textMetadata, LoaderConstants.EMPTY_VISIBILITY);
 
         final String title = parsedStatus.getUser().getName() + ": " + statusText;
