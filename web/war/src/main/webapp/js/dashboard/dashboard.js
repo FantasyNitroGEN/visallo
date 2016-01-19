@@ -103,7 +103,7 @@ define([
                 refreshSelector: this.onRefresh
             });
             this.on('change keyup', {
-                headerSelector: this.onChangeTitle
+                headerSelector: this.onTitleInputKeyUp
             });
             this.on('showError', this.onShowError);
             this.on('finishedLoading', this.onFinishedLoading);
@@ -255,7 +255,7 @@ define([
             this.trigger(event.target, 'configureItem');
         };
 
-        this.onChangeTitle = function(event) {
+        this.onTitleInputKeyUp = function(event) {
             if (event.type === 'change' || event.which === 13) {
                 var newTitle = event.target.value.trim(),
                     previousTitle = this.dashboard.title;
@@ -277,6 +277,8 @@ define([
                     event.target.blur();
                     this.adjustHeader();
                 }
+            } else if (event.which === $.ui.keyCode.ESCAPE) {
+                this.onEscapeKey(event);
             }
         };
 
