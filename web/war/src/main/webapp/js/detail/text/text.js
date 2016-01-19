@@ -6,6 +6,7 @@ define([
     'util/withDataRequest',
     'util/privileges',
     'util/jquery.withinScrollable',
+    'util/withCollapsibleSections',
     'colorjs',
     'hbs!./transcriptEntries',
     'tpl!util/alert',
@@ -19,6 +20,7 @@ define([
     withDataRequest,
     Privileges,
     jqueryWithinScrollable,
+    withCollapsibleSections,
     colorjs,
     transcriptEntriesTemplate,
     alertTemplate,
@@ -45,7 +47,7 @@ define([
         return _.isFunction(e.shouldReplaceTextSectionForVertex) && _.isString(e.componentPath);
     })
 
-    return defineComponent(Text, withDataRequest);
+    return defineComponent(Text, withDataRequest, withCollapsibleSections);
 
     function Text() {
 
@@ -53,7 +55,6 @@ define([
             resolvableSelector: '.vertex, .property',
             resolvedSelector: '.vertex.resolved',
             textSelector: '.text',
-            textContainerHeaderSelector: '.org-visallo-texts .text-section h1',
             model: null
         });
 
@@ -71,19 +72,28 @@ define([
             this.updateEntityAndArtifactDraggablesNoDelay = this.updateEntityAndArtifactDraggables;
             this.updateEntityAndArtifactDraggables = _.throttle(this.updateEntityAndArtifactDraggables.bind(this), 250);
 
+            this.around('onToggleCollapsibleSection', function(fn, event) {
+                var args = _.rest(arguments, 1),
+                    $section = $(event.target).closest('.text-section'),
+                    key = $section.attr('data-key');
+
+                event.stopPropagation();
+                if ($section.hasClass('expanded') || !$section.find('.text').is(':empty')) {
+                    fn.apply(this, args);
+                } else if (key) {
+                    this.openText(key)
+                }
+            });
+
             this.model = this.attr.model;
             this.on('modelUpdated', function(event, data) {
                 this.model = data.model;
                 this.updateText();
             });
             this.on('click', {
-                resolvableSelector: this.onResolvableClick,
-                textContainerHeaderSelector: this.onTextHeaderClicked
+                resolvableSelector: this.onResolvableClick
             });
             this.on('focusOnSnippet', this.onFocusOnSnippet);
-            //this.on('contextmenu', {
-                //resolvedSelector: this.onResolvedContextClick
-            //});
             this.on('copy cut', {
                 textSelector: this.onCopyText
             });
@@ -134,20 +144,6 @@ define([
                 if (data.startOffset && data.endOffset) {
                     this.trigger('copydocumenttext', data);
                 }
-            }
-        };
-
-        this.onTextHeaderClicked = function(event) {
-            var $section = $(event.target)
-                .closest('.text-section')
-                .siblings('.expanded').removeClass('expanded')
-                .end(),
-                propertyKey = $section.data('key');
-
-            if ($section.hasClass('expanded')) {
-                $section.removeClass('expanded');
-            } else {
-                this.openText(propertyKey);
             }
         };
 
