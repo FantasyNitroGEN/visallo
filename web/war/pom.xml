@@ -173,6 +173,16 @@
                                     <arguments>install</arguments>
                                 </configuration>
                             </execution>
+                            <execution>
+                                <id>grunt-jenkins</id>
+                                <goals>
+                                    <goal>grunt</goal>
+                                </goals>
+                                <phase>test</phase>
+                                <configuration>
+                                    <arguments>test:unit</arguments>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
