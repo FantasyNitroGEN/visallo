@@ -27,8 +27,8 @@ public final class TweetVertexLoader {
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
     private final UserRepository userRepository;
-    private final VisibilityTranslator visibilityTranslator;
     private final Authorizations authorizations;
+    private LoaderConstants loaderConstants;
 
     /**
      * @param graph         The underlying graph data store instance, not null
@@ -42,9 +42,9 @@ public final class TweetVertexLoader {
         this.graph = checkNotNull(graph);
         workQueueRepository = checkNotNull(workQueueRepo);
         userRepository = checkNotNull(userRepo);
-        visibilityTranslator = checkNotNull(translator);
 
         authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
+        loaderConstants = new LoaderConstants(translator);
     }
 
     /**
@@ -60,40 +60,40 @@ public final class TweetVertexLoader {
         final String vertexId = "TWEET_" + status.getId();
         final Vertex tweetVertex = createTweetVertex(status, vertexId);
 
-        workQueueRepository.pushGraphPropertyQueue(tweetVertex, VisalloProperties.RAW.getProperty(tweetVertex), priority);
         workQueueRepository.pushGraphPropertyQueue(tweetVertex, VisalloProperties.TEXT.getProperty(tweetVertex, LoaderConstants.MULTI_VALUE_KEY), priority);
 
         return tweetVertex;
     }
 
     private Vertex createTweetVertex(final Status parsedStatus, final String vertexId) {
-        final VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, LoaderConstants.EMPTY_VISIBILITY);
 
-        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_TWEET, LoaderConstants.EMPTY_VISIBILITY);
-        VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, LoaderConstants.EMPTY_VISIBILITY);
+        final VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, loaderConstants.getEmptyVisibility());
+
+        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, TwitterOntology.CONCEPT_TYPE_TWEET, loaderConstants.getEmptyVisibility());
+        VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, LoaderConstants.SOURCE_NAME, loaderConstants.getEmptyVisibility());
 
         final String rawJson = TwitterObjectFactory.getRawJSON(parsedStatus);
         final StreamingPropertyValue rawValue = new StreamingPropertyValue(new ByteArrayInputStream(rawJson.getBytes(Charsets.UTF_8)), byte[].class);
         rawValue.searchIndex(false);
-        VisalloProperties.RAW.setProperty(vertexBuilder, rawValue, LoaderConstants.EMPTY_VISIBILITY);
+        LoaderConstants.TWITTER_RAW_JSON.setProperty(vertexBuilder, rawValue, loaderConstants.getEmptyVisibility());
 
         final String statusText = parsedStatus.getText();
         StreamingPropertyValue textValue = new StreamingPropertyValue(new ByteArrayInputStream(statusText.getBytes()), String.class);
 
         final Metadata textMetadata = new Metadata();
-        VisalloProperties.TEXT_DESCRIPTION_METADATA.setMetadata(textMetadata, "Tweet Text", visibilityTranslator.getDefaultVisibility());
-        VisalloProperties.TEXT.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, textValue, textMetadata, LoaderConstants.EMPTY_VISIBILITY);
+        VisalloProperties.TEXT_DESCRIPTION_METADATA.setMetadata(textMetadata, "Tweet Text", loaderConstants.getEmptyVisibility());
+        VisalloProperties.TEXT.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, textValue, textMetadata, loaderConstants.getEmptyVisibility());
 
         final String title = parsedStatus.getUser().getName() + ": " + statusText;
-        VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, title, LoaderConstants.EMPTY_VISIBILITY);
+        VisalloProperties.TITLE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, title, loaderConstants.getEmptyVisibility());
 
         final Date publishedDate = parsedStatus.getCreatedAt();
         if (publishedDate != null) {
-            TwitterOntology.PUBLISHED_DATE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, publishedDate, LoaderConstants.EMPTY_VISIBILITY);
+            TwitterOntology.PUBLISHED_DATE.addPropertyValue(vertexBuilder, LoaderConstants.MULTI_VALUE_KEY, publishedDate, loaderConstants.getEmptyVisibility());
         }
 
         final VisibilityJson visibilityJson = new VisibilityJson();
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, LoaderConstants.EMPTY_VISIBILITY);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, loaderConstants.getEmptyVisibility());
 
 
         final Vertex tweetVertex = vertexBuilder.save(authorizations);
