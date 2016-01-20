@@ -17,6 +17,11 @@ define([
         this.after('initialize', function() {
             this.$node.html(template(_.extend({}, this.attr)));
             self.inputField = this.select('inputSelector');
+            if (this.attr.vertexProperty) {
+                self.loadingSpan = $('<span>').text(i18n('field.directory.form.display_name.loading'));
+                this.$node.append(self.loadingSpan);
+                self.inputField.hide();
+            }
 
             self.inputField.typeahead({
                 source: directorySearch,
@@ -37,33 +42,40 @@ define([
                 }
                 TypeAheadUtil.adjustDropdownPosition(self.inputField);
             }).on('blur', function() {
-                TypeAheadUtil.clearIfNoMatch(self.inputField, 'selection', directoryEntityToString);
+                TypeAheadUtil.clearIfNoMatch(self.inputField, 'selection', F.directoryEntity.pretty);
                 var directoryEntity = self.inputField.data('selection');
                 self.inputField.data('value', directoryEntity ? directoryEntity.id : null);
             });
         });
 
         this.isValid = function(value) {
-            return value && value.type && value.displayName;
+            return !!value;
         };
 
         this.setValue = function(value) {
             if (_.isString(value)) {
-                self.inputField.val(value);
-                self.dataRequest('directory', 'getById', value)
-                  .then(function(results) {
-                      if (results && results.id && results.type) {
-                          self.setValue(results);
-                      }
-                  });
+                if (!value) {
+                    return loadDirectoryEntity(null);
+                }
+                return self.dataRequest('directory', 'getById', value)
+                    .then(loadDirectoryEntity);
             } else {
-                self.inputField.val(directoryEntityToString(value));
+                self.inputField.val(F.directoryEntity.pretty(value));
                 onSelectionFieldSelected(value);
+            }
+
+            function loadDirectoryEntity(directoryEntry) {
+                if (directoryEntry && directoryEntry.id && directoryEntry.type) {
+                    self.setValue(directoryEntry);
+                    self.loadingSpan.remove();
+                    self.inputField.show();
+                }
             }
         };
 
         this.getValue = function() {
-            return self.inputField.data('selection');
+            var directoryEntity = self.inputField.data('selection');
+            return directoryEntity ? directoryEntity.id : null;
         };
 
         function directorySearch(search, process) {
@@ -72,21 +84,13 @@ define([
             self.dataRequest('directory', 'search', search)
               .then(function(results) {
                   var entities = _.map(results.entities, function(entity) {
-                      var str = directoryEntityToString(entity);
+                      var str = F.directoryEntity.pretty(entity);
                       self.map[str] = entity;
                       return str;
                   });
                   process(entities);
                   TypeAheadUtil.adjustDropdownPosition(self.inputField);
               });
-        }
-
-        function directoryEntityToString(directoryEntity) {
-            if (directoryEntity && directoryEntity.type) {
-                return directoryEntity.displayName + ' (' + (directoryEntity.type === 'group' ? 'Group' : 'Person') + ')';
-            } else {
-                return '';
-            }
         }
 
         function onSelectionFieldSelected(directoryEntity) {

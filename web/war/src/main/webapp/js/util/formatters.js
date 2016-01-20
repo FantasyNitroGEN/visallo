@@ -230,26 +230,25 @@ define([
             }
         },
         directoryEntity: {
-            parse: function(str) {
-                try {
-                    return JSON.parse(str);
-                } catch(e) {
-                    console.error('could not parse directory/entry:', str);
-                    return null;
+            pretty: function(directoryEntity) {
+                if (directoryEntity && directoryEntity.type) {
+                    var prettyType = directoryEntity.type === 'group' ? i18n('field.directory.group') : i18n('field.directory.person');
+                    return directoryEntity.displayName + ' (' + prettyType + ')';
+                } else {
+                    return '';
                 }
             },
-
-            pretty: function(value) {
-                if (_.isString(value)) {
-                    var parsed = FORMATTERS.directoryEntity.parse(value);
-                    if (parsed) {
-                        return FORMATTERS.directoryEntity.pretty(parsed);
-                    } else {
-                        return value;
-                    }
+            requestPretty: function(id) {
+                if (!id) {
+                    return Promise.resolve(null);
                 }
-
-                return value.displayName || 'Invalid directory/entry';
+                return Promise.require('util/withDataRequest')
+                      .then(function(dr) {
+                          return dr.dataRequest('directory', 'getById', id)
+                      })
+                      .then(function(value) {
+                          return FORMATTERS.directoryEntity.pretty(value);
+                      });
             }
         },
         geoLocation: {

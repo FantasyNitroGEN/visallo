@@ -1,5 +1,8 @@
 
-define(['util/withTeardown'], function(withTeardown) {
+define([
+    'util/withTeardown',
+    'util/promise'
+], function(withTeardown, Promise) {
     'use strict';
 
     var ENTER = 13;
@@ -107,8 +110,10 @@ define(['util/withTeardown'], function(withTeardown) {
                     })
                 }
 
-                self.setValue(self.attr.value);
-                self.triggerFieldUpdated();
+                Promise.resolve(self.setValue(self.attr.value))
+                    .then(function() {
+                        self.triggerFieldUpdated();
+                    });
             }
         });
 

@@ -112,9 +112,10 @@ define([
                 },
 
                 'directory/entity': function(el, property) {
-                    $(el).append(
-                        F.directoryEntity.pretty(property.value)
-                    );
+                    F.directoryEntity.requestPretty(property.value)
+                      .then(function(value) {
+                          $(el).text(value);
+                      });
                 },
 
                 geoLocation: function(el, property) {

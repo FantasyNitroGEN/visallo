@@ -826,7 +826,7 @@
         <rdfs:label xml:lang="en">Person or Group Name</rdfs:label>
         <visallo:displayType>personOrGroup</visallo:displayType>
         <rdfs:range rdf:resource="&visallo;directory/entity"/>
-        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#directoryPerson"/>
     </owl:DatatypeProperty>
     
 
@@ -1177,6 +1177,16 @@
         <visallo:intent>country</visallo:intent>
         <visallo:glyphIconFileName xml:lang="en">glyphicons_266_flag@2x.png</visallo:glyphIconFileName>
         <visallo:color xml:lang="en">rgb(112, 0, 112)</visallo:color>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/dev#directoryPerson -->
+
+    <owl:Class rdf:about="http://visallo.org/dev#directoryPerson">
+        <rdfs:label xml:lang="en">Directory Person</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://visallo.org/dev#person"/>
+        <visallo:titleFormula xml:lang="en">prop(&apos;http://visallo.org/dev#personOrGroup&apos;) || prop(&apos;http://visallo.org/dev#name&apos;) || &apos;&apos;</visallo:titleFormula>
     </owl:Class>
     
 

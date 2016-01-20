@@ -6,6 +6,9 @@ define([
 
     var api = {
         getById: function(id) {
+            if (!id) {
+                throw new Error('id cannot be null');
+            }
             return ajax('GET', '/directory/get', {
                 id: id
             });
