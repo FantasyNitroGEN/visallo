@@ -323,7 +323,7 @@ define([
             })
             it('should get display values for geolocation and date', function() {
               var vertex = vertexFactory([
-                  propertyFactory(PROPERTY_NAME_GEO_AND_DATE_DATE, 'k1', new Date(2015, 3, 1)),
+                  propertyFactory(PROPERTY_NAME_GEO_AND_DATE_DATE, 'k1', Date.UTC(2015, 3, 1)),
                   propertyFactory(PROPERTY_NAME_GEO_AND_DATE_GEO, 'k1', {
                     latitude: 82.3413,
                     longitude: -43.2326
