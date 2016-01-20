@@ -51,11 +51,6 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-ontology-acl-provider</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
             <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
             <version>${project.version}</version>
         </dependency>
