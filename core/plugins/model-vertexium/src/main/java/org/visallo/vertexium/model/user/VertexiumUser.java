@@ -139,6 +139,10 @@ public class VertexiumUser implements User, Serializable {
         return this.properties.get(propertyName);
     }
 
+    public void setProperty(String propertyName, Object value) {
+        this.properties.put(propertyName, value);
+    }
+
     @Override
     public String toString() {
         return "VertexiumUser{userId='" + getUserId() + "', displayName='" + getDisplayName() + "', privileges=" + getPrivileges() + "}";

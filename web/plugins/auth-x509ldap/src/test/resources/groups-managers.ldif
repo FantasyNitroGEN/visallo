@@ -1,6 +1,0 @@
-dn: cn=managers,ou=groups,dc=test,dc=visallo,dc=org
-objectclass: groupofuniquenames
-cn: managers
-description: Managers
-uniqueMember: cn=Alice Smith,ou=people,dc=test,dc=visallo,dc=org
-uniqueMember: cn=Carlos O'Lalley,ou=people,dc=test,dc=visallo,dc=org

@@ -229,6 +229,29 @@ define([
                 return className;
             }
         },
+        directoryEntity: {
+            parse: function(str) {
+                try {
+                    return JSON.parse(str);
+                } catch(e) {
+                    console.error('could not parse directory/entry:', str);
+                    return null;
+                }
+            },
+
+            pretty: function(value) {
+                if (_.isString(value)) {
+                    var parsed = FORMATTERS.directoryEntity.parse(value);
+                    if (parsed) {
+                        return FORMATTERS.directoryEntity.pretty(parsed);
+                    } else {
+                        return value;
+                    }
+                }
+
+                return value.displayName || 'Invalid directory/entry';
+            }
+        },
         geoLocation: {
             parse: function(str) {
                 var m = str && str.match(/\s*point(?:\[|\()(.*?),(.*?)(?:\]|\))\s*/i);

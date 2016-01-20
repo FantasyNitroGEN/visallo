@@ -7,18 +7,17 @@ import org.vertexium.*;
 import org.vertexium.query.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.trace.Trace;
 import org.visallo.core.trace.TraceSpan;
+import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElement;
-import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
-import org.visallo.web.clientapi.model.ClientApiSearchResponse;
-import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.*;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,23 +31,27 @@ public abstract class ElementSearchBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchBase.class);
     private static final Pattern dateTimePattern = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T.*");
     private final Graph graph;
+    private final DirectoryRepository directoryRepository;
     private final OntologyRepository ontologyRepository;
     private int defaultSearchResultCount;
 
     @Inject
     public ElementSearchBase(
-            final OntologyRepository ontologyRepository,
-            final Graph graph,
-            final Configuration configuration
+            OntologyRepository ontologyRepository,
+            Graph graph,
+            Configuration configuration,
+            DirectoryRepository directoryRepository
     ) {
         this.ontologyRepository = ontologyRepository;
         this.graph = graph;
+        this.directoryRepository = directoryRepository;
         defaultSearchResultCount = configuration.getInt(Configuration.DEFAULT_SEARCH_RESULT_COUNT, 100);
     }
 
     protected ClientApiElementSearchResponse handle(
             HttpServletRequest request,
             String workspaceId,
+            User user,
             Authorizations authorizations
     ) throws Exception {
         long totalStartTime = System.nanoTime();
@@ -58,7 +61,7 @@ public abstract class ElementSearchBase {
         JSONArray filterJson = getFilterJson(request);
 
         QueryAndData queryAndData = getQuery(request, authorizations);
-        applyFiltersToQuery(queryAndData, filterJson);
+        applyFiltersToQuery(queryAndData, filterJson, user);
         applyConceptTypeFilterToQuery(queryAndData, request);
         applyEdgeLabelFilterToQuery(queryAndData, request);
         applySortToQuery(queryAndData, request);
@@ -361,11 +364,11 @@ public abstract class ElementSearchBase {
         }
     }
 
-    protected void applyFiltersToQuery(QueryAndData queryAndData, JSONArray filterJson) throws ParseException {
+    protected void applyFiltersToQuery(QueryAndData queryAndData, JSONArray filterJson, User user) throws ParseException {
         for (int i = 0; i < filterJson.length(); i++) {
             JSONObject obj = filterJson.getJSONObject(i);
             if (obj.length() > 0) {
-                updateQueryWithFilter(queryAndData.getQuery(), obj);
+                updateQueryWithFilter(queryAndData.getQuery(), obj, user);
             }
         }
     }
@@ -377,7 +380,7 @@ public abstract class ElementSearchBase {
         return filterJson;
     }
 
-    private void updateQueryWithFilter(Query graphQuery, JSONObject obj) throws ParseException {
+    private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user) throws ParseException {
         String predicateString = obj.optString("predicate");
         String propertyName = obj.getString("propertyName");
         if ("has".equals(predicateString)) {
@@ -405,7 +408,9 @@ public abstract class ElementSearchBase {
                 graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, value0);
                 graphQuery.has(propertyName, Compare.LESS_THAN_EQUAL, jsonValueToObject(values, propertyDataType, 1));
             } else if ("=".equals(predicateString) || "equal".equals(predicateString)) {
-                if (PropertyType.DOUBLE.equals(propertyDataType)) {
+                if (PropertyType.DIRECTORY_ENTITY.equals(propertyDataType) && value0 instanceof JSONObject) {
+                    applyDirectoryEntityJsonObjectEqualityToQuery(graphQuery, propertyName, (JSONObject) value0, user);
+                } else if (PropertyType.DOUBLE.equals(propertyDataType)) {
                     applyDoubleEqualityToQuery(graphQuery, obj, value0);
                 } else {
                     graphQuery.has(propertyName, Compare.EQUAL, value0);
@@ -413,6 +418,18 @@ public abstract class ElementSearchBase {
             } else {
                 throw new VisalloException("unhandled query\n" + obj.toString(2));
             }
+        }
+    }
+
+    private void applyDirectoryEntityJsonObjectEqualityToQuery(Query graphQuery, String propertyName, JSONObject value0, User user) {
+        String directoryEntityId = value0.optString("directoryEntityId", null);
+        if (directoryEntityId != null) {
+            graphQuery.has(propertyName, Compare.EQUAL, directoryEntityId);
+        } else if (value0.optBoolean("currentUser", false)) {
+            directoryEntityId = directoryRepository.getDirectoryEntityId(user);
+            graphQuery.has(propertyName, Compare.EQUAL, directoryEntityId);
+        } else {
+            throw new VisalloException("Invalid directory entity JSONObject filter:\n" + value0.toString(2));
         }
     }
 
@@ -508,6 +525,7 @@ public abstract class ElementSearchBase {
     }
 
     private Object jsonValueToObject(JSONArray values, PropertyType propertyDataType, int index) throws ParseException {
+        // JSONObject can be sent to search in the case of relative date searching or advanced directory entry searching
         if (values.get(index) instanceof JSONObject) {
             return values.get(index);
         }

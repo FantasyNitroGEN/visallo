@@ -21,6 +21,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public abstract class OntologyProperty {
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     public static final SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -130,6 +132,13 @@ public abstract class OntologyProperty {
         }
     }
 
+    public Object convert(Object value) throws ParseException {
+        if (value == null) {
+            return null;
+        }
+        return convertString(value.toString());
+    }
+
     public Object convertString(String valueStr) throws ParseException {
         PropertyType dataType = getDataType();
         Object value = valueStr;
@@ -158,6 +167,23 @@ public abstract class OntologyProperty {
 
     public static Object convert(JSONArray values, PropertyType propertyDataType, int index) throws ParseException {
         switch (propertyDataType) {
+            case DIRECTORY_ENTITY:
+                if (values.get(index) instanceof JSONObject) {
+                    JSONObject json = values.getJSONObject(index);
+                    String id = json.optString("id");
+                    checkNotNull(id, "id is a required field for directory entity json");
+                    return id;
+                } else {
+                    String valueStr = values.getString(index);
+                    try {
+                        JSONObject json = new JSONObject(valueStr);
+                        String id = json.optString("id");
+                        checkNotNull(id, "id is a required field for directory entity json");
+                        return id;
+                    } catch (JSONException ex) {
+                        return valueStr;
+                    }
+                }
             case DATE: {
                 String valueStr = values.getString(index);
                 return parseDateTime(valueStr);
@@ -254,6 +280,7 @@ public abstract class OntologyProperty {
             case INTEGER:
                 return new IntegerVisalloProperty(getIri());
             case STRING:
+            case DIRECTORY_ENTITY:
                 return new StringVisalloProperty(getIri());
             default:
                 throw new VisalloException("Could not get " + VisalloProperty.class.getName() + " for data type " + getDataType());

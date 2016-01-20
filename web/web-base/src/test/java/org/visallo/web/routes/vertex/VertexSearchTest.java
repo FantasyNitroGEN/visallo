@@ -4,11 +4,13 @@ import org.json.JSONArray;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.Authorizations;
 import org.vertexium.ElementBuilder;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
+import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.web.RouteTestBase;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
@@ -25,6 +27,9 @@ public class VertexSearchTest extends RouteTestBase {
     private Visibility visibility;
     private Authorizations authorizations;
 
+    @Mock
+    private DirectoryRepository directoryRepository;
+
     @Before
     public void setUp() throws IOException {
         super.setUp();
@@ -32,7 +37,7 @@ public class VertexSearchTest extends RouteTestBase {
         visibility = new Visibility("");
         authorizations = graph.createAuthorizations("");
 
-        vertexSearch = new VertexSearch(ontologyRepository, graph, configuration);
+        vertexSearch = new VertexSearch(ontologyRepository, graph, configuration, directoryRepository);
     }
 
     @Test
@@ -55,7 +60,7 @@ public class VertexSearchTest extends RouteTestBase {
 
         when(userRepository.getAuthorizations(eq(user), eq(WORKSPACE_ID))).thenReturn(authorizations);
 
-        ClientApiElementSearchResponse response = vertexSearch.handle(request, WORKSPACE_ID, authorizations);
+        ClientApiElementSearchResponse response = vertexSearch.handle(request, WORKSPACE_ID, user, authorizations);
         assertEquals(2, response.getElements().size());
         assertEquals(2, response.getItemCount());
     }

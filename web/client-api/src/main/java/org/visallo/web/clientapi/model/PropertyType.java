@@ -14,7 +14,8 @@ public enum PropertyType {
     CURRENCY("currency"),
     DOUBLE("double"),
     BOOLEAN("boolean"),
-    INTEGER("integer");
+    INTEGER("integer"),
+    DIRECTORY_ENTITY("directory/entity");
 
     public static final String VERTEXIUM_TYPE_GEO_POINT = "org.vertexium.type.GeoPoint";
 
@@ -48,6 +49,7 @@ public enum PropertyType {
             case DATE:
                 return Date.class;
             case STRING:
+            case DIRECTORY_ENTITY:
                 return String.class;
             case GEO_LOCATION:
                 try {

@@ -284,9 +284,9 @@
 
     <owl:ObjectProperty rdf:about="http://visallo.org/dev#personHasSiblingPerson">
         <rdfs:label xml:lang="en">Has Sibling</rdfs:label>
+        <visallo:titleFormula xml:lang="en"> label || &apos;&apos; </visallo:titleFormula>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="http://visallo.org/dev#person"/>
-        <visallo:titleFormula xml:lang="en"> label || &apos;&apos; </visallo:titleFormula>
     </owl:ObjectProperty>
     
 
@@ -335,9 +335,9 @@
 
     <owl:ObjectProperty rdf:about="http://visallo.org/dev#personKnowsPerson">
         <rdfs:label xml:lang="en">Knows</rdfs:label>
+        <visallo:timeFormula xml:lang="en"> prop(&apos;http://visallo.org/dev#firstMet&apos;) || &apos;&apos; </visallo:timeFormula>
         <rdfs:range rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
-        <visallo:timeFormula xml:lang="en"> prop(&apos;http://visallo.org/dev#firstMet&apos;) || &apos;&apos; </visallo:timeFormula>
     </owl:ObjectProperty>
     
 
@@ -651,17 +651,6 @@
         <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
-
-    <!-- http://visallo.org/dev#middleName -->
-
-    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#middleName">
-        <rdfs:label xml:lang="en">Middle Name</rdfs:label>
-        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
-        <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-        <visallo:deleteable rdf:datatype="&xsd;boolean">false</visallo:deleteable>
-        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
-    </owl:DatatypeProperty>
     
 
 
@@ -769,6 +758,19 @@
     
 
 
+    <!-- http://visallo.org/dev#middleName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#middleName">
+        <rdfs:label xml:lang="en">Middle Name</rdfs:label>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+        <visallo:deleteable rdf:datatype="&xsd;boolean">false</visallo:deleteable>
+        <visallo:textIndexHints>FULL_TEXT,EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/dev#person"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://visallo.org/dev#name -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/dev#name">
@@ -814,6 +816,17 @@
         <rdfs:label xml:lang="en">Net Income</rdfs:label>
         <rdfs:range rdf:resource="&visallo;currency"/>
         <rdfs:domain rdf:resource="http://visallo.org/dev#company"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/dev#personOrGroup -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/dev#personOrGroup">
+        <rdfs:label xml:lang="en">Person or Group Name</rdfs:label>
+        <visallo:displayType>personOrGroup</visallo:displayType>
+        <rdfs:range rdf:resource="&visallo;directory/entity"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
     
 

@@ -325,6 +325,10 @@ define([
                         PREDICATES.EQUALS
                     ].concat(standardPredicates);
 
+                case 'directory/entity': return [
+                    PREDICATES.EQUALS
+                ].concat(standardPredicates);
+
                 case 'date':
                 case 'currency':
                 case 'double':
