@@ -21,9 +21,6 @@
         <jetty.ssl.port>8443</jetty.ssl.port>
         <jetty.maxIdleTime>60000</jetty.maxIdleTime>
 
-        <!-- Grunt Execution Target.  Valid values are [ development | production ] -->
-        <grunt.target>development</grunt.target>
-
         <!-- Maven Plugin Versions -->
         <plugin.maven.exec.version>1.2.1</plugin.maven.exec.version>
         <plugin.maven.war.version>2.4</plugin.maven.war.version>
