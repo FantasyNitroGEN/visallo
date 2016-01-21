@@ -15,6 +15,28 @@
     <packaging>pom</packaging>
 
     <profiles>
+
+        <!-- Development/Production Mode
+             These profiles aren't plugins, but they need to be defined here because this is the parent POM for modules
+             that use these properties. -->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <grunt.target>development</grunt.target>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <grunt.target>production</grunt.target>
+            </properties>
+        </profile>
+
+        <!-- Plugin Toggles -->
+
         <profile>
             <id>storage-memory</id>
             <dependencies>
