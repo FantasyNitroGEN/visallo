@@ -68,6 +68,7 @@ define([
             var self = this;
 
             this.on('mousedown mouseup click dblclick contextmenu', this.trackMouse);
+            this.on(document, 'keyup', this.handleKeyup);
 
             this.updateEntityAndArtifactDraggablesNoDelay = this.updateEntityAndArtifactDraggables;
             this.updateEntityAndArtifactDraggables = _.throttle(this.updateEntityAndArtifactDraggables.bind(this), 250);
@@ -176,13 +177,14 @@ define([
                 this.mouseDown = true;
             }
 
-            if ($(event.target).closest('.opens-dropdown').length === 0 &&
-                $(event.target).closest('.underneath').length === 0 &&
-                !($(event.target).parent().hasClass('currentTranscript')) &&
-                !($(event.target).hasClass('alert alert-error'))) {
-                if (event.type === 'mouseup' || event.type === 'dblclick') {
-                    this.handleSelectionChange();
-                }
+            if (isTextSelectable(event) && (event.type === 'mouseup' || event.type === 'dblclick')) {
+                this.handleSelectionChange();
+            }
+        };
+
+        this.handleKeyup = function(event) {
+            if (event.shiftKey && isTextSelectable(event)) {
+                this.handleSelectionChange();
             }
         };
 
@@ -997,5 +999,12 @@ define([
             }
         };
 
+    }
+
+    function isTextSelectable(event) {
+        return ($(event.target).closest('.opens-dropdown').length === 0 &&
+            $(event.target).closest('.underneath').length === 0 &&
+            !($(event.target).parent().hasClass('currentTranscript')) &&
+            !($(event.target).hasClass('alert alert-error')));
     }
 });
