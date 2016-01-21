@@ -45,7 +45,7 @@ var require = {
         'jquery-ui-bundle': '../libs/jquery-ui-bundle/jquery-ui.min',
         'jquery-scrollstop': '../libs/jquery-scrollstop/jquery.scrollstop',
         'jscache': '../libs/jscache-lru/cache',
-        'less': 'util/requirejs-less/less',
+        'less': '../libs/requirejs-less/less',
         'lessc': '../libs/requirejs-less/lessc',
         'moment': '../libs/moment/min/moment-with-locales.min',
         'moment-timezone': '../libs/moment-timezone/builds/moment-timezone-with-data.min',
