@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.user.UserRepository;
@@ -174,5 +175,13 @@ public class InMemoryUserRepository extends UserRepository {
     @Override
     public void clearPasswordResetTokenAndExpirationDate(User user) {
         throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void setPropertyOnUser(User user, String propertyName, Object value) {
+        if (user instanceof SystemUser) {
+            throw new VisalloException("Cannot set properties on system user");
+        }
+        ((InMemoryUser) user).setProperty(propertyName, value);
     }
 }

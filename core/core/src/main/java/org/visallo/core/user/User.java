@@ -48,4 +48,6 @@ public interface User extends Serializable {
     String getPasswordResetToken();
 
     Date getPasswordResetTokenExpirationDate();
+
+    Object getProperty(String propertyName);
 }
