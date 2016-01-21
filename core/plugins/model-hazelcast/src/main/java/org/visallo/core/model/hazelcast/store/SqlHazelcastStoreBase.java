@@ -5,8 +5,10 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.Update;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.hazelcast.HazelcastConfiguration;
 
+import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -109,14 +111,34 @@ public abstract class SqlHazelcastStoreBase<TKey, TValue> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected TKey getKeyFromQueryRow(Map<String, Object> row) {
-        return (TKey) row.get(HazelcastConfiguration.SQL_KEY_COLUMN);
+    protected abstract TKey getKeyFromQueryRow(Map<String, Object> row);
+
+    protected TValue getDataFromQueryRow(Map<String, Object> row) {
+        byte[] bytes;
+        try {
+            Object columnValue = getDataObjectFromQueryRow(row);
+            if (columnValue instanceof Blob) {
+                Blob blob = (Blob) columnValue;
+                bytes = blob.getBytes(0, (int) blob.length());
+            } else if (columnValue instanceof byte[]) {
+                bytes = (byte[]) columnValue;
+            } else {
+                throw new VisalloException("Unsupported result object: " + columnValue);
+            }
+        } catch (Throwable ex) {
+            throw new VisalloException("Could not get data from column", ex);
+        }
+        return deserializeValue(bytes);
     }
 
-    @SuppressWarnings("unchecked")
-    protected TValue getDataFromQueryRow(Map<String, Object> row) {
-        return (TValue) row.get(HazelcastConfiguration.SQL_DATA_COLUMN);
+    protected abstract TValue deserializeValue(byte[] bytes);
+
+    protected Object getKeyObjectFromQueryRow(Map<String, Object> row) {
+        return row.get(HazelcastConfiguration.SQL_KEY_COLUMN);
+    }
+
+    protected Object getDataObjectFromQueryRow(Map<String, Object> row) {
+        return row.get(HazelcastConfiguration.SQL_DATA_COLUMN);
     }
 
     protected void setDataInPreparedStatement(Update stmt, TValue value) {
