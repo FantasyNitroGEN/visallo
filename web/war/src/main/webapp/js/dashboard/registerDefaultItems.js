@@ -93,18 +93,4 @@ define(['configuration/plugins/registry'], function(registry) {
             height: 4
         }
     });
-
-    registry.registerExtension('org.visallo.web.dashboard.item', {
-            title: 'Otter',
-            description: 'Learn how to work in Visallo',
-            identifier: 'org-visallo-web-dashboard-welcome',
-            componentPath: 'dashboard/items/welcome/welcome',
-            options: {
-                preventDefaultConfig: true
-            },
-            grid: {
-                width: 5,
-                height: 4
-            }
-        });
 })
