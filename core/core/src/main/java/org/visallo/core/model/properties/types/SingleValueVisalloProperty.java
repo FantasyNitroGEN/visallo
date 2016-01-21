@@ -7,6 +7,7 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<TRaw, TGraph> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SingleValueVisalloProperty.class);
@@ -31,8 +32,17 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         element.setProperty(getPropertyName(), wrap(value), metadata, visibility, authorizations);
     }
 
+    public void setProperty(Map<String, Object> properties, Object value) {
+        properties.put(getPropertyName(), value);
+    }
+
     public final TRaw getPropertyValue(final Element element) {
         Object value = element != null ? element.getPropertyValue(getPropertyName()) : null;
+        return value != null ? getRawConverter().apply(value) : null;
+    }
+
+    public final TRaw getPropertyValue(final Map<String, Object> map) {
+        Object value = map != null ? map.get(getPropertyName()) : null;
         return value != null ? getRawConverter().apply(value) : null;
     }
 

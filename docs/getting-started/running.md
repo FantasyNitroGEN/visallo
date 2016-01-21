@@ -8,9 +8,7 @@ Run the commands below to start the Visallo web application from the `/opt/visal
 
 First, build the web application. This only needs to be run once:
 
-        mvn -am -pl web/war \
-            -Dgrunt.target=development \
-            compile
+        mvn -am -pl web/war compile
 
 Then, run the web application using Jetty:
 

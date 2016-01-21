@@ -2,6 +2,7 @@ package org.visallo.core.user;
 
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
@@ -112,6 +113,11 @@ public class SystemUser implements User {
 
     @Override
     public Date getPasswordResetTokenExpirationDate() {
+        return null;
+    }
+
+    @Override
+    public Object getProperty(String propertyName) {
         return null;
     }
 }

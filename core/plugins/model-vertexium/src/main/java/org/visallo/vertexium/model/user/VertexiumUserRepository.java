@@ -14,6 +14,7 @@ import org.vertexium.VertexBuilder;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.Concept;
@@ -90,46 +91,11 @@ public class VertexiumUserRepository extends UserRepository {
         if (user == null) {
             return null;
         }
-
-        String userId = user.getId();
-        String username = UserVisalloProperties.USERNAME.getPropertyValue(user);
-        String displayName = UserVisalloProperties.DISPLAY_NAME.getPropertyValue(user);
-        String emailAddress = UserVisalloProperties.EMAIL_ADDRESS.getPropertyValue(user);
-        Date createDate = UserVisalloProperties.CREATE_DATE.getPropertyValue(user);
-        Date currentLoginDate = UserVisalloProperties.CURRENT_LOGIN_DATE.getPropertyValue(user);
-        String currentLoginRemoteAddr = UserVisalloProperties.CURRENT_LOGIN_REMOTE_ADDR.getPropertyValue(user);
-        Date previousLoginDate = UserVisalloProperties.PREVIOUS_LOGIN_DATE.getPropertyValue(user);
-        String previousLoginRemoteAddr = UserVisalloProperties.PREVIOUS_LOGIN_REMOTE_ADDR.getPropertyValue(user);
-        int loginCount = UserVisalloProperties.LOGIN_COUNT.getPropertyValue(user, 0);
         String[] authorizations = toArray(getAuthorizations(user), String.class);
         SimpleOrmContext simpleOrmContext = getSimpleOrmContext(authorizations);
-        UserStatus userStatus = UserStatus.valueOf(UserVisalloProperties.STATUS.getPropertyValue(user));
-        Set<Privilege> privileges = Privilege.stringToPrivileges(UserVisalloProperties.PRIVILEGES.getPropertyValue(user));
-        String currentWorkspaceId = UserVisalloProperties.CURRENT_WORKSPACE.getPropertyValue(user);
-        JSONObject preferences = UserVisalloProperties.UI_PREFERENCES.getPropertyValue(user);
-        String passwordResetToken = UserVisalloProperties.PASSWORD_RESET_TOKEN.getPropertyValue(user);
-        Date passwordResetTokenExpirationDate = UserVisalloProperties.PASSWORD_RESET_TOKEN_EXPIRATION_DATE.getPropertyValue(user);
 
-        LOGGER.debug("Creating user from UserRow. username: %s", username);
-        return new VertexiumUser(
-                userId,
-                username,
-                displayName,
-                emailAddress,
-                createDate,
-                currentLoginDate,
-                currentLoginRemoteAddr,
-                previousLoginDate,
-                previousLoginRemoteAddr,
-                loginCount,
-                simpleOrmContext,
-                userStatus,
-                privileges,
-                currentWorkspaceId,
-                preferences,
-                passwordResetToken,
-                passwordResetTokenExpirationDate
-        );
+        LOGGER.debug("Creating user from UserRow. username: %s", UserVisalloProperties.USERNAME.getPropertyValue(user));
+        return new VertexiumUser(user, simpleOrmContext);
     }
 
     @Override
@@ -469,5 +435,14 @@ public class VertexiumUserRepository extends UserRepository {
         UserVisalloProperties.PASSWORD_RESET_TOKEN.removeProperty(userVertex, authorizations);
         UserVisalloProperties.PASSWORD_RESET_TOKEN_EXPIRATION_DATE.removeProperty(userVertex, authorizations);
         graph.flush();
+    }
+
+    @Override
+    public void setPropertyOnUser(User user, String propertyName, Object value) {
+        if (user instanceof SystemUser) {
+            throw new VisalloException("Cannot set properties on system user");
+        }
+        Vertex userVertex = findByIdUserVertex(user.getUserId());
+        userVertex.setProperty(propertyName, value, VISIBILITY.getVisibility(), authorizations);
     }
 }

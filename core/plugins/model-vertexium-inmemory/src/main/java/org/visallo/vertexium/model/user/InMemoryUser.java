@@ -26,15 +26,23 @@ public class InMemoryUser implements User {
     private int loginCount;
     private String passwordResetToken;
     private Date passwordResetTokenExpirationDate;
+    private Map<String, Object> properties = new HashMap<>();
 
-    public InMemoryUser(String userName, String displayName, String emailAddress, Set<Privilege> privileges, String[] authorizations, String currentWorkspaceId) {
+    public InMemoryUser(
+            String userName,
+            String displayName,
+            String emailAddress,
+            Set<Privilege> privileges,
+            String[] authorizations,
+            String currentWorkspaceId
+    ) {
         this.userId = UUID.randomUUID().toString();
         this.userName = userName;
         this.displayName = displayName;
         this.emailAddress = emailAddress;
         this.createDate = new Date();
         this.privileges = privileges;
-        this.authorizations = new ArrayList<String>();
+        this.authorizations = new ArrayList<>();
         Collections.addAll(this.authorizations, authorizations);
         this.currentWorkspaceId = currentWorkspaceId;
         this.preferences = new JSONObject();
@@ -149,6 +157,15 @@ public class InMemoryUser implements User {
     @Override
     public Date getPasswordResetTokenExpirationDate() {
         return passwordResetTokenExpirationDate;
+    }
+
+    @Override
+    public Object getProperty(String propertyName) {
+        return properties.get(propertyName);
+    }
+
+    public void setProperty(String propertyName, Object value) {
+        properties.put(propertyName, value);
     }
 
     @Override

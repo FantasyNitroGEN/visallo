@@ -124,6 +124,7 @@ define([
             var load = _.once(this.loadWorkspaceAndListenOn.bind(this, this.onWorkspaceLoaded));
             this.on(document, 'didToggleDisplay', function(event, data) {
                 if (data.name === 'dashboard' && data.visible) {
+                    this.adjustHeader();
                     load();
                 }
             })
@@ -182,11 +183,17 @@ define([
         };
 
         this.onWorkspaceUpdated = function(event, data) {
+            var self = this;
             if (data.workspace.workspaceId === this.currentWorkspaceId) {
-                if (!this.dashboard.title || this.dashboard.title === this.workspaceTitle) {
-                    this.$node.children('h1').find('input').val(data.workspace.title);
-                    this.dashboard.title = '';
+                if (!this.dashboard.title || (this.dashboard.title === this.workspaceTitle && this.dashboard.title !== data.workspace.title)) {
+                    var previousTitle = this.dashboard.title;
+                    var newTitle = this.dashboard.title = data.workspace.title;
+                    this.$node.children('h1').find('input').val(newTitle);
                     this.adjustHeader();
+                    this.requestTitleChange(newTitle)
+                        .catch(function() {
+                            self.dashboard.title = previousTitle;
+                        });
                 }
                 this.workspaceTitle = data.workspace.title;
             }
@@ -255,20 +262,25 @@ define([
             this.trigger(event.target, 'configureItem');
         };
 
+        this.requestTitleChange = function(newTitle) {
+            return this.request('dashboardUpdate', {
+                dashboardId: this.dashboard.id,
+                title: newTitle
+            });
+        };
+
         this.onTitleInputKeyUp = function(event) {
+            var self = this;
             if (event.type === 'change' || event.which === 13) {
                 var newTitle = event.target.value.trim(),
                     previousTitle = this.dashboard.title;
 
                 if (newTitle.length) {
                     this.dashboard.title = newTitle;
-                    this.request('dashboardUpdate', {
-                        dashboardId: this.dashboard.id,
-                        title: newTitle
-                    })
+                    this.requestTitleChange(newTitle)
                         .catch(function() {
                             event.target.value = previousTitle;
-                            this.dashboard.title = previousTitle;
+                            self.dashboard.title = previousTitle;
                         });
                 } else {
                     event.target.value = previousTitle || this.workspaceTitle;
@@ -279,6 +291,8 @@ define([
                 }
             } else if (event.which === $.ui.keyCode.ESCAPE) {
                 this.onEscapeKey(event);
+            } else if (event.type === 'keyup') {
+                this.adjustHeader();
             }
         };
 
@@ -691,10 +705,13 @@ define([
 
         this.adjustHeader = function() {
             var $input = this.$node.find('h1.header input'),
-                $span = $('<span>').text($input.val()).insertAfter($input.next('button'));
+                $span = $('<span>').text($input.val()).insertAfter($input.next('button')),
+                outerWidth = $span.outerWidth();
 
-            $input.width(($span.outerWidth() + 2) + 'px');
-            $span.remove();
+            if (outerWidth) {
+                $input.width((outerWidth + 2) + 'px');
+                $span.remove();
+            }
         };
     }
 });

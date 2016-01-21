@@ -1,80 +1,38 @@
 package org.visallo.vertexium.model.user;
 
+import com.v5analytics.simpleorm.SimpleOrmContext;
+import org.json.JSONObject;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
+import org.visallo.core.model.user.UserVisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
-import org.json.JSONObject;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class VertexiumUser implements User, Serializable {
     private static final long serialVersionUID = 6688073934273514248L;
     private SimpleOrmContext simpleOrmContext;
     private String userId;
-    private String username;
-    private String displayName;
-    private String emailAddress;
-    private Date createDate;
-    private Date currentLoginDate;
-    private String currentLoginRemoteAddr;
-    private Date previousLoginDate;
-    private String previousLoginRemoteAddr;
-    private int loginCount;
-    private UserStatus userStatus;
-    private Set<Privilege> privileges;
-    private String currentWorkspaceId;
-    private JSONObject preferences;
-    private String passwordResetToken;
-    private Date passwordResetTokenExpirationDate;
+    private Map<String, Object> properties = new HashMap<>();
 
     // required for Serializable
     protected VertexiumUser() {
 
     }
 
-    public VertexiumUser(
-            String userId,
-            String username,
-            String displayName,
-            String emailAddress,
-            Date createDate,
-            Date currentLoginDate,
-            String currentLoginRemoteAddr,
-            Date previousLoginDate,
-            String previousLoginRemoteAddr,
-            int loginCount,
-            SimpleOrmContext simpleOrmContext,
-            UserStatus userStatus,
-            Set<Privilege> privileges,
-            String currentWorkspaceId,
-            JSONObject preferences,
-            String passwordResetToken,
-            Date passwordResetTokenExpirationDate
-    ) {
-        this.userId = userId;
-        this.username = username;
-        this.displayName = displayName;
-        this.emailAddress = emailAddress;
-        this.createDate = createDate;
-        this.currentLoginDate = currentLoginDate;
-        this.currentLoginRemoteAddr = currentLoginRemoteAddr;
-        this.previousLoginDate = previousLoginDate;
-        this.previousLoginRemoteAddr = previousLoginRemoteAddr;
-        this.loginCount = loginCount;
-        this.simpleOrmContext = simpleOrmContext;
-        this.userStatus = userStatus;
-        this.privileges = privileges;
-        this.currentWorkspaceId = currentWorkspaceId;
-        this.preferences = preferences;
-        if (this.preferences == null) {
-            this.preferences = new JSONObject();
+    public VertexiumUser(Vertex userVertex, SimpleOrmContext simpleOrmContext) {
+        this.userId = userVertex.getId();
+        for (Property property : userVertex.getProperties()) {
+            this.properties.put(property.getName(), property.getValue());
         }
-        this.passwordResetToken = passwordResetToken;
-        this.passwordResetTokenExpirationDate = passwordResetTokenExpirationDate;
+        this.simpleOrmContext = simpleOrmContext;
     }
 
     @Override
@@ -89,47 +47,47 @@ public class VertexiumUser implements User, Serializable {
 
     @Override
     public String getUsername() {
-        return username;
+        return UserVisalloProperties.USERNAME.getPropertyValue(properties);
     }
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return UserVisalloProperties.DISPLAY_NAME.getPropertyValue(properties);
     }
 
     @Override
     public String getEmailAddress() {
-        return emailAddress;
+        return UserVisalloProperties.EMAIL_ADDRESS.getPropertyValue(properties);
     }
 
     @Override
     public Date getCreateDate() {
-        return createDate;
+        return UserVisalloProperties.CREATE_DATE.getPropertyValue(properties);
     }
 
     @Override
     public Date getCurrentLoginDate() {
-        return currentLoginDate;
+        return UserVisalloProperties.CURRENT_LOGIN_DATE.getPropertyValue(properties);
     }
 
     @Override
     public String getCurrentLoginRemoteAddr() {
-        return currentLoginRemoteAddr;
+        return UserVisalloProperties.CURRENT_LOGIN_REMOTE_ADDR.getPropertyValue(properties);
     }
 
     @Override
     public Date getPreviousLoginDate() {
-        return previousLoginDate;
+        return UserVisalloProperties.PREVIOUS_LOGIN_DATE.getPropertyValue(properties);
     }
 
     @Override
     public String getPreviousLoginRemoteAddr() {
-        return previousLoginRemoteAddr;
+        return UserVisalloProperties.PREVIOUS_LOGIN_REMOTE_ADDR.getPropertyValue(properties);
     }
 
     @Override
     public int getLoginCount() {
-        return loginCount;
+        return UserVisalloProperties.LOGIN_COUNT.getPropertyValue(properties, 0);
     }
 
     @Override
@@ -139,36 +97,46 @@ public class VertexiumUser implements User, Serializable {
 
     @Override
     public UserStatus getUserStatus() {
-        return userStatus;
+        return UserStatus.valueOf(UserVisalloProperties.STATUS.getPropertyValue(properties));
     }
 
     public void setUserStatus(UserStatus status) {
-        this.userStatus = status;
+        UserVisalloProperties.STATUS.setProperty(properties, status.name());
     }
 
     @Override
     public Set<Privilege> getPrivileges() {
-        return privileges;
+        return Privilege.stringToPrivileges(UserVisalloProperties.PRIVILEGES.getPropertyValue(properties));
     }
 
     @Override
     public String getCurrentWorkspaceId() {
-        return currentWorkspaceId;
+        return UserVisalloProperties.CURRENT_WORKSPACE.getPropertyValue(properties);
     }
 
     @Override
     public JSONObject getUiPreferences() {
+        JSONObject preferences = UserVisalloProperties.UI_PREFERENCES.getPropertyValue(properties);
+        if (preferences == null) {
+            preferences = new JSONObject();
+            UserVisalloProperties.UI_PREFERENCES.setProperty(properties, preferences);
+        }
         return preferences;
     }
 
     @Override
     public String getPasswordResetToken() {
-        return passwordResetToken;
+        return UserVisalloProperties.PASSWORD_RESET_TOKEN.getPropertyValue(properties);
     }
 
     @Override
     public Date getPasswordResetTokenExpirationDate() {
-        return passwordResetTokenExpirationDate;
+        return UserVisalloProperties.PASSWORD_RESET_TOKEN_EXPIRATION_DATE.getPropertyValue(properties);
+    }
+
+    @Override
+    public Object getProperty(String propertyName) {
+        return this.properties.get(propertyName);
     }
 
     @Override
