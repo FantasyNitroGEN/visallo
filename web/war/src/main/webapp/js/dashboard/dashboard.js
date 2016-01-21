@@ -279,6 +279,8 @@ define([
                 }
             } else if (event.which === $.ui.keyCode.ESCAPE) {
                 this.onEscapeKey(event);
+            } else if (event.type === 'keyup') {
+                this.adjustHeader();
             }
         };
 
