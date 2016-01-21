@@ -134,8 +134,10 @@ public class HazelcastConfiguration {
     }
 
     private void updateInstanceName(Config config) {
-        if (StringUtils.isEmpty(config.getInstanceName())) {
+        if (!StringUtils.isEmpty(config.getInstanceName())) {
             config.setInstanceName(getInstanceName());
+        } else if (StringUtils.isEmpty(config.getInstanceName())) {
+            config.setInstanceName(INSTANCE_NAME_DEFAULT);
         }
     }
 
