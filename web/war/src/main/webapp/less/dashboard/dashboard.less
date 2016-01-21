@@ -288,9 +288,12 @@
     border-radius: 3px;    
     cursor: move;
     .item-content {
-      overflow-y: scroll;
       pointer-events: none;
       opacity: 0.3;
+      &.list {
+        overflow-y: scroll;
+        oveflow-x: auto;
+      }
     }
     & > h1 {
       background: #eee;
