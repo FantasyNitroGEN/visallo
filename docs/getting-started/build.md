@@ -13,13 +13,13 @@ You'll need to install the Visallo `root` Maven module after you've cloned the [
 
 You should make sure everything compiles and tests pass before going any further. Otherwise, it's hard to reason about what might be wrong when things later fail.
 
-Compile all modules, building the web app resources for development (which is faster):
+Compile all modules:
 
-    mvn compile -Dgrunt.target=development
+    mvn compile
 
 Run all unit tests, continuing on failures and without failing the build:
 
-    mvn test -fn -Dgrunt.target=development
+    mvn test -fn
 
 It is a known issue that some unit tests fail on Windows. The following are expected to fail:
 * `org.visallo.core.formula.FormulaEvaluatorTest`
