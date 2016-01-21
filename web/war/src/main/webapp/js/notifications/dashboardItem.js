@@ -16,7 +16,6 @@ define([
                 animated: false,
                 showUserDismissed: true
             });
-            $(this.node).addClass('overflow-y-scroll');
         });
 
     }
