@@ -6,10 +6,12 @@
     <div class="errors"></div>
 
     {{#unless hasFile}}
-    <button class="file-select btn btn-link btn-small">
-      {{ i18n 'popovers.file_import.attachfile' }}
-    <input type="file" name="files" class="file" multiple>
-    </button>
+    <div class="file-select-wrapper">
+        <button class="file-select btn btn-link btn-small">
+          {{ i18n 'popovers.file_import.attachfile' }}
+        </button>
+        <input type="file" name="files" class="file" multiple>
+    </div>
     {{/unless}}
 
     <div class="single"></div>
