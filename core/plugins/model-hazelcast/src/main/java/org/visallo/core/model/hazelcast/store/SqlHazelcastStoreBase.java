@@ -5,6 +5,7 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.Update;
+import org.skife.jdbi.v2.exceptions.DBIException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.hazelcast.HazelcastConfiguration;
 
@@ -48,7 +49,7 @@ public abstract class SqlHazelcastStoreBase<TKey, TValue> {
                 if (stmt.execute() == 0) {
                     throw new SQLException("Failed to insert item expected more than 0 rows effected. Attempting to update instead.");
                 }
-            } catch (SQLException ex) {
+            } catch (SQLException | DBIException ex) {
                 Update stmt = handle.createStatement(updateByKeySql)
                         .bind(HazelcastConfiguration.SQL_KEY_COLUMN, key);
                 setDataInPreparedStatement(stmt, value);
