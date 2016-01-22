@@ -163,6 +163,11 @@ define([
                     .on('mouseover', function(d, i) {
                         tip.show(d, gPie[0][0]);
                         d3.select(this).attr('fill', self.highlightColors[isOtherCategory(d) ? self.OTHER_COLOR_INDEX : i]);
+
+                    })
+                    .on('mousemove', function() {
+                        var $tip = $('#' + tip.attr('id'));
+                        tip.style({left: event.pageX - ($tip.width() / 1.5) + 'px', top: event.pageY - ($tip.height() * 1.75) + 'px'});
                     });
 
             slices.transition().duration(self.TRANSITION_DURATION)

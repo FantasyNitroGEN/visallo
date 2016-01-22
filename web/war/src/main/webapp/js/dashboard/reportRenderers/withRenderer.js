@@ -28,7 +28,8 @@ define([
         TYPE_AGGREGATION = 'TYPE_AGGREGATION',
         TYPE_UNKNOWN = 'TYPE_UNKNOWN',
         FIELD_CONCEPT_TYPE = 'http://visallo.org#conceptType',
-        FIELD_EDGE_LABEL = '__edgeLabel';
+        FIELD_EDGE_LABEL = '__edgeLabel',
+        TIP_UNIQUE_IDENTIFIER = 0;
 
     return withRenderer;
 
@@ -305,10 +306,9 @@ define([
                         .append($('<h1>').text(titleFunction(d, i, n)))
                         .append($('<h2>').text(detailFunction(d, i, n)))
                         .html()
-                });
-
+                })
+                .attr('id', 'tip' + (TIP_UNIQUE_IDENTIFIER++));
             svg.call(tip);
-
             tip.show = _.wrap(tip.show, function(fn) {
                 var args = _.toArray(arguments).slice(1);
                 $('.dashboard-d3tip').empty();
