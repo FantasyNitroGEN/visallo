@@ -16,6 +16,7 @@ define([
                 animated: false,
                 showUserDismissed: true
             });
+            $(this.node).addClass('list');
         });
 
     }
