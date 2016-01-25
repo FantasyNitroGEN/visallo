@@ -33,10 +33,6 @@
         <dependency>
             <groupId>com.v5analytics.simpleorm</groupId>
             <artifactId>simple-orm-jetty-session-manager</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -46,11 +42,13 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-nosql</artifactId>
+            <artifactId>jetty-servlets</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlets</artifactId>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.v5analytics.webster</groupId>
@@ -151,7 +149,8 @@
                                 </goals>
                                 <configuration>
                                     <executable>bash</executable>
-                                    <commandlineArgs>${basedir}/src/main/resources/META-INF/user-guide/install.sh</commandlineArgs>
+                                    <commandlineArgs>${basedir}/src/main/resources/META-INF/user-guide/install.sh
+                                    </commandlineArgs>
                                 </configuration>
                             </execution>
                         </executions>
