@@ -49,7 +49,6 @@ public class ApplicationBootstrap implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         try {
             final ServletContext context = sce.getServletContext();
-            System.out.println("Servlet context initialized...");
 
             if (context == null) {
                 throw new RuntimeException("Failed to initialize context. Visallo is not running.");
