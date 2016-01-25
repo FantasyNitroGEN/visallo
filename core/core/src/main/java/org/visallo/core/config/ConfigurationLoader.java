@@ -1,12 +1,12 @@
 package org.visallo.core.config;
 
 import com.google.common.base.Throwables;
+import org.apache.log4j.xml.DOMConfigurator;
+import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.apache.log4j.xml.DOMConfigurator;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -117,6 +117,7 @@ public abstract class ConfigurationLoader {
             try {
                 String fileName = System.getProperty("logQuiet") == null ? "log4j.xml" : "log4j-quiet.xml";
                 URL log4jResource = getClass().getResource(fileName);
+                System.err.println("Could not resolve log4j.xml, using the fallback: " + log4jResource);
                 if (log4jResource != null) {
                     DOMConfigurator.configure(log4jResource);
                     log4jLocation = log4jResource.toExternalForm();
