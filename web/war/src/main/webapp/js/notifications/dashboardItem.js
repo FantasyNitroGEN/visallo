@@ -16,7 +16,7 @@ define([
                 animated: false,
                 showUserDismissed: true
             });
-            $(this.node).addClass('list');
+            this.$node.addClass('list');
         });
 
     }
