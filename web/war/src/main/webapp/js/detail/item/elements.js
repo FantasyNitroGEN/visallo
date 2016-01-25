@@ -11,10 +11,11 @@ define([
 
         this.attributes({
             model: null,
+            ignoreUpdateModelNotImplemented: true,
             headerSelector: '.org-visallo-layout-elements-header',
             bodySelector: '.org-visallo-layout-elements-body',
             listSelector: '.org-visallo-layout-elements-list',
-            singleSelector: '.org-visallo-layout-elements-single'
+            singleSelector: '.org-visallo-layout-root'
         })
 
         this.after('initialize', function() {
@@ -123,7 +124,6 @@ define([
 
                         if (!$single.length) {
                             $single = $('<div>')
-                                .addClass('org-visallo-layout-elements-single')
                                 .css('flex', 1)
                                 .hide()
                                 .insertBefore($list)

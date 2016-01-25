@@ -27,7 +27,8 @@ define([
         this.defaultAttrs({
             canvasSelector: 'canvas',
             fileSelector: 'input',
-            acceptedTypesRegex: /^image\/(jpe?g|png)$/i
+            acceptedTypesRegex: /^image\/(jpe?g|png)$/i,
+            ignoreUpdateModelNotImplemented: true
         });
 
         this.after('initialize', function() {

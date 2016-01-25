@@ -47,6 +47,16 @@ define(['underscore'], function(_) {
 
                 return uuid;
             },
+            unregisterAllExtensions: function(extensionPoint) {
+                if (!extensionPoint) {
+                    throw new Error('extension point required to unregister')
+                }
+
+                var uuids = _.keys(extensions[extensionPoint])
+                uuidToExtensionPoint = _.omit(uuidToExtensionPoint, uuids)
+                delete extensions[extensionPoint]
+                delete extensionDocumentation[extensionPoint]
+            },
             unregisterExtension: function(extensionUuid) {
                 if (!extensionUuid) {
                     throw new Error('extension uuid required to unregister')

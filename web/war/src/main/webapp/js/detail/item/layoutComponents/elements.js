@@ -19,7 +19,7 @@ define([
         {
             identifier: 'org.visallo.layout.elements.header',
             children: [
-                { componentPath: 'detail/toolbar/toolbar' }
+                { componentPath: 'detail/toolbar/toolbar', className: 'org-visallo-toolbar' }
             ]
         },
         {
@@ -39,7 +39,8 @@ define([
                         return {
                             items: model,
                             showSelected: false,
-                            singleSelection: true
+                            singleSelection: true,
+                            ignoreUpdateModelNotImplemented: true
                         };
                     }
                 }

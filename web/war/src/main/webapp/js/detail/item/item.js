@@ -1,5 +1,6 @@
 define([
     'flight/lib/component',
+    'flight/lib/registry',
     'util/vertex/formatters',
     'util/promise',
     'util/requirejs/promise!util/service/ontologyPromise',
@@ -8,6 +9,7 @@ define([
     './layoutTypes'
 ], function(
     defineComponent,
+    flightRegistry,
     F,
     Promise,
     ontology,
@@ -40,18 +42,33 @@ define([
         })
 
         this.after('initialize', function() {
+            var self = this;
+
             this.on('updateModel', this.onUpdateModel);
 
-            var self = this,
-                root = findLayoutComponentsMatching({
+            this.renderRoot(this.attr.model)
+                .catch(function(error) {
+                    self.trigger('errorLoadingTypeContent');
+                    console.error(error);
+                })
+                .then(function() {
+                    self.trigger('finishedLoadingTypeContent');
+                    if (!_.isEmpty(self.attr.focus)) {
+                        self.$node.find('.org-visallo-texts').trigger('focusOnSnippet', self.attr.focus);
+                    }
+                })
+        });
+
+        this.renderRoot = function(model) {
+            var root = findLayoutComponentsMatching({
                     identifier: 'org.visallo.layout.root',
-                    model: this.attr.model,
-                    rootModel: this.attr.model
+                    model: model,
+                    rootModel: model
                 }),
-                model = prepareModel(this.attr.model),
+                preparedModel = prepareModel(model),
                 deferredAttachments = [];
 
-            renderLayoutComponent(this.node, model, root, undefined, model, deferredAttachments)
+            return renderLayoutComponent(this.node, preparedModel, root, undefined, model, deferredAttachments)
                 .then(function() {
                     return Promise.all(
                         deferredAttachments.map(function(f) {
@@ -62,17 +79,16 @@ define([
                         })
                     )
                 })
-                .then(function() {
-                    self.trigger('finishedLoadingTypeContent');
-                    if (!_.isEmpty(self.attr.focus)) {
-                        self.$node.find('.org-visallo-texts').trigger('focusOnSnippet', self.attr.focus);
-                    }
-                })
-                .done();
-        });
+        };
 
         this.onUpdateModel = function(event, data) {
-            this.$node.children().trigger('modelUpdated', data);
+            var self = this;
+            event.stopPropagation();
+            if (event.target === this.node) {
+                this.renderRoot(data.model).done(function() {
+                    self.trigger('modelUpdated');
+                })
+            }
         };
 
     }
@@ -84,45 +100,6 @@ define([
         return model
     }
 
-    function synchronizeLayoutChildren(el, model, layoutComponent, config, rootModel, deferredAttachments) {
-        var childNodeIndex = 0;
-        return layoutComponent.children.reduce(function(promise, child) {
-            return promise.then(function() {
-                var childNode = el.childNodes[childNodeIndex++],
-                    $childNode = $(childNode);
-
-                if ('componentPath' in child) {
-                    return Promise.require(child.componentPath)
-                        .then(function(Component) {
-                            var index = -1,
-                                existingNode = _.find(el.childNodes, function(el, i) {
-                                    var componentIsAttached = Boolean($(el).lookupComponent(Component));
-                                    if (componentIsAttached) {
-                                        index = i;
-                                    }
-                                    return componentIsAttached;
-                                });
-
-                                if (existingNode) {
-                                    if (existingNode !== childNode) {
-                                        $(existingNode).insertBefore(childNode);
-                                    }
-                                } else {
-                                    deferredAttachments.push(attachComponent(child, $('<div>').insertBefore($childNode), model))
-                                }
-                        });
-                    } else if ('ref' in child) {
-                        return renderLayoutComponent(el, model, layoutComponent, child, rootModel, deferredAttachments)
-                    }
-            })
-        }, Promise.resolve())
-        .then(function() {
-            while (el.childNodes.length > layoutComponent.children.length) {
-                $(el.childNodes[el.childNodes.length - 1]).teardownAllComponents().remove();
-            }
-        });
-    }
-
     function zipChildrenWithModels(layoutComponent, model) {
         if ('collectionItem' in layoutComponent) {
             if (!_.isArray(model)) {
@@ -130,120 +107,123 @@ define([
                 throw new Error('Collection layout item is not passed an array');
             }
 
-            return model.map(function(modelItem) {
+            return model.map(function(modelItem, i) {
                 return {
                     child: layoutComponent.collectionItem,
-                    model: modelItem
+                    modelTransform: function(model) {
+                        return model[i];
+                    },
+                    model: model
                 }
             });
         }
         return layoutComponent.children.map(function(child) {
+            var transform;
+            if (_.isFunction(child.model)) {
+                transform = child.model
+            } else if ('model' in child) {
+                transform = function() {
+                    return child.model
+                }
+            }
             return {
                 child: child,
+                modelTransform: transform,
                 model: model
             }
         });
     }
 
-    function renderLayoutComponent(el, model, layoutComponent, config, rootModel, deferredAttachments) {
+    function teardownOldComponents(el, options) {
+        var optionallyExcludingComponent = options && options.excluding,
+            type = options && options.type,
+            instanceInfos = flightRegistry.findInstanceInfoByNode(el);
+
+        if (type !== 'layout' && type !== 'component') {
+            throw new Error('type must be layout or component')
+        }
+
+        if (instanceInfos) {
+            instanceInfos.forEach(function(info) {
+                var key = 'teardownWhenNot' + type.substring(0, 1).toUpperCase() + type.substring(1),
+                    componentToTeardown = info.instance[key];
+
+                if (componentToTeardown && (!optionallyExcludingComponent || componentToTeardown !== optionallyExcludingComponent)) {
+                    info.instance.teardown()
+                }
+            })
+        }
+    }
+
+    function renderLayoutComponent(rootEl, model, layoutComponent, config, rootModel, deferredAttachments) {
         if (_.isFunction(layoutComponent.render)) {
-            return Promise.resolve(layoutComponent.render(el, model, config, layoutComponent));
+            updateClasses(rootEl, layoutComponent.identifier, layoutComponent.className, config.className)
+            return Promise.resolve(layoutComponent.render(rootEl, model, config, layoutComponent));
+        }
+
+        var zipped = zipChildrenWithModels(layoutComponent, model);
+        while (rootEl.childElementCount > zipped.length) {
+            $(rootEl.children[rootEl.childElementCount - 1]).teardownAllComponents().remove();
         }
 
         return Promise.all(
-            zipChildrenWithModels(layoutComponent, model).map(function(childAndModel) {
+            zipped.map(function(childAndModel, i) {
                 var child = childAndModel.child,
-                    model = childAndModel.model,
-                    $el = $('<div>'),
-                    el = $el.get(0),
-                    cls = _.compact([
-                            child.className,
-                            packageNameToCssClass(child.ref)
-                        ]).forEach(function(cls) {
-                            addClassesToElement(cls, el);
-                        });
-                return (_.isFunction(child.model) ?
-                    Promise.resolve(child.model(model)) :
-                    Promise.resolve(child.model || model)
-                ).then(function(model) {
-                    if (_.isUndefined(model)) {
-                        throw new Error('No model specified')
-                    }
-                    if ('ref' in child) {
-                        var childComponent = findLayoutComponentsMatching({
-                            identifier: child.ref,
-                            model: model,
-                            rootModel: rootModel
-                        });
-                        return renderLayoutComponent(el, model, childComponent, child, rootModel, deferredAttachments)
-                    }
-                    if ('componentPath' in child) {
-                        deferredAttachments.push(attachComponent(child, el, model))
-                        return;
-                    }
-                    $el.html(document.createComment('Unable to Render: ' + JSON.stringify(child)));
-                })
-                .then(function() {
-                    $(el).off('modelUpdated').on('modelUpdated', function(event, data) {
-                        if (event.target !== el &&
-                            $(event.target).parentsUntil(el)) return;
+                    modelTransform = childAndModel.modelTransform || _.identity,
+                    $el = i < rootEl.childElementCount ? $(rootEl.children[i]) : $('<div>'),
+                    el = $el.get(0);
 
-                        $(this).children().trigger(event.type, data);
+                updateClasses(el, child.ref, child.className)
 
+                return Promise.resolve(modelTransform(model))
+                    .then(function(model) {
+                        if (_.isUndefined(model)) {
+                            throw new Error('No model specified')
+                        }
                         if ('ref' in child) {
+                            teardownOldComponents(el, { type: 'component' })
                             var childComponent = findLayoutComponentsMatching({
                                 identifier: child.ref,
-                                model: data.model,
+                                model: model,
                                 rootModel: rootModel
                             });
-                            if (childComponent) {
-                                (_.isFunction(child.model) ?
-                                        Promise.resolve(child.model(data.model)) :
-                                        Promise.resolve(child.model || data.model)
-                                ).then(function(model) {
-                                    var modelUpdatedDeferredAttachments = [],
-                                        args = [el, model, childComponent, child, rootModel, modelUpdatedDeferredAttachments];
-                                    if (_.isFunction(childComponent.render)) {
-                                        return renderLayoutComponent.apply(undefined, args);
-                                    } else if (childComponent.children) {
-                                        return synchronizeLayoutChildren.apply(undefined, args)
-                                            .then(function() {
-                                                modelUpdatedDeferredAttachments.forEach(function(f) {
-                                                    if (f) { f() }
-                                                })
-                                            })
-                                    }
-                                });
-                            }
+                            return renderLayoutComponent(el, model, childComponent, child, rootModel, deferredAttachments)
                         }
-                    });
-                    return el;
-                })
-                .catch(function(error) {
-                    console.error(error);
-                })
+                        if ('componentPath' in child) {
+                            deferredAttachments.push(attachComponent(child, el, model))
+                            return;
+                        }
+                        $el.html(document.createComment('Unable to Render: ' + JSON.stringify(child)));
+                    })
+                    .then(function() {
+                        return el;
+                    })
+                    .catch(function(error) {
+                        console.error(error);
+                    })
             }))
             .then(function(elements) {
-                var cls = _.compact([
-                        layoutComponent.className,
-                        packageNameToCssClass(layoutComponent.identifier)
-                    ]).forEach(function(cls) {
-                        addClassesToElement(cls, el);
-                    })
-
+                updateClasses(rootEl, layoutComponent.identifier, layoutComponent.className, config && config.className)
                 return Promise.resolve(
-                    initializeLayout(layoutComponent.layout, el, elements, layoutComponent.children)
+                    initializeLayout(rootEl, elements, layoutComponent)
                 );
             })
             .then(function() {
-                deferredAttachments.push(attachComponent(layoutComponent, el, model))
+                deferredAttachments.push(attachComponent(layoutComponent, rootEl, model))
             })
     }
 
-    function initializeLayout(layoutConfig, el, domElements, childrenConfig) {
+    function initializeLayout(el, domElements, layoutComponent) {
+        var layoutConfig = layoutComponent.layout;
         if (!layoutConfig) {
-            if (el.childNodes.length === 0) {
-                $(el).html(domElements)
+            teardownOldComponents(el, { type: 'layout' });
+
+            while (el.childElementCount < domElements.length) {
+                var child = domElements[el.childElementCount]
+                el.appendChild(child)
+            }
+            while (el.childElementCount > domElements.length) {
+                el.removeChild(el.children[el.childElementCount - 1])
             }
             return
         }
@@ -253,20 +233,34 @@ define([
 
         return Promise.require(type.componentPath)
             .then(function(LayoutType) {
-                LayoutType.attachTo(el, {
-                    layoutConfig: layoutConfig.options || {},
-                    children: domElements.map(function(el, i) {
-                        return {
-                            element: el,
-                            configuration: childrenConfig[i]
-                        }
-                    })
+                var children = domElements.map(function(el, i) {
+                    return {
+                        element: el,
+                        configuration: layoutComponent.collectionItem || layoutComponent.children[i]
+                    }
                 });
+
+                teardownOldComponents(el, { type: 'layout', excluding: LayoutType });
+
+                if ($(el).lookupComponent(LayoutType)) {
+                    $(el).trigger('updateLayout', {
+                        children: children
+                    });
+                } else {
+                    LayoutType.attachTo(el, {
+                        layoutConfig: layoutConfig.options || {},
+                        children: children
+                    });
+
+                    flightInstanceInfo(el, LayoutType).instance.teardownWhenNotLayout = LayoutType
+                }
             });
     }
 
     function attachComponent(config, el, model) {
-        if (!config.componentPath) return;
+        if (!config.componentPath) {
+            return;
+        }
         return function() {
             return Promise.require(config.componentPath)
                 .then(function(Component) {
@@ -281,15 +275,94 @@ define([
                         attrs.model = model;
                     }
 
-                    $(el).teardownComponent(Component);
-                    Component.attachTo(el, attrs);
+                    teardownOldComponents(el, { type: 'component', excluding: Component })
+
+                    var instanceInfos = flightRegistry.findInstanceInfoByNode(el),
+                        componentFilter = function(info) {
+                            return info.instance.constructor === Component;
+                        },
+                        eventFilter = function(eventInfo) {
+                            return eventInfo.type === 'updateModel';
+                        }
+
+                    if (instanceInfos && instanceInfos.length && _.filter(instanceInfos, componentFilter).length) {
+                        triggerUpdateModelAndStopPropagation(el, model);
+                    } else {
+                        Component.attachTo(el, attrs);
+                    }
+
+                    var instanceInfo = flightInstanceInfo(el, Component),
+                        suppressWarning = instanceInfo &&
+                            instanceInfo.instance.attr.ignoreUpdateModelNotImplemented === true;
+
+                    if (instanceInfo) {
+                        instanceInfo.instance.teardownWhenNotComponent = Component
+                        if (!_.some(instanceInfo.events, eventFilter) && !suppressWarning) {
+
+                            console.warn(
+                                'Component added to layout doesn\'t respond to "updateModel". ' +
+                                'Suppress warning with ' +
+                                '"ignoreUpdateModelNotImplemented" attribute',
+                                Component,
+                                el
+                            );
+                        }
+                    }
+
                 });
         }
     }
 
-    function packageNameToCssClass(packageName) {
-        if (packageName) {
-            return packageName.replace(/[.]/g, '-').replace(/[^a-zA-Z\-]/g, '').toLowerCase();
+    function updateClasses(el) {
+        var classes = _.chain(arguments)
+            .rest()
+            .compact()
+            .map(function(cls) {
+                if (cls.indexOf(' ') >= 0) {
+                    throw new Error('Spaces not allowed in classes')
+                }
+                if (cls.indexOf('.') >= 0) {
+                    return packageNameToCssClass(cls);
+                }
+                return cls;
+            })
+            .value()
+
+        removePreviousClasses(el);
+        modifyClassesOnElement(el, 'add', classes);
+
+        function packageNameToCssClass(packageName) {
+            if (packageName) {
+                return packageName.replace(/[.]/g, '-').replace(/[^a-zA-Z\-]/g, '').toLowerCase();
+            }
+        }
+        function removePreviousClasses(el) {
+            var toRemove = [];
+            for (var i = 0; i < el.classList.length; i++) {
+                var existing = el.classList.item(i),
+                    index = classes.indexOf(existing);
+                if (index === -1) {
+                    // Special case, should be updated
+                    if (existing !== 'type-content' ||
+                        !_.contains(classes, 'org-visallo-layout-root')) {
+                        toRemove.push(existing)
+                    }
+                } else {
+                    classes.splice(index, 1)
+                }
+            }
+            modifyClassesOnElement(el, 'remove', toRemove);
+        }
+        function modifyClassesOnElement(el, action, classes) {
+            if (el && action && classes.length) {
+                classes.forEach(function(cls) {
+                    if (action === 'add' && !el.classList.contains(cls)) {
+                        el.classList.add(cls);
+                    } else if (action === 'remove' && el.classList.contains(cls)) {
+                        el.classList.remove(cls);
+                    }
+                })
+            }
         }
     }
 
@@ -346,10 +419,6 @@ define([
             throw new Error('No layout component available for');
         }
 
-        //if (sorted.length > 1) {
-            //console.debug('Found ' + sorted.length + ' layout components:', sorted);
-        //}
-
         return selected;
     }
 
@@ -360,7 +429,16 @@ define([
             }
             if (component.applyTo) {
                 var applyTo = component.applyTo,
-                    useModel = _.isUndefined(model) ? rootModel : model;
+                    useModel = _.isUndefined(model) ? rootModel : model,
+                    validApplyTos = ['type', 'displayType', 'conceptIri', 'edgeLabel'],
+                    applyToKeys = _.keys(applyTo),
+                    applyToIsValid = applyToKeys.length === 1 &&
+                        _.contains(validApplyTos, applyToKeys[0] || '');
+
+                if (!applyToIsValid) {
+                    console.error(applyTo)
+                    throw new Error('Invalid applyTo: Must contain 1 key: ' + validApplyTos.join(', '))
+                }
 
                 if (useModel) {
                     var multiple = _.isArray(useModel) && useModel.length > 1,
@@ -414,10 +492,28 @@ define([
         return true;
     }
 
-    function addClassesToElement(classes, element) {
-        var split = _.isString(classes) ? _.compact(classes.split(/\s+/)) : classes;
-        split.forEach(function(cls) {
-            element.classList.add(cls);
-        });
+    function triggerUpdateModelAndStopPropagation(el, model) {
+        // Prevent infinite loop
+        if (el.classList.contains('org-visallo-layout-root')) {
+            return;
+        }
+        $(el)
+            .off('updateModel', elementUpdateModelHandler)
+            .on('updateModel', elementUpdateModelHandler)
+            .trigger('updateModel', { model: model })
     }
+
+    function elementUpdateModelHandler(event) {
+        event.stopPropagation();
+    }
+
+    function flightInstanceInfo(el, Component) {
+        var instanceInfos = flightRegistry.findInstanceInfoByNode(el);
+        if (instanceInfos) {
+            return _.find(instanceInfos, function(info) {
+                return info.instance.constructor === Component;
+            })
+        }
+    }
+
 });

@@ -33,7 +33,7 @@ define([
             this.model = this.attr.model;
 
             this.node.classList.add('org-visallo-detectedObjects');
-            this.on('modelUpdated', this.onModelUpdated);
+            this.on('updateModel', this.onUpdateModel);
             this.on('closeDropdown', this.onCloseDropdown);
             this.on('click', {
                 detectedObjectSelector: this.onDetectedObjectClicked
@@ -64,7 +64,7 @@ define([
             }
         };
 
-        this.onModelUpdated = function(event, data) {
+        this.onUpdateModel = function(event, data) {
             this.model = data.model;
             this.updateDetectedObjects();
         };

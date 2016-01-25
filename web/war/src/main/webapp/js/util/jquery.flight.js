@@ -26,6 +26,16 @@ define(['flight/lib/registry', 'jquery'], function(registry) {
         });
     };
 
+    $.fn.teardownAllExcept = function(instanceConstructor) {
+        return this.each(function() {
+            $(this).lookupAllComponents().forEach(function(instance) {
+                if (instance.constructor !== instanceConstructor) {
+                    instance.teardown();
+                }
+            })
+        });
+    };
+
     $.fn.lookupAllComponentsWithMixin = function(Mixin) {
         var instances = [],
             results = registry.findInstanceInfoByNode(this[0]);

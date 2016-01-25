@@ -87,7 +87,7 @@ define([
             });
 
             this.model = this.attr.model;
-            this.on('modelUpdated', function(event, data) {
+            this.on('updateModel', function(event, data) {
                 this.model = data.model;
                 this.updateText();
             });

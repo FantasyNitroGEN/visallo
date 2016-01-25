@@ -1,10 +1,19 @@
-
+/* globals chai:false */
 define(['configuration/plugins/registry'], function(registry) {
 
     describe('Registry', function() {
+        var originalWarn = console.warn;
 
         before(function() {
             registry.clear()
+        })
+
+        beforeEach(function() {
+            console.warn = chai.spy()
+        })
+
+        afterEach(function() {
+            console.warn = originalWarn
         })
 
         it('should be able to register and unregister extensions', function() {
@@ -37,6 +46,7 @@ define(['configuration/plugins/registry'], function(registry) {
                 return true
             })
             registry.extensionsForPoint('a').length.should.equal(1)
+            console.warn.should.be.called.once
         })
     })
 })

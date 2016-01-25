@@ -281,7 +281,7 @@ define([
             this.on('addProperty', this.onAddProperty);
             this.on('deleteProperty', this.onDeleteProperty);
             this.on('editProperty', this.onEditProperty);
-            this.on('modelUpdated', function(event, data) {
+            this.on('updateModel', function(event, data) {
                 self.data = data.model;
                 ontologyLoaded.done(function() {
                     self.update(data.model.properties)
@@ -338,11 +338,11 @@ define([
         };
 
         this.closePropertyForm = function() {
-            this.$node.closest('.type-content').find('.underneath').teardownComponent(PropertyForm);
+            this.$node.find('.underneath').teardownComponent(PropertyForm);
         };
 
         this.requestFailure = function(error) {
-            var target = this.$node.closest('.type-content').find('.underneath');
+            var target = this.$node.find('.underneath');
             this.trigger(target, 'propertyerror', { error: error });
         };
 

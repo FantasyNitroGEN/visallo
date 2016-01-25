@@ -22,11 +22,11 @@ define([
             applyTo: { displayType: 'video' },
             identifier: 'org.visallo.layout.body',
             children: [
-                { componentPath: 'detail/video/video' },
-                { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'comments/comments', modelAttribute: 'data' },
-                { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
-                { componentPath: 'detail/text/text' }
+                { componentPath: 'detail/video/video', className: 'org-visallo-video' },
+                { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
+                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
+                { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
             ]
         },
         {
@@ -35,10 +35,10 @@ define([
             children: [
                 { componentPath: 'detail/image/image' },
                 { componentPath: 'detail/detectedObjects/detectedObjects' },
-                { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'comments/comments', modelAttribute: 'data' },
-                { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
-                { componentPath: 'detail/text/text' }
+                { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
+                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
+                { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
             ]
         },
         {
@@ -46,10 +46,10 @@ define([
             identifier: 'org.visallo.layout.body',
             children: [
                 { componentPath: 'detail/audio/audio' },
-                { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'comments/comments', modelAttribute: 'data' },
-                { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
-                { componentPath: 'detail/text/text' }
+                { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
+                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
+                { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
             ]
         },
         {

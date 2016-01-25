@@ -74,7 +74,8 @@ define([
 
     function Toolbar() {
         this.defaultAttrs({
-            toolbarItemSelector: 'li'
+            toolbarItemSelector: 'li',
+            ignoreUpdateModelNotImplemented: true
         });
 
         this.after('initialize', function() {
@@ -110,7 +111,7 @@ define([
                 toolbarItemSelector: this.onToolbarItem
             });
             if (toolbarItems.length) {
-                this.$node.addClass('org-visallo-toolbar').html(template(config));
+                this.$node.html(template(config));
                 this.$node.find('li').each(function() {
                     var $this = $(this),
                         shouldHide = $this.hasClass('has-submenu') ?

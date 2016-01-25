@@ -52,7 +52,7 @@ define([
 
             this.renderHistograms(this.attr.model, { duration: 0 });
 
-            this.on('modelUpdated', function(event, data) {
+            this.on('updateModel', function(event, data) {
                 self.renderHistograms(data.model);
             })
         });

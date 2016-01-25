@@ -225,7 +225,7 @@ Mocha.interfaces['mocha-flight'] = function() {
        */
       context.setupComponent = function (ctx, fixture, options) {
         if (ctx.component) {
-          ctx.component.teardown();
+          ctx.component = null;
           ctx.$node.remove();
         }
 

@@ -1,3 +1,5 @@
+/* globals module:false process:false */
+/* eslint strict:0 */
 module.exports = function(config) {
 
     // karma start --coverage [coverageType]
@@ -20,25 +22,28 @@ module.exports = function(config) {
                 // Templates
                 {pattern: 'js/**/*.ejs', included: false},
                 {pattern: 'js/**/*.hbs', included: false},
-                {pattern: 'test/**/*.json', included: false},
 
                 // Images
-                {pattern: 'img/**/*.*', included: false},
+                //{pattern: 'img/**/*.png', included: false},
                 {pattern: 'test/assets/*', included: false},
 
                 // Included libs
                 'libs/jquery/dist/jquery.js',
+                'libs/underscore/underscore.js',
                 'libs/bootstrap/docs/assets/js/bootstrap.js',
 
                 // Libraries
                 {pattern: 'libs/**/*.js', included: false},
-                {pattern: 'node_modules/chai*/*.js', included: false},
+                {pattern: 'node_modules/chai/chai.js', included: false},
+                {pattern: 'node_modules/chai-datetime/chai-datetime.js', included: false},
+                {pattern: 'node_modules/chai-spies/chai-spies.js', included: false},
 
                 // Test Files
                 {pattern: 'test/unit/spec/**/*.js', included: false},
 
                 // Test Mocks
                 {pattern: 'test/unit/mocks/**/*.js', included: false},
+                {pattern: 'test/unit/mocks/**/*.json', included: false},
                 {pattern: 'test/unit/utils/**/*.js', included: false},
 
                 // Test runner
@@ -49,12 +54,13 @@ module.exports = function(config) {
             exclude: [ ],
 
             proxies: {
-                '/resource': '/base/test/assets/resource'
+                '/resource': '/base/test/assets/resource',
+                '/vertex/thumbnail': '/base/test/assets/resource'
             },
 
             // test results reporter to use
             // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-            reporters: ['progress'],
+            reporters: ['mocha'],
 
             // web server port
             port: 9876,
@@ -102,9 +108,7 @@ module.exports = function(config) {
             'js/*.js,!js/require.config.js': 'coverage',
             'js/**/*.js': 'coverage'
         };
-
         karmaConfig.reporters.push('coverage');
-
         karmaConfig.coverageReporter = {
             type: coverageType,
             dir: 'build/coverage/'

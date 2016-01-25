@@ -676,10 +676,6 @@ define([
             });
         })
 
-        describe('propFromAudit', function() {
-            it('should format values for audit')
-        })
-
         describe('propRaw', function() {
             it('should have propRaw function', function() {
                 expect(V).to.have.property('propRaw').that.is.a.function

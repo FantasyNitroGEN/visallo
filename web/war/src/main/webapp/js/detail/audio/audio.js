@@ -19,9 +19,7 @@ define([
         })
 
         this.after('initialize', function() {
-            this.$node
-                .addClass('org-visallo-audio')
-                .html('<div class="audio-preview"></div>')
+            this.$node.html('<div class="audio-preview"></div>')
 
             var model = this.attr.model;
 

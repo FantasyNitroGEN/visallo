@@ -11,7 +11,8 @@ define([
     function Vertex() {
 
         this.attributes({
-            model: null
+            model: null,
+            ignoreUpdateModelNotImplemented: true
         })
 
         this.after('initialize', function() {

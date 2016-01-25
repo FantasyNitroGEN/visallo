@@ -22,12 +22,13 @@ define([
         this.attributes({
             model: null,
             imageSelector: 'img',
-            artifactImageSelector: '.image-preview'
+            artifactImageSelector: '.image-preview',
+            ignoreUpdateModelNotImplemented: true
         });
 
         this.after('initialize', function() {
             this.$node
-                .addClass('org-visallo-image loading')
+                .addClass('loading')
                 .html(template({
                     src: F.vertex.imageDetail(this.attr.model),
                     id: this.attr.model.id

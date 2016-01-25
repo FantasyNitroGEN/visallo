@@ -11,7 +11,8 @@ define([
     function Edge() {
 
         this.attributes({
-            model: null
+            model: null,
+            ignoreUpdateModelNotImplemented: true
         })
 
         this.after('initialize', function() {

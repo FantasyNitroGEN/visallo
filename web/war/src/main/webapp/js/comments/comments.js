@@ -86,7 +86,8 @@ define([
     function Comments() {
 
         this.attributes({
-            data: null
+            data: null,
+            ignoreUpdateModelNotImplemented: true
         });
 
         this.after('initialize', function() {
@@ -103,7 +104,7 @@ define([
             this.on('editProperty', this.onEditProperty);
             this.on('deleteProperty', this.onDeleteProperty);
 
-            this.$node.addClass('org-visallo-comments').html(template({}));
+            this.$node.html(template({}));
             this.update();
         });
 

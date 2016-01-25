@@ -90,7 +90,8 @@ Setting a `collectionItem` instead of children will duplicate the `collectionIte
 
 1. JSON object given to layout engine
 2. Engine finds matches calling `applyTo` functions (if available) on all registered `Layout Component`s with identifier of `org.visallo.layout.root` and checking for truthiness.
-    1. If no matches, Concept/Edge Types are used to match components with `applyTo` set to iri. (and identifier matches)
+    1. If no matches, displayType is used to match components with `applyTo: { displayType: '[a display type]'}`. (and identifier matches)
+    1. If no matches, Concept/Edge Types are used to match components with `applyTo` having keys of `conceptIri|edgeLabel` set to iri. (and identifier matches)
     2. If no matches, Check concept/edge ancestors for `applyTo` match (and identifier matches)
     3. If no matches, Check components with no defined `applyTo` (and identifier matches)
     4. If no matches, throw error

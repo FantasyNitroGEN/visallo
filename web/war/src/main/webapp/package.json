@@ -48,6 +48,7 @@
   "devDependencies": {
     "chai": "3.4.1",
     "chai-datetime": "1.4.0",
+    "chai-spies": "0.7.1",
     "grunt": "0.4.5",
     "grunt-amd-wrap": "^1.0.1",
     "grunt-cli": "0.1.13",

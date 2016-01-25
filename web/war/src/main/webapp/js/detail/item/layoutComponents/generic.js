@@ -27,17 +27,17 @@ define([], function() {
         {
             identifier: 'org.visallo.layout.body',
             children: [
-                { componentPath: 'detail/properties/properties', modelAttribute: 'data' },
-                { componentPath: 'comments/comments', modelAttribute: 'data' },
-                { componentPath: 'detail/relationships/relationships', modelAttribute: 'data' },
-                { componentPath: 'detail/text/text' }
+                { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
+                { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
+                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
+                { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
             ]
         },
         {
             identifier: 'org.visallo.layout.header',
             children: [
                 { ref: 'org.visallo.layout.header.text' },
-                { componentPath: 'detail/toolbar/toolbar' }
+                { componentPath: 'detail/toolbar/toolbar', className: 'org-visallo-toolbar' }
             ]
         }
     ];

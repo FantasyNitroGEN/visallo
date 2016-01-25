@@ -1,7 +1,7 @@
 
-describeComponent('detail/artifact/image/image', function() {
+describeComponent('detail/image/image', function() {
 
-    var SRC = '/base/img/visallo.png',
+    var SRC = 'vertex/thumbnail?workspaceId=w1&graphVertexId=avertexid&width=800',
         EXPECTED_WIDTH = 364,
         VERTEX_ID = 'aVertexId',
         ROW_KEY = 'aRowKey',
@@ -12,17 +12,20 @@ describeComponent('detail/artifact/image/image', function() {
 
     beforeEach(function() {
         setupComponent(this, {
-            data: {
+            model: {
                 id: 'avertexid',
-                src: SRC
+                type: 'vertex',
+                properties: [
+                    { name: 'http://visallo.org#conceptType', value: 'http://visallo.org/dev#image' },
+                    { name: 'http://visallo.org#raw', value: '', metadata: { 'http://visallo.org#mimeType': 'image/png' } } 
+                ]
             }
         });
-
         this.$facebox = this.$node.find('.facebox:not(.editing)')
         this.$faceboxEdit = this.$node.find('.facebox.editing')
     });
 
-    xdescribe('image', function() {
+    describe('image', function() {
 
         it('should set image src', function() {
             var img = this.component.select('imageSelector');
@@ -34,7 +37,7 @@ describeComponent('detail/artifact/image/image', function() {
             this.$faceboxEdit.is(':visible').should.be.false
         })
 
-        it('should show facebox on detected object tag hover', function() {
+        xit('should show facebox on detected object tag hover', function() {
             var box = this.$facebox;
 
             box.is(':visible').should.be.false
@@ -60,7 +63,7 @@ describeComponent('detail/artifact/image/image', function() {
             box.is(':visible').should.be.false
         })
 
-        it('should show facebox for resolved entity', function() {
+        xit('should show facebox for resolved entity', function() {
 
             this.$node.trigger('DetectedObjectEdit', {
                 entityVertex: {
@@ -97,7 +100,7 @@ describeComponent('detail/artifact/image/image', function() {
             checkFacebox(this.$faceboxEdit, { visible: false })
         })
 
-        it('should show facebox for unresolved entity', function() {
+        xit('should show facebox for unresolved entity', function() {
             this.$node.trigger('DetectedObjectEdit', {
                 'http://visallo.org#rowKey': ROW_KEY,
                 x1: 0, y1: 0, x2: 10, y2: 10

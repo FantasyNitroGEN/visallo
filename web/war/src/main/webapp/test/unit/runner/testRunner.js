@@ -1,4 +1,4 @@
-/* globals assert:true, expect:true, i18n:true*/
+/* globals assert:true, expect:true, i18n:true, chai:true */
 var tests = Object.keys(window.__karma__.files).filter(function(file) {
     return (/^\/base\/test\/unit\/spec\/.*\.js$/).test(file);
 });
@@ -19,6 +19,7 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
         paths: {
             chai: '../node_modules/chai/chai',
             'chai-datetime': '../node_modules/chai-datetime/chai-datetime',
+            'chai-spies': '../node_modules/chai-spies/chai-spies',
             'mocha-flight': '../test/unit/utils/mocha-flight',
 
             // MOCKS
@@ -39,7 +40,8 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
             '../libs/underscore/underscore'
         ],
 
-        callback: function(chai) {
+        callback: function(_chai) {
+            chai = _chai
             if (typeof Function.prototype.bind !== 'function') {
                 /*eslint no-extend-native:0 */
                 Function.prototype.bind = function() {
@@ -59,14 +61,17 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
 
             require([
                 'chai-datetime',
+                'chai-spies',
                 'util/handlebars/before_auth_helpers',
                 'util/handlebars/after_auth_helpers',
                 'util/jquery.flight',
+                'util/jquery.removePrefixedClasses',
                 'mocha-flight'
-            ], function(chaiDateTime) {
+            ], function(chaiDateTime, chaiSpies) {
 
                 chai.should();
                 chai.use(chaiDateTime);
+                chai.use(chaiSpies);
 
                 // Globals for assertions
                 assert = chai.assert;
@@ -78,6 +83,7 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
 
                 // Use the twitter flight interface to mocha
                 mocha.ui('mocha-flight');
+                mocha.timeout(10000)
                 mocha.options.globals.push('ejs', 'cytoscape', 'DEBUG');
 
                 // Run tests after loading

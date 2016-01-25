@@ -26,7 +26,7 @@ define([
         });
 
         this.after('initialize', function() {
-            this.$node.empty().addClass('org-visallo-relationships');
+            this.$node.empty();
 
             this.on('click', {
                 relationshipsHeaderSelector: this.onToggleRelationships,
@@ -34,7 +34,7 @@ define([
             });
 
             this.data = this.attr.data;
-            this.on('modelUpdated', function(event, data) {
+            this.on('updateModel', function(event, data) {
                 this.data = data.model;
                 this.update();
             });

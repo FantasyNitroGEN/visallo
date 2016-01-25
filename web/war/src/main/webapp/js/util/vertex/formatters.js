@@ -458,11 +458,6 @@ define([
                 }
             },
 
-            propFromAudit: function(vertex, propertyAudit) {
-                //propertyName, newValue, previousValue
-                return V.propDisplay(propertyAudit.propertyName, propertyAudit.newValue || propertyAudit.previousValue);
-            },
-
             rollup: function(name, values) {
                 name = V.propName(name);
                 var ontologyProperty = propertiesByTitle[name],

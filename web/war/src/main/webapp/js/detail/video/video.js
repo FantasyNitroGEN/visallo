@@ -15,13 +15,12 @@ define([
         this.attributes({
             model: null,
             previewSelector: '.video-preview',
-            currentTranscriptSelector: '.currentTranscript'
+            currentTranscriptSelector: '.currentTranscript',
+            ignoreUpdateModelNotImplemented: true
         })
 
         this.after('initialize', function() {
-            this.$node
-                .addClass('org-visallo-video')
-                .html('<div class="video-preview"></div><div class="currentTranscript"></div>')
+            this.$node.html('<div class="video-preview"></div><div class="currentTranscript"></div>')
 
             var model = this.attr.model;
 

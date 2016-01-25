@@ -14,26 +14,30 @@ define([
 
         this.after('initialize', function() {
 
-            this.on('parentLayoutChanged', function(event, data) {
-                console.log(event.type, data)
+            this.on('updateLayout', function(event, data) {
+                if (event.target === this.node) {
+                    this.renderChildren(data.children);
+                }
             })
 
-            this.renderChildren();
+            this.renderChildren(this.attr.children);
         });
 
-        this.renderChildren = function() {
+        this.renderChildren = function(children) {
             var styling = calculateStyles(this.attr.layoutConfig)
-            this.$node
-                .css(styling)
-                .empty()
-                .append($.map(this.attr.children, function(child) {
-                    if (child.configuration.style) {
-                        $(child.element).css(child.configuration.style);
-                    }
-                    return child.element;
-                }))
-        }
+            this.$node.css(styling)
 
+            while (this.node.childElementCount < children.length) {
+                var child = children[this.node.childElementCount]
+                if (child.configuration.style) {
+                    $(child.element).css(child.configuration.style);
+                }
+                this.node.appendChild(child.element)
+            }
+            while (this.node.childElementCount > children.length) {
+                this.node.removeChild(this.node.children[this.node.childElementCount - 1])
+            }
+        };
     }
 
     function calculateStyles(override) {
