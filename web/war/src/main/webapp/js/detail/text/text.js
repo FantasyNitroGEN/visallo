@@ -515,7 +515,9 @@ define([
                 // Ignore if too long of selection
                 var wordLength = text.split(/\s+/).length;
                 if (wordLength > 10) {
-                    return;
+                    return require(['util/actionbar/actionbar'], function(ActionBar) {
+                        ActionBar.teardownAll();
+                    });
                 }
 
                 if (sel.rangeCount === 0) {
