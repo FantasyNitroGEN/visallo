@@ -215,9 +215,9 @@ define([
         this.onChangeTitle = function(event) {
             var self = this,
                 $target = $(event.target),
-                val = $target.val();
+                val = $target.val().trim().replace(/\s+/g, ' ');
 
-            if ($.trim(val).length === 0) {
+            if (!val.length) {
                 return;
             }
 
