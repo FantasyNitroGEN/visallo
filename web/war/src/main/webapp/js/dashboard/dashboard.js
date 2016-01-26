@@ -103,7 +103,7 @@ define([
                 refreshSelector: this.onRefresh
             });
             this.on('change keyup', {
-                headerSelector: this.onTitleInputKeyUp
+                headerSelector: this.onChangeTitle
             });
             this.on('showError', this.onShowError);
             this.on('finishedLoading', this.onFinishedLoading);
@@ -269,14 +269,15 @@ define([
             });
         };
 
-        this.onTitleInputKeyUp = function(event) {
+        this.onChangeTitle = function(event) {
             var self = this;
             if (event.type === 'change' || event.which === 13) {
-                var newTitle = event.target.value.trim(),
+                var newTitle = event.target.value.trim().replace(/\s+/g, ' '),
                     previousTitle = this.dashboard.title;
 
                 if (newTitle.length) {
                     this.dashboard.title = newTitle;
+                    this.$node.find('h1.header input').val(newTitle);
                     this.requestTitleChange(newTitle)
                         .catch(function() {
                             event.target.value = previousTitle;
@@ -705,7 +706,10 @@ define([
 
         this.adjustHeader = function() {
             var $input = this.$node.find('h1.header input'),
-                $span = $('<span>').text($input.val()).insertAfter($input.next('button')),
+                $span = $('<span>')
+                    .text($input.val())
+                    .css('white-space', 'pre')
+                    .insertAfter($input.next('button')),
                 outerWidth = $span.outerWidth();
 
             if (outerWidth) {
