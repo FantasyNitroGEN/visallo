@@ -46,6 +46,10 @@
             <version>${jetty.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-jetty-session-manager</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
             <scope>compile</scope>
@@ -58,8 +62,8 @@
         </dependency>
     </dependencies>
 
-	<build>
-		<plugins>
+    <build>
+        <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
@@ -84,6 +88,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 </project>
