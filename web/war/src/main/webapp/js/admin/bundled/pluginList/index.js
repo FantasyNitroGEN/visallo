@@ -92,7 +92,7 @@ define([
                                     return l;
                                   })
                                   .sortBy(function(p) {
-                                    return (p.name || p.className).toLowerCase();
+                                    return (p.name || p.className || p.fileName).toLowerCase();
                                   })
                                   .value();
                             })
