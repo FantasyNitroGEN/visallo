@@ -58,6 +58,10 @@ module.exports = function(config) {
                 '/vertex/thumbnail': '/base/test/assets/resource'
             },
 
+            osxReporter: {
+                activate: 'com.apple.Terminal'
+            },
+
             // test results reporter to use
             // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
             reporters: ['mocha'],
