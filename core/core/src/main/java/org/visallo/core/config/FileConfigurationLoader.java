@@ -201,8 +201,7 @@ public class FileConfigurationLoader extends ConfigurationLoader {
             properties.load(in);
             for (Map.Entry<Object, Object> prop : properties.entrySet()) {
                 String key = prop.getKey().toString();
-                String value = prop.getValue().toString().replace("${" + FileConfigurationLoader.ENV_VISALLO_DIR + "}",
-                        System.getProperty(ENV_VISALLO_DIR, "."));
+                String value = prop.getValue().toString();
                 results.put(key, value);
             }
             loadedFiles.add(fileName);
