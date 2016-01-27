@@ -52,6 +52,8 @@ define([
             })
         });
 
+        this.applyingAll = false;
+
         this.setup = function() {
             var self = this,
                 formatLabel = function(name) {
@@ -130,7 +132,9 @@ define([
                         }
                     });
                     self.updateVisibility();
-                    self.updateHeader(self.$node.closest('.popover:visible').length > 0);
+                    if (!self.applyingAll) {
+                        self.updateHeader(self.$node.closest('.popover:visible').length > 0);
+                    }
                     self.updateDraggables();
                     self.$node.find('.diffs-list').scrollTop(previousScroll);
                 });
@@ -427,6 +431,7 @@ define([
         };
 
         this.onApplyAll = function(event) {
+            this.applyingAll = true;
             var self = this,
                 button = $(event.target).addClass('loading').attr('disabled', true),
                 otherButton = button.siblings('button').attr('disabled', true),
@@ -482,6 +487,7 @@ define([
                     bothButtons.hide().removeAttr('disabled').removeClass('loading');
                     self.$node.find('.diff-content .alert').remove();
                     self.trigger(document, 'updateDiff');
+                    self.applyingAll = false;
                 })
                 .then(function(response) {
                     var failures = response.failures,
