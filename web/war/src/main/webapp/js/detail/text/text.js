@@ -429,9 +429,7 @@ define([
                 return;
             }
 
-            require(['util/actionbar/actionbar'], function(ActionBar) {
-                ActionBar.teardownAll();
-
+            requireAndCleanupActionBar().then(function(ActionBar) {
                 var $text = $target.closest('.text'),
                     $textOffset = $text.closest('.nav-with-background').offset();
 
@@ -515,9 +513,7 @@ define([
                 // Ignore if too long of selection
                 var wordLength = text.split(/\s+/).length;
                 if (wordLength > 10) {
-                    return require(['util/actionbar/actionbar'], function(ActionBar) {
-                        ActionBar.teardownAll();
-                    });
+                    return requireAndCleanupActionBar();
                 }
 
                 if (sel.rangeCount === 0) {
@@ -550,8 +546,7 @@ define([
 
                 var $text = anchor.closest(is),
                     $textOffset = $text.closest('.nav-with-background').offset();
-                require(['util/actionbar/actionbar'], function(ActionBar) {
-                    ActionBar.teardownAll();
+                requireAndCleanupActionBar().then(function(ActionBar) {
                     ActionBar.attachTo(self.node, {
                         alignTo: 'textselection',
                         alignWithin: $text,
@@ -1008,5 +1003,13 @@ define([
             $(event.target).closest('.underneath').length === 0 &&
             !($(event.target).parent().hasClass('currentTranscript')) &&
             !($(event.target).hasClass('alert alert-error')));
+    }
+
+    function requireAndCleanupActionBar() {
+        return Promise.require('util/actionbar/actionbar')
+            .then(function(ActionBar) {
+                ActionBar.teardownAll();
+                return ActionBar;
+            });
     }
 });
