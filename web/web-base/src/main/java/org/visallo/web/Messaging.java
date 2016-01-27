@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @AtmosphereHandlerService(
         path = Messaging.PATH,
         broadcasterCache = UUIDBroadcasterCache.class,
@@ -227,15 +229,16 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
         broadcaster = resource.getBroadcaster();
         try {
             String authUserId = CurrentUser.getUserId(resource.getRequest());
-            if (authUserId == null) {
-                throw new RuntimeException("Could not find user in session");
-            }
+            checkNotNull(authUserId, "Could not find user in session");
             User authUser = userRepository.findById(authUserId);
+            checkNotNull(authUser, "Could not find user with id: " + authUserId);
 
-            LOGGER.debug("Setting user %s status to %s", authUserId, status.toString());
-            userRepository.setStatus(authUserId, status);
+            if (authUser.getUserStatus() != status) {
+                LOGGER.debug("Setting user %s status to %s", authUserId, status.toString());
+                userRepository.setStatus(authUserId, status);
 
-            this.workQueueRepository.pushUserStatusChange(authUser, status);
+                this.workQueueRepository.pushUserStatusChange(authUser, status);
+            }
         } catch (Exception ex) {
             LOGGER.error("Could not update status", ex);
         } finally {
