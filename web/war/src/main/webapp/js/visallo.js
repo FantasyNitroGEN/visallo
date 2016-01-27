@@ -49,7 +49,7 @@ function(jQuery,
     var progress = 0,
         progressBar = null,
         progressBarText = null,
-        TOTAL_PROGRESS = 5,
+        TOTAL_PROGRESS = 4,
         MAX_RESIZE_TRIGGER_INTERVAL = 250,
         App, FullScreenApp, F, withDataRequest;
 
@@ -92,7 +92,6 @@ function(jQuery,
                 'util/withDataRequest',
                 'util/handlebars/before_auth_helpers'
             ], function(i18n, _F, _withDataRequest) {
-                updateVisalloLoadingProgress('Utilities');
                 window.i18n = i18n;
                 F = _F;
                 withDataRequest = _withDataRequest;
@@ -148,8 +147,6 @@ function(jQuery,
             })
 
         function attachApplication(loginRequired, message, options) {
-            updateVisalloLoadingProgress('Extensions');
-
             if (!event) {
                 $('html')
                     .toggleClass('fullscreenApp', mainApp)
@@ -161,6 +158,8 @@ function(jQuery,
             visalloData.isFullscreen = false;
 
             if (loginRequired) {
+                // Login required, once less progress item (no extensions)
+                TOTAL_PROGRESS--;
                 updateVisalloLoadingProgress('User Interface');
 
                 $(document).one('loginSuccess', function() {
@@ -183,6 +182,8 @@ function(jQuery,
                     })
                 });
             } else {
+                updateVisalloLoadingProgress('Extensions');
+
                 document.addEventListener('pluginsLoaded', function loaded() {
                     updateVisalloLoadingProgress('User Interface');
 
