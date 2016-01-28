@@ -33,6 +33,13 @@
       cursor: pointer;
     }
 
+    &.expanded-notification {
+      h1, h2 {
+        word-break: break-all;
+        white-space: normal;
+      }
+    }
+
     h1, h2 {
       font-weight: normal;
       margin: 0;
@@ -156,6 +163,14 @@
         text-shadow: none;
       }
       padding-left: 28px;
+      max-width: 70em;
+
+      &.expanded-notification {
+        h1, h2 {
+            word-break: break-all;
+            white-space: normal;
+        }
+      }
 
       &.informational {
         h1 {

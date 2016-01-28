@@ -14,7 +14,8 @@ define([
             animated: true,
             emptyMessage: true,
             showInformational: true,
-            showUserDismissed: false
+            showUserDismissed: false,
+            notificationSelector: '.notifications .notification'
         });
 
         this.after('initialize', function() {
@@ -35,6 +36,8 @@ define([
             this.on(document, 'postLocalNotification', this.onPostLocalNotification);
             this.on(document, 'notificationActive', this.onNotificationActive);
             this.on(document, 'notificationDeleted', this.onNotificationDeleted);
+
+            this.on('mouseover', {notificationSelector: this.onMouseOver});
 
             this.immediateUpdate = this.update;
             this.update = _.debounce(this.update.bind(this), 250);
@@ -58,6 +61,7 @@ define([
             this.$container = $('<div>')
                 .addClass('notifications')
                 .appendTo(this.$node);
+
         });
 
         this.onPostLocalNotification = function(event, data) {
@@ -82,6 +86,20 @@ define([
             this.update();
             this.trigger('notificationCountUpdated', { count: this.stack.length });
         };
+
+        this.onMouseOver = function(event, data) {
+            var $notification = $(data.el);
+            var hoverTimer = setTimeout(function() {
+                $notification.addClass('expanded-notification');
+            }, 1000, data);
+
+            $notification.on('mouseleave', function() {
+                clearTimeout(hoverTimer);
+                if ($notification.hasClass('expanded-notification')) {
+                    $notification.removeClass('expanded-notification');
+                }
+            })
+        }
 
         this.displayNotifications = function(notifications) {
             var self = this,
