@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!./form',
+    'hbs!./form-tpl',
     'tpl!./shareRow',
     'tpl!./permissions',
     'util/users/userSelect',
@@ -21,7 +21,7 @@ define([
 
         this.defaultAttrs({
             titleSelector: '.workspace-title',
-            titleErrorSelector: '.title-error',
+            titleErrorSelector: '.form-title-error',
             shareListSelector: '.share-list',
             shareHeader: '.share-header',
             shareFormSelector: '.share-form',
@@ -226,6 +226,7 @@ define([
             if (this.attr.workspaceTitlesLowercase && _.contains(this.attr.workspaceTitlesLowercase, val.toLowerCase())) {
                 $(this.attr.titleSelector).addClass('invalid');
                 $(this.attr.titleErrorSelector).show();
+                return;
             } else {
                 $(this.attr.titleSelector).removeClass('invalid');
                 $(this.attr.titleErrorSelector).hide();

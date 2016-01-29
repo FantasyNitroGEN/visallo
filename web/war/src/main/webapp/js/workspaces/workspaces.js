@@ -3,7 +3,7 @@ define([
     'flight/lib/component',
     './form/form',
     'tpl!./workspaces',
-    'tpl!./list',
+    'hbs!./list-tpl',
     'tpl!./item',
     'util/withDataRequest',
     'util/formatters'
@@ -26,7 +26,8 @@ define([
             addNewInputSelector: 'input.new',
             addNewSelector: 'button.new',
             disclosureSelector: 'button.disclosure',
-            formSelector: '.workspace-form'
+            formSelector: '.workspace-form',
+            titleErrorSelector: '.add-title-error'
         });
 
         this.after('initialize', function() {
@@ -82,28 +83,47 @@ define([
                 title = $.trim($input.val());
 
             if (!title) return;
-            if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, title.toLowerCase())) return;
+            if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, title.toLowerCase())) {
+                $(this.attr.addNewInputSelector).addClass('invalid');
+                $(this.attr.titleErrorSelector).show();
+                return;
+            } else {
+                $(this.attr.titleErrorSelector).hide();
+                $(this.attr.addNewInputSelector).removeClass('invalid');
+                var $button = $input.prop('disabled', true)
+                    .next('button')
+                    .prop('disabled', true)
+                    .addClass('loading')
 
-            var $button = $input.prop('disabled', true)
-                .next('button')
-                .prop('disabled', true)
-                .addClass('loading')
-
-            this.dataRequest('workspace', 'create', { title: title })
-                .then(function(workspace) {
-                    $input.val('')
-                    self.trigger('switchWorkspace', { workspaceId: workspace.workspaceId });
-                })
-                .catch(function(error) {
-                })
-                .finally(function() {
-                    $input.add($button).prop('disabled', false);
-                    $button.removeClass('loading');
-                    $input.focus();
-                })
+                this.dataRequest('workspace', 'create', { title: title })
+                    .then(function(workspace) {
+                        $input.val('')
+                        self.trigger('switchWorkspace', { workspaceId: workspace.workspaceId });
+                    })
+                    .catch(function(error) {
+                    })
+                    .finally(function() {
+                        $input.add($button).prop('disabled', false);
+                        $button.removeClass('loading');
+                        $input.focus();
+                    })
+            }
         };
 
         this.onInputKeyUp = function(event) {
+            var $title = $(this.attr.addNewInputSelector).val();
+//            if (!$title.length) {
+//                $(this.attr.titleErrorSelector).hide();
+//                $(this.attr.addNewInputSelector).removeClass('invalid');
+//            }
+            if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, $title.toLowerCase())) {
+                $(this.attr.addNewInputSelector).addClass('invalid');
+                $(this.attr.titleErrorSelector).show();
+            } else {
+                $(this.attr.titleErrorSelector).hide();
+                $(this.attr.addNewInputSelector).removeClass('invalid');
+            }
+
             switch (event.which) {
                 case $.ui.keyCode.ENTER:
                     this.onAddNew(event);
