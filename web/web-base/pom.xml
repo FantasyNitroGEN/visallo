@@ -88,8 +88,8 @@
             <artifactId>handlebars</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.lesscss</groupId>
-            <artifactId>lesscss</artifactId>
+            <groupId>com.asual.lesscss</groupId>
+            <artifactId>lesscss-engine</artifactId>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

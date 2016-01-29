@@ -93,7 +93,6 @@
         <spark.version>1.5.1</spark.version>
         <spark.scala.version>2.10</spark.scala.version>
         <spark.scala.library.version>2.10.6</spark.scala.library.version>
-        <lesscss.version>1.7.0.1.1</lesscss.version>
 
         <!-- update monthly -->
         <uadetector.resources.version>2014.06</uadetector.resources.version>
@@ -498,15 +497,9 @@
                 <version>${reflections.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.lesscss</groupId>
-                <artifactId>lesscss</artifactId>
+                <groupId>com.asual.lesscss</groupId>
+                <artifactId>lesscss-engine</artifactId>
                 <version>${lesscss.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-simple</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
