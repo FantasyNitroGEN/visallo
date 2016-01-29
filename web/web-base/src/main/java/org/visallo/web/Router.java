@@ -24,6 +24,8 @@ import org.visallo.web.routes.admin.AdminUploadOntology;
 import org.visallo.web.routes.admin.PluginList;
 import org.visallo.web.routes.config.Configuration;
 import org.visallo.web.routes.dashboard.*;
+import org.visallo.web.routes.directory.DirectoryGet;
+import org.visallo.web.routes.directory.DirectorySearch;
 import org.visallo.web.routes.edge.*;
 import org.visallo.web.routes.element.ElementSearch;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessById;
@@ -36,7 +38,6 @@ import org.visallo.web.routes.notification.SystemNotificationDelete;
 import org.visallo.web.routes.notification.SystemNotificationSave;
 import org.visallo.web.routes.notification.UserNotificationMarkRead;
 import org.visallo.web.routes.ontology.Ontology;
-import org.visallo.web.routes.directory.DirectorySearch;
 import org.visallo.web.routes.ping.Ping;
 import org.visallo.web.routes.ping.PingStats;
 import org.visallo.web.routes.resource.MapMarkerImage;
@@ -67,6 +68,7 @@ import java.util.Map;
 import static org.vertexium.util.IterableUtils.toList;
 
 public class Router extends HttpServlet {
+    private static final long serialVersionUID = 4689515508877380905L;
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Router.class);
 
     /**
@@ -205,6 +207,7 @@ public class Router extends HttpServlet {
             app.post("/user/all", authenticator, csrfProtector, UserList.class);
             app.get("/user", authenticator, csrfProtector, AdminPrivilegeFilter.class, UserGet.class);
 
+            app.get("/directory/get", authenticator, csrfProtector, DirectoryGet.class);
             app.get("/directory/search", authenticator, csrfProtector, DirectorySearch.class);
 
             app.get("/long-running-process", authenticator, csrfProtector, LongRunningProcessById.class);
@@ -247,6 +250,7 @@ public class Router extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        LOGGER.debug("servicing %s", request.getRequestURI());
         TraceSpan trace = null;
         CurrentUser.setUserInLogMappedDiagnosticContexts(request);
         try {
@@ -268,7 +272,7 @@ public class Router extends HttpServlet {
             app.handle(request, response);
         } catch (ConnectionClosedException cce) {
             LOGGER.debug("Connection closed by client", cce);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handleException(request, response, e);
         } finally {
             if (trace != null) {
@@ -279,7 +283,7 @@ public class Router extends HttpServlet {
         }
     }
 
-    private void handleException(HttpServletRequest request, HttpServletResponse response, Exception e)
+    private void handleException(HttpServletRequest request, HttpServletResponse response, Throwable e)
             throws IOException, ServletException {
         if (e.getCause() instanceof VisalloResourceNotFoundException) {
             handleNotFound(response, (VisalloResourceNotFoundException) e.getCause());

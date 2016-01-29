@@ -35,11 +35,6 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-ontology-acl-provider</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
             <artifactId>visallo-model-storage-hadoop</artifactId>
             <version>${project.version}</version>
         </dependency>

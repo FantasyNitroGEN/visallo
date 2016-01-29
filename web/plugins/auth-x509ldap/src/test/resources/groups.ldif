@@ -1,4 +1,0 @@
-dn: ou=groups,dc=test,dc=visallo,dc=org
-objectclass:organizationalunit
-ou: groups
-description: Visallo Groups

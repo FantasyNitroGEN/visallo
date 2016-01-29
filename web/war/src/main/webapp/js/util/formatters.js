@@ -229,6 +229,28 @@ define([
                 return className;
             }
         },
+        directoryEntity: {
+            pretty: function(directoryEntity) {
+                if (directoryEntity && directoryEntity.type) {
+                    var prettyType = directoryEntity.type === 'group' ? i18n('field.directory.group') : i18n('field.directory.person');
+                    return directoryEntity.displayName + ' (' + prettyType + ')';
+                } else {
+                    return '';
+                }
+            },
+            requestPretty: function(id) {
+                if (!id) {
+                    return Promise.resolve(null);
+                }
+                return Promise.require('util/withDataRequest')
+                      .then(function(dr) {
+                          return dr.dataRequest('directory', 'getById', id)
+                      })
+                      .then(function(value) {
+                          return FORMATTERS.directoryEntity.pretty(value);
+                      });
+            }
+        },
         geoLocation: {
             parse: function(str) {
                 var m = str && str.match(/\s*point(?:\[|\()(.*?),(.*?)(?:\]|\))\s*/i);

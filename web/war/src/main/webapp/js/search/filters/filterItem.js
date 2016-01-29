@@ -253,6 +253,8 @@ define([
                 fieldComponent = 'fields/duration';
             } else if (property.dataType === 'date') {
                 fieldComponent = 'search/filters/dateField';
+            } else if (property.dataType === 'directory/entity') {
+                fieldComponent = 'search/filters/directoryEntityField';
             } else {
                 fieldComponent = property.possibleValues ? 'fields/restrictValues' : 'fields/' + property.dataType;
             }
@@ -324,6 +326,10 @@ define([
                 case 'boolean': return [
                         PREDICATES.EQUALS
                     ].concat(standardPredicates);
+
+                case 'directory/entity': return [
+                    PREDICATES.EQUALS
+                ].concat(standardPredicates);
 
                 case 'date':
                 case 'currency':

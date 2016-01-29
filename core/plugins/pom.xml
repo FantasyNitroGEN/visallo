@@ -16,7 +16,6 @@
     <modules>
         <module>geocoder-bing</module>
         <module>model-coordination-zookeeper</module>
-        <module>model-directory-ldap</module>
         <module>model-hazelcast</module>
         <module>model-ontology-acl-provider</module>
         <module>model-queue-inmemory</module>

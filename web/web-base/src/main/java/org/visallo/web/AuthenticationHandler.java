@@ -1,6 +1,5 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.RequestResponseHandler;
 

@@ -333,6 +333,12 @@
     
 
 
+    <!-- http://visallo.org#directory/entity -->
+
+    <rdfs:Datatype rdf:about="http://visallo.org#directory/entity"/>
+    
+
+
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //

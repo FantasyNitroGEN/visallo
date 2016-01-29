@@ -18,8 +18,6 @@
         <module>auth-social</module>
         <module>auth-username-only</module>
         <module>auth-username-password</module>
-        <module>auth-x509</module>
-        <module>auth-x509ldap</module>
         <module>dev-tools</module>
         <module>google-analytics</module>
         <module>import-export-workspaces</module>

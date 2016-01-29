@@ -1,0 +1,65 @@
+{
+    "apiVersion": "0.4.0",
+    "swaggerVersion": "1.2",
+    "basePath": "http://visallo-dev:8889",
+    "resourcePath": "/directory",
+    "apis": [
+        {
+            "path": "/directory/get",
+            "operations": [
+                {
+                    "method": "GET",
+                    "summary": "Gets a directory entry by ID",
+                    "type": "DirectoryEntity",
+                    "nickname": "get",
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "description": "ID of the directory entry",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/directory/search",
+            "operations": [
+                {
+                    "method": "GET",
+                    "summary": "Search for directory entries",
+                    "type": "DirectoryEntity",
+                    "nickname": "search",
+                    "parameters": [
+                        {
+                            "name": "search",
+                            "description": "String to search for",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "people",
+                            "description": "include people",
+                            "required": false,
+                            "type": "boolean",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "groups",
+                            "description": "include groups",
+                            "required": false,
+                            "type": "boolean",
+                            "paramType": "query"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "models": {
+
+    }
+}

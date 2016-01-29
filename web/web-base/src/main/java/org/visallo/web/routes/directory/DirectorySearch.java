@@ -8,6 +8,8 @@ import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiDirectorySearchResponse;
+import org.visallo.web.clientapi.model.DirectoryGroup;
+import org.visallo.web.clientapi.model.DirectoryPerson;
 
 import java.util.List;
 
@@ -29,13 +31,17 @@ public class DirectorySearch implements ParameterizedHandler {
         ClientApiDirectorySearchResponse response = new ClientApiDirectorySearchResponse();
 
         if (searchPeople) {
-            List<String> people = this.directoryRepository.searchPeople(search, user);
-            response.addPeople(people);
+            List<DirectoryPerson> people = this.directoryRepository.searchPeople(search, user);
+            for (DirectoryPerson person : people) {
+                response.getEntities().add(person);
+            }
         }
 
         if (searchGroups) {
-            List<String> groups = this.directoryRepository.searchGroups(search, user);
-            response.addGroups(groups);
+            List<DirectoryGroup> groups = this.directoryRepository.searchGroups(search, user);
+            for (DirectoryGroup group : groups) {
+                response.getEntities().add(group);
+            }
         }
 
         return response;

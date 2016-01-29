@@ -28,6 +28,10 @@
             "description": "Ontology operations"
         },
         {
+            "path": "/directory.json",
+            "description": "Directory operations"
+        },
+        {
             "path": "/longRunningProcess.json",
             "description": "Long running process operations"
         }

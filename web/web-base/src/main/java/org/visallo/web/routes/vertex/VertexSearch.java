@@ -7,7 +7,9 @@ import org.vertexium.Authorizations;
 import org.vertexium.ElementType;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
@@ -19,9 +21,10 @@ public class VertexSearch extends ElementSearchWithRelatedBase implements Parame
     public VertexSearch(
             OntologyRepository ontologyRepository,
             Graph graph,
-            Configuration configuration
+            Configuration configuration,
+            DirectoryRepository directoryRepository
     ) {
-        super(ontologyRepository, graph, configuration);
+        super(ontologyRepository, graph, configuration, directoryRepository);
     }
 
     @Override
@@ -29,9 +32,10 @@ public class VertexSearch extends ElementSearchWithRelatedBase implements Parame
     public ClientApiElementSearchResponse handle(
             HttpServletRequest request,
             @ActiveWorkspaceId String workspaceId,
+            User user,
             Authorizations authorizations
     ) throws Exception {
-        return super.handle(request, workspaceId, authorizations);
+        return super.handle(request, workspaceId, user, authorizations);
     }
 
     @Override

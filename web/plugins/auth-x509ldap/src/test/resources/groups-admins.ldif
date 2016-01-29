@@ -1,6 +1,0 @@
-dn: cn=admins,ou=groups,dc=test,dc=visallo,dc=org
-objectclass: groupofuniquenames
-cn: admins
-description: Administrators
-uniqueMember: cn=Alice Smith,ou=people,dc=test,dc=visallo,dc=org
-uniqueMember: cn=Bob Maluga,ou=people,dc=test,dc=visallo,dc=org

@@ -35,16 +35,6 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-web-auth-x509</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-web-auth-x509ldap</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
             <artifactId>visallo-web-change-email</artifactId>
             <version>${project.version}</version>
         </dependency>

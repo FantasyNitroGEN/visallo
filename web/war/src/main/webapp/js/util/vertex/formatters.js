@@ -111,6 +111,13 @@ define([
                     })
                 },
 
+                'directory/entity': function(el, property) {
+                    F.directoryEntity.requestPretty(property.value)
+                      .then(function(value) {
+                          $(el).text(value);
+                      });
+                },
+
                 geoLocation: function(el, property) {
                     if ($('#app.fullscreen-details').length) {
                         $(el).append(

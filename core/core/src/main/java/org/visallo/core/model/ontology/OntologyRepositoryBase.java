@@ -828,6 +828,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         if ("http://visallo.org#geolocation".equals(iri)) {
             return PropertyType.GEO_LOCATION;
         }
+        if ("http://visallo.org#directory/entity".equals(iri)) {
+            return PropertyType.DIRECTORY_ENTITY;
+        }
         if ("http://visallo.org#currency".equals(iri)) {
             return PropertyType.CURRENCY;
         }
@@ -1401,7 +1404,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     protected void definePropertyOnGraph(Graph graph, String propertyIri, PropertyType dataType, Collection<TextIndexHint> textIndexHints, Double boost, boolean sortable) {
         DefinePropertyBuilder definePropertyBuilder = graph.defineProperty(propertyIri).sortable(sortable);
         definePropertyBuilder.dataType(PropertyType.getTypeClass(dataType));
-        if (dataType == PropertyType.STRING) {
+        if (dataType == PropertyType.DIRECTORY_ENTITY) {
+            definePropertyBuilder.textIndexHint(TextIndexHint.EXACT_MATCH);
+        } else if (dataType == PropertyType.STRING) {
             definePropertyBuilder.textIndexHint(textIndexHints);
         }
         if (boost != null) {

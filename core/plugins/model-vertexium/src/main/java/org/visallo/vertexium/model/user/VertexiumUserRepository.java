@@ -444,5 +444,8 @@ public class VertexiumUserRepository extends UserRepository {
         }
         Vertex userVertex = findByIdUserVertex(user.getUserId());
         userVertex.setProperty(propertyName, value, VISIBILITY.getVisibility(), authorizations);
+        if (user instanceof VertexiumUser) {
+            ((VertexiumUser) user).setProperty(propertyName, value);
+        }
     }
 }

@@ -386,6 +386,46 @@ width: 215px;
       vertical-align: baseline;
     }
 
+    .directory-entity-field-filter-wrap {
+      .directory-entity-field input {
+        margin-bottom: 0;
+      }
+      .switch-current-user,
+      .switch-choose-user {
+        padding: 0;
+        margin: 0 0 0.5em 0;
+        display: none;
+      }
+      .switch-current-user {
+        display: block;
+      }
+      &.current-user {
+        .switch-current-user {
+          display: none;
+        }
+        .switch-choose-user {
+          display: block;
+        }
+
+        .directory-entity-field {
+          display: flex;
+          & > * {
+            min-width: 0;
+            display: inline-block;
+            margin: 0 0.5em 0 0;
+            .box-sizing(border-box);
+          }
+          input {
+            flex: 1 2.5 auto;
+          }
+          span {
+            margin-top: 0.4em;
+            margin-bottom: 0.3em;
+          }
+        }
+      }
+    }
+
     .date-field-filter-wrap {
       .date-field input, .date-field .input-append {
         margin-bottom: 0;

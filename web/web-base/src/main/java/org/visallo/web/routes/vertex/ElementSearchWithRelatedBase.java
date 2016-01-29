@@ -12,6 +12,7 @@ import org.vertexium.Vertex;
 import org.vertexium.query.CompositeGraphQuery;
 import org.vertexium.query.Query;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -28,9 +29,10 @@ public abstract class ElementSearchWithRelatedBase extends ElementSearchBase {
     protected ElementSearchWithRelatedBase(
             OntologyRepository ontologyRepository,
             Graph graph,
-            Configuration configuration
+            Configuration configuration,
+            DirectoryRepository directoryRepository
     ) {
-        super(ontologyRepository, graph, configuration);
+        super(ontologyRepository, graph, configuration, directoryRepository);
     }
 
     @Override
