@@ -3,7 +3,9 @@
     <% if (editable) { %>
       <li class="nav-header"><%= i18n('workspaces.form.header') %></li>
 
-    <li><input class="workspace-title" type="text" value="<%= workspace.title %>" required></li>
+    <li><input class="workspace-title" type="text" value="<%= workspace.title %>" required>
+        <span class="title-error">Workspaces must have unique names</span>
+    </li>
     <% } %>
 
     <li class="nav-header share-header"><%= i18n('workspaces.form.sharing') %><span class="badge loading"/></li>

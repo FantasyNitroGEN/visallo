@@ -21,6 +21,7 @@ define([
 
         this.defaultAttrs({
             titleSelector: '.workspace-title',
+            titleErrorSelector: '.title-error',
             shareListSelector: '.share-list',
             shareHeader: '.share-header',
             shareFormSelector: '.share-form',
@@ -218,24 +219,32 @@ define([
                 val = $target.val().trim().replace(/\s+/g, ' ');
 
             if (!val.length) {
+                $(this.attr.titleErrorSelector).hide();
                 return;
             }
 
-            if (val !== this.attr.data.title) {
-                if (!this.titleRevert) {
-                    this.titleRevert = $.extend(true, {}, this.attr.data);
+            if (this.attr.workspaceTitlesLowercase && _.contains(this.attr.workspaceTitlesLowercase, val.toLowerCase())) {
+                $(this.attr.titleSelector).addClass('invalid');
+                $(this.attr.titleErrorSelector).show();
+            } else {
+                $(this.attr.titleSelector).removeClass('invalid');
+                $(this.attr.titleErrorSelector).hide();
+                if (val !== this.attr.data.title) {
+                    if (!this.titleRevert) {
+                        this.titleRevert = $.extend(true, {}, this.attr.data);
+                    }
+                    this.attr.data.title = val;
+                    this.saveWorkspace(false, {
+                        changes: {
+                            title: val
+                        },
+                        revert: this.titleRevert
+                    }).fail(function() {
+                        $target.val(self.titleRevert.title);
+                    }).always(function() {
+                        self.titleRevert = null;
+                    });
                 }
-                this.attr.data.title = val;
-                this.saveWorkspace(false, {
-                    changes: {
-                        title: val
-                    },
-                    revert: this.titleRevert
-                }).fail(function() {
-                    $target.val(self.titleRevert.title);
-                }).always(function() {
-                    self.titleRevert = null;
-                });
             }
         };
 

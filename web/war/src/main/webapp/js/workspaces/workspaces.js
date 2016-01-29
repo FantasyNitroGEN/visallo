@@ -139,7 +139,8 @@ define([
             WorkspaceForm.teardownAll();
             var workspace = _.findWhere(self.workspaces, { workspaceId: data.workspaceId })
             WorkspaceForm.attachTo(form.empty(), {
-                data: workspace
+                data: workspace,
+                workspaceTitlesLowercase: self.workspaceTitlesLowercase || []
             });
 
             self.trigger(container, 'paneResized');
