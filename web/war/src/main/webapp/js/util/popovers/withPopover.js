@@ -118,7 +118,7 @@ define([], function() {
 
         this.onPositionChange = function(event, data) {
             clearTimeout(this.positionChangeErrorCheck);
-            var allBlank = _.every(data.position, function(val) {
+            var allBlank = !data || _.every(data.position, function(val) {
                     return val === 0;
                 });
 
@@ -128,6 +128,8 @@ define([], function() {
                 }
             } else {
                 this.dialogPosition = data.position;
+                this.dialogPositionIf = data.positionIf;
+                this.dialogPositionZoom = data.zoom || 1;
                 this.positionDialog();
                 if (!this.throttledPositionDialog) {
                     this.throttledPositionDialog = true;
@@ -139,23 +141,39 @@ define([], function() {
         };
 
         this.positionDialog = function() {
-            if (this.dialogPosition) {
-                var padding = 10,
-                    width = this.popover.outerWidth(),
-                    height = this.popover.outerHeight(),
+            var pos = this.dialogPositionIf && this.dialogPositionIf.above || this.dialogPosition;
+            if (pos) {
+                var $arrow = this.dialog.find('.arrow'),
+                    scaling = this.attr.zoomWithGraph ?
+                        (Math.min(1, Math.max(0.1, this.dialogPositionZoom / 0.4))) : 1,
+                    menubarWidth = $('.menubar-pane').width() || 0,
+                    padding = $arrow.outerHeight(true) * scaling,
+                    width = this.popover.outerWidth() * scaling,
+                    height = this.popover.outerHeight() * scaling,
                     windowWidth = $(window).width(),
                     windowHeight = $(window).height(),
                     maxLeft = windowWidth - width,
                     maxTop = windowHeight - height,
-                    calcLeft = this.dialogPosition.x - (width / 2),
-                    calcTop = (this.dialogPosition.yMin || this.dialogPosition.y) - height,
-                    proposed = {
-                        left: Math.max(padding, Math.min(maxLeft - padding, calcLeft)),
-                        top: Math.max(padding, Math.min(maxTop - padding, calcTop))
-                    };
+                    proposedForPosition = function(pos, aboveOrBelow) {
+                        var calcLeft = pos.x - (width / 2),
+                            calcTop;
+                        if (aboveOrBelow === 'above') {
+                            calcTop = (pos.yMin || pos.y) - height - padding;
+                        } else {
+                            calcTop = (pos.yMax || pos.y) + padding;
+                        }
+                        return {
+                            left: Math.max(menubarWidth + padding, Math.min(maxLeft - padding, calcLeft)),
+                            top: Math.max(padding, Math.min(maxTop - padding, calcTop))
+                        };
+                    },
+                    proposed = proposedForPosition(pos, 'above');
 
-                if (this.dialogPosition.y < (windowHeight / 2)) {
-                    proposed.top = Math.min(maxTop, this.dialogPosition.yMax || this.dialogPosition.y);
+                if (proposed.top + height > pos.y) {
+                    proposed = proposedForPosition(
+                        this.dialogPositionIf && this.dialogPositionIf.below || this.dialogPosition,
+                        'below'
+                    );
                     if (!~this.popover[0].className.indexOf('bottom')) {
                         this.popover.removeClass('top').addClass('bottom');
                     }
@@ -163,12 +181,21 @@ define([], function() {
                     this.popover.removeClass('bottom').addClass('top');
                 }
 
-                var arrowLeft = this.dialogPosition.x - proposed.left,
-                    maxLeftAllowed = width - padding * 1.5,
-                    percent = (Math.min(maxLeftAllowed, arrowLeft) / width * 100) + '%';
+                var arrowLeft = pos.x - proposed.left,
+                    arrowPadding = padding * 1.5,
+                    maxLeftAllowed = width - arrowPadding,
+                    percent = (Math.max(arrowPadding, Math.min(maxLeftAllowed, arrowLeft)) / width * 100) + '%';
 
-                this.dialog.find('.arrow').css('left', percent);
+                $arrow.css('left', percent);
 
+                proposed.transform = 'translate(' + Math.round(proposed.left) + 'px,' + Math.round(proposed.top) + 'px)';
+                proposed.transformOrigin = '0 0';
+                delete proposed.top;
+                delete proposed.left;
+
+                if (this.attr.zoomWithGraph) {
+                    proposed.transform += ' scale(' + scaling.toFixed(3) + ')';
+                }
                 this.dialog.css(proposed);
                 this.popover.show();
             }

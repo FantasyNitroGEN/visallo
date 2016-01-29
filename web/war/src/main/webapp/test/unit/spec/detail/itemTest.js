@@ -1,10 +1,12 @@
-/* globals chai:false */
 require(['configuration/plugins/registry'], function(registry) {
     var gen = {},
         rootLayout = 'org.visallo.layout.root',
         layoutTypePoint = 'org.visallo.layout.type',
         layoutComponentPoint = 'org.visallo.layout.component',
+        PATH_PREFIX = '../test/unit/spec/detail',
         collectionItemExample;
+
+    describe('Item Layout Tests', function() {
 
     describeComponent('detail/item/item', function() {
 
@@ -110,7 +112,7 @@ require(['configuration/plugins/registry'], function(registry) {
                         _.delay(function() {
                             times.should.equal(1)
                             done()
-                        }, 500)
+                        }, 250)
                     })
                     .trigger('updateModel', {
                         model: vertexGen([propGen('a1')])
@@ -150,11 +152,13 @@ require(['configuration/plugins/registry'], function(registry) {
                 collectionItemExample[2].render = function(el, model) {
                     el.textContent = model.name;
                 }
-                var originalError = console.error;
+                var originalError = console.error,
+                    catchCheck = chai.spy();
                 console.error = chai.spy()
                 return setupItemComponent.call(this, collectionItemExample, vertexGen([propGen(), propGen()]))
-                    .catch()
+                    .catch(catchCheck)
                     .then(function() {
+                        catchCheck.should.have.been.called.once
                         console.error.should.have.been.called.at.least(1)
                         console.error = originalError
                     })
@@ -162,27 +166,20 @@ require(['configuration/plugins/registry'], function(registry) {
         })
 
         describe('CollectionItem with children and components', function() {
-            define('collectionitem', ['flight/lib/component'], function(defineComponent) {
-                return defineComponent(CollectionItemDataSet);
-                function CollectionItemDataSet() {
-                    this.attributes({
-                        model: null,
-                        ignoreUpdateModelNotImplemented: true
-                    })
-                    this.after('initialize', function() {
-                        this.node.dataset.componentSet = 'true'
-                    })
-                }
-            })
             beforeEach(function() {
-                collectionItemExample[2].componentPath = 'collectionitem'
+                collectionItemExample[2].componentPath = PATH_PREFIX + '/itemTestCollectionItemDataset'
                 collectionItemExample[2].children = [
-                    { componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponent', attributes: function(model) { return {prefix: 'My Comp:', model: model.name } } }
+                    {
+                        componentPath: PATH_PREFIX + '/itemTestCollectionItemComponent',
+                        attributes: function(model) {
+                            return { prefix: 'My Comp:', model: model.name }
+                        }
+                    }
                 ];
                 return setupItemComponent.call(this, collectionItemExample, vertexGen([propGen(), propGen(), propGen()]))
             })
 
-            it('should have create 3 components', function() {
+            it('should have created 3 components', function() {
                 var $items = this.component.$node.find('.my-list .item')
                 $items.length.should.equal(3)
                 $items.each(function() {
@@ -281,17 +278,15 @@ require(['configuration/plugins/registry'], function(registry) {
         })
 
         describe('Components should register updateModel event', function() {
-            var warn = console.warn,
-                warnSpy;
+            var warn = console.warn;
             beforeEach(function() {
-                warnSpy = chai.spy(console, 'warn')
-                console.warn = chai.spy(function() { })
+                console.warn = chai.spy('console.warn')
             })
             afterEach(function() {
                 console.warn = warn
             })
             it('should show warning if no updateModel event', function() {
-                collectionItemExample[2].children = [{ componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponentNoEvent' }]
+                collectionItemExample[2].children = [{ componentPath: PATH_PREFIX + '/itemTestCollectionItemComponentNoEvent' }]
                 return setupItemComponent.call(this, collectionItemExample, vertexGen([propGen('a')]))
                     .then(function() {
                         console.warn.should.have.been.called.once
@@ -299,7 +294,7 @@ require(['configuration/plugins/registry'], function(registry) {
             })
 
             it('should suppress warning on attribute', function() {
-                collectionItemExample[2].children = [{ componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponentNoEventSuppress' }]
+                collectionItemExample[2].children = [{ componentPath: PATH_PREFIX + '/itemTestCollectionItemComponentNoEventSuppress' }]
                 return setupItemComponent.call(this, collectionItemExample, vertexGen([propGen('a')]))
                     .then(function() {
                         console.warn.should.not.have.been.called();
@@ -309,7 +304,7 @@ require(['configuration/plugins/registry'], function(registry) {
 
         describe('CollectionItem updating with component', function() {
             beforeEach(function() {
-                collectionItemExample[2].children = [{ componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponent', model: function(m) { return m.name; } }]
+                collectionItemExample[2].children = [{ componentPath: PATH_PREFIX + '/itemTestCollectionItemComponent', model: function(m) { return m.name; } }]
                 collectionItemExample.push({
                     identifier: 'list',
                     applyTo: function(model) {
@@ -349,7 +344,7 @@ require(['configuration/plugins/registry'], function(registry) {
                         _.delay(function() {
                             spy.should.be.called.once
                             done()
-                        }, 1000)
+                        }, 250)
                     })
                     .trigger('updateModel', {
                         model: vertexGen([propGen('a1'), propGen('b1'), propGen('c1'), propGen('d1')])
@@ -418,6 +413,31 @@ require(['configuration/plugins/registry'], function(registry) {
                 })
             })
 
+            it('should render empty strings without error', function() {
+                var self = this
+                return setup(this, { ref: 'org.visallo.layout.text', model: '' }).then(function() {
+                    self.component.$node.find('.org-visallo-layout-text').text().should.equal('')
+                })
+            })
+
+            it('should render functions that return empty strings without error', function() {
+                var self = this
+                return setup(this, { ref: 'org.visallo.layout.text', model: function() {
+                    return '';
+                } }).then(function() {
+                    self.component.$node.find('.org-visallo-layout-text').text().should.equal('')
+                })
+            })
+
+            it('should render functions that return promise of empty strings without error', function() {
+                var self = this
+                return setup(this, { ref: 'org.visallo.layout.text', model: function() {
+                    return Promise.resolve('');
+                } }).then(function() {
+                    self.component.$node.find('.org-visallo-layout-text').text().should.equal('')
+                })
+            })
+
             it('should render objects as strings', function() {
                 var self = this
                 return setup(this, { ref: 'org.visallo.layout.text' }).then(function() {
@@ -477,10 +497,10 @@ require(['configuration/plugins/registry'], function(registry) {
                     },
                     {
                         identifier: 'y',
-                        layout: { type: 'flex', options: { direction: 'row' } },
+                        layout: { type: 'flex', options: { direction: 'row', wrap: 'nowrap' } },
                         children: [
-                            { componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponent' },
-                            { componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponentNoEventSuppress' }
+                            { componentPath: PATH_PREFIX + '/itemTestCollectionItemComponent' },
+                            { componentPath: PATH_PREFIX + '/itemTestCollectionItemComponentNoEventSuppress', style: { flex: 1 } }
                         ]
                     },
                     {
@@ -490,9 +510,9 @@ require(['configuration/plugins/registry'], function(registry) {
                         },
                         layout: { type: 'flex', options: { direction: 'row' } },
                         children: [
-                            { componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponentNoEventSuppress' },
-                            { componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponent' },
-                            { componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponent' },
+                            { componentPath: PATH_PREFIX + '/itemTestCollectionItemComponentNoEventSuppress', style: { flex: 1 } },
+                            { componentPath: PATH_PREFIX + '/itemTestCollectionItemComponent' },
+                            { componentPath: PATH_PREFIX + '/itemTestCollectionItemComponent' },
                             { ref: 'x' }
                         ]
                     },
@@ -501,9 +521,9 @@ require(['configuration/plugins/registry'], function(registry) {
                         applyTo: function(model) {
                             return (/^2_OVERRIDE/).test(model)
                         },
-                        layout: { type: 'flex', options: { direction: 'row' } },
+                        layout: { type: 'flex', options: { direction: 'column' } },
                         children: [
-                            { componentPath: '../test/unit/spec/detail/itemTestCollectionItemComponent' },
+                            { componentPath: PATH_PREFIX + '/itemTestCollectionItemComponent' },
                             { ref: 'x' }
                         ]
                     },
@@ -528,8 +548,10 @@ require(['configuration/plugins/registry'], function(registry) {
                         children: [{ ref: 'x' }]
                     }
                 ], vertexGen('layoutV', []), {
-                    type: 'test_layout',
-                    componentPath: '../test/unit/spec/detail/itemTestLayout'
+                    registerLayout: {
+                        type: 'test_layout',
+                        componentPath: PATH_PREFIX + '/itemTestLayout'
+                    }
                 })
             })
 
@@ -543,24 +565,31 @@ require(['configuration/plugins/registry'], function(registry) {
 
             it('should handle updating', function(done) {
                 var $node = this.component.$node,
-                    $y = $node.find('.y')
+                    $y = $node.find('.y'),
+                    tryNum = 0;
 
                 $y.children().length.should.equal(2)
                 $node.on('modelUpdated', function(event) {
-                        var $c = $y.children()
-                        $c.length.should.equal(4)
-                        // Component order is changed
-                        $c.eq(0).text().should.equal('1_OVERRIDE_1')
-                        $c.eq(0).lookupAllComponents()[0].toString()
-                            .should.equal('ItemTestCollectionItemNoEventSuppress')
-                        $c.eq(1).text().should.equal('1_OVERRIDE_1')
-                        $c.eq(1).lookupAllComponents()[0].toString()
-                            .should.equal('ItemTestCollectionItem')
-                        $c.eq(2).text().should.equal('1_OVERRIDE_1')
-                        $c.eq(2).lookupAllComponents()[0].toString()
-                            .should.equal('ItemTestCollectionItem')
-                        $c.eq(3).text().should.equal('1_OVERRIDE_1')
-                        done()
+                        if (tryNum === 0) {
+                            var $c = $y.children()
+                            $c.length.should.equal(4)
+                            // Component order is changed
+                            $c.eq(0).text().should.equal('1_OVERRIDE_1')
+                            $c.eq(0).lookupAllComponents()[0].toString()
+                                .should.equal('ItemTestCollectionItemNoEventSuppress')
+                            $c.eq(1).text().should.equal('1_OVERRIDE_1')
+                            $c.eq(1).lookupAllComponents()[0].toString()
+                                .should.equal('ItemTestCollectionItem')
+                            $c.eq(2).text().should.equal('1_OVERRIDE_1')
+                            $c.eq(2).lookupAllComponents()[0].toString()
+                                .should.equal('ItemTestCollectionItem')
+                            $c.eq(3).text().should.equal('1_OVERRIDE_1')
+                            tryNum++;
+                            $node.trigger('updateModel', { model: vertexGen('default', []) })
+                        } else {
+                            $y.children().length.should.equal(2)
+                            done()
+                        }
                     })
                     .trigger('updateModel', {
                         model: vertexGen('1_OVERRIDE_1', [])
@@ -632,15 +661,276 @@ require(['configuration/plugins/registry'], function(registry) {
 
             })
 
-            it('should update layout options on component switch')
-
             it('should test applyTo sorting')
 
-            it('should reset layout styles on layout change')
-            it('should reset layout styles on layout removal')
+            it('should reset layout styles on layout removal', function() {
+                var $node = this.component.$node,
+                    $y = $node.find('.y')
+                return new Promise(function(f) {
+                    var tryNum = 0;
+                    $node.on('modelUpdated', function(event) {
+                            var $c = $y.children()
+                            if (tryNum === 0) {
+                                $c.length.should.equal(4)
+                                $c[0].style.flex.should.contain('1')
+                                tryNum++;
+                                $node.trigger('updateModel', { model: vertexGen('3_OVERRIDE_1', []) })
+                            } else {
+                                $c.length.should.equal(1)
+                                expect($c[0].style.flex || false).to.be.false
+                                f();
+                            }
+                        })
+                        .trigger('updateModel', {
+                            model: vertexGen('1_OVERRIDE_1', [])
+                        })
+                })
+            })
+
+            it('should change layout styles on layout change', function() {
+                var $node = this.component.$node,
+                    $y = $node.find('.y')
+
+                $node[0].style.flexDirection.should.equal('column')
+                $y[0].style.flexDirection.should.equal('row')
+                $y[0].style.flexWrap.should.equal('nowrap')
+                $y.children().length.should.equal(2)
+                $y.children()[1].style.flex.should.contain('1')
+
+                return new Promise(function(f) {
+                    var tryNum = 0;
+                    $node.on('modelUpdated', function(event) {
+                            $y = $node.find('.y')
+                            var $c = $y.children()
+                            if (tryNum === 0) {
+                                $node[0].style.flexDirection.should.equal('column')
+                                $y[0].style.flexDirection.should.equal('row')
+                                expect($y[0].style.flexWrap || false).to.be.false
+                                $c.length.should.equal(4)
+                                $c[0].style.flex.should.contain('1')
+                                expect($c[1].style.flex || false).to.be.false
+                                
+                                tryNum++;
+                                $node.trigger('updateModel', { model: vertexGen('2_OVERRIDE_1', []) })
+                            } else {
+                                $c.length.should.equal(2)
+                                $node[0].style.flexDirection.should.equal('column')
+                                $y[0].style.flexDirection.should.equal('column')
+                                expect($c[0].style.flex || false).to.be.false
+                                expect($c[1].style.flex || false).to.be.false
+                                f();
+                            }
+                        }).trigger('updateModel', {
+                            model: vertexGen('1_OVERRIDE_1', [])
+                        })
+                })
+            })
+        })
+
+
+        describe('Constraints', function() {
+            var setup,
+                warn = console.warn;
+            before(function() {
+                setup = _.bind(_setup, this)
+            })
+            beforeEach(function() {
+                console.warn = chai.spy('console.warn')
+            })
+            afterEach(function() {
+                console.warn = warn
+            })
+
+            it('should accept contraints and return one that matches both', function() {
+                return setup({
+                    constraints: ['height', 'width']
+                }).then(function(node) {
+                    node.textContent.should.equal('width/height')
+                })
+            })
+
+            it('should accept contraints and return one that matches if one, then update', function() {
+                return setup({
+                    constraints: ['width']
+                }).then(function(node) {
+                    node.textContent.should.equal('width')
+
+                    return new Promise(function(resolve) {
+                        $(node)
+                            .on('constraintsUpdated', function() {
+                                node.textContent.should.equal('width/height')
+                                resolve(); 
+                            })
+                            .trigger('updateConstraints', {
+                                constraints: ['width', 'height']
+                            })
+                    })
+                })
+            })
+            
+            it('should fall back to unlabeled constrain component', function() {
+                return setup({
+                    constraints: ['unknown']
+                }).then(function(node) {
+                    console.warn.should.not.have.been.called.once
+                    node.textContent.should.equal('initial')
+                })
+            })
+
+            it('should fall back to unlabeled when match constrain component', function() {
+                return setup({
+                    constraints: ['height']
+                }).then(function(node) {
+                    console.warn.should.not.have.been.called.once
+                    node.textContent.should.equal('initial')
+                })
+            })
+
+            it('should still respect other applyTo params', function() {
+                return setup({
+                    constraints: ['width', 'height']
+                }, edgeGen()).then(function(node) {
+                    node.textContent.should.equal('width/height for edge')
+                })
+            })
+
+            it('should be able to add children with new constraints and propagate the tree', function() {
+                return setup({}, vertexGen('childHasConstraintAdded')).then(function(node) {
+                    node.textContent.should.equal('y with width constraint')
+                })
+            })
+
+            it('should be able to add children with new constraints added to parents', function() {
+                return setup({ constraints: ['height'] }, vertexGen('childHasConstraintAdded')).then(function(node) {
+                    node.textContent.should.equal('x with width/height constraint')
+                })
+            })
+
+            it('should select default component if no contraints required', function() {
+                return setup({ }, vertexGen()).then(function(node) {
+                    node.textContent.should.equal('initial')
+                })
+            })
+
+            function _setup(attrs, model) {
+                var self = this;
+                return setupItemComponent.call(this, [
+                        { identifier: rootLayout, render: r('initial') },
+                        { identifier: rootLayout, render: r('width'), applyTo: { constraints: ['width'] } },
+                        { identifier: rootLayout, render: r('width/height'), applyTo: { constraints: ['width', 'height'] } },
+                        { identifier: rootLayout, render: r('width/height for edge'), 
+                            applyTo: {
+                                type: 'edge',
+                                constraints: ['width', 'height'] 
+                            }
+                        },
+                        {
+                            identifier: rootLayout,
+                            applyTo: function(model) { return model.id === 'childHasConstraintAdded' },
+                            children: [
+                                { ref: 'x', constraints: ['width'] }
+                            ]
+                        },
+                        {
+                            identifier: 'x',
+                            render: r('x')
+                        },
+                        {
+                            identifier: 'x',
+                            applyTo: { constraints: ['width'] },
+                            children: [
+                                { ref: 'y' }
+                            ]
+                        },
+                        {
+                            identifier: 'x',
+                            applyTo: { constraints: ['height', 'width'] },
+                            render: r('x with width/height constraint')
+                        },
+                        {
+                            identifier: 'y',
+                            render: r('y')
+                        },
+                        {
+                            identifier: 'y',
+                            applyTo: { constraints: ['width'] },
+                            render: r('y with width constraint')
+                        }
+                    ], model || vertexGen(), { attrs: attrs })
+                    .then(function() {
+                        return self.component.node;
+                    })
+            }
+        })
+
+        describe('Contexts', function() {
+            var setup
+            before(function() {
+                setup = _.bind(_setup, this)
+            })
+
+            it('should return initial if no context specified', function() {
+                return setup({ }).then(function(node) {
+                    node.textContent.should.equal('initial')
+                })
+            })
+
+            it('should return matching context', function() {
+                return setup({ context: 'test2' }).then(function(node) {
+                    node.textContent.should.equal('test12')
+                })
+            })
+
+            it('should update context', function() {
+                return setup({
+                    context: 'test2'
+                }).then(function(node) {
+                    node.textContent.should.equal('test12')
+
+                    return new Promise(function(resolve) {
+                        $(node)
+                            .on('contextUpdated', function() {
+                                node.textContent.should.equal('test0')
+                                resolve(); 
+                            })
+                            .trigger('updateContext', {
+                                context: 'test0'
+                            })
+                    })
+                })
+            })
+
+            it('should select context before constraints', function() {
+                return setup({ context: 'test2', constraints: ['width'] }).then(function(node) {
+                    node.textContent.should.equal('width & test12')
+                })
+            })
+
+            function _setup(attrs, model) {
+                var self = this;
+                return setupItemComponent.call(this, [
+                        { identifier: rootLayout, render: r('initial') },
+                        { identifier: rootLayout, render: r('test0'), applyTo: { contexts: ['test0'] } },
+                        { identifier: rootLayout, render: r('width'), applyTo: { constraints: ['width'] } },
+                        { identifier: rootLayout, render: r('test12'), applyTo: { contexts: ['test1', 'test2'] } },
+                        { identifier: rootLayout, render: r('width & test12'), applyTo: { constraints: ['width'], contexts: ['test1', 'test2'] } },
+                        { identifier: rootLayout, render: r('no context') }
+                    ], model || vertexGen(), { attrs: attrs })
+                    .then(function() {
+                        return self.component.node;
+                    })
+            }
         })
 
     })
+
+    })
+
+    function r(text) {
+        return function(el) {
+            el.textContent = text;
+        }
+    }
 
     function genName(prefix) {
         var i = 0;
@@ -659,18 +949,26 @@ require(['configuration/plugins/registry'], function(registry) {
         }
     }
 
+    function edgeGen(id, properties) {
+        return elementGen('edge', id, properties)
+    }
+
     function vertexGen(id, properties) {
+        return elementGen('vertex', id, properties)
+    }
+
+    function elementGen(type, id, properties) {
         return {
-            id: arguments.length === 2 ? id : genName('vId'),
-            type: 'vertex',
-            properties: (arguments.length === 1 ? id : properties) || []
+            id: (id && !_.isArray(id)) ? id : genName('eId'),
+            type: type,
+            properties: (properties && id ? properties : _.isArray(id) ? id : []) || []
         }
     }
 
-    function setupItemComponent(root, model, optionalLayout) {
+    function setupItemComponent(root, model, options) {
         doc()
-        if (optionalLayout) {
-            registry.registerExtension(layoutTypePoint, optionalLayout)
+        if (options && options.registerLayout) {
+            registry.registerExtension(layoutTypePoint, options.registerLayout)
         }
         registry.unregisterAllExtensions(layoutComponentPoint)
         var self = this,
@@ -685,8 +983,11 @@ require(['configuration/plugins/registry'], function(registry) {
             this.component.node.className = '';
             this.component = null;
         }
-        setupComponent(this, { model: model });
-        return new Promise(function(f) {
+        setupComponent(this, _.extend({}, options && options.attrs || {}, { model: model }));
+        return new Promise(function(f, r) {
+            self.component.$node.on('errorLoadingTypeContent', function() {
+                r();
+            })
             self.component.$node.on('finishedLoadingTypeContent', function() {
                 f();
             })

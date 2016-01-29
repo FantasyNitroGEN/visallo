@@ -20,7 +20,17 @@ define([
 
     registry.documentExtensionPoint('org.visallo.layout.component', 'Layout Component', function(e) {
         if (!_.isFunction(e.applyTo) && _.isObject(e.applyTo)) {
-            return e.applyTo.type || e.applyTo.conceptIri || e.applyTo.edgeLabel || e.applyTo.displayType;
+            var optionalApplyToIsValid = null;
+            if (e.applyTo.constraints) {
+                optionalApplyToIsValid = _.isArray(e.applyTo.constraints) && e.applyTo.constraints.length;
+            }
+            if (e.applyTo.contexts) {
+                optionalApplyToIsValid = optionalApplyToIsValid && _.isArray(e.applyTo.contexts) && e.applyTo.contexts.length;
+            }
+            if (optionalApplyToIsValid !== null) {
+                return optionalApplyToIsValid;
+            }
+            return (e.applyTo.type || e.applyTo.conceptIri || e.applyTo.edgeLabel || e.applyTo.displayType);
         }
         return _.isArray(e.children) || _.isFunction(e.render) || _.isObject(e.collectionItem);
     })
@@ -34,6 +44,8 @@ define([
 
         this.attributes({
             model: null,
+            constraints: [],
+            context: '',
             focus: {}
         })
 
@@ -45,8 +57,14 @@ define([
             var self = this;
 
             this.on('updateModel', this.onUpdateModel);
+            this.on('updateConstraints', this.onUpdateConstraints);
+            this.on('updateContext', this.onUpdateContext);
 
-            this.renderRoot(this.attr.model)
+            this.model = this.attr.model;
+            this.constraints = this.attr.constraints;
+            this.context = this.attr.context;
+
+            this.renderRoot()
                 .catch(function(error) {
                     self.trigger('errorLoadingTypeContent');
                     console.error(error);
@@ -59,34 +77,52 @@ define([
                 })
         });
 
-        this.renderRoot = function(model) {
-            var root = findLayoutComponentsMatching({
+        this.renderRoot = function() {
+            var rootLayoutComponent = findLayoutComponentsMatching({
                     identifier: 'org.visallo.layout.root',
-                    model: model,
-                    rootModel: model
+                    model: this.model,
+                    rootModel: this.model,
+                    constraints: this.constraints,
+                    context: this.context
                 }),
-                preparedModel = prepareModel(model),
                 deferredAttachments = [];
 
-            return renderLayoutComponent(this.node, preparedModel, root, undefined, model, deferredAttachments)
-                .then(function() {
-                    return Promise.all(
-                        deferredAttachments.map(function(f) {
-                            if (f) {
-                                return f()
-                            }
-                            return Promise.resolve();
-                        })
-                    )
-                })
+            return renderLayoutComponent(rootLayoutComponent, this.node, prepareModel(this.model), this.model, {
+                deferredAttachments: deferredAttachments,
+                constraints: this.constraints,
+                context: this.context
+            }).then(attachDeferredComponents(deferredAttachments))
         };
 
         this.onUpdateModel = function(event, data) {
             var self = this;
             event.stopPropagation();
             if (event.target === this.node) {
-                this.renderRoot(data.model).done(function() {
+                this.model = data.model;
+                this.renderRoot(this.model, this.constraints).then(function() {
                     self.trigger('modelUpdated');
+                })
+            }
+        };
+
+        this.onUpdateConstraints = function(event, data) {
+            var self = this;
+            event.stopPropagation();
+            if (event.target === this.node) {
+                this.constraints = data.constraints;
+                this.renderRoot().then(function() {
+                    self.trigger('constraintsUpdated');
+                })
+            }
+        };
+
+        this.onUpdateContext = function(event, data) {
+            var self = this;
+            event.stopPropagation();
+            if (event.target === this.node) {
+                this.context = data.context;
+                this.renderRoot().then(function() {
+                    self.trigger('contextUpdated');
                 })
             }
         };
@@ -145,32 +181,41 @@ define([
 
         if (instanceInfos) {
             instanceInfos.forEach(function(info) {
-                var key = 'teardownWhenNot' + type.substring(0, 1).toUpperCase() + type.substring(1),
-                    componentToTeardown = info.instance[key];
+                var key = '__layoutTeardownWhenNot' + type.substring(0, 1).toUpperCase() + type.substring(1),
+                    componentToTeardown = info.instance[key],
+                    matchesType = info.instance.__layoutType === type;
 
-                if (componentToTeardown && (!optionallyExcludingComponent || componentToTeardown !== optionallyExcludingComponent)) {
+                if (componentToTeardown && matchesType && (!optionallyExcludingComponent || componentToTeardown !== optionallyExcludingComponent)) {
                     info.instance.teardown()
                 }
             })
         }
     }
 
-    function renderLayoutComponent(rootEl, model, layoutComponent, config, rootModel, deferredAttachments) {
-        if (_.isFunction(layoutComponent.render)) {
-            updateClasses(rootEl, layoutComponent.identifier, layoutComponent.className, config.className)
-            return Promise.resolve(layoutComponent.render(rootEl, model, config, layoutComponent));
+    function renderLayoutComponent(layoutComponent, node, model, rootModel, opts) {
+        var options = opts || {},
+            config = options.config,
+            constraints = aggregateConstraints(options.constraints, config),
+            context = options.context,
+            deferredAttachments = options.deferredAttachments,
+            layoutComponentRender = layoutComponent && layoutComponent.render,
+            configRender = config && config.render;
+
+        if (_.isFunction(layoutComponentRender || configRender)) {
+            updateClasses(node,
+                layoutComponent && layoutComponent.identifier,
+                layoutComponent && layoutComponent.className,
+                config && config.className)
+            return Promise.resolve((layoutComponentRender || configRender)(node, model, config, layoutComponent));
         }
 
         var zipped = zipChildrenWithModels(layoutComponent, model);
-        while (rootEl.childElementCount > zipped.length) {
-            $(rootEl.children[rootEl.childElementCount - 1]).teardownAllComponents().remove();
-        }
 
         return Promise.all(
             zipped.map(function(childAndModel, i) {
                 var child = childAndModel.child,
                     modelTransform = childAndModel.modelTransform || _.identity,
-                    $el = i < rootEl.childElementCount ? $(rootEl.children[i]) : $('<div>'),
+                    $el = i < node.childElementCount ? $(node.children[i]) : $('<div>'),
                     el = $el.get(0);
 
                 updateClasses(el, child.ref, child.className)
@@ -182,16 +227,32 @@ define([
                         }
                         if ('ref' in child) {
                             teardownOldComponents(el, { type: 'component' })
-                            var childComponent = findLayoutComponentsMatching({
-                                identifier: child.ref,
-                                model: model,
-                                rootModel: rootModel
+                            var aggregatedConstraints = aggregateConstraints(constraints, child),
+                                childComponent = findLayoutComponentsMatching({
+                                    identifier: child.ref,
+                                    model: model,
+                                    rootModel: rootModel,
+                                    constraints: aggregatedConstraints,
+                                    context: context
+                                });
+                            return renderLayoutComponent(childComponent, el, model, rootModel, {
+                                config: child,
+                                constraints: aggregatedConstraints,
+                                context: context,
+                                deferredAttachments: deferredAttachments
                             });
-                            return renderLayoutComponent(el, model, childComponent, child, rootModel, deferredAttachments)
                         }
                         if ('componentPath' in child) {
                             deferredAttachments.push(attachComponent(child, el, model))
                             return;
+                        }
+                        if (_.isFunction(child.render)) {
+                            return renderLayoutComponent(null, el, model, rootModel, {
+                                config: child,
+                                constraints: aggregatedConstraints,
+                                context: context,
+                                deferredAttachments: deferredAttachments
+                            })
                         }
                         $el.html(document.createComment('Unable to Render: ' + JSON.stringify(child)));
                     })
@@ -203,14 +264,21 @@ define([
                     })
             }))
             .then(function(elements) {
-                updateClasses(rootEl, layoutComponent.identifier, layoutComponent.className, config && config.className)
+                updateClasses(node, layoutComponent.identifier, layoutComponent.className, config && config.className)
                 return Promise.resolve(
-                    initializeLayout(rootEl, elements, layoutComponent)
+                    initializeLayout(node, elements, layoutComponent)
                 );
             })
             .then(function() {
-                deferredAttachments.push(attachComponent(layoutComponent, rootEl, model))
+                deferredAttachments.push(attachComponent(layoutComponent, node, model))
             })
+    }
+
+    function aggregateConstraints(parentConstraints, configuration) {
+        if (configuration && configuration.constraints) {
+            return _.unique((parentConstraints || []).concat(configuration.constraints));
+        }
+        return parentConstraints;
     }
 
     function initializeLayout(el, domElements, layoutComponent) {
@@ -244,17 +312,34 @@ define([
 
                 if ($(el).lookupComponent(LayoutType)) {
                     $(el).trigger('updateLayout', {
-                        children: children
+                        children: children,
+                        layoutConfig: layoutConfig.options || {}
                     });
                 } else {
                     LayoutType.attachTo(el, {
                         layoutConfig: layoutConfig.options || {},
                         children: children
                     });
-
-                    flightInstanceInfo(el, LayoutType).instance.teardownWhenNotLayout = LayoutType
+                    var instance = flightInstanceInfo(el, LayoutType).instance
+                    instance.__layoutType = 'layout';
+                    instance.__layoutTeardownWhenNotLayout = LayoutType
                 }
             });
+    }
+
+    function attachDeferredComponents(list) {
+        return function() {
+            return Promise.all(
+                list.map(function(f) {
+                    if (_.isFunction(f)) {
+                        return Promise.resolve(f())
+                    } else if (f) {
+                        console.warn('Deferred attachment not a function?', f);
+                    }
+                    return Promise.resolve();
+                })
+            )
+        }
     }
 
     function attachComponent(config, el, model) {
@@ -296,7 +381,8 @@ define([
                             instanceInfo.instance.attr.ignoreUpdateModelNotImplemented === true;
 
                     if (instanceInfo) {
-                        instanceInfo.instance.teardownWhenNotComponent = Component
+                        instanceInfo.instance.__layoutTeardownWhenNotComponent = Component
+                        instanceInfo.instance.__layoutType = 'component';
                         if (!_.some(instanceInfo.events, eventFilter) && !suppressWarning) {
 
                             console.warn(
@@ -376,18 +462,29 @@ define([
         if (!match.rootModel) {
             throw new Error('Match rootModel is required');
         }
-        if (!match.model) {
+        if (_.isUndefined(match.model)) {
             throw new Error('Match model is required');
+        }
+        if (!match.constraints) {
+            match.constraints = [];
+        }
+        if (match.context && !_.isString(match.context)) {
+            throw new Error('Match context must be string: ' + match.context);
+        }
+        if (!_.isArray(match.constraints)) {
+            throw new Error('Contraints must be array: ' + match.constraints);
         }
 
         var components = registry.extensionsForPoint('org.visallo.layout.component'),
             possible = _.filter(components, function(comp) {
                 if (comp.identifier === match.identifier) {
-                    return layoutComponentAppliesToModel(comp, match.model, match.rootModel);
+                    return layoutComponentAppliesToModel(comp, match.model, match.rootModel) &&
+                        layoutComponentMatchesConstraints(comp, match.constraints) &&
+                        layoutComponentMatchesContext(comp, match.context);
                 }
             }),
             sorted = _.chain(possible)
-                // Secondary sort concept hierarchy
+                // sort concept hierarchy
                 .sortBy(function(comp) {
                     var applyTo = comp.applyTo;
                     if (applyTo && applyTo.conceptIri) {
@@ -396,18 +493,37 @@ define([
                     }
                     return 0;
                 })
-                // Primary sort by applyTo
+                // sort by applyTo
                 .sortBy(function(comp) {
-                    var applyTo = comp.applyTo;
+                    var applyTo = comp.applyTo,
+                        order = -1;
 
-                    if (_.isFunction(applyTo)) return -1;
+                    if (_.isFunction(applyTo)) return order;
                     if (applyTo) {
-                        if (applyTo.conceptIri) return 0;
-                        if (applyTo.edgeLabel) return 0;
-                        if (applyTo.displayType) return 1;
-                        if (applyTo.type === 'vertex') return 2;
-                        if (applyTo.type === 'edge') return 2;
-                        if (applyTo.type === 'element') return 3;
+
+                        if (applyTo.conceptIri) return order + 1;
+                        if (applyTo.edgeLabel) return order + 1;
+
+                        if (applyTo.displayType) return order + 2;
+
+                        if (applyTo.type === 'vertex') return order + 3;
+                        if (applyTo.type === 'edge') return order + 3;
+
+                        if (applyTo.type === 'element') return order + 4;
+                    }
+                    return Number.MAX_VALUE;
+                })
+                // sort by applyTo constraints/contexts
+                .sortBy(function(comp) {
+                    var applyTo = comp.applyTo,
+                        order = -1;
+
+                    if (_.isFunction(applyTo)) return order;
+                    if (applyTo) {
+
+                        if (applyTo.contexts && applyTo.constraints) return order + 1;
+                        if (applyTo.contexts) return order + 2;
+                        if (applyTo.constraints) return order + 3;
                     }
                     return Number.MAX_VALUE;
                 })
@@ -422,6 +538,30 @@ define([
         return selected;
     }
 
+    function layoutComponentMatchesContext(component, requiredContext) {
+        var compContexts = component.applyTo && component.applyTo.contexts;
+        if (compContexts) {
+            return _.contains(compContexts, requiredContext);
+        }
+
+        return true;
+    }
+
+    function layoutComponentMatchesConstraints(component, requiredConstraints) {
+        var compConstraints = component.applyTo && component.applyTo.constraints;
+        if (compConstraints) {
+            if (!requiredConstraints.length && compConstraints.length) {
+                return false;
+            }
+            return requiredConstraints.length === compConstraints.length &&
+                _.every(requiredConstraints, function(constraint) {
+                    return _.contains(compConstraints, constraint);
+                });
+        }
+
+        return true;
+    }
+
     function layoutComponentAppliesToModel(component, model, rootModel) {
         if ('applyTo' in component) {
             if (_.isFunction(component.applyTo)) {
@@ -430,9 +570,11 @@ define([
             if (component.applyTo) {
                 var applyTo = component.applyTo,
                     useModel = _.isUndefined(model) ? rootModel : model,
-                    validApplyTos = ['type', 'displayType', 'conceptIri', 'edgeLabel'],
+                    validIfOnlyOneOff = ['type', 'displayType', 'conceptIri', 'edgeLabel'],
+                    validApplyTos = ['type', 'displayType', 'conceptIri', 'edgeLabel', 'constraints', 'contexts'],
                     applyToKeys = _.keys(applyTo),
-                    applyToIsValid = applyToKeys.length === 1 &&
+                    applyToIsValid = applyToKeys.length &&
+                        _.intersection(validIfOnlyOneOff, applyToKeys).length <= 1 &&
                         _.contains(validApplyTos, applyToKeys[0] || '');
 
                 if (!applyToIsValid) {
@@ -479,6 +621,16 @@ define([
                                 if (component.applyTo.type === 'edge') return true;
                             }
                         }
+                    }
+
+                    var otherKeysToDeferChecking = ['constraints', 'contexts'],
+                        onlyHasKeysThatAreDeferred = (
+                            (applyToKeys.length === 1 && _.contains(otherKeysToDeferChecking, applyToKeys[0])) ||
+                            (applyToKeys.length === 2 && _.difference(otherKeysToDeferChecking, applyToKeys).length === 0)
+                        );
+
+                    if (onlyHasKeysThatAreDeferred) {
+                        return true;
                     }
 
                     return false;

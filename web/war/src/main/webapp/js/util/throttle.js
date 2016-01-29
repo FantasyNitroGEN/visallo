@@ -5,6 +5,9 @@ define([], function() {
     var keys = {};
 
     function throttle(key, throttleMillis, func) {
+        if (arguments.length === 1 && key) {
+            return clearTimeout(keys[key]);
+        }
         return function(event) {
             var self = this;
 

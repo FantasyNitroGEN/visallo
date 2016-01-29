@@ -42,6 +42,22 @@ define([
                         }
                     },
 
+                    {
+                        label: i18n('vertex.contextmenu.open'),
+                        submenu: [
+                            {
+                                label: i18n('vertex.contextmenu.open.preview'),
+                                subtitle: i18n('vertex.contextmenu.open.preview.subtitle'),
+                                event: 'previewVertex'
+                            },
+                            {
+                                label: i18n('vertex.contextmenu.open.fullscreen'),
+                                subtitle: i18n('vertex.contextmenu.open.fullscreen.subtitle'),
+                                event: 'openFullscreen'
+                            }
+                        ]
+                    },
+
                     DIVIDER,
 
                     {

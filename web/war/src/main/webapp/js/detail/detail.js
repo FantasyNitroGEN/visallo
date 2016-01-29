@@ -101,6 +101,7 @@ define([
                 var Module = results.shift();
                 Module.attachTo(self.select('detailTypeContentSelector').teardownAllComponents(), {
                     model: vertices.concat(edges),
+                    constraints: ['width'],
                     focus: data.focus
                 });
             })

@@ -141,6 +141,7 @@ define([
 
                         require(['detail/item/item'], function(Item) {
                             Item.attachTo($single.empty().teardownAllComponents(), {
+                                constraints: ['width'],
                                 model: first
                             })
                             self.select('bodySelector')

@@ -1,4 +1,4 @@
-/* globals assert:true, expect:true, i18n:true, chai:true */
+/*globals chai:true, assert:true, expect: true, i18n: true */
 var tests = Object.keys(window.__karma__.files).filter(function(file) {
     return (/^\/base\/test\/unit\/spec\/.*\.js$/).test(file);
 });
@@ -72,6 +72,17 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
                 chai.should();
                 chai.use(chaiDateTime);
                 chai.use(chaiSpies);
+
+                var originalError = console.error.bind(console);
+                console.error = function() {
+                    if (/^Data request went unhandled$/.test(arguments[0])) {
+                        /*eslint no-empty:0*/
+                        // Ignore these as they can happen when tests run
+                        // quickly and dataRequests not needed for test
+                    } else {
+                        originalError.apply(null, arguments);
+                    }
+                };
 
                 // Globals for assertions
                 assert = chai.assert;

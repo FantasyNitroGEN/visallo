@@ -197,7 +197,9 @@ define([
                     this.$node.find('.org-visallo-layout-body').css('flex', 'none');
                     this.$node.find('.org-visallo-layout-root').css('overflow', 'visible');
                 });
-                Detail.attachTo($newPane, { model: v });
+
+                var constraints = this.objects.length === 1 ? [] : ['width'];
+                Detail.attachTo($newPane, { model: v, constraints: constraints });
             }.bind(this));
 
             if (data && data.preventRecursiveUrlChange !== true) {

@@ -13,9 +13,17 @@ describeComponent('search/search', function() {
                         success: true
                     });
                 })
-            } else throw new Error('Unknown service/method', data);
+            } else {
+                _.defer(function() {
+                    $(document).trigger('dataRequestCompleted', {
+                        requestId: data.requestId,
+                        result: { elements: [] },
+                        success: true
+                    });
+                })
+            }
         })
-        switchToSearchType(c, 'visallo').done(function() {
+        switchToSearchType(c, 'visallo').then(function() {
             querySetValue(c, '');
             done();
         });
@@ -49,7 +57,7 @@ describeComponent('search/search', function() {
             c.on('searchtypeloaded', workspaceLoaded.resolve);
             c.$node.find('.find-workspace').click();
 
-            workspaceLoaded.done(function() {
+            workspaceLoaded.then(function() {
                 var node = c.$node.find('.search-type-workspace')
                 node.hasClass('active').should.be.true
                 expect(node.html().length).to.be.above(0)
@@ -65,10 +73,10 @@ describeComponent('search/search', function() {
             querySetValue(c, originalQuery);
             c.$node.find('.find-workspace').hasClass('active').should.be.false
 
-            switchToSearchType(c, 'workspace').done(function() {
+            switchToSearchType(c, 'workspace').then(function() {
                 $query.val().should.equal('')
 
-                switchToSearchType(c, 'visallo').done(function() {
+                switchToSearchType(c, 'visallo').then(function() {
                     $query.val().should.equal(originalQuery)
                     done()
                 })
@@ -88,7 +96,7 @@ describeComponent('search/search', function() {
             }))
 
             switchToSearchType(c, 'workspace')
-                .done(function() {
+                .then(function() {
                     switchToSearchType(c, 'visallo')
                 })
         })
@@ -113,7 +121,7 @@ describeComponent('search/search', function() {
             $clear.css('display').should.equal('inline')
 
             switchToSearchType(c, 'workspace')
-                .done(function() {
+                .then(function() {
                     $clear.css('display').should.equal('none')
                     done()
                 })

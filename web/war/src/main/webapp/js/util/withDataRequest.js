@@ -33,6 +33,10 @@ define([
                 if (data.success) {
                     request.promiseFulfill(data.result);
                 } else {
+                    var error = data.error;
+                    if (_.isString(error)) {
+                        error = new Error(error);
+                    }
                     request.promiseReject(data.error);
                 }
             }

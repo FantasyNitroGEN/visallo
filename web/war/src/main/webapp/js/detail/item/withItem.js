@@ -126,6 +126,8 @@ define([
         };
 
         this.onOpenFullscreen = function(event, data) {
+            event.stopPropagation();
+
             var viewing = this.attr.model,
                 vertices = data && data.vertices ?
                     data.vertices :
