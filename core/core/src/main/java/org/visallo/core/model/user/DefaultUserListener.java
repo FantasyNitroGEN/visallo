@@ -1,7 +1,6 @@
 package org.visallo.core.model.user;
 
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.Privilege;
 
 import java.util.Set;
 
@@ -17,7 +16,7 @@ public class DefaultUserListener implements UserListener {
     }
 
     @Override
-    public void userPrivilegesUpdated(User user, Set<Privilege> privileges) {
+    public void userPrivilegesUpdated(User user, Set<String> privileges) {
 
     }
 

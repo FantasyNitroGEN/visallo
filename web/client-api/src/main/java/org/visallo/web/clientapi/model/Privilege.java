@@ -1,98 +1,98 @@
 package org.visallo.web.clientapi.model;
 
 import org.json.JSONArray;
-
-import java.util.*;
 import org.visallo.web.clientapi.util.StringUtils;
 
-public enum Privilege {
-    READ(0x01),
-    COMMENT(0x16),
-    EDIT(0x02),
-    PUBLISH(0x04),
-    ADMIN(0x08);
+import java.util.*;
 
-    private final int value;
+public final class Privilege {
+    public static final String READ = "READ";
+    public static final String COMMENT = "COMMENT";
+    public static final String EDIT = "EDIT";
+    public static final String PUBLISH = "PUBLISH";
+    public static final String ADMIN = "ADMIN";
 
-    Privilege(int value) {
-        this.value = value;
+    private static final List<String> ALL_BUILT_IN;
+
+    public static final Set<String> NONE = Collections.emptySet();
+
+    static {
+        List<String> allBuiltIn = new ArrayList<String>();
+        allBuiltIn.add(READ);
+        allBuiltIn.add(COMMENT);
+        allBuiltIn.add(EDIT);
+        allBuiltIn.add(PUBLISH);
+        allBuiltIn.add(ADMIN);
+        ALL_BUILT_IN = Collections.unmodifiableList(allBuiltIn);
     }
 
-    public static int toBits(Privilege... indexHints) {
-        return toBits(EnumSet.copyOf(Arrays.asList(indexHints)));
+    private Privilege() {
     }
 
-    public static int toBits(Collection<Privilege> privileges) {
-        byte b = 0;
-        for (Privilege hint : privileges) {
-            b |= hint.value;
-        }
-        return b;
+    public static Set<String> newSet(String... privileges) {
+        Set<String> set = new HashSet<String>();
+        Collections.addAll(set, privileges);
+        return Collections.unmodifiableSet(set);
     }
 
-    public static Set<Privilege> toSet(int privileges) {
-        Set<Privilege> hints = new HashSet<Privilege>();
-        for (int i = 0; i < Privilege.values().length; i++) {
-            Privilege privilege = Privilege.values()[i];
-            if ((privileges & privilege.value) == privilege.value) {
-                hints.add(privilege);
+    private static List<String> sortPrivileges(Collection<String> privileges) {
+        List<String> results = new ArrayList<String>();
+
+        for (String builtIn : ALL_BUILT_IN) {
+            if (privileges.contains(builtIn)) {
+                results.add(builtIn);
             }
         }
-        return hints;
+
+        List<String> sortedPrivileges = new ArrayList<String>(privileges);
+        Collections.sort(sortedPrivileges);
+        for (String privilege : privileges) {
+            if (!ALL_BUILT_IN.contains(privilege)) {
+                results.add(privilege);
+            }
+        }
+
+        return results;
     }
 
-    public static final Set<Privilege> ALL = EnumSet.of(READ, COMMENT, EDIT, PUBLISH, ADMIN);
-
-    public static final Set<Privilege> NONE = new HashSet<Privilege>();
-
-    public static JSONArray toJson(Set<Privilege> privileges) {
+    public static JSONArray toJson(Set<String> privileges) {
         JSONArray json = new JSONArray();
-        for (Privilege privilege : privileges) {
-            json.put(privilege.name());
+        for (String privilege : sortPrivileges(privileges)) {
+            json.put(privilege);
         }
         return json;
     }
 
-    public static Set<Privilege> stringToPrivileges(String privilegesString) {
+    public static Set<String> stringToPrivileges(String privilegesString) {
         if (privilegesString == null || privilegesString.equalsIgnoreCase("NONE")) {
             return NONE;
         }
 
-        if (privilegesString.equalsIgnoreCase("ALL")) {
-            return ALL;
-        }
-
         String[] privilegesStringParts = privilegesString.split(",");
-        Set<Privilege> privileges = new HashSet<Privilege>();
+        Set<String> privileges = new HashSet<String>();
         for (String privilegesStringPart : privilegesStringParts) {
             if (privilegesStringPart.trim().length() == 0) {
                 continue;
             }
-            privileges.add(stringToPrivilege(privilegesStringPart));
+            privileges.add(privilegesStringPart);
         }
         return privileges;
     }
 
-    public static Privilege stringToPrivilege(String privilegesStringPart) {
-        privilegesStringPart = privilegesStringPart.trim();
-        for (Privilege privilege : Privilege.values()) {
-            if (privilege.name().equalsIgnoreCase(privilegesStringPart)) {
-                return privilege;
-            }
-        }
-        return Privilege.valueOf(privilegesStringPart);
+    public static String toString(Collection<String> privileges) {
+        return StringUtils.join(sortPrivileges(privileges));
     }
 
-    public static String toString(Collection<Privilege> privileges) {
-        return StringUtils.join(privileges);
-    }
-
-    public static boolean hasAll(Set<Privilege> userPrivileges, Set<Privilege> requiredPrivileges) {
-        for (Privilege privilege : requiredPrivileges) {
+    public static boolean hasAll(Set<String> userPrivileges, Set<String> requiredPrivileges) {
+        for (String privilege : requiredPrivileges) {
             if (!userPrivileges.contains(privilege)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public static Set<String> getAllBuiltIn() {
+        return newSet(ALL_BUILT_IN.toArray(new String[ALL_BUILT_IN.size()]));
     }
 }

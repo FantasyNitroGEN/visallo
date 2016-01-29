@@ -105,7 +105,7 @@ public class VertexiumUser implements User, Serializable {
     }
 
     @Override
-    public Set<Privilege> getPrivileges() {
+    public Set<String> getPrivileges() {
         return Privilege.stringToPrivileges(UserVisalloProperties.PRIVILEGES.getPropertyValue(properties));
     }
 

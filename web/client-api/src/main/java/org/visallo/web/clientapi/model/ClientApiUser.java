@@ -18,7 +18,7 @@ public class ClientApiUser implements ClientApiObject {
     private String email;
     private String currentWorkspaceName;
     private String csrfToken;
-    private Set<Privilege> privileges = new HashSet<Privilege>();
+    private Set<String> privileges = new HashSet<String>();
     private JsonNode uiPreferences;
     private List<String> authorizations = new ArrayList<String>();
     private List<Object> longRunningProcesses = new ArrayList<Object>();
@@ -104,7 +104,7 @@ public class ClientApiUser implements ClientApiObject {
         this.uiPreferences = uiPreferences;
     }
 
-    public Set<Privilege> getPrivileges() {
+    public Set<String> getPrivileges() {
         return privileges;
     }
 

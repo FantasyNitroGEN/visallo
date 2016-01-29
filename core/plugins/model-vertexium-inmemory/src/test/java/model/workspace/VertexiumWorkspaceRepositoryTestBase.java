@@ -86,6 +86,7 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
 
     protected static class QueueUuidFallbackIdGenerator extends QueueIdGenerator {
         private IdGenerator fallbackIdGenerator = new UUIDIdGenerator(null);
+
         @Override
         public String nextId() {
             try {

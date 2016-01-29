@@ -54,11 +54,11 @@ public class VertexiumUserRepository extends UserRepository {
 
     @Inject
     public VertexiumUserRepository(
-            final Configuration configuration,
-            final SimpleOrmSession simpleOrmSession,
-            final AuthorizationRepository authorizationRepository,
-            final Graph graph,
-            final OntologyRepository ontologyRepository,
+            Configuration configuration,
+            SimpleOrmSession simpleOrmSession,
+            AuthorizationRepository authorizationRepository,
+            Graph graph,
+            OntologyRepository ontologyRepository,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
             UserNotificationRepository userNotificationRepository,
@@ -373,28 +373,6 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
-    public Set<Privilege> getPrivileges(User user) {
-        Set<Privilege> privileges;
-        if (user instanceof SystemUser) {
-            return Privilege.ALL;
-        } else {
-            Vertex userVertex = userVertexCache.getIfPresent(user.getUserId());
-            if (userVertex != null) {
-                privileges = getPrivileges(userVertex);
-            } else {
-                privileges = null;
-            }
-        }
-        if (privileges == null) {
-            LOGGER.debug("BEGIN getPrivileges query");
-            Vertex userVertex = findByIdUserVertex(user.getUserId());
-            privileges = getPrivileges(userVertex);
-            LOGGER.debug("END getPrivileges query");
-        }
-        return privileges;
-    }
-
-    @Override
     protected void internalDelete(User user) {
         Vertex userVertex = findByIdUserVertex(user.getUserId());
         graph.softDeleteVertex(userVertex, authorizations);
@@ -402,15 +380,11 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
-    protected void internalSetPrivileges(User user, Set<Privilege> privileges, User authUser) {
+    protected void internalSetPrivileges(User user, Set<String> privileges, User authUser) {
         Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.PRIVILEGES.setProperty(userVertex, Privilege.toString(privileges), VISIBILITY.getVisibility(), authorizations);
         graph.flush();
         userVertexCache.invalidate(user.getUserId());
-    }
-
-    private Set<Privilege> getPrivileges(Vertex userVertex) {
-        return Privilege.stringToPrivileges(UserVisalloProperties.PRIVILEGES.getPropertyValue(userVertex));
     }
 
     @Override

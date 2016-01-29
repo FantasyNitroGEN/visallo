@@ -16,7 +16,6 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
-import org.visallo.web.clientapi.model.Privilege;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -82,7 +81,7 @@ public abstract class RouteTestBase {
 
         graph = InMemoryGraph.create();
 
-        Set<Privilege> privileges = new HashSet<>();
+        Set<String> privileges = new HashSet<>();
         String[] authorizations = new String[0];
         String currentWorkspaceId = null;
         nonProxiedUser = new InMemoryUser("jdoe", "Jane Doe", "jane.doe@email.com", privileges, authorizations, currentWorkspaceId);

@@ -37,7 +37,7 @@ public abstract class UserRepository {
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
     public static final String OWL_IRI = "http://visallo.org/user";
     public static final String USER_CONCEPT_IRI = "http://visallo.org/user#user";
-    private final Set<Privilege> defaultPrivileges;
+    private final Set<String> defaultPrivileges;
     private final SimpleOrmSession simpleOrmSession;
     private final UserSessionCounterRepository userSessionCounterRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -154,8 +154,6 @@ public abstract class UserRepository {
 
     public abstract void setEmailAddress(User user, String emailAddress);
 
-    public abstract Set<Privilege> getPrivileges(User user);
-
     public abstract void setUiPreferences(User user, JSONObject preferences);
 
     public JSONObject toJsonWithAuths(User user) {
@@ -169,7 +167,7 @@ public abstract class UserRepository {
 
         json.put("uiPreferences", user.getUiPreferences());
 
-        Set<Privilege> privileges = getPrivileges(user);
+        Set<String> privileges = user.getPrivileges();
         json.put("privileges", Privilege.toJson(privileges));
 
         return json;
@@ -192,7 +190,7 @@ public abstract class UserRepository {
 
         u.setUiPreferences(JSONUtil.toJsonNode(user.getUiPreferences()));
 
-        Set<Privilege> privileges = getPrivileges(user);
+        Set<String> privileges = user.getPrivileges();
         u.getPrivileges().addAll(privileges);
 
         return u;
@@ -310,7 +308,7 @@ public abstract class UserRepository {
         });
     }
 
-    public Set<Privilege> getDefaultPrivileges() {
+    public Set<String> getDefaultPrivileges() {
         return defaultPrivileges;
     }
 
@@ -323,13 +321,13 @@ public abstract class UserRepository {
 
     protected abstract void internalDelete(User user);
 
-    public final void setPrivileges(User user, Set<Privilege> privileges, User authUser) {
+    public final void setPrivileges(User user, Set<String> privileges, User authUser) {
         internalSetPrivileges(user, privileges, authUser);
         sendNotificationToUserAboutPrivilegeChange(user, privileges, authUser);
         fireUserPrivilegesUpdatedEvent(user, privileges);
     }
 
-    private void sendNotificationToUserAboutPrivilegeChange(User user, Set<Privilege> privileges, User authUser) {
+    private void sendNotificationToUserAboutPrivilegeChange(User user, Set<String> privileges, User authUser) {
         String title = "Privileges Changed";
         String message = "New Privileges: " + Joiner.on(", ").join(privileges);
         String actionEvent = null;
@@ -347,7 +345,7 @@ public abstract class UserRepository {
         workQueueRepository.pushUserNotification(userNotification);
     }
 
-    protected abstract void internalSetPrivileges(User user, Set<Privilege> privileges, User authUser);
+    protected abstract void internalSetPrivileges(User user, Set<String> privileges, User authUser);
 
     public Iterable<User> find(String query) {
         final String lowerCaseQuery = query == null ? null : query.toLowerCase();
@@ -396,7 +394,7 @@ public abstract class UserRepository {
         }
     }
 
-    private void fireUserPrivilegesUpdatedEvent(User user, Set<Privilege> privileges) {
+    private void fireUserPrivilegesUpdatedEvent(User user, Set<String> privileges) {
         for (UserListener userListener : getUserListeners()) {
             userListener.userPrivilegesUpdated(user, privileges);
         }

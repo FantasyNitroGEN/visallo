@@ -13,6 +13,7 @@ import org.visallo.web.clientapi.model.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public abstract class ACLProvider {
     public abstract boolean canDeleteElement(Element element, User user);
@@ -136,5 +137,13 @@ public abstract class ACLProvider {
         propertyAcl.setUpdateable(canUpdateProperty(element, key, name, user));
         propertyAcl.setDeleteable(canDeleteProperty(element, key, name, user));
         return propertyAcl;
+    }
+
+    public Set<String> getAllPrivileges() {
+        return Privilege.getAllBuiltIn();
+    }
+
+    public Set<String> getSystemUserPrivileges() {
+        return getAllPrivileges();
     }
 }

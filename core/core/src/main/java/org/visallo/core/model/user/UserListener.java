@@ -10,7 +10,7 @@ public interface UserListener {
 
     void userDeleted(User user);
 
-    void userPrivilegesUpdated(User user, Set<Privilege> privileges);
+    void userPrivilegesUpdated(User user, Set<String> privileges);
 
     void userRemoveAuthorization(User user, String auth);
 
