@@ -315,8 +315,8 @@ define([
                 $badge.addClass('loading');
             }
 
-            if (this.openTextRequest && this.openTextRequest.abort) {
-                this.openTextRequest.abort();
+            if (this.openTextRequest) {
+                this.openTextRequest.cancel();
             }
 
             var extensions = _.filter(registry.extensionsForPoint('org.visallo.detail.text'), function(e) {

@@ -34,13 +34,15 @@ define([
 
     var Promise = P || self.Promise;
 
-    //Uncomment for better stacktraces (but slower promises)
-    //if ('longStackTraces' in Promise) Promise.longStackTraces();
+    if (P) {
+        Promise.config({
+            cancellation: true
+        });
+    }
 
     addProgress();
     addTimeout();
     addRequire();
-    fixThen();
 
     self.Promise = Promise;
     return Promise;
@@ -59,11 +61,12 @@ define([
         Promise = function(callback) {
 
             var reject,
-                that = new OldPromise(function(f, r) {
+                that = new OldPromise(function() {
                 // Update progress is a function on fulfill function
+                var f = arguments[0];
                 f.updateProgress = updateProgress;
 
-                callback(f, r);
+                callback.apply(null, arguments);
             });
 
             that.then(function() {
@@ -107,17 +110,6 @@ define([
                 });
             };
         } else console.warn('Native implementation of require');
-    }
-
-    function fixThen() {
-        var oldThen = Promise.prototype.then;
-        Promise.prototype.then = function() {
-            var p = oldThen.apply(this, Array.prototype.slice.call(arguments, 0));
-            if (this.abort) {
-                p.abort = this.abort;
-            }
-            return p;
-        }
     }
 
 });
