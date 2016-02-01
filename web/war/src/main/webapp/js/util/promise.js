@@ -36,7 +36,10 @@ define([
 
     if (P) {
         Promise.config({
-            cancellation: true
+            cancellation: true,
+            warnings: {
+                wForgottenReturn: false
+            }
         });
     }
 
