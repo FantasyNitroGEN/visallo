@@ -72,9 +72,11 @@ define([
                 callback.apply(null, arguments);
             });
 
-            that.then(function() {
-                updateProgress(1);
-            });
+            that
+                .then(function() {
+                    updateProgress(1);
+                })
+                .catch(function() {});
 
             return that;
 
