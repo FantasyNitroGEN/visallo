@@ -1,6 +1,8 @@
 language: java
 jdk:
   - oraclejdk8
+env:
+  - CC=clang CXX=clang++
 install:
   - mvn -f root/pom.xml install
 script: mvn -B test -Ptest-exclude-native,-build-user-guide -DlogQuiet
