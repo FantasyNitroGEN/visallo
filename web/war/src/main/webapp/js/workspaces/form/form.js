@@ -219,17 +219,17 @@ define([
                 val = $target.val().trim().replace(/\s+/g, ' ');
 
             if (!val.length) {
-                $(this.attr.titleErrorSelector).hide();
+                this.select('titleErrorSelector').hide();
                 return;
             }
 
             if (this.attr.workspaceTitlesLowercase && _.contains(this.attr.workspaceTitlesLowercase, val.toLowerCase())) {
-                $(this.attr.titleSelector).addClass('invalid');
-                $(this.attr.titleErrorSelector).show();
+                this.select('titleSelector').addClass('invalid');
+                this.select('titleErrorSelector').show();
                 return;
             } else {
-                $(this.attr.titleSelector).removeClass('invalid');
-                $(this.attr.titleErrorSelector).hide();
+                this.select('titleSelector').removeClass('invalid');
+                this.select('titleErrorSelector').hide();
                 if (val !== this.attr.data.title) {
                     if (!this.titleRevert) {
                         this.titleRevert = $.extend(true, {}, this.attr.data);

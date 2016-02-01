@@ -84,12 +84,12 @@ define([
 
             if (!title) return;
             if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, title.toLowerCase())) {
-                $(this.attr.addNewInputSelector).addClass('invalid');
-                $(this.attr.titleErrorSelector).show();
+                this.select('addNewInputSelector').addClass('invalid');
+                this.select('titleErrorSelector').show();
                 return;
             } else {
-                $(this.attr.titleErrorSelector).hide();
-                $(this.attr.addNewInputSelector).removeClass('invalid');
+                this.select('titleErrorSelector').hide();
+                this.select('addNewInputSelector').removeClass('invalid');
                 var $button = $input.prop('disabled', true)
                     .next('button')
                     .prop('disabled', true)
@@ -112,16 +112,12 @@ define([
 
         this.onInputKeyUp = function(event) {
             var $title = $(this.attr.addNewInputSelector).val();
-//            if (!$title.length) {
-//                $(this.attr.titleErrorSelector).hide();
-//                $(this.attr.addNewInputSelector).removeClass('invalid');
-//            }
             if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, $title.toLowerCase())) {
-                $(this.attr.addNewInputSelector).addClass('invalid');
-                $(this.attr.titleErrorSelector).show();
+                this.select('addNewInputSelector').addClass('invalid');
+                this.select('titleErrorSelector').show();
             } else {
-                $(this.attr.titleErrorSelector).hide();
-                $(this.attr.addNewInputSelector).removeClass('invalid');
+                this.select('titleErrorSelector').hide();
+                this.select('addNewInputSelector').removeClass('invalid');
             }
 
             switch (event.which) {
