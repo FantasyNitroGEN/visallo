@@ -22,6 +22,7 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 public abstract class CommandLineTool {
+    public static final String THREAD_NAME = "Visallo CLI";
     protected VisalloLogger LOGGER;
     public static final boolean DEFAULT_INIT_FRAMEWORK = true;
     private Configuration configuration;
@@ -216,6 +217,7 @@ public abstract class CommandLineTool {
     }
 
     public static void main(CommandLineTool commandLineTool, String[] args) throws Exception {
+        Thread.currentThread().setName(THREAD_NAME);
         main(commandLineTool, args, DEFAULT_INIT_FRAMEWORK);
     }
 }
