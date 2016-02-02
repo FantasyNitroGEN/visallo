@@ -1,9 +1,10 @@
 package org.visallo.web;
 
+import com.asual.lesscss.LessEngine;
+import com.asual.lesscss.LessOptions;
 import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.RequestResponseHandler;
 import org.apache.commons.io.IOUtils;
-import org.lesscss.LessCompiler;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -19,7 +20,7 @@ import java.util.List;
 public class StyleAppendableHandler implements RequestResponseHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Router.class);
 
-    private LessCompiler lessCompiler;
+    private LessEngine lessCompiler;
     private final List<Resource> resources = new ArrayList();
 
     @Override
@@ -49,10 +50,12 @@ public class StyleAppendableHandler implements RequestResponseHandler {
         resources.add(new CssResource(pathInfo));
     }
 
-    private synchronized LessCompiler lessCompiler() {
+    private synchronized LessEngine lessCompiler() {
         if (lessCompiler == null) {
-            lessCompiler = new LessCompiler();
-            lessCompiler.setCompress(true);
+            LessOptions options = new LessOptions();
+            options.setCompress(true);
+            options.setCharset("UTF-8");
+            lessCompiler = new LessEngine(options);
         }
         return lessCompiler;
     }
