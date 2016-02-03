@@ -7,3 +7,6 @@ env:
 install:
   - mvn -f root/pom.xml install
 script: mvn -B -q -fae test -Ptest-exclude-native,-build-user-guide -DlogQuiet
+branches:
+  only:
+    - master
