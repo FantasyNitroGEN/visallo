@@ -3,11 +3,10 @@ package org.visallo.web.routes.user;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.annotations.Optional;
+import com.v5analytics.webster.annotations.Required;
 import org.json.JSONObject;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.BadRequestException;
 
 public class UserSetUiPreferences implements ParameterizedHandler {
     private final UserRepository userRepository;
@@ -20,21 +19,12 @@ public class UserSetUiPreferences implements ParameterizedHandler {
     @Handle
     public JSONObject handle(
             User user,
-            @Optional(name = "ui-preferences") String uiPreferencesString,
-            @Optional(name = "name") String propertyName,
-            @Optional(name = "value") String propertyValue
+            @Required(name = "name") String propertyName,
+            @Required(name = "value") String propertyValue
     ) throws Exception {
-        if (uiPreferencesString != null) {
-            userRepository.setUiPreferences(user, new JSONObject(uiPreferencesString));
-        } else if (propertyName != null) {
-            JSONObject preferences = user.getUiPreferences();
-            preferences.put(propertyName, propertyValue);
-            userRepository.setUiPreferences(user, preferences);
-            user = userRepository.findById(user.getUserId());
-        } else {
-            throw new BadRequestException("ui-preferences", "either ui-preferences or name,value are required parameters.");
-        }
-
-        return userRepository.toJsonWithAuths(user);
+        JSONObject preferences = user.getUiPreferences();
+        preferences.put(propertyName, propertyValue);
+        userRepository.setUiPreferences(user, preferences);
+        return userRepository.toJsonWithAuths(userRepository.findById(user.getUserId()));
     }
 }
