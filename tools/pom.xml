@@ -3,12 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.visallo</groupId>
-        <artifactId>visallo-plugin-toggle</artifactId>
+        <artifactId>visallo</artifactId>
         <version>1.1-SNAPSHOT</version>
-        <relativePath>../plugin-toggle</relativePath>
     </parent>
 
     <artifactId>visallo-tools-group</artifactId>
@@ -20,19 +18,8 @@
         <module>import</module>
         <module>cli</module>
         <module>user-admin</module>
-        <module>reindex-mr</module>
         <module>format</module>
         <module>rdf-import</module>
-        <module>rdf-triple-import</module>
-        <module>backup-restore</module>
-        <module>assign-image-mr</module>
-        <module>requeue</module>
-        <module>spark-base</module>
-        <module>yarn-base</module>
-        <module>long-running-process-yarn</module>
-        <module>graph-property-worker-yarn</module>
-        <module>external-resource-worker-yarn</module>
-        <module>mr-base</module>
         <module>owl</module>
     </modules>
 </project>

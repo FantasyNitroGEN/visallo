@@ -4,9 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.visallo</groupId>
-        <artifactId>visallo-plugin-toggle</artifactId>
+        <artifactId>visallo-web-group</artifactId>
         <version>1.1-SNAPSHOT</version>
-        <relativePath>../../plugin-toggle</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -24,6 +23,8 @@
         <!-- Maven Plugin Versions -->
         <plugin.maven.exec.version>1.2.1</plugin.maven.exec.version>
         <plugin.maven.war.version>2.4</plugin.maven.war.version>
+
+        <grunt.target>development</grunt.target>
     </properties>
 
     <dependencies>

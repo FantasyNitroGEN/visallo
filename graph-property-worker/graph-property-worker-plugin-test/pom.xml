@@ -6,13 +6,13 @@
 
     <parent>
         <groupId>org.visallo</groupId>
-        <artifactId>visallo-core-group</artifactId>
+        <artifactId>visallo-graph-property-worker-group</artifactId>
         <version>1.1-SNAPSHOT</version>
     </parent>
-    <artifactId>visallo-test</artifactId>
+    <artifactId>visallo-graph-property-worker-plugin-test</artifactId>
     <packaging>jar</packaging>
 
-    <name>Visallo: Core: Test</name>
+    <name>Visallo: GraphPropertyWorker: Plugin Test</name>
 
     <dependencies>
         <dependency>
@@ -26,11 +26,6 @@
             <version>${vertexium.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.vertexium</groupId>
-            <artifactId>vertexium-accumulo</artifactId>
-            <version>${vertexium.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-model-vertexium-inmemory</artifactId>
             <version>${project.version}</version>
@@ -38,11 +33,6 @@
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-model-queue-inmemory</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-model-vertexium-accumulo</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -60,28 +50,9 @@
             <artifactId>simple-orm-in-memory</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.v5analytics.simpleorm</groupId>
-            <artifactId>simple-orm-accumulo</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-minicluster</artifactId>
-            <version>${accumulo.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
             <version>${elasticsearch.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
-            <version>${hadoop.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>${zookeeper.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

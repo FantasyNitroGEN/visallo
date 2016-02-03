@@ -19,18 +19,6 @@
             <artifactId>visallo-tools-import</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- file import supporting file handler dependencies -->
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-gpw-youtube-transcript</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-gpw-subrip-transcript</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>

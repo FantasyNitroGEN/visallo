@@ -14,41 +14,12 @@
     <name>Visallo: GraphPropertyWorker: Plugins</name>
 
     <modules>
-        <module>ccextractor</module>
         <module>email-extractor</module>
-        <module>opennlp-dictionary-extractor</module>
-        <module>opennlp-me-extractor</module>
+        <module>mime-type-ontology-mapper</module>
         <module>phone-number-extractor</module>
-        <module>sphinx</module>
-        <module>subrip-parser</module>
-        <module>subrip-transcript</module>
-        <module>tesseract</module>
+        <module>reindex</module>
         <module>tika-mime-type</module>
         <module>tika-text-extractor</module>
-        <module>youtube-transcript</module>
         <module>zipcode-extractor</module>
-        <module>zipcode-resolver</module>
-        <module>reindex</module>
-        <module>translate</module>
-        <module>translator-bing</module>
-        <module>opencv-object-detector</module>
-        <module>clavin</module>
-        <module>drewnoakes-image-metadata-extractor</module>
-        <module>java-code</module>
-        <module>mime-type-ontology-mapper</module>
-        <module>csv</module>
-        <module>video-mp4-encoder</module>
-        <module>video-webm-encoder</module>
-        <module>video-audio-extract</module>
-        <module>audio-mp4-encoder</module>
-        <module>audio-ogg-encoder</module>
-        <module>audio-metadata</module>
-        <module>video-poster-frame</module>
-        <module>video-frame-extract</module>
-        <module>video-metadata</module>
-        <module>geoip</module>
-        <module>groovy</module>
-        <module>geocoder</module>
-        <module>geo-location-resolver</module>
     </modules>
 </project>
