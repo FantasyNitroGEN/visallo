@@ -1,16 +1,18 @@
 
 define([
     'flight/lib/component',
-    'tpl!login',
+    'hbs!loginTpl',
     'configuration/plugins/registry',
     'util/withDataRequest',
-    'tpl!util/alert'
+    'tpl!util/alert',
+    'util/requirejs/promise!util/service/propertiesPromise'
 ], function(
     defineComponent,
     template,
     registry,
     withDataRequest,
-    alertTemplate) {
+    alertTemplate,
+    configProperties) {
     'use strict';
 
     return defineComponent(Login, withDataRequest);
@@ -28,7 +30,7 @@ define([
         this.after('initialize', function() {
             var self = this;
 
-            this.$node.html(template({}));
+            this.$node.html(template({ showPoweredBy: configProperties['login.showPoweredBy'] === 'true' }));
 
             registry.documentExtensionPoint('org.visallo.authentication',
                 'Provides interface for authentication',

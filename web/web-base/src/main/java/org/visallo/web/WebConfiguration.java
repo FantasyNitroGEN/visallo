@@ -4,8 +4,8 @@ import com.google.common.base.Joiner;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.types.VisalloPropertyBase;
 import org.visallo.core.model.properties.types.MetadataVisalloProperty;
+import org.visallo.core.model.properties.types.VisalloPropertyBase;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +35,7 @@ public class WebConfiguration {
     public static final String PROPERTIES_METADATA_PROPERTY_NAMES_TYPE = PREFIX + "properties.metadata.propertyNamesType";
     public static final String MAP_PROVIDER = PREFIX + "map.provider";
     public static final String MAP_PROVIDER_OSM_URL = PREFIX + "map.provider.osm.url";
+    public static final String LOGIN_SHOW_POWERED_BY = PREFIX + "login.showPoweredBy";
     public static final PropertyMetadata PROPERTY_METADATA_SOURCE_TIMEZONE = new PropertyMetadata("http://visallo.org#sourceTimezone",
             "properties.metadata.label.source_timezone",
             "timezone");
@@ -54,6 +55,8 @@ public class WebConfiguration {
     public static final Map<String, String> DEFAULTS = new HashMap<>();
 
     static {
+        DEFAULTS.put(LOGIN_SHOW_POWERED_BY, "false");
+
         // Local cache rules for vertices / edges (per workspace)
         DEFAULTS.put(CACHE_VERTEX_LRU_EXPIRATION_SECONDS, Integer.toString(10 * 60));
         DEFAULTS.put(CACHE_VERTEX_MAX_SIZE, "500");
