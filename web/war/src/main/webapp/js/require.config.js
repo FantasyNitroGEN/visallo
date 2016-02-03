@@ -78,7 +78,7 @@
         shim: {
             'arbor': { deps: ['jquery'] },
             'atmosphere': { init: function() { return $.atmosphere; }, deps: ['jquery'] },
-            'bootstrap': { exports: 'window', deps: ['jquery'] },
+            'bootstrap': { exports: 'window', deps: ['jquery', 'jquery-ui-bundle'] },
             'bootstrap-datepicker': { exports: 'window', deps: ['bootstrap'] },
             'bootstrap-timepicker': { exports: 'window', deps: ['bootstrap'] },
             'bluebird': { exports: 'Promise' },
