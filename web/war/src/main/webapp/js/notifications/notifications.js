@@ -5,6 +5,8 @@ define([
 ], function(defineComponent, withDataRequest, d3) {
     'use strict';
 
+    var NOTIFICATION_HOVER_EXPAND_DELAY_MILLIS = 250;
+
     return defineComponent(Notifications, withDataRequest);
 
     function Notifications() {
@@ -37,7 +39,9 @@ define([
             this.on(document, 'notificationActive', this.onNotificationActive);
             this.on(document, 'notificationDeleted', this.onNotificationDeleted);
 
-            this.on('mouseover', {notificationSelector: this.onMouseOver});
+            this.on('mouseover', {
+                notificationSelector: this.onMouseOver
+            });
 
             this.immediateUpdate = this.update;
             this.update = _.debounce(this.update.bind(this), 250);
@@ -88,16 +92,17 @@ define([
         };
 
         this.onMouseOver = function(event, data) {
-            var $notification = $(data.el);
-            var hoverTimer = setTimeout(function() {
-                $notification.addClass('expanded-notification');
-            }, 1000, data);
+            var self = this;
+            var $notification = $(event.target).closest(this.attr.notificationSelector);
 
-            $notification.on('mouseleave', function() {
-                clearTimeout(hoverTimer);
-                if ($notification.hasClass('expanded-notification')) {
-                    $notification.removeClass('expanded-notification');
-                }
+            clearTimeout(self.hoverTimer);
+            self.hoverTimer = setTimeout(function() {
+                $notification.addClass('expanded-notification');
+            }, NOTIFICATION_HOVER_EXPAND_DELAY_MILLIS);
+
+            $notification.off('mouseover').on('mouseleave', function() {
+                clearTimeout(self.hoverTimer);
+                $notification.removeClass('expanded-notification');
             })
         }
 
