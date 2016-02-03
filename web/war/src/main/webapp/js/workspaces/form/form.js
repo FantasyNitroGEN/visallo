@@ -223,13 +223,14 @@ define([
                 return;
             }
 
-            if (this.attr.workspaceTitlesLowercase && _.contains(this.attr.workspaceTitlesLowercase, val.toLowerCase())) {
+            if (_.contains(this.attr.workspaceTitlesLowercase, val.toLowerCase())) {
                 this.select('titleSelector').addClass('invalid');
                 this.select('titleErrorSelector').show();
                 return;
             } else {
                 this.select('titleSelector').removeClass('invalid');
                 this.select('titleErrorSelector').hide();
+
                 if (val !== this.attr.data.title) {
                     if (!this.titleRevert) {
                         this.titleRevert = $.extend(true, {}, this.attr.data);
