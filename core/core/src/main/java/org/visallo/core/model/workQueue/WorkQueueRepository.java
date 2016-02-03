@@ -394,8 +394,13 @@ public abstract class WorkQueueRepository {
         pushGraphPropertyQueue(element, null, null, priority);
     }
 
+    @Deprecated
     public void pushElements(Iterable<? extends Element> elements) {
-        pushMultipleGraphPropertyQueue(elements, null, null, null, null, Priority.NORMAL, ElementOrPropertyStatus.UPDATE, null, FlushFlag.DEFAULT);
+        pushElements(elements, Priority.NORMAL);
+    }
+
+    public void pushElements(Iterable<? extends Element> elements, Priority priority) {
+        pushMultipleGraphPropertyQueue(elements, null, null, null, null, priority, ElementOrPropertyStatus.UPDATE, null, FlushFlag.DEFAULT);
     }
 
     public void pushElement(Element element) {
