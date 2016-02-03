@@ -5,7 +5,7 @@ Plugin to add custom options components which display in the graph options menu 
 
 To register an option:
 
-        require(['configuration/plugins/graphOptions/plugin'], function(GraphOptionsPlugin) {
+        require(['configuration/plugins/registry'], function(registry) {
 
             // Define a custom Flight component
             define('myplugins/hello_world', ['flight/lib/component'], function(defineComponent) {
@@ -19,7 +19,7 @@ To register an option:
             });
 
             // Register the component path,
-            GraphOptionsPlugin.registerGraphOption({
+            registry.registerExtension('org.visallo.graph.options', {
                 identifier: 'helloWorld',
                 optionComponentPath: 'myplugins/hello_world'
             });

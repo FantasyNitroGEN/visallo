@@ -23,8 +23,8 @@ Plugin to add new menubar items.
 
 To register an item:
 
-    require(['configuration/plugins/menubar/plugin', 'util/messages'], function(MenubarExtension, i18n) {
-        MenubarExtension.registerMenubarItem({
+    require(['configuration/plugins/registry', 'util/messages'], function(registry, i18n) {
+        registry.registerExtension('org.visallo.menubar', {
             title: i18n('com.mypluginpackage.myplugin.menubar.title'),
             identifier: 'com-mypluginpackage-myplugin',
             action: {

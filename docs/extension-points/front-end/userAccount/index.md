@@ -6,8 +6,8 @@ Plugin to configure the new pages for user account dialog
 
 To register a page:
 
-        require(['configuration/plugins/userAccount/plugin'], function(UserAccountPlugin) {
-            UserAccountPlugin.registerUserAccountPage({
+        require(['configuration/plugins/registry'], function(registry) {
+            registry.registerExtension('org.visallo.user.account.page', {
                 identifier: 'changePassword',
                 pageComponentPath: 'org.visallo.useraccount.changePassword'
             });
