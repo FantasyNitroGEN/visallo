@@ -132,7 +132,7 @@ define([
 
         this.onCancel = function() {
             if (this.relatedRequest) {
-                this.relatedRequest.abort();
+                this.relatedRequest.cancel();
             }
         };
 

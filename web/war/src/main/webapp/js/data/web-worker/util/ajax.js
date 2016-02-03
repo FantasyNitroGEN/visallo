@@ -1,6 +1,6 @@
 
 /*global File:false*/
-define(['util/promise'], function() {
+define(['util/promise'], function(Promise) {
     'use strict';
 
     return ajax;
@@ -64,16 +64,19 @@ define(['util/promise'], function() {
 
         var finished = false,
             r = new XMLHttpRequest(),
-            promise = new Promise(function(fulfill, reject) {
+            promise = new Promise(function(fulfill, reject, onCancel) {
                 var progressHandler,
                     params = isFile(parameters) ? toFileUpload(parameters) : toQueryString(parameters),
                     resolvedUrl = BASE_URL + url + ((/GET|DELETE/.test(method) && parameters) ?
                         ('?' + params) : ''),
                     formData;
 
+                onCancel(function() {
+                    r.abort();
+                });
+
                 r.onload = function() {
                     finished = true;
-                    if (promise && promise._aborted) return;
                     if (r.upload) {
                         r.upload.removeEventListener('progress', progressHandler);
                     }
@@ -113,7 +116,6 @@ define(['util/promise'], function() {
                 };
                 r.onerror = function() {
                     finished = true;
-                    if (promise && promise._aborted) return;
                     if (r.upload) {
                         r.upload.removeEventListener('progress', progressHandler);
                     }
@@ -161,13 +163,6 @@ define(['util/promise'], function() {
 
                 r.send(formData);
             });
-
-        promise.abort = function() {
-            this._aborted = true;
-            if (r && !finished) {
-                r.abort();
-            }
-        }
 
         return promise;
     }

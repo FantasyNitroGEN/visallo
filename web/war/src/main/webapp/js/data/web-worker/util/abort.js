@@ -6,8 +6,8 @@ define([], function() {
         return function() {
             var args = Array.prototype.slice.call(arguments, 0);
 
-            if (previousPromise && previousPromise.abort) {
-                previousPromise.abort();
+            if (previousPromise && previousPromise.cancel) {
+                previousPromise.cancel();
             }
 
             previousPromise = func.apply(null, args);

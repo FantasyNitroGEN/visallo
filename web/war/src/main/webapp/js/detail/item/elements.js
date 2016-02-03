@@ -39,9 +39,10 @@ define([
                             handler(resolve, reject);
                         }, 50)
                     } else {
+                        var delay = 1000;
                         _.delay(function() {
-                            reject();
-                        }, 1000);
+                            reject(new Error('Element not rendered after ' + delay + 'ms'));
+                        }, delay);
                         self.on('listRendered', function() {
                             tries = 0;
                             handler(resolve, reject);

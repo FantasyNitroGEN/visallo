@@ -32,7 +32,7 @@
             'bootstrap': '../libs/bootstrap/docs/assets/js/bootstrap.min',
             'bootstrap-datepicker': '../libs/bootstrap-datepicker/js/bootstrap-datepicker',
             'bootstrap-timepicker': '../libs/bootstrap-timepicker/js/bootstrap-timepicker',
-            'bluebird': '../libs/bluebird/js/browser/bluebird.min',
+            'bluebird': '../libs/bluebird/js/browser/bluebird',
             'chrono': '../libs/chrono-node/chrono.min',
             'colorjs': '../libs/color-js/color',
             'cytoscape': '../libs/cytoscape/dist/cytoscape.min',

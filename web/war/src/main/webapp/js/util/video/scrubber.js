@@ -206,7 +206,7 @@ define([
                 });
             }
 
-            return Promise.reject();
+            return Promise.reject(new Error('Expected url to be defined.'));
         }
 
         this.setVideoPreviewBackgroundImage = function() {
