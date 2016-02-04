@@ -1,6 +1,7 @@
 package org.visallo.core.config;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
@@ -48,7 +49,7 @@ public class FileConfigurationLoader extends ConfigurationLoader {
     }
 
     public Configuration createConfiguration() {
-        final Map<String, String> properties = new HashMap<>();
+        final Map<String, String> properties = getDefaultProperties();
         List<File> configDirectories = getVisalloDirectoriesFromLeastPriority("config");
         if (configDirectories.size() == 0) {
             throw new VisalloException("Could not find any valid config directories.");
@@ -60,6 +61,14 @@ public class FileConfigurationLoader extends ConfigurationLoader {
         }
         setConfigurationInfo("loadedFiles", loadedFiles);
         return new Configuration(this, properties);
+    }
+
+    private Map<String, String> getDefaultProperties() {
+        Map<String, String> defaultProperties = new HashMap<>();
+        if (!Strings.isNullOrEmpty(System.getenv(ENV_VISALLO_DIR))) {
+            defaultProperties.put(ENV_VISALLO_DIR, System.getenv(ENV_VISALLO_DIR));
+        }
+        return defaultProperties;
     }
 
     public static List<File> getVisalloDirectoriesFromMostPriority(String subDirectory) {

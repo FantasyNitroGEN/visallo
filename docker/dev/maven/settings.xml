@@ -1,8 +1,0 @@
-<settings>
-    <localRepository>/opt/maven/repository</localRepository>
-    <activeProfiles>
-        <activeProfile>storage-accumulo</activeProfile>
-        <activeProfile>search-elasticsearch</activeProfile>
-        <activeProfile>queue-rabbitmq</activeProfile>
-    </activeProfiles>
-</settings>

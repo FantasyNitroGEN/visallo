@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-test</artifactId>
+            <artifactId>visallo-graph-property-worker-plugin-test</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>

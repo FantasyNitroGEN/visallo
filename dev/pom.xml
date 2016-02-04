@@ -4,9 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.visallo</groupId>
-        <artifactId>visallo-plugin-toggle</artifactId>
+        <artifactId>visallo</artifactId>
         <version>1.1-SNAPSHOT</version>
-        <relativePath>../plugin-toggle</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,11 +16,42 @@
 
     <modules>
         <module>cli</module>
-        <module>graph-property-worker-local</module>
-        <module>import-local</module>
         <module>jetty-server</module>
-        <module>quick-start</module>
-        <module>tomcat-server</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-queue-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
+

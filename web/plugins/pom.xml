@@ -15,18 +15,9 @@
 
     <modules>
         <module>admin-import-rdf</module>
-        <module>auth-social</module>
         <module>auth-username-only</module>
         <module>auth-username-password</module>
-        <module>dev-tools</module>
-        <module>google-analytics</module>
-        <module>import-export-workspaces</module>
-        <module>opennlp-dictionary-extractor</module>
-        <module>terms-of-use</module>
-        <module>analysts-notebook-export</module>
-        <module>change-password</module>
         <module>change-email</module>
-        <module>requeue</module>
-        <module>zip-code-boundaries</module>
+        <module>change-password</module>
     </modules>
 </project>

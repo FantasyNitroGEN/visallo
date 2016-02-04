@@ -16,6 +16,5 @@
         <module>core</module>
         <module>messages</module>
         <module>plugins</module>
-        <module>test</module>
     </modules>
 </project>

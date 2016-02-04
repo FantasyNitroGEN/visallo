@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd" [
-    <!ENTITY logDir "logs">
-
     <!-- Pattern: %d{yyyy-MM-dd HH:mm:ss.SSS/zzz} %-5p [%X{userId}:%X{userName}] [%c{3}] %m%n -->
     <!ENTITY pattern "&#37;d{yyyy-MM-dd HH:mm:ss.SSS/zzz} &#37;-5p [&#37;X{userId}:&#37;X{userName}] [&#37;c{3}] &#37;m&#37;n">
 ]
@@ -15,32 +13,22 @@
         </layout>
     </appender>
 
-    <appender name="log" class="org.apache.log4j.RollingFileAppender">
-        <param name="File" value="&logDir;/visallo${logFileSuffix}.log" />
-        <param name="MaxFileSize" value="32MB" />
-        <param name="MaxBackupIndex" value="2" />
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="&pattern;" />
-        </layout>
-    </appender>
-
     <logger name="com.v5analytics" additivity="false">
         <level value="DEBUG" />
-        <appender-ref ref="log" />
+        <appender-ref ref="console" />
     </logger>
     <logger name="org.vertexium" additivity="false">
         <level value="DEBUG" />
-        <appender-ref ref="log" />
+        <appender-ref ref="console" />
     </logger>
     <logger name="org.visallo" additivity="false">
         <level value="DEBUG" />
-        <appender-ref ref="log" />
+        <appender-ref ref="console" />
     </logger>
 
     <root>
         <level value="WARN" />
         <appender-ref ref="console" />
-        <appender-ref ref="log" />
     </root>
 
 </log4j:configuration>

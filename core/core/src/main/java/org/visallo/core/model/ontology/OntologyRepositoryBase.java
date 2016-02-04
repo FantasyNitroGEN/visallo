@@ -358,22 +358,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract void storeOntologyFile(InputStream inputStream, IRI documentIRI);
 
-    public void exportOntology(OutputStream out, IRI documentIRI) throws Exception {
-        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
-        OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
-        config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
-
-        List<OWLOntology> loadedOntologies = loadOntologyFiles(m, config, null);
-        OWLOntology o = findOntology(loadedOntologies, documentIRI);
-        if (o == null) {
-            throw new VisalloException("Could not find ontology with iri " + documentIRI);
-        }
-
-        Writer fileWriter = new OutputStreamWriter(out);
-
-        new OWLXMLRenderer().render(o, fileWriter);
-    }
-
     protected abstract List<OWLOntology> loadOntologyFiles(OWLOntologyManager m, OWLOntologyLoaderConfiguration config, IRI excludedIRI) throws Exception;
 
     private OWLOntology findOntology(List<OWLOntology> loadedOntologies, IRI documentIRI) {
