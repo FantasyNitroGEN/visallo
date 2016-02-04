@@ -27,20 +27,24 @@ define([
                 this.previewLoaded = true;
 
                 var self = this,
-                    preview = this.$node.find('.preview'),
-                    activePreview = this.$node.find('.active-preview'),
+                    preview = this.preview = this.$node.find('.preview'),
+                    activePreview = this.activePreview = this.$node.find('.active-preview'),
                     vertex = this.vertex,
                     image = F.vertex.image(vertex, null, 80, 80),
                     videoPreview = F.vertex.imageFrames(vertex),
                     nonConceptClsName = 'non_concept_preview';
 
                 if (videoPreview) {
+                    this.on('itemActivated', this.onVideoPreviewActivated);
+                    this.on('itemDeactivated', this.onVideoPreviewDeactivated);
                     this.$node.addClass('video_preview ' + nonConceptClsName);
+                    preview.css('display', 'block');
 
                     var div = preview.find('div');
                     if (!div.length) {
                         div = $('<div>').appendTo(preview);
                     }
+
                     VideoScrubber.attachTo(div, {
                         posterFrameUrl: image,
                         videoPreviewImageUrl: videoPreview
@@ -80,5 +84,22 @@ define([
                 }
             }
         };
+
+        this.onVideoPreviewActivated = function() {
+            moveScrubber(this.preview, this.activePreview);
+        };
+
+        this.onVideoPreviewDeactivated = function() {
+            moveScrubber(this.activePreview, this.preview);
+        }
+    }
+
+    function moveScrubber(source, dest) {
+            var scrubber = source.find('.org-visallo-video-scrubber');
+            if (scrubber) {
+                scrubber.appendTo(dest);
+                dest.css('display', 'block');
+                source.css('display', 'none');
+            }
     }
 });
