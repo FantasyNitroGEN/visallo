@@ -86,8 +86,6 @@ public interface OntologyRepository {
 
     void importFileData(byte[] inFileData, IRI documentIRI, File inDir, Authorizations authorizations) throws Exception;
 
-    void exportOntology(OutputStream out, IRI documentIRI) throws Exception;
-
     void writePackage(File file, IRI documentIRI, Authorizations authorizations) throws Exception;
 
     ClientApiOntology getClientApiObject();
