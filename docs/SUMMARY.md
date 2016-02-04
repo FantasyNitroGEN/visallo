@@ -33,6 +33,7 @@
         * [Graph View](extension-points/front-end/graphView/index.md)
         * [Layout Component](extension-points/front-end/layout/component.md)
         * [Layout Type](extension-points/front-end/layout/type.md)
+        * [Logout](extension-points/front-end/logout/index.md)
         * [Menubar](extension-points/front-end/menubar/index.md)
         * [Search Filters](extension-points/front-end/searchFilters/index.md)
         * [User Account](extension-points/front-end/userAccount/index.md)

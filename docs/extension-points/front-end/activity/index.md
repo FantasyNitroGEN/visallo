@@ -4,9 +4,8 @@ Plugin to configure the user interface for activity items
 
 To register an activity item:
 
-        require(['configuration/plugins/activity/plugin'], function(ActivityPlugin) {
-            ActivityPlugin.registerActivityHandler({
-
+        require(['configuration/plugins/registry'], function(registry) {
+            registry.registerExtension('org.visallo.activity', {
                 // Required Attributes
                 type: (string)
                 kind: (string)
@@ -15,7 +14,7 @@ To register an activity item:
                 // Optional
                 autoDismiss: (boolean)
                 allowCancel: (boolean)
-            })
+            });
         })
 
 # Properties

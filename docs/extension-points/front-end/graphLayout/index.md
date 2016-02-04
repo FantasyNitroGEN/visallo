@@ -1,11 +1,12 @@
 Graph Layout Plugin
 =====================
 
-Plugin to add cytoscape layouts. See example layouts: https://github.com/cytoscape/cytoscape.js/blob/v2.1.0/src/extensions/layout.null.js
+Plugin to add cytoscape layouts. http://js.cytoscape.org/#layouts
 
 To register a layout:
 
-        require(['configuration/plugins/graphLayout/plugin'], function(GraphLayoutPlugin) {
+        require(['configuration/plugins/registry'], function(registry) {
+            MyLayout.identifier = 'myLayout';
 
             function MyLayout(options) {
                 this.options = options;
@@ -28,12 +29,12 @@ To register a layout:
                 return this;
             };
 
-            GraphLayoutPlugin.registerGraphLayout('myLayout', MyLayout);
+            registry.registerExtension('org.visallo.graph.layout', MyLayout);
         })
 
 Remember to add a i18n value in a MessageBundle.properties. This will be displayed in the graph context menu.
 
-        graph.layout.[Layout Registered Name].displayName=[String to display]
+        graph.layout.[Layout Identifier Name].displayName=[String to display]
 
 For example:
 

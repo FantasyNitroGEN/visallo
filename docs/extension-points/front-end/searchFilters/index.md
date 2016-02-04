@@ -21,10 +21,10 @@ Plugin to add new items to search filter component.
 To register an item:
 
         require([
-            'configuration/plugins/searchFilter/plugin',
+            'configuration/plugins/registry',
             'util/messages'
         ], function(SearchFilterExtension, i18n) {
-            SearchFilterExtension.registerSearchFilter({
+            registry.registerExtension('org.visallo.search.filter', {
                 componentPath: 'com.myplugin',
                 sectionHeader: 'My Search Filter',
                 filterKeys: ['mypluginKey', 'mypluginOptions'],
