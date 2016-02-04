@@ -16,7 +16,6 @@
 
     <modules>
         <module>cli</module>
-        <module>import-local</module>
         <module>jetty-server</module>
     </modules>
 
@@ -39,8 +38,19 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.vertexium</groupId>
-            <artifactId>vertexium-elasticsearch-singledocument</artifactId>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium-inmemory</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
