@@ -1,0 +1,9 @@
+delete from visallo_systemNotifications;
+delete from visallo_userNotifications;
+delete from visallo_jettySession;
+delete from visallo_artifactThumbnail;
+delete from visallo_dictionaryEntry;
+delete from visallo_vertex;
+delete from visallo_edge;
+delete from visallo_metadata;
+delete from visallo_streaming_properties;
