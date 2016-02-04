@@ -26,5 +26,42 @@
             <version>${javax.servlet.api.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-auth-username-only</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Graph Property Workers -->
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-email-extractor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-mime-type-ontology-mapper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-phone-number-extractor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-tika-mime-type</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-tika-text-extractor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-gpw-zipcode-extractor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

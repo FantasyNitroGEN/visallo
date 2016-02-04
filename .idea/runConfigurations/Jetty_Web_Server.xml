@@ -3,7 +3,7 @@
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
     <option name="MAIN_CLASS_NAME" value="org.visallo.web.JettyWebServer" />
     <option name="VM_PARAMETERS" value="" />
-    <option name="PROGRAM_PARAMETERS" value="--webAppDir $MODULE_DIR$/../../web/war/src/main/webapp --port 8888 --httpsPort 8889 --keyStorePath $MODULE_DIR$/../../web/web-base/src/test/resources/valid.jks --keyStorePassword password" />
+    <option name="PROGRAM_PARAMETERS" value="--webAppDir $MODULE_DIR$/../../web/war/src/main/webapp --port 8888 --httpsPort 8889 --keyStorePath $MODULE_DIR$/../../dev/jetty-server/config/visallo-vm.visallo.org.jks --keyStorePassword password" />
     <option name="WORKING_DIRECTORY" value="file://$MODULE_DIR$/../.." />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
     <option name="ALTERNATIVE_JRE_PATH" />
@@ -11,7 +11,9 @@
     <option name="ENV_VARIABLES" />
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="visallo-dev-jetty-server" />
-    <envs />
+    <envs>
+      <env name="VISALLO_DIR" value="$MODULE_DIR$/../.." />
+    </envs>
     <method />
   </configuration>
 </component>

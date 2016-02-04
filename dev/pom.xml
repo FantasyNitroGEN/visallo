@@ -20,5 +20,28 @@
         <module>jetty-server</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-sql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-queue-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-elasticsearch-singledocument</artifactId>
+        </dependency>
+    </dependencies>
 </project>
 
