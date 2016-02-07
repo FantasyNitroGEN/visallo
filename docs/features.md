@@ -1,22 +1,29 @@
 # Visallo Features
 
-The following Visallo features are executed as graph property workers deployed in YARN and do not require the installation of additional dependencies.
-Also see [Visallo Dependencies by Feature](dependencies.md#visallo-dependencies-by-feature).
+Many featues within Visallo are developed and run as plugins to the system. There are two basic types of plugins, web plugins and graph property worker plugins. Please see the [extension point documentation](extension-points/index.md) if you'd like to learn how to build your own Visallo plugins.
 
-| Category | Feature                                                                              | Visallo YARN Plugins                     | Notes |
-| -------- | ------------------------------------------------------------------------------------ | --------------------------------------- | ----- |
-| text     | identification of e-mail address in text                                             | email-extractor                         | |
-| text     | identification of specified terms in text using OpenNLP                              | opennlp-dictionary-extractor            | [OpenNLP](https://opennlp.apache.org/) |
-| text     | algorithmic identification of terms in text using OpenNLP                            | opennlp-me-extractor                    | [OpenNLP](https://opennlp.apache.org/) |
-| text     | identification of phone numbers in text                                              | phone-number-extractor                  | |
-| text     | extract text from supported document filetypes                                       | tika-text-extractor                     | [Tika](http://tika.apache.org/) |
-| text     | identification of postal codes in text                                               | zipcode-extractor                       | currently US only |
-| text     | resolution of postal code terms to geolocations                                      | zipcode-resolver                        | currently US only |
-| media    | annotation of image and video files with date-time, location, and device information | drewnoakes-image-metadata-extractor     | |
-| media    | annotation of video files with the text transcript in accompanying .srt files        | subrip-transcript <br /> subrip-parser  | [SubRip](http://zuggy.wz.cz/) |
-| media    | annotation of video files with the text transcript in accompanying .cc files         | youtube-transcript                      | |
-| system   | sets MIME type metadata property of "raw" properties (e.g. file content)             | tika-mime-type                          | [Tika](http://tika.apache.org/) |
-| system   | sets the concept type property of vertices based on their MIME type                  | mime-type-ontology-mapper               | |
-| system   | facilitates updating the search index with new or changed data                       | reindex                                 | |
-| example  | parse Java code and create the corresponding graph                                   | java-code                               | requires the [java-code ontology](https://github.com/v5analytics/visallo/tree/master/graph-property-worker/plugins/java-code/ontology) |
+## Web Plugins
+
+The following web plugins come with Visallo, but not all are installed by default. 
+
+| Feature | Description |
+| ------- | -------------------|
+| admin-import-rdf | import RDF formatted data from the admin console |
+| auth-username-only | authentication via username only; useful during development |
+| auth-username-password | standard username password authentication |
+| change-email | UI plugin allowing users to change their email address |
+| change-password | UI plugin allowing users to change their password |
+
+## Graph Property Worker Plugins
+
+The following features are executed as graph property workers that run within the Visallo web application.
+
+| Feature | Description |
+| ------- | ----------- |
+| email-extractor | identification of e-mail address in text |
+| phone-number-extractor | identification of phone numbers in text |
+| tika-text-extractor | extract text from supported document filetypes using [Tika](http://tika.apache.org/) |
+| zipcode-extractor | identification of postal codes in text (currently US only) |
+| tika-mime-type | sets MIME type metadata property of "raw" properties (e.g. file content) using [Tika](http://tika.apache.org/) |
+| mime-type-ontology-mapper | sets the concept type property of vertices based on their MIME type |
 

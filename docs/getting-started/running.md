@@ -1,27 +1,16 @@
 # Running Visallo
 
-This guide covers running Visallo within the development Docker container. The steps below describe the quickest method for getting Visallo up and running in a development capacity. You'll eventually want to spend time understanding how to [create a custom ontology](ontology.md) and [develop Visallo extensions](../extension-points/index.md).
+The steps below describe the quickest method for getting Visallo up and running in a development capacity. You'll eventually want to spend time understanding how to [create a custom ontology](ontology.md) and [develop Visallo extensions](../extension-points/index.md).
+
+
+## Initialize the database
+
+The following command will initialize the out-of-the-box embedded database. If you've configured a different database, you'll need to create it on your own.
+
+      mvn -f dev/db/pom.xml sql:execute@create-db
 
 ## Run the Web Application
 
-Run the commands below to start the Visallo web application from the `/opt/visallo-source/` directory. These steps must be run from the development Docker container shell resulting from running the `docker/run-dev.sh` script.
+The following Maven command will run the web application. You may prefer to [run the web server using IntelliJ](../ide-setup/intellij.md) if you're doing active development.
 
-First, build the web application. This only needs to be run once:
-
-        mvn -am -pl web/war compile
-
-Then, run the web application using Jetty:
-
-        mvn -am -pl web/war \
-            -P-build-webapp,-build-user-guide,jetty-run,web-admin,web-auth-username-only,storage-accumulo,queue-rabbitmq,search-elasticsearch,acl-ontology,coordination-zookeeper,storage-hadoop \
-            compile
-
-The preceding `mvn` command will start the Visallo web application with a minimum number of features running. The `-P` option to the Maven command above specifies which profiles are included when starting Jetty. A profile groups a set of dependencies that make up a feature. Running the following command will list all of the available profiles that can be run.
-
-        mvn -am -pl web/war help:all-profiles
-
-Profiles that begin with `gpw` are graph property workers, which are primarily features that process ingested data. Features starting with `web` are web application plugins.
-
-It's also worth noting that some profiles are configured to run automatically. You can run the following command to see which profiles they are.
-
-        mvn -am -pl web/war help:active-profiles
+      mvn -am -pl dev/jetty-server -P dev-jetty-run compile

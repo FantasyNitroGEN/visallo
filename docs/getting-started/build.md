@@ -1,6 +1,6 @@
 # Build Instructions
 
-In the majority of cases, most Visallo components can be built by simply opening a terminal to the component root directory and running `mvn package`. The two most common components that are a little less straight-forward are the web application and yarn ingest components. Additional instructions for both can be found below.
+In the majority of cases, most Visallo components can be built by simply opening a terminal to the component root directory and running `mvn package`. More specific instructions for both can be found below.
 
 <a name="root-module"/>
 ## Root Module Installation
@@ -8,6 +8,12 @@ In the majority of cases, most Visallo components can be built by simply opening
 You'll need to install the Visallo `root` Maven module after you've cloned the [source code](source-code.md) and any time you pull the latest Visallo source code.
 
         mvn install -f root/pom.xml
+
+## Database Initialization
+
+You will need to create the necessary tables before using the default out-of-the-box embedded database. This can be done by running the following maven command from the `$PROJECT_DIR` directory.
+
+      mvn -f dev/db/pom.xml sql:execute@create-db
 
 ## Smoke Test
 
@@ -23,15 +29,10 @@ Run all unit tests, continuing on failures and without failing the build:
 
 It is a known issue that some unit tests fail on Windows. The following are expected to fail:
 * `org.visallo.core.formula.FormulaEvaluatorTest`
-* `org.visallo.tesseract.TesseractGraphPropertyWorkerTest`
-* `org.visallo.opencvObjectDetector.OpenCVUtilsTest`
-* `org.visallo.opencvObjectDetector.OpenCVObjectDetectorPropertyWorkerTest`
 
 ## Web Application
 
-Building the Visallo web application is very similar to running it, as described in the [Running section of the development Docker container](dev-docker-image.md#running) instructions.
-
-From the root directory of the Visallo project, run
+Building the Visallo web application is very similar to running it. From the root directory of the Visallo project, run
 
         mvn package -pl web/war -am -DskipTests -Dsource.skip=true
 
@@ -46,11 +47,7 @@ To build a web plugin, run:
 
         mvn package -pl ./web/plugins/<plugin-name>/ -am -DskipTests
 
-Once the plugin JAR file is created, copy it to the `/visallo/lib` directory in HDFS:
-
-        hadoop fs -put <path_to_plugin_jar> /visallo/lib
-
-Or, copy it to the web server's lib directory `/opt/visallo/lib` or for docker `docker/visallo-dev-persistent/opt/visallo/lib`.
+Once the plugin JAR file is created, copy it to `$VISALLO_DIR/lib`, which should be accessible on all of your servers.
 
 This is the easiest way to expose the plugin to all web servers. The Visallo web application will automatically add the JAR file to the classpath.
 
@@ -63,14 +60,12 @@ Each graph property worker can be built independently using the following Maven 
 
         mvn package -pl <path_to_plugin_dir> -am
 
-Once the plugin JAR file is created, copy it to the `/visallo/lib` directory in HDFS.
-
-        hadoop fs -put <path_to_plugin_jar> /visallo/lib
+Once the plugin JAR file is created, copy it to `$VISALLO_DIR/lib`, which should be accessible on all of your servers.
 
 As an example, to build and deploy the `tika-mime-type-plugin` one would run the following commands from the root of
 the Visallo project:
 
         mvn package -pl graph-property-worker/plugins/tika-mime-type -am
-        hadoop fs -put graph-property-worker/plugins/tika-mime-type/target/visallo-tika-mime-*-jar-with-dependencies.jar /visallo/lib
+        cp graph-property-worker/plugins/tika-mime-type/target/visallo-tika-mime-*-jar-with-dependencies.jar $VISALLO_DIR/lib
 
-Visallo's graph property worker YARN application  will automatically detect the plugin in the classpath.
+Visallo's will automatically detect graph property workers found within the classpath.

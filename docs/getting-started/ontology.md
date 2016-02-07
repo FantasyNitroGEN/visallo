@@ -8,38 +8,12 @@ For an example see the [dev ontology](https://github.com/v5analytics/visallo/tre
 
 ## Loading an ontology via configuration
 
-Add the following to your [configuration](configuration.md):
+Add the following to your [configuration](configuration.md).
 
 ```
-repository.ontology.owl.dev.iri=http://visallo.org/dev
-repository.ontology.owl.dev.dir=/<path-to-visallo-source>/examples/ontology-dev/
-
-#repository.ontology.owl.wikipedia.iri=http://visallo.org/wikipedia
-#repository.ontology.owl.wikipedia.dir=/<path-to-visallo-source>/datasets/wikipedia/data/ontology
+repository.ontology.owl.sample.iri=http://visallo.org/sample
+repository.ontology.owl.sample.dir=$VISALLO_DIR/config/ontology-sample
 ```
-
-## Loading an ontology via web plugin
-
-To load an ontology you will need a zip file containing the OWL file and all of it's dependencies. For the dev
-ontology you would zip all the files in the ontology-dev directory and call it dev.owl. Then you will need to upload
-the ontology into Visallo.
-
-* [Install](build.md#web-plugin) the dev-tools web plugin.
-
-* Click the "Admin" tool button.
-
-  ![Admin Tool](../img/admin.jpg)
-
-* Click the "Upload Ontology" button.
-
-  ![Upload Ontology](ontology-upload.jpg)
-
-* Click the "Select File..." button and select you zip file. Assuming your OWL file has `owl:Ontology/rdf:about`
-  then the document IRI is not required.
-
-  ![Ontology Select File](ontology-select-file.jpg)
-
-* Click "Upload"
 
 ## Visallo OWL Extensions
 
@@ -103,7 +77,7 @@ The ontology defines concepts, relationships, and properties. During data proces
 Intents can be defined in the ontology and overridden in the configuration. To assign an intent you add the
  intent attribute to an OWL element.
 
-    <owl:Class rdf:about="http://visallo.org/dev#phoneNumber">
+    <owl:Class rdf:about="http://visallo.org/sample#phoneNumber">
       <rdfs:label xml:lang="en">Phone Number</rdfs:label>
       <visallo:intent>phoneNumber</visallo:intent>
       ...
@@ -111,9 +85,8 @@ Intents can be defined in the ontology and overridden in the configuration. To a
 
 To override an intent you can add the following to your configuration.
 
-    ontology.intent.concept.phoneNumber=http://visallo.org/dev#phoneNumber
-    ontology.intent.relationship.hasMedia=http://visallo.org/dev#hasMedia
-    ontology.intent.property.pageCount=http://visallo.org/dev#pageCount
+    ontology.intent.concept.phoneNumber=http://visallo.org/sample#phoneNumber
+    ontology.intent.relationship.hasMedia=http://visallo.org/sample#entityHasMedia
 
 ### Concepts
 

@@ -3,7 +3,7 @@ The instructions below will help you setup the [IntelliJ IDEA](https://www.jetbr
 # Prerequisites
 
 * Setup [configuration](../getting-started/configuration.md) on your host machine.
-* Install [dependencies](../dependencies.md) on your host machine.
+* Install [dependencies](../getting-started/dependencies.md) on your host machine.
 * Install the [root module](../getting-started/build.md#root-module) on your host machine.
 
 # Import Project
@@ -41,20 +41,3 @@ Visallo ships with a collection of useful run configurations for IntelliJ. Unfor
 
 The above command will re-checkout several files into the `$PROJECT_DIR/.idea/runConfigurations` directory. These files are the settings for each of the IntelliJ run configurations that ship with Visallo. They should automatically show up in the `Run -> Edit Configurations` dialog in IntelliJ.
 
-## Maven Profile Selection
-
-In the Maven Projects window of IntelliJ (right side) you'll find a dropdown titled `Profiles`. The base set of profiles that should be checked are listed below. Other profiles are used to enable and disable different features of Visallo during development.
-
-* acl-ontology
-* build-doclint-none
-* build-webapp
-* coordination-zookeeper
-* gpw-core
-* gpw-video (if you've installed ffmpeg dependency)
-* queue-rabbitmq
-* search-elasticsearch
-* serializer-kryo
-* storage-accumulo
-* storage-hadoop
-* web-admin
-* web-auth-username-only
