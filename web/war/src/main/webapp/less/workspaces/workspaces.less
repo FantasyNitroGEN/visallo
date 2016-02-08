@@ -12,7 +12,17 @@ li {
     padding: 0.1em 0.5em;
     margin-top: 1em;
     height: 2em;
+    &.invalid {
+      color: #b94a48;
+      border-color: #ee5f5b;
+      &:focus {
+        border-color: darken(#ee5f5b, 10%);
+        @shadow: 0 0 6px lighten(#ee5f5b, 20%);
+        .box-shadow(@shadow);
+      }
+    }
   }
+
 
   .nav-list-title, .nav-list-subtitle {
       padding-right: 35px;
@@ -73,6 +83,11 @@ li {
   padding-bottom: 0em;
   .input-append {
     width: 100%;
+  }
+  .add-title-error {
+     color: red;
+     font-size: 0.8em;
+     display: none;
   }
 
   input.new {
@@ -137,6 +152,11 @@ li {
     list-style: none;
     margin: 0;
     padding: 0;
+    li .form-title-error {
+      color: red;
+      font-size: 0.8em;
+      display: none;
+    }
   }
   .scroller {
     position: absolute;

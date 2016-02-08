@@ -1,0 +1,23 @@
+<div class="scroller">
+  <ul class="share-list nav nav-list">
+    {{#if editable}}
+      <li class="nav-header">{{ i18n 'workspaces.form.header'}}</li>
+
+    <li><input class="workspace-title" type="text" value="{{ workspace.title }}" required>
+        <span class="form-title-error">{{ i18n 'workspaces.form.title.unique.error' }}</span>
+    </li>
+    {{/if}}
+
+    <li class="nav-header share-header">{{ i18n 'workspaces.form.sharing' }}<span class="badge loading"/></li>
+
+    <li class="share-form" style="display:none">
+    </li>
+  </ul>
+</div>
+
+<div class="buttons">
+  {{#if editable}}
+     <button class="delete btn btn-danger"> {{ i18n 'workspaces.form.button.delete' }}</button>
+  {{/if}}
+</div>
+
