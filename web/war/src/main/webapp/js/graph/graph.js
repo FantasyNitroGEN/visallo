@@ -1262,7 +1262,7 @@ define([
                 nodes = cy.nodes().filter(':selected').not('.temp'),
                 edges = cy.edges().filter(':selected').not('.temp'),
                 edgeIds = [],
-                vertexIds = [];
+                vertexIds = cyTarget.vertexIds || [];
 
             // TODO: shift selection breaks this
             //if (shiftKey) {
@@ -1556,7 +1556,9 @@ define([
                         })
                     }
                     this.setWorkspaceDirty();
-                    this.updateVertexSelections(cy);
+                    this.updateVertexSelections(cy, {
+                        vertexIds: _.unique(fitToIds)
+                    });
                 });
             }
         }
