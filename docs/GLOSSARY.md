@@ -1,7 +1,3 @@
-#Vertexium
-The open source graph database API developed along with Visallo. Vertexium manages storage and
-indexing of the data Visallo. More information is available at <a target="_new" href="http://vertexium.org/">http://vertexium.org/</a>
-
 #vertex
 A node in the graph that can have properties and edges to other vertices.
 
@@ -36,25 +32,8 @@ Acronym for graph property worker.
 Type of Visallo plugin that responds to changes in the graph and often used for data enrichment and
 analytics. GPWs can respond to creation or update events on vertices, properties, or edges.
 
-#poster frame
-An image that is displayed in the video player before the user clicks play.
-
 #raw
 The property on a vertex used to store any imported data.
-
-#term mention
-A word or group of words found in a text property which may denote a concept. Term mentions are
-typically identified by graph property workers (e.g. `opennlp-me-extractor`).
-
-#resolved term mention
-A term mention that has be resolved by a user or the system to represent a specific vertex
-in the graph.
-
-#thumbnail image
-An image displayed in search result and on the workspace.
-
-#video preview
-An image composed of multiple video frames supporting scrubbing withing the video before beginning playback.
 
 #visibility
 The data access control applied to vertices, properties, and edges. The term 'visibility' is borrowed from Accumulo.
@@ -72,9 +51,6 @@ as metadata on all vertices, properties, and edges to support data access contro
 #authorization
 The data access control rights granted to Visallo users to control their access to vertices,
 properties, and edges. The term 'authorization' is borrowed from Accumulo.
-
-#privilage
-The application rights granted to Visallo users. (e.g. READ, EDIT, and PUBLISH)
 
 #workspace
 A named collection of vertices that can be shared for collaboration with

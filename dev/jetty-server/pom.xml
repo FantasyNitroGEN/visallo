@@ -14,6 +14,14 @@
     <name>Visallo: Dev: Jetty Server</name>
     <description>This project is only here to create a good classpath with the plugins for your IDE</description>
 
+    <properties>
+        <!-- Default Jetty Configuration Properties -->
+        <jetty.port>8080</jetty.port>
+        <jetty.ssl.port>8443</jetty.ssl.port>
+        <jetty.maxIdleTime>60000</jetty.maxIdleTime>
+        <jetty.basedir>${basedir}/../../web/war</jetty.basedir>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.visallo</groupId>
@@ -64,4 +72,48 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>dev-jetty-run</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.4.0</version>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>org.visallo.web.JettyWebServer</argument>
+                                <argument>--webAppDir</argument>
+                                <argument>${jetty.basedir}/src/main/webapp</argument>
+                                <argument>--port</argument>
+                                <argument>${jetty.port}</argument>
+                                <argument>--httpsPort</argument>
+                                <argument>${jetty.ssl.port}</argument>
+                                <argument>--keyStorePath</argument>
+                                <argument>${basedir}/config/visallo-vm.visallo.org.jks</argument>
+                                <argument>--keyStorePassword</argument>
+                                <argument>password</argument>
+                            </arguments>
+                            <environmentVariables>
+                                <VISALLO_DIR>${basedir}/../..</VISALLO_DIR>
+                            </environmentVariables>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

@@ -2,10 +2,7 @@
 
 ## Complete Dataset Analytics
 
-Complete dataset analytics are analytics which you would like to analyze all of the data in the system as a whole. Example of these analytics are classification, clustering,recommendation, and statistical algorithms. We recommend using either Map/Reduce or Spark for these types of algorithms.
-
-* [Visallo Map/Reduce Base](https://github.com/v5analytics/visallo/tree/master/tools/mr-base)
-* [Visallo Spark Base](https://github.com/v5analytics/visallo/tree/master/tools/spark-base)
+Complete dataset analytics are analytics which you would like to analyze all of the data in the system as a whole. Example of these analytics are classification, clustering, recommendation, and statistical algorithms. Please consider our commercial Visallo Enterprise distribution for large dataset analytics as it is designed for such a use case.
 
 ## Individual Scoring
 
