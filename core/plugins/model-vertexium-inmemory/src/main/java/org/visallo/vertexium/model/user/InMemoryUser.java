@@ -3,7 +3,6 @@ package org.visallo.vertexium.model.user;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
@@ -15,7 +14,7 @@ public class InMemoryUser implements User {
     private final String displayName;
     private final String emailAddress;
     private final Date createDate;
-    private Set<Privilege> privileges;
+    private Set<String> privileges;
     private final List<String> authorizations;
     private final String currentWorkspaceId;
     private JSONObject preferences;
@@ -32,7 +31,7 @@ public class InMemoryUser implements User {
             String userName,
             String displayName,
             String emailAddress,
-            Set<Privilege> privileges,
+            Set<String> privileges,
             String[] authorizations,
             String currentWorkspaceId
     ) {
@@ -118,7 +117,7 @@ public class InMemoryUser implements User {
         return this.currentWorkspaceId;
     }
 
-    public Set<Privilege> getPrivileges() {
+    public Set<String> getPrivileges() {
         return this.privileges;
     }
 
@@ -136,7 +135,7 @@ public class InMemoryUser implements User {
         authorizations.remove(authorization);
     }
 
-    public void setPrivileges(Set<Privilege> privileges) {
+    public void setPrivileges(Set<String> privileges) {
         this.privileges = privileges;
     }
 

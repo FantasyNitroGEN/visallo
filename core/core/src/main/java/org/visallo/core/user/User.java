@@ -43,7 +43,7 @@ public interface User extends Serializable {
 
     JSONObject getUiPreferences();
 
-    Set<Privilege> getPrivileges();
+    Set<String> getPrivileges();
 
     String getPasswordResetToken();
 

@@ -2,9 +2,7 @@ package org.visallo.core.user;
 
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
@@ -163,7 +161,7 @@ public class ProxyUser implements User {
     }
 
     @Override
-    public Set<Privilege> getPrivileges() {
+    public Set<String> getPrivileges() {
         ensureUser();
         if (proxiedUser == null) {
             return null;

@@ -2,10 +2,12 @@ package org.visallo.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
+import com.google.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 import org.vertexium.Authorizations;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -21,6 +23,7 @@ import static org.vertexium.util.IterableUtils.toList;
 @Parameters(commandDescription = "User administration")
 public class UserAdmin extends CommandLineTool {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserAdmin.class, "cli-userAdmin");
+    private ACLProvider aclProvider;
     private Args args;
     private UserAdminAction userAdminAction;
 
@@ -111,7 +114,7 @@ public class UserAdmin extends CommandLineTool {
         if (args.authorizations != null && args.authorizations.length() > 0) {
             authorizations.addAll(Arrays.asList(StringUtils.split(args.authorizations, ',')));
         }
-        Set<Privilege> privileges = null;
+        Set<String> privileges = null;
         if (args.privileges != null) {
             privileges = Privilege.stringToPrivileges(args.privileges);
         }
@@ -216,7 +219,7 @@ public class UserAdmin extends CommandLineTool {
     }
 
     private int setPrivileges(SetPrivilegesArgs args) {
-        Set<Privilege> privileges = Privilege.stringToPrivileges(args.privileges);
+        Set<String> privileges = Privilege.stringToPrivileges(args.privileges);
 
         User user = findUser(args);
 
@@ -300,7 +303,7 @@ public class UserAdmin extends CommandLineTool {
         System.out.println("       Previous Login Date: " + valueOrBlank(user.getPreviousLoginDate()));
         System.out.println("Previous Login Remote Addr: " + valueOrBlank(user.getPreviousLoginRemoteAddr()));
         System.out.println("               Login Count: " + user.getLoginCount());
-        System.out.println("                Privileges: " + privilegesAsString(getUserRepository().getPrivileges(user)));
+        System.out.println("                Privileges: " + privilegesAsString(user.getPrivileges()));
         System.out.println("            Authorizations: " + authorizationsAsString(getUserRepository().getAuthorizations(user)));
         System.out.println("");
     }
@@ -313,7 +316,7 @@ public class UserAdmin extends CommandLineTool {
             int maxEmailAddressWidth = 1;
             int maxDisplayNameWidth = 1;
             int maxLoginCountWidth = 1;
-            int maxPrivilegesWidth = privilegesAsString(Privilege.ALL).length();
+            int maxPrivilegesWidth = privilegesAsString(aclProvider.getAllPrivileges()).length();
             for (User user : users) {
                 maxCreateDateWidth = maxWidth(user.getCreateDate(), maxCreateDateWidth);
                 maxIdWidth = maxWidth(user.getUserId(), maxIdWidth);
@@ -337,7 +340,7 @@ public class UserAdmin extends CommandLineTool {
                         valueOrBlank(user.getEmailAddress()),
                         user.getDisplayName(),
                         user.getLoginCount(),
-                        privilegesAsString(getUserRepository().getPrivileges(user))
+                        privilegesAsString(user.getPrivileges())
                 );
             }
         } else {
@@ -345,15 +348,10 @@ public class UserAdmin extends CommandLineTool {
         }
     }
 
-    private String privilegesAsString(Set<Privilege> privileges) {
-        SortedSet<Privilege> sortedPrivileges = new TreeSet<>(new Comparator<Privilege>() {
-            @Override
-            public int compare(Privilege p1, Privilege p2) {
-                return p1.ordinal() - p2.ordinal();
-            }
-        });
+    private String privilegesAsString(Set<String> privileges) {
+        SortedSet<String> sortedPrivileges = new TreeSet<>(privileges);
         sortedPrivileges.addAll(privileges);
-        return sortedPrivileges.toString().replaceAll(" ", "");
+        return Privilege.toString(sortedPrivileges);
     }
 
     private String authorizationsAsString(Authorizations authorizations) {
@@ -380,5 +378,10 @@ public class UserAdmin extends CommandLineTool {
     private int maxWidth(Object o, int max) {
         int width = valueOrBlank(o).length();
         return width > max ? width : max;
+    }
+
+    @Inject
+    public void setAclProvider(ACLProvider aclProvider) {
+        this.aclProvider = aclProvider;
     }
 }

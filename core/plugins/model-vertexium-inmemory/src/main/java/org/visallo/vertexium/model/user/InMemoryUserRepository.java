@@ -15,7 +15,6 @@ import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 
 import javax.inject.Inject;
@@ -145,20 +144,12 @@ public class InMemoryUserRepository extends UserRepository {
     }
 
     @Override
-    public Set<Privilege> getPrivileges(User user) {
-        if (user instanceof SystemUser) {
-            return Privilege.ALL;
-        }
-        return user.getPrivileges();
-    }
-
-    @Override
     protected void internalDelete(User user) {
 
     }
 
     @Override
-    protected void internalSetPrivileges(User user, Set<Privilege> privileges, User authUser) {
+    protected void internalSetPrivileges(User user, Set<String> privileges, User authUser) {
         ((InMemoryUser) user).setPrivileges(privileges);
     }
 

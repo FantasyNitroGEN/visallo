@@ -13,11 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Set;
 
 public class PrivilegeFilter implements RequestResponseHandler {
-    private final Set<Privilege> requiredPrivileges;
+    private final Set<String> requiredPrivileges;
     private UserRepository userRepository;
 
     protected PrivilegeFilter(
-            final Set<Privilege> requiredPrivileges,
+            final Set<String> requiredPrivileges,
             final UserRepository userRepository
     ) {
         this.requiredPrivileges = requiredPrivileges;
@@ -27,8 +27,7 @@ public class PrivilegeFilter implements RequestResponseHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
         User user = VisalloBaseParameterProvider.getUser(request, userRepository);
-        Set<Privilege> userPrivileges = userRepository.getPrivileges(user);
-        if (!Privilege.hasAll(userPrivileges, requiredPrivileges)) {
+        if (!Privilege.hasAll(user.getPrivileges(), requiredPrivileges)) {
             throw new VisalloAccessDeniedException("You do not have the required privileges: " + Privilege.toString(requiredPrivileges), user, "privileges");
         }
         chain.next(request, response);

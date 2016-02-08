@@ -10,9 +10,11 @@ import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
+import org.visallo.core.security.ACLProvider;
 import org.visallo.core.util.ClassUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.Privilege;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -387,6 +389,9 @@ public class Configuration {
                 properties.put(key, get(key, ""));
             }
         }
+
+        ACLProvider aclProvider = InjectHelper.getInstance(ACLProvider.class);
+        properties.put("privileges", Privilege.toJson(aclProvider.getAllPrivileges()));
 
         JSONObject messages = new JSONObject();
         if (resourceBundle != null) {
