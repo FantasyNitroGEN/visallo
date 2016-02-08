@@ -1,6 +1,6 @@
 # Getting Started
 
-While we recommend reading all the pages in this Developer Guide, the steps below are the fastest path to getting an instance of Visallo up and running in no time. Please make sure you have all [required dependencies](dependencies.md) installed before attempting any of the steps below.
+While we recommend reading all the pages in this Developer Guide, the steps below are the fastest path to getting an instance of Visallo up and running in no time. Please make sure you have all [required dependencies](getting-started/dependencies.md) installed before attempting any of the steps below.
 
 Clone the source code.
 
