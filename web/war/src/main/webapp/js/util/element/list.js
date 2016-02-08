@@ -472,6 +472,9 @@ define([
                 if ((itemVertexId && _.contains(vertexIds, itemVertexId)) ||
                     (itemEdgeId && _.contains(edgeIds, itemEdgeId))) {
                     $item.addClass('active');
+                    self.trigger($item.children('a'), 'itemActivated');
+                } else {
+                    self.trigger($item.children('a'), 'itemDeactivated');
                 }
             });
         };
