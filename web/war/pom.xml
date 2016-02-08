@@ -162,31 +162,22 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>grunt-jenkins</id>
+                                <id>grunt</id>
+                                <goals>
+                                    <goal>grunt</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>${grunt.target}</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>grunt-test</id>
                                 <goals>
                                     <goal>grunt</goal>
                                 </goals>
                                 <phase>test</phase>
                                 <configuration>
                                     <arguments>test:unit</arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>${plugin.maven.exec.version}</version>
-                        <executions>
-                            <execution>
-                                <id>install-webapp-dependencies-and-minify</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>bash</executable>
-                                    <commandlineArgs>${basedir}/src/main/webapp/grunt.sh ${grunt.target}</commandlineArgs>
                                 </configuration>
                             </execution>
                         </executions>

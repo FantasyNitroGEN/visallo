@@ -36,13 +36,6 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-web-war</artifactId>
-            <type>war</type>
-            <scope>provided</scope>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
             <artifactId>visallo-web-auth-username-only</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -83,18 +76,23 @@
     <profiles>
         <profile>
             <id>dev-jetty-run</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-web-war</artifactId>
+                    <scope>provided</scope>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.4.0</version>
+                        <version>${plugin.maven.exec.version}</version>
                         <configuration>
-                            <executable>java</executable>
+                            <mainClass>org.visallo.web.JettyWebServer</mainClass>
                             <arguments>
-                                <argument>-classpath</argument>
-                                <classpath/>
-                                <argument>org.visallo.web.JettyWebServer</argument>
                                 <argument>--webAppDir</argument>
                                 <argument>${jetty.basedir}/src/main/webapp</argument>
                                 <argument>--port</argument>
@@ -106,15 +104,22 @@
                                 <argument>--keyStorePassword</argument>
                                 <argument>password</argument>
                             </arguments>
-                            <environmentVariables>
-                                <VISALLO_DIR>${basedir}/../..</VISALLO_DIR>
-                            </environmentVariables>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>VISALLO_DIR</key>
+                                    <value>${basedir}/../..</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>visallo.VISALLO_DIR</key>
+                                    <value>${basedir}/../..</value>
+                                </systemProperty>
+                            </systemProperties>
                         </configuration>
                         <executions>
                             <execution>
                                 <phase>compile</phase>
                                 <goals>
-                                    <goal>exec</goal>
+                                    <goal>java</goal>
                                 </goals>
                             </execution>
                         </executions>
