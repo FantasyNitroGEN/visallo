@@ -114,7 +114,7 @@
                         </configuration>
                         <executions>
                             <execution>
-                                <id>install node and npm</id>
+                                <id>install-node-and-npm</id>
                                 <goals>
                                     <goal>install-node-and-npm</goal>
                                 </goals>
@@ -125,7 +125,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>npm install</id>
+                                <id>install-npm-modules</id>
                                 <goals>
                                     <goal>npm</goal>
                                 </goals>
@@ -140,21 +140,22 @@
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>${plugin.maven.exec.version}</version>
+                        <configuration>
+                            <workingDirectory>src/main/resources/META-INF/user-guide</workingDirectory>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>make install</id>
+                                <id>run-gitbook</id>
                                 <phase>generate-resources</phase>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>bash</executable>
-                                    <commandlineArgs>${basedir}/src/main/resources/META-INF/user-guide/install.sh
-                                    </commandlineArgs>
+                                    <executable>${project.basedir}/src/main/resources/META-INF/user-guide/node/node</executable>
+                                    <commandlineArgs>node_modules/gitbook-cli/bin/gitbook.js install .</commandlineArgs>
                                 </configuration>
                             </execution>
                         </executions>
-
                     </plugin>
                 </plugins>
             </build>

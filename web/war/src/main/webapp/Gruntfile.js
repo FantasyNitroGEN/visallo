@@ -15,7 +15,7 @@ module.exports = function(grunt) {
 
         exec: {
             buildPathFinding: {
-                command: 'npm install -q && node_modules/gulp/bin/gulp.js compile',
+                command: 'npm install -q && node node_modules/gulp/bin/gulp.js compile',
                 stdout: false,
                 cwd: 'node_modules/pathfinding'
             }

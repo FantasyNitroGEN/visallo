@@ -1,7 +1,7 @@
 .PHONY: clean all test
 
 all: node_modules/npm-install
-	./grunt.sh
+	node_modules/.bin/grunt
 
 node_modules/npm-install: package.json
 	npm install
@@ -11,4 +11,4 @@ clean:
 	rm -rf node_modules libs jsc css build
 
 test:
-	node_modules/.bin/grunt test:unit
+	npm test
