@@ -1417,15 +1417,34 @@ define([
             this.checkEmptyGraph();
         };
 
+        this.updateCytoscapeControlBehavior = function(invertPanSelect) {
+            this.cytoscapeReady(function(cy) {
+                var noVertices = cy.nodes().length === 0;
+
+                if (noVertices) {
+                    cy.boxSelectionEnabled(false)
+                        .userPanningEnabled(false)
+                        .userZoomingEnabled(false);
+                } else {
+                    var selectIsDefault = visalloData.currentUser.uiPreferences.panOrSelect === 'select';
+
+                    if (invertPanSelect) {
+                        selectIsDefault = !selectIsDefault;
+                    }
+
+                    cy.boxSelectionEnabled(selectIsDefault)
+                        .userPanningEnabled(true)
+                        .userZoomingEnabled(true);
+                }
+            });
+        };
+
         this.checkEmptyGraph = function() {
             this.cytoscapeReady(function(cy) {
                 var noVertices = cy.nodes().length === 0;
 
                 this.select('emptyGraphSelector').toggle(noVertices);
-                cy.panningEnabled(!noVertices)
-                    .zoomingEnabled(!noVertices);
-                // .boxSelectionEnabled(!noVertices);
-
+                this.updateCytoscapeControlBehavior();
                 this.select('graphToolsSelector').toggle(!noVertices);
                 if (noVertices) {
                     cy.reset();
@@ -1746,6 +1765,10 @@ define([
             }
         };
 
+        this.onToggleClickAndDrag = function(event, data) {
+            this.updateCytoscapeControlBehavior();
+        };
+
         this.onToggleSnapToGrid = function(event, data) {
             var self = this;
 
@@ -1873,6 +1896,7 @@ define([
             this.on('hideMenu', this.onHideMenu);
             this.on('createVertex', this.onCreateVertex);
             this.on('toggleSnapToGrid', this.onToggleSnapToGrid);
+            this.on('toggleClickAndDrag', this.onToggleClickAndDrag);
             this.on('contextmenu', function(e) {
                 e.preventDefault();
             });
@@ -1900,7 +1924,7 @@ define([
                             });
                         }
                     }
-                    if (e.which === gKey) {
+                    if (e.which === gKey && !e.shiftKey && !e.metaKey && !e.altKey) {
                         self.gKeyPressed = true;
                         _.delay(function() {
                             self.gKeyPressed = false;
@@ -1910,11 +1934,8 @@ define([
                 if (e.type === 'keyup' && e.shiftKey) {
                     return;
                 }
-                shiftKey = e.type === 'keydown' ? e.shiftKey : e.shiftKey;
 
-                this.cytoscapeReady(function(cy) {
-                    cy.boxSelectionEnabled(shiftKey).panningEnabled(!shiftKey);
-                });
+                this.updateCytoscapeControlBehavior(e.shiftKey)
             });
 
             this.trigger(document, 'registerKeyboardShortcuts', {
@@ -1985,7 +2006,8 @@ define([
         });
 
         this.initializeGraph = function(style) {
-            var self = this;
+            var self = this,
+                selectIsDefault = visalloData.currentUser.uiPreferences.panOrSelect === 'select';
 
             cytoscape('layout', 'bettergrid', BetterGrid);
             registry.extensionsForPoint('org.visallo.graph.layout').forEach(function(layout) {
@@ -1998,7 +2020,11 @@ define([
                 hideEdgesOnViewport: false,
                 hideLabelsOnViewport: false,
                 textureOnViewport: true,
-                boxSelectionEnabled: false,
+                boxSelectionEnabled: selectIsDefault,
+                panningEnabled: true,
+                userPanningEnabled: true,
+                zoomingEnabled: true,
+                userZoomingEnabled: true,
                 pixelRatio: retina.devicePixelRatio,
                 motionBlur: false,
                 container: this.select('cytoscapeContainerSelector').css({height: '100%'})[0],
@@ -2079,6 +2105,7 @@ define([
                             requestAnimationFrame(fn);
                         }
                     }
+                    self.updateCytoscapeControlBehavior();
                     self.cytoscapeMarkReady(this);
                     self.trigger('cytoscapeReady', {
                         cy: this
