@@ -16,6 +16,7 @@ import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -23,6 +24,7 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.status.StatusRepository;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -30,10 +32,9 @@ import org.visallo.web.initializers.ApplicationBootstrapInitializer;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.*;
 
 public class ApplicationBootstrap implements ServletContextListener {
     public static final String CONFIG_HTTP_TRANSPORT_GUARANTEE = "http.transportGuarantee";
@@ -44,6 +45,8 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
     public static final String GZIP_FILTER_NAME = "gzip";
+    public boolean isStopped = false;
+    private Configuration config;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -55,7 +58,7 @@ public class ApplicationBootstrap implements ServletContextListener {
             }
             VisalloLoggerFactory.setProcessType("web");
 
-            final Configuration config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), getInitParametersAsMap(context));
+            config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), getInitParametersAsMap(context));
             config.setDefaults(WebConfiguration.DEFAULTS);
             LOGGER = VisalloLoggerFactory.getLogger(ApplicationBootstrap.class);
             LOGGER.info("Running application with configuration:\n%s", config);
@@ -69,6 +72,13 @@ public class ApplicationBootstrap implements ServletContextListener {
             for (ApplicationBootstrapInitializer initializer : initializers) {
                 initializer.initialize();
             }
+
+            Runtime.getRuntime().addShutdownHook(new Thread(){
+                @Override
+                public void run() {
+                    contextDestroyed(null);
+                }
+            });
         } catch (Throwable ex) {
             LOGGER.error("Could not startup context", ex);
             throw new VisalloException("Could not startup context", ex);
@@ -82,13 +92,34 @@ public class ApplicationBootstrap implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
+        if (isStopped) {
+            return;
+        }
+
+        isStopped = true;
+
         safeLogInfo("BEGIN: Servlet context destroyed...");
+
+        safeLogInfo("Shutdown: LockRepository");
+        InjectHelper.getInstance(LockRepository.class).shutdown();
 
         safeLogInfo("Shutdown: SimpleOrmSession");
         InjectHelper.getInstance(SimpleOrmSession.class).close();
 
         safeLogInfo("Shutdown: Graph");
         InjectHelper.getInstance(Graph.class).shutdown();
+
+        // get a list of classes which implement closeable interface and call close
+        Collection<Closeable> closeables = InjectHelper.getInjectedServices(Closeable.class, config);
+        for (Closeable c : closeables) {
+            try {
+                safeLogInfo("Calling close on: " + c.getClass().getName());
+                c.close();
+            } catch (IOException e) {
+                safeLogInfo("Unable to close: " + c.getClass().getName() + ". " + e.getClass().getName() + ". "
+                        + e.getMessage());
+            }
+        }
 
         safeLogInfo("Shutdown: InjectHelper");
         InjectHelper.shutdown();
