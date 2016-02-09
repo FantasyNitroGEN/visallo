@@ -36,6 +36,13 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-war</artifactId>
+            <type>war</type>
+            <scope>provided</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-web-auth-username-only</artifactId>
             <version>${project.version}</version>
         </dependency>
