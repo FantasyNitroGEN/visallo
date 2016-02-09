@@ -6,12 +6,13 @@
   right: 0;
   top: @padding;
   margin-right: @padding;
-  .opacity(50);
+  opacity: 0.9;
   //.transition(opacity 0.2s ease-in-out);
   //&:hover { .opacity(100); }
   z-index: @graph-zIndex + 1;
 
-  @bg: #333;
+  @bg: #929292;
+  @active-bg: #575757;
 
   .options {
     .disable-text-selection;
@@ -20,7 +21,6 @@
     margin-right: 8px;
     width: auto;
     text-align: right;
-    @active-bg: darken(@bg, 20%);
     button {
       margin: 0;
       background: @bg url(../img/glyphicons/white/glyphicons_157_show_lines@2x.png);
@@ -41,15 +41,42 @@
       background: @active-bg;
       text-shadow: 0 -1px 0 darken(@active-bg, 10%);
       color: white;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+      border-radius: 6px;
+      border-top-right-radius: 0;
+      padding: 0.5em;
+      font-size: 85%;
       input {
-        vertical-align: top;
-        margin-left: 0.25em;
+        vertical-align: middle;
+        margin: 0 0.25em;
       }
+
 
       ul {
         list-style: none;
         margin: 0;
         padding: 0;
+
+        li {
+          padding: 0.3em 0.5em;
+          margin: 0;
+          label {
+            font-size: inherit;
+            margin: 0;
+          }
+
+          .group label {
+            display: inline;
+            input {
+              margin-left: 0.5em;
+              margin-right: 0.1em;
+            }
+          }
+          .subtitle {
+            font-style: italic;
+            color: #ccc;
+          }
+        }
       }
     }
   }
@@ -72,7 +99,7 @@
       width: 50%;
 
       &:active {
-        background: darken(@bg, 100%);
+        background: @active-bg;
       }
     }
   }
