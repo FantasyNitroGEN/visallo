@@ -28,12 +28,14 @@
             'arbor': '../libs/cytoscape-arbor/arbor',
             'async': '../libs/requirejs-plugins/src/async',
             'atmosphere': '../libs/atmosphere.js/lib/atmosphere',
+            'babel': '../libs/requirejs-react-jsx/babel-5.8.34.min',
             'beautify': '../libs/js-beautify/js/lib/beautify',
             'bootstrap': '../libs/@visallo/bootstrap/docs/assets/js/bootstrap.min',
             'bootstrap-datepicker': '../libs/bootstrap-datepicker/js/bootstrap-datepicker',
             'bootstrap-timepicker': '../libs/bootstrap-timepicker/js/bootstrap-timepicker',
             'bluebird': '../libs/bluebird/js/browser/bluebird',
             'chrono': '../libs/chrono-node/chrono.min',
+            'classnames': '../libs/classnames/index',
             'colorjs': '../libs/color-js/color',
             'cytoscape': '../libs/cytoscape/dist/cytoscape',
             'cytoscape-arbor': '../libs/cytoscape-arbor/cytoscape-arbor',
@@ -52,6 +54,7 @@
             'hbs': '../libs/require-handlebars-plugin/hbs',
             'handlebars': '../libs/require-handlebars-plugin/hbs/handlebars',
             'jstz': '../libs/jstimezonedetect/dist/jstz.min',
+            'jsx': '../libs/requirejs-react-jsx/jsx',
             'jquery': '../libs/jquery/dist/jquery.min',
             'jquery-ui-bundle': '../libs/jquery-ui-bundle/jquery-ui.min',
             'jquery-scrollstop': '../libs/jquery-scrollstop/jquery.scrollstop',
@@ -69,6 +72,8 @@
             'rangy-highlighter': '../libs/rangy/lib/rangy-highlighter',
             'rangy-cssclassapplier': '../libs/rangy/lib/rangy-classapplier',
             'rangy-serializer': '../libs/rangy/lib/rangy-serializer',
+            'react': '../libs/react/dist/react-with-addons',
+            'react-dom': '../libs/react-dom/dist/react-dom',
             'sf': '../libs/sf/sf',
             'text': '../libs/requirejs-text/text',
             'tpl': '../libs/@visallo/requirejs-ejs-plugin/rejs',
@@ -98,9 +103,16 @@
             'rangy-highlighter': { deps: ['rangy-core', 'rangy-cssclassapplier', 'rangy-serializer']},
             'rangy-cssclassapplier': { deps: ['rangy-core'] },
             'rangy-serializer': { deps: ['rangy-core'] },
+            'react': { exports: 'React' },
             'jquery-scrollstop': { exports: 'jQuery', deps: ['jquery'] },
             'underscore': { exports: '_' },
             'videojs': { exports: 'videojs' }
+        },
+        config: {
+            babel: {
+                sourceMaps: 'inline',
+                fileExtension: '.jsx'
+            }
         },
         amdWrap: [
             'deep-freeze-strict/index.js'

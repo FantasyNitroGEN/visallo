@@ -152,6 +152,7 @@ module.exports = function(grunt) {
             scripts: {
                 files: [
                     'js/**/*.js',
+                    'js/**/*.jsx',
                     'js/**/*.less',
                     'js/**/*.ejs',
                     'js/**/*.hbs',
