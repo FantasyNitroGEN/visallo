@@ -208,8 +208,7 @@ define([
                             var unitIndex = 0, value;
                             for (var i = 0; i < INTERVAL_UNITS.length; i++) {
                                 if (buckets < INTERVAL_UNITS[i].value) {
-                                    unitIndex = Math.max(i - 1);
-                                    value = buckets / INTERVAL_UNITS[unitIndex].value;
+                                    value = buckets / INTERVAL_UNITS[i].value;
                                     break;
                                 }
                             }
@@ -369,8 +368,7 @@ define([
                     }
 
                     var ontologyProperty = ontology.properties.byTitle[this.currentAggregation.field],
-                        isDate = ontologyProperty && ontologyProperty.dataType === 'date',
-
+                        isDate = !!ontologyProperty && ontologyProperty.dataType === 'date',
                         $interval = section.find('.interval').toggle(!isDate);
 
                     section.find('.date_interval').toggle(isDate);
