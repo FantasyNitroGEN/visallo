@@ -25,7 +25,7 @@
             }
         },
         paths: {
-            'arbor': '../libs/cytoscape/lib/arbor',
+            'arbor': '../libs/cytoscape-arbor/arbor',
             'async': '../libs/requirejs-plugins/src/async',
             'atmosphere': '../libs/atmosphere.js/lib/atmosphere',
             'beautify': '../libs/js-beautify/js/lib/beautify',
@@ -35,7 +35,8 @@
             'bluebird': '../libs/bluebird/js/browser/bluebird',
             'chrono': '../libs/chrono-node/chrono.min',
             'colorjs': '../libs/color-js/color',
-            'cytoscape': '../libs/cytoscape/dist/cytoscape.min',
+            'cytoscape': '../libs/cytoscape/dist/cytoscape',
+            'cytoscape-arbor': '../libs/cytoscape-arbor/cytoscape-arbor',
             'd3': '../libs/d3/d3.min',
             'd3-tip': '../libs/d3-tip/index',
             'd3-plugins': '../libs/d3-plugins-dist/dist/mbostock',
@@ -76,7 +77,7 @@
             'videojs': '../libs/video.js/dist/video'
         },
         shim: {
-            'arbor': { deps: ['jquery'] },
+            'arbor': { exports: 'arbor', deps: ['jquery'] },
             'atmosphere': { init: function() { return $.atmosphere; }, deps: ['jquery'] },
             'bootstrap': { exports: 'window', deps: ['jquery', 'jquery-ui-bundle'] },
             'bootstrap-datepicker': { exports: 'window', deps: ['bootstrap'] },
@@ -84,7 +85,6 @@
             'bluebird': { exports: 'Promise' },
             'chrono': { exports: 'chrono' },
             'colorjs': { init: function() { return this.net.brehaut.Color; } },
-            'cytoscape': { exports: 'cytoscape', deps: ['arbor', 'easing'] },
             'd3': { exports: 'd3' },
             'd3-plugins/tile/amd/index': { exports: 'd3', deps: ['d3'] },
             'duration-js': { exports: 'Duration' },
