@@ -13,12 +13,17 @@
     <name>Visallo: Dev: Database</name>
     <description>This project is only here to run scripts for creating, clearing, and dropping the dev database</description>
 
+    <properties>
+        <h2.datastore.dir>${project.basedir}/../../datastore</h2.datastore.dir>
+        <sql.script.dir>${project.basedir}/../../config/sql/</sql.script.dir>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>sql-maven-plugin</artifactId>
-                <version>1.5</version>
+                <version>${plugin.maven.sql.version}</version>
                 <inherited>false</inherited>
                 <dependencies>
                     <dependency>
@@ -29,9 +34,9 @@
                 </dependencies>
                 <configuration>
                     <driver>org.h2.Driver</driver>
-                    <url>jdbc:h2:file:${project.basedir}/../../datastore/h2/visallo;AUTO_SERVER=TRUE</url>
+                    <url>jdbc:h2:file:${h2.datastore.dir}/h2/visallo;AUTO_SERVER=TRUE</url>
                     <username>root</username>
-                    <password></password>
+                    <password/>
                 </configuration>
                 <executions>
                     <execution>
@@ -41,7 +46,7 @@
                         </goals>
                         <configuration>
                             <srcFiles>
-                                <srcFile>${project.basedir}/../../config/sql/clear.sql</srcFile>
+                                <srcFile>${sql.script.dir}/clear.sql</srcFile>
                             </srcFiles>
                         </configuration>
                     </execution>
@@ -52,7 +57,7 @@
                         </goals>
                         <configuration>
                             <srcFiles>
-                                <srcFile>${project.basedir}/../../config/sql/create.sql</srcFile>
+                                <srcFile>${sql.script.dir}/create.sql</srcFile>
                             </srcFiles>
                         </configuration>
                     </execution>
@@ -63,7 +68,7 @@
                         </goals>
                         <configuration>
                             <srcFiles>
-                                <srcFile>${project.basedir}/../../config/sql/drop.sql</srcFile>
+                                <srcFile>${sql.script.dir}/drop.sql</srcFile>
                             </srcFiles>
                         </configuration>
                     </execution>
