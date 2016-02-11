@@ -527,7 +527,7 @@ public abstract class WorkspaceRepository {
         VisalloProperties.VISIBILITY_JSON.setProperty(vertexElementMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
         vertexElementMutation.save(authorizations);
 
-        for (Vertex termMention : termMentionRepository.findByVertexIdForVertex(vertex.getId(), authorizations)) {
+        for (Vertex termMention : termMentionRepository.findByVertexId(vertex.getId(), authorizations)) {
             termMentionRepository.updateVisibility(termMention, visalloVisibility.getVisibility(), authorizations);
         }
 
