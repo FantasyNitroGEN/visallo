@@ -96,7 +96,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
 
         workspaceRepository.updateEntityOnWorkspace(workspace, entity1Vertex.getId(), true, GRAPH_POSITION, user1);
 
-        when(termMentionRepository.findByVertexIdForVertex(anyString(), any(Authorizations.class)))
+        when(termMentionRepository.findByVertexId(anyString(), any(Authorizations.class)))
                 .thenReturn(Collections.<Vertex>emptyList());
         when(termMentionRepository.findByVertexIdAndProperty(anyString(), anyString(), anyString(),
                 any(Visibility.class), any(Authorizations.class)))
