@@ -82,6 +82,9 @@ define([
                      })
                  }
             })
+            .catch(function() {
+                trigger({success: false});
+            })
         };
     }
 });
