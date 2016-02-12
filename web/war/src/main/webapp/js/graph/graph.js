@@ -1342,14 +1342,14 @@ define([
                 var cyId = vertex.id(),
                     pCopy;
 
+                var p = retina.pixelsToPoints(vertex.position());
+                pCopy = {
+                    x: Math.round(p.x),
+                    y: Math.round(p.y)
+                };
+                vertex.data('targetPositionBeforeSnap', pCopy)
                 if (snapToGrid) {
                     pCopy = snapPosition(vertex);
-                } else {
-                    var p = retina.pixelsToPoints(vertex.position());
-                    pCopy = {
-                        x: Math.round(p.x),
-                        y: Math.round(p.y)
-                    };
                 }
 
                 if (!vertex.data('freed')) {
@@ -1383,7 +1383,7 @@ define([
             // If the user didn't drag more than a few pixels, select the
             // object, it could be an accidental mouse move
             var target = vertices[0],
-                p = target.data('targetPosition'),
+                p = target.data('targetPositionBeforeSnap'),
                 originalPosition = target.data('originalPosition'),
                 dx = p.x - originalPosition.x,
                 dy = p.y - originalPosition.y,
