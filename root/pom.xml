@@ -125,6 +125,7 @@
         <plugin.maven.shade.version>2.2</plugin.maven.shade.version>
         <plugin.maven.site.version>3.3</plugin.maven.site.version>
         <plugin.maven.source.version>2.2.1</plugin.maven.source.version>
+        <plugin.maven.sql.version>1.5</plugin.maven.sql.version>
         <plugin.maven.surefire.version>2.16</plugin.maven.surefire.version>
         <plugin.maven.antrun.version>1.8</plugin.maven.antrun.version>
         <plugin.build-helper-maven-plugin>1.9.1</plugin.build-helper-maven-plugin>
