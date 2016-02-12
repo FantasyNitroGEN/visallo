@@ -92,19 +92,19 @@ define([
         };
 
         this.onMouseOver = function(event, data) {
-            var self = this;
-            var $notification = $(event.target).closest(this.attr.notificationSelector);
+            var self = this,
+                $notification = $(event.target).closest(this.attr.notificationSelector);
 
             clearTimeout(self.hoverTimer);
             self.hoverTimer = setTimeout(function() {
                 $notification.addClass('expanded-notification');
             }, NOTIFICATION_HOVER_EXPAND_DELAY_MILLIS);
 
-            $notification.off('mouseover').on('mouseleave', function() {
+            $notification.off('mouseover', 'mouseleave').on('mouseleave', function() {
                 clearTimeout(self.hoverTimer);
                 $notification.removeClass('expanded-notification');
             })
-        }
+        };
 
         this.displayNotifications = function(notifications) {
             var self = this,
