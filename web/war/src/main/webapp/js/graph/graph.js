@@ -1335,21 +1335,29 @@ define([
 
             var cy = vertices[0].cy(),
                 verticesMoved = [],
-                snapToGrid = visalloData.currentUser.uiPreferences.snapToGrid === 'true';
+                targetPosition,
+                snapToGrid = visalloData.currentUser.uiPreferences.snapToGrid === 'true',
+                calcPosition = function(cyNode) {
+                    var p = retina.pixelsToPoints(cyNode.position());
+                    return {
+                        x: Math.round(p.x),
+                        y: Math.round(p.y)
+                    };
+                };
 
             cy.startBatch()
             vertices.each(function(i, vertex) {
                 var cyId = vertex.id(),
                     pCopy;
 
-                var p = retina.pixelsToPoints(vertex.position());
-                pCopy = {
-                    x: Math.round(p.x),
-                    y: Math.round(p.y)
-                };
-                vertex.data('targetPositionBeforeSnap', pCopy)
+                if (i === 0) {
+                    pCopy = calcPosition(vertex);
+                    targetPosition = pCopy;
+                }
                 if (snapToGrid) {
                     pCopy = snapPosition(vertex);
+                } else if (!pCopy) {
+                    pCopy = calcPosition(vertex);
                 }
 
                 if (!vertex.data('freed')) {
@@ -1365,7 +1373,6 @@ define([
                 } else {
                     vertex.position(retina.pointsToPixels(pCopy));
                 }
-                vertex.data('targetPosition', pCopy)
                 vertex.data('freed', true)
 
                 verticesMoved.push({
@@ -1383,10 +1390,9 @@ define([
             // If the user didn't drag more than a few pixels, select the
             // object, it could be an accidental mouse move
             var target = vertices[0],
-                p = target.data('targetPositionBeforeSnap'),
                 originalPosition = target.data('originalPosition'),
-                dx = p.x - originalPosition.x,
-                dy = p.y - originalPosition.y,
+                dx = targetPosition.x - originalPosition.x,
+                dy = targetPosition.y - originalPosition.y,
                 distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < 5) {
