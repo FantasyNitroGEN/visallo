@@ -5,6 +5,8 @@ define([
 ], function(defineComponent, withDataRequest, d3) {
     'use strict';
 
+    var NOTIFICATION_HOVER_EXPAND_DELAY_MILLIS = 250;
+
     return defineComponent(Notifications, withDataRequest);
 
     function Notifications() {
@@ -14,7 +16,8 @@ define([
             animated: true,
             emptyMessage: true,
             showInformational: true,
-            showUserDismissed: false
+            showUserDismissed: false,
+            notificationSelector: '.notifications .notification'
         });
 
         this.after('initialize', function() {
@@ -35,6 +38,10 @@ define([
             this.on(document, 'postLocalNotification', this.onPostLocalNotification);
             this.on(document, 'notificationActive', this.onNotificationActive);
             this.on(document, 'notificationDeleted', this.onNotificationDeleted);
+
+            this.on('mouseover', {
+                notificationSelector: this.onMouseOver
+            });
 
             this.immediateUpdate = this.update;
             this.update = _.debounce(this.update.bind(this), 250);
@@ -58,6 +65,7 @@ define([
             this.$container = $('<div>')
                 .addClass('notifications')
                 .appendTo(this.$node);
+
         });
 
         this.onPostLocalNotification = function(event, data) {
@@ -81,6 +89,21 @@ define([
             });
             this.update();
             this.trigger('notificationCountUpdated', { count: this.stack.length });
+        };
+
+        this.onMouseOver = function(event, data) {
+            var self = this,
+                $notification = $(event.target).closest(this.attr.notificationSelector);
+
+            clearTimeout(self.hoverTimer);
+            self.hoverTimer = setTimeout(function() {
+                $notification.addClass('expanded-notification');
+            }, NOTIFICATION_HOVER_EXPAND_DELAY_MILLIS);
+
+            $notification.off('mouseover', 'mouseleave').on('mouseleave', function() {
+                clearTimeout(self.hoverTimer);
+                $notification.removeClass('expanded-notification');
+            })
         };
 
         this.displayNotifications = function(notifications) {
