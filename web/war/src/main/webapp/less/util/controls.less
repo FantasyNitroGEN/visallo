@@ -14,27 +14,73 @@
   @bg: #929292;
   @active-bg: #575757;
 
-  .options {
+
+  .tools {
     .disable-text-selection;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    margin: 0 8px 0 0;
     position: absolute;
     right: 100%;
-    margin-right: 8px;
-    width: auto;
     text-align: right;
+    width: auto;
+    & > * {
+      margin-left: 0.5em;     
+    }
+
+    .select {
+        background-image: url(../img/selection.png);
+        background-size: 70%;
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 1.2em;
+    }
+  }
+  button {
+      background-color: @bg;
+      border-radius: 2px;    
+      &.active {
+        background-color: @active-bg;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      &:hover {
+        background-color: @active-bg;
+      }
+  }
+  .panner, button {
+      transition: background-color ease-in-out 0.1s;
+  }
+  .panner:hover {
+      background-color: @active-bg;
+  }
+
+  .zoom {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;        
+  }
+  .zoom:last-child {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: 2px;
+      border-bottom-right-radius: 2px;        
+  }
+
+  .options {
     button {
       margin: 0;
-      background: @bg url(../img/glyphicons/white/glyphicons_157_show_lines@2x.png);
+      background-image: url(../img/glyphicons/white/glyphicons_157_show_lines@2x.png);
       background-size: 60%;
       background-repeat: no-repeat;
       background-position: center;
       font-size: 0;
       width: 20px;
       height: 23px;
-      &.active {
-        background-color: @active-bg;
-      }
     }
     .options-container {
+      position: absolute;
+      right: 0;
       white-space: nowrap;
       padding: 0.5em;
       padding-bottom: 0.1em;
@@ -83,7 +129,6 @@
 
   button {
     width: 100%;
-    background: @bg;
     color: white;
     text-transform: lowercase;
     font-variant: small-caps;
@@ -93,14 +138,9 @@
     letter-spacing: 1px;
     line-height: 1.1em;
     margin-bottom: 0.5em;
-
     &.zoom {
       float: left;
       width: 50%;
-
-      &:active {
-        background: @active-bg;
-      }
     }
   }
 

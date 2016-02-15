@@ -25,10 +25,6 @@ define([
                 identifier: 'toggleSnapToGrid',
                 optionComponentPath: 'graph/options/snapToGrid'
             });
-            registry.registerExtension('org.visallo.graph.options', {
-                identifier: 'togglePanOrSelect',
-                optionComponentPath: 'graph/options/panOrSelect'
-            });
 
             var self = this,
                 $options = $(),

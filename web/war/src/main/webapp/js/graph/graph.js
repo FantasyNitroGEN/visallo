@@ -2,6 +2,8 @@
 define([
     'flight/lib/component',
     'cytoscape',
+    'arbor',
+    'cytoscape-arbor',
     './stylesheet',
     './withControlDrag',
     './layouts/grid',
@@ -20,6 +22,8 @@ define([
 ], function(
     defineComponent,
     cytoscape,
+    arbor,
+    cyarbor,
     stylesheet,
     withControlDrag,
     BetterGrid,
@@ -37,6 +41,8 @@ define([
     colorjs) {
     'use strict';
 
+    cyarbor(cytoscape, arbor);
+
         // Delay before showing hover effect on graph
     var HOVER_FOCUS_DELAY_SECONDS = 0.25,
         MAX_TITLE_LENGTH = 15,
@@ -46,7 +52,11 @@ define([
         GRAPH_SNAP_TO_GRID_Y = 75,
         GRID_LAYOUT_X_INCREMENT = GRAPH_SNAP_TO_GRID,
         GRID_LAYOUT_Y_INCREMENT = GRAPH_SNAP_TO_GRID_Y,
-        GRAPH_EXPORTER_POINT = 'org.visallo.graph.export';
+        GRAPH_EXPORTER_POINT = 'org.visallo.graph.export',
+        CYTOSCAPE_ANIMATION = {
+            duration: 400,
+            easing: 'spring(250, 20)'
+        };
 
     return defineComponent(Graph, withAsyncQueue, withContextMenu, withControlDrag, withDataRequest);
 
@@ -285,12 +295,14 @@ define([
                     }
                 });
 
-                self.cyNodesToRemoveOnWorkspaceUpdated = cytoscape.Collection(cy, toRemove);
+                self.cyNodesToRemoveOnWorkspaceUpdated = cy.collection(toRemove);
 
                 if (toFitTo.length) {
-                    self.fit(cy);
-                    finished();
-                    animateToExisting(400);
+                    Promise.resolve(self.fit(cy, null, { animate: true }))
+                        .then(function() {
+                            finished();
+                            animateToExisting(0);
+                        })
                 } else {
                     animateToExisting(0);
                     finished();
@@ -654,13 +666,11 @@ define([
                         {
                             position: cyToNode.position()
                         },
-                        {
-                            duration: 500,
-                            easing: 'easeOutBack',
+                        _.extend({}, CYTOSCAPE_ANIMATION, {
                             complete: function() {
                                 cyFromNode.remove();
                             }
-                        }
+                        })
                     );
             } else {
                 cyFromNode.remove();
@@ -804,7 +814,7 @@ define([
         };
 
         this.onContextMenuFitToWindow = function() {
-            this.fit();
+            this.fit(null, null, { animate: true });
         };
 
         this.onContextMenuCreateVertex = function() {
@@ -821,73 +831,80 @@ define([
 
         this.fit = function(cy, nodes, options) {
             var self = this;
+            return Promise.resolve(cy || this.cytoscapeReady())
 
-            if (cy) {
-                _fit(cy);
-            } else {
-                this.cytoscapeReady(_fit);
-            }
-
-            function _fit(cy) {
-                if (!nodes || !nodes.length) {
-                    nodes = cy.elements();
-                }
-                if (nodes.size() === 0) {
-                    cy.reset();
-                } else if (self.graphPadding) {
-                    var $$ = cytoscape,
-                        elements = nodes,
-                        bb = elements.boundingBox(),
-                        style = cy.style(),
-                        padding = _.extend({}, self.graphPadding),
-                        pixelScale = cy.renderer().options.pixelRatio,
-                        w = parseFloat(style.containerCss('width')),
-                        h = parseFloat(style.containerCss('height')),
-                        zoom;
-
-                    if (!$$.is.plainObject(padding)) {
-                        if (!$$.is.number(padding)) padding = 0;
-                        padding = { t: padding, r: padding, b: padding, l: padding};
+                .then(function(cy) {
+                    if (!nodes || !nodes.length) {
+                        nodes = cy.elements();
                     }
-                    padding.t = (padding.t || 0);
-                    padding.r = (padding.r || 0);
-                    padding.b = (padding.b || 0);
-                    padding.l = (padding.l || 0);
+                    if (nodes.size() === 0) {
+                        cy.reset();
+                    } else if (self.graphPadding) {
+                        var $$ = cytoscape,
+                            elements = nodes,
+                            bb = elements.boundingBox(),
+                            style = cy.style(),
+                            padding = _.extend({}, self.graphPadding),
+                            pixelScale = cy.renderer().options.pixelRatio,
+                            w = parseFloat(style.containerCss('width')),
+                            h = parseFloat(style.containerCss('height')),
+                            zoom;
 
-                    if (!isNaN(w) && !isNaN(h)) {
-                        zoom = Math.min(
-                            (w - (padding.l + padding.r)) / bb.w,
-                            (h - (padding.t + padding.b)) / bb.h
-                        );
-
-                        // Set min and max zoom to fit all items
-                        if (zoom < cy._private.minZoom) {
-                            cy._private.minZoom = zoom;
-                            cy._private.maxZoom = 1 / zoom;
-                        } else {
-                            cy._private.minZoom = cy._private.originalMinZoom;
-                            cy._private.maxZoom = cy._private.originalMaxZoom;
+                        if (!_.isObject(padding)) {
+                            if (!_.isNumber(padding)) padding = 0;
+                            padding = { t: padding, r: padding, b: padding, l: padding};
                         }
+                        padding.t = (padding.t || 0);
+                        padding.r = (padding.r || 0);
+                        padding.b = (padding.b || 0);
+                        padding.l = (padding.l || 0);
 
-                        if (zoom > cy._private.maxZoom) zoom = cy._private.maxZoom;
+                        if (!isNaN(w) && !isNaN(h)) {
+                            zoom = Math.min(
+                                (w - (padding.l + padding.r)) / bb.w,
+                                (h - (padding.t + padding.b)) / bb.h
+                            );
 
-                        var position = {
-                                x: (w + padding.l - padding.r - zoom * (bb.x1 + bb.x2)) / 2,
-                                y: (h + padding.t - padding.b - zoom * (bb.y1 + bb.y2)) / 2
-                            },
-                            _p = cy._private;
+                            // Set min and max zoom to fit all items
+                            if (zoom < cy._private.minZoom) {
+                                cy._private.minZoom = zoom;
+                                cy._private.maxZoom = 1 / zoom;
+                            } else {
+                                cy._private.minZoom = cy._private.originalMinZoom;
+                                cy._private.maxZoom = cy._private.originalMaxZoom;
+                            }
 
-                        _p.zoom = zoom;
-                        _p.pan = position;
+                            if (zoom > cy._private.maxZoom) zoom = cy._private.maxZoom;
 
-                        cy.trigger('pan zoom viewport');
+                            var position = {
+                                    x: (w + padding.l - padding.r - zoom * (bb.x1 + bb.x2)) / 2,
+                                    y: (h + padding.t - padding.b - zoom * (bb.y1 + bb.y2)) / 2
+                                },
+                                _p = cy._private;
 
-                        cy.notify({ // notify the renderer that the viewport changed
-                            type: 'viewport'
-                        });
+                            if (options && options.animate) {
+                                return new Promise(function(f) {
+                                    cy.animate({
+                                        zoom: zoom,
+                                        pan: position
+                                    }, _.extend({}, CYTOSCAPE_ANIMATION, {
+                                        queue: false,
+                                        complete: function() {
+                                            f();
+                                        }
+                                    }));
+                                })
+                            } else {
+                                _p.zoom = zoom;
+                                _p.pan = position;
+                                cy.trigger('pan zoom viewport');
+                                cy.notify({ // notify the renderer that the viewport changed
+                                    type: 'viewport'
+                                });
+                            }
+                        }
                     }
-                }
-            }
+                });
         };
 
         this.cyNodesForVertexIds = function(cy, vertexIds) {
@@ -912,7 +929,7 @@ define([
                 return cy.edges(selector.join(','));
             }
 
-            return cytoscape.Collection(cy, []);
+            return cy.collection();
         };
 
         this.onFocusElements = function(e, data) {
@@ -1036,8 +1053,7 @@ define([
                 bottom = bb.y2 < e.y2;
 
             if (!(left && right && top && bottom)) {
-                //console.log(left, right, top, bottom)
-                this.fit(cy);
+                this.fit(cy, null, { animate: true });
             }
         };
 
@@ -1060,7 +1076,7 @@ define([
 
             this.cytoscapeReady(function(cy) {
                 if (options && options.onlySelected) {
-                    elements = cytoscape.Collection(cy, cy.nodes().filter(':selected'));
+                    elements = cy.collection(cy.nodes().filter(':selected'));
                 }
                 var opts = $.extend({
                     name: layout,
@@ -1076,7 +1092,7 @@ define([
                             entityUpdates: updates
                         });
                         if (!elements) {
-                            self.fit(cy);
+                            self.fit(cy, null, { animate: true });
                         }
                     }
                 }, _.each(LAYOUT_OPTIONS[layout] || {}, function(optionValue, optionName) {
@@ -1318,21 +1334,30 @@ define([
             if (!vertices || vertices.length === 0) return;
 
             var cy = vertices[0].cy(),
-                updateData = {},
-                verticesMoved = [];
+                verticesMoved = [],
+                targetPosition,
+                snapToGrid = visalloData.currentUser.uiPreferences.snapToGrid === 'true',
+                calcPosition = function(cyNode) {
+                    var p = retina.pixelsToPoints(cyNode.position());
+                    return {
+                        x: Math.round(p.x),
+                        y: Math.round(p.y)
+                    };
+                };
 
+            cy.startBatch()
             vertices.each(function(i, vertex) {
                 var cyId = vertex.id(),
                     pCopy;
 
-                if (visalloData.currentUser.uiPreferences.snapToGrid === 'true') {
+                if (i === 0) {
+                    pCopy = calcPosition(vertex);
+                    targetPosition = pCopy;
+                }
+                if (snapToGrid) {
                     pCopy = snapPosition(vertex);
-                } else {
-                    var p = retina.pixelsToPoints(vertex.position());
-                    pCopy = {
-                        x: Math.round(p.x),
-                        y: Math.round(p.y)
-                    };
+                } else if (!pCopy) {
+                    pCopy = calcPosition(vertex);
                 }
 
                 if (!vertex.data('freed')) {
@@ -1341,31 +1366,33 @@ define([
 
                 // Rounding can cause vertex to jump 1/2 pixel
                 // Jump immediately instead of after save
-                vertex.position(retina.pointsToPixels(pCopy));
+                if (snapToGrid) {
+                    vertex.animate({
+                        position: retina.pointsToPixels(pCopy)
+                    }, CYTOSCAPE_ANIMATION)
+                } else {
+                    vertex.position(retina.pointsToPixels(pCopy));
+                }
+                vertex.data('freed', true)
 
-                updateData[cyId] = {
-                    targetPosition: pCopy,
-                    freed: true
-                };
                 verticesMoved.push({
                     vertexId: fromCyId(cyId),
                     graphPosition: pCopy
                 });
             });
 
+            cy.endBatch();
+
             if (dup) {
                 return;
             }
 
-            cy.batchData(updateData);
-
             // If the user didn't drag more than a few pixels, select the
             // object, it could be an accidental mouse move
             var target = vertices[0],
-                p = target.data('targetPosition'),
                 originalPosition = target.data('originalPosition'),
-                dx = p.x - originalPosition.x,
-                dy = p.y - originalPosition.y,
+                dx = targetPosition.x - originalPosition.x,
+                dy = targetPosition.y - originalPosition.y,
                 distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < 5) {
@@ -1537,10 +1564,7 @@ define([
                                     {
                                         position: retina.pointsToPixels(entityUpdate.graphPosition)
                                     },
-                                    {
-                                        duration: 200,
-                                        easing: 'easeOutBack'
-                                    }
+                                    CYTOSCAPE_ANIMATION
                                 );
                         }
 
@@ -2063,7 +2087,7 @@ define([
                     });
                     self.on('fit', function(e) {
                         e.stopPropagation();
-                        self.fit(cy);
+                        self.fit(cy, null, { animate: true });
                     });
 
                     cy._private.originalMinZoom = cy._private.minZoom;
@@ -2100,11 +2124,6 @@ define([
                 },
                 done: function() {
                     self.paused = false;
-                    cytoscape.util.requestAnimationFrame = function(fn) {
-                        if (!self.paused) {
-                            requestAnimationFrame(fn);
-                        }
-                    }
                     self.updateCytoscapeControlBehavior();
                     self.cytoscapeMarkReady(this);
                     self.trigger('cytoscapeReady', {
