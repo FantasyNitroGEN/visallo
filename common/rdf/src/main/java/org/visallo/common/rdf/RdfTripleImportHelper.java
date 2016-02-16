@@ -28,6 +28,7 @@ public class RdfTripleImportHelper {
     public static final String MULTI_KEY = RdfTripleImportHelper.class.getSimpleName();
     public static final String LABEL_CONCEPT_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     public static final String PROPERTY_TYPE_GEOLOCATION = "http://visallo.org#geolocation";
+    public static final String PROPERTY_TYPE_DIRECTORY_ENTITY = "http://visallo.org#directory/entity";
     public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE = "http://visallo.org#streamingPropertyValue";
     public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE = "http://visallo.org#streamingPropertyValueInline";
     public static final String PROPERTY_TYPE_DATE = "http://www.w3.org/2001/XMLSchema#date";
@@ -256,6 +257,8 @@ public class RdfTripleImportHelper {
                 return Integer.parseInt(propertyValuePart.getString());
             case PROPERTY_TYPE_GEOLOCATION:
                 return GeoPoint.parse(propertyValuePart.getString());
+            case PROPERTY_TYPE_DIRECTORY_ENTITY:
+                return propertyValuePart.getString();
             case PROPERTY_TYPE_STREAMING_PROPERTY_VALUE:
                 String path = propertyValuePart.getString();
                 File file;
