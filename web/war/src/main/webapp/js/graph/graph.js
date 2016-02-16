@@ -1444,7 +1444,7 @@ define([
             this.checkEmptyGraph();
         };
 
-        this.updateCytoscapeControlBehavior = function(invertPanSelect) {
+        this.updateCytoscapeControlBehavior = function() {
             this.cytoscapeReady(function(cy) {
                 var noVertices = cy.nodes().length === 0;
 
@@ -1453,13 +1453,7 @@ define([
                         .userPanningEnabled(false)
                         .userZoomingEnabled(false);
                 } else {
-                    var selectIsDefault = visalloData.currentUser.uiPreferences.panOrSelect === 'select';
-
-                    if (invertPanSelect) {
-                        selectIsDefault = !selectIsDefault;
-                    }
-
-                    cy.boxSelectionEnabled(selectIsDefault)
+                    cy.boxSelectionEnabled(true)
                         .userPanningEnabled(true)
                         .userZoomingEnabled(true);
                 }
@@ -1959,7 +1953,7 @@ define([
                     return;
                 }
 
-                this.updateCytoscapeControlBehavior(e.shiftKey)
+                this.updateCytoscapeControlBehavior()
             });
 
             this.trigger(document, 'registerKeyboardShortcuts', {
@@ -2030,8 +2024,7 @@ define([
         });
 
         this.initializeGraph = function(style) {
-            var self = this,
-                selectIsDefault = visalloData.currentUser.uiPreferences.panOrSelect === 'select';
+            var self = this;
 
             cytoscape('layout', 'bettergrid', BetterGrid);
             registry.extensionsForPoint('org.visallo.graph.layout').forEach(function(layout) {
@@ -2044,7 +2037,7 @@ define([
                 hideEdgesOnViewport: false,
                 hideLabelsOnViewport: false,
                 textureOnViewport: true,
-                boxSelectionEnabled: selectIsDefault,
+                boxSelectionEnabled: true,
                 panningEnabled: true,
                 userPanningEnabled: true,
                 zoomingEnabled: true,
