@@ -1278,7 +1278,7 @@ define([
                 nodes = cy.nodes().filter(':selected').not('.temp'),
                 edges = cy.edges().filter(':selected').not('.temp'),
                 edgeIds = [],
-                vertexIds = cyTarget.vertexIds || [];
+                vertexIds = cyTarget && cyTarget.vertexIds || [];
 
             // TODO: shift selection breaks this
             //if (shiftKey) {
