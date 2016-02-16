@@ -168,6 +168,9 @@ public abstract class OntologyProperty {
     public static Object convert(JSONArray values, PropertyType propertyDataType, int index) throws ParseException {
         switch (propertyDataType) {
             case DIRECTORY_ENTITY:
+                if (values.get(index) instanceof String) {
+                    return values.get(index);
+                }
                 if (values.get(index) instanceof JSONObject) {
                     JSONObject json = values.getJSONObject(index);
                     String id = json.optString("id");

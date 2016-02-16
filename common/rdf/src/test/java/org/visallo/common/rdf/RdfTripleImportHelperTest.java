@@ -167,6 +167,17 @@ public class RdfTripleImportHelperTest {
     }
 
     @Test
+    public void testImportDirectoryEntity() {
+        String line = "<v1> <http://visallo.org/test#prop1> \"joe\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DIRECTORY_ENTITY + ">";
+        rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        String prop1 = (String) v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        assertEquals("joe", prop1);
+    }
+
+    @Test
     public void testImportPropertyWithKey() {
         String line = "<v1> <http://visallo.org/test#prop1:key1> \"hello world\"";
         rdfTripleImportHelper.importRdfLine(line, metadata, workingDir, timeZone, visibility, authorizations);
