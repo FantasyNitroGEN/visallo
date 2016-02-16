@@ -7,6 +7,7 @@ import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -194,6 +195,15 @@ public class ProxyUser implements User {
             return null;
         }
         return proxiedUser.getProperty(propertyName);
+    }
+
+    @Override
+    public Map<String, Object> getCustomProperties() {
+        ensureUser();
+        if (proxiedUser == null) {
+            return null;
+        }
+        return proxiedUser.getCustomProperties();
     }
 
     private void ensureUser() {

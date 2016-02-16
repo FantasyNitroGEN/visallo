@@ -3,10 +3,7 @@ package org.visallo.web.clientapi.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.visallo.web.clientapi.util.ClientApiConverter;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ClientApiUser implements ClientApiObject {
     private String id;
@@ -23,6 +20,7 @@ public class ClientApiUser implements ClientApiObject {
     private List<String> authorizations = new ArrayList<String>();
     private List<Object> longRunningProcesses = new ArrayList<Object>();
     private List<ClientApiWorkspace> workspaces = new ArrayList<ClientApiWorkspace>();
+    private Map<String, Object> properties = new HashMap<String, Object>();
 
     public String getId() {
         return id;
@@ -127,5 +125,9 @@ public class ClientApiUser implements ClientApiObject {
     @Override
     public String toString() {
         return ClientApiConverter.clientApiToString(this);
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 }

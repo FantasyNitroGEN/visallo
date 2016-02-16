@@ -190,6 +190,8 @@ public abstract class UserRepository {
 
         u.setUiPreferences(JSONUtil.toJsonNode(user.getUiPreferences()));
 
+        u.getProperties().putAll(user.getCustomProperties());
+
         Set<String> privileges = user.getPrivileges();
         u.getPrivileges().addAll(privileges);
 
@@ -220,6 +222,7 @@ public abstract class UserRepository {
         u.setUserType(user.getUserType());
         u.setEmail(user.getEmailAddress());
         u.setCurrentWorkspaceId(user.getCurrentWorkspaceId());
+        u.getProperties().putAll(user.getCustomProperties());
         if (workspaceNames != null) {
             String workspaceName = workspaceNames.get(user.getCurrentWorkspaceId());
             u.setCurrentWorkspaceName(workspaceName);
