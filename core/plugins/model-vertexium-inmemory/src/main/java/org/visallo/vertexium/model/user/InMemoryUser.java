@@ -1,5 +1,6 @@
 package org.visallo.vertexium.model.user;
 
+import com.google.common.collect.ImmutableMap;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
 import org.visallo.core.user.User;
@@ -161,6 +162,11 @@ public class InMemoryUser implements User {
     @Override
     public Object getProperty(String propertyName) {
         return properties.get(propertyName);
+    }
+
+    @Override
+    public Map<String, Object> getCustomProperties() {
+        return ImmutableMap.copyOf(properties);
     }
 
     public void setProperty(String propertyName, Object value) {

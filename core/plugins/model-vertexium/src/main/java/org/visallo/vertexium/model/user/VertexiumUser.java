@@ -1,5 +1,6 @@
 package org.visallo.vertexium.model.user;
 
+import com.google.common.collect.ImmutableMap;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
 import org.vertexium.Property;
@@ -137,6 +138,17 @@ public class VertexiumUser implements User, Serializable {
     @Override
     public Object getProperty(String propertyName) {
         return this.properties.get(propertyName);
+    }
+
+    @Override
+    public Map<String, Object> getCustomProperties() {
+        Map<String, Object> results = new HashMap<>();
+        for (Map.Entry<String, Object> property : properties.entrySet()) {
+            if (!UserVisalloProperties.isBuiltInProperty(property.getKey())) {
+                results.put(property.getKey(), property.getValue());
+            }
+        }
+        return ImmutableMap.copyOf(results);
     }
 
     public void setProperty(String propertyName, Object value) {

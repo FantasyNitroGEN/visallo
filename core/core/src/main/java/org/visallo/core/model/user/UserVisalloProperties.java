@@ -1,5 +1,6 @@
 package org.visallo.core.model.user;
 
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.*;
 
 public final class UserVisalloProperties {
@@ -21,4 +22,9 @@ public final class UserVisalloProperties {
     public static final ByteArraySingleValueVisalloProperty PASSWORD_HASH = new ByteArraySingleValueVisalloProperty("http://visallo.org/user#passwordHash");
     public static final StringSingleValueVisalloProperty PASSWORD_RESET_TOKEN = new StringSingleValueVisalloProperty("http://visallo.org/user#passwordResetToken");
     public static final DateSingleValueVisalloProperty PASSWORD_RESET_TOKEN_EXPIRATION_DATE = new DateSingleValueVisalloProperty("http://visallo.org/user#passwordResetTokenExpirationDate");
+
+    public static boolean isBuiltInProperty(String propertyName) {
+        return VisalloProperties.isBuiltInProperty(propertyName)
+                || VisalloProperties.isBuiltInProperty(UserVisalloProperties.class, propertyName);
+    }
 }

@@ -1,13 +1,13 @@
 package org.visallo.core.user;
 
-import org.visallo.web.clientapi.model.Privilege;
+import com.v5analytics.simpleorm.SimpleOrmContext;
+import org.json.JSONObject;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
-import org.json.JSONObject;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 public interface User extends Serializable {
@@ -50,4 +50,6 @@ public interface User extends Serializable {
     Date getPasswordResetTokenExpirationDate();
 
     Object getProperty(String propertyName);
+
+    Map<String, Object> getCustomProperties();
 }

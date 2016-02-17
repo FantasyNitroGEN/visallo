@@ -7,6 +7,8 @@ import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class SystemUser implements User {
@@ -117,5 +119,10 @@ public class SystemUser implements User {
     @Override
     public Object getProperty(String propertyName) {
         return null;
+    }
+
+    @Override
+    public Map<String, Object> getCustomProperties() {
+        return new HashMap<>();
     }
 }

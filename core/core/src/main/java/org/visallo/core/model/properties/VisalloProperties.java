@@ -1,7 +1,10 @@
 package org.visallo.core.model.properties;
 
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.types.*;
 import org.visallo.core.model.termMention.TermMentionForProperty;
+
+import java.lang.reflect.Field;
 
 public class VisalloProperties {
     public static final String CONCEPT_TYPE_THING = "http://www.w3.org/2002/07/owl#Thing";
@@ -67,5 +70,25 @@ public class VisalloProperties {
 
     private VisalloProperties() {
         throw new UnsupportedOperationException("do not construct utility class");
+    }
+
+    public static boolean isBuiltInProperty(String propertyName) {
+        return isBuiltInProperty(VisalloProperties.class, propertyName);
+    }
+
+    public static boolean isBuiltInProperty(Class propertiesClass, String propertyName) {
+        for (Field field : propertiesClass.getFields()) {
+            try {
+                Object fieldValue = field.get(null);
+                if (fieldValue instanceof VisalloPropertyBase) {
+                    if (((VisalloPropertyBase) fieldValue).getPropertyName().equals(propertyName)) {
+                        return true;
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                throw new VisalloException("Could not get field: " + field, e);
+            }
+        }
+        return false;
     }
 }
