@@ -1593,9 +1593,6 @@ define([
                         })
                     }
                     this.setWorkspaceDirty();
-                    this.updateVertexSelections(cy, {
-                        vertexIds: _.unique(fitToIds)
-                    });
                 });
             }
         }
