@@ -10,6 +10,7 @@ define([
     // Add class name of <li> buttons here
     var BUTTONS = 'dashboard graph map search workspaces admin activity logout'.split(' '),
         TOOLTIPS = {
+            activity: i18n('menubar.icons.activity.tooltip'),
             dashboard: i18n('menubar.icons.dashboard.tooltip'),
             graph: i18n('menubar.icons.graph'),
             map: i18n('menubar.icons.map.tooltip'),
