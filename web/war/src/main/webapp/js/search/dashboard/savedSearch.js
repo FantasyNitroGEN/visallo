@@ -8,8 +8,15 @@ define([
 
     function SavedSearch() {
 
+        this.attributes({
+            resultsContainerSelector: '.element-list',
+            item: null
+        });
+
         this.after('initialize', function() {
             var self = this;
+
+            this.on('infiniteScrollRequest', this.onInfiniteScrollRequest);
 
             if (this.attr.item.configuration.searchId) {
                 this.on('refreshData', this.loadItems);
@@ -39,7 +46,9 @@ define([
                         require(['util/' + results.elements[0].type + '/list'], function(List) {
                             List.attachTo($('<div>').appendTo(self.$node.empty().css('overflow', 'auto')), {
                                 edges: results.elements,
-                                vertices: results.elements
+                                vertices: results.elements,
+                                infiniteScrolling: (results.elements.length < results.totalHits),
+                                nextOffset: results.nextOffset
                             })
                         })
                     } else {
@@ -51,5 +60,31 @@ define([
                     self.trigger('showError');
                 })
         }
+
+       this.onInfiniteScrollRequest = function(event, data) {
+            var trigger = this.trigger.bind(this,
+               this.select('resultsContainerSelector'),
+               'addInfiniteItems'
+            );
+            var options = _.extend({}, this.attr.item.configuration.searchParameters, data.paging)
+
+            this.dataRequest('search', 'run',
+                this.attr.item.configuration.searchId,
+                options
+            )
+            .then(function(results) {
+                 if (results) {
+                     trigger({
+                         success: true,
+                         items: results.elements,
+                         total: results.totalHits,
+                         nextOffset: results.nextOffset
+                     })
+                 }
+            })
+            .catch(function() {
+                trigger({success: false});
+            })
+        };
     }
 });
