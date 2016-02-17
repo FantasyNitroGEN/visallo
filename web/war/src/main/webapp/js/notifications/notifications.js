@@ -121,6 +121,7 @@ define([
                 });
 
             if (shouldDisplay && shouldDisplay.length) {
+                shouldDisplay = collapseDuplicates(shouldDisplay);
                 shouldDisplay.forEach(function(updated) {
                     var index = -1;
                     self.stack.forEach(function(n, i) {
@@ -159,14 +160,24 @@ define([
         };
 
         this.dismissNotification = function(notification, options) {
-            var immediate = options && options.immediate,
+            var self = this,
+                immediate = options && options.immediate,
                 animate = options && options.animate;
 
             this.stack = _.reject(this.stack, function(n) {
+                if (n.collapsedIds) {
+                    return _.contains(n.collapsedIds, n.id);
+                }
                 return n.id === notification.id;
             });
             if (notification.type === 'user') {
-                this.markRead.push(notification.id);
+                if (notification.collapsedIds) {
+                    notification.collapsedIds.forEach(function(nId) {
+                        self.markRead.push(nId);
+                    })
+                } else {
+                    this.markRead.push(notification.id);
+                }
                 this.sendMarkRead();
             } else if (notification.hash) {
                 this.setUserDismissed(notification.id, notification.hash);
@@ -314,4 +325,69 @@ define([
         };
 
     }
+
+    function collapseDuplicates(notifications) {
+        var grouped = _.groupBy(notifications, 'title'),
+            toAdd = [],
+            toCollapseIds = [];
+
+        _.each(grouped, function(list, title) {
+            var validToCollapse = list.length > 1 && _.all(list, function(n) {
+                return n.type === 'user' && !n.actionEvent && !n.actionPayload;
+            });
+            if (validToCollapse) {
+                var ids = _.pluck(list, 'id'),
+                    add = _.extend({}, list[0], {
+                        collapsedIds: ids,
+                        title: title + ' (' + list.length + ')',
+                        message: message(list)
+                    });
+
+                toAdd.push(add);
+                toCollapseIds = toCollapseIds.concat(ids);
+            }
+        })
+
+        return _.chain(notifications)
+            .reject(function(n) {
+                return _.contains(toCollapseIds, n.id)
+            })
+            .tap(function(list) {
+                toAdd.forEach(function(a) {
+                    list.push(a);
+                })
+            })
+            .value()
+
+        function message(notifications) {
+            var prefix = sharedPrefix(notifications);
+            return (prefix || '') + _.chain(notifications)
+                .map(function(n) {
+                    if (prefix && prefix.length) {
+                        return n.message.substring(prefix.length)
+                    }
+                    return n.message;
+                })
+                .compact()
+                .sortBy(function(s) {
+                    return s.toLowerCase();
+                })
+                .value().join(', ')
+        }
+
+        function sharedPrefix(notifications) {
+            var sorted = _.pluck(notifications, 'message').sort(),
+                first = _.first(sorted),
+                last = _.last(sorted),
+                firstLen = first.length,
+                i = 0;
+                if (_.isString(first) && _.isString(last)) {
+                    while (i < firstLen && first.charAt(i) === last.charAt(i)) {
+                        i++;
+                    }
+                    return first.substring(0, i);
+                }
+        }
+    }
+
 });
