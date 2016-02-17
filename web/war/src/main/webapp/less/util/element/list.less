@@ -193,19 +193,31 @@ body > .vertex-dragging {
     }
 
     div {      
-      line-height: 1.5em;
       .clearfix;
+      display: flex;
+      flex-wrap: wrap;
+      line-height: 1.5em;
+      margin-top: 0.25em;
     }
     .source, .date {
       color: #555;
       font-size: x-small;      
-    }
-    .date:empty:after {
-      content: ' ';
+      line-height: 1.1em;
+      &:empty {
+        display: none;
+      }
     }
     
     .source {
       float: left;
+      flex: 1;
+      order: 1;
+      text-align: left;
+      padding-right: 0.5em;
+    }
+    .date {
+      order: 2;
+      text-align: right;
     }
   }
 
