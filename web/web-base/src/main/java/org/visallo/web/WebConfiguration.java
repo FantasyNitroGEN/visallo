@@ -74,7 +74,7 @@ public class WebConfiguration {
         DEFAULTS.put(VIDEO_PREVIEW_FRAMES_COUNT, Integer.toString(ArtifactThumbnailRepository.FRAMES_PER_PREVIEW));
 
         // Justification field validation
-        DEFAULTS.put(FIELD_JUSTIFICATION_VALIDATION, JustificationFieldValidation.REQUIRED.toString());
+        DEFAULTS.put(FIELD_JUSTIFICATION_VALIDATION, JustificationFieldValidation.OPTIONAL.toString());
 
         // Search
         DEFAULTS.put(SEARCH_DISABLE_WILDCARD_SEARCH, "false");
