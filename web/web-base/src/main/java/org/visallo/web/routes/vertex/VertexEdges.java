@@ -37,6 +37,7 @@ public class VertexEdges implements ParameterizedHandler {
             @Optional(name = "size", defaultValue = "25") int size,
             @Optional(name = "edgeLabel") String edgeLabel,
             @Optional(name = "relatedVertexId") String relatedVertexId,
+            @Optional(name = "direction") String directionStr,
             @ActiveWorkspaceId String workspaceId,
             Authorizations authorizations
     ) throws Exception {
@@ -56,7 +57,9 @@ public class VertexEdges implements ParameterizedHandler {
             }
         }
 
-        List<String> edgeIds = loadEdgeIds(edgeLabel, vertex, relatedVertex, authorizations);
+        Direction direction = directionStr == null ? Direction.BOTH : Direction.valueOf(directionStr.toUpperCase());
+
+        List<String> edgeIds = loadEdgeIds(edgeLabel, vertex, relatedVertex, direction, authorizations);
         int totalEdgeCount = edgeIds.size();
 
         ClientApiVertexEdges result = new ClientApiVertexEdges();
@@ -82,15 +85,16 @@ public class VertexEdges implements ParameterizedHandler {
     /**
      * This is overridable so web plugins can modify the resulting set of edges.
      */
-    protected List<String> loadEdgeIds(String edgeLabel, Vertex vertex, Vertex relatedVertex, Authorizations authorizations) {
+    protected List<String> loadEdgeIds(String edgeLabel, Vertex vertex, Vertex relatedVertex, Direction direction,
+                                       Authorizations authorizations) {
         if (edgeLabel == null && relatedVertex == null) {
-            return Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, authorizations));
+            return Lists.newArrayList(vertex.getEdgeIds(direction, authorizations));
         } else if (relatedVertex == null) {
-            return Lists.newArrayList(vertex.getEdgeIds(Direction.BOTH, edgeLabel, authorizations));
+            return Lists.newArrayList(vertex.getEdgeIds(direction, edgeLabel, authorizations));
         } else if (edgeLabel == null) {
-            return Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, authorizations));
+            return Lists.newArrayList(vertex.getEdgeIds(relatedVertex, direction, authorizations));
         } else {
-            return Lists.newArrayList(vertex.getEdgeIds(relatedVertex, Direction.BOTH, edgeLabel, authorizations));
+            return Lists.newArrayList(vertex.getEdgeIds(relatedVertex, direction, edgeLabel, authorizations));
         }
     }
 
