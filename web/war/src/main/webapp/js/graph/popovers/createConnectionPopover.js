@@ -132,16 +132,24 @@ define([
             this.currentNodeIndex++;
 
             this.ignoreViewportChanges = true;
-            this.attr.cy.panBy({
-                x: otherNodePosition.x - currentNodePosition.x,
-                y: otherNodePosition.y - currentNodePosition.y
-            });
             this.popover.find('.title').text(otherTitle);
             this.attr.cyNode = node;
             this.attr.otherCyNode = other;
             this.updateRelationshipLabels();
-            this.ignoreViewportChanges = false;
-            this.onViewportChanges();
+
+            this.attr.cy.animate({
+                panBy: {
+                    x: otherNodePosition.x - currentNodePosition.x,
+                    y: otherNodePosition.y - currentNodePosition.y
+                }
+            }, {
+                duration: 400,
+                easing: 'spring(250, 20)',
+                complete: function() {
+                    self.ignoreViewportChanges = false;
+                    self.onViewportChanges();
+                }
+            });
         };
 
         this.onCreateConnection = function(e) {
