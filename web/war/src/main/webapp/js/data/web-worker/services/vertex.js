@@ -102,6 +102,7 @@ define([
                 if (options.offset) parameters.offset = options.offset;
                 if (options.size) parameters.size = options.size;
                 if (options.edgeLabel) parameters.edgeLabel = options.edgeLabel;
+                if (options.direction) parameters.direction = options.direction;
             }
 
             return ajax('GET', '/vertex/edges', parameters);
