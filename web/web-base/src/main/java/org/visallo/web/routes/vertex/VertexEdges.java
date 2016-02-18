@@ -37,7 +37,7 @@ public class VertexEdges implements ParameterizedHandler {
             @Optional(name = "size", defaultValue = "25") int size,
             @Optional(name = "edgeLabel") String edgeLabel,
             @Optional(name = "relatedVertexId") String relatedVertexId,
-            @Optional(name = "direction") String directionStr,
+            @Optional(name = "direction", defaultValue = "BOTH") String directionStr,
             @ActiveWorkspaceId String workspaceId,
             Authorizations authorizations
     ) throws Exception {
@@ -57,7 +57,7 @@ public class VertexEdges implements ParameterizedHandler {
             }
         }
 
-        Direction direction = directionStr == null ? Direction.BOTH : Direction.valueOf(directionStr.toUpperCase());
+        Direction direction = Direction.valueOf(directionStr.toUpperCase());
 
         List<String> edgeIds = loadEdgeIds(edgeLabel, vertex, relatedVertex, direction, authorizations);
         int totalEdgeCount = edgeIds.size();
