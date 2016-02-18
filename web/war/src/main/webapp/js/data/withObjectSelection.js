@@ -108,36 +108,39 @@ define([], function() {
         };
 
         this.onSelectConnected = function(event, data) {
-            var self = this,
-                vertices = selectedObjects.vertices;
+            var self = this;
 
-            if (vertices.length && edges && edges.length) {
-                this.dataRequestPromise.done(function(dataRequest) {
-                    dataRequest('workspace', 'store')
-                        .done(function(workspaceVertices) {
-                            var selected = _.pluck(vertices, 'id'),
-                                toSelect = _.chain(edges)
-                                    .map(function(e) {
-                                        return selected.map(function(v) {
-                                            return e.outVertexId === v ?
-                                                e.inVertexId :
-                                                e.inVertexId === v ?
-                                                e.outVertexId :
-                                                null
+            this.selectedObjectsPromise().then(function(selectedObjects) {
+                var vertices = selectedObjects.vertices;
+
+                if (vertices.length && edges && edges.length) {
+                    self.dataRequestPromise.done(function(dataRequest) {
+                        dataRequest('workspace', 'store')
+                            .done(function(workspaceVertices) {
+                                var selected = _.pluck(vertices, 'id'),
+                                    toSelect = _.chain(edges)
+                                        .map(function(e) {
+                                            return selected.map(function(v) {
+                                                return e.outVertexId === v ?
+                                                    e.inVertexId :
+                                                    e.inVertexId === v ?
+                                                    e.outVertexId :
+                                                    null
+                                            })
                                         })
-                                    })
-                                    .flatten()
-                                    .compact()
-                                    .unique()
-                                    .filter(function(vId) {
-                                        return vId in workspaceVertices;
-                                    })
-                                    .value();
+                                        .flatten()
+                                        .compact()
+                                        .unique()
+                                        .filter(function(vId) {
+                                            return vId in workspaceVertices;
+                                        })
+                                        .value();
 
-                            self.trigger('selectObjects', { vertexIds: toSelect });
-                        })
-                })
-            }
+                                self.trigger('selectObjects', { vertexIds: toSelect });
+                            })
+                    })
+                }
+            })
         };
 
         this.onDeleteSelected = function(event, data) {
