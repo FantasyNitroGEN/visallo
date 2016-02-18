@@ -28,6 +28,10 @@ define([], function() {
         this.after('initialize', function() {
             this.setPublicApi('selectedObjects', defaultNoObjectsOrData());
 
+            // Guarantees that we aren't after a selectObjects call but before objectsSelected
+            this.currentSelectObjectsPromise = Promise.resolve();
+            visalloData.selectedObjectsPromise = this.selectedObjectsPromise.bind(this);
+
             this.on('selectObjects', this.onSelectObjects);
             this.on('selectAll', this.onSelectAll);
             this.on('selectConnected', this.onSelectConnected);
@@ -65,6 +69,12 @@ define([], function() {
             this.on('addRelatedItems', this.onAddRelatedItems);
             this.on('objectsSelected', this.onObjectsSelected);
         });
+
+        this.selectedObjectsPromise = function() {
+            return this.currentSelectObjectsPromise.then(function() {
+                return selectedObjects;
+            });
+        };
 
         this.onEdgesLoaded = function(event, data) {
             edges = data.edges;
@@ -146,89 +156,96 @@ define([], function() {
         };
 
         this.onSelectObjects = function(event, data) {
-            var self = this,
-                hasItems = data &&
-                    (
-                        (data.vertexIds || data.vertices || []).length > 0 ||
-                        (data.edgeIds || data.edges || []).length > 0
-                    ),
-                promises = [];
+            var self = this;
+            this.currentSelectObjectsPromise = new Promise(function(f) {
+                var hasItems = data &&
+                        (
+                            (data.vertexIds || data.vertices || []).length > 0 ||
+                            (data.edgeIds || data.edges || []).length > 0
+                        ),
+                    promises = [];
 
-            this.dataRequestPromise.done(function(dataRequest) {
-                if (data && data.vertexIds) {
-                    if (!_.isArray(data.vertexIds)) {
-                        data.vertexIds = [data.vertexIds];
+                self.dataRequestPromise.done(function(dataRequest) {
+                    if (data && data.vertexIds) {
+                        if (!_.isArray(data.vertexIds)) {
+                            data.vertexIds = [data.vertexIds];
+                        }
+                        promises.push(
+                            dataRequest('vertex', 'store', { vertexIds: data.vertexIds })
+                        );
+                    } else if (data && data.vertices) {
+                        promises.push(Promise.resolve(data.vertices));
+                    } else {
+                        promises.push(Promise.resolve([]));
                     }
-                    promises.push(
-                        dataRequest('vertex', 'store', { vertexIds: data.vertexIds })
-                    );
-                } else if (data && data.vertices) {
-                    promises.push(Promise.resolve(data.vertices));
-                } else {
-                    promises.push(Promise.resolve([]));
-                }
 
-                if (data && data.edgeIds && data.edgeIds.length) {
-                    promises.push(
-                        dataRequest('edge', 'store', { edgeIds: data.edgeIds })
-                    );
-                } else if (data && data.edges) {
-                    promises.push(Promise.resolve(data.edges));
-                } else {
-                    promises.push(Promise.resolve([]));
-                }
+                    if (data && data.edgeIds && data.edgeIds.length) {
+                        promises.push(
+                            dataRequest('edge', 'store', { edgeIds: data.edgeIds })
+                        );
+                    } else if (data && data.edges) {
+                        promises.push(Promise.resolve(data.edges));
+                    } else {
+                        promises.push(Promise.resolve([]));
+                    }
 
-                Promise.all(promises)
-                    .done(function(result) {
-                        var vertices = _.compact(result[0] || []),
-                            edges = _.compact(result[1] || []),
-                            selectedObjectsToIds = function(obj) {
-                                return {
-                                    vertices: _.pluck(obj && obj.vertices || [], 'id'),
-                                    edges: _.pluck(obj && obj.edges || [], 'id')
+                    Promise.all(promises)
+                        .done(function(result) {
+                            var vertices = _.compact(result[0] || []),
+                                edges = _.compact(result[1] || []),
+                                selectedObjectsToIds = function(obj) {
+                                    return {
+                                        vertices: _.pluck(obj && obj.vertices || [], 'id'),
+                                        edges: _.pluck(obj && obj.edges || [], 'id')
+                                    };
                                 };
+
+                            if (!edges.length && !vertices.length && hasItems) {
+                                self.trigger('objectsSelectedAborted');
+                                f();
+                                return;
+                            }
+
+                            selectedObjects = {
+                                vertices: vertices,
+                                edges: edges
                             };
 
-                        if (!edges.length && !vertices.length && hasItems) {
-                            return;
-                        }
+                            if (previousSelectedObjects &&
+                                selectedObjects &&
+                                _.isEqual(
+                                    selectedObjectsToIds(previousSelectedObjects),
+                                    selectedObjectsToIds(selectedObjects)
+                                )) {
+                                self.trigger('objectsSelectedAborted');
+                                f();
+                                return;
+                            }
 
-                        selectedObjects = {
-                            vertices: vertices,
-                            edges: edges
-                        };
+                            self.appendToStack(selectedObjects)
+                                .done(function() {
+                                    previousSelectedObjects = selectedObjects;
 
-                        if (previousSelectedObjects &&
-                            selectedObjects &&
-                            _.isEqual(
-                                selectedObjectsToIds(previousSelectedObjects),
-                                selectedObjectsToIds(selectedObjects)
-                            )) {
-                            return;
-                        }
+                                    var transformedObjects = defaultNoObjectsOrData(selectedObjects);
+                                    self.setPublicApi('selectedObjects', transformedObjects);
 
-                        self.appendToStack(selectedObjects)
-                            .done(function() {
-                                previousSelectedObjects = selectedObjects;
-
-                                var transformedObjects = defaultNoObjectsOrData(selectedObjects);
-                                self.setPublicApi('selectedObjects', transformedObjects);
-
-                                var postData = _.chain(selectedObjects)
-                                    .clone()
-                                    .mapObject(function(value) {
-                                        return _.clone(value);
-                                    })
-                                    .value();
-                                if (data && 'focus' in data) {
-                                    postData.focus = data.focus;
-                                }
-                                if (data && 'options' in data) {
-                                    postData.options = data.options;
-                                }
-                                self.trigger(event.target, 'objectsSelected', postData);
-                            });
-                    });
+                                    var postData = _.chain(selectedObjects)
+                                        .clone()
+                                        .mapObject(function(value) {
+                                            return _.clone(value);
+                                        })
+                                        .value();
+                                    if (data && 'focus' in data) {
+                                        postData.focus = data.focus;
+                                    }
+                                    if (data && 'options' in data) {
+                                        postData.options = data.options;
+                                    }
+                                    self.trigger(event.target, 'objectsSelected', postData);
+                                    f();
+                                });
+                        });
+                });
             });
         };
 
@@ -277,42 +294,48 @@ define([], function() {
         this.onSearchRelated = function(event, data) {
             var self = this;
 
-            require(['util/vertex/formatters'], function(F) {
-                var vertexIds = F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data);
-                if (vertexIds.length) {
-                    self.trigger('searchByRelatedEntity', { vertexIds: vertexIds });
-                }
-            })
+            Promise.require('util/vertex/formatters')
+                .then(function(F) {
+                    return F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true });
+                })
+                .then(function(vertexIds) {
+                    if (vertexIds.length) {
+                        self.trigger('searchByRelatedEntity', { vertexIds: vertexIds });
+                    }
+                })
         };
 
         this.onAddRelatedItems = function(event, data) {
             var self = this;
 
-            require(['util/vertex/formatters'], function(F) {
-                var vertexIds = F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data);
+            Promise.require('util/vertex/formatters')
+                .then(function(F) {
+                    return F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true });
+                })
+                .then(function(vertexIds) {
 
-                if (vertexIds.length) {
-                    Promise.all([
-                        Promise.require('util/popovers/addRelated/addRelated'),
-                        self.dataRequestPromise.then(function(dataRequest) {
-                            return dataRequest('vertex', 'store', { vertexIds: vertexIds })
-                        })
-                    ]).done(function(results) {
-                        var RP = results.shift(),
-                            vertex = results.shift();
+                    if (vertexIds.length) {
+                        Promise.all([
+                            Promise.require('util/popovers/addRelated/addRelated'),
+                            self.dataRequestPromise.then(function(dataRequest) {
+                                return dataRequest('vertex', 'store', { vertexIds: vertexIds })
+                            })
+                        ]).done(function(results) {
+                            var RP = results.shift(),
+                                vertex = results.shift();
 
-                        RP.teardownAll();
+                            RP.teardownAll();
 
-                        RP.attachTo(event.target, {
-                            vertex: vertex,
-                            relatedToVertexIds: vertexIds,
-                            anchorTo: {
-                                vertexId: vertexIds[0]
-                            }
+                            RP.attachTo(event.target, {
+                                vertex: vertex,
+                                relatedToVertexIds: vertexIds,
+                                anchorTo: {
+                                    vertexId: vertexIds[0]
+                                }
+                            });
                         });
-                    });
-                }
-            });
+                    }
+                });
         };
 
         this.getConfigurationMaxHistory = function() {

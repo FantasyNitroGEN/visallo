@@ -39,10 +39,15 @@ define([
                         undefined;
             },
 
-            getVertexIdsFromDataEventOrCurrentSelection: function(data) {
+            getVertexIdsFromDataEventOrCurrentSelection: function(data, opts) {
                 // Normalize the vertexIds sent from a vertex menu event,
                 // also checking the current object selection
-                var vertexIds = [];
+                var vertexIds = [],
+                    options = opts || {},
+                    // Return a promise (will return more accurate list that
+                    // isn't suseptible to selectObjects -> objectsSelected
+                    // race condition
+                    async = options.async
 
                 if (data && data.vertexId) {
                     vertexIds = [data.vertexId];
@@ -50,19 +55,29 @@ define([
                     vertexIds = data.vertexIds;
                 }
 
-                if ((typeof window.visalloData !== 'undefined') &&
-                   visalloData.selectedObjects &&
-                   visalloData.selectedObjects.vertices.length > 0) {
-
-                    var selectedVertexIds = _.pluck(visalloData.selectedObjects.vertices, 'id');
-                    if (_.intersection(vertexIds, selectedVertexIds).length) {
-                        vertexIds = vertexIds.concat(selectedVertexIds);
-                    } else if (!vertexIds.length) {
-                        vertexIds = selectedVertexIds;
+                if (typeof window.visalloData !== 'undefined') {
+                    if (async) {
+                        return visalloData.selectedObjectsPromise()
+                            .then(vertexIdsUsingSelectedObjects);
+                    } else {
+                        console.warn('Use { async: true } when calling getVertexIdsFromDataEventOrCurrentSelection')
+                        return vertexIdsUsingSelectedObjects(visalloData.selectedObjects)
                     }
                 }
 
-                return _.unique(vertexIds);
+                return vertexIdsUsingSelectedObjects();
+
+                function vertexIdsUsingSelectedObjects(selectedObjects) {
+                    if (selectedObjects && selectedObjects.vertices.length > 0) {
+                        var selectedVertexIds = _.pluck(selectedObjects.vertices, 'id');
+                        if (_.intersection(vertexIds, selectedVertexIds).length) {
+                            vertexIds = vertexIds.concat(selectedVertexIds);
+                        } else if (!vertexIds.length) {
+                            vertexIds = selectedVertexIds;
+                        }
+                    }
+                    return _.unique(vertexIds);
+                }
             },
 
             metadata: {
