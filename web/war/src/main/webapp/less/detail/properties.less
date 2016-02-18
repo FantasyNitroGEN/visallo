@@ -1,4 +1,15 @@
 
+.org-visallo-properties,
+.org-visallo-comments {
+  .visibility {
+    display:block;
+    color: #666; 
+    font-style: italic;
+    font-size: 90%;
+    &:empty { display: none; }
+  }
+}
+
 .org-visallo-properties {
 
   @import (multiple) "../util/info-button";
@@ -53,14 +64,6 @@
         font-size: 80%;               
         white-space: normal;        
       }
-  }
-
-  .visibility {
-    display:block;
-    color: #666; 
-    font-style: italic;
-    font-size: 90%;
-    &:empty { display: none; }
   }
 
   .property-value, .property-name {
