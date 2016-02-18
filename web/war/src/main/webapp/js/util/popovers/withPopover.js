@@ -65,14 +65,24 @@ define([], function() {
                 withPopoverInputSelector: this.withPopoverOnKeyup
             })
 
-            $(document).off('.popoverclose').on('click.popoverclose', function(e) {
-                if (self.attr.teardownOnTap !== false) {
-                    if ($(e.target).closest(self.popover).length) {
-                        return;
-                    }
-                    self.teardown();
-                }
-            })
+            if (this.attr.teardownOnTap !== false) {
+                this.on(document, 'mousedown', function mousedown(e) {
+                    var x = e.clientX, y = e.clientY;
+                    this.on(document, 'mouseup', function mouseup(e) {
+                        this.off(document, 'mouseup', mouseup);
+
+                        if ($(e.target).closest(self.popover).length) {
+                            return;
+                        }
+                        var x2 = e.clientX, y2 = e.clientY,
+                            distance = Math.sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y))
+
+                        if (distance < 5) {
+                            self.teardown();
+                        }
+                    })
+                })
+            }
 
             this.registerAnchorTo();
         };
