@@ -84,6 +84,13 @@ define([], function() {
         this.onSelectAll = function(event, data) {
             var self = this;
 
+            this.trigger('displayInformation', {
+                message: 'Selecting All Objects...'
+            });
+            this.on(document, 'objectsSelected objectsSelectedAborted', function handler() {
+                self.trigger('hideInformation');
+                self.off(document, 'objectsSelected objectsSelectedAborted', handler);
+            })
             this.dataRequestPromise.done(function(dataRequest) {
                 Promise.all([
                     dataRequest('workspace', 'store'),
