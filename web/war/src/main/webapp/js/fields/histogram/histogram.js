@@ -374,14 +374,13 @@ define([
                     .on('brush', _.throttle(function() {
                         updateBrushInfo();
                         updateFocusInfo();
-                        brush.x(zoom.x());
                     }, 1000 / 30))))
                     //.call(function() {
                         //if (this.currentExtent) {
                             //brush = this.brush.extent(this.currentExtent);
                         //}
                     //})
-                    .x(zoom.x()),
+                    .x(self.xScale),
 
                 focus = null,
 
@@ -554,7 +553,7 @@ define([
                     .attr('y', height + BRUSH_PADDING - BRUSH_TEXT_PADDING);
 
             if (isDate) {
-                xAxis.tickFormat(d3.time.format.utc.multi([
+                xAxis.tickFormat(d3.time.format.multi([
                     ['.%L', function(d) {
                         return d.getMilliseconds();
                     }],
@@ -662,10 +661,10 @@ define([
             function updateBrushInfo() {
                 var extent = self.brush.extent(),
                     delta = extent[1] - extent[0],
-                    width = Math.max(0, xScale(
+                    width = Math.max(0, self.xScale(
                              isDate ?
-                             new Date(xScale.domain()[0].getTime() + delta) :
-                             (xScale.domain()[0] + delta)
+                             new Date(self.xScale.domain()[0].getTime() + delta) :
+                             (self.xScale.domain()[0] + delta)
                         ) - 1),
                     data = {
                         extent: delta < 0.00001 ? null : extent
@@ -689,7 +688,7 @@ define([
 
                 gBrushText
                     .style('display', delta < 0.01 ? 'none' : '')
-                    .attr('transform', 'translate(' + xScale(extent[0]) + ', 0)');
+                    .attr('transform', 'translate(' + self.xScale(extent[0]) + ', 0)');
 
                 gBrushTextEnd
                     .text(brushedTextFormat(extent[1]))
@@ -713,8 +712,8 @@ define([
 
             function updateFocusInfo() {
                 if (mouse !== null) {
-                    var x0 = xScale.invert(mouse - margin.left);
-                    focus.attr('transform', 'translate(' + xScale(x0) + ', 0)');
+                    var x0 = self.xScale.invert(mouse - margin.left);
+                    focus.attr('transform', 'translate(' + self.xScale(x0) + ', 0)');
                     if (isDate) {
                         focus.select('text').text(format(x0));
                     } else {
