@@ -778,6 +778,12 @@
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${plugin.maven.exec.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${plugin.maven.compiler.version}</version>
                     <configuration>
