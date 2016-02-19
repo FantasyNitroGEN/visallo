@@ -8,8 +8,10 @@ import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloDate;
 import org.visallo.core.util.VisalloDateTime;
 import org.visallo.core.util.VisalloLogger;
@@ -46,6 +48,7 @@ public class RdfTripleImportHelper {
     public static final String PROPERTY_TYPE_INT = "http://www.w3.org/2001/XMLSchema#int";
     public static final String PROPERTY_TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
     private final Graph graph;
+    private final VisibilityTranslator visibilityTranslator;
     private final Pattern METADATA_PATTERN = Pattern.compile("(.*)@(.*)");
     private final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
     private final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
@@ -58,33 +61,39 @@ public class RdfTripleImportHelper {
     private boolean failOnFirstError = false;
 
     @Inject
-    public RdfTripleImportHelper(Graph graph) {
+    public RdfTripleImportHelper(
+            Graph graph,
+            VisibilityTranslator visibilityTranslator
+    ) {
         this.graph = graph;
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     public void importRdfTriple(
             File inputFile,
-            Metadata metadata,
             TimeZone timeZone,
-            Visibility defaultVisibility,
+            String defaultVisibilitySource,
+            User user,
             Authorizations authorizations
     ) throws IOException {
         importRdfTriple(
+                inputFile.getName(),
                 new FileInputStream(inputFile),
-                metadata,
                 inputFile.getParentFile(),
                 timeZone,
-                defaultVisibility,
+                defaultVisibilitySource,
+                user,
                 authorizations
         );
     }
 
     private void importRdfTriple(
+            String sourceFileName,
             InputStream inputStream,
-            Metadata metadata,
             File workingDir,
             TimeZone timeZone,
-            Visibility defaultVisibility,
+            String defaultVisibilitySource,
+            User user,
             Authorizations authorizations
     ) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -93,7 +102,7 @@ public class RdfTripleImportHelper {
         while ((line = reader.readLine()) != null) {
             LOGGER.debug("Importing RDF triple on line: %d", lineNum);
             try {
-                importRdfLine(line, metadata, workingDir, timeZone, defaultVisibility, authorizations);
+                importRdfLine(sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
             } catch (Exception e) {
                 String errMsg = String.format("Error importing RDF triple on line: %d. %s", lineNum, e.getMessage());
                 if (failOnFirstError) {
@@ -109,18 +118,19 @@ public class RdfTripleImportHelper {
     }
 
     public void importRdfLine(
+            String sourceFileName,
             String line,
-            Metadata metadata,
             File workingDir,
             TimeZone timeZone,
-            Visibility defaultVisibility,
+            String defaultVisibilitySource,
+            User user,
             Authorizations authorizations
     ) {
         if (line.length() == 0 || line.charAt(0) == '#') {
             return;
         }
         RdfTriple rdfTriple = RdfTripleParser.parseLine(line);
-        if (importRdfTriple(rdfTriple, metadata, workingDir, timeZone, defaultVisibility, authorizations)) {
+        if (importRdfTriple(rdfTriple, sourceFileName, workingDir, timeZone, defaultVisibilitySource, user, authorizations)) {
             return;
         }
 
@@ -129,10 +139,11 @@ public class RdfTripleImportHelper {
 
     public boolean importRdfTriple(
             RdfTriple rdfTriple,
-            Metadata metadata,
+            String sourceFileName,
             File workingDir,
             TimeZone timeZone,
-            Visibility defaultVisibility,
+            String defaultVisibilitySource,
+            User user,
             Authorizations authorizations
     ) {
         if (!(rdfTriple.getFirst() instanceof RdfTriple.UriPart)) {
@@ -145,26 +156,40 @@ public class RdfTripleImportHelper {
         String vertexId = ((RdfTriple.UriPart) rdfTriple.getFirst()).getUri();
         String label = ((RdfTriple.UriPart) rdfTriple.getSecond()).getUri();
         RdfTriple.Part third = rdfTriple.getThird();
-        Visibility vertexVisibility = defaultVisibility;
 
+        String vertexVisibilitySource;
         Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(vertexId);
         if (visibilityMatcher.matches()) {
             vertexId = visibilityMatcher.group(1);
-            vertexVisibility = getVisibility(visibilityMatcher.group(2));
+            vertexVisibilitySource = visibilityMatcher.group(2);
+        } else {
+            vertexVisibilitySource = defaultVisibilitySource;
         }
+        Visibility vertexVisibility = getVisibility(vertexVisibilitySource);
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
-            setConceptType(vertexId, third, metadata, vertexVisibility, authorizations);
+            setConceptType(sourceFileName, vertexId, third, vertexVisibility, vertexVisibilitySource, user, authorizations);
             return true;
         }
 
         if (third instanceof RdfTriple.LiteralPart) {
-            setProperty(vertexId, vertexVisibility, label, (RdfTriple.LiteralPart) third, metadata, workingDir, timeZone, defaultVisibility, authorizations);
+            setProperty(
+                    sourceFileName,
+                    vertexId,
+                    vertexVisibility,
+                    label,
+                    (RdfTriple.LiteralPart) third,
+                    workingDir,
+                    timeZone,
+                    defaultVisibilitySource,
+                    user,
+                    authorizations
+            );
             return true;
         }
 
         if (third instanceof RdfTriple.UriPart) {
-            addEdge(vertexId, label, ((RdfTriple.UriPart) third).getUri(), defaultVisibility, authorizations);
+            addEdge(vertexId, label, ((RdfTriple.UriPart) third).getUri(), defaultVisibilitySource, authorizations);
             return true;
         }
 
@@ -175,36 +200,51 @@ public class RdfTripleImportHelper {
             String outVertexId,
             String label,
             String inVertexId,
-            Visibility visibility,
+            String defaultVisibilitySource,
             Authorizations authorizations
     ) {
         String edgeId = outVertexId + "_" + label + "_" + inVertexId;
 
+        Visibility visibility;
         Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(label);
         if (visibilityMatcher.matches()) {
             label = visibilityMatcher.group(1);
             visibility = getVisibility(visibilityMatcher.group(2));
+        } else {
+            visibility = getVisibility(defaultVisibilitySource);
         }
 
         graph.addEdge(edgeId, outVertexId, inVertexId, label, visibility, authorizations);
     }
 
     private void setProperty(
+            String sourceFileName,
             String vertexId,
             Visibility elementVisibility,
             String label,
             RdfTriple.LiteralPart propertyValuePart,
-            Metadata metadata,
             File workingDir,
             TimeZone timeZone,
-            Visibility visibility,
+            String defaultVisibilitySource,
+            User user,
             Authorizations authorizations
     ) {
         ElementMutation m;
         String propertyKey = MULTI_KEY;
-        Visibility propertyVisibility = visibility;
         String metadataKey = null;
 
+        // metadata
+        Date now = new Date();
+        Metadata metadata = new Metadata();
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+        if (sourceFileName != null) {
+            VisalloProperties.SOURCE_FILE_NAME_METADATA.setMetadata(metadata, sourceFileName, defaultVisibility);
+        }
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, defaultVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), defaultVisibility);
+        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, defaultVisibility);
+
+        // metadata property
         Matcher metadataMatcher = METADATA_PATTERN.matcher(label);
         if (metadataMatcher.matches()) {
             label = metadataMatcher.group(1);
@@ -220,18 +260,26 @@ public class RdfTripleImportHelper {
             m = graph.prepareVertex(vertexId, elementVisibility);
         }
 
+        // visibility
+        String visibilitySource;
         Matcher visibilityMatch = VISIBILITY_PATTERN.matcher(label);
         if (visibilityMatch.matches()) {
             label = visibilityMatch.group(1);
-            propertyVisibility = getVisibility(visibilityMatch.group(2));
+            visibilitySource = visibilityMatch.group(2);
+        } else {
+            visibilitySource = defaultVisibilitySource;
         }
+        Visibility propertyVisibility = getVisibility(visibilitySource);
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, new VisibilityJson(visibilitySource), defaultVisibility);
 
+        // property key
         Matcher keyMatch = PROPERTY_KEY_PATTERN.matcher(label);
         if (keyMatch.matches()) {
             label = keyMatch.group(1);
             propertyKey = keyMatch.group(2);
         }
 
+        // save
         String propertyName = label;
         Object propertyValue = getPropertyValue(propertyValuePart, workingDir, timeZone);
 
@@ -335,11 +383,7 @@ public class RdfTripleImportHelper {
             case PROPERTY_TYPE_DOUBLE:
             case PROPERTY_TYPE_BOOLEAN:
                 // blank values are not valid for these data types
-                if (StringUtils.isBlank(propertyValuePart.getString())) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return !StringUtils.isBlank(propertyValuePart.getString());
             default:
                 return true;
         }
@@ -355,10 +399,29 @@ public class RdfTripleImportHelper {
         return visalloDateTime.toDateGMT();
     }
 
-    private void setConceptType(String vertexId, RdfTriple.Part third, Metadata metadata, Visibility visibility, Authorizations authorizations) {
+    private void setConceptType(
+            String sourceFileName,
+            String vertexId,
+            RdfTriple.Part third,
+            Visibility visibility,
+            String vertexVisibilitySource,
+            User user,
+            Authorizations authorizations
+    ) {
+        Date now = new Date();
+        Metadata metadata = new Metadata();
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+        if (sourceFileName != null) {
+            VisalloProperties.SOURCE_FILE_NAME_METADATA.setMetadata(metadata, sourceFileName, defaultVisibility);
+        }
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, new VisibilityJson(vertexVisibilitySource), defaultVisibility);
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, defaultVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), defaultVisibility);
+        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, defaultVisibility);
+
         VertexBuilder m = graph.prepareVertex(vertexId, visibility);
         String conceptType = getConceptType(third);
-        VisibilityJson visibilityJson = new VisibilityJson(visibility.getVisibilityString());
+        VisibilityJson visibilityJson = new VisibilityJson(vertexVisibilitySource);
         VisalloProperties.CONCEPT_TYPE.setProperty(m, conceptType, metadata, visibility);
         VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, visibility);
         m.save(authorizations);
@@ -381,7 +444,7 @@ public class RdfTripleImportHelper {
         if (visibility != null) {
             return visibility;
         }
-        visibility = new VisalloVisibility(visibilityString).getVisibility();
+        visibility = visibilityTranslator.toVisibility(visibilityString).getVisibility();
         visibilityCache.put(visibilityString, visibility);
         return visibility;
     }

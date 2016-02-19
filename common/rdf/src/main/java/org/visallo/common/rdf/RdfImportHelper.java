@@ -4,27 +4,19 @@ import com.google.inject.Inject;
 import com.hp.hpl.jena.shared.JenaException;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
-import org.vertexium.Metadata;
-import org.vertexium.Visibility;
-import org.visallo.core.model.graph.GraphRepository;
-import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.util.TimeZone;
 
 public class RdfImportHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfImportHelper.class);
     private final Graph graph;
-    private final VisibilityTranslator visibilityTranslator;
     private final UserRepository userRepository;
     private final RdfXmlImportHelper rdfXmlImportHelper;
     private final RdfTripleImportHelper rdfTripleImportHelper;
@@ -38,13 +30,11 @@ public class RdfImportHelper {
     @Inject
     public RdfImportHelper(
             Graph graph,
-            VisibilityTranslator visibilityTranslator,
             UserRepository userRepository,
             RdfXmlImportHelper rdfXmlImportHelper,
             RdfTripleImportHelper rdfTripleImportHelper
     ) {
         this.graph = graph;
-        this.visibilityTranslator = visibilityTranslator;
         this.userRepository = userRepository;
         this.rdfXmlImportHelper = rdfXmlImportHelper;
         this.rdfTripleImportHelper = rdfTripleImportHelper;
@@ -54,7 +44,7 @@ public class RdfImportHelper {
             File input,
             TimeZone timeZone,
             Priority priority,
-            Visibility visibility,
+            String visibilitySource,
             User user,
             Authorizations authorizations
     ) throws IOException {
@@ -63,13 +53,13 @@ public class RdfImportHelper {
         LOGGER.info("Importing file: %s", inputFile.getAbsolutePath());
         rdfTripleImportHelper.setFailOnFirstError(failOnFirstError);
         if (inputFile.getName().endsWith(".nt")) {
-            importFileRdfTriple(inputFile, timeZone, visibility, authorizations);
+            importFileRdfTriple(inputFile, timeZone, visibilitySource, authorizations);
         } else {
             try {
-                importFileRdfXml(inputFile, priority, visibility, user, authorizations);
+                importFileRdfXml(inputFile, priority, visibilitySource, user, authorizations);
             } catch (JenaException ex) {
                 if (ex.getMessage().contains("Content is not allowed in prolog.")) {
-                    importFileRdfTriple(inputFile, timeZone, visibility, authorizations);
+                    importFileRdfTriple(inputFile, timeZone, visibilitySource, authorizations);
                 } else {
                     throw ex;
                 }
@@ -81,29 +71,20 @@ public class RdfImportHelper {
     private void importFileRdfTriple(
             File inputFile,
             TimeZone timeZone,
-            Visibility defaultVisibility,
+            String visibilitySource,
             Authorizations authorizations
     ) throws IOException {
-        Metadata metadata = new Metadata();
-        Date now = new Date();
-        Visibility metadataVisibility = visibilityTranslator.getDefaultVisibility();
-        VisibilityJson visibilityJson = new VisibilityJson(defaultVisibility.getVisibilityString());
         User user = userRepository.getSystemUser();
-        VisalloProperties.SOURCE_FILE_NAME_METADATA.setMetadata(metadata, inputFile.getName(), metadataVisibility);
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, metadataVisibility);
-        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, metadataVisibility);
-        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), metadataVisibility);
-        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, metadataVisibility);
-        rdfTripleImportHelper.importRdfTriple(inputFile, metadata, timeZone, defaultVisibility, authorizations);
+        rdfTripleImportHelper.importRdfTriple(inputFile, timeZone, visibilitySource, user, authorizations);
     }
 
     private void importFileRdfXml(
             File inputFile,
             Priority priority,
-            Visibility visibility,
+            String visibilitySource,
             User user,
             Authorizations authorizations
     ) throws IOException {
-        rdfXmlImportHelper.importRdfXml(inputFile, null, visibility, priority, user, authorizations);
+        rdfXmlImportHelper.importRdfXml(inputFile, null, visibilitySource, priority, user, authorizations);
     }
 }

@@ -17,6 +17,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -37,17 +38,20 @@ public class RdfXmlImportHelper {
     private final String rdfConceptTypeIri;
     private final String hasEntityIri;
     private final WorkspaceRepository workspaceRepository;
+    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
     public RdfXmlImportHelper(
             Graph graph,
             WorkQueueRepository workQueueRepository,
             OntologyRepository ontologyRepository,
-            WorkspaceRepository workspaceRepository
+            WorkspaceRepository workspaceRepository,
+            VisibilityTranslator visibilityTranslator
     ) {
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.workspaceRepository = workspaceRepository;
+        this.visibilityTranslator = visibilityTranslator;
 
         hasEntityIri = ontologyRepository.getRequiredRelationshipIRIByIntent("artifactHasEntity");
 
@@ -59,14 +63,14 @@ public class RdfXmlImportHelper {
     public void importRdfXml(
             File inputFile,
             GraphPropertyWorkData data,
-            Visibility visibility,
+            String visibilitySource,
             Priority priority,
             User user,
             Authorizations authorizations
     ) throws IOException {
         try (InputStream in = new FileInputStream(inputFile)) {
             File baseDir = inputFile.getParentFile();
-            importRdfXml(in, baseDir, data, visibility, priority, user, authorizations);
+            importRdfXml(in, baseDir, data, visibilitySource, priority, user, authorizations);
         }
     }
 
@@ -74,11 +78,13 @@ public class RdfXmlImportHelper {
             InputStream in,
             File baseDir,
             GraphPropertyWorkData data,
-            Visibility visibility,
+            String visibilitySource,
             Priority priority,
             User user,
             Authorizations authorizations
     ) {
+        Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
+
         String workspaceId = null;
         if (data != null) {
             workspaceId = data.getWorkspaceId();

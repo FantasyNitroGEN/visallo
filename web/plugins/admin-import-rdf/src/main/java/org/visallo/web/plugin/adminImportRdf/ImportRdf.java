@@ -9,12 +9,10 @@ import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.Authorizations;
-import org.vertexium.Visibility;
 import org.vertexium.util.FilterIterable;
 import org.visallo.common.rdf.RdfImportHelper;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -36,15 +34,10 @@ import static org.vertexium.util.IterableUtils.toList;
 public class ImportRdf implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImportRdf.class);
     private final RdfImportHelper rdfImportHelper;
-    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
-    public ImportRdf(
-            RdfImportHelper rdfImportHelper,
-            VisibilityTranslator visibilityTranslator
-    ) {
+    public ImportRdf(RdfImportHelper rdfImportHelper) {
         this.rdfImportHelper = rdfImportHelper;
-        this.visibilityTranslator = visibilityTranslator;
     }
 
     @Handle
@@ -67,8 +60,7 @@ public class ImportRdf implements ParameterizedHandler {
         File tempDirectory = savePartToTemp(part);
         try {
             TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
-            Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
-            rdfImportHelper.importRdf(tempDirectory, timeZone, priority, visibility, user, authorizations);
+            rdfImportHelper.importRdf(tempDirectory, timeZone, priority, visibilitySource, user, authorizations);
             return VisalloResponse.SUCCESS;
         } finally {
             try {
