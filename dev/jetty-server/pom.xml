@@ -39,6 +39,16 @@
             <artifactId>visallo-web-auth-username-only</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-plugins-admin-user-tools</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-admin-import-rdf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Graph Property Workers -->
         <dependency>

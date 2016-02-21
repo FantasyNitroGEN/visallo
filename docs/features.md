@@ -13,6 +13,7 @@ The following web plugins come with Visallo, but not all are installed by defaul
 | auth-username-password | standard username password authentication |
 | change-email | UI plugin allowing users to change their email address |
 | change-password | UI plugin allowing users to change their password |
+| admin-user-tools | UI plugin allowing users to add/modify/delete users |
 
 ## Graph Property Worker Plugins
 

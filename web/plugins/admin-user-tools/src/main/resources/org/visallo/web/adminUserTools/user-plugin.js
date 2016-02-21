@@ -1,8 +1,8 @@
 define([
     'flight/lib/component',
     'configuration/admin/utils/withFormHelpers',
-    'hbs!org/visallo/web/devTools/templates/user',
-    'hbs!org/visallo/web/devTools/templates/user-details',
+    'hbs!org/visallo/web/adminUserTools/templates/user',
+    'hbs!org/visallo/web/adminUserTools/templates/user-details',
     'util/formatters',
     'util/withDataRequest',
     'util/requirejs/promise!util/service/propertiesPromise'

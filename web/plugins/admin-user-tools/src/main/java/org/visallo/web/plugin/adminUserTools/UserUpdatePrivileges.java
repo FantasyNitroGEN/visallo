@@ -1,4 +1,4 @@
-package org.visallo.web.devTools.user;
+package org.visallo.web.plugin.adminUserTools;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
