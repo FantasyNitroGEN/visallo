@@ -19,5 +19,6 @@
         <module>auth-username-password</module>
         <module>change-email</module>
         <module>change-password</module>
+        <module>admin-user-tools</module>
     </modules>
 </project>
