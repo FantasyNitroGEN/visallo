@@ -53,15 +53,24 @@ define([
                 heightPreference = visalloData.currentUser.uiPreferences['pane-' + key],
                 originalHeight = heightPreference ? parseInt(heightPreference, 10) : $list.height();
 
-            $list
-                .css({ height: 0, visibility: 'hidden' })
-                .attr('data-height-preference', key)
-                .resizable({
-                    handles: 'n',
-                    resize: function(event, ui) {
-                        $(this).css('top', '');
+            $list.css({ height: 0, visibility: 'hidden' }).attr('data-height-preference', key);
+            createResizable($list);
+
+            // Hack to support nested resizables, destroy and recreate child
+            // resizable on parent resize
+            $list.parent().closest('.ui-resizable')
+                .on('resizestart', function(event) {
+                    if ($(event.target).closest($list).length) return;
+                    if ($list.data('ui-resizable')) {
+                        $list.resizable('destroy');
                     }
-                });
+                })
+                .on('resizestop', function() {
+                    if ($(event.target).closest($list).length) return;
+                    if (!$list.data('ui-resizable')) {
+                        createResizable($list);
+                    }
+                })
 
             renderedPromise
                 .then(function(height) {
@@ -149,6 +158,22 @@ define([
                     }
                 })
         };
+    }
+
+    function createResizable(el) {
+        $(el).resizable({
+            handles: 'n',
+            start: function(event) {
+                event.stopPropagation();
+            },
+            stop: function(event) {
+                event.stopPropagation();
+            },
+            resize: function(event, ui) {
+                event.stopPropagation();
+                $(this).css('top', '');
+            }
+        });
     }
 
 });
