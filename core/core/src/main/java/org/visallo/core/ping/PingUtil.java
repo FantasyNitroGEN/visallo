@@ -1,6 +1,7 @@
 package org.visallo.core.ping;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -17,6 +18,7 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
+import org.visallo.web.clientapi.model.Privilege;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -31,7 +33,7 @@ public class PingUtil {
 
     public static void setup(AuthorizationRepository authorizationRepository, UserRepository userRepository) {
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
-        userRepository.findOrAddUser(USERNAME, DISPLAY_NAME, null, UserRepository.createRandomPassword(), new String[]{VISIBILITY_STRING});
+        userRepository.findOrAddUser(USERNAME, DISPLAY_NAME, null, UserRepository.createRandomPassword(), Sets.newHashSet(Privilege.READ), Sets.newHashSet(VISIBILITY_STRING));
     }
 
     public static User getUser(UserRepository userRepository) {

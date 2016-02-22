@@ -110,22 +110,21 @@ public class UserAdmin extends CommandLineTool {
     }
 
     private int create(CreateUserArgs args) {
-        List<String> authorizations = new ArrayList<>();
+        Set<String> authorizations = new HashSet<>();
         if (args.authorizations != null && args.authorizations.length() > 0) {
             authorizations.addAll(Arrays.asList(StringUtils.split(args.authorizations, ',')));
         }
-        Set<String> privileges = null;
-        if (args.privileges != null) {
+        Set<String> privileges;
+        if (args.privileges == null) {
+            privileges = getUserRepository().getDefaultPrivileges();
+        } else {
             privileges = Privilege.stringToPrivileges(args.privileges);
         }
 
-        getUserRepository().findOrAddUser(args.userName, args.userName, null, args.password, authorizations.toArray(new String[authorizations.size()]));
+        getUserRepository().findOrAddUser(args.userName, args.userName, null, args.password, privileges, authorizations);
 
         User user = getUserRepository().findByUsername(args.userName);
 
-        if (privileges != null) {
-            getUserRepository().setPrivileges(user, privileges, getUserRepository().getSystemUser());
-        }
         if (args.displayName != null) {
             getUserRepository().setDisplayName(user, args.displayName);
         }

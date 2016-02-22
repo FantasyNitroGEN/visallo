@@ -1,5 +1,6 @@
 package model.workspace;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Injector;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.junit.After;
@@ -120,10 +121,10 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
                 lockRepository
         );
 
-        user1 = (InMemoryUser) userRepository.findOrAddUser("user1", "user1", null, "none", new String[0]);
+        user1 = (InMemoryUser) userRepository.findOrAddUser("user1", "user1", null, "none", Sets.newHashSet(), Sets.newHashSet());
         graph.addVertex(user1.getUserId(), DEFAULT_VISIBILITY, NO_AUTHORIZATIONS);
 
-        user2 = (InMemoryUser) userRepository.findOrAddUser("user2", "user2", null, "none", new String[0]);
+        user2 = (InMemoryUser) userRepository.findOrAddUser("user2", "user2", null, "none", Sets.newHashSet(), Sets.newHashSet());
         graph.addVertex(user2.getUserId(), DEFAULT_VISIBILITY, NO_AUTHORIZATIONS);
 
         WorkspaceDiffHelper workspaceDiff = new WorkspaceDiffHelper(graph, userRepository, formulaEvaluator);

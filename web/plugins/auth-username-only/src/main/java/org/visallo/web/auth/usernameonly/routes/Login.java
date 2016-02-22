@@ -32,7 +32,14 @@ public class Login implements ParameterizedHandler {
         if (user == null) {
             // For form based authentication, username and displayName will be the same
             String randomPassword = UserRepository.createRandomPassword();
-            user = userRepository.findOrAddUser(username, username, null, randomPassword, new String[0]);
+            user = userRepository.findOrAddUser(
+                    username,
+                    username,
+                    null,
+                    randomPassword,
+                    userRepository.getDefaultPrivileges(),
+                    userRepository.getDefaultAuthorizations()
+            );
         }
 
         userRepository.recordLogin(user, AuthenticationHandler.getRemoteAddr(request));

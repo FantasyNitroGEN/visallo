@@ -165,7 +165,7 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
-    protected User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
+    protected User addUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations) {
         username = formatUsername(username);
         displayName = displayName.trim();
         String authorizationsString = StringUtils.join(userAuthorizations, ",");
@@ -184,7 +184,7 @@ public class VertexiumUserRepository extends UserRepository {
         UserVisalloProperties.PASSWORD_HASH.setProperty(userBuilder, passwordHash, VISIBILITY.getVisibility());
         UserVisalloProperties.STATUS.setProperty(userBuilder, UserStatus.OFFLINE.toString(), VISIBILITY.getVisibility());
         UserVisalloProperties.AUTHORIZATIONS.setProperty(userBuilder, authorizationsString, VISIBILITY.getVisibility());
-        UserVisalloProperties.PRIVILEGES.setProperty(userBuilder, Privilege.toString(getDefaultPrivileges()), VISIBILITY.getVisibility());
+        UserVisalloProperties.PRIVILEGES.setProperty(userBuilder, Privilege.toString(privileges), VISIBILITY.getVisibility());
 
         if (emailAddress != null) {
             UserVisalloProperties.EMAIL_ADDRESS.setProperty(userBuilder, emailAddress, VISIBILITY.getVisibility());

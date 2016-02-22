@@ -1,6 +1,7 @@
 package org.visallo.core.model.user;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONArray;
@@ -38,6 +39,7 @@ public abstract class UserRepository {
     public static final String OWL_IRI = "http://visallo.org/user";
     public static final String USER_CONCEPT_IRI = "http://visallo.org/user#user";
     private final Set<String> defaultPrivileges;
+    private final Set<String> defaultAuthorizations;
     private final SimpleOrmSession simpleOrmSession;
     private final UserSessionCounterRepository userSessionCounterRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -60,6 +62,11 @@ public abstract class UserRepository {
         this.userNotificationRepository = userNotificationRepository;
         this.lockRepository = lockRepository;
         this.defaultPrivileges = Privilege.stringToPrivileges(configuration.get(Configuration.DEFAULT_PRIVILEGES, ""));
+        this.defaultAuthorizations = parseAuthorizations(configuration.get(Configuration.DEFAULT_AUTHORIZATIONS, ""));
+    }
+
+    private Set<String> parseAuthorizations(String authorizations) {
+        return Sets.newHashSet(authorizations.split(","));
     }
 
     public abstract User findByUsername(String username);
@@ -82,7 +89,7 @@ public abstract class UserRepository {
 
     public abstract User findById(String userId);
 
-    protected abstract User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations);
+    protected abstract User addUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations);
 
     public abstract void setPassword(User user, String password);
 
@@ -298,13 +305,13 @@ public abstract class UserRepository {
         );
     }
 
-    public User findOrAddUser(final String username, final String displayName, final String emailAddress, final String password, final String[] authorizations) {
+    public User findOrAddUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations) {
         return lockRepository.lock("findOrAddUser", new Callable<User>() {
             @Override
             public User call() throws Exception {
                 User user = findByUsername(username);
                 if (user == null) {
-                    user = addUser(username, displayName, emailAddress, password, authorizations);
+                    user = addUser(username, displayName, emailAddress, password, privileges, userAuthorizations);
                 }
                 return user;
             }
@@ -313,6 +320,10 @@ public abstract class UserRepository {
 
     public Set<String> getDefaultPrivileges() {
         return defaultPrivileges;
+    }
+
+    public Set<String> getDefaultAuthorizations() {
+        return defaultAuthorizations;
     }
 
     public final void delete(User user) {
