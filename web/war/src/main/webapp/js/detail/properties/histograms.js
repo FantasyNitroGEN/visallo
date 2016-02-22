@@ -139,6 +139,7 @@ define([
                                     for (var j = 0; j < toMove[i][1].length; j++) {
                                         pair[1].push({
                                             value: OTHER_PLACEHOLDER,
+                                            elementType: toMove[i][1][j].elementType,
                                             elementId: toMove[i][1][j].elementId
                                         });
                                     }
