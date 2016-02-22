@@ -1,6 +1,7 @@
 package org.visallo.common.rdf;
 
 import com.google.inject.Inject;
+import org.apache.commons.lang.StringUtils;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
@@ -9,8 +10,7 @@ import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.util.VisalloDate;
-import org.visallo.core.util.VisalloDateTime;
+import org.visallo.core.util.*;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.*;
@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RdfTripleImportHelper {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfTripleImportHelper.class);
     public static final String MULTI_KEY = RdfTripleImportHelper.class.getSimpleName();
     public static final String LABEL_CONCEPT_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     public static final String PROPERTY_TYPE_GEOLOCATION = "http://visallo.org#geolocation";
@@ -46,6 +47,12 @@ public class RdfTripleImportHelper {
     private final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
     private final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
     private final Map<String, Visibility> visibilityCache = new HashMap<>();
+
+    public void setFailOnFirstError(boolean failOnFirstError) {
+        this.failOnFirstError = failOnFirstError;
+    }
+
+    private boolean failOnFirstError = false;
 
     @Inject
     public RdfTripleImportHelper(Graph graph) {
@@ -78,9 +85,23 @@ public class RdfTripleImportHelper {
             Authorizations authorizations
     ) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        int lineNum = 1;
         String line;
         while ((line = reader.readLine()) != null) {
-            importRdfLine(line, metadata, workingDir, timeZone, defaultVisibility, authorizations);
+            LOGGER.debug("Importing RDF triple on line: %d", lineNum);
+            try {
+                importRdfLine(line, metadata, workingDir, timeZone, defaultVisibility, authorizations);
+            } catch (Exception e){
+                String errMsg = String.format("Error importing RDF triple on line: %d. %s", lineNum, e.getMessage());
+                if (failOnFirstError) {
+                    throw new VisalloException(errMsg);
+                } else {
+                    // log the error and continue processing
+                    LOGGER.error(errMsg, e);
+                }
+            }
+
+            ++lineNum;
         }
     }
 
@@ -210,6 +231,7 @@ public class RdfTripleImportHelper {
 
         String propertyName = label;
         Object propertyValue = getPropertyValue(propertyValuePart, workingDir, timeZone);
+
         if (metadataKey != null) {
             String metadataName;
             Visibility metadataVisibility;
@@ -234,6 +256,11 @@ public class RdfTripleImportHelper {
         if (propertyValuePart.getType() == null) {
             return propertyValuePart.getString();
         }
+
+        if (!isPropertyValueValid(propertyValuePart)) {
+            throw new VisalloException("Invalid or missing property value");
+        }
+
         String typeUri = propertyValuePart.getType().getUri();
         switch (typeUri) {
             case PROPERTY_TYPE_DATE:
@@ -287,6 +314,31 @@ public class RdfTripleImportHelper {
                 return spv;
             default:
                 throw new VisalloException("Unhandled property type: " + propertyValuePart.getType().getUri() + " (value: " + propertyValuePart.getString() + ")");
+        }
+    }
+
+    private boolean isPropertyValueValid(RdfTriple.LiteralPart propertyValuePart) {
+        if (propertyValuePart.getType() == null) {
+            return false;
+        }
+
+        String typeUri = propertyValuePart.getType().getUri();
+        switch (typeUri) {
+            case PROPERTY_TYPE_DATE:
+            case PROPERTY_TYPE_DATE_TIME:
+            case PROPERTY_TYPE_MONTH_DAY:
+            case PROPERTY_TYPE_YEAR:
+            case PROPERTY_TYPE_CURRENCY:
+            case PROPERTY_TYPE_DOUBLE:
+            case PROPERTY_TYPE_BOOLEAN:
+                // blank values are not valid for these data types
+                if (StringUtils.isBlank(propertyValuePart.getString())) {
+                    return false;
+                } else {
+                    return true;
+                }
+            default:
+                return true;
         }
     }
 
