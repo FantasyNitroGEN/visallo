@@ -30,6 +30,22 @@
         <appender-ref ref="console" />
     </logger>
 
+    <!-- Vertexium Search Query Logging -->
+    <!--
+    <logger name="org.vertexium.query.Query.QUERY" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="console" />
+    </logger>
+    -->
+
+    <!-- Vertexium Graph Query Logging -->
+    <!--
+    <logger name="org.vertexium.Graph.QUERY" additivity="false">
+        <level value="TRACE" />
+        <appender-ref ref="console" />
+    </logger>
+    -->
+
     <root>
         <level value="WARN" />
         <appender-ref ref="console" />
