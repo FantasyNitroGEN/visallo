@@ -121,17 +121,26 @@ define([
             if (keys[w]) {
                 return { preventDefault: false, fire: keys[w] };
             }
-            if ((event.metaKey || event.ctrlKey) && event.altKey) {
-                return this.shortcuts['CTRL-ALT-' + w] || this.shortcuts['META-ALT-' + w];
+            if (event.type === 'keydown') {
+                this.currentMetaKeyState = _.pick(event, 'metaKey', 'ctrlKey', 'shiftKey', 'altKey');
             }
-            if (event.metaKey || event.ctrlKey) {
-                return this.shortcuts['CTRL-' + w] || this.shortcuts['META-' + w];
+            if (this.currentMetaKeyState) {
+                if ((this.currentMetaKeyState.metaKey || this.currentMetaKeyState.ctrlKey) && this.currentMetaKeyState.altKey) {
+                    return this.shortcuts['CTRL-ALT-' + w] || this.shortcuts['META-ALT-' + w];
+                }
+                if (this.currentMetaKeyState.metaKey || this.currentMetaKeyState.ctrlKey) {
+                    return this.shortcuts['CTRL-' + w] || this.shortcuts['META-' + w];
+                }
+                if (this.currentMetaKeyState.altKey) {
+                    return this.shortcuts['ALT-' + w];
+                }
+                if (this.currentMetaKeyState.shiftKey) {
+                    return this.shortcuts['SHIFT-' + w];
+                }
             }
-            if (event.altKey) {
-                return this.shortcuts['ALT-' + w];
-            }
-            if (event.shiftKey) {
-                return this.shortcuts['SHIFT-' + w];
+
+            if (event.type === 'keyup') {
+                this.currentMetaKeyState = null;
             }
 
             return this.shortcuts[w];
