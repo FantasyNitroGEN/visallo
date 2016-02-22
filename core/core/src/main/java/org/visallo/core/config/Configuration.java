@@ -57,6 +57,7 @@ public class Configuration {
     public static final String GRAPH_PROVIDER = "graph";
     public static final String VISIBILITY_TRANSLATOR = "security.visibilityTranslator";
     public static final String DEFAULT_PRIVILEGES = "newuser.privileges";
+    public static final String DEFAULT_AUTHORIZATIONS = "newuser.authorizations";
     public static final String WEB_CONFIGURATION_PREFIX = "web.ui.";
     public static final String WEB_GEOCODER_ENABLED = WEB_CONFIGURATION_PREFIX + "geocoder.enabled";
     public static final String MAPZEN_TILE_API_KEY = "mapzen.tile.api.key";
