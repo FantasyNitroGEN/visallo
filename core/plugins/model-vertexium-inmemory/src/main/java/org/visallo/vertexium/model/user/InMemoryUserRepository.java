@@ -71,10 +71,10 @@ public class InMemoryUserRepository extends UserRepository {
     }
 
     @Override
-    protected User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations) {
+    protected User addUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations) {
         username = formatUsername(username);
         displayName = displayName.trim();
-        InMemoryUser user = new InMemoryUser(username, displayName, emailAddress, getDefaultPrivileges(), userAuthorizations, null);
+        InMemoryUser user = new InMemoryUser(username, displayName, emailAddress, privileges, userAuthorizations.toArray(new String[userAuthorizations.size()]), null);
         afterNewUserAdded(user);
         users.add(user);
         return user;

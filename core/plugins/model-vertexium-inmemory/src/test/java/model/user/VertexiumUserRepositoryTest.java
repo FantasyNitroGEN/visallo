@@ -1,5 +1,6 @@
 package model.user;
 
+import com.google.common.collect.Sets;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,7 +82,7 @@ public class VertexiumUserRepositoryTest {
 
     @Test
     public void testFindOrAddUser() {
-        vertexiumUserRepository.findOrAddUser("12345", "testUser", null, "testPassword", new String[]{"auth1", "auth2"});
+        vertexiumUserRepository.findOrAddUser("12345", "testUser", null, "testPassword", Sets.newHashSet(), Sets.newHashSet("auth1", "auth2"));
 
         VertexiumUser vertexiumUser = (VertexiumUser) vertexiumUserRepository.findByUsername("12345");
         assertEquals("testUser", vertexiumUser.getDisplayName());

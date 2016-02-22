@@ -89,7 +89,7 @@ public abstract class UserRepository {
 
     public abstract User findById(String userId);
 
-    protected abstract User addUser(String username, String displayName, String emailAddress, String password, String[] userAuthorizations);
+    protected abstract User addUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations);
 
     public abstract void setPassword(User user, String password);
 
@@ -305,17 +305,13 @@ public abstract class UserRepository {
         );
     }
 
-    public User findOrAddUser(String username, String displayName, String emailAddress, String password, Set<String> authorizations) {
-        return findOrAddUser(username, displayName, emailAddress, password, authorizations.toArray(new String[authorizations.size()]));
-    }
-
-    public User findOrAddUser(String username, String displayName, String emailAddress, String password, String[] authorizations) {
+    public User findOrAddUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations) {
         return lockRepository.lock("findOrAddUser", new Callable<User>() {
             @Override
             public User call() throws Exception {
                 User user = findByUsername(username);
                 if (user == null) {
-                    user = addUser(username, displayName, emailAddress, password, authorizations);
+                    user = addUser(username, displayName, emailAddress, password, privileges, userAuthorizations);
                 }
                 return user;
             }
