@@ -68,6 +68,9 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                     if (!response.containsHeader("X-Frame-Options")) {
                         response.addHeader("X-Frame-Options", responseHeaderXFrameOptions);
                     }
+                    if (!response.containsHeader("X-Content-Type-Options")) {
+                        response.addHeader("X-Content-Type-Options", "nosniff");
+                    }
                     response.setCharacterEncoding("UTF-8");
                     if (resultIsClientApiObject) {
                         ClientApiObject clientApiObject = (ClientApiObject) result;
