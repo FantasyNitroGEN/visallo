@@ -91,7 +91,15 @@ define([
                     endpointParameters: {
                         id: this.attr.item.configuration.searchId,
                         size: 0,
-                        aggregations: this.aggregations.map(JSON.stringify)
+                        aggregations: this.aggregations
+                            .map(function(aggregation) {
+                                if (aggregation.isDate) {
+                                    aggregation.interval = aggregation.interval + 'ms';
+                                    delete aggregation.isDate;
+                                }
+                                return aggregation;
+                            })
+                            .map(JSON.stringify)
                     }
                 }
             }

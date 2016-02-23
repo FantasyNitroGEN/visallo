@@ -22,7 +22,7 @@ define([
             { value: 1000 * 60 * 60 * 24, label: 'days' },
             { value: 1000 * 60 * 60 * 24 * 365, label: 'years' }
         ],
-        HISTOGRAM_CALCULATED_BUCKETS = 50,
+        HISTOGRAM_CALCULATED_BUCKETS = 20,
         PRECISIONS = [
             { value: 1, label: '5000 x 5000 km (large)' },
             { value: 2, label: '1000 x 500 km' },
@@ -202,24 +202,13 @@ define([
                             buckets = range / HISTOGRAM_CALCULATED_BUCKETS,
                             ontologyProperty = ontology.properties.byTitle[stats.field],
                             isDate = ontologyProperty && ontologyProperty.dataType === 'date',
-                            interval = defaultInterval;
+                            interval = Math.round(buckets);
 
                         if (isDate) {
-                            var unitIndex = 0, value;
-                            for (var i = 0; i < INTERVAL_UNITS.length; i++) {
-                                if (buckets < INTERVAL_UNITS[i].value) {
-                                    value = buckets / INTERVAL_UNITS[i].value;
-                                    break;
-                                }
-                            }
-                            if (value > 2) {
-                                value = Math.round(value);
-                            }
-                            interval = INTERVAL_UNITS[unitIndex].value * value;
-                            $intervalUnits.val(INTERVAL_UNITS[unitIndex].value);
-                            $intervalValue.val(value);
-                        } else {
-                            interval = Math.round(buckets);
+                            var minuteInterval = INTERVAL_UNITS[0].value;
+                            self.currentAggregation.isDate = true;
+                            interval = interval < minuteInterval ? minuteInterval : interval;
+                            $intervalUnits.val(minuteInterval);
                         }
                         $interval.val(interval);
                         $interval.toggle(!isDate);
