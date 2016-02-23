@@ -473,8 +473,6 @@ define([
                         cyNodes.push(cyNodeData);
                     });
 
-                    self.vertexIdsToSelect = null;
-
                     var addedCyNodes = cy.add(cyNodes);
                     addedVertices.concat(updatedVertices).forEach(function(v) {
                         v.graphPosition = retina.pixelsToPoints(cy.getElementById(toCyId(v.vertexId)).position());
@@ -516,11 +514,14 @@ define([
                         self.trigger('updateWorkspace', {
                             entityUpdates: updatedVertices.concat(addedVertices)
                         });
+                    }
+
+                    if (self.vertexIdsToSelect) {
                         self.updateVertexSelections(cy);
+                        self.vertexIdsToSelect = null;
                     }
 
                     self.hideLoading();
-
                     self.setWorkspaceDirty();
                 });
             });
