@@ -826,7 +826,8 @@ define([
 
         this.onDevicePixelRatioChanged = function() {
             this.cytoscapeReady(function(cy) {
-                cy.renderer().updatePixelRatio();
+                // Re-render with new pixel ratio
+                cy.renderer().render();
                 this.fit(cy);
             });
         };
