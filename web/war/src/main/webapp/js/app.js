@@ -146,6 +146,7 @@ define([
             this.on(document, 'genericPaste', this.onGenericPaste);
             this.on(document, 'toggleTimeline', this.onToggleTimeline);
             this.on(document, 'privilegesReady', _.once(this.onPrivilegesReady.bind(this)));
+            this.on(document, 'openFullscreen', this.onOpenFullscreen);
 
             this.trigger(document, 'registerKeyboardShortcuts', {
                 scope: ['graph.help.scope', 'map.help.scope'].map(i18n),
@@ -294,6 +295,30 @@ define([
                     position: position
                 });
             }
+        };
+
+        this.onOpenFullscreen = function(event, data) {
+            var self = this,
+                req,
+                F;
+
+            if (!data) return;
+
+            Promise.require('util/vertex/formatters')
+                .then(function(_F) {
+                    F = _F;
+                    return F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true });
+                })
+                .then(function(elementIds) {
+                    return self.dataRequest('vertex', 'store', { vertexIds: elementIds })
+                })
+                .then(function(elements) {
+                    var url = F.vertexUrl.url(
+                            _.isArray(elements) ? elements : [elements],
+                            visalloData.currentWorkspaceId
+                        );
+                    window.open(url);
+                })
         };
 
         this.onToggleTimeline = function(event) {

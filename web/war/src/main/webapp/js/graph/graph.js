@@ -46,6 +46,7 @@ define([
         // Delay before showing hover effect on graph
     var HOVER_FOCUS_DELAY_SECONDS = 0.25,
         MAX_TITLE_LENGTH = 15,
+        MAX_POPUP_DETAIL_PANES_AT_ONCE = 5,
         SELECTION_THROTTLE = 100,
         GRAPH_PADDING_BORDER = 20,
         GRAPH_SNAP_TO_GRID = 175,
@@ -170,7 +171,8 @@ define([
             graphToolsSelector: '.controls',
             graphViewsSelector: '.graph-views',
             contextMenuSelector: '.graph-context-menu',
-            vertexContextMenuSelector: '.vertex-context-menu'
+            vertexContextMenuSelector: '.vertex-context-menu',
+            detailPanePopovers: '.graphDetailPanePopover'
         });
 
         this.onVerticesHoveringEnded = function(evt, data) {
@@ -380,7 +382,7 @@ define([
                     cy.$(':selected').unselect();
                 }
 
-                customLayout.done(function(layoutPositions) {
+                customLayout.then(function(layoutPositions) {
 
                     var cyNodes = [];
                     vertices.forEach(function(vertex) {
@@ -1030,7 +1032,7 @@ define([
             this.updateGraphViewsPosition();
 
             if (this.nodesToFitAfterGraphPadding) {
-                this.cytoscapeReady().done(function(cy) {
+                this.cytoscapeReady().then(function(cy) {
                     self.fitToNodesIfOutsideViewport(cy, self.nodesToFitAfterGraphPadding);
 
                     self.nodesToFitAfterGraphPadding = null;
@@ -1265,12 +1267,36 @@ define([
             }
         };
 
-        this.graphSelect = throttle('selection', SELECTION_THROTTLE, function(event) {
+        this.graphHold = function(event) {
+            var cyTarget = event.cy !== event.cyTarget && event.cyTarget;
+
+            if (cyTarget && cyTarget.is('node')) {
+                this.graphTapHoldFired = cyTarget;
+                this.graphTapHoldFired.unselectify();
+                this.previewVertex({ cyCollection: cyTarget });
+            }
+        };
+
+        this.graphSelect = function(event) {
+            if (this.graphTapHoldFired) {
+                event.preventDefault();
+                var cyNode = this.graphTapHoldFired;
+                _.defer(function() {
+                    cyNode.selectify();
+                });
+                this.graphTapHoldFired = null;
+                return;
+            }
+            this.graphSelectThrottle(event);
+        }
+
+        this.graphSelectThrottle = throttle('selection', SELECTION_THROTTLE, function(event) {
             if (this.ignoreCySelectionEvents) return;
             this.updateVertexSelections(event.cy, event.cyTarget);
         });
 
         this.graphUnselect = throttle('selection', SELECTION_THROTTLE, function(event) {
+            this.graphTapHoldFired = null;
             if (this.ignoreCySelectionEvents) return;
             this.updateVertexSelections(event.cy, event.cyTarget);
         });
@@ -1332,6 +1358,12 @@ define([
             var self = this,
                 dup = true, // CY is sending multiple "free" events, prevent that...
                 vertices = this.grabbedVertices;
+
+            if (this.graphTapHoldFired) {
+                this.graphTapHoldFired.selectify();
+                this.graphTapHoldFired = null;
+                return;
+            }
 
             if (!vertices || vertices.length === 0) return;
 
@@ -1423,7 +1455,7 @@ define([
                     }
 
                     self.dataRequest('vertex', 'store', { vertexIds: fromCyId(nId) })
-                        .done(function(vertex) {
+                        .then(function(vertex) {
                             var truncatedTitle = cyNode.data('truncatedTitle');
 
                             if (vertex) {
@@ -1617,19 +1649,6 @@ define([
             this.previousWorkspace = workspace.workspaceId;
         };
 
-        this.onMenubarToggleDisplay = function(e, data) {
-            if (data.name === 'graph' && this.$node.is(':visible')) {
-                this.cytoscapeReady(function(cy) {
-                    cy.renderer().notify({type: 'viewport'});
-
-                    if (this.fitOnMenubarToggle) {
-                        this.fit(cy);
-                        this.fitOnMenubarToggle = false;
-                    }
-                });
-            }
-        };
-
         this.onRegisterForPositionChanges = function(event, data) {
             var self = this,
                 anchorTo = data && data.anchorTo;
@@ -1638,7 +1657,7 @@ define([
                 return console.error('Registering for position events requires a vertexId');
             }
 
-            this.cytoscapeReady().done(function(cy) {
+            this.cytoscapeReady().then(function(cy) {
 
                 event.stopPropagation();
 
@@ -1647,42 +1666,95 @@ define([
                     cyPosition = anchorTo.page && cy.renderer().projectIntoViewport(
                         anchorTo.page.x + offset.left,
                         anchorTo.page.y + offset.top
-                    );
+                    ),
+                    eventPositionDataForCyElement = function(cyElement) {
+                        if (cyElement.is('edge')) {
+                            var connected = cyNode.connectedNodes(),
+                                p1 = connected.eq(0).renderedPosition(),
+                                p2 = connected.eq(1).renderedPosition(),
+                                center = { x: (p1.x + p2.x) / 2 + offset.left, y: (p1.y + p2.y) / 2 + offset.top };
 
-                if (!self.onViewportChangesForPositionChanges) {
-                    self.onViewportChangesForPositionChanges = function() {
-                        var position;
-
-                        if (anchorTo.vertexId) {
-                            var positionInNode = cyNode.renderedPosition();
-
-                            position = {
-                                x: positionInNode.x + offset.left,
-                                y: positionInNode.y + offset.top
-                            };
-
-                        } else if (anchorTo.page) {
-                            position = {
-                                x: cyPosition[0] * cy.zoom() + cy.pan().x,
-                                y: cyPosition[1] * cy.zoom() + cy.pan().y
+                            return {
+                                position: center
                             };
                         }
 
-                        self.trigger(event.target, 'positionChanged', { position: position });
+                        var positionInNode = cyNode.renderedPosition(),
+                            nodeOffsetNoLabel = cyNode.renderedOuterHeight() / 2,
+                            nodeOffsetWithLabel = cyNode.renderedBoundingBox({ includeLabels: true }).h,
+                            eventData = {
+                                position: {
+                                    x: positionInNode.x + offset.left,
+                                    y: positionInNode.y + offset.top
+                                }
+                            };
+
+                        eventData.positionIf = {
+                            above: {
+                                x: eventData.position.x,
+                                y: eventData.position.y - nodeOffsetNoLabel
+                            },
+                            below: {
+                                x: eventData.position.x,
+                                y: eventData.position.y - nodeOffsetNoLabel + nodeOffsetWithLabel
+                            }
+                        };
+                        return eventData;
                     };
+
+                if (!self.viewportPositionChanges) {
+                    self.viewportPositionChanges = [];
+                    cy.on('pan zoom position', self.onViewportChangesForPositionChanges.bind(self));
                 }
 
-                cy.on('pan zoom position', self.onViewportChangesForPositionChanges);
+                self.viewportPositionChanges.push({
+                    el: event.target,
+                    fn: function(el) {
+                        var eventData = {},
+                            zoom = cy.zoom();
+                        if (anchorTo.vertexId) {
+                            if (!cyNode.removed()) {
+                                eventData = eventPositionDataForCyElement(cyNode);
+                            }
+                        } else if (anchorTo.page) {
+                            eventData.position = {
+                                x: cyPosition[0] * zoom + cy.pan().x,
+                                y: cyPosition[1] * zoom + cy.pan().y
+                            };
+                        }
+                        eventData.zoom = zoom;
+                        this.trigger(el, 'positionChanged', eventData);
+                    }
+                });
+
                 self.onViewportChangesForPositionChanges();
             })
         };
 
+        this.onViewportChangesForPositionChanges = function() {
+            var self = this;
+
+            if (this.viewportPositionChanges) {
+                this.viewportPositionChanges.forEach(function(vpc) {
+                    vpc.fn.call(self, vpc.el);
+                })
+            }
+        };
+
         this.onUnregisterForPositionChanges = function(event, data) {
             var self = this;
-            this.cytoscapeReady().done(function(cy) {
-                if (self.onViewportChangesForPositionChanges) {
-                    cy.off('pan zoom position', self.onViewportChangesForPositionChanges);
-                    self.onViewportChangesForPositionChanges = null;
+            this.cytoscapeReady().then(function(cy) {
+                if (self.viewportPositionChanges) {
+                    var index = _.findIndex(self.viewportPositionChanges, function(vpc) {
+                        return vpc.el === event.target;
+                    })
+                    if (index >= 0) {
+                        self.viewportPositionChanges.splice(index, 1);
+                    }
+                    if (self.viewportPositionChanges.length === 0) {
+                        cy.off('pan zoom position', self.onViewportChangesForPositionChanges);
+                        self.viewportPositionChanges = null;
+                    }
                 }
             });
         };
@@ -1698,19 +1770,11 @@ define([
             });
         }
 
-        this.onShowPanel = function() {
-            this.pauseAnimation(false);
-        };
-
-        this.onHidePanel = function() {
-            this.pauseAnimation(true);
-        };
-
         this.onShowMenu = function(event, data) {
             var self = this;
 
             this.cytoscapeReady()
-                .done(function(cy) {
+                .then(function(cy) {
                     var offset = self.$node.offset(),
                         r = cy.renderer(),
                         pos = r.projectIntoViewport(
@@ -1748,6 +1812,92 @@ define([
             }
         };
 
+        this.previewVertex = function(options) {
+            var self = this,
+                cyCollection = options && options.cyCollection,
+                eventData = options && options.eventData;
+
+            if (cyCollection) {
+                eventData = {
+                    vertexIds: cyCollection.map(function(cyElement) {
+                        return fromCyId(cyElement.id())
+                    })
+                }
+
+            }
+
+            var cy;
+            Promise.resolve()
+                .then(function() {
+                    if (eventData) {
+                        return F.vertex.getVertexIdsFromDataEventOrCurrentSelection(eventData, { async: true })
+                    }
+                })
+                .then(function(ids) {
+                    if (_.isArray(ids)) {
+                        return Promise.all([self.cytoscapeReady(), ids]);
+                    }
+                })
+                .then(function(results) {
+                    if (results) {
+                        var _cy = results.shift(),
+                            ids = results.shift(),
+                            cyElements = _cy.collection(_.compact(ids.map(function(vId) {
+                                var cyId = toCyId(vId);
+                                if (cyId) {
+                                    return _cy.getElementById(cyId);
+                                }
+                            })));
+                        cy = _cy;
+                        return cyElements;
+                    }
+                })
+                .then(function(cyElements) {
+                    if (cyElements && cyElements.length) {
+                        if (cyElements.length > MAX_POPUP_DETAIL_PANES_AT_ONCE) {
+                            cyElements = cyElements.slice(0, MAX_POPUP_DETAIL_PANES_AT_ONCE)
+                            self.trigger('displayInformation', { message: i18n('popovers.preview_vertex.too_many', MAX_POPUP_DETAIL_PANES_AT_ONCE) })
+                        }
+                        require(['util/popovers/detail/detail'], function(DetailPopover) {
+                            cy.startBatch();
+                            cyElements.forEach(function(cyElement) {
+                                var elementId = fromCyId(cyElement.id()),
+                                    previousPopover = cyElement.data('$detailpopover');
+                                if (previousPopover) {
+                                    $(previousPopover).teardownAllComponents().remove();
+                                    cyElement.data('$detailpopover', null)
+                                } else {
+                                    var $popover = $('<div>').addClass('graphDetailPanePopover').appendTo(self.$node);
+                                    cyElement.data('$detailpopover', $popover[0]);
+                                    DetailPopover.attachTo($popover[0], {
+                                        vertexId: elementId,
+                                        anchorTo: {
+                                            vertexId: elementId
+                                        }
+                                    });
+                                }
+                            });
+                            cy.endBatch();
+                        });
+                    } else {
+                        self.cytoscapeReady().then(function(cy) {
+                            cy.startBatch();
+                            cy.elements().forEach(function(cyElement) {
+                                cyElement.data('$detailpopover', null)
+                            });
+                            cy.endBatch();
+                        })
+                        self.select('detailPanePopovers')
+                            .teardownAllComponents()
+                            .remove();
+                    }
+                });
+        }
+
+        this.onPreviewVertex = function(e, data) {
+            this.previewVertex({ eventData: data });
+        };
+
         this.onCreateVertex = function(e, data) {
             this.createVertex({
                 left: data && data.pageX || 0,
@@ -1755,35 +1905,24 @@ define([
             })
         };
 
-        this.pauseAnimation = function(enable) {
+        this.onDidToggleDisplay = function(event, data) {
             var self = this;
 
-            if (!enable) {
-                this.cytoscapeReady().done(function(cy) {
-                    self.fit(cy);
-                    cy.resize();
-                });
-            }
-            //var self = this;
-            //if (enable) {
-                //this.paused = true;
-            //} else {
-                //this.paused = false;
-                //this.cytoscapeReady().done(function(cy) {
-                    //cy.startAnimationLoop();
-                    //self.fit(cy);
-                //});
-            //}
-        };
-
-        this.onDidToggleDisplay = function(event, data) {
             if (data.name === 'graph') {
-                this.pauseAnimation(!data.visible);
+                if (data.visible) {
+                    this.cytoscapeReady().then(function(cy) {
+                        cy.renderer().notify({type: 'viewport'});
+                        cy.resize();
+                        if (self.fitOnMenubarToggle) {
+                            self.fit(cy);
+                            self.fitOnMenubarToggle = false;
+                        }
+                    });
+                    this.select('detailPanePopovers').trigger('show')
+                } else {
+                    this.select('detailPanePopovers').trigger('hide')
+                }
             }
-        };
-
-        this.onToggleClickAndDrag = function(event, data) {
-            this.updateCytoscapeControlBehavior();
         };
 
         this.onToggleSnapToGrid = function(event, data) {
@@ -1893,7 +2032,6 @@ define([
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
             this.on(document, 'devicePixelRatioChanged', this.onDevicePixelRatioChanged);
-            this.on(document, 'menubarToggleDisplay', this.onMenubarToggleDisplay);
             this.on(document, 'focusVertices', this.onFocusElements);
             this.on(document, 'defocusVertices', this.onDefocusElements);
             this.on(document, 'focusElements', this.onFocusElements);
@@ -1907,13 +2045,11 @@ define([
 
             this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
             this.on('unregisterForPositionChanges', this.onUnregisterForPositionChanges);
-            this.on('showPanel', this.onShowPanel);
-            this.on('hidePanel', this.onHidePanel);
             this.on('showMenu', this.onShowMenu);
             this.on('hideMenu', this.onHideMenu);
             this.on('createVertex', this.onCreateVertex);
+            this.on('previewVertex', this.onPreviewVertex);
             this.on('toggleSnapToGrid', this.onToggleSnapToGrid);
-            this.on('toggleClickAndDrag', this.onToggleClickAndDrag);
             this.on('contextmenu', function(e) {
                 e.preventDefault();
             });
@@ -1961,7 +2097,8 @@ define([
                     '-': { fire: 'zoomOut', desc: i18n('graph.help.zoom_out') },
                     '=': { fire: 'zoomIn', desc: i18n('graph.help.zoom_in') },
                     'alt-f': { fire: 'fit', desc: i18n('graph.help.fit') },
-                    'alt-n': { fire: 'createVertex', desc: i18n('graph.help.create_vertex') }
+                    'alt-n': { fire: 'createVertex', desc: i18n('graph.help.create_vertex') },
+                    'alt-p': { fire: 'previewVertex', desc: i18n('graph.help.preview_vertex') }
                 }
             });
 
@@ -1971,7 +2108,7 @@ define([
             }
 
             this.dataRequest('ontology', 'ontology')
-                .done(function(ontology) {
+                .then(function(ontology) {
                     var concepts = ontology.concepts,
                         relationships = ontology.relationships,
                         templateData = {
@@ -2065,6 +2202,7 @@ define([
 
                     cy.on({
                         tap: self.graphTap.bind(self),
+                        taphold: self.graphHold.bind(self),
                         select: self.graphSelect.bind(self),
                         unselect: self.graphUnselect.bind(self),
                         grab: self.graphGrab.bind(self),

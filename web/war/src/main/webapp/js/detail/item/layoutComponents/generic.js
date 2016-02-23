@@ -26,6 +26,23 @@ define([], function() {
         },
         {
             identifier: 'org.visallo.layout.body',
+            layout: { type: 'flex', options: { direction: 'row' }},
+            children: [
+                { componentPath: 'detail/properties/properties', style: { flex: 1 }, className: 'org-visallo-properties', modelAttribute: 'data' },
+                { ref: 'org.visallo.layout.body.right', style: { flex: 1 }}
+            ]
+        },
+        {
+            identifier: 'org.visallo.layout.body.right',
+            children: [
+                { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
+                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
+                { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
+            ]
+        },
+        {
+            identifier: 'org.visallo.layout.body',
+            applyTo: { constraints: ['width'] },
             children: [
                 { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },

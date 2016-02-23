@@ -1,0 +1,24 @@
+.org-visallo-layout-formula-item {
+    display: flex;
+    flex-direction: row;
+}
+.org-visallo-layout-formula-item {
+    margin: 0.5em;
+}
+.org-visallo-layout-formula-item:empty {
+    margin: 0;
+}
+.org-visallo-layout-formula-item > *:first-child:not(:only-child) {
+    font-weight: bold;
+    color: #777;
+    text-align: right;
+    text-shadow: 0 1px 0 white;
+    text-transform: uppercase;
+    font-size: 80%;
+    padding-right: 0.25em;
+    flex: 1 1 0;
+}
+.org-visallo-layout-formula-item > *:last-child:not(:only-child) {
+    padding-left: 0.25em;    
+    flex: 1 0 0;
+}

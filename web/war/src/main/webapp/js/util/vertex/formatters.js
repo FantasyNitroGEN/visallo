@@ -733,8 +733,8 @@ define([
                 return Boolean(result);
             },
 
-            title: function(vertex) {
-                var title = formulaResultForElement(vertex, 'titleFormula')
+            title: function(vertex, accessedPropertyNames) {
+                var title = formulaResultForElement(vertex, 'titleFormula', undefined, accessedPropertyNames)
 
                 if (!title) {
                     title = V.prop(vertex, 'title', undefined, {
@@ -829,6 +829,7 @@ define([
                     vertex.properties['http://visallo.org#conceptType'] === 'relationship';
                 return propsIsObjectNotArray ||
                     V.prop(vertex, 'conceptType') === 'relationship' ||
+                    vertex.type === 'edge' ||
                     (_.has(vertex, 'outVertexId') && _.has(vertex, 'inVertexId'));
             },
 
@@ -882,7 +883,7 @@ define([
         }
     }
 
-    function formulaResultForElement(vertexOrEdge, formulaKey, defaultValue) {
+    function formulaResultForElement(vertexOrEdge, formulaKey, defaultValue, accessedPropertyNames) {
         var isEdge = V.isEdge(vertexOrEdge),
             result = defaultValue,
             formulaString,
@@ -901,7 +902,20 @@ define([
         }
 
         if (formulaString) {
-            result = formula(formulaString, vertexOrEdge, V, undefined, { additionalScope: additionalScope });
+            var capture = function(fn, vertex, name) {
+                    var result = fn.apply(this, _.rest(arguments))
+                    if (_.isArray(accessedPropertyNames) &&
+                        (!_.isUndefined(result) || (_.isString(result) && result))) {
+                        accessedPropertyNames.push(name);
+                    }
+                    return result;
+                };
+            result = formula(formulaString, vertexOrEdge, {
+                prop: _.wrap(V.prop, capture),
+                propRaw: _.wrap(V.propRaw, capture),
+                longestProp: _.wrap(V.longestProp, capture),
+                isEdge: V.isEdge
+            }, undefined, { additionalScope: additionalScope });
         }
 
         return result;

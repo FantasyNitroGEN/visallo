@@ -7,7 +7,7 @@ describeComponent('util/visibility/default/view', function(VisibilityDisplay) {
         setupComponent(this, { value: VALUE })
     })
 
-    it('Should populate the node with value attribue', function() {
+    it('Should populate the node with value attribute', function() {
         expect(this.component.$node.html()).to.contain(VALUE);
     })
 

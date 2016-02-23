@@ -14,6 +14,29 @@
 
 .dialog-popover {
   z-index: @popover-zIndex;
+  
+  .close-popover {
+    background-color: #FFF;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    color: #666666;
+    cursor: pointer;
+    display: block;
+    font-family: courier;
+    font-size: 2.6ex;
+    font-weight: bold;
+    height: 20px;
+    line-height: 0;
+    margin: 0;
+    padding-bottom: 0;
+    padding: 0;
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    width: 20px;
+    z-index: 2;
+  }
 
   .popover {
     min-width: 13em;
@@ -122,6 +145,7 @@
   @import "addRelated";
   @import "savedSearch";
   @import "searchResults";
+  @import "detailPane";
 }
 
 
