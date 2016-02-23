@@ -516,6 +516,7 @@ define([
                         self.trigger('updateWorkspace', {
                             entityUpdates: updatedVertices.concat(addedVertices)
                         });
+                        self.updateVertexSelections(cy);
                     }
 
                     self.hideLoading();
