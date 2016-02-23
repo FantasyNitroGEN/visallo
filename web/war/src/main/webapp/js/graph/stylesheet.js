@@ -31,6 +31,8 @@ define([
                 'border-color': 'white',
                 'font-family': 'helvetica',
                 'font-size': 18 * retina.devicePixelRatio,
+                'min-zoomed-font-size': 4,
+                'text-events': 'yes',
                 'text-outline-color': 'white',
                 'text-outline-width': 2,
                 'text-valign': 'bottom',
@@ -44,7 +46,7 @@ define([
 
             .selector('node.video')
             .css({
-                shape: 'movieStrip',
+                shape: 'rectangle',
                 width: (CUSTOM_IMAGE_SIZE * retina.devicePixelRatio) * VIDEO_ASPECT_RATIO,
                 height: (CUSTOM_IMAGE_SIZE * retina.devicePixelRatio) / VIDEO_ASPECT_RATIO
             })
@@ -123,6 +125,7 @@ define([
                 content: visalloData.currentUser.uiPreferences.edgeLabels !== 'false' ?
                     'data(label)' : '',
                 //'curve-style': 'haystack',
+                'min-zoomed-font-size': 3,
                 'text-outline-color': 'white',
                 'text-outline-width': 2,
                 width: 2.5 * retina.devicePixelRatio

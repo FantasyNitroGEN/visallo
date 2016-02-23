@@ -835,7 +835,6 @@ define([
         this.fit = function(cy, nodes, options) {
             var self = this;
             return Promise.resolve(cy || this.cytoscapeReady())
-
                 .then(function(cy) {
                     if (!nodes || !nodes.length) {
                         nodes = cy.elements();
