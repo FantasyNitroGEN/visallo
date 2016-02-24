@@ -7,7 +7,7 @@ define([], function() {
         if (!optionalOpts) {
             optionalOpts = {};
         }
-        optionalOpts.ignoreDisplayFormula = true;
+        optionalOpts = _.extend({}, optionalOpts, { ignoreDisplayFormula: true });
 
         var prop = _.partial(V.prop, vertex, _, optionalKey, optionalOpts),
             propRaw = _.partial(V.propRaw, vertex, _, optionalKey, optionalOpts),
