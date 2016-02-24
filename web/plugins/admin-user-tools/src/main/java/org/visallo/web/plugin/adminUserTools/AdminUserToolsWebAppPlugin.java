@@ -24,6 +24,8 @@ public class AdminUserToolsWebAppPlugin implements WebAppPlugin {
         app.registerJavaScriptTemplate("/org/visallo/web/adminUserTools/templates/user.hbs");
         app.registerJavaScriptTemplate("/org/visallo/web/adminUserTools/templates/user-details.hbs");
 
+        app.registerResourceBundle("/org/visallo/web/adminUserTools/messages.properties");
+
         app.post("/user/auth/add", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserAddAuthorization.class);
         app.post("/user/auth/remove", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserRemoveAuthorization.class);
         app.post("/user/delete", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserDelete.class);
