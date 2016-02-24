@@ -258,7 +258,7 @@ public class RdfTripleImportHelper {
         }
 
         if (!isPropertyValueValid(propertyValuePart)) {
-            throw new VisalloException("Invalid or missing property value");
+            throw new VisalloException("Invalid or missing property value. " + propertyValuePart);
         }
 
         String typeUri = propertyValuePart.getType().getUri();
