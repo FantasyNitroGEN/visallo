@@ -1,4 +1,4 @@
-require([
+define([
     'configuration/plugins/registry',
     'util/messages'
 ], function(registry, i18n) {

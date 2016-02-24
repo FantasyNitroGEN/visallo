@@ -2,6 +2,8 @@ globals:
     _: false
     DEBUG: false
     visalloData: false
+    visalloCacheBreaker: false,
+    visalloPluginResources: false,
     TRANSITION_END: false
     ANIMATION_END: false
     i18n: false

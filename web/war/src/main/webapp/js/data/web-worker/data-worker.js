@@ -9,13 +9,13 @@
 /*eslint strict:0*/
 var BASE_URL = '../../..',
     self = this,
-    cacheBreaker = null,
+    needsInitialSetup = true,
     publicData = {};
 
 onmessage = function(event) {
-    if (!cacheBreaker) {
-        cacheBreaker = event.data;
-        setupAll();
+    if (needsInitialSetup) {
+        needsInitialSetup = false;
+        setupAll(JSON.parse(event.data));
         return;
     }
 
@@ -29,10 +29,10 @@ onmessage = function(event) {
     })
 };
 
-function setupAll() {
+function setupAll(data) {
     setupConsole();
-    setupWebsocket();
-    setupRequireJs();
+    setupWebsocket(data);
+    setupRequireJs(data);
     documentExtensionPoints();
 }
 
@@ -63,13 +63,13 @@ function setupConsole() {
     }
 }
 
-function setupWebsocket() {
+function setupWebsocket(data) {
     var isFirefox = navigator && navigator.userAgent && ~navigator.userAgent.indexOf('Firefox'),
         supportedInWorker = !!(this.WebSocket || this.MozWebSocket) && !isFirefox;
 
     if (supportedInWorker) {
         self.window = self;
-        importScripts(BASE_URL + '/libs/atmosphere.js/lib/atmosphere.js?' + cacheBreaker);
+        importScripts(BASE_URL + '/libs/atmosphere.js/lib/atmosphere.js?' + data.cacheBreaker);
         atmosphere.util.getAbsoluteURL = function() {
             return publicData.atmosphereConfiguration.url;
         }
@@ -106,18 +106,18 @@ function setupWebsocket() {
     }
 }
 
-function setupRequireJs() {
+function setupRequireJs(data) {
     if (typeof File === 'undefined') {
         self.File = Blob;
     }
     if (typeof FormData === 'undefined') {
-        importScripts('./util/formDataPolyfill.js?' + cacheBreaker);
+        importScripts('./util/formDataPolyfill.js?' + data.cacheBreaker);
     }
-    importScripts(BASE_URL + '/jsc/require.config.js?' + cacheBreaker);
+    importScripts(BASE_URL + '/jsc/require.config.js?' + data.cacheBreaker);
     require.baseUrl = BASE_URL + '/jsc/';
-    require.urlArgs = cacheBreaker;
-    require.deps = ['../plugins-web-worker'];
-    importScripts(BASE_URL + '/libs/requirejs/require.js?' + cacheBreaker);
+    require.urlArgs = data.cacheBreaker;
+    require.deps = data.webWorkerResources;
+    importScripts(BASE_URL + '/libs/requirejs/require.js?' + data.cacheBreaker);
 }
 
 function onMessageHandler(event) {

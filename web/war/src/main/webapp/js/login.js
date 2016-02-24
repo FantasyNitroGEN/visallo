@@ -28,10 +28,6 @@ define([
         });
 
         this.after('initialize', function() {
-            var self = this;
-
-            this.$node.html(template({ showPoweredBy: configProperties['login.showPoweredBy'] === 'true' }));
-
             registry.documentExtensionPoint('org.visallo.authentication',
                 'Provides interface for authentication',
                 function(e) {
@@ -39,10 +35,16 @@ define([
                 }
             );
 
-            var authPlugins = registry.extensionsForPoint('org.visallo.authentication'),
+            this.$node.html(template({ showPoweredBy: configProperties['login.showPoweredBy'] === 'true' }));
+            var self = this,
+                authPlugins = registry.extensionsForPoint('org.visallo.authentication'),
                 authNode = this.select('authenticationSelector'),
                 error = '',
                 componentPath = '';
+
+            this.on('showErrorMessage', function(event, data) {
+                authNode.html(alertTemplate({ error: data.message }));
+            })
 
             if (authPlugins.length === 0) {
                 console.warn('No authentication extension registered, Falling back to old plugin');
