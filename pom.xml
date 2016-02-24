@@ -5,6 +5,7 @@
         <groupId>org.visallo</groupId>
         <artifactId>visallo-root</artifactId>
         <version>1.1-SNAPSHOT</version>
+        <relativePath>./root</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>visallo</artifactId>
