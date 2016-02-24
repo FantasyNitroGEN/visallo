@@ -153,10 +153,16 @@ define([
                         .then(loadUsingData)
                 };
 
-            this.on('reflow', render);
+            this.on('reflow', function() {
+                Promise.resolve()
+                    .then(render)
+                    .catch(errorHandler)
+            });
             this.on('refreshData', function() {
                 this.$node.empty();
-                refresh();
+                Promise.resolve()
+                    .then(refresh)
+                    .catch(errorHandler)
             });
 
             var loadingPromise = this.attr.result ?
@@ -167,7 +173,6 @@ define([
 
             loadingPromise
                 .catch(errorHandler)
-                .done();
 
             this.on('getReportResults', function() {
                 loadingPromise.then(function() {
