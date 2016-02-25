@@ -225,8 +225,17 @@ define([
             return;
         }
 
-        console.debug('%cSocket: %s %O', 'color:#999;font-style:italics', json.type, json.data)
+        if (isBatchMessage(json)) {
+            console.groupCollapsed('Socket Batch (' + json.data.length + ')');
+            json.data.forEach(process);
+            console.groupEnd();
+        } else {
+            process(json);
+        }
+    }
 
+    function process(json) {
+        console.debug('%cSocket: %s %O', 'color:#999;font-style:italics', json.type, json.data || json)
         if (json.type in socketHandlers) {
             socketHandlers[json.type]('data' in json ? json.data : json, json);
             callHandlersForName(json.type, json.data);
@@ -237,5 +246,9 @@ define([
 
     function messageFromUs(json) {
         return json.sourceGuid && json.sourceGuid === publicData.socketSourceGuid;
+    }
+
+    function isBatchMessage(json) {
+        return json.type === 'batch' && _.isArray(json.data);
     }
 });

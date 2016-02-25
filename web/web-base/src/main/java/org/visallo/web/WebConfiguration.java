@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class WebConfiguration {
     public static final String PREFIX = Configuration.WEB_CONFIGURATION_PREFIX;
+    public static final String THROTTLE_MESSAGING_SECONDS = PREFIX + "throttle.messaging.seconds";
     public static final String CACHE_VERTEX_LRU_EXPIRATION_SECONDS = PREFIX + "cache.vertex.lru.expiration.seconds";
     public static final String CACHE_VERTEX_MAX_SIZE = PREFIX + "cache.vertex.max_size";
     public static final String CACHE_EDGE_LRU_EXPIRATION_SECONDS = PREFIX + "cache.edge.lru.expiration.seconds";
@@ -56,6 +57,8 @@ public class WebConfiguration {
 
     static {
         DEFAULTS.put(LOGIN_SHOW_POWERED_BY, "false");
+
+        DEFAULTS.put(THROTTLE_MESSAGING_SECONDS, "2");
 
         // Local cache rules for vertices / edges (per workspace)
         DEFAULTS.put(CACHE_VERTEX_LRU_EXPIRATION_SECONDS, Integer.toString(10 * 60));

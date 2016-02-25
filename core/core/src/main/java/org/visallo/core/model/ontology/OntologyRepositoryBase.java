@@ -946,7 +946,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         if (val == null || val.trim().length() == 0) {
             return null;
         }
-        return JSONUtil.toMap(new JSONObject(val));
+        return JSONUtil.toStringMap(new JSONObject(val));
     }
 
     protected Collection<TextIndexHint> getTextIndexHints(OWLOntology o, OWLDataProperty owlEntity) {

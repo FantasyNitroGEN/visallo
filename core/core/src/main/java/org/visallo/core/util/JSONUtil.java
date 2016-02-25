@@ -10,10 +10,7 @@ import org.visallo.core.exception.VisalloJsonParseException;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JSONUtil {
     private static ObjectMapper mapper = ObjectMapperFactory.getInstance();
@@ -25,6 +22,10 @@ public class JSONUtil {
             json.put(name, arr);
         }
         return arr;
+    }
+
+    public static boolean areEqual(Object o1, Object o2) throws JSONException {
+        return fromJson(o1).equals(fromJson(o2));
     }
 
     public static void addToJSONArrayIfDoesNotExist(JSONArray jsonArray, Object value) {
@@ -84,7 +85,7 @@ public class JSONUtil {
         }
     }
 
-    public static Map<String, String> toMap(JSONObject json) {
+    public static Map<String, String> toStringMap(JSONObject json) {
         Map<String, String> results = new HashMap<String, String>();
         for (Object key : json.keySet()) {
             String keyStr = (String) key;
@@ -101,6 +102,24 @@ public class JSONUtil {
         return result;
     }
 
+    public static List<Object> toList(JSONArray arr) {
+        List<Object> list = new ArrayList();
+        for (int i = 0; i < arr.length(); i++) {
+            list.add(fromJson(arr.get(i)));
+        }
+        return list;
+    }
+
+    public static Map<String, Object> toMap(JSONObject obj) {
+        Iterator<String> keys = obj.keys();
+        Map<String, Object> map = new HashMap<>();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            map.put(key, fromJson(obj.get(key)));
+        }
+        return map;
+    }
+
     public static JSONObject toJson(Map<String, String> map) {
         JSONObject json = new JSONObject();
         for (Map.Entry<String, String> e : map.entrySet()) {
@@ -115,4 +134,15 @@ public class JSONUtil {
         }
         return json.getLong(fieldName);
     }
+
+    private static Object fromJson(Object elem) throws JSONException {
+        if (elem instanceof JSONObject) {
+            return toMap((JSONObject) elem);
+        } else if (elem instanceof JSONArray) {
+            return toList((JSONArray) elem);
+        } else {
+            return elem;
+        }
+    }
+
 }
