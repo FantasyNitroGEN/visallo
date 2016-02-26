@@ -1345,11 +1345,14 @@ define([
             this.trigger('defocusPaths');
             this.cytoscapeReady(function(cy) {
                 var vertices = event.cyTarget.selected() ? cy.nodes().filter(':selected') : event.cyTarget;
+                cy.startBatch();
                 this.grabbedVertices = vertices.not('.temp,#controlDragNodeId').each(function() {
                     var p = retina.pixelsToPoints(this.position());
-                    this.data('originalPosition', { x: p.x, y: p.y });
+                    this.stop(true);
                     this.data('freed', false);
+                    this.data('originalPosition', { x: p.x, y: p.y });
                 });
+                cy.endBatch();
             });
         };
 
