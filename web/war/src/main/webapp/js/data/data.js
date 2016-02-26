@@ -72,8 +72,11 @@ define([
         };
 
         this.setupDataWorker = function() {
-            this.worker = new Worker(PATH_TO_WORKER + '?' + window.visalloCacheBreaker);
-            this.worker.postMessage(window.visalloCacheBreaker);
+            this.worker = new Worker(PATH_TO_WORKER + '?' + visalloCacheBreaker);
+            this.worker.postMessage(JSON.stringify({
+                cacheBreaker: visalloCacheBreaker,
+                webWorkerResources: visalloPluginResources.webWorker
+            }));
             this.worker.onmessage = this.onDataWorkerMessage.bind(this);
             this.worker.onerror = this.onDataWorkerError.bind(this);
         };

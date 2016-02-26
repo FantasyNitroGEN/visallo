@@ -54,8 +54,6 @@ function(jQuery,
         App, FullScreenApp, F, withDataRequest;
 
     $(function() {
-        updateVisalloLoadingProgress('Dependencies');
-
         require(['cli']);
         require(['data/data'], configureApplication);
 
@@ -86,17 +84,21 @@ function(jQuery,
                     $(document).trigger('windowResize');
                 }, MAX_RESIZE_TRIGGER_INTERVAL));
 
-            require([
-                'util/messages',
-                'util/vertex/urlFormatters',
-                'util/withDataRequest',
-                'util/handlebars/before_auth_helpers'
-            ], function(i18n, _F, _withDataRequest) {
-                window.i18n = i18n;
-                F = _F;
-                withDataRequest = _withDataRequest;
-                loadApplicationTypeBasedOnUrlHash();
-            });
+            Promise.require('util/messages')
+                .then(function(_i18n) {
+                    window.i18n = _i18n;
+                    updateVisalloLoadingProgress('dependencies');
+
+                    require([
+                        'util/vertex/urlFormatters',
+                        'util/withDataRequest',
+                        'util/handlebars/before_auth_helpers'
+                    ], function(_F, _withDataRequest) {
+                        F = _F;
+                        withDataRequest = _withDataRequest;
+                        loadApplicationTypeBasedOnUrlHash();
+                    })
+                })
         }
     });
 
@@ -135,7 +137,7 @@ function(jQuery,
             });
         }
 
-        Promise.require('../plugins-before-auth')
+        Promise.all(visalloPluginResources.beforeAuth.map(Promise.require))
             .then(function() {
                 return withDataRequest.dataRequest('user', 'me')
             })
@@ -158,17 +160,21 @@ function(jQuery,
             visalloData.isFullscreen = false;
 
             if (loginRequired) {
-                // Login required, once less progress item (no extensions)
+                // Login required, once less progress item (no after-auth plugins)
                 TOTAL_PROGRESS--;
-                updateVisalloLoadingProgress('User Interface');
+                updateVisalloLoadingProgress('userinterface');
 
                 $(document).one('loginSuccess', function() {
-                    // FIXME: privilegesHelper not available yet
-                    document.addEventListener('pluginsLoaded', function loaded() {
-                        document.removeEventListener('pluginsLoaded', loaded);
-                        loginSuccess(true);
-                    }, false);
-                    document.dispatchEvent(new Event('readyForPlugins'));
+                    Promise.all(visalloPluginResources.afterAuth.map(Promise.require))
+                        .catch(function(error) {
+                            $('#login').trigger('showErrorMessage', {
+                                message: i18n('visallo.loading.progress.pluginerror')
+                            })
+                            throw error;
+                        })
+                        .then(function() {
+                            loginSuccess(true);
+                        })
                 });
 
                 require(['login'], function(Login) {
@@ -182,15 +188,22 @@ function(jQuery,
                     })
                 });
             } else {
-                updateVisalloLoadingProgress('Extensions');
-
-                document.addEventListener('pluginsLoaded', function loaded() {
-                    updateVisalloLoadingProgress('User Interface');
-
-                    document.removeEventListener('pluginsLoaded', loaded);
-                    loginSuccess(false);
-                }, false);
-                document.dispatchEvent(new Event('readyForPlugins'));
+                updateVisalloLoadingProgress('extensions', 0);
+                var len = visalloPluginResources.afterAuth.length,
+                    i = 0;
+                Promise.all(visalloPluginResources.afterAuth.map(function(path) {
+                    return Promise.require(path).then(function() {
+                        updateVisalloLoadingProgress('extensions', ++i / len);
+                    })
+                }))
+                    .catch(function(error) {
+                        removeVisalloLoading('pluginerror');
+                        throw error;
+                    })
+                    .then(function() {
+                        updateVisalloLoadingProgress('userinterface');
+                        loginSuccess(false);
+                    })
             }
         }
 
@@ -294,25 +307,41 @@ function(jQuery,
         }
     }
 
-    function updateVisalloLoadingProgress(string) {
+    function updateVisalloLoadingProgress(string, percentInProgress) {
         if (!progressBar) {
             progressBar = $('#visallo-loading-static .bar')[0];
             progressBarText = $('#visallo-loading-static span')[0];
         }
+        if (progressBar.dataset.finished) return;
 
-        progress++;
-        progressBarText.textContent = string;
-        progressBar.style.width = Math.round(progress / TOTAL_PROGRESS * 100) + '%';
+        var translatedString = i18n('visallo.loading.progress.' + string);
+
+        if (arguments.length === 2 && percentInProgress < 1.0) {
+            var segment = 1 / TOTAL_PROGRESS,
+                inc = segment * percentInProgress;
+            progressBarText.textContent = translatedString;
+            progressBar.style.width = Math.round((progress / TOTAL_PROGRESS + inc) * 100) + '%';
+        } else {
+            progress++;
+            progressBarText.textContent = translatedString;
+            progressBar.style.width = Math.round(progress / TOTAL_PROGRESS * 100) + '%';
+        }
     }
 
-    function removeVisalloLoading() {
-        updateVisalloLoadingProgress('Starting');
-        return new Promise(function(fulfill) {
-            _.delay(function() {
-                $('#visallo-loading-static').remove();
-                fulfill();
-            }, 500)
-        });
+    function removeVisalloLoading(error) {
+        if (error) {
+            progressBar.dataset.finished = true;
+            progressBarText.textContent = i18n('visallo.loading.progress.' + error);
+            progressBarText.style.color = '#D42B34';
+        } else {
+            updateVisalloLoadingProgress('starting');
+            return new Promise(function(fulfill) {
+                _.delay(function() {
+                    $('#visallo-loading-static').remove();
+                    fulfill();
+                }, 500)
+            });
+        }
     }
 
     function isPopoutUrl(url) {

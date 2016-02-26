@@ -24,7 +24,9 @@ import java.util.ResourceBundle;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Index implements ParameterizedHandler {
-    private static final String PLUGIN_JS_RESOURCES_PARAM = "pluginJsResources";
+    private static final String PLUGIN_JS_RESOURCES_BEFORE_AUTH_PARAM = "pluginJsResourcesBeforeAuth";
+    private static final String PLUGIN_JS_RESOURCES_WEB_WORKER_PARAM = "pluginJsResourcesWebWorker";
+    private static final String PLUGIN_JS_RESOURCES_AFTER_AUTH_PARAM = "pluginJsResourcesAfterAuth";
     private static final String PLUGIN_CSS_RESOURCES_PARAM = "pluginCssResources";
     private static final String LOGO_IMAGE_DATA_URI = "logoDataUri";
     private static final String LOGO_PATH_BUNDLE_KEY = "visallo.loading-logo.path";
@@ -49,7 +51,9 @@ public class Index implements ParameterizedHandler {
     private String getIndexHtml(HttpServletRequest request, WebApp app, ResourceBundle resourceBundle) throws IOException {
         if (indexHtml == null || app.isDevModeEnabled()) {
             Map<String, Object> context = new HashMap<>();
-            context.put(PLUGIN_JS_RESOURCES_PARAM, app.getPluginsJsResources());
+            context.put(PLUGIN_JS_RESOURCES_BEFORE_AUTH_PARAM, app.getPluginsJsResourcesBeforeAuth());
+            context.put(PLUGIN_JS_RESOURCES_WEB_WORKER_PARAM, app.getPluginsJsResourcesWebWorker());
+            context.put(PLUGIN_JS_RESOURCES_AFTER_AUTH_PARAM, app.getPluginsJsResourcesAfterAuth());
             context.put(PLUGIN_CSS_RESOURCES_PARAM, app.getPluginsCssResources());
             context.put(LOGO_IMAGE_DATA_URI, getLogoImageDataUri(request, resourceBundle));
             for (Map.Entry<String, String> param : MESSAGE_BUNDLE_PARAMS.entrySet()) {

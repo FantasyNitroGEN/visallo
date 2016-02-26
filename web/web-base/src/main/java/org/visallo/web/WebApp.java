@@ -38,10 +38,11 @@ public class WebApp extends App {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WebApp.class);
     private final Injector injector;
     private final boolean devMode;
-    private final AppendableStaticResourceHandler pluginsJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
-    private final List<String> pluginsJsResources = new ArrayList<>();
-    private final AppendableStaticResourceHandler pluginsWebWorkerJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
-    private final AppendableStaticResourceHandler pluginsBeforeAuthJsResourceHandler = new No404AppendableStaticResourceHandler("application/javascript");
+
+    private final List<String> pluginsJsResourcesWebWorker = new ArrayList<>();
+    private final List<String> pluginsJsResourcesBeforeAuth = new ArrayList<>();
+    private final List<String> pluginsJsResourcesAfterAuth = new ArrayList<>();
+
     private final StyleAppendableHandler pluginsCssResourceHandler = new StyleAppendableHandler();
     private final List<String> pluginsCssResources = new ArrayList<>();
     private VisalloResourceBundleManager visalloResourceBundleManager = new VisalloResourceBundleManager();
@@ -75,21 +76,11 @@ public class WebApp extends App {
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = config.getBoolean(Configuration.DEV_MODE, Configuration.DEV_MODE_DEFAULT);
 
-        if (!devMode) {
-            String pluginsJsRoute = "plugins.js";
-            this.get("/" + pluginsJsRoute, pluginsJsResourceHandler);
-            pluginsJsResources.add(pluginsJsRoute);
-
+        if (!isDevModeEnabled()) {
             String pluginsCssRoute = "plugins.css";
             this.get("/" + pluginsCssRoute, pluginsCssResourceHandler);
             pluginsCssResources.add(pluginsCssRoute);
         }
-
-        String pluginsWebWorkerJsRoute = "plugins-web-worker.js";
-        this.get("/" + pluginsWebWorkerJsRoute, pluginsWebWorkerJsResourceHandler);
-
-        String pluginsBeforeAuthJsRoute = "plugins-before-auth.js";
-        this.get("/" + pluginsBeforeAuthJsRoute, pluginsBeforeAuthJsResourceHandler);
     }
 
     @Override
@@ -116,41 +107,98 @@ public class WebApp extends App {
     }
 
     private void register(String name, String type, String pathPrefix, Boolean includeInPage) {
-        String resourcePath = (pathPrefix + name).replaceAll("^/", "");
-        if (isDevModeEnabled() || !includeInPage) {
-            get("/" + resourcePath, new StaticResourceHandler(this.getClass(), name, type));
-            if (includeInPage) {
-                pluginsJsResources.add(resourcePath);
-            }
-        } else {
-            pluginsJsResourceHandler.appendResource(name);
+        register(name, type, pathPrefix, includeInPage, pluginsJsResourcesAfterAuth);
+    }
+
+    private void register(String name, String type, String pathPrefix, Boolean includeInPage, List<String> resourceList) {
+        String resourcePath = "/" + (pathPrefix + name).replaceAll("^/", "");
+        get(resourcePath, new StaticResourceHandler(this.getClass(), name, type));
+        if (includeInPage) {
+            resourceList.add(resourcePath);
         }
     }
 
+    /**
+     * Register JavaScript file to be available for the application.
+     *
+     * If includeInPage is false the file is still available for requiring before
+     * authentication.
+     *
+     * @param scriptResourceName Classpath to JavaScript file
+     * @param includeInPage Set to true to load automatically after authentication
+     */
     public void registerJavaScript(String scriptResourceName, Boolean includeInPage) {
         register(scriptResourceName, "application/javascript", "jsc", includeInPage);
     }
 
+    /**
+     * Register JavaScript file to be automatically loaded after authentication.
+     *
+     * Loaded using requirejs, so use `define` to stop further plugin
+     * loading until all dependencies are met, or `require` to continue
+     * asynchronously.
+     *
+     * @param scriptResourceName Classpath to JavaScript file
+     */
     public void registerJavaScript(String scriptResourceName) {
         registerJavaScript(scriptResourceName, true);
     }
 
+    /**
+     * Register a JavaScript file to be loaded in web-worker thread.
+     *
+     * Loaded using requirejs, so use `define` to stop further plugin
+     * loading until all dependencies are met, or `require` to continue
+     * asynchronously.
+     *
+     * Use caution about loading visallo dependencies as they will be copies
+     * in the worker.
+     *
+     * @param scriptResourceName Classpath to JavaScript file
+     */
     public void registerWebWorkerJavaScript(String scriptResourceName) {
-        pluginsWebWorkerJsResourceHandler.appendResource(scriptResourceName);
+        register(scriptResourceName, "application/javascript", "jsc", true, pluginsJsResourcesWebWorker);
     }
 
+    /**
+     * Register a JavaScript file to be loaded if user is not authenticated.
+     * Primarily used for implementing the login authentication component.
+     *
+     * Loaded using requirejs, so use `define` to stop further plugin
+     * loading until all dependencies are met, or `require` to continue
+     * asynchronously.
+     *
+     * @param scriptResourceName Classpath to JavaScript file
+     */
     public void registerBeforeAuthenticationJavaScript(String scriptResourceName) {
-        pluginsBeforeAuthJsResourceHandler.appendResource(scriptResourceName);
+        register(scriptResourceName, "application/javascript", "jsc", true, pluginsJsResourcesBeforeAuth);
     }
 
+    /**
+     * Register a new JavaScript template. Can be required at scriptResourceName
+     *
+     * @param scriptResourceName Classpath to JavaScript template (ejs, hbs, etc)
+     */
     public void registerJavaScriptTemplate(String scriptResourceName) {
         register(scriptResourceName, "text/plain", "jsc", false);
     }
 
+    /**
+     * Register a new generic file.
+     *
+     * @param resourceName Classpath to file
+     * @param mimeType Type to serve file as
+     */
     public void registerFile(String resourceName, String mimeType) {
         register(resourceName, mimeType, "", false);
     }
 
+    /**
+     * Register new css file. Will be concatenated into plugin.css
+     * when not running in devMode=true
+     *
+     * @param cssResourceName Classpath to css file
+     */
     public void registerCss(String cssResourceName) {
         String resourcePath = "css" + cssResourceName;
         if (isDevModeEnabled()) {
@@ -161,6 +209,13 @@ public class WebApp extends App {
         }
     }
 
+    /**
+     * Register new less file to be compiled into css for browser.
+     * Will be concatenated with plain css files into plugin.css
+     * when not running in devMode=true
+     *
+     * @param lessResourceName Classpath to less file
+     */
     public void registerLess(final String lessResourceName) {
         String resourcePath = "css" + lessResourceName + ".css";
         if (isDevModeEnabled()) {
@@ -214,8 +269,16 @@ public class WebApp extends App {
         return visalloResourceBundleManager.getBundle(locale);
     }
 
-    public List<String> getPluginsJsResources() {
-        return pluginsJsResources;
+    public List<String> getPluginsJsResourcesBeforeAuth() {
+        return pluginsJsResourcesBeforeAuth;
+    }
+
+    public List<String> getPluginsJsResourcesWebWorker() {
+        return pluginsJsResourcesWebWorker;
+    }
+
+    public List<String> getPluginsJsResourcesAfterAuth() {
+        return pluginsJsResourcesAfterAuth;
     }
 
     public List<String> getPluginsCssResources() {

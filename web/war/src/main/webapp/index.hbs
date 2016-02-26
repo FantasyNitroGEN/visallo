@@ -31,14 +31,17 @@
       }
 
       require.urlArgs = window.visalloCacheBreaker = "vslo_v=" + versionParameter;
-
-      document.addEventListener('readyForPlugins', function() {
-        require([
-        {{#each pluginJsResources}}  '{{.}}'{{#unless @last}},{{/unless}}
-        {{/each}}], function() {
-            document.dispatchEvent(new Event('pluginsLoaded'));
-        });
-      }, false);
+      window.visalloPluginResources = {
+        beforeAuth: [
+        {{#each pluginJsResourcesBeforeAuth}}  '{{.}}'{{#unless @last}},{{/unless}}
+        {{/each}}],
+        afterAuth: [
+        {{#each pluginJsResourcesAfterAuth}}  '{{.}}'{{#unless @last}},{{/unless}}
+        {{/each}}],
+        webWorker: [
+        {{#each pluginJsResourcesWebWorker}}  '{{.}}'{{#unless @last}},{{/unless}}
+        {{/each}}]
+      };
     })();
   </script>
   <script data-main="visallo" src='libs/requirejs/require.js'></script>
@@ -63,8 +66,9 @@
   <div class="progress" style=" margin-top: 0.6em; height: 0.5em; margin-bottom: 0.4em; ">
     <div class="bar" style="width: 0.5em; background:linear-gradient(#d9d9d9, #ddd); box-shadow: none;"></div>
   </div>
-  <span style=" position: absolute; left: -2em; right: -2em; text-align: center; font-size: 60%; margin: 0; padding: 0; line-height: 1.1em; font-weight: normal; color: #bbb; text-shadow: 0 1px 0 white; font-style: normal; ">Initializing</span></h1>
+  <span style=" position: absolute; left: -2em; right: -2em; text-align: center; font-size: 60%; margin: 0; padding: 0; line-height: 1.1em; font-weight: normal; color: #bbb; text-shadow: 0 1px 0 white; font-style: normal; ">&nbsp;</span></h1>
 </div>
 
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-require(['configuration/plugins/registry'], function(registry) {
+define(['configuration/plugins/registry'], function(registry) {
     'use strict';
 
     registry.registerExtension('org.visallo.authentication', {
