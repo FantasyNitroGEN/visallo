@@ -20,6 +20,7 @@
         <module>user-admin</module>
         <module>format</module>
         <module>rdf-import</module>
+        <module>reindex</module>
         <module>owl</module>
     </modules>
 </project>
