@@ -42,12 +42,16 @@ public class RdfImport extends CommandLineTool {
     @Parameter(names = {"--timezone"}, arity = 1, description = "The Java timezone id")
     private String timeZoneId = "GMT";
 
+    @Parameter(names = {"--failOnError"},  arity = 1, description = "If true, import process fails on first error")
+    private boolean failOnFirstError = false;
+
     public static void main(String[] args) throws Exception {
         CommandLineTool.main(new RdfImport(), args);
     }
 
     @Override
     protected int run() throws Exception {
+        rdfImportHelper.setFailOnFirstError(failOnFirstError);
         Visibility visibility = getVisibilityTranslator().toVisibility(visibilitySource).getVisibility();
         TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
         importInFiles(inFiles, timeZone, visibility);

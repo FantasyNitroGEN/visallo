@@ -6,7 +6,6 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Metadata;
 import org.vertexium.Visibility;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
@@ -29,6 +28,12 @@ public class RdfImportHelper {
     private final UserRepository userRepository;
     private final RdfXmlImportHelper rdfXmlImportHelper;
     private final RdfTripleImportHelper rdfTripleImportHelper;
+
+    public void setFailOnFirstError(boolean failOnFirstError) {
+        this.failOnFirstError = failOnFirstError;
+    }
+
+    private boolean failOnFirstError = false;
 
     @Inject
     public RdfImportHelper(
@@ -56,6 +61,7 @@ public class RdfImportHelper {
         File inputFile = RdfFileLocator.findBestFile(input);
 
         LOGGER.info("Importing file: %s", inputFile.getAbsolutePath());
+        rdfTripleImportHelper.setFailOnFirstError(failOnFirstError);
         if (inputFile.getName().endsWith(".nt")) {
             importFileRdfTriple(inputFile, timeZone, visibility, authorizations);
         } else {
