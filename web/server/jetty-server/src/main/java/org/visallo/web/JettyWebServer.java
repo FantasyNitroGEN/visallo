@@ -1,18 +1,15 @@
 package org.visallo.web;
 
 import com.beust.jcommander.Parameter;
-import com.v5analytics.simpleorm.SimpleOrmJettySessionHandler;
-import org.visallo.core.cmdline.CommandLineTool;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.session.VisalloSimpleOrmJettySessionManager;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
-
-import java.util.EventListener;
+import org.visallo.core.cmdline.CommandLineTool;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 
 public class JettyWebServer extends WebServer {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JettyWebServer.class, "web");
@@ -61,8 +58,7 @@ public class JettyWebServer extends WebServer {
         webAppContext.setClassLoader(Thread.currentThread().getContextClassLoader());
         webAppContext.setContextPath(this.getContextPath());
         webAppContext.setWar(getWebAppDir().getAbsolutePath());
-        webAppContext.setSessionHandler(new SimpleOrmJettySessionHandler(new VisalloSimpleOrmJettySessionManager()));
-        webAppContext.getSessionHandler().getSessionManager().setMaxInactiveInterval(super.getSessionTimeout() * 60);
+        webAppContext.setSessionHandler(new HashSessionManager().getSessionHandler());
         LOGGER.info("getMaxInactiveInterval() is %d seconds", webAppContext.getSessionHandler().getSessionManager().getMaxInactiveInterval());
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
