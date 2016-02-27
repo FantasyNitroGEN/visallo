@@ -2,7 +2,7 @@
   <configuration default="false" name="Jetty Web Server" type="Application" factoryName="Application" folderName="Visallo" singleton="true">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
     <option name="MAIN_CLASS_NAME" value="org.visallo.web.JettyWebServer" />
-    <option name="VM_PARAMETERS" value="" />
+    <option name="VM_PARAMETERS" value="-Djava.awt.headless=true" />
     <option name="PROGRAM_PARAMETERS" value="--webAppDir $MODULE_DIR$/../../web/war/src/main/webapp --port 8888 --httpsPort 8889 --keyStorePath $MODULE_DIR$/../../dev/jetty-server/config/visallo-vm.visallo.org.jks --keyStorePassword password" />
     <option name="WORKING_DIRECTORY" value="file://$MODULE_DIR$/../.." />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
