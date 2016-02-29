@@ -464,12 +464,9 @@ define([
             edgeCache.resize(cacheOptions.maxSize);
 
             var updated = _.compact(edges.map(function(e) {
-                    var previous = edgeCache.getItem(e.id),
-                        bothVerticesInWorkspace = workspace &&
-                            e.outVertexId in workspace.vertices &&
-                            e.inVertexId in workspace.vertices;
+                    var previous = edgeCache.getItem(e.id);
 
-                    if ((previous && _.isEqual(e, previous)) || !bothVerticesInWorkspace) {
+                    if ((previous && _.isEqual(e, previous))) {
                         return;
                     }
 
