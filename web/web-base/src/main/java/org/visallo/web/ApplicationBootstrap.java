@@ -155,7 +155,8 @@ public class ApplicationBootstrap implements ServletContextListener {
         servlet.setLoadOnStartup(0);
         servlet.setInitParameter(AtmosphereHandler.class.getName(), Messaging.class.getName());
         servlet.setInitParameter("org.atmosphere.cpr.sessionSupport", "true");
-        servlet.setInitParameter("org.atmosphere.cpr.broadcastFilterClasses", MessagingFilter.class.getName());
+        servlet.setInitParameter("org.atmosphere.cpr.broadcastFilterClasses", MessagingFilter.class.getName() + "," +
+                MessagingThrottleFilter.class.getName());
         servlet.setInitParameter(AtmosphereInterceptor.class.getName(), HeartbeatInterceptor.class.getName());
         servlet.setInitParameter("org.atmosphere.interceptor.HeartbeatInterceptor.heartbeatFrequencyInSeconds", "30");
         servlet.setInitParameter("org.atmosphere.cpr.CometSupport.maxInactiveActivity", "-1");

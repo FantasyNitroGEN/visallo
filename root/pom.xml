@@ -45,7 +45,7 @@
         <accumulo.version>1.6.1</accumulo.version>
         <h2.version>1.4.188</h2.version>
         <ant.version>1.4.1</ant.version>
-        <atmosphere.version>2.2.7</atmosphere.version>
+        <atmosphere.version>2.4.2</atmosphere.version>
         <commons.beanutils.version>1.9.1</commons.beanutils.version>
         <commons.cli.version>1.2</commons.cli.version>
         <jcommander.version>1.47</jcommander.version>

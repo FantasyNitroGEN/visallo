@@ -2,11 +2,12 @@
 define([
     'require',
     'jscache',
+    'configuration/plugins/registry',
     './cacheDecisions'
-], function(require, Cache, cacheDecisions) {
+], function(require, Cache, registry, cacheDecisions) {
     'use strict';
 
-        // Object cache per workspace
+    // Object cache per workspace
     var KIND_TO_CACHE = {
             vertex: 'vertices',
             edge: 'edges',
@@ -164,10 +165,10 @@ define([
                 }
                 var workspace = api.getObject(remoteWorkspace.workspaceId, 'workspace');
                 if (!workspace || !_.isEqual(remoteWorkspace, workspace)) {
-                    console.groupCollapsed('Workspace Update')
-                    console.debug('old', workspace)
-                    console.debug('new', remoteWorkspace)
-                    console.groupEnd('Workspace Update')
+                    console.groupCollapsed('Workspace Update');
+                    console.debug('old', workspace);
+                    console.debug('new', remoteWorkspace);
+                    console.groupEnd('Workspace Update');
 
                     var vertexIds = _.keys(remoteWorkspace.vertices),
                         vertexIdsPrevious = workspace ? _.keys(workspace.vertices) : [],
@@ -230,7 +231,7 @@ define([
 
                 var cachedIds = api.getObject(data.workspaceId, 'cachedIds');
                 if (data.vertex && resemblesVertex(data.vertex)) {
-                    cached = api.getObject(data.workspaceId, 'vertex', data.vertex.id)
+                    cached = api.getObject(data.workspaceId, 'vertex', data.vertex.id);
                     if (cached || (cachedIds && (data.vertex.id in cachedIds)) || !onlyIfExists) {
                         cacheVertices(data.workspaceId, [data.vertex]);
                     }
@@ -241,21 +242,6 @@ define([
 
                     if (resemblesEdge(data.edge)) {
                         toCache = data.edge;
-                    } else {
-                        if (data.edge.outVertexId && data.edge.inVertexId) {
-                            // Load vertices from cache
-                            cached = _.compact(api.getObjects(data.workspaceId, 'vertex', [
-                                data.edge.outVertexId,
-                                data.edge.inVertexId
-                            ]));
-
-                            if (cached && cached.length === 2) {
-                                toCache = _.extend({}, _.omit(data.edge, 'outVertexId', 'inVertexId'), {
-                                    source: cached[0],
-                                    target: cached[1]
-                                });
-                            }
-                        }
                     }
 
                     if (toCache) {
@@ -274,16 +260,17 @@ define([
                 }
 
                 if (cacheDecisions.shouldCacheObjectsAtUrl(url)) {
+                    var list = json.elements || json.vertices || json.edges;
                     if (resemblesVertex(json)) {
                         if (cacheDecisions.shouldCacheVertexAtUrl(json, url)) {
                             console.debug(request.url, 'causing vertex to cache', json);
                             cacheVertices(workspaceId, [json], cachePriorityForUrl(request.url));
                         }
                     }
-                    if (resemblesVertices(json.vertices)) {
-                        cacheable = _.filter(json.vertices, function(v) {
+                    if (resemblesVertices(list)) {
+                        cacheable = _.filter(list, function(v) {
                             return cacheDecisions.shouldCacheVertexAtUrl(v, url);
-                        })
+                        });
                         if (cacheable.length) {
                             console.debug(request.url, 'causing ' + cacheable.length + ' vertices to cache');
                             cacheVertices(workspaceId, cacheable, cachePriorityForUrl(request.url));
@@ -297,16 +284,16 @@ define([
                                 if (v && resemblesVertex(v)) {
                                     return v;
                                 }
-                            }))
+                            }));
                             if (edgeVertices.length) {
                                 cacheVertices(workspaceId, edgeVertices);
                             }
                         }
                     }
-                    if (resemblesEdges(json.edges)) {
-                        cacheable = _.filter(json.edges, function(e) {
+                    if (resemblesEdges(list)) {
+                        cacheable = _.filter(list, function(e) {
                             return cacheDecisions.shouldCacheEdgeAtUrl(e, url);
-                        })
+                        });
                         if (cacheable.length) {
                             cacheEdges(workspaceId, cacheable);
                         }
@@ -329,7 +316,8 @@ define([
     return api;
 
     function cachePriorityForUrl(url) {
-        if (url === '/vertex/search') {
+        var search = /^\/(vertex|edge|element)\/search$/;
+        if (search.test(url)) {
             return Cache.Priority.LOW;
         }
     }
@@ -441,7 +429,6 @@ define([
                     expirationAbsolute: null,
                     expirationSliding: cacheOptions.expirationSliding,
                     priority: cachePriority
-                    //callback: function(k, v) {}
                 });
 
                 if (previous) {
@@ -487,7 +474,6 @@ define([
                         expirationAbsolute: null,
                         expirationSliding: cacheOptions.expirationSliding,
                         priority: Cache.Priority.NORMAL
-                        //callback: function(k, v) { }
                     });
 
                     // console.debug('Edge updated previous:', previous, 'new:', e)
@@ -505,9 +491,7 @@ define([
             _.isObject(val) &&
             val.type === 'edge' &&
             _.has(val, 'id') &&
-            _.has(val, 'label') &&
-            !_.isEmpty(val.source) &&
-            !_.isEmpty(val.target)
+            _.has(val, 'label')
         );
     }
 

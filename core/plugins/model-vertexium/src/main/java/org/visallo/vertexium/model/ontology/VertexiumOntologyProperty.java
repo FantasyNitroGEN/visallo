@@ -136,7 +136,7 @@ public class VertexiumOntologyProperty extends OntologyProperty {
         if (propertyValue == null) {
             return null;
         }
-        return JSONUtil.toMap(propertyValue);
+        return JSONUtil.toStringMap(propertyValue);
     }
 
     public Vertex getVertex() {
