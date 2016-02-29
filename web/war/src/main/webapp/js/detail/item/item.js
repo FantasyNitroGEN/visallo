@@ -478,7 +478,7 @@ define([
         var components = registry.extensionsForPoint('org.visallo.layout.component'),
             possible = _.filter(components, function(comp) {
                 if (comp.identifier === match.identifier) {
-                    return layoutComponentAppliesToModel(comp, match.model, match.rootModel) &&
+                    return layoutComponentAppliesToModel(comp, match.model, match.rootModel, match) &&
                         layoutComponentMatchesConstraints(comp, match.constraints) &&
                         layoutComponentMatchesContext(comp, match.context);
                 }
@@ -562,10 +562,10 @@ define([
         return true;
     }
 
-    function layoutComponentAppliesToModel(component, model, rootModel) {
+    function layoutComponentAppliesToModel(component, model, rootModel, match) {
         if ('applyTo' in component) {
             if (_.isFunction(component.applyTo)) {
-                return Boolean(component.applyTo(model));
+                return Boolean(component.applyTo(model, _.pick(match, 'constraints', 'context')));
             }
             if (component.applyTo) {
                 var applyTo = component.applyTo,
