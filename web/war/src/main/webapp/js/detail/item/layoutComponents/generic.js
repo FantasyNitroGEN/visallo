@@ -26,6 +26,22 @@ define([], function() {
         },
         {
             identifier: 'org.visallo.layout.body',
+            applyTo: function(model, options) {
+                var enoughWidth = !_.contains(options.constraints, 'width');
+                if (enoughWidth) {
+                    var comment = _.findWhere(model.properties, { name: 'http://visallo.org/comment#entry' }),
+                        hasRelations = !_.isEmpty(model.edgeLabels);
+                    return comment || hasRelations;
+                }
+                return false;
+            },
+            children: [
+                { ref: 'org.visallo.layout.body.split' },
+                { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
+            ]
+        },
+        {
+            identifier: 'org.visallo.layout.body.split',
             layout: { type: 'flex', options: { direction: 'row' }},
             children: [
                 { componentPath: 'detail/properties/properties', style: { flex: 1 }, className: 'org-visallo-properties', modelAttribute: 'data' },
@@ -36,13 +52,11 @@ define([], function() {
             identifier: 'org.visallo.layout.body.right',
             children: [
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
-                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
-                { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
+                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' }
             ]
         },
         {
             identifier: 'org.visallo.layout.body',
-            applyTo: { constraints: ['width'] },
             children: [
                 { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
