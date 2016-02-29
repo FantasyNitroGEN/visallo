@@ -65,6 +65,12 @@ define([
             })
         },
 
+        history: function(edgeId) {
+            return ajax('GET', '/edge/history', {
+                graphEdgeId: edgeId
+            });
+        },
+
         multiple: function(options) {
             return ajax('POST', '/edge/multiple', options);
         },

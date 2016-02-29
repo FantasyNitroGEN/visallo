@@ -1,6 +1,5 @@
 package org.visallo.web.clientapi.codegen;
 
-import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
 import org.visallo.web.clientapi.model.ClientApiLongRunningProcessSubmitResponse;
@@ -13,7 +12,7 @@ import org.visallo.web.clientapi.model.ClientApiArtifactImportResponse;
 import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
 import org.visallo.web.clientapi.model.ClientApiElementFindRelatedResponse;
 import org.visallo.web.clientapi.model.ClientApiDetectedObjects;
-import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyValues;
+import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
 import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import com.sun.jersey.multipart.FormDataMultiPart;
@@ -308,7 +307,7 @@ public class VertexApi {
       }
     }
   }
-  public ClientApiHistoricalPropertyValues getPropertyHistory (String graphVertexId, String propertyKey, String propertyName, Long startTime, Long endTime) throws ApiException {
+  public ClientApiHistoricalPropertyResults getPropertyHistory (String graphVertexId, String propertyKey, String propertyName, Long startTime, Long endTime) throws ApiException {
     Object postBody = null;
     // verify required params are set
     if(graphVertexId == null || propertyKey == null || propertyName == null ) {
@@ -349,7 +348,7 @@ public class VertexApi {
     try {
       String response = apiInvoker.invokeAPI(basePath, path, "GET", queryParams, postBody, headerParams, formParams, contentType);
       if(response != null){
-        return (ClientApiHistoricalPropertyValues) ApiInvoker.deserialize(response, "", ClientApiHistoricalPropertyValues.class);
+        return (ClientApiHistoricalPropertyResults) ApiInvoker.deserialize(response, "", ClientApiHistoricalPropertyResults.class);
       }
       else {
         return null;
