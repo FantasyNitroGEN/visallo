@@ -5,9 +5,8 @@ import org.vertexium.Property;
 import org.vertexium.Visibility;
 import org.vertexium.mutation.ExistingElementMutation;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class MetadataVisalloProperty<TRaw, TGraph> {
     private final String metadataKey;
@@ -36,14 +35,7 @@ public abstract class MetadataVisalloProperty<TRaw, TGraph> {
     }
 
     public Collection<TRaw> getMetadataValues(Metadata metadata) {
-        // @todo refactor this/remove this when the next vertexium is pushed with get values
-        Collection<TRaw> results = new ArrayList<>();
-        for (Metadata.Entry e : metadata.entrySet()) {
-            if (e.getKey().equals(getMetadataKey())) {
-                results.add(unwrap(e.getValue()));
-            }
-        }
-        return results;
+        return metadata.getValues(getMetadataKey()).stream().map(this::unwrap).collect(Collectors.toList());
     }
 
     public TRaw getMetadataValueOrDefault(Metadata metadata, TRaw defaultValue) {
@@ -52,10 +44,6 @@ public abstract class MetadataVisalloProperty<TRaw, TGraph> {
             return defaultValue;
         }
         return unwrap(value);
-    }
-
-    public TRaw getMetadataValue(Map<String, Object> metadata) {
-        return unwrap(metadata.get(getMetadataKey()));
     }
 
     public TRaw getMetadataValue(Metadata metadata, TRaw defaultValue) {
