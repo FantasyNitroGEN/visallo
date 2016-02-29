@@ -22,6 +22,7 @@ import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.*;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.parameterProviders.SourceGuid;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +52,7 @@ public class WorkspaceUpdate implements ParameterizedHandler {
             HttpServletRequest request,
             @Required(name = "data") ClientApiWorkspaceUpdateData updateData,
             @ActiveWorkspaceId String workspaceId,
+            @SourceGuid String sourceGuid,
             ResourceBundle resourceBundle,
             User user,
             Authorizations authorizations
@@ -79,7 +81,7 @@ public class WorkspaceUpdate implements ParameterizedHandler {
 
         ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true, authorizations);
 
-        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, previousUsers, user.getUserId(), request.getSession().getId());
+        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, previousUsers, user.getUserId(), sourceGuid);
 
         return VisalloResponse.SUCCESS;
     }

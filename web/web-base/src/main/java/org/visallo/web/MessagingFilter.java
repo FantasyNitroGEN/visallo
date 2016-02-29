@@ -44,14 +44,6 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
                 }
             }
 
-            JSONArray excludeSessionIds = json.optJSONArray("excludeSessionIds");
-            if (excludeSessionIds != null) {
-                String currentSessionId = r.getRequest().getSession().getId();
-                if (JSONUtil.isInArray(excludeSessionIds, currentSessionId)) {
-                    return new BroadcastAction(BroadcastAction.ACTION.ABORT, message);
-                }
-            }
-
             JSONObject permissionsJson = json.optJSONObject("permissions");
             if (permissionsJson != null) {
                 JSONArray users = permissionsJson.optJSONArray("users");
