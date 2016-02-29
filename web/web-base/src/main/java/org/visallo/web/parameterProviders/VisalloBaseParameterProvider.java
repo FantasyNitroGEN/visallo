@@ -22,6 +22,7 @@ import java.util.TimeZone;
 
 public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<T> {
     public static final String VISALLO_WORKSPACE_ID_HEADER_NAME = "Visallo-Workspace-Id";
+    public static final String VISALLO_SOURCE_GUID_HEADER_NAME = "Visallo-Source-Guid";
     private static final String LOCALE_LANGUAGE_PARAMETER = "localeLanguage";
     private static final String LOCALE_COUNTRY_PARAMETER = "localeCountry";
     private static final String LOCALE_VARIANT_PARAMETER = "localeVariant";
@@ -56,6 +57,10 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             throw new VisalloException(VISALLO_WORKSPACE_ID_HEADER_NAME + " is a required header.");
         }
         return workspaceId;
+    }
+
+    protected static String getSourceGuid(final HttpServletRequest request) {
+        return request.getHeader(VISALLO_SOURCE_GUID_HEADER_NAME);
     }
 
     public static String getOptionalParameter(final HttpServletRequest request, final String parameterName) {

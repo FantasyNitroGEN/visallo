@@ -537,8 +537,8 @@ public abstract class WorkQueueRepository {
         broadcastUserWorkspaceChange(user, workspaceId);
     }
 
-    public void pushWorkspaceChange(ClientApiWorkspace workspace, List<ClientApiWorkspace.User> previousUsers, String changedByUserId, String changedBySessionId) {
-        broadcastWorkspace(workspace, previousUsers, changedByUserId, changedBySessionId);
+    public void pushWorkspaceChange(ClientApiWorkspace workspace, List<ClientApiWorkspace.User> previousUsers, String changedByUserId, String changedBySourceGuid) {
+        broadcastWorkspace(workspace, previousUsers, changedByUserId, changedBySourceGuid);
     }
 
     protected void broadcastUserWorkspaceChange(User user, String workspaceId) {
@@ -550,18 +550,13 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
-    protected void broadcastWorkspace(ClientApiWorkspace workspace, List<ClientApiWorkspace.User> previousUsers, String changedByUserId, String changedBySessionId) {
+    protected void broadcastWorkspace(ClientApiWorkspace workspace, List<ClientApiWorkspace.User> previousUsers, String changedByUserId, String changedBySourceGuid) {
         JSONObject json = new JSONObject();
         json.put("type", "workspaceChange");
         json.put("modifiedBy", changedByUserId);
         json.put("permissions", getPermissionsWithUsers(workspace, previousUsers));
-
-        if (changedBySessionId != null) {
-            JSONArray sessionIds = new JSONArray();
-            sessionIds.put(changedBySessionId);
-            json.put("excludeSessionIds", sessionIds);
-        }
         json.put("data", new JSONObject(ClientApiConverter.clientApiToString(workspace)));
+        json.putOpt("sourceGuid", changedBySourceGuid);
         broadcastJson(json);
     }
 

@@ -221,15 +221,14 @@ define([
         var body = data.responseBody,
             json = JSON.parse(body);
 
-        if (messageFromUs(json)) {
-            return;
-        }
-
         if (isBatchMessage(json)) {
-            console.groupCollapsed('Socket Batch (' + json.data.length + ')');
-            json.data.forEach(process);
-            console.groupEnd();
-        } else {
+            var filtered = _.reject(json.data, messageFromUs);
+            if (filtered.length) {
+                console.groupCollapsed('Socket Batch (' + filtered.length + ')');
+                filtered.forEach(process);
+                console.groupEnd();
+            }
+        } else if (!messageFromUs(json)) {
             process(json);
         }
     }

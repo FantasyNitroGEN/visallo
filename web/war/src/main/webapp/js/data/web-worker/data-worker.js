@@ -192,6 +192,7 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
         var filters = [
                 setWorkspaceHeader,
                 setCsrfHeader,
+                setSourceGuidHeader,
                 setGraphTracing
                 // TODO: set timezone
             ], invoke = function(f) {
@@ -214,6 +215,14 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
 
         if (eligibleForProtection && token) {
             xmlHttpRequest.setRequestHeader('Visallo-CSRF-Token', token);
+        }
+    }
+    function setSourceGuidHeader() {
+        var isUpdate = !(/get/i).test(method),
+            guid = publicData.socketSourceGuid;
+
+        if (isUpdate && guid) {
+            xmlHttpRequest.setRequestHeader('Visallo-Source-Guid', guid);
         }
     }
     function setGraphTracing() {
