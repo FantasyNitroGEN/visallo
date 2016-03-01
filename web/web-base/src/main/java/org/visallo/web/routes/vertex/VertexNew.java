@@ -2,12 +2,13 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.WebsterException;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
-import org.visallo.core.exception.VisalloAccessDeniedException;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Metadata;
+import org.vertexium.Vertex;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -28,7 +29,6 @@ import org.visallo.web.BadRequestException;
 import org.visallo.web.clientapi.model.ClientApiAddElementProperties;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
-import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
 
@@ -91,6 +91,7 @@ public class VertexNew implements ParameterizedHandler {
                 workspaceId,
                 justificationText,
                 sourceInfo,
+                user,
                 authorizations
         );
 
