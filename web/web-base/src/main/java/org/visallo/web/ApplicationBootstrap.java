@@ -192,8 +192,10 @@ public class ApplicationBootstrap implements ServletContextListener {
         servlet.setInitParameter("org.atmosphere.interceptor.HeartbeatInterceptor.heartbeatFrequencyInSeconds", "30");
         servlet.setInitParameter("org.atmosphere.cpr.CometSupport.maxInactiveActivity", "-1");
         servlet.setInitParameter("org.atmosphere.cpr.broadcasterCacheClass", UUIDBroadcasterCache.class.getName());
+        servlet.setInitParameter("org.atmosphere.cpr.dropAccessControlAllowOriginHeader", "true");
         servlet.setInitParameter("org.atmosphere.websocket.maxTextMessageSize", "1048576");
         servlet.setInitParameter("org.atmosphere.websocket.maxBinaryMessageSize", "1048576");
+
         addSecurityConstraint(servlet, config);
     }
 
