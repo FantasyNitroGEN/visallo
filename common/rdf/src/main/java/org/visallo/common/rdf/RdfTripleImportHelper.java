@@ -10,7 +10,10 @@ import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.util.*;
+import org.visallo.core.util.VisalloDate;
+import org.visallo.core.util.VisalloDateTime;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.*;
@@ -91,7 +94,7 @@ public class RdfTripleImportHelper {
             LOGGER.debug("Importing RDF triple on line: %d", lineNum);
             try {
                 importRdfLine(line, metadata, workingDir, timeZone, defaultVisibility, authorizations);
-            } catch (Exception e){
+            } catch (Exception e) {
                 String errMsg = String.format("Error importing RDF triple on line: %d. %s", lineNum, e.getMessage());
                 if (failOnFirstError) {
                     throw new VisalloException(errMsg);
@@ -151,7 +154,7 @@ public class RdfTripleImportHelper {
         }
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
-            setConceptType(vertexId, third, vertexVisibility, authorizations);
+            setConceptType(vertexId, third, metadata, vertexVisibility, authorizations);
             return true;
         }
 
@@ -352,11 +355,10 @@ public class RdfTripleImportHelper {
         return visalloDateTime.toDateGMT();
     }
 
-    private void setConceptType(String vertexId, RdfTriple.Part third, Visibility visibility, Authorizations authorizations) {
+    private void setConceptType(String vertexId, RdfTriple.Part third, Metadata metadata, Visibility visibility, Authorizations authorizations) {
         VertexBuilder m = graph.prepareVertex(vertexId, visibility);
         String conceptType = getConceptType(third);
         VisibilityJson visibilityJson = new VisibilityJson(visibility.getVisibilityString());
-        Metadata metadata = new Metadata();
         VisalloProperties.CONCEPT_TYPE.setProperty(m, conceptType, metadata, visibility);
         VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, visibility);
         m.save(authorizations);
