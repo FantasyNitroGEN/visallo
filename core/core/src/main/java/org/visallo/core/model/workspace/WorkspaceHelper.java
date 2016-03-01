@@ -7,6 +7,7 @@ import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.ingest.ArtifactDetectedObject;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -31,6 +32,8 @@ import static org.vertexium.util.IterableUtils.toList;
 @Singleton
 public class WorkspaceHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceHelper.class);
+    //TODO fix this key when there's a migration capability
+    private static final String DETECTED_OBJECT_MULTI_VALUE_KEY_PREFIX = "org.visallo.web.routes.vertex.ResolveDetectedObject";
     private final TermMentionRepository termMentionRepository;
     private final UserRepository userRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -125,7 +128,7 @@ public class WorkspaceHelper {
             String workspaceId,
             Edge edge,
             Vertex outVertex,
-            @SuppressWarnings("UnusedParameters") Vertex inVertex,
+            Vertex inVertex,
             boolean isPublicEdge,
             Priority priority,
             Authorizations authorizations,
@@ -135,6 +138,7 @@ public class WorkspaceHelper {
         long beforeActionTimestamp = System.currentTimeMillis() - 1;
 
         deleteProperties(edge, workspaceId, priority, authorizations);
+        unresolveDetectedObjects(workspaceId, edge, outVertex, inVertex, priority, authorizations);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
@@ -338,4 +342,50 @@ public class WorkspaceHelper {
             }
         }
     }
+
+    private void unresolveDetectedObjects(
+            String workspaceId,
+            Edge edge,
+            Vertex outVertex,
+            Vertex inVertex,
+            Priority priority,
+            Authorizations authorizations
+    ) {
+        for (ArtifactDetectedObject artifactDetectedObject : VisalloProperties.DETECTED_OBJECT.getPropertyValues(outVertex)) {
+            if (edge.getId().equals(artifactDetectedObject.getEdgeId())) {
+                unresolveDetectedObject(artifactDetectedObject, workspaceId, edge, outVertex, inVertex, priority, authorizations);
+            }
+        }
+    }
+
+    private void unresolveDetectedObject(
+            ArtifactDetectedObject artifactDetectedObject,
+            String workspaceId,
+            Edge edge,
+            Vertex outVertex,
+            Vertex inVertex,
+            Priority priority,
+            Authorizations authorizations
+    ) {
+            String multiValueKey = artifactDetectedObject.getMultivalueKey(DETECTED_OBJECT_MULTI_VALUE_KEY_PREFIX);
+            SandboxStatus vertexSandboxStatus = SandboxStatusUtil.getSandboxStatus(inVertex, workspaceId);
+            VisibilityJson visibilityJson;
+            if (vertexSandboxStatus == SandboxStatus.PUBLIC) {
+                visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(edge);
+                visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
+            } else {
+                visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(inVertex);
+                visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
+            }
+            VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
+            this.workQueueRepository.pushGraphPropertyQueue(
+                    outVertex,
+                    multiValueKey,
+                    VisalloProperties.DETECTED_OBJECT.getPropertyName(),
+                    workspaceId,
+                    visibilityJson.getSource(),
+                    priority
+            );
+    }
+
 }
