@@ -194,6 +194,17 @@ define([
                                 .sortBy('value')
                                 .value();
 
+                        _.each(values, function(v) {
+                            var isDateOnlyProperty = _.some(ontologyProperties.byDataType.date, {
+                                    title: v.propertyIri,
+                                    displayType: 'dateOnly'
+                                });
+
+                            if (isDateOnlyProperty) {
+                               v.value += (new Date(v.value).getTimezoneOffset() * 60000);
+                            }
+                        });
+
                         return { values: values, foundOntologyProperties: foundOntologyProperties };
                     })
         },
