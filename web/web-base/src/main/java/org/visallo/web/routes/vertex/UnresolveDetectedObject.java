@@ -12,6 +12,8 @@ import org.visallo.core.ingest.ArtifactDetectedObject;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceHelper;
+import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BadRequestException;
@@ -23,14 +25,17 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 public class UnresolveDetectedObject implements ParameterizedHandler {
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
+    private final WorkspaceHelper workspaceHelper;
 
     @Inject
     public UnresolveDetectedObject(
             final Graph graph,
-            WorkQueueRepository workQueueRepository
+            WorkQueueRepository workQueueRepository,
+            final WorkspaceHelper workspaceHelper
     ) {
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
+        this.workspaceHelper = workspaceHelper;
     }
 
     @Handle
@@ -38,6 +43,7 @@ public class UnresolveDetectedObject implements ParameterizedHandler {
             @Required(name = "vertexId") String vertexId,
             @Required(name = "multiValueKey") String multiValueKey,
             @ActiveWorkspaceId String workspaceId,
+            User user,
             Authorizations authorizations
     ) throws Exception {
         Vertex artifactVertex = graph.getVertex(vertexId, authorizations);
@@ -45,39 +51,10 @@ public class UnresolveDetectedObject implements ParameterizedHandler {
         Edge edge = graph.getEdge(artifactDetectedObject.getEdgeId(), authorizations);
         Vertex resolvedVertex = edge.getOtherVertex(artifactVertex.getId(), authorizations);
 
-        SandboxStatus vertexSandboxStatus = SandboxStatusUtil.getSandboxStatus(resolvedVertex, workspaceId);
         SandboxStatus edgeSandboxStatus = SandboxStatusUtil.getSandboxStatus(edge, workspaceId);
-        if (vertexSandboxStatus == SandboxStatus.PUBLIC && edgeSandboxStatus == SandboxStatus.PUBLIC) {
-            throw new BadRequestException("Can not unresolve a public entity");
-        }
+        boolean isPublicEdge = edgeSandboxStatus == SandboxStatus.PUBLIC;
 
-        VisibilityJson visibilityJson;
-        if (vertexSandboxStatus == SandboxStatus.PUBLIC) {
-            visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(edge);
-            visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
-        } else {
-            visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(resolvedVertex);
-            visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
-        }
-
-        long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
-        // remove edge
-        graph.softDeleteEdge(edge, authorizations);
-
-        // remove property
-        VisalloProperties.DETECTED_OBJECT.removeProperty(artifactVertex, multiValueKey, authorizations);
-
-        graph.flush();
-
-        this.workQueueRepository.pushEdgeDeletion(edge, beforeDeletionTimestamp, Priority.HIGH);
-        this.workQueueRepository.pushGraphPropertyQueue(
-                artifactVertex,
-                multiValueKey,
-                VisalloProperties.DETECTED_OBJECT.getPropertyName(),
-                workspaceId,
-                visibilityJson.getSource(),
-                Priority.HIGH
-        );
+        workspaceHelper.deleteEdge(workspaceId, edge, artifactVertex, resolvedVertex, isPublicEdge, Priority.HIGH, authorizations, user);
 
         return ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);
     }
