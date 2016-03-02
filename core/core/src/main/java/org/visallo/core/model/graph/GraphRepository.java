@@ -187,6 +187,7 @@ public class GraphRepository {
             String workspaceId,
             String justificationText,
             ClientApiSourceInfo sourceInfo,
+            User user,
             Authorizations authorizations
     ) {
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspaceId);
@@ -200,7 +201,10 @@ public class GraphRepository {
         }
         VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visalloVisibility.getVisibility());
         Metadata propertyMetadata = new Metadata();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
+        Visibility metadataVisibility = visibilityTranslator.getDefaultVisibility();
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(propertyMetadata, new Date(), metadataVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(propertyMetadata, user.getUserId(), metadataVisibility);
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, visibilityJson, metadataVisibility);
         VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptType, propertyMetadata, visalloVisibility.getVisibility());
 
         if (justificationText != null) {
