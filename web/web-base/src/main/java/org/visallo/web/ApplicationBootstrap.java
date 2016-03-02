@@ -45,8 +45,9 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
     public static final String GZIP_FILTER_NAME = "gzip";
-    public boolean isStopped = false;
+    private volatile boolean isStopped = false;
     private Configuration config;
+    private List<ApplicationBootstrapInitializer> applicationBootstrapInitializers = new ArrayList<>();
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -71,6 +72,7 @@ public class ApplicationBootstrap implements ServletContextListener {
             Iterable<ApplicationBootstrapInitializer> initializers = ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
             for (ApplicationBootstrapInitializer initializer : initializers) {
                 initializer.initialize();
+                applicationBootstrapInitializers.add(initializer);
             }
 
             Runtime.getRuntime().addShutdownHook(new Thread(){
@@ -109,13 +111,26 @@ public class ApplicationBootstrap implements ServletContextListener {
         safeLogInfo("Shutdown: Graph");
         InjectHelper.getInstance(Graph.class).shutdown();
 
+        // shutdown bootstrap instances first as they depend on of infrastructure services
+        for (ApplicationBootstrapInitializer initializer : applicationBootstrapInitializers) {
+            try {
+                safeLogInfo("Calling close on initializer: " + initializer.getClass().getName());
+                initializer.close();
+            } catch (Exception e){
+                safeLogInfo("Unable to close initializer: " + initializer.getClass().getName() + ". "
+                        + e.getClass().getName() + ". " + e.getMessage());
+                LOGGER.error("", e);
+            }
+        }
+
         // get a list of classes which implement closeable interface and call close
         Collection<Closeable> closeables = InjectHelper.getInjectedServices(Closeable.class, config);
         for (Closeable c : closeables) {
             try {
                 safeLogInfo("Calling close on: " + c.getClass().getName());
                 c.close();
-            } catch (IOException e) {
+                safeLogInfo("close successful: " + c.getClass().getName());
+            } catch (Exception e) {
                 safeLogInfo("Unable to close: " + c.getClass().getName() + ". " + e.getClass().getName() + ". "
                         + e.getMessage());
             }
@@ -192,10 +207,8 @@ public class ApplicationBootstrap implements ServletContextListener {
         servlet.setInitParameter("org.atmosphere.interceptor.HeartbeatInterceptor.heartbeatFrequencyInSeconds", "30");
         servlet.setInitParameter("org.atmosphere.cpr.CometSupport.maxInactiveActivity", "-1");
         servlet.setInitParameter("org.atmosphere.cpr.broadcasterCacheClass", UUIDBroadcasterCache.class.getName());
-        servlet.setInitParameter("org.atmosphere.cpr.dropAccessControlAllowOriginHeader", "true");
         servlet.setInitParameter("org.atmosphere.websocket.maxTextMessageSize", "1048576");
         servlet.setInitParameter("org.atmosphere.websocket.maxBinaryMessageSize", "1048576");
-
         addSecurityConstraint(servlet, config);
     }
 

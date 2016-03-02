@@ -111,7 +111,7 @@ define([
                 var deps = Array.prototype.slice.call(arguments, 0);
 
                 return new Promise(function(fulfill, reject) {
-                    require(_.filter(deps, _.isString), fulfill, reject);
+                    require(deps, fulfill, reject);
                 });
             };
         } else console.warn('Native implementation of require');
