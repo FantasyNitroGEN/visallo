@@ -11,7 +11,6 @@ import com.v5analytics.webster.annotations.Handle;
 import org.apache.commons.io.IOUtils;
 import org.visallo.core.config.Configuration;
 import org.visallo.web.WebApp;
-import org.visallo.web.WebConfiguration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +29,6 @@ public class Index implements ParameterizedHandler {
     private static final String PLUGIN_JS_RESOURCES_AFTER_AUTH_PARAM = "pluginJsResourcesAfterAuth";
     private static final String PLUGIN_CSS_RESOURCES_PARAM = "pluginCssResources";
     private static final String LOGO_IMAGE_DATA_URI = "logoDataUri";
-    private static final String SHOW_VERSION_COMMENTS = "showVersionComments";
     private static final String LOGO_PATH_BUNDLE_KEY = "visallo.loading-logo.path";
     private static final Map<String, String> MESSAGE_BUNDLE_PARAMS = ImmutableMap.of(
             "title", "visallo.title",
@@ -38,12 +36,6 @@ public class Index implements ParameterizedHandler {
     );
 
     private String indexHtml;
-    private boolean showVersionComments;
-
-    @Inject
-    public Index(Configuration configuration) {
-        showVersionComments = configuration.getBoolean(WebConfiguration.SHOW_VERSION_COMMENTS, true);
-    }
 
     @Handle
     public void handle(
@@ -64,7 +56,6 @@ public class Index implements ParameterizedHandler {
             context.put(PLUGIN_JS_RESOURCES_AFTER_AUTH_PARAM, app.getPluginsJsResourcesAfterAuth());
             context.put(PLUGIN_CSS_RESOURCES_PARAM, app.getPluginsCssResources());
             context.put(LOGO_IMAGE_DATA_URI, getLogoImageDataUri(request, resourceBundle));
-            context.put(SHOW_VERSION_COMMENTS, showVersionComments);
             for (Map.Entry<String, String> param : MESSAGE_BUNDLE_PARAMS.entrySet()) {
                 context.put(param.getKey(), resourceBundle.getString(param.getValue()));
             }

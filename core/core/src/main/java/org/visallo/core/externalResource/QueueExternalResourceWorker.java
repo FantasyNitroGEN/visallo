@@ -21,7 +21,7 @@ public abstract class QueueExternalResourceWorker extends ExternalResourceWorker
     public static final String QUEUE_NAME_PREFIX = "externalResource-";
     private WorkQueueRepository workQueueRepository;
     private UserRepository userRepository;
-    private boolean shouldRun;
+    private volatile boolean shouldRun;
     private Timer processingTimeTimer;
     private Counter totalProcessedCounter;
     private Counter totalErrorCounter;

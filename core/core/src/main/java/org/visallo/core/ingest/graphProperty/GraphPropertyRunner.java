@@ -448,6 +448,8 @@ public class GraphPropertyRunner extends WorkerBase {
         for (GraphPropertyThreadedWrapper wrapper : this.workerWrappers) {
             wrapper.stop();
         }
+
+        super.stop();
     }
 
     public UserRepository getUserRepository() {

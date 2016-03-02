@@ -21,6 +21,8 @@ public abstract class ExternalResourceWorker {
 
     protected abstract void run() throws Exception;
 
+    protected abstract void stop();
+
     @Inject
     public final void setMetricsManager(MetricsManager metricsManager) {
         this.metricsManager = metricsManager;

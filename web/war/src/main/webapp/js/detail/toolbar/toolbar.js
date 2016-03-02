@@ -160,9 +160,7 @@ define([
                         title: i18n('detail.toolbar.open'),
                         submenu: _.compact([
                             ToolbarComponent.ITEMS.FULLSCREEN,
-                            this.sourceUrlToolbarItem(model),
-                            this.openToolbarItem(model),
-                            this.downloadToolbarItem(model)
+                            this.sourceUrlToolbarItem(model)
                         ]).concat(this.selectionHistory())
                     },
                     {
@@ -255,28 +253,6 @@ define([
                     });
                 }
                 return menus;
-            }
-        };
-
-        this.openToolbarItem = function(model) {
-            var rawProps = F.vertex.props(model, 'http://visallo.org#raw');
-            if (rawProps.length) {
-                return {
-                    title: i18n('detail.artifact.open.original'),
-                    subtitle: i18n('detail.artifact.open.original.subtitle'),
-                    event: 'openOriginal'
-                };
-            }
-        };
-
-        this.downloadToolbarItem = function(model) {
-            var rawProps = F.vertex.props(model, 'http://visallo.org#raw');
-            if (rawProps.length) {
-                return {
-                    title: i18n('detail.artifact.open.download.original'),
-                    subtitle: i18n('detail.artifact.open.download.original.subtitle'),
-                    event: 'downloadOriginal'
-                };
             }
         };
 
