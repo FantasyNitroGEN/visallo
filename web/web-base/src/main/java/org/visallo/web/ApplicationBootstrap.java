@@ -37,9 +37,11 @@ import java.io.IOException;
 import java.util.*;
 
 public class ApplicationBootstrap implements ServletContextListener {
-    public static final String CONFIG_HTTP_TRANSPORT_GUARANTEE = "http.transportGuarantee";
     private static VisalloLogger LOGGER;
+
+    public static final String CONFIG_HTTP_TRANSPORT_GUARANTEE = "http.transportGuarantee";
     public static final String APP_CONFIG_LOADER = "application.config.loader";
+    public static final String ORG_ECLIPSE_JETTY_SERVLET_DEFAULT_DIR_ALLOWED = "org.eclipse.jetty.servlet.Default.dirAllowed";
     public static final String VISALLO_SERVLET_NAME = "visallo";
     public static final String ATMOSPHERE_SERVLET_NAME = "atmosphere";
     public static final String DEBUG_FILTER_NAME = "debug";
@@ -183,6 +185,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         ServletRegistration.Dynamic servlet = context.addServlet(VISALLO_SERVLET_NAME, router);
         servlet.addMapping("/*");
         servlet.setAsyncSupported(true);
+        servlet.setInitParameter(ORG_ECLIPSE_JETTY_SERVLET_DEFAULT_DIR_ALLOWED, "false");
         addSecurityConstraint(servlet, config);
         addAtmosphereServlet(context, config);
         addDebugFilter(context);
