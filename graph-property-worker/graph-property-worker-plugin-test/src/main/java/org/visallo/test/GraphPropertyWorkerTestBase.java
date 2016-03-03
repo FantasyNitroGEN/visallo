@@ -22,6 +22,7 @@ import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
@@ -88,7 +89,7 @@ public abstract class GraphPropertyWorkerTestBase {
                 user = getUser();
             }
             if (authorizations == null) {
-                authorizations = getGraphAuthorizations();
+                authorizations = getGraphAuthorizations(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
             }
             graphPropertyWorkerPrepareData = new GraphPropertyWorkerPrepareData(configuration, termMentionFilters, user, authorizations, injector);
         }
