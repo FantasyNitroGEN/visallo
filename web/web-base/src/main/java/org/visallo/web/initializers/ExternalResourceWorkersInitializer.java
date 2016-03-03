@@ -9,15 +9,11 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
-import java.io.IOException;
-import java.util.Collection;
-
 public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInitializer {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ExternalResourceWorkersInitializer.class);
     private final Configuration config;
     private final UserRepository userRepository;
     private final StatusRepository statusRepository;
-    private ExternalResourceRunner resourceRunner;
 
     @Inject
     public ExternalResourceWorkersInitializer(
@@ -35,14 +31,6 @@ public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInit
         LOGGER.debug("setupExternalResourceWorkers");
 
         final User user = userRepository.getSystemUser();
-        resourceRunner = new ExternalResourceRunner(config, statusRepository, user);
-        resourceRunner.startAll();
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (resourceRunner != null) {
-            resourceRunner.shutdown();
-        }
+        new ExternalResourceRunner(config, statusRepository, user).startAll();
     }
 }

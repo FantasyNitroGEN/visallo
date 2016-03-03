@@ -47,10 +47,12 @@
   <script data-main="visallo" src='libs/requirejs/require.js'></script>
 </head>
 <body>
+{{#if showVersionComments }}
 <!-- Version: ${project.version} -->
 <!-- SCM URL: ${project.scm.url} -->
 <!-- Git SHA-1: ${buildNumber} -->
 <!-- Build Timestamp: ${build.timestamp.formatted} -->
+{{/if}}
 <div id='app'></div>
 <div id='login'></div>
 
