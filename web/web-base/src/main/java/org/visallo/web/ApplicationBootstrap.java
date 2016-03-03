@@ -24,7 +24,6 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.status.StatusRepository;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -47,8 +46,9 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
     public static final String GZIP_FILTER_NAME = "gzip";
-    public boolean isStopped = false;
+    private volatile boolean isStopped = false;
     private Configuration config;
+    private List<ApplicationBootstrapInitializer> applicationBootstrapInitializers = new ArrayList<>();
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -73,9 +73,10 @@ public class ApplicationBootstrap implements ServletContextListener {
             Iterable<ApplicationBootstrapInitializer> initializers = ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
             for (ApplicationBootstrapInitializer initializer : initializers) {
                 initializer.initialize();
+                applicationBootstrapInitializers.add(initializer);
             }
 
-            Runtime.getRuntime().addShutdownHook(new Thread(){
+            Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
                     contextDestroyed(null);
@@ -110,6 +111,18 @@ public class ApplicationBootstrap implements ServletContextListener {
 
         safeLogInfo("Shutdown: Graph");
         InjectHelper.getInstance(Graph.class).shutdown();
+
+        // shutdown bootstrap instances first as they depend on of infrastructure services
+        for (ApplicationBootstrapInitializer initializer : applicationBootstrapInitializers) {
+            try {
+                safeLogInfo("Calling close on initializer: " + initializer.getClass().getName());
+                initializer.close();
+            } catch (Exception e) {
+                safeLogInfo("Unable to close initializer: " + initializer.getClass().getName() + ". "
+                        + e.getClass().getName() + ". " + e.getMessage());
+                LOGGER.error("", e);
+            }
+        }
 
         // get a list of classes which implement closeable interface and call close
         Collection<Closeable> closeables = InjectHelper.getInjectedServices(Closeable.class, config);

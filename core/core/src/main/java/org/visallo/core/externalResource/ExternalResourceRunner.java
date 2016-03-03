@@ -20,6 +20,8 @@ public class ExternalResourceRunner {
     private final Configuration config;
     private final User user;
     private final StatusRepository statusRepository;
+    private List<RunningWorker> runningWorkers = new ArrayList<>();
+    private StatusServer statusServer = null;
 
     public ExternalResourceRunner(
             Configuration config,
@@ -31,29 +33,10 @@ public class ExternalResourceRunner {
         this.user = user;
     }
 
-    public void startAllAndWait() {
-        Collection<RunningWorker> runningWorkers = startAll();
-        while (runningWorkers.size() > 0) {
-            for (RunningWorker runningWorker : runningWorkers) {
-                if (!runningWorker.getThread().isAlive()) {
-                    LOGGER.error("found a dead thread: " + runningWorker.getThread().getName());
-                    return;
-                }
-
-                try {
-                    runningWorker.getThread().join(1000);
-                } catch (InterruptedException e) {
-                    LOGGER.error("join interrupted", e);
-                    return;
-                }
-            }
-        }
-    }
-
     public Collection<RunningWorker> startAll() {
-        final List<RunningWorker> runningWorkers = new ArrayList<>();
+        runningWorkers = new ArrayList<>();
         if (config.getBoolean(Configuration.STATUS_ENABLED, Configuration.STATUS_ENABLED_DEFAULT)) {
-            startStatusServer(runningWorkers);
+            statusServer = startStatusServer(runningWorkers);
         }
 
         Collection<ExternalResourceWorker> workers = InjectHelper.getInjectedServices(ExternalResourceWorker.class, config);
@@ -63,8 +46,8 @@ public class ExternalResourceRunner {
         return runningWorkers;
     }
 
-    private void startStatusServer(final List<RunningWorker> runningWorkers) {
-        new StatusServer(config, statusRepository, "externalResource", ExternalResourceRunner.class) {
+    private StatusServer startStatusServer(final List<RunningWorker> runningWorkers) {
+        return new StatusServer(config, statusRepository, "externalResource", ExternalResourceRunner.class) {
             @Override
             protected ExternalResourceRunnerStatus createStatus() {
                 ExternalResourceRunnerStatus status = new ExternalResourceRunnerStatus();
@@ -95,6 +78,18 @@ public class ExternalResourceRunner {
         return new RunningWorker(worker, t);
     }
 
+    public void shutdown() {
+        LOGGER.debug("Stopping ExternalResourceRunner...");
+        for (RunningWorker worker : runningWorkers) {
+            worker.shutdown();
+        }
+
+        if (statusServer != null) {
+            statusServer.shutdown();
+        }
+        LOGGER.debug("Stopped ExternalResourceRunner");
+    }
+
     public static class RunningWorker {
         private final ExternalResourceWorker worker;
         private final Thread thread;
@@ -120,6 +115,10 @@ public class ExternalResourceRunner {
                 status.getMetrics().put(metric.getName(), Status.Metric.create(metric.getMetric()));
             }
             return status;
+        }
+
+        public void shutdown() {
+            worker.stop();
         }
     }
 }

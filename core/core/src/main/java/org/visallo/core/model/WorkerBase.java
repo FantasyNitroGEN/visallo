@@ -12,7 +12,8 @@ import org.visallo.core.util.VisalloLoggerFactory;
 public abstract class WorkerBase {
     private final boolean statusEnabled;
     private WorkQueueRepository workQueueRepository;
-    private boolean shouldRun;
+    private volatile boolean shouldRun;
+    private StatusServer statusServer = null;
 
     protected WorkerBase(WorkQueueRepository workQueueRepository, Configuration configuration) {
         this.workQueueRepository = workQueueRepository;
@@ -25,34 +26,26 @@ public abstract class WorkerBase {
         logger.debug("begin runner");
         WorkerSpout workerSpout = prepareWorkerSpout();
         shouldRun = true;
-        StatusServer statusServer = null;
-        try {
-            if (statusEnabled) {
-                statusServer = createStatusServer();
+        if (statusEnabled) {
+            statusServer = createStatusServer();
+        }
+        while (shouldRun) {
+            WorkerTuple tuple = workerSpout.nextTuple();
+            if (tuple == null) {
+                Thread.sleep(100);
+                continue;
             }
-            while (shouldRun) {
-                WorkerTuple tuple = workerSpout.nextTuple();
-                if (tuple == null) {
-                    Thread.sleep(100);
-                    continue;
-                }
-                try {
-                    logger.debug("start processing");
-                    long startTime = System.currentTimeMillis();
-                    process(tuple.getMessageId(), tuple.getJson());
-                    long endTime = System.currentTimeMillis();
-                    logger.debug("completed processing in (%dms)", endTime - startTime);
-                    workerSpout.ack(tuple.getMessageId());
-                } catch (Throwable ex) {
-                    logger.error("Could not process tuple: %s", tuple, ex);
-                    workerSpout.fail(tuple.getMessageId());
-                }
+            try {
+                logger.debug("start processing");
+                long startTime = System.currentTimeMillis();
+                process(tuple.getMessageId(), tuple.getJson());
+                long endTime = System.currentTimeMillis();
+                logger.debug("completed processing in (%dms)", endTime - startTime);
+                workerSpout.ack(tuple.getMessageId());
+            } catch (Throwable ex) {
+                logger.error("Could not process tuple: %s", tuple, ex);
+                workerSpout.fail(tuple.getMessageId());
             }
-        } finally {
-            if (statusServer != null) {
-                statusServer.shutdown();
-            }
-            logger.debug("end runner");
         }
     }
 
@@ -62,6 +55,9 @@ public abstract class WorkerBase {
 
     public void stop() {
         shouldRun = false;
+        if (statusServer != null) {
+            statusServer.shutdown();
+        }
     }
 
     protected WorkerSpout prepareWorkerSpout() {
