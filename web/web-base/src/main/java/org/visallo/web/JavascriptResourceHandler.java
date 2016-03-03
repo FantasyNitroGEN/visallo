@@ -20,16 +20,28 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 
 public class JavascriptResourceHandler implements RequestResponseHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JavascriptResourceHandler.class);
-    private static final ExecutorService compilationExecutor = Executors.newFixedThreadPool(5);
+    private static final int EXECUTOR_CONCURRENT = 3;
+    private static final long EXECUTOR_IDLE_THREAD_RELEASE_SECONDS = 5;
+    private static final ExecutorService compilationExecutor;
+
+    static {
+        ThreadPoolExecutor e = (ThreadPoolExecutor) new ThreadPoolExecutor(
+                EXECUTOR_CONCURRENT,
+                EXECUTOR_CONCURRENT,
+                EXECUTOR_IDLE_THREAD_RELEASE_SECONDS,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue());
+
+        e.allowCoreThreadTimeOut(true);
+
+        compilationExecutor = e;
+    }
 
     private String jsResourceName;
     private String jsResourcePath;
@@ -38,21 +50,19 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
     private String originalJavascript;
     private String compiledJavascript;
     private Long compiledLastModified;
-    private FutureTask<String> compilationTask;
+    private Future<String> compilationTask;
 
     public JavascriptResourceHandler(final String jsResourceName, final String jsResourcePath, boolean enableSourceMaps) {
         this.jsResourceName = jsResourceName;
         this.jsResourcePath = jsResourcePath;
         this.enableSourceMaps = enableSourceMaps;
 
-        compilationTask = new FutureTask<String>(new Callable<String>() {
+        compilationTask = compilationExecutor.submit(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 return compileIfNecessary();
             }
         });
-
-        compilationExecutor.execute(compilationTask);
     }
 
     @Override
