@@ -5,6 +5,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
     }
 
     @Override
-    public void initialize() {
+    public void initialize(ServletContext context) {
         LOGGER.debug("setupLongRunningProcessRunner");
 
         int threadCount = config.getInt(CONFIG_THREAD_COUNT, DEFAULT_THREAD_COUNT);

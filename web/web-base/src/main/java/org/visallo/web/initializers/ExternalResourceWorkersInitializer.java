@@ -9,6 +9,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -31,7 +32,7 @@ public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInit
     }
 
     @Override
-    public void initialize() {
+    public void initialize(ServletContext context) {
         LOGGER.debug("setupExternalResourceWorkers");
 
         final User user = userRepository.getSystemUser();

@@ -68,13 +68,15 @@ public class ApplicationBootstrap implements ServletContextListener {
             setupInjector(context, config);
             verifyGraphVersion();
             setupGraphAuthorizations();
-            setupWebApp(context, config);
 
-            Iterable<ApplicationBootstrapInitializer> initializers = ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
+            Iterable<ApplicationBootstrapInitializer> initializers =
+                    ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
             for (ApplicationBootstrapInitializer initializer : initializers) {
-                initializer.initialize();
+                initializer.initialize(context);
                 applicationBootstrapInitializers.add(initializer);
             }
+
+            setupWebApp(context, config);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
