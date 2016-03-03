@@ -1,7 +1,7 @@
 define([
     'util/popovers/withElementScrollingPositionUpdates',
     'util/withCollapsibleSections',
-    'util/vertex/urlFormatters',
+    'util/vertex/formatters',
     'util/withDataRequest',
     'util/privileges',
     'require'
@@ -45,6 +45,8 @@ define([
                 this.on('maskWithOverlay', this.onMaskWithOverlay);
                 this.on('commentOnSelection', this.onCommentOnSelection);
                 this.on('addImage', this.onAddImage);
+                this.on('openOriginal', this.onOpenOriginal);
+                this.on('downloadOriginal', this.onDownloadOriginal);
 
                 this.makeVertexTitlesDraggable();
             }
@@ -67,6 +69,17 @@ define([
                     throw new Error('Unable to redirect properties request', event.type, data);
                 }
             }
+        };
+
+        this.onOpenOriginal = function(event) {
+            window.open(F.vertex.raw(this.attr.model));
+        };
+
+        this.onDownloadOriginal = function(event) {
+            var rawSrc = F.vertex.raw(this.attr.model);
+            window.open(rawSrc + (
+                /\?/.test(rawSrc) ? '&' : '?'
+            ) + 'download=true');
         };
 
         this.onAddImage = function(event, data) {
