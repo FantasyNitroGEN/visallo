@@ -32,12 +32,18 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
     private static final ExecutorService compilationExecutor = Executors.newFixedThreadPool(5);
 
     private String jsResourceName;
+    private String jsResourcePath;
+    private boolean enableSourceMaps;
+    private String sourceMap;
+    private String originalJavascript;
     private String compiledJavascript;
     private Long compiledLastModified;
     private FutureTask<String> compilationTask;
 
-    public JavascriptResourceHandler(final String jsResourceName) {
+    public JavascriptResourceHandler(final String jsResourceName, final String jsResourcePath, boolean enableSourceMaps) {
         this.jsResourceName = jsResourceName;
+        this.jsResourcePath = jsResourcePath;
+        this.enableSourceMaps = enableSourceMaps;
 
         compilationTask = new FutureTask<String>(new Callable<String>() {
             @Override
@@ -51,7 +57,6 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        response.setContentType("application/javascript");
 
         if (compilationTask.isDone()) {
             compileIfNecessary();
@@ -59,7 +64,19 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
             compilationTask.get();
         }
 
-        write(response.getWriter(), compiledJavascript);
+        if (request.getRequestURI().endsWith(".map")) {
+            response.setContentType("application/json");
+            write(response.getWriter(), sourceMap);
+        } else if (request.getRequestURI().endsWith(".src")) {
+            response.setContentType("application/javascript");
+            write(response.getWriter(), originalJavascript);
+        } else {
+            response.setContentType("application/javascript");
+            if (sourceMap != null) {
+                response.setHeader("X-SourceMap", request.getRequestURI() + ".map");
+            }
+            write(response.getWriter(), compiledJavascript);
+        }
     }
 
     private void write(PrintWriter writer, String output) {
@@ -68,7 +85,7 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
                 outWriter.println(output);
             }
         } else {
-            throw new VisalloException("Unable to compile " + jsResourceName);
+            throw new VisalloException("Errors during minify: " + jsResourceName);
         }
     }
 
@@ -85,6 +102,7 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
                 try (StringWriter writer = new StringWriter()) {
                     IOUtils.copy(input, writer, StandardCharsets.UTF_8);
                     String inputJavascript = writer.toString();
+                    originalJavascript = inputJavascript;
                     compiledJavascript = runClosureCompilation(inputJavascript);
                 }
             }
@@ -103,15 +121,26 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
         compilerOptions.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT6);
         compilerOptions.setLanguageOut(CompilerOptions.LanguageMode.ECMASCRIPT5);
         compilerOptions.setEnvironment(CompilerOptions.Environment.BROWSER);
+        compilerOptions.setSourceMapOutputPath("");
+        compilerOptions.setSourceMapFormat(SourceMap.Format.V3);
+        compilerOptions.setSourceMapDetailLevel(SourceMap.DetailLevel.ALL);
 
         List<SourceFile> inputs = new ArrayList<SourceFile>();
-        inputs.add(SourceFile.fromCode(jsResourceName, inputJavascript));
+        inputs.add(SourceFile.fromCode(jsResourcePath + ".src", inputJavascript));
 
         List<SourceFile> externs = AbstractCommandLineRunner.getBuiltinExterns(compilerOptions);
         externs.add(SourceFile.fromInputStream("visallo-externs.js", this.getClass().getResourceAsStream("visallo-externs.js"), Charset.forName("UTF-8")));
         Result result = compiler.compile(externs, inputs, compilerOptions);
         if (result.success) {
-            return compiler.toSource();
+            String output = compiler.toSource();
+
+            if (enableSourceMaps) {
+                StringBuilder sb = new StringBuilder();
+                result.sourceMap.appendTo(sb, jsResourcePath);
+                sourceMap = sb.toString();
+            }
+
+            return output;
         }
         return null;
     }

@@ -114,7 +114,13 @@ public class WebApp extends App {
     private void register(String name, String type, String pathPrefix, Boolean includeInPage, List<String> resourceList) {
         String resourcePath = "/" + (pathPrefix + name).replaceAll("^/", "");
         if (type.equals("application/javascript")) {
-            get(resourcePath, new JavascriptResourceHandler(name));
+            boolean enableSourceMaps = isDevModeEnabled();
+            JavascriptResourceHandler handler = new JavascriptResourceHandler(name, resourcePath, enableSourceMaps);
+            get(resourcePath, handler);
+            if (enableSourceMaps) {
+                get(resourcePath + ".map", handler);
+                get(resourcePath + ".src", handler);
+            }
         } else {
             get(resourcePath, new StaticResourceHandler(this.getClass(), name, type));
         }
