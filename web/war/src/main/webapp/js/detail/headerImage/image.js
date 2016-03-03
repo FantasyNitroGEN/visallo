@@ -134,7 +134,7 @@ define([
         this.isArtifactDisplayType = function() {
             var concept = F.vertex.concept(this.attr.data);
             if (concept && concept.displayType) {
-                return (/^(audio|video|image)$/).test(concept.displayType);
+                return (/^(video|image)$/).test(concept.displayType);
             }
             return false;
         }

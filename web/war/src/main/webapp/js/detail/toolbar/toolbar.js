@@ -308,7 +308,7 @@ define([
 
         this.addImageToolbarItem = function(model) {
             var displayType = F.vertex.displayType(model);
-            var disableAddImage = (model.hasOwnProperty('updateable') && !model.updateable);
+            var disableAddImage = (model.hasOwnProperty('updateable') && !model.updateable || model.type === 'edge');
 
             if (!disableAddImage && (displayType !== 'image' && displayType !== 'video')) {
                 return ToolbarComponent.ITEMS.ADD_IMAGE;
