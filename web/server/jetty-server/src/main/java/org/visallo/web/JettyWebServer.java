@@ -2,14 +2,18 @@ package org.visallo.web;
 
 import com.beust.jcommander.Parameter;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+
+import java.lang.management.ManagementFactory;
 
 public class JettyWebServer extends WebServer {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JettyWebServer.class, "web");
@@ -28,6 +32,12 @@ public class JettyWebServer extends WebServer {
         int httpPort = super.getHttpPort();
 
         server = new org.eclipse.jetty.server.Server();
+
+        // Setup JMX
+        MBeanContainer mbContainer=new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
+        server.addEventListener(mbContainer);
+        server.addBean(mbContainer);
+        server.addBean(Log.getLog());
 
         HttpConfiguration http_config = new HttpConfiguration();
         http_config.setSecureScheme("https");
