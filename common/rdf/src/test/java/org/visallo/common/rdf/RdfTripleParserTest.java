@@ -1,8 +1,6 @@
 package org.visallo.common.rdf;
 
 import org.junit.Test;
-import org.visallo.common.rdf.RdfTriple;
-import org.visallo.common.rdf.RdfTripleParser;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,6 +24,18 @@ public class RdfTripleParserTest {
     public void testParseLinePropertyValueWithoutLanguage() throws Exception {
         RdfTriple result = RdfTripleParser.parseLine("<http://dbpedia.org/resource/Aristotle> <http://xmlns.com/foaf/0.1/name> \"Aristotle\" .");
         assertEquals("", ((RdfTriple.LiteralPart) result.getThird()).getLanguage());
+    }
+
+    @Test
+    public void testParseLinePropertyValueWithEscapes() throws Exception {
+        RdfTriple result = RdfTripleParser.parseLine("<http://visallo.org/jsonObject> <http://visallo.org/jsonProperty> \"{\\\"property1\\\": \\\"value1\\\\with slash\\\"}\" .");
+        assertEquals("{\"property1\": \"value1\\with slash\"}", ((RdfTriple.LiteralPart) result.getThird()).getString());
+    }
+
+    @Test
+    public void testParseLinePropertyValueWithSpecialCharacters() throws Exception {
+        RdfTriple result = RdfTripleParser.parseLine("<http://visallo.org/jsonObject> <http://visallo.org/jsonProperty> \"<>/\" .");
+        assertEquals("<>/", ((RdfTriple.LiteralPart) result.getThird()).getString());
     }
 
     @Test
