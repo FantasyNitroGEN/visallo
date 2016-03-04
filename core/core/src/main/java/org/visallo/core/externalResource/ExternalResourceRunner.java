@@ -33,6 +33,25 @@ public class ExternalResourceRunner {
         this.user = user;
     }
 
+    public void startAllAndWait() {
+        Collection<RunningWorker> runningWorkers = startAll();
+        while (runningWorkers.size() > 0) {
+            for (RunningWorker runningWorker : runningWorkers) {
+                if (!runningWorker.getThread().isAlive()) {
+                    LOGGER.error("found a dead thread: " + runningWorker.getThread().getName());
+                    return;
+                }
+
+                try {
+                    runningWorker.getThread().join(1000);
+                } catch (InterruptedException e) {
+                    LOGGER.error("join interrupted", e);
+                    return;
+                }
+            }
+        }
+    }
+
     public Collection<RunningWorker> startAll() {
         runningWorkers = new ArrayList<>();
         if (config.getBoolean(Configuration.STATUS_ENABLED, Configuration.STATUS_ENABLED_DEFAULT)) {
