@@ -25,73 +25,77 @@ import java.util.logging.Level;
 
 
 public class JavascriptResourceHandler implements RequestResponseHandler {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JavascriptResourceHandler.class);
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JavascriptResourceHandlerErrorManager.class);
+
     private static final int EXECUTOR_CONCURRENT = 3;
     private static final long EXECUTOR_IDLE_THREAD_RELEASE_SECONDS = 5;
-    private static final ExecutorService compilationExecutor;
+    private static final ThreadPoolExecutor compilationExecutor = new ThreadPoolExecutor(
+            EXECUTOR_CONCURRENT,
+            EXECUTOR_CONCURRENT,
+            EXECUTOR_IDLE_THREAD_RELEASE_SECONDS,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue());
 
     static {
-        ThreadPoolExecutor e = (ThreadPoolExecutor) new ThreadPoolExecutor(
-                EXECUTOR_CONCURRENT,
-                EXECUTOR_CONCURRENT,
-                EXECUTOR_IDLE_THREAD_RELEASE_SECONDS,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue());
-
-        e.allowCoreThreadTimeOut(true);
-
-        compilationExecutor = e;
+        compilationExecutor.allowCoreThreadTimeOut(true);
     }
 
     private String jsResourceName;
     private String jsResourcePath;
     private boolean enableSourceMaps;
-    private String sourceMap;
-    private String originalJavascript;
-    private String compiledJavascript;
-    private Long compiledLastModified;
-    private Future<String> compilationTask;
+    private Future<CachedCompilation> compilationTask;
+    private volatile CachedCompilation previousCompilation;
 
     public JavascriptResourceHandler(final String jsResourceName, final String jsResourcePath, boolean enableSourceMaps) {
         this.jsResourceName = jsResourceName;
         this.jsResourcePath = jsResourcePath;
         this.enableSourceMaps = enableSourceMaps;
 
-        compilationTask = compilationExecutor.submit(new Callable<String>() {
+        compilationTask = compilationExecutor.submit(new Callable<CachedCompilation>() {
             @Override
-            public String call() throws Exception {
-                return compileIfNecessary();
+            public CachedCompilation call() throws Exception {
+                return compileIfNecessary(null);
             }
         });
     }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-
-        if (compilationTask.isDone()) {
-            compileIfNecessary();
-        } else {
-            compilationTask.get();
-        }
+        CachedCompilation cache = getCache();
 
         if (request.getRequestURI().endsWith(".map")) {
-            response.setContentType("application/json");
-            write(response.getWriter(), sourceMap);
+            write(response, "application/json", cache.getSourceMap());
         } else if (request.getRequestURI().endsWith(".src")) {
-            response.setContentType("application/javascript");
-            write(response.getWriter(), originalJavascript);
+            write(response, "application/javascript", cache.getInput());
         } else {
-            response.setContentType("application/javascript");
-            if (sourceMap != null) {
+            if (this.enableSourceMaps && cache.getSourceMap() != null) {
                 response.setHeader("X-SourceMap", request.getRequestURI() + ".map");
             }
-            write(response.getWriter(), compiledJavascript);
+            write(response, "application/javascript", cache.getOutput());
         }
     }
 
-    private void write(PrintWriter writer, String output) {
+    private CachedCompilation getCache() throws IOException, InterruptedException, ExecutionException {
+        CachedCompilation cache;
+
+        if (compilationTask == null) {
+            cache = compileIfNecessary(previousCompilation);
+        } else if (compilationTask.isDone()) {
+            previousCompilation = compilationTask.get();
+            compilationTask = null;
+            cache = compileIfNecessary(previousCompilation);
+        } else {
+            cache = compilationTask.get();
+        }
+
+        previousCompilation = cache;
+        return cache;
+    }
+
+    private void write(HttpServletResponse response, String contentType, String output) throws IOException {
         if (output != null) {
-            try (PrintWriter outWriter = writer) {
+            try (PrintWriter outWriter = response.getWriter()) {
+                response.setContentType(contentType);
                 outWriter.println(output);
             }
         } else {
@@ -99,29 +103,29 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
         }
     }
 
-    private long getLastModified() throws IOException {
-        URL url = this.getClass().getResource(jsResourceName);
-        return url.openConnection().getLastModified();
-    }
 
-    private String compileIfNecessary() throws IOException {
-        long lastModified = getLastModified();
-        if (compiledLastModified == null || compiledLastModified != lastModified || compiledJavascript == null) {
-            compiledLastModified = lastModified;
+    private CachedCompilation compileIfNecessary(CachedCompilation previousCompilation) throws IOException {
+        URL url = this.getClass().getResource(jsResourceName);
+        long lastModified = url.openConnection().getLastModified();
+
+        if (previousCompilation == null || previousCompilation.isNecessary(lastModified)) {
+            CachedCompilation newCache = new CachedCompilation();
+            newCache.setLastModified(lastModified);
             try (InputStream input = this.getClass().getResourceAsStream(jsResourceName)) {
                 try (StringWriter writer = new StringWriter()) {
                     IOUtils.copy(input, writer, StandardCharsets.UTF_8);
                     String inputJavascript = writer.toString();
-                    originalJavascript = inputJavascript;
-                    compiledJavascript = runClosureCompilation(inputJavascript);
+                    newCache.setInput(inputJavascript);
+                    runClosureCompilation(newCache);
                 }
             }
+            return newCache;
         }
 
-        return compiledJavascript;
+        return previousCompilation;
     }
 
-    private String runClosureCompilation(String inputJavascript) throws IOException {
+    private CachedCompilation runClosureCompilation(CachedCompilation cachedCompilation) throws IOException {
         Compiler.setLoggingLevel(Level.INFO);
         Compiler compiler = new Compiler(new JavascriptResourceHandlerErrorManager());
 
@@ -136,40 +140,86 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
         compilerOptions.setSourceMapDetailLevel(SourceMap.DetailLevel.ALL);
 
         List<SourceFile> inputs = new ArrayList<SourceFile>();
-        inputs.add(SourceFile.fromCode(jsResourcePath + ".src", inputJavascript));
+        inputs.add(SourceFile.fromCode(jsResourcePath + ".src", cachedCompilation.getInput()));
 
         List<SourceFile> externs = AbstractCommandLineRunner.getBuiltinExterns(compilerOptions);
-        externs.add(SourceFile.fromInputStream("visallo-externs.js", this.getClass().getResourceAsStream("visallo-externs.js"), Charset.forName("UTF-8")));
+        InputStream visalloExterns = JavascriptResourceHandler.class.getResourceAsStream("visallo-externs.js");
+        externs.add(SourceFile.fromInputStream("visallo-externs.js", visalloExterns, Charset.forName("UTF-8")));
+
         Result result = compiler.compile(externs, inputs, compilerOptions);
         if (result.success) {
-            String output = compiler.toSource();
+            cachedCompilation.setOutput(compiler.toSource());
 
             if (enableSourceMaps) {
                 StringBuilder sb = new StringBuilder();
                 result.sourceMap.appendTo(sb, jsResourcePath);
-                sourceMap = sb.toString();
+                cachedCompilation.setSourceMap(sb.toString());
             }
+        }
+        return cachedCompilation;
+    }
 
+    private static class CachedCompilation {
+        private String sourceMap;
+        private String input;
+        private String output;
+        private Long lastModified;
+
+        public String getSourceMap() {
+            return sourceMap;
+        }
+
+        public void setSourceMap(String sourceMap) {
+            this.sourceMap = sourceMap;
+        }
+
+        public String getInput() {
+            return input;
+        }
+
+        public void setInput(String input) {
+            this.input = input;
+        }
+
+        public String getOutput() {
             return output;
         }
-        return null;
-    }
-}
 
-class JavascriptResourceHandlerErrorManager extends BasicErrorManager {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JavascriptResourceHandlerErrorManager.class);
+        public void setOutput(String output) {
+            this.output = output;
+        }
 
-    @Override
-    public void println(CheckLevel checkLevel, JSError jsError) {
-        if (checkLevel.equals(CheckLevel.ERROR)) {
-            LOGGER.error("%s:%s %s", jsError.sourceName, jsError.getLineNumber(), jsError.description);
+        public Long getLastModified() {
+            return lastModified;
+        }
+
+        public void setLastModified(Long lastModified) {
+            this.lastModified = lastModified;
+        }
+
+        public boolean isNecessary(long lastModified) {
+            return getLastModified() == null ||
+                   getLastModified() != lastModified ||
+                   getOutput() == null;
         }
     }
 
-    @Override
-    protected void printSummary() {
-        if (this.getErrorCount() > 0) {
-            LOGGER.error("%d error(s)", this.getErrorCount());
+    private static class JavascriptResourceHandlerErrorManager extends BasicErrorManager {
+        private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JavascriptResourceHandlerErrorManager.class);
+
+        @Override
+        public void println(CheckLevel checkLevel, JSError jsError) {
+            if (checkLevel.equals(CheckLevel.ERROR)) {
+                LOGGER.error("%s:%s %s", jsError.sourceName, jsError.getLineNumber(), jsError.description);
+            }
+        }
+
+        @Override
+        protected void printSummary() {
+            if (this.getErrorCount() > 0) {
+                LOGGER.error("%d error(s)", this.getErrorCount());
+            }
         }
     }
 }
+
