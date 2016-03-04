@@ -91,6 +91,10 @@
             <artifactId>lesscss-engine</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.google.javascript</groupId>
+            <artifactId>closure-compiler</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
         </dependency>
