@@ -138,19 +138,9 @@
                         <version>${plugin.frontend}</version>
                         <configuration>
                             <workingDirectory>src/main/webapp</workingDirectory>
+                            <installDirectory>${frontend.installDirectory}</installDirectory>
                         </configuration>
                         <executions>
-                            <execution>
-                                <id>install-node-and-npm</id>
-                                <goals>
-                                    <goal>install-node-and-npm</goal>
-                                </goals>
-                                <phase>generate-resources</phase>
-                                <configuration>
-                                    <nodeVersion>${node.version}</nodeVersion>
-                                    <npmVersion>${npm.version}</npmVersion>
-                                </configuration>
-                            </execution>
                             <execution>
                                 <id>install-npm-modules</id>
                                 <goals>
