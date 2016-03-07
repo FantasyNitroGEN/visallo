@@ -38,6 +38,7 @@ public class WebApp extends App {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WebApp.class);
     private final Injector injector;
     private final boolean devMode;
+    private final boolean pluginDevMode;
 
     private final List<String> pluginsJsResourcesWebWorker = new ArrayList<>();
     private final List<String> pluginsJsResourcesBeforeAuth = new ArrayList<>();
@@ -76,6 +77,7 @@ public class WebApp extends App {
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = config.getBoolean(Configuration.DEV_MODE, Configuration.DEV_MODE_DEFAULT);
+        this.pluginDevMode = config.getBoolean(Configuration.PLUGIN_DEV_MODE, Configuration.PLUGIN_DEV_MODE_DEFAULT);
 
         if (!isDevModeEnabled()) {
             String pluginsCssRoute = "plugins.css";
@@ -113,7 +115,18 @@ public class WebApp extends App {
 
     private void register(String name, String type, String pathPrefix, Boolean includeInPage, List<String> resourceList) {
         String resourcePath = "/" + (pathPrefix + name).replaceAll("^/", "");
-        get(resourcePath, new StaticResourceHandler(this.getClass(), name, type));
+        if (type.equals("application/javascript") && !pluginDevMode) {
+            boolean enableSourceMaps = isDevModeEnabled();
+            JavascriptResourceHandler handler = new JavascriptResourceHandler(name, resourcePath, enableSourceMaps);
+            get(resourcePath, handler);
+            if (enableSourceMaps) {
+                get(resourcePath + ".map", handler);
+                get(resourcePath + ".src", handler);
+            }
+        } else {
+            get(resourcePath, new StaticResourceHandler(this.getClass(), name, type));
+        }
+
         if (includeInPage) {
             resourceList.add(resourcePath);
         }
