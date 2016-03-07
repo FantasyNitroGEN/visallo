@@ -63,6 +63,8 @@ public class Configuration {
     public static final String MAPZEN_TILE_API_KEY = "mapzen.tile.api.key";
     public static final String DEV_MODE = "devMode";
     public static final boolean DEV_MODE_DEFAULT = false;
+    public static final String PLUGIN_DEV_MODE = "pluginDevMode";
+    public static final boolean PLUGIN_DEV_MODE_DEFAULT = false;
     public static final String DEFAULT_SEARCH_RESULT_COUNT = "search.defaultSearchCount";
     public static final String LOCK_REPOSITORY_PATH_PREFIX = "lockRepository.pathPrefix";
     public static final String DEFAULT_LOCK_REPOSITORY_PATH_PREFIX = "/visallo/locks";
