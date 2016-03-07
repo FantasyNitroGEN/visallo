@@ -188,21 +188,24 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return null;
     }
 
-    public static ClientApiHistoricalPropertyValues toClientApi(Iterable<HistoricalPropertyValue> historicalPropertyValues) {
-        ClientApiHistoricalPropertyValues result = new ClientApiHistoricalPropertyValues();
+    public static ClientApiHistoricalPropertyResults toClientApi(Iterable<HistoricalPropertyValue> historicalPropertyValues) {
+        ClientApiHistoricalPropertyResults result = new ClientApiHistoricalPropertyResults();
         for (HistoricalPropertyValue historicalPropertyValue : historicalPropertyValues) {
-            result.values.add(toClientApi(historicalPropertyValue));
+            result.events.add(toClientApi(historicalPropertyValue));
         }
         return result;
     }
 
-    public static ClientApiHistoricalPropertyValues.Value toClientApi(HistoricalPropertyValue hpv) {
-        ClientApiHistoricalPropertyValues.Value result = new ClientApiHistoricalPropertyValues.Value();
+    public static ClientApiHistoricalPropertyResults.Event toClientApi(HistoricalPropertyValue hpv) {
+        ClientApiHistoricalPropertyResults.Event result = new ClientApiHistoricalPropertyResults.Event();
         result.timestamp = hpv.getTimestamp();
         for (Metadata.Entry entry : hpv.getMetadata().entrySet()) {
             result.metadata.put(entry.getKey(), toClientApiValue(entry.getValue()));
         }
         result.value = toClientApiValue(hpv.getValue());
+        result.propertyKey = hpv.getPropertyKey();
+        result.propertyName = hpv.getPropertyName();
+        result.propertyVisibility = hpv.getPropertyVisibility().getVisibilityString();
         return result;
     }
 

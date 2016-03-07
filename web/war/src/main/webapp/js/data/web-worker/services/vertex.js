@@ -75,6 +75,12 @@ define([
             return ajax('GET', '/vertex/find-path', options);
         },
 
+        history: function(vertexId) {
+            return ajax('GET', '/vertex/history', {
+                graphVertexId: vertexId
+            });
+        },
+
         multiple: function(options) {
             return ajax('POST', '/vertex/multiple', options);
         },

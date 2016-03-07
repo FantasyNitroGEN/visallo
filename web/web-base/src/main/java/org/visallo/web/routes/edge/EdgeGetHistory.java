@@ -5,24 +5,25 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.Graph;
+import org.vertexium.HistoricalPropertyValue;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
 
-public class EdgeGetPropertyHistory implements ParameterizedHandler {
+public class EdgeGetHistory implements ParameterizedHandler {
     private Graph graph;
 
     @Inject
-    public EdgeGetPropertyHistory(final Graph graph) {
+    public EdgeGetHistory(Graph graph) {
         this.graph = graph;
     }
 
     @Handle
     public ClientApiHistoricalPropertyResults handle(
             @Required(name = "graphEdgeId") String graphEdgeId,
-            @Required(name = "propertyKey") String propertyKey,
-            @Required(name = "propertyName") String propertyName,
             @Optional(name = "startTime") Long startTime,
             @Optional(name = "endTime") Long endTime,
             Authorizations authorizations
@@ -32,15 +33,7 @@ public class EdgeGetPropertyHistory implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException(String.format("edge %s not found", graphEdgeId));
         }
 
-        Property property = edge.getProperty(propertyKey, propertyName);
-        if (property == null) {
-            throw new VisalloResourceNotFoundException(String.format("property %s:%s not found on edge %s", propertyKey, propertyName, edge.getId()));
-        }
-
         Iterable<HistoricalPropertyValue> historicalPropertyValues = edge.getHistoricalPropertyValues(
-                property.getKey(),
-                property.getName(),
-                property.getVisibility(),
                 startTime,
                 endTime,
                 authorizations
