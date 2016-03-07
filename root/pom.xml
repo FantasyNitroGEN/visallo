@@ -58,6 +58,7 @@
         <elasticsearch.version>1.4.4</elasticsearch.version>
         <evo.inflector.version>1.0.1</evo.inflector.version>
         <guice.version>3.0</guice.version>
+        <visallo.closure.compiler.version>1.0.0</visallo.closure.compiler.version>
         <hadoop.version>2.6.0-cdh5.4.2</hadoop.version>
         <twill.version>0.4.0-incubating</twill.version>
         <hadoop-test.version>2.6.0-mr1-cdh5.4.2</hadoop-test.version>
@@ -502,6 +503,11 @@
                 <groupId>com.asual.lesscss</groupId>
                 <artifactId>lesscss-engine</artifactId>
                 <version>${lesscss.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.visallo</groupId>
+                <artifactId>visallo-closure-compiler</artifactId>
+                <version>${visallo.closure.compiler.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
