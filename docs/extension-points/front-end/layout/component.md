@@ -138,7 +138,7 @@ To initialize the renderer, attach the `Item` flight component to a dom element,
 		Item.attachTo(domElement, {
 			model: model,
 			// Optional [Array]
-			contraints: ['width'],
+			constraints: ['width'],
 			// Optional [String]
 			context: 'mycontext'
 		});
