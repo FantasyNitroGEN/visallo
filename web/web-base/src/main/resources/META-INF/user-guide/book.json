@@ -8,5 +8,15 @@
   },
   "styles": {
     "website": "styles/website.css"
+  },
+  "pluginsConfig": {
+    "sharing": {
+      "facebook": false,
+      "twitter": false,
+      "google": false,
+      "weibo": false,
+      "instapaper": false,
+      "all": ["facebook", "twitter"]
+    }
   }
 }
