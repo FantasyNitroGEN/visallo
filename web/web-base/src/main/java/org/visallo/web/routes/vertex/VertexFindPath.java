@@ -36,7 +36,7 @@ public class VertexFindPath implements ParameterizedHandler {
             @Required(name = "outVertexId") String outVertexId,
             @Required(name = "inVertexId") String inVertexId,
             @Required(name = "hops") int hops,
-            @Optional(name = "labels[]") String[] labels,
+            @Optional(name = "edgeLabels[]") String[] edgeLabels,
             Authorizations authorizations,
             VisalloResponse response
     ) throws Exception {
@@ -50,7 +50,7 @@ public class VertexFindPath implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Destination vertex not found");
         }
 
-        FindPathLongRunningProcessQueueItem findPathQueueItem = new FindPathLongRunningProcessQueueItem(outVertex.getId(), inVertex.getId(), labels, hops, workspaceId, authorizations);
+        FindPathLongRunningProcessQueueItem findPathQueueItem = new FindPathLongRunningProcessQueueItem(outVertex.getId(), inVertex.getId(), edgeLabels, hops, workspaceId, authorizations);
         String id = this.longRunningProcessRepository.enqueue(findPathQueueItem.toJson(), user, authorizations);
 
         return new ClientApiLongRunningProcessSubmitResponse(id);
