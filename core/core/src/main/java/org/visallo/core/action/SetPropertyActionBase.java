@@ -17,16 +17,13 @@ public abstract class SetPropertyActionBase extends Action {
     public static final String PROPERTY_PROPERTY_KEY = "propertyKey";
     public static final String PROPERTY_PROPERTY_NAME = "propertyName";
     public static final String PROPERTY_VISIBILITY = "visibility";
-    private final UserRepository userRepository;
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
 
     protected SetPropertyActionBase(
-            UserRepository userRepository,
             Graph graph,
             WorkQueueRepository workQueueRepository
     ) {
-        this.userRepository = userRepository;
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
     }
@@ -40,13 +37,12 @@ public abstract class SetPropertyActionBase extends Action {
     }
 
     @Override
-    public void execute(ActionExecuteParameters parameters, User user) {
+    public void execute(ActionExecuteParameters parameters, User user, Authorizations authorizations) {
         String propertyKey = parameters.getData().getString(PROPERTY_PROPERTY_KEY);
         String propertyName = parameters.getData().getString(PROPERTY_PROPERTY_NAME);
         String visibility = parameters.getData().getString(PROPERTY_VISIBILITY);
 
         Object newValue = getNewValue(parameters);
-        Authorizations authorizations = userRepository.getAuthorizations(user);
         Visibility vis = new Visibility(visibility);
         LOGGER.debug("setting property %s:%s[%s] = %s", propertyName, propertyKey, vis, newValue);
         parameters.getElement().addPropertyValue(propertyKey, propertyName, newValue, vis, authorizations);

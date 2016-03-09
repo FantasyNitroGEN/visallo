@@ -2,6 +2,7 @@ package org.visallo.core.action;
 
 import com.google.inject.Inject;
 import org.json.JSONObject;
+import org.vertexium.Authorizations;
 import org.visallo.core.email.EmailRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -30,7 +31,7 @@ public class EmailAction extends Action {
     }
 
     @Override
-    public void execute(ActionExecuteParameters parameters, User user) {
+    public void execute(ActionExecuteParameters parameters, User user, Authorizations authorizations) {
         String fromAddress = parameters.getData().getString(PROPERTY_FROM_ADDRESS);
         String toAddress = parameters.getData().getString(PROPERTY_TO_ADDRESS);
         String subject = parameters.getData().getString(PROPERTY_SUBJECT);
