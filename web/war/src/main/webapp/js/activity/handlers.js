@@ -40,6 +40,9 @@ define([], function() {
                     });
                 });
             },
+            onRemove: function() {
+                this.trigger('defocusPaths');
+            },
             finishedComponentPath: 'activity/builtin/findPath'
         }
     ];

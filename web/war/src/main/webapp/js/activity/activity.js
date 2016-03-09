@@ -184,6 +184,16 @@ define([
         this.removeTask = function(taskId) {
             this.removedTasks[taskId] = true;
             var task = this.tasksById[taskId];
+            var handler = handlersByType[task.type];
+
+            if (handler.onRemove) {
+                if (_.isFunction(handler.onRemove)) {
+                    handler.onRemove.call(this);
+                } else {
+                    console.error('handler.onRemove expected a function, instead got: ', handler.onRemove);
+                }
+            }
+
             delete this.tasksById[taskId];
             this.tasks.splice(this.tasks.indexOf(task), 1);
         };
