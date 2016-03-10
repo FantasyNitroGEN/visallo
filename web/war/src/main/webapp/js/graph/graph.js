@@ -864,10 +864,10 @@ define([
                         padding.l = (padding.l || 0);
 
                         if (!isNaN(w) && !isNaN(h)) {
-                            zoom = Math.min(
+                            zoom = Math.min(1, Math.min(
                                 (w - (padding.l + padding.r)) / bb.w,
                                 (h - (padding.t + padding.b)) / bb.h
-                            );
+                            ));
 
                             // Set min and max zoom to fit all items
                             if (zoom < cy._private.minZoom) {
