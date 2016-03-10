@@ -29,36 +29,65 @@ define([
 
         this.after('initialize', function() {
             var self = this;
-            this.$node.html('<div class="video-preview"></div><div class="currentTranscript"></div>')
 
             this.on('scrubberFrameChange', this.onScrubberFrameChange);
             this.on('playerTimeUpdate', this.onPlayerTimeUpdate);
+            this.on('updateModel', this.onUpdateModel);
 
-            var model = this.attr.model;
-            var transcriptProperties = _.where(model.properties, { name: 'http://visallo.org#videoTranscript' });
-            if (transcriptProperties.length) {
-                this.dataRequest('vertex', 'highlighted-text', model.id, transcriptProperties[0].key)
-                    .catch(function() {
-                        return '';
-                    })
-                    .then(function(artifactText) {
-                        self.currentTranscript = processArtifactText(artifactText);
-                        self.updateCurrentTranscript(0);
-                    });
-            }
-
-            var durationProperty = _.findWhere(model.properties, { name: config['ontology.intent.property.videoDuration'] });
-            if (durationProperty) {
-                this.duration = durationProperty.value * 1000;
-            }
-            VideoScrubber.attachTo(this.select('previewSelector'), {
-                rawUrl: F.vertex.raw(model),
-                posterFrameUrl: F.vertex.image(model),
-                videoPreviewImageUrl: F.vertex.imageFrames(model),
-                duration: this.duration,
-                allowPlayback: true
-            });
+            this.model = this.attr.model;
+            this.render();
         });
+
+        this.render = function() {
+            if (!this.isVideoReady()) {
+                this.videoRendered = false;
+                return this.$node.empty();
+            }
+            if (!this.videoRendered) {
+                this.$node.html('<div class="video-preview"></div><div class="currentTranscript"></div>')
+                var durationProperty = _.findWhere(this.model.properties, { name: config['ontology.intent.property.videoDuration'] });
+                if (durationProperty) {
+                    this.duration = durationProperty.value * 1000;
+                }
+                VideoScrubber.attachTo(this.select('previewSelector'), {
+                    rawUrl: F.vertex.raw(this.model),
+                    posterFrameUrl: F.vertex.image(this.model),
+                    videoPreviewImageUrl: F.vertex.imageFrames(this.model),
+                    duration: this.duration,
+                    allowPlayback: true
+                });
+                this.videoRendered = true;
+            }
+
+            if (this.videoRendered && !this.transcriptRendered) {
+                var transcriptProperties = _.where(this.model.properties, { name: 'http://visallo.org#videoTranscript' });
+                if (transcriptProperties.length) {
+                    this.dataRequest('vertex', 'highlighted-text', this.model.id, transcriptProperties[0].key)
+                        .catch(function() {
+                            return '';
+                        })
+                        .then(function(artifactText) {
+                            self.currentTranscript = processArtifactText(artifactText);
+                            self.updateCurrentTranscript(0);
+                        });
+                    this.transcriptRendered = true;
+                }
+            }
+        }
+
+        this.onUpdateModel = function(event, data) {
+            this.model = data.model;
+            this.render();
+        };
+
+        this.isVideoReady = function() {
+            return (
+                (F.vertex.props(this.model, 'http://visallo.org#video-webm') || [])
+                .concat(
+                    (F.vertex.props(this.model, 'http://visallo.org#video-mp4') || [])
+                )
+            ).length >= 2;
+        };
 
         this.onPlayerTimeUpdate = function(evt, data) {
             var time = data.currentTime * 1000;

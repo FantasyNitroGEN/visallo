@@ -67,10 +67,18 @@ define([
             ]
         },
         {
+            applyTo: { displayType: 'video' },
+            identifier: 'org.visallo.layout.body.split',
+            children: [
+                { componentPath: 'detail/video/video', className: 'org-visallo-video' },
+                { ref: 'org.visallo.layout.body.split.artifact' }
+            ]
+        },
+        {
             applyTo: { displayType: 'image' },
             identifier: 'org.visallo.layout.body',
             children: [
-                { componentPath: 'detail/image/image' },
+                { componentPath: 'detail/image/image', className: 'org-visallo-image' },
                 { componentPath: 'detail/detectedObjects/detectedObjects' },
                 { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
@@ -79,14 +87,30 @@ define([
             ]
         },
         {
+            applyTo: { displayType: 'image' },
+            identifier: 'org.visallo.layout.body.split',
+            children: [
+                { componentPath: 'detail/image/image', className: 'org-visallo-image' },
+                { ref: 'org.visallo.layout.body.split.artifact' }
+            ]
+        },
+        {
             applyTo: { displayType: 'audio' },
             identifier: 'org.visallo.layout.body',
             children: [
-                { componentPath: 'detail/audio/audio' },
+                { componentPath: 'detail/audio/audio', className: 'org-visallo-audio' },
                 { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
                 { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
                 { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
+            ]
+        },
+        {
+            applyTo: { displayType: 'audio' },
+            identifier: 'org.visallo.layout.body.split',
+            children: [
+                { componentPath: 'detail/audio/audio', className: 'org-visallo-audio' },
+                { ref: 'org.visallo.layout.body.split.artifact' }
             ]
         },
         {
@@ -121,6 +145,14 @@ define([
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
                 { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
                 { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
+            ]
+        },
+        {
+            identifier: 'org.visallo.layout.body.split.artifact',
+            layout: { type: 'flex', options: { direction: 'row' }},
+            children: [
+                { ref: 'org.visallo.layout.body.left', style: { flex: 1 }},
+                { ref: 'org.visallo.layout.body.right', style: { flex: 1 }}
             ]
         },
         {

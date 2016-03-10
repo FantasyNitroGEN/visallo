@@ -1,6 +1,7 @@
 define([
     'flight/lib/component',
     'flight/lib/registry',
+    'util/domElement',
     'util/vertex/formatters',
     'util/promise',
     'util/requirejs/promise!util/service/ontologyPromise',
@@ -10,6 +11,7 @@ define([
 ], function(
     defineComponent,
     flightRegistry,
+    domElementUtil,
     F,
     Promise,
     ontology,
@@ -215,9 +217,24 @@ define([
             zipped.map(function(childAndModel, i) {
                 var child = childAndModel.child,
                     modelTransform = childAndModel.modelTransform || _.identity,
-                    $el = i < node.childElementCount ? $(node.children[i]) : $('<div>'),
-                    el = $el.get(0);
+                    el, $el;
 
+                if (i < node.childElementCount) {
+                    if ((/^DIV$/i).test(node.children[i].tagName) && !(
+                        node.children[i].__isLayoutComponent && child.componentPath
+                    )) {
+                        $el = $(node.children[i]);
+                    } else {
+                        el = document.createElement('div');
+                        node.insertBefore(el, node.children[i]);
+                        node.removeChild(node.children[i + 1])
+                        $el = $(el);
+                    }
+                } else {
+                    $el = $('<div>');
+                }
+                el = $el.get(0);
+                el.__isLayoutComponent = true;
                 updateClasses(el, child.ref, child.className)
 
                 return Promise.resolve(modelTransform(model))
@@ -346,6 +363,9 @@ define([
         if (!config.componentPath) {
             return;
         }
+        if (el.__isLayoutComponent) {
+            domElementUtil.removeAllStyles(el);
+        }
         return function() {
             return Promise.require(config.componentPath)
                 .then(function(Component) {
@@ -373,7 +393,13 @@ define([
                     if (instanceInfos && instanceInfos.length && _.filter(instanceInfos, componentFilter).length) {
                         triggerUpdateModelAndStopPropagation(el, model);
                     } else {
+                        if (el.__isLayoutComponent && !config.identifier) {
+                            el.textContent = '';
+                        }
                         Component.attachTo(el, attrs);
+                    }
+                    if (el.__isLayoutComponent) {
+                        delete el.__isLayoutComponent;
                     }
 
                     var instanceInfo = flightInstanceInfo(el, Component),
