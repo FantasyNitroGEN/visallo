@@ -73,7 +73,7 @@ as metadata on all vertices, properties, and edges to support data access contro
 The data access control rights granted to {{ book.productName }} users to control their access to vertices,
 properties, and edges. The term 'authorization' is borrowed from Accumulo.
 
-#privilage
+#privilege
 The application rights granted to {{ book.productName }} users. (e.g. READ, EDIT, and PUBLISH)
 
 #workspace
