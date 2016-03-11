@@ -164,7 +164,6 @@ define([
                         if (self.attr.includeYAxis) {
                             self.svg.select('.y.axis').call(self.yAxis)
                                                       .selectAll('.tick text')
-                                                      .attr('transform', 'translate(0,6)');
                         }
 
                         self.redraw(false, shouldSkipAnimation);
@@ -343,8 +342,11 @@ define([
 
                 yAxis = this.yAxis = d3.svg.axis()
                     .scale(yScale)
-                    .ticks(1)
+                    .ticks(0)
                     .tickSize(5, 0)
+                    .tickValues(function() {
+                        return yScale.domain()[1] !== 0 ? [0, yScale.domain()[1]] : [];
+                    })
                     .orient('right'),
 
                 onZoomedUpdate = _.throttle(function() {
@@ -593,7 +595,6 @@ define([
                         this.enter().append('g')
                             .attr('class', 'y axis')
                             .selectAll('.tick text')
-                            .attr('transform', 'translate(0,6)');
                     })
                     .call(yAxis)
             }
@@ -722,7 +723,7 @@ define([
                 }
             }
 
-            this.redraw();
+            this.redraw(true);
         }
 
         this.createBars = function(data, skipAnimation) {
