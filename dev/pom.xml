@@ -16,7 +16,6 @@
 
     <modules>
         <module>cli</module>
-        <module>db</module>
         <module>jetty-server</module>
     </modules>
 
