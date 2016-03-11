@@ -1,7 +1,7 @@
-# Application Privilages
+# Application Privileges
 
-Access to differnt {{ book.productName }} functions is dependant on which application
-privilegs you have been granted. You can view your privileages buy
+Access to different {{ book.productName }} functions is dependant on which application
+privileges you have been granted. You can view your privileges buy
 clicking on your name in the lower left corner.
 
 ![username status area](images/username-status-area.png)

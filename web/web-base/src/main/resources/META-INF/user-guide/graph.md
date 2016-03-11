@@ -1,7 +1,7 @@
 # Graph
 
 The [Workspace](workspaces.md) graph is the primary way to visualize and
-iteract with the relationships between [Vertices](verticies.md).
+interact with the relationships between [Vertices](verticies.md).
 
 <!--
 TODO:
