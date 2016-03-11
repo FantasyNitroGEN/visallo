@@ -10,6 +10,7 @@ console = {
     warn: consoleWarn,
     error: consoleError
 };
+window.addEventListener = function() { };
 
 require.config({
     baseUrl: '',
