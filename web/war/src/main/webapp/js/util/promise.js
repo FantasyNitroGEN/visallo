@@ -46,6 +46,7 @@ define([
     addProgress();
     addTimeout();
     addRequire();
+    registerUnhandledRejection();
 
     self.Promise = Promise;
     return Promise;
@@ -115,6 +116,15 @@ define([
                 });
             };
         } else console.warn('Native implementation of require');
+    }
+
+    function registerUnhandledRejection() {
+        self.addEventListener('unhandledrejection', function(e) {
+            // See Promise.onPossiblyUnhandledRejection for parameter documentation
+            e.preventDefault();
+            // Causes better stack traces (source map support) over console.log
+            throw e.detail.reason;
+        });
     }
 
 });
