@@ -1,6 +1,6 @@
-# Colaboration
+# Collaboration
 
-{{ book.productName }} allows multiple users to colaborate on the same [Workspace](workspaces.md)
+{{ book.productName }} allows multiple users to collaborate on the same [Workspace](workspaces.md)
 much like Google Docs.  You can view and modify who a workspace is shared with by
 clicking on the "Spaces" icon in the top left navigation.
 

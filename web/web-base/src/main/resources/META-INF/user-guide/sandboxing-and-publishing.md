@@ -1,6 +1,6 @@
 # Sandboxing and Publishing
 
-A core featue of {{ book.productName }} is that users can [Colaborate](colaboration.md)
+A core feature of {{ book.productName }} is that users can [Collaborate](colaboration.md)
 with each other within the safety of a sandboxed
 [Workspace](workspaces.md) allowing them to explore added and changed
 data without impacting all user of the system.

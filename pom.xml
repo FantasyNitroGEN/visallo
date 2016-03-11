@@ -11,6 +11,7 @@
     <artifactId>visallo</artifactId>
     <packaging>pom</packaging>
     <name>Visallo</name>
+    <version>1.1-SNAPSHOT</version>
 
     <scm>
         <url>https://github.com/v5analytics/visallo</url>

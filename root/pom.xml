@@ -158,6 +158,19 @@
     </distributionManagement>
 
     <repositories>
+        <repository>
+            <id>v5analytics</id>
+            <url>https://mvn.v5analytics.com/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>v5analytics-snapshots</id>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>interval:60</updatePolicy>
+            </snapshots>
+            <url>https://mvn.v5analytics.com/content/groups/public-snapshots</url>
+        </repository>
+
         <!-- FOR: Vertexium, Webster Snapshots -->
         <repository>
             <snapshots>

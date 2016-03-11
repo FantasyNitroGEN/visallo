@@ -1,6 +1,6 @@
 # Search Plugins
 
-{{ book.productName }} supprts search plugins that can provide additional search
+{{ book.productName }} supports search plugins that can provide additional search
 interfaces.
 
 <!--
