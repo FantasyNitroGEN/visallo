@@ -50,6 +50,8 @@ require.config({
     }
 });
 
+define('util/visibility/util', [], {});
+
 var timerLoop = makeWindowTimer(this, function () { });
 
 require(['util/vertex/formatters'], function(F) {
