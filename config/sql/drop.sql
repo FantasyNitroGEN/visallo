@@ -1,9 +1,0 @@
-drop table visallo_systemNotifications;
-drop table visallo_userNotifications;
-drop table visallo_jettySession;
-drop table visallo_artifactThumbnail;
-drop table visallo_dictionaryEntry;
-drop table visallo_vertex;
-drop table visallo_edge;
-drop table visallo_metadata;
-drop table visallo_streaming_properties;
