@@ -1,16 +1,15 @@
 package org.visallo.core.model.workspace;
 
-public class DashboardItem {
+import java.io.Serializable;
+
+public abstract class DashboardItem implements Serializable {
+    static long serialVersionUID = 1L;
     private final String id;
     private final String extensionId;
-    private final String title;
-    private final String configuration;
 
-    public DashboardItem(String id, String extensionId, String title, String configuration) {
+    public DashboardItem(String id, String extensionId) {
         this.id = id;
         this.extensionId = extensionId;
-        this.title = title;
-        this.configuration = configuration;
     }
 
     public String getId() {
@@ -21,11 +20,35 @@ public class DashboardItem {
         return extensionId;
     }
 
-    public String getTitle() {
-        return title;
+    public abstract String getTitle();
+
+    public abstract String getConfiguration();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DashboardItem that = (DashboardItem) o;
+
+        return id.equals(that.id);
     }
 
-    public String getConfiguration() {
-        return configuration;
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "DashboardItem{" +
+                "title='" + getTitle() + '\'' +
+                ", id='" + id + '\'' +
+                ", extensionId='" + extensionId + '\'' +
+                '}';
     }
 }

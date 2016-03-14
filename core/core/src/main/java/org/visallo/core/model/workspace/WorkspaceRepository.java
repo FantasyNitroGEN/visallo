@@ -1,7 +1,6 @@
 package org.visallo.core.model.workspace;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,23 +18,26 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.trace.Traced;
 import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
-import org.visallo.web.clientapi.model.ClientApiPublishItem.Action;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
+import static org.visallo.core.util.StreamUtil.stream;
 
 public abstract class WorkspaceRepository {
     public static final String TO_ENTITY_ID_SEPARATOR = "_TO_ENTITY_";
@@ -52,20 +54,23 @@ public abstract class WorkspaceRepository {
     private final TermMentionRepository termMentionRepository;
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;
+    private final UserRepository userRepository;
     private String entityHasImageIri;
 
     protected WorkspaceRepository(
-            final Graph graph,
-            final VisibilityTranslator visibilityTranslator,
-            final TermMentionRepository termMentionRepository,
-            final OntologyRepository ontologyRepository,
-            final WorkQueueRepository workQueueRepository
+            Graph graph,
+            VisibilityTranslator visibilityTranslator,
+            TermMentionRepository termMentionRepository,
+            OntologyRepository ontologyRepository,
+            WorkQueueRepository workQueueRepository,
+            UserRepository userRepository
     ) {
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
         this.termMentionRepository = termMentionRepository;
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
+        this.userRepository = userRepository;
 
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
         if (this.entityHasImageIri == null) {
@@ -107,6 +112,9 @@ public abstract class WorkspaceRepository {
         return add(null, title, user);
     }
 
+    /**
+     * Finds all workspaces the given user has access to. Including workspaces shared to that user.
+     */
     public abstract Iterable<Workspace> findAllForUser(User user);
 
     public abstract void setTitle(Workspace workspace, String title, User user);
@@ -251,13 +259,9 @@ public abstract class WorkspaceRepository {
 
             if (includeVertices) {
                 List<WorkspaceEntity> workspaceEntities = findEntities(workspace, user);
-                Iterable<String> workspaceEntityIds = Iterables.transform(workspaceEntities, new Function<WorkspaceEntity, String>() {
-                    @Nullable
-                    @Override
-                    public String apply(WorkspaceEntity workspaceEntity) {
-                        return workspaceEntity.getEntityVertexId();
-                    }
-                });
+                Iterable<String> workspaceEntityIds = workspaceEntities.stream()
+                        .map(workspaceEntity -> workspaceEntity.getEntityVertexId())
+                        .collect(Collectors.toList());
                 Map<String, Boolean> viewableVertices = getGraph().doVerticesExist(workspaceEntityIds, authorizations);
                 for (WorkspaceEntity workspaceEntity : workspaceEntities) {
                     if (!workspaceEntity.isVisible()) {
@@ -327,15 +331,15 @@ public abstract class WorkspaceRepository {
         }
 
         ClientApiWorkspacePublishResponse workspacePublishResponse = new ClientApiWorkspacePublishResponse();
-        publishVertices(publishData, Action.ADD_OR_UPDATE, workspacePublishResponse, workspaceId, authorizations);
-        publishEdges(publishData, Action.ADD_OR_UPDATE, workspacePublishResponse, workspaceId, authorizations);
+        publishVertices(publishData, ClientApiPublishItem.Action.ADD_OR_UPDATE, workspacePublishResponse, workspaceId, authorizations);
+        publishEdges(publishData, ClientApiPublishItem.Action.ADD_OR_UPDATE, workspacePublishResponse, workspaceId, authorizations);
         publishProperties(publishData, workspacePublishResponse, workspaceId, authorizations);
-        publishEdges(publishData, Action.DELETE, workspacePublishResponse, workspaceId, authorizations);
-        publishVertices(publishData, Action.DELETE, workspacePublishResponse, workspaceId, authorizations);
+        publishEdges(publishData, ClientApiPublishItem.Action.DELETE, workspacePublishResponse, workspaceId, authorizations);
+        publishVertices(publishData, ClientApiPublishItem.Action.DELETE, workspacePublishResponse, workspaceId, authorizations);
         return workspacePublishResponse;
     }
 
-    private void publishVertices(ClientApiPublishItem[] publishData, Action action,
+    private void publishVertices(ClientApiPublishItem[] publishData, ClientApiPublishItem.Action action,
                                  ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId,
                                  Authorizations authorizations) {
         LOGGER.debug("BEGIN publishVertices");
@@ -372,7 +376,7 @@ public abstract class WorkspaceRepository {
         graph.flush();
     }
 
-    private void publishEdges(ClientApiPublishItem[] publishData, Action action,
+    private void publishEdges(ClientApiPublishItem[] publishData, ClientApiPublishItem.Action action,
                               ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId,
                               Authorizations authorizations) {
         LOGGER.debug("BEGIN publishEdges");
@@ -440,7 +444,12 @@ public abstract class WorkspaceRepository {
                 if (SandboxStatusUtil.getSandboxStatus(element, workspaceId) != SandboxStatus.PUBLIC) {
                     String errorMessage = "Cannot publish a modification of a property on a private element: " + element.getId();
                     VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(element);
-                    LOGGER.warn("%s: visibilityJson: %s, workspaceId: %s", errorMessage, visibilityJson.toString(), workspaceId);
+                    LOGGER.warn(
+                            "%s: visibilityJson: %s, workspaceId: %s",
+                            errorMessage,
+                            visibilityJson == null ? null : visibilityJson.toString(),
+                            workspaceId
+                    );
                     data.setErrorMessage(errorMessage);
                     workspacePublishResponse.addFailure(data);
                     continue;
@@ -725,6 +734,19 @@ public abstract class WorkspaceRepository {
                 return workspaceEntity.getEntityVertexId();
             }
         });
+    }
+
+    @Traced
+    protected Iterable<Edge> findModifiedEdges(final Workspace workspace, List<WorkspaceEntity> workspaceEntities, boolean includeHidden, User user) {
+        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
+
+        Iterable<Vertex> vertices = stream(WorkspaceEntity.toVertices(workspaceEntities, getGraph(), authorizations))
+                .filter(vertex -> vertex != null)
+                .collect(Collectors.toList());
+        Iterable<String> edgeIds = getGraph().findRelatedEdgeIdsForVertices(vertices, authorizations);
+        edgeIds = getGraph().filterEdgeIdsByAuthorization(edgeIds, workspace.getWorkspaceId(), ElementFilter.ALL, authorizations);
+
+        return getGraph().getEdges(edgeIds, includeHidden ? FetchHint.ALL_INCLUDING_HIDDEN : FetchHint.ALL, authorizations);
     }
 
     public abstract Dashboard findDashboardById(String workspaceId, String dashboardId, User user);
