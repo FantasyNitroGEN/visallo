@@ -1,15 +1,15 @@
 
 define([
     'flight/lib/component',
-    'tpl!./diff',
+    'react-dom',
+    'jsx!./DiffPanel',
     'util/vertex/formatters',
-    'util/privileges',
     'util/withDataRequest'
 ], function(
     defineComponent,
-    template,
+    ReactDOM,
+    DiffPanel,
     F,
-    Privileges,
     withDataRequest) {
     'use strict';
 
@@ -34,12 +34,23 @@ define([
 
     function Diff() {
 
-        this.defaultAttrs({
-            buttonSelector: 'button',
-            headerButtonSelector: '.header button',
-            rowSelector: 'tr',
-            selectAllButtonSelector: '.select-all-publish,.select-all-undo'
-        })
+        this.render = function() {
+            ReactDOM.render(DiffPanel({
+                diffs: this.diffs,
+                formatLabel: this.formatLabel,
+                onPublishClick: this.onMarkPublish.bind(this),
+                onUndoClick: this.onMarkUndo.bind(this),
+                onSelectAllPublishClick: this.onSelectAllPublish.bind(this),
+                onSelectAllUndoClick: this.onSelectAllUndo.bind(this),
+                onDeselectAllClick: this.onDeselectAll.bind(this),
+                publishing: this.publishing,
+                undoing: this.undoing,
+                onApplyPublishClick: this.onApplyPublishClick.bind(this),
+                onApplyUndoClick: this.onApplyUndoClick.bind(this),
+                onVertexRowClick: this.onVertexRowClick.bind(this),
+                onEdgeRowClick: this.onEdgeRowClick.bind(this)
+            }), this.$node[0]);
+        };
 
         this.after('initialize', function() {
             var self = this;
@@ -48,6 +59,9 @@ define([
                 self.ontologyConcepts = ontology.concepts;
                 self.ontologyProperties = ontology.properties;
                 self.ontologyRelationships = ontology.relationships;
+                self.formatLabel = function(name) {
+                    return self.ontologyProperties.byTitle[name].displayName;
+                };
                 self.setup();
             })
         });
@@ -55,92 +69,24 @@ define([
         this.applyingAll = false;
 
         this.setup = function() {
-            var self = this,
-                formatLabel = function(name) {
-                    return self.ontologyProperties.byTitle[name].displayName;
-                },
-                formatVisibility = function(propertyOrProperties) {
-                    var property = _.isArray(propertyOrProperties) ? propertyOrProperties[0] : propertyOrProperties;
-                    return JSON.stringify(property['http://visallo.org#visibilityJson']);
-                },
-                formatValue = function(name, change, property) {
-                    return F.vertex.prop({
-                        id: property.id,
-                        properties: change ? _.isArray(change) ? change : [change] : []
-                    }, name, property.key)
-                };
+            var self = this;
+            this.diffs = [];
 
             self.processDiffs(self.attr.diffs).done(function(processDiffs) {
-                self.$node.html(template({
-                    diffs: processDiffs,
-                    formatValue: formatValue,
-                    formatVisibility: formatVisibility,
-                    formatLabel: formatLabel,
-                    F: F,
-                    Privileges: Privileges
-                }));
+                self.diffs = processDiffs;
+                self.render();
                 self.updateVisibility();
-                self.updateHeader();
                 self.updateDraggables();
             });
 
-            self.on('click', {
-                selectAllButtonSelector: self.onSelectAll,
-                buttonSelector: self.onButtonClick,
-                headerButtonSelector: self.onApplyAll,
-                rowSelector: self.onRowClick
-            });
             self.on('diffsChanged', function(event, data) {
                 self.processDiffs(data.diffs).done(function(processDiffs) {
-
-                    var scroll = self.$node.find('.diffs-list'),
-                        previousScroll = scroll.scrollTop(),
-                        previousPublished = self.$node.find('.mark-publish').map(function() {
-                            return '.' + F.className.to($(this).data('diffId'));
-                        }).toArray(),
-                        previousUndo = self.$node.find('.mark-undo').map(function() {
-                            return '.' + F.className.to($(this).data('diffId'));
-                        }).toArray(),
-                        previousSelection = _.compact(self.$node.find('.active').map(function() {
-                            return $(this).data('diffId');
-                        }).toArray());
-
-                    self.$node.html(template({
-                        diffs: processDiffs,
-                        formatValue: formatValue,
-                        formatLabel: formatLabel,
-                        formatVisibility: formatVisibility,
-                        F: F,
-                        Privileges: Privileges
-                    }));
-
-                    self.selectVertices(previousSelection);
-                    self.$node.find(previousPublished.join(',')).each(function() {
-                        var $this = $(this);
-
-                        if ($this.find('.actions').length) {
-                            $(this).addClass('mark-publish')
-                                .find('.publish').addClass('btn-success')
-                        }
-                    });
-                    self.$node.find(previousUndo.join(',')).each(function() {
-                        var $this = $(this);
-
-                        if ($this.find('.actions').length) {
-                            $(this).addClass('mark-undo')
-                                .find('.undo').addClass('btn-danger')
-                        }
-                    });
+                    self.diffs = processDiffs;
+                    self.render();
                     self.updateVisibility();
-                    if (!self.applyingAll) {
-                        self.updateHeader(self.$node.closest('.popover:visible').length > 0);
-                    }
                     self.updateDraggables();
-                    self.$node.find('.diffs-list').scrollTop(previousScroll);
                 });
             })
-            self.on('markPublishDiffItem', self.onMarkPublish);
-            self.on('markUndoDiffItem', self.onMarkUndo);
             self.on(document, 'objectsSelected', self.onObjectsSelected);
         };
 
@@ -176,7 +122,13 @@ define([
                         edges = _.compact(result.shift()),
                         verticesById = _.indexBy(vertices, 'id'),
                         edgesById = _.indexBy(edges, 'id');
-
+                    var previousSelections = self.diffs.reduce(function(previous, diff) {
+                        if (diff.active) {
+                            previous[diff.vertexId || diff.edgeId] = true;
+                        }
+                        return previous;
+                    }, {});
+                    var previousDiffsById = self.diffsById || {};
                     self.diffsForElementId = {};
                     self.diffsById = {};
                     self.diffDependencies = {};
@@ -191,6 +143,9 @@ define([
                             outputItem = {
                                 properties: [],
                                 action: {},
+                                active: previousSelections[elementId],
+                                publish: previousDiffsById[elementId] && previousDiffsById[elementId].publish,
+                                undo: previousDiffsById[elementId] && previousDiffsById[elementId].undo,
                                 className: F.className.to(elementId)
                             },
                             isElementVertex = (
@@ -246,6 +201,8 @@ define([
                             switch (diff.type) {
                                 case 'VertexDiffItem':
                                     diff.id = elementId;
+                                    diff.publish = outputItem.publish;
+                                    diff.undo = outputItem.undo;
                                     outputItem.action = diff.deleted ? actionTypes.DELETE : actionTypes.CREATE;
                                     self.diffsForElementId[elementId] = diff;
                                     self.diffsById[elementId] = diff;
@@ -259,6 +216,8 @@ define([
 
                                     if (ontologyProperty && ontologyProperty.userVisible) {
                                         diff.id = elementId + diff.name + diff.key;
+                                        diff.publish = previousDiffsById[diff.id] && previousDiffsById[diff.id].publish;
+                                        diff.undo = previousDiffsById[diff.id] && previousDiffsById[diff.id].undo;
                                         addDiffDependency(diff.elementId, diff);
 
                                         diff.className = F.className.to(diff.id);
@@ -298,6 +257,8 @@ define([
 
                                 case 'EdgeDiffItem':
                                     diff.id = diff.edgeId;
+                                    diff.publish = outputItem.publish;
+                                    diff.undo = outputItem.undo;
                                     diff.inVertex = verticesById[diff.inVertexId];
                                     diff.outVertex = verticesById[diff.outVertexId];
                                     diff.className = F.className.to(diff.edgeId);
@@ -343,153 +304,143 @@ define([
         };
 
         this.onObjectsSelected = function(event, data) {
-            var self = this,
-                toSelect = data && data.vertices.concat(data.edges || []) || [];
+            var vertices = data.vertices,
+                edges = data.edges;
 
-            this.$node.find('.active').removeClass('active');
-            this.selectVertices(toSelect);
+            this.diffs.forEach(function(diff) {
+                diff.active = _.findWhere(vertices, { id: diff.vertexId }) || _.findWhere(edges, { id: diff.edgeId });
+            });
+            this.render();
         };
 
-        this.selectVertices = function(vertices) {
-            var self = this,
-                cls = vertices.map(function(vertex) {
-                    return '.' + F.className.to(_.isString(vertex) ? vertex : vertex.id);
-                });
-            this.$node.find(cls.join(',')).addClass('active');
+        this.onVertexRowClick = function(vertexId) {
+            this.trigger('selectObjects', {
+                vertexIds: vertexId ? [vertexId] : []
+            });
         };
 
-        this.onRowClick = function(event) {
-            var self = this,
-                $target = $(event.target).not('button').closest('tr'),
-                vertexRow = $target.is('.vertex-row') ? $target : $target.prevAll('.vertex-row'),
-                alreadySelected = vertexRow.is('.active'),
-                vertexId = vertexRow.data('vertexId'),
-                edgeId = vertexRow.data('edgeId');
+        this.onEdgeRowClick = function(edgeId) {
+            this.trigger('selectObjects', {
+                edgeIds: edgeId ? [edgeId] : []
+            });
+        };
 
-            if (vertexId) {
-                self.trigger('selectObjects', {
-                    vertexIds: (!alreadySelected && vertexId) ? [vertexId] : []
+        this.onDeselectAll = function() {
+            var self = this;
+            this.diffs.forEach(function(diff) {
+                deselectAction(diff);
+                diff.properties.forEach(function(property) {
+                    deselectAction(property);
                 });
-            } else if (edgeId) {
-                self.trigger('selectObjects', {
-                    edgeIds: (!alreadySelected && edgeId) ? [edgeId] : []
-                });
+            });
+            Object.keys(this.diffsById).forEach(function(id) {
+                deselectAction(self.diffsById[id]);
+            });
+            this.render();
+
+            function deselectAction(diff, action) {
+                diff.publish = false;
+                diff.undo = false;
             }
         };
 
-        this.onButtonClick = function(event) {
-            var $target = $(event.target),
-                $row = $target.closest('tr');
+        this.onSelectAll = function(action) {
+            var self = this;
+            this.diffs
+                .filter(function(diff) { return diff.action.type !== 'update' })
+                .forEach(function(diff) {
+                    selectAction(diff, action);
+                    diff.properties.forEach(function(property) {
+                        selectAction(property, action);
+                    });
+                });
+            Object.keys(this.diffsById).forEach(function(id) {
+                selectAction(self.diffsById[id], action);
+            });
+            this.render();
 
-            if ($target.is('.header button') || $target.closest('.select-actions').length) {
-                return;
+            function selectAction(diff, action) {
+                diff.publish = false;
+                diff.undo = false;
+                diff[action] = true;
             }
+        };
+        this.onSelectAllPublish = _.partial(this.onSelectAll, 'publish');
+        this.onSelectAllUndo = _.partial(this.onSelectAll, 'undo');
 
-            this.$node.find('.select-actions .actions button').removeClass('btn-danger btn-success');
+        this.onApplyAll = function(type) {
+            this.publishing = type === 'publish';
+            this.undoing = type === 'undo';
+            this.render();
 
-            event.stopPropagation();
-            $target.blur();
-
-            this.trigger(
-                'mark' + ($target.hasClass('publish') ? 'Publish' : 'Undo') + 'DiffItem',
-                {
-                    diffId: $row.data('diffId'),
-                    state: !($target.hasClass('btn-success') || $target.hasClass('btn-danger'))
+            var self = this;
+            var diffsToSend = this.diffs.reduce(function(diffsToSend, diff) {
+                if (diff[type]) {
+                    if (diff.vertex) {
+                        diffsToSend.push(reduceVertex(diff));
+                    } else if (diff.edge) {
+                        diffsToSend.push(reduceEdge(diff));
+                    }
                 }
-            );
-        };
+                return diffsToSend.concat(diff.properties
+                    .filter(function(diff) { return diff[type]; })
+                    .reduce(reduceProperties, []))
+            }, []);
 
-        this.onSelectAll = function(event) {
-            var target = $(event.target),
-                action = target.data('action'),
-                cls = action === 'publish' ? 'success' : 'danger';
+            function reduceVertex(diff) {
+                var vertex = self.diffsById[diff.vertexId];
 
-            event.stopPropagation();
-            target.blur();
-
-            if (target.hasClass('btn-' + cls)) {
-                target.removeClass('btn-' + cls);
-                this.$node.find('.mark-' + action + ' button.' + action)
-                    .each(function() {
-                        if ($(this).closest('tr.mark-' + action).length) {
-                            $(this).click();
-                        }
-                    });
-            } else {
-
-                this.$node.find('button.' + action)
-                    .each(function() {
-                        if ($(this).closest('tr.mark-' + action).length === 0) {
-                            $(this).click()
-                        }
-                    });
-
-                this.$node.find('.select-all-publish').removeClass('btn-success');
-                this.$node.find('.select-all-undo').removeClass('btn-danger');
-                this.$node.find('.select-all-' + action).addClass('btn-' + cls);
+                return {
+                    type: 'vertex',
+                    vertexId: diff.vertexId,
+                    action: vertex.deleted ? 'delete' : 'create',
+                    status: vertex.sandboxStatus
+                };
             }
-        };
 
-        this.onApplyAll = function(event) {
-            this.applyingAll = true;
-            var self = this,
-                button = $(event.target).addClass('loading').attr('disabled', true),
-                otherButton = button.siblings('button').attr('disabled', true),
-                bothButtons = button.add(otherButton),
-                header = this.$node.find('.header'),
-                type = button.hasClass('publish-all') ? 'publish' : 'undo',
-                diffsToSend = this.$node.find('.mark-' + type).map(function mapper(iOrDiff) {
-                    var isDiff = _.isObject(iOrDiff),
-                        diff = isDiff ? iOrDiff : self.diffsById[$(this).data('diffId')];
+            function reduceEdge(diff) {
+                var edge = self.diffsById[diff.edgeId];
 
-                    if (!isDiff && diff.diffs) {
-                        return diff.diffs.map(function(d) {
-                            if (d.dependentName) {
-                                d.name = d.dependentName;
-                            }
-                            return mapper(d);
-                        });
-                    }
+                return {
+                    type: 'relationship',
+                    edgeId: diff.edgeId,
+                    sourceId: edge.outVertexId,
+                    destId: edge.inVertexId,
+                    action: edge.deleted ? 'delete' : 'create',
+                    status: edge.sandboxStatus
+                };
+            }
 
-                    switch (diff.type) {
+            function reduceProperties(diffsToSend, diff) {
+                if (diff.diffs) {
+                    return diffsToSend
+                        .concat(diff.diffs.reduce(reduceProperty, []));
+                }
 
-                        case 'PropertyDiffItem': return _.tap({
-                            type: 'property',
-                            key: diff.key,
-                            name: diff.name,
-                            action: diff.deleted ? 'delete' : 'update',
-                            status: diff.sandboxStatus
-                        }, function(obj) {
-                            obj[diff.elementType + 'Id'] = diff.elementId;
-                        });
+                return reduceProperty(diffsToSend, diff);
+            }
 
-                        case 'VertexDiffItem': return {
-                            type: 'vertex',
-                            vertexId: diff.vertexId,
-                            action: diff.deleted ? 'delete' : 'create',
-                            status: diff.sandboxStatus
-                        };
-
-                        case 'EdgeDiffItem': return {
-                            type: 'relationship',
-                            edgeId: diff.edgeId,
-                            sourceId: diff.outVertexId,
-                            destId: diff.inVertexId,
-                            action: diff.deleted ? 'delete' : 'create',
-                            status: diff.sandboxStatus
-                        };
-                    }
-                    console.error('Unknown diff type', diff);
-                }).toArray();
+            function reduceProperty(diffsToSend, diff) {
+                var diffToSend = {
+                    type: 'property',
+                    key: diff.key,
+                    name: diff.dependentName || diff.name,
+                    action: diff.deleted ? 'delete' : 'update',
+                    status: diff.sandboxStatus
+                };
+                diffToSend[diff.elementType + 'Id'] = diff.elementId;
+                diffsToSend.push(diffToSend);
+                return diffsToSend;
+            }
 
             this.dataRequest('workspace', type, diffsToSend)
                 .finally(function() {
-                    bothButtons.hide().removeAttr('disabled').removeClass('loading');
-                    self.$node.find('.diff-content .alert').remove();
+                    self.publishing = self.undoing = false;
                     self.trigger(document, 'updateDiff');
-                    self.applyingAll = false;
+                    self.render();
                 })
                 .then(function(response) {
+                    //FIXME move to react
                     var failures = response.failures,
                         success = response.success;
 
@@ -502,7 +453,6 @@ define([
                             )
                             .prependTo(self.$node.find('.diff-content'))
                             .alert();
-                        self.updateHeader();
                     }
 
                     if (type === 'undo') {
@@ -510,6 +460,7 @@ define([
                     }
                 })
                 .catch(function(errorText) {
+                    //FIXME move to react
                     var error = $('<div>')
                         .addClass('alert alert-error')
                         .html(
@@ -519,11 +470,12 @@ define([
                         .prependTo(self.$node.find('.diff-content'))
                         .alert();
 
-                    button.show();
-
                     _.delay(error.remove.bind(error), 5000)
                 });
         };
+        this.onApplyPublishClick = _.partial(this.onApplyAll, 'publish');
+        this.onApplyUndoClick = _.partial(this.onApplyAll, 'undo');
+
 
         this.updateDraggables = function() {
             this.$node.find('.vertex-label h1')
@@ -553,9 +505,10 @@ define([
             var self = this;
 
             require(['util/visibility/view'], function(Visibility) {
+                Visibility.teardownAll();
                 self.$node.find('.visibility').each(function() {
                     var node = $(this),
-                        visibility = node.data('visibility');
+                        visibility = JSON.parse(node.attr('data-visibility'));
 
                     Visibility.attachTo(node, {
                         value: visibility && visibility.source
@@ -564,67 +517,23 @@ define([
             });
         };
 
-        this.updateHeader = function(showSuccess) {
+        this.onMarkUndo = function(diffId, state) {
             var self = this,
-                markedAsPublish = this.$node.find('.mark-publish').length,
-                markedAsUndo = this.$node.find('.mark-undo').length,
-                header = this.$node.find('.header span'),
-                headerText = header.text(),
-                publish = this.$node.find('.publish-all'),
-                undo = this.$node.find('.undo-all');
-
-            if (this.updateHeaderDelay) {
-                clearTimeout(this.updateHeaderDelay);
-                this.updateHeaderDelay = null;
-            }
-
-            if (showSuccess) {
-                publish.hide();
-                undo.hide();
-                header.show();
-                this.updateHeaderDelay = _.delay(function() {
-                    self.updateHeader();
-                }, SHOW_CHANGES_TEXT_SECONDS * 1000);
-            } else {
-                header.toggle(markedAsPublish === 0 && markedAsUndo === 0);
-
-                publish.toggle(markedAsPublish > 0)
-                    .attr('data-count', F.number.pretty(markedAsPublish));
-
-                undo.toggle(markedAsUndo > 0)
-                    .attr('data-count', F.number.pretty(markedAsUndo));
-            }
-        }
-
-        this.onMarkUndo = function(event, data) {
-            var self = this,
-                diffId = data.diffId,
                 diff = this.diffsById[diffId],
                 deps = this.diffDependencies[diffId] || [],
-                state = data.state,
-                stateBasedClassFunction = state ? 'addClass' : 'removeClass',
-                inverseStateBasedClassFunction = !state ? 'addClass' : 'removeClass';
-
-            if (!diff) {
-                return;
-            }
-
-            this.$node.find('tr.' + F.className.to(diff.id)).each(function() {
-                $(this)
-                    .removePrefixedClasses('mark-')
-                    [stateBasedClassFunction]('mark-undo')
-                    .find('button.undo')[stateBasedClassFunction]('btn-danger')
-                    .siblings('button.publish').removeClass('btn-success');
-            });
-
-            this.updateHeader();
+                vertexDiff;
+            state = state === undefined ? !diff.undo : state;
 
             switch (diff.type) {
                 case 'VertexDiffItem':
+                    vertexDiff = _.findWhere(this.diffs, { vertexId: diffId});
+                    vertexDiff.undo = diff.undo = state;
+                    vertexDiff.publish = diff.publish = false;
 
                     if (state) {
                         if (!diff.deleted) {
                             deps.forEach(function(diffId) {
+                                self.onMarkUndo(diffId, true);
                                 self.trigger('markUndoDiffItem', { diffId: diffId, state: true });
                             })
                         }
@@ -633,10 +542,23 @@ define([
                     break;
 
                 case 'PropertyDiffItem':
+                    var byId = {};
+                    byId[diff.elementType + 'Id'] = diff.elementId;
+                    var propertyDiff = _.chain(this.diffs)
+                        .findWhere(byId)
+                        .reduce(function(result, val, key) { return key === 'properties' ? val : result})
+                        .findWhere({ id: diffId })
+                        .value();
+
+                    if (propertyDiff) {
+                        propertyDiff.undo = diff.undo = state;
+                        propertyDiff.publish = diff.publish = false;
+                    }
 
                     if (!state) {
-                        var vertexDiff = self.diffsForElementId[diff.elementId];
+                        vertexDiff = self.diffsForElementId[diff.elementId];
                         if (vertexDiff) {
+                            self.onMarkUndo(vertexDiff.id, false);
                             self.trigger('markUndoDiffItem', { diffId: vertexDiff.id, state: false });
                         }
                     }
@@ -644,6 +566,9 @@ define([
                     break;
 
                 case 'EdgeDiffItem':
+                    var edgeDiff = _.findWhere(this.diffs, { edgeId: diffId });
+                    edgeDiff.undo = diff.undo = state;
+                    edgeDiff.publish = diff.publish = false;
 
                     var inVertex = self.diffsForElementId[diff.inVertexId],
                         outVertex = self.diffsForElementId[diff.outVertexId];
@@ -651,22 +576,27 @@ define([
                     if (state) {
                         if (diff.deleted) {
                             if (inVertex && inVertex.deleted) {
+                                self.onMarkUndo(inVertex.id, true);
                                 self.trigger('markUndoDiffItem', { diffId: inVertex.id, state: true });
                             }
                             if (outVertex && outVertex.deleted) {
+                                self.onMarkUndo(outVertex.id, true);
                                 self.trigger('markUndoDiffItem', { diffId: outVertex.id, state: true });
                             }
                         } else {
                             deps.forEach(function(diffId) {
+                                self.onMarkUndo(diffId, true);
                                 self.trigger('markUndoDiffItem', { diffId: diffId, state: true });
                             })
                         }
                     } else {
                         if (inVertex) {
+                            self.onMarkUndo(inVertex.id, false);
                             self.trigger('markUndoDiffItem', { diffId: inVertex.id, state: false });
                         }
 
                         if (outVertex) {
+                            self.onMarkUndo(outVertex.id, false);
                             self.trigger('markUndoDiffItem', { diffId: outVertex.id, state: false });
                         }
                     }
@@ -675,44 +605,35 @@ define([
 
                 default: console.warn('Unknown diff item type', diff.type)
             }
+            this.render();
         };
 
-        this.onMarkPublish = function(event, data) {
+        this.onMarkPublish = function(diffId, state) {
             var self = this,
-                diffId = data.diffId,
                 diff = this.diffsById[diffId],
-                state = data.state,
-                stateBasedClassFunction = state ? 'addClass' : 'removeClass',
-                inverseStateBasedClassFunction = !state ? 'addClass' : 'removeClass';
-
-            if (!diff) {
-                return;
-            }
-
-            this.$node.find('tr.' + F.className.to(diff.id)).each(function() {
-                $(this)
-                    .removePrefixedClasses('mark-')
-                    [stateBasedClassFunction]('mark-publish')
-                    .find('button.publish')[stateBasedClassFunction]('btn-success')
-                    .siblings('button.undo').removeClass('btn-danger');
-            });
-
-            this.updateHeader();
+                vertexDiff;
+            state = state === undefined ? !diff.publish : state;
 
             switch (diff.type) {
 
                 case 'VertexDiffItem':
+                    vertexDiff = _.findWhere(this.diffs, { vertexId: diffId });
+                    vertexDiff.publish = diff.publish = state;
+                    vertexDiff.undo = diff.undo = false;
                     if (state && diff.deleted) {
                         this.diffDependencies[diff.id].forEach(function(diffId) {
                             var diff = self.diffsById[diffId];
                             if (diff && diff.type === 'EdgeDiffItem' && diff.deleted) {
+                                self.onMarkPublish(diffId, true);
                                 self.trigger('markPublishDiffItem', { diffId: diffId, state: true });
                             } else {
+                                self.onMarkPublish(diffId, false);
                                 self.trigger('markPublishDiffItem', { diffId: diffId, state: false });
                             }
                         });
                     } else if (!state) {
                         this.diffDependencies[diff.id].forEach(function(diffId) {
+                            self.onMarkPublish(diffId, false);
                             self.trigger('markPublishDiffItem', { diffId: diffId, state: false });
                         });
                     }
@@ -720,10 +641,23 @@ define([
                     break;
 
                 case 'PropertyDiffItem':
+                    var byId = {};
+                    byId[diff.elementType + 'Id'] = diff.elementId;
+                    var propertyDiff = _.chain(this.diffs)
+                        .findWhere(byId)
+                        .reduce(function(result, val, key) { return key === 'properties' ? val : result})
+                        .findWhere({ id: diffId })
+                        .value();
+
+                    if (propertyDiff) {
+                        propertyDiff.publish = diff.publish = state;
+                        propertyDiff.undo = diff.undo = false;
+                    }
 
                     if (state) {
-                        var vertexDiff = this.diffsForElementId[diff.elementId];
+                        vertexDiff = this.diffsForElementId[diff.elementId];
                         if (vertexDiff && !vertexDiff.deleted) {
+                            self.onMarkPublish(diff.elementId, true);
                             this.trigger('markPublishDiffItem', { diffId: diff.elementId, state: true })
                         }
                     }
@@ -731,10 +665,14 @@ define([
                     break;
 
                 case 'EdgeDiffItem':
+                    var edgeDiff = _.findWhere(this.diffs, { edgeId: diffId });
+                    edgeDiff.publish = diff.publish = state;
+                    edgeDiff.undo = diff.undo = false;
 
                     if (!state) {
                         // Unpublish all dependents
                         this.diffDependencies[diff.id].forEach(function(diffId) {
+                            self.onMarkPublish(diffId, false);
                             self.trigger('markPublishDiffItem', { diffId: diffId, state: false });
                         });
                     } else {
@@ -742,9 +680,11 @@ define([
                             outVertexDiff = this.diffsForElementId[diff.outVertexId];
 
                         if (inVertexDiff && !diff.deleted) {
+                            self.onMarkPublish(diff.inVertexId, true);
                             this.trigger('markPublishDiffItem', { diffId: diff.inVertexId, state: true });
                         }
                         if (outVertexDiff && !diff.deleted) {
+                            self.onMarkPublish(diff.outVertexId, true);
                             this.trigger('markPublishDiffItem', { diffId: diff.outVertexId, state: true });
                         }
                     }
@@ -753,6 +693,7 @@ define([
 
                 default: console.warn('Unknown diff item type', diff.type)
             }
+            this.render();
         };
     }
 });
