@@ -44,8 +44,14 @@ define([], function() {
             identifier: 'org.visallo.layout.body.split',
             layout: { type: 'flex', options: { direction: 'row' }},
             children: [
-                { componentPath: 'detail/properties/properties', style: { flex: 1 }, className: 'org-visallo-properties', modelAttribute: 'data' },
+                { ref: 'org.visallo.layout.body.left', style: { flex: 1 }},
                 { ref: 'org.visallo.layout.body.right', style: { flex: 1 }}
+            ]
+        },
+        {
+            identifier: 'org.visallo.layout.body.left',
+            children: [
+                { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' }
             ]
         },
         {

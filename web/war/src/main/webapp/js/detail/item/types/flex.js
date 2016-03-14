@@ -1,6 +1,7 @@
 define([
-    'flight/lib/component'
-], function(defineComponent) {
+    'flight/lib/component',
+    'util/domElement'
+], function(defineComponent, domElement) {
     'use strict';
 
     return defineComponent(FlexLayout);
@@ -63,7 +64,7 @@ define([
         _.keys(el.style).forEach(function(name) {
             if (!(name in styles)) {
                 if (_.contains(toRemove, name)) {
-                    removeStyles(el, name);
+                    domElement.removeStyles(el, name);
                 }
             }
         })
@@ -71,26 +72,6 @@ define([
         if (newStyles) {
             $(el).css(newStyles);
         }
-    }
-
-    function removeStyles(el) {
-        _.chain(arguments)
-            .rest()
-            .map(function(name) {
-                return [
-                    name,
-                    name.replace(/([A-Z])/g, function(str, letter) {
-                        return '-' + letter.toLowerCase();
-                    })
-                ];
-            })
-            .flatten()
-            .compact()
-            .unique()
-            .each(function(name) {
-                el.style.removeProperty(name);
-                delete el.style[name];
-            })
     }
 
     function transformStyle(css) {
