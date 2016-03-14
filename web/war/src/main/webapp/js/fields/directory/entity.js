@@ -67,7 +67,9 @@ define([
             function loadDirectoryEntity(directoryEntry) {
                 if (directoryEntry && directoryEntry.id && directoryEntry.type) {
                     self.setValue(directoryEntry);
-                    self.loadingSpan.remove();
+                    if (self.loadingSpan) {
+                        self.loadingSpan.remove();
+                    }
                     self.inputField.show();
                 }
             }
