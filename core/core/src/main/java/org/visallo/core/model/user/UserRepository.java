@@ -273,6 +273,11 @@ public abstract class UserRepository {
         }
     }
 
+    public SimpleOrmContext getSimpleOrmContext(User user) {
+        String[] authorizations = getAuthorizations(user).getAuthorizations();
+        return getSimpleOrmContext(authorizations);
+    }
+
     public SimpleOrmContext getSimpleOrmContext(org.vertexium.Authorizations authorizations, String... additionalAuthorizations) {
         ArrayList<String> auths = new ArrayList<>();
 

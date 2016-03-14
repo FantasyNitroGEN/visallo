@@ -3,7 +3,9 @@ package org.visallo.core.model.notification;
 import com.google.inject.Inject;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -20,6 +22,7 @@ public class UserNotificationRepository extends NotificationRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserNotificationRepository.class);
     private static final String VISIBILITY_STRING = "";
     private final WorkQueueRepository workQueueRepository;
+    private UserRepository userRepository;
 
     @Inject
     public UserNotificationRepository(
@@ -33,7 +36,7 @@ public class UserNotificationRepository extends NotificationRepository {
     public List<UserNotification> getActiveNotifications(User user) {
         Date now = new Date();
         List<UserNotification> activeNotifications = new ArrayList<>();
-        for (UserNotification notification : getSimpleOrmSession().findAll(UserNotification.class, user.getSimpleOrmContext())) {
+        for (UserNotification notification : getSimpleOrmSession().findAll(UserNotification.class, getUserRepository().getSimpleOrmContext(user))) {
             if (user.getUserId().equals(notification.getUserId()) &&
                     notification.getSentDate().before(now) &&
                     notification.isActive()) {
@@ -56,13 +59,13 @@ public class UserNotificationRepository extends NotificationRepository {
         UserNotification notification = new UserNotification(userId, title, message, actionEvent, actionPayload, expirationAge);
 
         notification.setMarkedRead(false);
-        getSimpleOrmSession().save(notification, VISIBILITY_STRING, authUser.getSimpleOrmContext());
+        getSimpleOrmSession().save(notification, VISIBILITY_STRING, getUserRepository().getSimpleOrmContext(authUser));
         workQueueRepository.pushUserNotification(notification);
         return notification;
     }
 
     public UserNotification getNotification(String notificationId, User user) {
-        return getSimpleOrmSession().findById(UserNotification.class, notificationId, user.getSimpleOrmContext());
+        return getSimpleOrmSession().findById(UserNotification.class, notificationId, getUserRepository().getSimpleOrmContext(user));
     }
 
     public void markRead(String[] notificationIds, User user) {
@@ -75,6 +78,16 @@ public class UserNotificationRepository extends NotificationRepository {
                 toSave.add(notification);
             } else throw new VisalloException("User cannot mark notifications read that aren't issued to them");
         }
-        getSimpleOrmSession().saveMany(toSave, VISIBILITY_STRING, user.getSimpleOrmContext());
+        getSimpleOrmSession().saveMany(toSave, VISIBILITY_STRING, getUserRepository().getSimpleOrmContext(user));
+    }
+
+    /**
+     * Avoid circular reference with UserRepository
+     */
+    private UserRepository getUserRepository() {
+        if (userRepository == null) {
+            userRepository = InjectHelper.getInstance(UserRepository.class);
+        }
+        return userRepository;
     }
 }

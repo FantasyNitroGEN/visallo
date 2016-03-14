@@ -1,6 +1,5 @@
 package org.visallo.core.user;
 
-import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.clientapi.model.UserStatus;
@@ -33,15 +32,6 @@ public class ProxyUser implements User {
     public User getProxiedUser() {
         ensureUser();
         return proxiedUser;
-    }
-
-    @Override
-    public SimpleOrmContext getSimpleOrmContext() {
-        ensureUser();
-        if (proxiedUser == null) {
-            return null;
-        }
-        return proxiedUser.getSimpleOrmContext();
     }
 
     @Override

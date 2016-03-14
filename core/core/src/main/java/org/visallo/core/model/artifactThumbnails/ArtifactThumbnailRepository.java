@@ -2,14 +2,15 @@ package org.visallo.core.model.artifactThumbnails;
 
 import com.google.inject.Inject;
 import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.types.BooleanVisalloProperty;
 import org.visallo.core.model.properties.types.IntegerVisalloProperty;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.vertexium.Vertex;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -27,15 +28,18 @@ public class ArtifactThumbnailRepository {
     public static int PREVIEW_FRAME_WIDTH = 360;
     public static int PREVIEW_FRAME_HEIGHT = 240;
     private final SimpleOrmSession simpleOrmSession;
+    private final UserRepository userRepository;
     private BooleanVisalloProperty yAxisFlippedProperty;
     private IntegerVisalloProperty clockwiseRotationProperty;
 
     @Inject
     public ArtifactThumbnailRepository(
             SimpleOrmSession simpleOrmSession,
+            UserRepository userRepository,
             final OntologyRepository ontologyRepository
     ) {
         this.simpleOrmSession = simpleOrmSession;
+        this.userRepository = userRepository;
 
         String yAxisFlippedPropertyIri = ontologyRepository.getPropertyIRIByIntent("media.yAxisFlipped");
         if (yAxisFlippedPropertyIri != null) {
@@ -50,7 +54,7 @@ public class ArtifactThumbnailRepository {
 
     public ArtifactThumbnail getThumbnail(String artifactVertexId, String thumbnailType, int width, int height, User user) {
         String id = ArtifactThumbnail.createId(artifactVertexId, thumbnailType, width, height);
-        return simpleOrmSession.findById(ArtifactThumbnail.class, id, user.getSimpleOrmContext());
+        return simpleOrmSession.findById(ArtifactThumbnail.class, id, userRepository.getSimpleOrmContext(user));
     }
 
     public byte[] getThumbnailData(String artifactVertexId, String thumbnailType, int width, int height, User user) {
@@ -63,7 +67,7 @@ public class ArtifactThumbnailRepository {
 
     public ArtifactThumbnail createThumbnail(Vertex artifactVertex, String propertyKey, String thumbnailType, InputStream in, int[] boundaryDims, User user) throws IOException {
         ArtifactThumbnail thumbnail = generateThumbnail(artifactVertex, propertyKey, thumbnailType, in, boundaryDims);
-        simpleOrmSession.save(thumbnail, VISIBILITY_STRING, user.getSimpleOrmContext());
+        simpleOrmSession.save(thumbnail, VISIBILITY_STRING, userRepository.getSimpleOrmContext(user));
         return thumbnail;
     }
 

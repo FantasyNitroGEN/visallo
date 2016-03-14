@@ -16,7 +16,14 @@ public class FormatVisallo extends CommandLineTool {
 
     @Override
     protected int run() throws Exception {
-        ModelUtil.drop(getGraph(), getSimpleOrmSession(), getWorkQueueRepository(), authorizationRepository, getUser());
+        ModelUtil.drop(
+                getGraph(),
+                getSimpleOrmSession(),
+                getUserRepository(),
+                getWorkQueueRepository(),
+                authorizationRepository,
+                getUser()
+        );
         return 0;
     }
 

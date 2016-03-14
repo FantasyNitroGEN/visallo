@@ -1,7 +1,6 @@
 package org.visallo.vertexium.model.user;
 
 import com.google.common.collect.ImmutableMap;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.UserStatus;
@@ -46,11 +45,6 @@ public class InMemoryUser implements User {
         Collections.addAll(this.authorizations, authorizations);
         this.currentWorkspaceId = currentWorkspaceId;
         this.preferences = new JSONObject();
-    }
-
-    @Override
-    public SimpleOrmContext getSimpleOrmContext() {
-        throw new RuntimeException("not implemented");
     }
 
     @Override

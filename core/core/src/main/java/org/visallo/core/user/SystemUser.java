@@ -22,11 +22,6 @@ public class SystemUser implements User {
     }
 
     @Override
-    public SimpleOrmContext getSimpleOrmContext() {
-        return simpleOrmContext;
-    }
-
-    @Override
     public String getUserId() {
         return USER_ID;
     }
