@@ -203,15 +203,14 @@ public class WorkspaceHelper {
         List<Property> properties = new ArrayList<>();
         properties.addAll(toList(e.getProperties(propertyKey, propertyName)));
 
-        if (properties.size() == 0) {
-            throw new VisalloResourceNotFoundException(String.format("Could not find property %s:%s on %s", propertyName, propertyKey, e));
-        }
-
-        properties.addAll(toList(e.getProperties(propertyKey, propertyName)));
         if (ontologyProperty != null) {
             for (String dependentPropertyIri : ontologyProperty.getDependentPropertyIris()) {
                 properties.addAll(toList(e.getProperties(propertyKey, dependentPropertyIri)));
             }
+        }
+
+        if (properties.size() == 0) {
+            throw new VisalloResourceNotFoundException(String.format("Could not find property %s:%s on %s", propertyName, propertyKey, e));
         }
 
         if (workspaceId != null) {
