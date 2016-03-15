@@ -120,10 +120,28 @@ public class JSONUtil {
         return map;
     }
 
-    public static JSONObject toJson(Map<String, String> map) {
+    public static JSONObject toJson(Map<String, ?> map) {
         JSONObject json = new JSONObject();
-        for (Map.Entry<String, String> e : map.entrySet()) {
-            json.put(e.getKey(), e.getValue());
+        for (Map.Entry<String, ?> e : map.entrySet()) {
+            json.put(e.getKey(), toJson(e.getValue()));
+        }
+        return json;
+    }
+
+    public static Object toJson(Object value) {
+        if (value instanceof Map) {
+            return toJson((Map) value);
+        } else if (value instanceof Iterable) {
+            return toJson((Iterable) value);
+        } else {
+            return value;
+        }
+    }
+
+    public static JSONArray toJson(Iterable iterable) {
+        JSONArray json = new JSONArray();
+        for (Object o : iterable) {
+            json.put(toJson(o));
         }
         return json;
     }
