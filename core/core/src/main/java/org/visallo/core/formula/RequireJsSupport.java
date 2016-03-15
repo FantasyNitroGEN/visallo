@@ -11,6 +11,7 @@ import org.mozilla.javascript.ScriptableObject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 public class RequireJsSupport extends ScriptableObject {
 
@@ -68,7 +69,7 @@ public class RequireJsSupport extends ScriptableObject {
         InputStream is = RequireJsSupport.class.getResourceAsStream(file);
         if (is != null) {
             try {
-                return IOUtils.toString(is);
+                return IOUtils.toString(is, Charset.forName("UTF-8"));
             } catch (IOException e) {
                 LOGGER.error("File not readable %s", file, e);
             }
