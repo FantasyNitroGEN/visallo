@@ -136,6 +136,40 @@ public abstract class OntologyProperty {
         if (value == null) {
             return null;
         }
+
+        PropertyType dataType = getDataType();
+        switch (dataType) {
+            case DATE:
+                if (value instanceof Date) {
+                    return value;
+                }
+                break;
+            case GEO_LOCATION:
+                if (value instanceof GeoPoint) {
+                    return value;
+                }
+                break;
+            case CURRENCY:
+                if (value instanceof BigDecimal) {
+                    return value;
+                }
+                break;
+            case DOUBLE:
+                if (value instanceof Double) {
+                    return value;
+                }
+                break;
+            case INTEGER:
+                if (value instanceof Integer) {
+                    return value;
+                }
+                break;
+            case BOOLEAN:
+                if (value instanceof Boolean) {
+                    return value;
+                }
+                break;
+        }
         return convertString(value.toString());
     }
 
