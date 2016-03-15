@@ -1,6 +1,7 @@
 package org.visallo.core.model.properties.types;
 
 import com.google.common.base.Function;
+import org.vertexium.Property;
 
 /**
  * A VisalloProperty provides convenience methods for converting standard
@@ -36,6 +37,10 @@ public abstract class VisalloPropertyBase<TRaw, TGraph> {
 
     protected Function<Object, TRaw> getRawConverter() {
         return rawConverter;
+    }
+
+    public TRaw getPropertyValue(Property property) {
+        return unwrap(property.getValue());
     }
 
     protected class RawConverter implements Function<Object, TRaw> {
