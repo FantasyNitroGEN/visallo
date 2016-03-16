@@ -8,7 +8,6 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -27,22 +26,12 @@ public class InMemoryRelationship extends Relationship {
     protected InMemoryRelationship(
             String parentIRI,
             String relationshipIRI,
-            String displayName,
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
-            Collection<OntologyProperty> properties,
-            String[] intents,
-            boolean userVisible,
-            boolean deleteable,
-            boolean updateable
+            Collection<OntologyProperty> properties
     ) {
         super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.relationshipIRI = relationshipIRI;
-        this.displayName = displayName;
-        this.intents.addAll(Arrays.asList(intents));
-        this.userVisible = userVisible;
-        this.deleteable = deleteable;
-        this.updateable = updateable;
     }
 
     @Override
@@ -121,6 +110,10 @@ public class InMemoryRelationship extends Relationship {
             this.timeFormula = (String) value;
         } else if (OntologyProperties.USER_VISIBLE.getPropertyName().equals(name)) {
             this.userVisible = (Boolean) value;
+        } else if (OntologyProperties.DELETEABLE.getPropertyName().equals(name)) {
+            this.deleteable = (Boolean) value;
+        } else if (OntologyProperties.UPDATEABLE.getPropertyName().equals(name)) {
+            this.updateable = (Boolean) value;
         }
     }
 
