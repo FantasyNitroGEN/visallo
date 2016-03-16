@@ -21,6 +21,7 @@ public class SystemNotificationRepository extends NotificationRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SystemNotificationRepository.class);
     private static final String LOCK_NAME = SystemNotificationRepository.class.getName();
     private static final String VISIBILITY_STRING = "";
+    private final UserRepository userRepository;
     private boolean enabled;
 
     @Inject
@@ -31,13 +32,14 @@ public class SystemNotificationRepository extends NotificationRepository {
             WorkQueueRepository workQueueRepository
     ) {
         super(simpleOrmSession);
+        this.userRepository = userRepository;
         startBackgroundThread(lockRepository, userRepository, workQueueRepository);
     }
 
     public List<SystemNotification> getActiveNotifications(User user) {
         Date now = new Date();
         List<SystemNotification> activeNotifications = new ArrayList<>();
-        for (SystemNotification notification : getSimpleOrmSession().findAll(SystemNotification.class, user.getSimpleOrmContext())) {
+        for (SystemNotification notification : getSimpleOrmSession().findAll(SystemNotification.class, userRepository.getSimpleOrmContext(user))) {
             if (notification.getStartDate().before(now)) {
                 if (notification.getEndDate() == null || notification.getEndDate().after(now)) {
                     activeNotifications.add(notification);
@@ -51,7 +53,7 @@ public class SystemNotificationRepository extends NotificationRepository {
     public List<SystemNotification> getFutureNotifications(Date maxDate, User user) {
         Date now = new Date();
         List<SystemNotification> futureNotifications = new ArrayList<>();
-        for (SystemNotification notification : getSimpleOrmSession().findAll(SystemNotification.class, user.getSimpleOrmContext())) {
+        for (SystemNotification notification : getSimpleOrmSession().findAll(SystemNotification.class, userRepository.getSimpleOrmContext(user))) {
             if (notification.getStartDate().after(now) && notification.getStartDate().before(maxDate)) {
                 futureNotifications.add(notification);
             }
@@ -77,7 +79,7 @@ public class SystemNotificationRepository extends NotificationRepository {
         notification.setSeverity(severity);
         notification.setStartDate(startDate);
         notification.setEndDate(endDate);
-        getSimpleOrmSession().save(notification, VISIBILITY_STRING, user.getSimpleOrmContext());
+        getSimpleOrmSession().save(notification, VISIBILITY_STRING, userRepository.getSimpleOrmContext(user));
         return notification;
     }
 
@@ -103,11 +105,11 @@ public class SystemNotificationRepository extends NotificationRepository {
     }
 
     public SystemNotification getNotification(String rowKey, User user) {
-        return getSimpleOrmSession().findById(SystemNotification.class, rowKey, user.getSimpleOrmContext());
+        return getSimpleOrmSession().findById(SystemNotification.class, rowKey, userRepository.getSimpleOrmContext(user));
     }
 
     public SystemNotification updateNotification(SystemNotification notification, User user) {
-        getSimpleOrmSession().save(notification, VISIBILITY_STRING, user.getSimpleOrmContext());
+        getSimpleOrmSession().save(notification, VISIBILITY_STRING, userRepository.getSimpleOrmContext(user));
         return notification;
     }
 

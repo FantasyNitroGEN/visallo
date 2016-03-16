@@ -5,6 +5,7 @@ import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Graph;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 
@@ -14,11 +15,12 @@ public class ModelUtil {
     public static void drop(
             Graph graph,
             SimpleOrmSession simpleOrmSession,
+            UserRepository userRepository,
             WorkQueueRepository workQueueRepository,
             AuthorizationRepository authorizationRepository,
             User user
     ) {
-        ModelUtil.clearTables(simpleOrmSession, user);
+        ModelUtil.clearTables(userRepository, simpleOrmSession, user);
         workQueueRepository.format();
         // TODO provide a way to delete the graph and it's search index
         // graph.delete(getUser());
@@ -33,31 +35,16 @@ public class ModelUtil {
         graph.drop();
     }
 
-    public static void deleteTables(SimpleOrmSession simpleOrmSession, User user) {
-        LOGGER.warn("BEGIN deleting tables");
-        String tablePrefix = simpleOrmSession.getTablePrefix();
-        if (Strings.isNullOrEmpty(tablePrefix)) {
-            throw new VisalloException("Unable to format without a SimpleOrmSession table prefix");
-        }
-        for (String table : simpleOrmSession.getTableList(user.getSimpleOrmContext())) {
-            if (table.startsWith(tablePrefix)) {
-                LOGGER.warn("deleting table: %s", table);
-                simpleOrmSession.deleteTable(table, user.getSimpleOrmContext());
-            }
-        }
-        LOGGER.warn("END deleting tables");
-    }
-
-    public static void clearTables(SimpleOrmSession simpleOrmSession, User user) {
+    public static void clearTables(UserRepository userRepository, SimpleOrmSession simpleOrmSession, User user) {
         LOGGER.warn("BEGIN clearing tables");
         String tablePrefix = simpleOrmSession.getTablePrefix();
         if (Strings.isNullOrEmpty(tablePrefix)) {
             throw new VisalloException("Unable to format without a SimpleOrmSession table prefix");
         }
-        for (String table : simpleOrmSession.getTableList(user.getSimpleOrmContext())) {
+        for (String table : simpleOrmSession.getTableList(userRepository.getSimpleOrmContext(user))) {
             if (table.startsWith(tablePrefix)) {
                 LOGGER.warn("clearing table: %s", table);
-                simpleOrmSession.clearTable(table, user.getSimpleOrmContext());
+                simpleOrmSession.clearTable(table, userRepository.getSimpleOrmContext(user));
             }
         }
         LOGGER.warn("END clearing tables");

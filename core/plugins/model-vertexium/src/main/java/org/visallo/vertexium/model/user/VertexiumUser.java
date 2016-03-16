@@ -19,7 +19,6 @@ import java.util.Set;
 
 public class VertexiumUser implements User, Serializable {
     private static final long serialVersionUID = 6688073934273514248L;
-    private SimpleOrmContext simpleOrmContext;
     private String userId;
     private Map<String, Object> properties = new HashMap<>();
 
@@ -33,12 +32,6 @@ public class VertexiumUser implements User, Serializable {
         for (Property property : userVertex.getProperties()) {
             this.properties.put(property.getName(), property.getValue());
         }
-        this.simpleOrmContext = simpleOrmContext;
-    }
-
-    @Override
-    public SimpleOrmContext getSimpleOrmContext() {
-        return simpleOrmContext;
     }
 
     @Override

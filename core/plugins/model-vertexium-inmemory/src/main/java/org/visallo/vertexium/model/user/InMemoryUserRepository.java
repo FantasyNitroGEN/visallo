@@ -13,6 +13,8 @@ import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.UserStatus;
@@ -128,7 +130,14 @@ public class InMemoryUserRepository extends UserRepository {
     @Override
     public Authorizations getAuthorizations(User user, String... additionalAuthorizations) {
         List<String> auths = new ArrayList<>();
-        Collections.addAll(auths, ((InMemoryUser) user).getAuthorizations());
+        if (user instanceof SystemUser) {
+            auths.add(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
+        } else if (user instanceof ProxyUser) {
+            ProxyUser proxyUser = (ProxyUser) user;
+            Collections.addAll(auths, ((InMemoryUser) proxyUser.getProxiedUser()).getAuthorizations());
+        } else {
+            Collections.addAll(auths, ((InMemoryUser) user).getAuthorizations());
+        }
         Collections.addAll(auths, additionalAuthorizations);
         return this.graph.createAuthorizations(auths.toArray(new String[auths.size()]));
     }

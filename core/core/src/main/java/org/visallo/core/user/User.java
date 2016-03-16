@@ -13,8 +13,6 @@ import java.util.Set;
 public interface User extends Serializable {
     long serialVersionUID = 2L;
 
-    SimpleOrmContext getSimpleOrmContext();
-
     String getUserId();
 
     String getUsername();
