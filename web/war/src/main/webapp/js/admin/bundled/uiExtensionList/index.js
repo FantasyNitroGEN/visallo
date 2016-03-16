@@ -129,7 +129,7 @@ define([
                             })
                             .select('.collapsible-header')
                             .text(function(d) {
-                                return F.string.plural(d[1].registered.length, 'plugin') + ' registered';
+                                return F.string.plural(d[1].registered.length, 'Plugin') + ' Registered';
                             })
                         this.select('ol.inner-list')
                             .selectAll('li')
