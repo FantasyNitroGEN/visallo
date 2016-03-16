@@ -15,7 +15,8 @@ define([
                 'Add components to graph options dropdown',
                 function(e) {
                     return ('identifier' in e) && ('optionComponentPath' in e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphOptions'
             );
             registry.registerExtension('org.visallo.graph.options', {
                 identifier: 'toggleEdgeLabel',

@@ -75,7 +75,7 @@ define(['underscore'], function(_) {
                 triggerChange(extensionPoint);
             },
 
-            documentExtensionPoint: function(extensionPoint, description, validator) {
+            documentExtensionPoint: function(extensionPoint, description, validator, externalDocumentationUrl) {
                 if (!description) {
                     throw new Error('Description required for documentation')
                 }
@@ -86,7 +86,8 @@ define(['underscore'], function(_) {
 
                 extensionDocumentation[extensionPoint] = {
                     description: description,
-                    validator: validator
+                    validator: validator,
+                    externalDocumentationUrl: externalDocumentationUrl
                 };
             },
 
@@ -96,6 +97,7 @@ define(['underscore'], function(_) {
                         extensionPoint: point,
                         description: doc.description,
                         validator: doc.validator.toString(),
+                        externalDocumentationUrl: doc.externalDocumentationUrl,
                         registered: api.extensionsForPoint(point).map(replaceFunctions)
                     };
                 });

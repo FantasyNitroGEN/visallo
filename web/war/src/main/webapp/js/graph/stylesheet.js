@@ -175,7 +175,8 @@ define([
                 'Apply additional cytoscape styles',
                 function(e) {
                     return _.isFunction(e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphStyle'
             );
             registry.extensionsForPoint('org.visallo.graph.style').forEach(function(styler) {
                 styler(style);

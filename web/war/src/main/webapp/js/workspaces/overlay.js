@@ -48,7 +48,8 @@ define([
                 'Add new tabs to user account modal dialog',
                 function(e) {
                     return ('identifier' in e) && ('pageComponentPath' in e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/userAccount'
             );
 
             this.updateDiffBadge = _.throttle(this.updateDiffBadge.bind(this), UPDATE_WORKSPACE_DIFF_SECONDS * 1000)

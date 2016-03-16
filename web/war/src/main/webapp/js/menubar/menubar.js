@@ -98,7 +98,8 @@ define([
                     ('identifier' in e) &&
                     ('action' in e) &&
                     ('icon' in e);
-            }
+            },
+            'http://docs.visallo.org/extension-points/front-end/menubar'
         );
         registry.extensionsForPoint('org.visallo.menubar')
             .forEach(function(data) {

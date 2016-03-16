@@ -70,7 +70,8 @@ define([
                 'Custom activity rows based on events or long running processes.',
                 function(e) {
                     return ('type' in e) && ('kind' in e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/activity'
             );
 
             builtinHandlers.forEach(function(h) {
