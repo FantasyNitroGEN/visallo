@@ -77,6 +77,7 @@ define([
             this.on(document, 'verticesDeleted', this.onVerticesDeleted);
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
+            this.on(document, 'searchResultsWithinRadius', this.onSearchResultsWithinRadius);
 
             this.padding = {l: 0, r: 0, b: 0, t: 0};
 
@@ -498,7 +499,7 @@ define([
                         menu.data('feature', feature);
                         this.toggleMenu({ positionUsingEvent: event }, menu);
                     }
-                } else this.toggleMenu({ positionUsingEvent: event }, this.select('contextMenuSelector'));
+                }
             });
         };
 
@@ -512,16 +513,27 @@ define([
             this.trigger('deleteVertices', { vertices: vertices });
         };
 
-        this.onContextMenuLoadResultsWithinRadius = function() {
+        this.onSearchResultsWithinRadius = function() {
             var self = this;
 
-            this.mode = MODE_REGION_SELECTION_MODE_POINT;
-            this.$node.find('.instructions').remove();
-            this.$node.append(centerTemplate({}));
-            $(document).on('keydown.regionselection', function(e) {
-                if (e.which === $.ui.keyCode.ESCAPE) {
-                    self.endRegionSelection();
-                }
+            if (this.mode === MODE_NORMAL) {
+                this.mode = MODE_REGION_SELECTION_MODE_POINT;
+                this.$node.find('.instructions').remove();
+                this.$node.append(centerTemplate({}));
+                $(document).on('keydown.regionselection', function(e) {
+                    if (e.which === $.ui.keyCode.ESCAPE) {
+                        self.endRegionSelection();
+                    }
+                });
+            } else if (this.mode === MODE_REGION_SELECTION_MODE_RADIUS) {
+                this.panToActiveRadius();
+            }
+        };
+
+        this.panToActiveRadius = function() {
+            var regionCenterLonLat = new OpenLayers.LonLat(this.regionCenterPoint.lon, this.regionCenterPoint.lat);
+            this.mapReady(function(map) {
+                map.panTo(regionCenterLonLat);
             });
         };
 
@@ -610,37 +622,21 @@ define([
                         lonlat = self.regionCenterPoint.transform(
                             map.getProjectionObject(),
                             new ol.Projection('EPSG:4326')
-                        );
+                        ),
+                        region = {
+                            radius: radius,
+                            longitude: lonlat.lon,
+                            latitude: lonlat.lat
+                        };
 
                     self.$node.find('.instructions').remove();
                     self.$node.append(loadingTemplate({}));
 
-                    self.dataRequest('vertex', 'geo-search',
-                        lonlat.lat,
-                        lonlat.lon,
-                        radius
-                    ).done(
-                        function(data) {
-                            self.endRegionSelection();
-                            self.trigger('updateWorkspace', {
-                                entityUpdates: data.elements.map(function(vertex) {
-                                    return {
-                                        vertexId: vertex.id,
-                                        graphLayoutJson: {
-                                            fromMapRegion: {
-                                                lat: lonlat.lat,
-                                                lon: lonlat.lon,
-                                                radius: radius
-                                            }
-                                        }
-                                    };
-                                })
-                            });
-                        }
-                    );
+                    self.trigger(document, 'regionSaved', region);
+                    $(document).off('regionSaved');
+                    self.endRegionSelection();
 
                     break;
-
             }
         };
 
