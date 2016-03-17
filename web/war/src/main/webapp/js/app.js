@@ -112,7 +112,8 @@ define([
                 'Override logout',
                 function(e) {
                     return _.isFunction(e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/logout'
             );
             registry.documentExtensionPoint('org.visallo.vertex.menu',
                 'Add vertex context menu items',
@@ -120,7 +121,8 @@ define([
                     return e === 'DIVIDER' || (
                         ('event' in e || 'submenu' in e) && ('label' in e)
                     );
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/vertexMenu'
             );
 
             fixMultipleBootstrapModals();

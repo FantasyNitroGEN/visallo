@@ -55,6 +55,9 @@ define([
                         .sortBy(function(pair) {
                             return pair[0].toLowerCase();
                         })
+                        .sortBy(function(pair) {
+                            return pair[1].webWorker ? 1 : 0
+                        })
                         .value()
                     )
                     .call(function() {
@@ -66,11 +69,30 @@ define([
                                         this.append('span').attr('class', 'badge');
                                         this.append('strong');
                                     })
-                                this.append('div')
+                                this.append('div').attr('class', 'ui-extension-body')
                                     .call(function() {
                                         this.append('p')
-                                        this.append('pre').style('font-size', '75%')
-                                        this.append('ol').attr('class', 'inner-list ui-extension-list');
+                                        this.append('a')
+                                            .attr('target', 'ext-docs')
+                                            .attr('class', 'external-link')
+                                            .text(function(d) { return 'External Documentation'; })
+
+                                        this.append('div').attr('class', 'collapsible val')
+                                            .call(function() {
+                                                this.append('a')
+                                                    .attr('class', 'collapsible-header')
+                                                    .text(function(d) { return 'Validation Function'; })
+                                                    .attr('title', 'Registered extensions must pass validation')
+                                                this.append('div')
+                                                    .append('pre').style('font-size', '75%')
+                                            })
+                                        this.append('div').attr('class', 'collapsible reg')
+                                            .call(function() {
+                                                this.append('a')
+                                                    .attr('class', 'collapsible-header')
+                                                this.append('div')
+                                                    .append('ol').attr('class', 'inner-list ui-extension-list');
+                                            })
                                     })
                             });
 
@@ -80,6 +102,18 @@ define([
                         this.select('p').html(function(d) {
                             return d[1].description;
                         })
+                        this.select('a.external-link')
+                            .attr('title', function(d) {
+                                return 'Open external documentation for ' + d[0];
+                            })
+                            .style('display', function(d) {
+                                if (!d[1].externalDocumentationUrl) {
+                                    return 'none'
+                                }
+                            })
+                            .attr('href', function(d) {
+                                return d[1].externalDocumentationUrl;
+                            })
                         this.select('pre').text(function(d) {
                             return beautify.js_beautify(d[1].validator, {
                                 /*eslint camelcase:0 */
@@ -90,6 +124,13 @@ define([
                         this.select('.badge').text(function(d) {
                             return F.number.pretty(d[1].registered.length);
                         });
+                        this.select('.reg').style('display', function(d) {
+                                if (d[1].registered.length === 0) return 'none';
+                            })
+                            .select('.collapsible-header')
+                            .text(function(d) {
+                                return F.string.plural(d[1].registered.length, 'Plugin') + ' Registered';
+                            })
                         this.select('ol.inner-list')
                             .selectAll('li')
                             .data(function(d) {

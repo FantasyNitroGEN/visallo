@@ -48,6 +48,19 @@
     & > div, .collapsible-section {
       display: block;
     }
+
+    .collapsible {
+      & > h1, .collapsible-header {
+        &:before {
+          .rotate(0);
+        }
+      }
+      &.expanded {
+        & > h1, .collapsible-header {
+          .twizzle-expand;
+        }
+      }
+    }
   }
   
   &.loading {      

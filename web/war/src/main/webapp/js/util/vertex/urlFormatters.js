@@ -43,11 +43,12 @@ define([], function() {
                             return null;
                         }
 
-                        return {
+                        return _.extend(_.mapObject({
                             section: tool[0],
-                            name: tool[1],
-                            type: type[match[1]]
-                        };
+                            name: tool[1]
+                        }, function(v) {
+                            return decodeURIComponent(v).replace(/\+/g, ' ');
+                        }), { type: type[match[1]] });
                     }
 
                     var objects = _.map(match[2].split(','), function(v) {

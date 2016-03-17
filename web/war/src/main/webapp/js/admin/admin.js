@@ -16,7 +16,8 @@ define([
         function(e) {
             return (e.Component || e.componentPath) &&
                 e.section && e.name && e.subtitle
-        }
+        },
+        'http://docs.visallo.org/extension-points/front-end/admin'
     )
 
     return defineComponent(AdminList);

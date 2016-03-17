@@ -35,10 +35,10 @@ define([
             return (e.applyTo.type || e.applyTo.conceptIri || e.applyTo.edgeLabel || e.applyTo.displayType);
         }
         return _.isArray(e.children) || _.isFunction(e.render) || _.isObject(e.collectionItem);
-    })
+    }, 'http://docs.visallo.org/extension-points/front-end/layout/component.html')
     registry.documentExtensionPoint('org.visallo.layout.type', 'Layout Type', function(e) {
         return _.isString(e.type) && _.isString(e.componentPath);
-    })
+    }, 'http://docs.visallo.org/extension-points/front-end/layout/type.html')
 
     return defineComponent(Item);
 

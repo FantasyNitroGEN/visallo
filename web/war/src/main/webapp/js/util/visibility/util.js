@@ -6,7 +6,8 @@ define(['configuration/plugins/registry'], function(registry) {
         function(e) {
             return _.isString(e.editorComponentPath) ||
                 _.isString(e.viewerComponentPath)
-        }
+        },
+        'http://docs.visallo.org/extension-points/front-end/visibility'
     );
 
     var defaultVisibility = {

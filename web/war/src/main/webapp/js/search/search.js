@@ -58,7 +58,8 @@ define([
                 function(e) {
                     return ('searchType' in e) &&
                         ('componentPath' in e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/searchFilters'
             );
 
             this.triggerQueryUpdatedThrottled = _.throttle(this.triggerQueryUpdated.bind(this), 100);

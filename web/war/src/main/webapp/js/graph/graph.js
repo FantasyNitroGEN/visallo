@@ -1983,19 +1983,22 @@ define([
                             ['selected', 'none-selected', 'always'],
                             e.visibility
                         );
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphSelector'
             );
             registry.documentExtensionPoint('org.visallo.graph.layout',
                 'Add new cytoscape layouts to graph menu',
                 function(e) {
                     return ('identifier' in e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphLayout'
             );
             registry.documentExtensionPoint('org.visallo.graph.view',
                 'Add components to graph container',
                 function(e) {
                     return ('componentPath' in e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphView'
             );
             registry.documentExtensionPoint('org.visallo.graph.node.class',
                 'Function that can change cytoscape classes of nodes',

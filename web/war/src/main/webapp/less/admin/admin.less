@@ -237,6 +237,7 @@ width: 225px;
   dl {
     color: #666;
   }
+
 }
 
 .ui-extension-list {
@@ -247,3 +248,29 @@ width: 225px;
     cursor: default;
   }
 }
+
+.ui-extension-body {
+  padding: 0.5em 0;
+  a {
+    display: block;
+    padding-left: 1.5em;
+
+    &.external-link {
+      background-image: url(../img/glyphicons/glyphicons_152_new_window@2x.png);
+      background-repeat: no-repeat;
+      background-size: auto 50%;
+      background-position: 4px 40%;    
+    }
+  }
+
+  .collapsible-header {
+    background: inherit;
+    padding: 0;
+    padding-left: 1.5em;
+    margin: 0;
+  }
+  .collapsible-header:hover {
+    background: inherit;
+  }
+}
+
