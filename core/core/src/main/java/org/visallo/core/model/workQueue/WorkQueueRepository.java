@@ -1,6 +1,5 @@
 package org.visallo.core.model.workQueue;
 
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -10,8 +9,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.externalResource.ExternalResourceWorker;
 import org.visallo.core.externalResource.QueueExternalResourceWorker;
 import org.visallo.core.ingest.WorkerSpout;
-import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
-import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
+import org.visallo.core.ingest.graphProperty.*;
 import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.notification.SystemNotification;
@@ -39,6 +37,7 @@ public abstract class WorkQueueRepository {
     private final Configuration configuration;
     private final WorkQueueNames workQueueNames;
     private final Graph graph;
+    private GraphPropertyRunner graphPropertyRunner;
 
     protected WorkQueueRepository(Graph graph, WorkQueueNames workQueueNames, Configuration configuration) {
         this.graph = graph;
@@ -203,6 +202,10 @@ public abstract class WorkQueueRepository {
         JSONArray edges = new JSONArray();
 
         for (Element element : elements) {
+            if(!canHandle(element, propertyKey, propertyName)){
+                continue;
+            }
+
             if (element instanceof Vertex) {
                 vertices.put(element.getId());
             } else if (element instanceof Edge) {
@@ -214,6 +217,7 @@ public abstract class WorkQueueRepository {
 
         data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, vertices);
         data.put(GraphPropertyMessage.GRAPH_EDGE_ID, edges);
+
 
         pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
 
@@ -248,12 +252,23 @@ public abstract class WorkQueueRepository {
             throw new VisalloException("Unexpected element type: " + element.getClass().getName());
         }
 
-        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+        if(canHandle(element, propertyKey, propertyName)){
+            pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+        }
 
         if (shouldBroadcastGraphPropertyChange(element, propertyKey, propertyName, workspaceId, priority)) {
             broadcastPropertyChange(element, propertyKey, propertyName, workspaceId);
         }
     }
+
+    private boolean canHandle(final Element element, String propertyKey, final String propertyName){
+        if(this.graphPropertyRunner == null){
+            return true;
+        }
+
+        return this.graphPropertyRunner.canHandle(element, propertyKey, propertyName);
+    }
+
 
     private JSONObject createPropertySpecificJSON(
             String propertyKey,
@@ -305,7 +320,9 @@ public abstract class WorkQueueRepository {
             data.put("visibilitySource", visibilitySource);
         }
 
-        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+        if(canHandle(element, null, null)) {
+            pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+        }
     }
 
     public void pushVertexIds(Iterable<String> vertexIds, Priority priority, FlushFlag flushFlag) {
@@ -870,6 +887,10 @@ public abstract class WorkQueueRepository {
     }
 
     public abstract Map<String, Status> getQueuesStatus();
+
+    public void setGraphPropertyRunner(GraphPropertyRunner graphPropertyRunner) {
+        this.graphPropertyRunner = graphPropertyRunner;
+    }
 
     private enum PublishType {
         TO_PUBLIC("toPublic"),

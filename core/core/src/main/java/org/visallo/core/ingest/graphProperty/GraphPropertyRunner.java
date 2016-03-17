@@ -2,6 +2,7 @@ package org.visallo.core.ingest.graphProperty;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vertexium.util.IterableUtils.toList;
 
+@Singleton
 public class GraphPropertyRunner extends WorkerBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
     private final StatusRepository statusRepository;
@@ -49,6 +51,7 @@ public class GraphPropertyRunner extends WorkerBase {
     private Configuration configuration;
     private VisibilityTranslator visibilityTranslator;
     private AtomicLong lastProcessedPropertyTime = new AtomicLong(0);
+    private List<GraphPropertyWorker> graphPropertyWorkers = Lists.newArrayList();
 
     @Inject
     protected GraphPropertyRunner(
@@ -58,6 +61,7 @@ public class GraphPropertyRunner extends WorkerBase {
     ) {
         super(workQueueRepository, configuration);
         this.statusRepository = statusRepository;
+
     }
 
     @Override
@@ -80,6 +84,7 @@ public class GraphPropertyRunner extends WorkerBase {
         setUser(user);
         setAuthorizations(this.userRepository.getAuthorizations(user));
         prepareWorkers(repository);
+        this.getWorkQueueRepository().setGraphPropertyRunner(this);
     }
 
     public void prepareWorkers(GraphPropertyWorkerInitializer initializer) {
@@ -132,6 +137,7 @@ public class GraphPropertyRunner extends WorkerBase {
         }
 
         this.addGraphPropertyThreadedWrappers(wrappers);
+        this.graphPropertyWorkers.addAll(workers);
 
         if (failedToPrepareAtLeastOneGraphPropertyWorker) {
             throw new VisalloException("Failed to initialize at least one graph property worker. See the log for more details.");
@@ -501,5 +507,46 @@ public class GraphPropertyRunner extends WorkerBase {
     @Override
     protected String getQueueName() {
         return workQueueNames.getGraphPropertyQueueName();
+    }
+
+    public boolean isStarted() {
+        return this.shouldRun();
+    }
+
+    public boolean canHandle(Element element, String propertyKey, String propertyName) {
+        if(!this.isStarted()){
+            //we are probably on a server and want to submit it to the architecture
+            return true;
+        }
+
+        Property property = element.getProperty(propertyKey, propertyName);
+
+        for(GraphPropertyWorker worker : this.getAllGraphPropertyWorkers()){
+            try {
+                if (worker.isHandled(element, property)) {
+                    return true;
+                }
+                else if(worker.isDeleteHandled(element, property)){
+                    return true;
+                }
+                else if(worker.isHiddenHandled(element, property)){
+                    return true;
+                }
+                else if(worker.isUnhiddenHandled(element, property)){
+                    return true;
+                }
+            } catch(Throwable t){
+                LOGGER.warn("Error checking to see if workers will handle graph property message.  Queueing anyways in case there was just a local error", t);
+                return true;
+            }
+        }
+
+        LOGGER.debug("No interested workers for %s %s %s so did not queue it", element.getId(), propertyKey, propertyName);
+
+        return false;
+    }
+
+    private Collection<GraphPropertyWorker> getAllGraphPropertyWorkers() {
+        return Lists.newArrayList(this.graphPropertyWorkers);
     }
 }

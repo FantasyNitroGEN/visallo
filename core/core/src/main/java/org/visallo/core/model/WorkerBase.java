@@ -71,4 +71,8 @@ public abstract class WorkerBase {
     protected WorkQueueRepository getWorkQueueRepository() {
         return workQueueRepository;
     }
+
+    public boolean shouldRun(){
+        return shouldRun;
+    }
 }
