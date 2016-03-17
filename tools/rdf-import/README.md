@@ -45,3 +45,11 @@ You can add binary content properties by specifying a type of `http://visallo.or
         <http://dbpedia.org/resource/Aristotle> <http://visallo.org#raw> "Aristotle.png"^^<http://visallo.org#streamingPropertyValue>
 
 This will create a property called `http://visallo.org#raw` with the binary content from `Aristotle.png`
+
+### Inline streaming property value
+
+You can also inline the streaming property value using `http://visallo.org#streamingPropertyValueInline`
+
+        <http://dbpedia.org/resource/Aristotle> <http://visallo.org#raw> "Some really long text..."^^<http://visallo.org#streamingPropertyValueInline>
+
+This will create a property called `http://visallo.org#raw` with the contents of `Some really long text...`
