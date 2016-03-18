@@ -9,7 +9,7 @@ public class IntegerSingleValueVisalloProperty extends IdentitySingleValueVisall
         super(key);
     }
 
-    public int getPropertyValue(Element element, int defaultValue) {
+    public Integer getPropertyValue(Element element, Integer defaultValue) {
         Integer nullable = getPropertyValue(element);
         if (nullable == null) {
             return defaultValue;
@@ -17,7 +17,7 @@ public class IntegerSingleValueVisalloProperty extends IdentitySingleValueVisall
         return nullable;
     }
 
-    public int getPropertyValue(Map<String, Object> map, int defaultValue) {
+    public Integer getPropertyValue(Map<String, Object> map, Integer defaultValue) {
         Integer nullable = getPropertyValue(map);
         if (nullable == null) {
             return defaultValue;
