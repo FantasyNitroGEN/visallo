@@ -9,7 +9,9 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.externalResource.ExternalResourceWorker;
 import org.visallo.core.externalResource.QueueExternalResourceWorker;
 import org.visallo.core.ingest.WorkerSpout;
-import org.visallo.core.ingest.graphProperty.*;
+import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
+import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
+import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.notification.SystemNotification;
@@ -202,7 +204,7 @@ public abstract class WorkQueueRepository {
         JSONArray edges = new JSONArray();
 
         for (Element element : elements) {
-            if(!canHandle(element, propertyKey, propertyName)){
+            if (!canHandle(element, propertyKey, propertyName)) {
                 continue;
             }
 
@@ -252,7 +254,7 @@ public abstract class WorkQueueRepository {
             throw new VisalloException("Unexpected element type: " + element.getClass().getName());
         }
 
-        if(canHandle(element, propertyKey, propertyName)){
+        if (canHandle(element, propertyKey, propertyName)) {
             pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
         }
 
@@ -261,8 +263,11 @@ public abstract class WorkQueueRepository {
         }
     }
 
-    private boolean canHandle(final Element element, String propertyKey, final String propertyName){
-        if(this.graphPropertyRunner == null){
+    private boolean canHandle(final Element element, String propertyKey, final String propertyName) {
+        if (this.graphPropertyRunner == null) {
+            return true;
+        }
+        if (propertyKey == null && propertyName == null) {
             return true;
         }
 
@@ -320,7 +325,7 @@ public abstract class WorkQueueRepository {
             data.put("visibilitySource", visibilitySource);
         }
 
-        if(canHandle(element, null, null)) {
+        if (canHandle(element, null, null)) {
             pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
         }
     }
