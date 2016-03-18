@@ -346,7 +346,12 @@ define([
                     if (feature.style.externalGraphic !== iconUrl) {
                         feature.style.externalGraphic = iconUrl;
                     }
+
+                    self.select('mapSelector').find('#' + feature.geometry.id).remove();
+                    feature.geometry = point(geoLocation.value.latitude, geoLocation.value.longitude);
                     feature.move(latLon(geoLocation.value.latitude, geoLocation.value.longitude));
+                    feature.attributes.vertex = feature.data.vertex = vertex;
+
                 }
 
                 return feature;
@@ -357,7 +362,8 @@ define([
             var self = this,
                 adding = options && options.adding,
                 preventShake = options && options.preventShake,
-                validAddition = false;
+                validAddition = false,
+                redraw = false;
 
             this.mapReady(function(map) {
                 self.dataRequest('workspace', 'store')
@@ -366,8 +372,8 @@ define([
                             var inWorkspace = vertex.id in workspaceVertices,
                                 markers = [];
 
-                            if (!adding && !inWorkspace) {
-
+                            if (!adding) {
+                                redraw = true;
                                 // Only update marker if it exists
                                 map.featuresLayer.features.forEach(function(f) {
                                     if (f.cluster) {
@@ -380,6 +386,8 @@ define([
                                 });
 
                                 if (markers.length) {
+                                    markers = self.findOrCreateMarkers(map, vertex);
+                                } else if (!markers.length && inWorkspace) {
                                     markers = self.findOrCreateMarkers(map, vertex);
                                 }
                             } else {
@@ -394,7 +402,7 @@ define([
                             }
                         });
 
-                        self.clusterStrategy.cluster();
+                        self.clusterStrategy.cluster(null, redraw);
                         map.featuresLayer.redraw();
 
                         if (adding && vertices.length && validAddition) {
