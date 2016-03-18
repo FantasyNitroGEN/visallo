@@ -12,11 +12,11 @@
 
 <rdf:RDF xmlns="http://visallo.org/termMention#"
      xml:base="http://visallo.org/termMention"
-     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
      xmlns:visallo="http://visallo.org#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
-     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
     <owl:Ontology rdf:about="http://visallo.org/termMention">
         <owl:imports rdf:resource="http://visallo.org"/>
     </owl:Ontology>
@@ -68,8 +68,8 @@
     <!-- http://visallo.org/termMention#conceptType -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#conceptType">
-        <visallo:userVisible>false</visallo:userVisible>
         <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -94,6 +94,8 @@
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
+    
+
 
     <!-- http://visallo.org/termMention#forType -->
 
@@ -103,6 +105,7 @@
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
+    
 
 
     <!-- http://visallo.org/termMention#process -->
@@ -119,8 +122,19 @@
     <!-- http://visallo.org/termMention#propertyKey -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#propertyKey">
-        <visallo:userVisible>false</visallo:userVisible>
         <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
+        <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org/termMention#propertyName -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#propertyName">
+        <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -141,8 +155,8 @@
     <!-- http://visallo.org/termMention#snippet -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#snippet">
-        <visallo:textIndexHints>NONE</visallo:textIndexHints>
         <visallo:userVisible>false</visallo:userVisible>
+        <visallo:textIndexHints>NONE</visallo:textIndexHints>
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -152,8 +166,8 @@
     <!-- http://visallo.org/termMention#startOffset -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#startOffset">
-        <visallo:textIndexHints>NONE</visallo:textIndexHints>
         <visallo:userVisible>false</visallo:userVisible>
+        <visallo:textIndexHints>NONE</visallo:textIndexHints>
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;int"/>
     </owl:DatatypeProperty>
@@ -174,8 +188,8 @@
     <!-- http://visallo.org/termMention#visibilityJson -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#visibilityJson">
-        <visallo:userVisible>false</visallo:userVisible>
         <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -196,8 +210,8 @@
     <!-- http://visallo.org/termMention#ref/propertyName -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#ref/propertyName">
-        <visallo:userVisible>false</visallo:userVisible>
         <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -207,8 +221,8 @@
     <!-- http://visallo.org/termMention#ref/propertyVisibility -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/termMention#ref/propertyVisibility">
-        <visallo:userVisible>false</visallo:userVisible>
         <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
         <rdfs:domain rdf:resource="http://visallo.org/termMention#termMention"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
@@ -235,5 +249,5 @@
 
 
 
-<!-- Generated by the OWL API (version 3.5.0) http://owlapi.sourceforge.net -->
+<!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
 

@@ -293,7 +293,13 @@
         padding: 1em;
         // For actionbar space
         padding-bottom: 2.5em;
-        
+
+        &:after {
+          clear:left;
+          content: '';
+          display: block;
+        }
+
         .underneath {
           padding: 0;
         }

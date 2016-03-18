@@ -1,5 +1,6 @@
 package org.visallo.core.ingest.graphProperty;
 
+import com.google.inject.Inject;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
@@ -15,10 +16,26 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 import java.io.InputStream;
 import java.util.Collection;
 
+/**
+ * By default raw properties will be assigned a mime type.
+ *
+ * Configuration:
+ *
+ * <pre><code>
+ * org.visallo.core.ingest.graphProperty.MimeTypeGraphPropertyWorker.handled.myTextProperty.propertyName=http://my.org#myTextProperty
+ * org.visallo.core.ingest.graphProperty.MimeTypeGraphPropertyWorker.handled.myOtherTextProperty.propertyName=http://my.org#myOtherTextProperty
+ * </code></pre>
+ */
 public abstract class MimeTypeGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MimeTypeGraphPropertyWorker.class);
     private static final String MULTI_VALUE_KEY = MimeTypeGraphPropertyWorker.class.getName();
+    private final MimeTypeGraphPropertyWorkerConfiguration configuration;
     private Collection<PostMimeTypeWorker> postMimeTypeWorkers;
+
+    @Inject
+    protected MimeTypeGraphPropertyWorker(MimeTypeGraphPropertyWorkerConfiguration configuration) {
+        this.configuration = configuration;
+    }
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
@@ -39,14 +56,11 @@ public abstract class MimeTypeGraphPropertyWorker extends GraphPropertyWorker {
             return false;
         }
 
-        if (!property.getName().equals(VisalloProperties.RAW.getPropertyName())) {
-            return false;
-        }
         if (VisalloProperties.MIME_TYPE.hasProperty(element, getMultiKey(property))) {
             return false;
         }
 
-        return true;
+        return configuration.isHandled(element, property);
     }
 
     @Override

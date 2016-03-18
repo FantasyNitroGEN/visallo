@@ -1,18 +1,19 @@
 package org.visallo.web.clientapi.codegen;
 
+import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
 import org.visallo.web.clientapi.model.ClientApiLongRunningProcessSubmitResponse;
 import org.visallo.web.clientapi.model.ClientApiVerticesExistsResponse;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiElementAcl;
+import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
 import org.visallo.web.clientapi.model.ClientApiVertexEdges;
 import org.visallo.web.clientapi.model.ClientApiVertexCountsByConceptType;
 import org.visallo.web.clientapi.model.ClientApiArtifactImportResponse;
 import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
 import org.visallo.web.clientapi.model.ClientApiElementFindRelatedResponse;
 import org.visallo.web.clientapi.model.ClientApiDetectedObjects;
-import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
 import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import com.sun.jersey.multipart.FormDataMultiPart;
@@ -713,10 +714,10 @@ public class VertexApi {
       }
     }
   }
-  public void resolveTerm (String artifactId, String propertyKey, Integer mentionStart, Integer mentionEnd, String sign, String conceptId, String visibilitySource, String resolvedVertexId, String justificationText, String sourceInfo) throws ApiException {
+  public void resolveTerm (String artifactId, String propertyKey, String propertyName, Integer mentionStart, Integer mentionEnd, String sign, String conceptId, String visibilitySource, String resolvedVertexId, String justificationText, String sourceInfo) throws ApiException {
     Object postBody = null;
     // verify required params are set
-    if(artifactId == null || propertyKey == null || mentionStart == null || mentionEnd == null || sign == null || conceptId == null || visibilitySource == null ) {
+    if(artifactId == null || propertyKey == null || propertyName == null || mentionStart == null || mentionEnd == null || sign == null || conceptId == null || visibilitySource == null ) {
        throw new ApiException(400, "missing required params");
     }
     // create path and map variables
@@ -731,6 +732,8 @@ public class VertexApi {
       queryParams.put("artifactId", String.valueOf(artifactId));
     if(!"null".equals(String.valueOf(propertyKey)))
       queryParams.put("propertyKey", String.valueOf(propertyKey));
+    if(!"null".equals(String.valueOf(propertyName)))
+      queryParams.put("propertyName", String.valueOf(propertyName));
     if(!"null".equals(String.valueOf(mentionStart)))
       queryParams.put("mentionStart", String.valueOf(mentionStart));
     if(!"null".equals(String.valueOf(mentionEnd)))

@@ -7,6 +7,8 @@ import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.Date;
@@ -15,9 +17,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class TermMentionBuilder {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TermMentionBuilder.class);
     private static final String TERM_MENTION_VERTEX_ID_PREFIX = "TM_";
     private Vertex outVertex;
     private String propertyKey;
+    private String propertyName;
     private long start = -1;
     private long end = -1;
     private String title;
@@ -41,6 +45,7 @@ public class TermMentionBuilder {
     public TermMentionBuilder(Vertex existingTermMention, Vertex outVertex) {
         this.outVertex = outVertex;
         this.propertyKey = VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(existingTermMention);
+        this.propertyName = VisalloProperties.TERM_MENTION_PROPERTY_NAME.getPropertyValue(existingTermMention);
         this.start = VisalloProperties.TERM_MENTION_START_OFFSET.getPropertyValue(existingTermMention, 0);
         this.end = VisalloProperties.TERM_MENTION_END_OFFSET.getPropertyValue(existingTermMention, 0);
         this.title = VisalloProperties.TERM_MENTION_TITLE.getPropertyValue(existingTermMention, "");
@@ -70,6 +75,14 @@ public class TermMentionBuilder {
      */
     public TermMentionBuilder propertyKey(String propertyKey) {
         this.propertyKey = propertyKey;
+        return this;
+    }
+
+    /**
+     * The property name of the {@link VisalloProperties#TEXT} that this term mention references.
+     */
+    public TermMentionBuilder propertyName(String propertyName) {
+        this.propertyName = propertyName;
         return this;
     }
 
@@ -183,6 +196,10 @@ public class TermMentionBuilder {
         checkArgument(start >= 0, "start must be greater than or equal to 0");
         checkArgument(end >= 0, "start must be greater than or equal to 0");
 
+        if (propertyName == null) {
+            LOGGER.warn("Not setting a propertyName when building a term mention is deprecated");
+        }
+
         Date now = new Date();
         String vertexId = createVertexId();
         Visibility visibility = VisalloVisibility.and(visibilityTranslator.toVisibility(this.visibilityJson).getVisibility(), TermMentionRepository.VISIBILITY_STRING);
@@ -192,11 +209,10 @@ public class TermMentionBuilder {
         VisalloProperties.TERM_MENTION_TITLE.setProperty(vertexBuilder, this.title, visibility);
         VisalloProperties.TERM_MENTION_START_OFFSET.setProperty(vertexBuilder, this.start, visibility);
         VisalloProperties.TERM_MENTION_END_OFFSET.setProperty(vertexBuilder, this.end, visibility);
-        if (this.process != null) {
-            VisalloProperties.TERM_MENTION_PROCESS.setProperty(vertexBuilder, this.process, visibility);
-        }
-        if (this.propertyKey != null) {
-            VisalloProperties.TERM_MENTION_PROPERTY_KEY.setProperty(vertexBuilder, this.propertyKey, visibility);
+        VisalloProperties.TERM_MENTION_PROCESS.setProperty(vertexBuilder, this.process, visibility);
+        VisalloProperties.TERM_MENTION_PROPERTY_KEY.setProperty(vertexBuilder, this.propertyKey, visibility);
+        if (this.propertyName != null) {
+            VisalloProperties.TERM_MENTION_PROPERTY_NAME.setProperty(vertexBuilder, this.propertyName, visibility);
         }
         if (this.resolvedEdgeId != null) {
             VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID.setProperty(vertexBuilder, this.resolvedEdgeId, visibility);
@@ -229,8 +245,11 @@ public class TermMentionBuilder {
     }
 
     private String createVertexId() {
-        return TERM_MENTION_VERTEX_ID_PREFIX
-                + this.outVertex.getId()
+        String id = TERM_MENTION_VERTEX_ID_PREFIX + this.outVertex.getId();
+        if (this.propertyName != null) {
+            id += "-" + this.propertyName;
+        }
+        return id
                 + "-"
                 + this.propertyKey
                 + "-"

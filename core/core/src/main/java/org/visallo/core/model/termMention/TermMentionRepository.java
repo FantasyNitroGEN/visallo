@@ -28,13 +28,28 @@ public class TermMentionRepository {
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
     }
 
-    public Iterable<Vertex> findByOutVertexAndPropertyKey(String outVertexId, final String propertyKey, Authorizations authorizations) {
+    public Iterable<Vertex> findByOutVertexAndProperty(
+            String outVertexId,
+            String propertyKey,
+            String propertyName,
+            Authorizations authorizations
+    ) {
         authorizations = getAuthorizations(authorizations);
         return new FilterIterable<Vertex>(findByOutVertex(outVertexId, authorizations)) {
             @Override
             protected boolean isIncluded(Vertex v) {
                 String vertexPropertyKey = VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(v);
-                return propertyKey.equals(vertexPropertyKey);
+                if (!propertyKey.equals(vertexPropertyKey)) {
+                    return false;
+                }
+
+                // handle legacy data which did not have property name
+                String vertexPropertyName = VisalloProperties.TERM_MENTION_PROPERTY_NAME.getPropertyValue(v, null);
+                if (VisalloProperties.TEXT.getPropertyName().equals(propertyName) && vertexPropertyName == null) {
+                    return true;
+                }
+
+                return propertyName.equals(vertexPropertyName);
             }
         };
     }
@@ -213,17 +228,6 @@ public class TermMentionRepository {
         graph.softDeleteVertex(termMention, authorizationsWithTermMention);
     }
 
-    public void deleteAll(String vertexId, String propertyKey, Authorizations authorizations) {
-        Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
-        Iterable<Vertex> termMentions = findByVertexId(vertexId, authorizations);
-        for (Vertex termMention : termMentions) {
-            if (!VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(termMention, "").equals(propertyKey)) {
-                continue;
-            }
-            graph.softDeleteVertex(termMention, authorizationsWithTermMention);
-        }
-    }
-
     public void markHidden(Vertex termMention, Visibility hiddenVisibility, Authorizations authorizations) {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
         graph.markVertexHidden(termMention, hiddenVisibility, authorizationsWithTermMention);
@@ -273,6 +277,7 @@ public class TermMentionRepository {
                     null,
                     sourceInfo.snippet,
                     sourceInfo.textPropertyKey,
+                    sourceInfo.textPropertyName,
                     sourceInfo.startOffset,
                     sourceInfo.endOffset,
                     outVertex,
@@ -291,6 +296,7 @@ public class TermMentionRepository {
             Visibility propertyVisibility,
             String snippet,
             String textPropertyKey,
+            String textPropertyName,
             long startOffset,
             long endOffset,
             Vertex outVertex,
@@ -307,6 +313,7 @@ public class TermMentionRepository {
                     propertyVisibility,
                     snippet,
                     textPropertyKey,
+                    textPropertyName,
                     startOffset,
                     endOffset,
                     outVertex,
@@ -323,6 +330,7 @@ public class TermMentionRepository {
                     propertyVisibility,
                     snippet,
                     textPropertyKey,
+                    textPropertyName,
                     startOffset,
                     endOffset,
                     outVertex,
@@ -341,6 +349,7 @@ public class TermMentionRepository {
             Visibility propertyVisibility,
             String snippet,
             String textPropertyKey,
+            String textPropertyName,
             long startOffset,
             long endOffset,
             Vertex outVertex,
@@ -372,6 +381,11 @@ public class TermMentionRepository {
         }
         VisalloProperties.TERM_MENTION_SNIPPET.setProperty(m, snippet, visibility);
         VisalloProperties.TERM_MENTION_PROPERTY_KEY.setProperty(m, textPropertyKey, visibility);
+        if (textPropertyName == null) {
+            LOGGER.warn("not providing a property name for a term mention is deprecate");
+        } else {
+            VisalloProperties.TERM_MENTION_PROPERTY_NAME.setProperty(m, textPropertyName, visibility);
+        }
         VisalloProperties.TERM_MENTION_START_OFFSET.setProperty(m, startOffset, visibility);
         VisalloProperties.TERM_MENTION_END_OFFSET.setProperty(m, endOffset, visibility);
         Vertex termMention = m.save(authorizations);
@@ -392,6 +406,7 @@ public class TermMentionRepository {
             Visibility propertyVisibility,
             String snippet,
             String textPropertyKey,
+            String textPropertyName,
             long startOffset,
             long endOffset,
             Vertex originalVertex,
@@ -409,6 +424,7 @@ public class TermMentionRepository {
                 propertyVisibility,
                 snippet,
                 textPropertyKey,
+                textPropertyName,
                 startOffset,
                 endOffset,
                 originalVertex,
@@ -424,6 +440,7 @@ public class TermMentionRepository {
                 propertyVisibility,
                 snippet,
                 textPropertyKey,
+                textPropertyName,
                 startOffset,
                 endOffset,
                 originalVertex,
@@ -505,6 +522,7 @@ public class TermMentionRepository {
         ClientApiSourceInfo result = new ClientApiSourceInfo();
         result.vertexId = single(termMention.getVertexIds(Direction.IN, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, authorizations));
         result.textPropertyKey = VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(termMention);
+        result.textPropertyName = VisalloProperties.TERM_MENTION_PROPERTY_NAME.getPropertyValue(termMention);
         result.startOffset = VisalloProperties.TERM_MENTION_START_OFFSET.getPropertyValue(termMention);
         result.endOffset = VisalloProperties.TERM_MENTION_END_OFFSET.getPropertyValue(termMention);
         result.snippet = VisalloProperties.TERM_MENTION_SNIPPET.getPropertyValue(termMention);

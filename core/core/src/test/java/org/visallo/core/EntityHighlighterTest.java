@@ -68,7 +68,7 @@ public class EntityHighlighterTest {
         terms.add(createTermMention(outVertex, "jeff kunkle", PERSON_IRI, 33, 44, "uniq1"));
         List<OffsetItem> termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", authorizations);
         String highlightedText = EntityHighlighter.getHighlightedText("Test highlight of Joe Ferner and Jeff Kunkle.", termAndTermMetadata);
-        String expectedText = "Test highlight of <span class=\"vertex\" title=\"joe ferner\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_1--18-28-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:18,&quot;outVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:28}\">Joe Ferner</span> and <span class=\"vertex\" title=\"jeff kunkle\" data-info=\"{&quot;process&quot;:&quot;uniq1&quot;,&quot;id&quot;:&quot;TM_1--33-44-uniq1&quot;,&quot;title&quot;:&quot;jeff kunkle&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:33,&quot;outVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:44}\">Jeff Kunkle</span>.";
+        String expectedText = "Test highlight of <span class=\"vertex\" title=\"joe ferner\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_1-http://visallo.org#text--18-28-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:18,&quot;outVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:28}\">Joe Ferner</span> and <span class=\"vertex\" title=\"jeff kunkle\" data-info=\"{&quot;process&quot;:&quot;uniq1&quot;,&quot;id&quot;:&quot;TM_1-http://visallo.org#text--33-44-uniq1&quot;,&quot;title&quot;:&quot;jeff kunkle&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:33,&quot;outVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:44}\">Jeff Kunkle</span>.";
         assertHighlightedTextSame(expectedText, highlightedText);
     }
 
@@ -101,11 +101,12 @@ public class EntityHighlighterTest {
         assertTrue(difference.isEmpty());
 
         for (String obj1Key : obj1Set) {
-            Object val = obj1.get(obj1Key);
-            if (val instanceof JSONObject) {
-                assertJSONEquals((JSONObject) val, (JSONObject) obj2.get(obj1Key));
+            Object val1 = obj1.get(obj1Key);
+            Object val2 = obj2.get(obj1Key);
+            if (val1 instanceof JSONObject) {
+                assertJSONEquals((JSONObject) val1, (JSONObject) val2);
             } else {
-                assertTrue(obj1.get(obj1Key).equals(obj2.get(obj1Key)));
+                assertEquals(val1, val2);
             }
         }
     }
@@ -127,6 +128,7 @@ public class EntityHighlighterTest {
         TermMentionBuilder tmb = new TermMentionBuilder()
                 .outVertex(outVertex)
                 .propertyKey(PROPERTY_KEY)
+                .propertyName(VisalloProperties.TEXT.getPropertyName())
                 .conceptIri(conceptIri)
                 .start(start)
                 .end(end)
@@ -143,6 +145,7 @@ public class EntityHighlighterTest {
         return new TermMentionBuilder()
                 .outVertex(outVertex)
                 .propertyKey(PROPERTY_KEY)
+                .propertyName(VisalloProperties.TEXT.getPropertyName())
                 .conceptIri(conceptIri)
                 .start(start)
                 .end(end)
@@ -161,7 +164,7 @@ public class EntityHighlighterTest {
         terms.add(createTermMention(outVertex, "jeff kunkle", PERSON_IRI, 18, 21));
         List<OffsetItem> termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", authorizations);
         String highlightText = EntityHighlighter.getHighlightedText("Test highlight of Joe Ferner.", termAndTermMetadata);
-        assertHighlightedTextSame("Test highlight of <span class=\"vertex\" title=\"jeff kunkle\" data-info=\"{&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;start&quot;:18,&quot;end&quot;:21,&quot;id&quot;:&quot;TM_1--18-21-EntityHighlighterTest&quot;,&quot;outVertexId&quot;:&quot;1&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;title&quot;:&quot;jeff kunkle&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;}\">Joe</span> Ferner.", highlightText);
+        assertHighlightedTextSame("Test highlight of <span class=\"vertex\" title=\"jeff kunkle\" data-info=\"{&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;start&quot;:18,&quot;end&quot;:21,&quot;id&quot;:&quot;TM_1-http://visallo.org#text--18-21-EntityHighlighterTest&quot;,&quot;outVertexId&quot;:&quot;1&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;title&quot;:&quot;jeff kunkle&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;}\">Joe</span> Ferner.", highlightText);
     }
 
     @Test
@@ -181,12 +184,12 @@ public class EntityHighlighterTest {
         ArrayList<Vertex> terms = Lists.newArrayList(graph.getVertex("v1", tmAuths).getVertices(Direction.BOTH, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, tmAuths));
         List<OffsetItem> termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", this.authorizations);
         String highlightText = EntityHighlighter.getHighlightedText("Test highlight of Joe Ferner.", termAndTermMetadata);
-        assertHighlightedTextSame("Test highlight of <span class=\"vertex resolved\" title=\"joe ferner\" data-info=\"{&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;resolvedToVertexId&quot;:&quot;jf&quot;,&quot;resolvedToEdgeId&quot;:&quot;e1&quot;,&quot;start&quot;:18,&quot;termMentionFor&quot;:&quot;VERTEX&quot;,&quot;end&quot;:28,&quot;id&quot;:&quot;TM_v1--18-28-EntityHighlighterTest&quot;,&quot;outVertexId&quot;:&quot;v1&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;}\">Joe Ferner</span>.", highlightText);
+        assertHighlightedTextSame("Test highlight of <span class=\"vertex resolved\" title=\"joe ferner\" data-info=\"{&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;resolvedToVertexId&quot;:&quot;jf&quot;,&quot;resolvedToEdgeId&quot;:&quot;e1&quot;,&quot;start&quot;:18,&quot;termMentionFor&quot;:&quot;VERTEX&quot;,&quot;end&quot;:28,&quot;id&quot;:&quot;TM_v1-http://visallo.org#text--18-28-EntityHighlighterTest&quot;,&quot;outVertexId&quot;:&quot;v1&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;}\">Joe Ferner</span>.", highlightText);
 
         terms = Lists.newArrayList(graph.getVertex("v2", tmAuths).getVertices(Direction.BOTH, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, tmAuths));
         termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", this.authorizations);
         highlightText = EntityHighlighter.getHighlightedText("Test highlight of Joe Ferner.", termAndTermMetadata);
-        assertHighlightedTextSame("Test highlight of <span class=\"vertex resolved\" title=\"joe ferner\" data-info=\"{&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;resolvedToVertexId&quot;:&quot;jf&quot;,&quot;resolvedToEdgeId&quot;:&quot;e2&quot;,&quot;start&quot;:18,&quot;termMentionFor&quot;:&quot;VERTEX&quot;,&quot;end&quot;:28,&quot;id&quot;:&quot;TM_v2--18-28-EntityHighlighterTest&quot;,&quot;outVertexId&quot;:&quot;v2&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;}\">Joe Ferner</span>.", highlightText);
+        assertHighlightedTextSame("Test highlight of <span class=\"vertex resolved\" title=\"joe ferner\" data-info=\"{&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/person&quot;,&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;resolvedToVertexId&quot;:&quot;jf&quot;,&quot;resolvedToEdgeId&quot;:&quot;e2&quot;,&quot;start&quot;:18,&quot;termMentionFor&quot;:&quot;VERTEX&quot;,&quot;end&quot;:28,&quot;id&quot;:&quot;TM_v2-http://visallo.org#text--18-28-EntityHighlighterTest&quot;,&quot;outVertexId&quot;:&quot;v2&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;title&quot;:&quot;joe ferner&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;}\">Joe Ferner</span>.", highlightText);
     }
 
     @Test
@@ -253,7 +256,7 @@ public class EntityHighlighterTest {
         List<OffsetItem> termAndTermMetadata = new EntityHighlighter().convertTermMentionsToOffsetItems(terms, "", authorizations);
 
         String highlightText = EntityHighlighter.getHighlightedText("Ejército de Liberación Nacional® partnered with US on peace treaty", termAndTermMetadata);
-        String expectedText = "Ej&eacute;rcito de Liberaci&oacute;n Nacional&reg; partnered with <span class=\"vertex\" title=\"US\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_1--48-50-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;US&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:48,&quot;outVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/location&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:50}\">US</span> on peace treaty";
+        String expectedText = "Ej&eacute;rcito de Liberaci&oacute;n Nacional&reg; partnered with <span class=\"vertex\" title=\"US\" data-info=\"{&quot;process&quot;:&quot;EntityHighlighterTest&quot;,&quot;id&quot;:&quot;TM_1-http://visallo.org#text--48-50-EntityHighlighterTest&quot;,&quot;title&quot;:&quot;US&quot;,&quot;sandboxStatus&quot;:&quot;PRIVATE&quot;,&quot;start&quot;:48,&quot;outVertexId&quot;:&quot;1&quot;,&quot;http://visallo.org#conceptType&quot;:&quot;http://visallo.org/test/location&quot;,&quot;type&quot;:&quot;http://www.w3.org/2002/07/owl#Thing&quot;,&quot;end&quot;:50}\">US</span> on peace treaty";
 
         assertHighlightedTextSame(expectedText, highlightText);
     }

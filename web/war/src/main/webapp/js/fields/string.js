@@ -13,7 +13,7 @@ define([
 
         this.after('initialize', function() {
             this.$node.html(template(_.extend({}, this.attr, {
-                textarea: this.attr.property.displayType === 'textarea'
+                textarea: this.attr.property.displayType === 'textarea' || this.attr.property.displayType === 'longText'
             })));
         });
 
