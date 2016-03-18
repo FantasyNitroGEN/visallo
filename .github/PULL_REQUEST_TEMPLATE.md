@@ -1,3 +1,3 @@
 - [ ] @sfeng88 @rygim @jharwig 
-- [ ] @srfarley @rajanpardipuramv5 @joeferner
-- [ ] @EvanOxfeld @joeybrk372
+- [ ] @srfarley @joeferner @mwizeman 
+- [ ] @EvanOxfeld @joeybrk372 @dsingley
