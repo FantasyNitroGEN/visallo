@@ -308,9 +308,34 @@ define([
                     type: conceptType,
                     scale: retina.devicePixelRatio > 1 ? '2' : '1'
                 }),
-                heading = F.vertex.heading(vertex);
+                heading = F.vertex.heading(vertex),
+                previousFeatures = [];
 
-            if (!geoLocations || geoLocations.length === 0) return;
+            _.each(map.featuresLayer.features, function(feature) {
+                if (feature.cluster) {
+                    feature.cluster.forEach(function(f) {
+                        if (f.id.indexOf(vertex.id) !== -1) {
+                            previousFeatures.push(f);
+                        }
+                    })
+                } else if (feature.id.indexOf(vertex.id) !== -1) {
+                    previousFeatures.push(feature);
+                }
+
+            });
+
+            if (!geoLocations || geoLocations.length === 0) {
+                if (previousFeatures) {
+                    map.featuresLayer.removeFeatures(previousFeatures[0]);
+                }
+                return;
+            } else {
+                if (previousFeatures.length > geoLocations.length) {
+                    previousFeatures.forEach(function(feature) {
+                        map.featuresLayer.removeFeatures(feature);
+                    })
+                }
+            }
             if (selected) iconUrl += '&selected';
 
             return geoLocations.map(function(geoLocation) {
