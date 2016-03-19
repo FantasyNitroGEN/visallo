@@ -150,18 +150,18 @@
     <distributionManagement>
         <snapshotRepository>
             <id>v5analytics-snapshots</id>
-            <url>https://mvn.v5analytics.com/content/repositories/${distributionManagement.target}-snapshots</url>
+            <url>https://mvn.visallo.com/content/repositories/${distributionManagement.target}-snapshots</url>
         </snapshotRepository>
         <repository>
             <id>v5analytics</id>
-            <url>https://mvn.v5analytics.com/content/repositories/${distributionManagement.target}</url>
+            <url>https://mvn.visallo.com/content/repositories/${distributionManagement.target}</url>
         </repository>
     </distributionManagement>
 
     <repositories>
         <repository>
             <id>v5analytics</id>
-            <url>https://mvn.v5analytics.com/content/groups/public</url>
+            <url>https://mvn.visallo.com/content/groups/public</url>
         </repository>
         <repository>
             <id>v5analytics-snapshots</id>
@@ -169,7 +169,7 @@
                 <enabled>true</enabled>
                 <updatePolicy>interval:60</updatePolicy>
             </snapshots>
-            <url>https://mvn.v5analytics.com/content/groups/public-snapshots</url>
+            <url>https://mvn.visallo.com/content/groups/public-snapshots</url>
         </repository>
 
         <!-- FOR: Vertexium, Webster Snapshots -->

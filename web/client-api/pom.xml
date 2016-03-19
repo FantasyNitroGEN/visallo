@@ -103,11 +103,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>v5analytics-snapshots</id>
-            <url>https://mvn.v5analytics.com/content/repositories/org.visallo-snapshots</url>
+            <url>https://mvn.visallo.com/content/repositories/org.visallo-snapshots</url>
         </snapshotRepository>
         <repository>
             <id>v5analytics</id>
-            <url>https://mvn.v5analytics.com/content/repositories/org.visallo</url>
+            <url>https://mvn.visallo.com/content/repositories/org.visallo</url>
         </repository>
     </distributionManagement>
 </project>
