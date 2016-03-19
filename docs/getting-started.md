@@ -10,10 +10,6 @@ Change directories to the checked out code. This is your `$PROJECT_DIR` director
 
       cd visallo
 
-Initialize the out-of-the-box embedded database.
-
-      mvn -f dev/db/pom.xml sql:execute@create-db
-
 Run the web application.
 
       mvn -am -pl dev/jetty-server -P dev-jetty-run compile

@@ -9,12 +9,6 @@ You'll need to install the Visallo `root` Maven module after you've cloned the [
 
         mvn install -f root/pom.xml
 
-## Database Initialization
-
-You will need to create the necessary tables before using the default out-of-the-box embedded database. This can be done by running the following maven command from the `$PROJECT_DIR` directory.
-
-      mvn -f dev/db/pom.xml sql:execute@create-db
-
 ## Smoke Test
 
 You should make sure everything compiles and tests pass before going any further. Otherwise, it's hard to reason about what might be wrong when things later fail.
