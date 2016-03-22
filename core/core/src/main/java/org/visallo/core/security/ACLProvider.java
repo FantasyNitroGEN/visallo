@@ -12,8 +12,10 @@ import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.*;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class ACLProvider {
     public abstract boolean canDeleteElement(Element element, User user);
@@ -118,15 +120,22 @@ public abstract class ACLProvider {
 
     private void populatePropertyAcls(HasOntologyProperties hasOntologyProperties, Element element, User user,
                                       List<ClientApiPropertyAcl> propertyAcls) {
-        for (OntologyProperty ontologyProperty : hasOntologyProperties.getProperties()) {
+        Collection<OntologyProperty> ontologyProperties = hasOntologyProperties.getProperties();
+        Set<String> addedPropertyNames = new HashSet<>();
+        for (OntologyProperty ontologyProperty : ontologyProperties) {
             String name = ontologyProperty.getTitle();
             List<Property> properties = IterableUtils.toList(element.getProperties(name));
             for (Property property : properties) {
-                String key = property.getKey();
-                ClientApiPropertyAcl propertyAcl = newClientApiPropertyAcl(element, key, name, user);
-                propertyAcls.add(propertyAcl);
+                propertyAcls.add(newClientApiPropertyAcl(element, property.getKey(), name, user));
+                addedPropertyNames.add(name);
             }
         }
+
+        // for properties that don't exist on the element, use the ontology property definition and omit the key.
+        propertyAcls.addAll(ontologyProperties.stream()
+                .filter(ontologyProperty -> !addedPropertyNames.contains(ontologyProperty.getTitle()))
+                .map(ontologyProperty -> newClientApiPropertyAcl(element, null, ontologyProperty.getTitle(), user))
+                .collect(Collectors.toList()));
     }
 
     private ClientApiPropertyAcl newClientApiPropertyAcl(Element element, String key, String name, User user) {
