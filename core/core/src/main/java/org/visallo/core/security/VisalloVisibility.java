@@ -47,4 +47,10 @@ public class VisalloVisibility {
         return new Visibility("(" + visibility.getVisibilityString() + ")&(" + additionalVisibility + ")");
     }
 
+    public static Visibility or(Visibility visibility, String additionalVisibility) {
+        if (visibility.getVisibilityString().length() == 0) {
+            return new Visibility(additionalVisibility);
+        }
+        return new Visibility("(" + visibility.getVisibilityString() + ")|(" + additionalVisibility + ")");
+    }
 }
