@@ -325,7 +325,7 @@ define([
             });
 
             if (!geoLocations || geoLocations.length === 0) {
-                if (previousFeatures) {
+                if (previousFeatures && previousFeatures.length) {
                     map.featuresLayer.removeFeatures(previousFeatures[0]);
                 }
                 return;
@@ -409,15 +409,8 @@ define([
                                         markers.push(f);
                                     }
                                 });
-
-                                if (markers.length) {
-                                    markers = self.findOrCreateMarkers(map, vertex);
-                                } else if (!markers.length && inWorkspace) {
-                                    markers = self.findOrCreateMarkers(map, vertex);
-                                }
-                            } else {
-                                markers = self.findOrCreateMarkers(map, vertex);
                             }
+                            markers = self.findOrCreateMarkers(map, vertex);
 
                             if (markers && markers.length) {
                                 markers.forEach(function(m) {
