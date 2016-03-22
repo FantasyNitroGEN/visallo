@@ -21,19 +21,22 @@ import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.ClientApiPropertyAcl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ACLProviderTest {
-
     @Mock private OntologyRepository ontologyRepository;
     @Mock private OntologyProperty ontologyProperty1;
     @Mock private OntologyProperty ontologyProperty2;
     @Mock private OntologyProperty ontologyProperty3;
+    @Mock private OntologyProperty ontologyProperty4;
     @Mock private Concept vertexConcept;
     @Mock private Concept parentConcept;
     @Mock private Vertex vertex;
@@ -62,26 +65,31 @@ public class ACLProviderTest {
         when(ontologyRepository.getRelationshipByIRI("edge")).thenReturn(edgeRelationship);
 
         when(vertexConcept.getParentConceptIRI()).thenReturn("parent");
-        when(vertexConcept.getProperties()).thenReturn(ImmutableList.of(ontologyProperty1, ontologyProperty2));
+        when(vertexConcept.getProperties()).thenReturn(
+                ImmutableList.of(ontologyProperty1, ontologyProperty2, ontologyProperty4));
 
         when(parentConcept.getParentConceptIRI()).thenReturn(null);
         when(parentConcept.getProperties()).thenReturn(ImmutableList.of(ontologyProperty3));
 
-        when(edgeRelationship.getProperties()).thenReturn(ImmutableList.of(ontologyProperty1, ontologyProperty2, ontologyProperty3));
+        when(edgeRelationship.getProperties()).thenReturn(
+                ImmutableList.of(ontologyProperty1, ontologyProperty2, ontologyProperty3, ontologyProperty4));
 
         when(ontologyProperty1.getTitle()).thenReturn("prop1");
         when(ontologyProperty2.getTitle()).thenReturn("prop2");
         when(ontologyProperty3.getTitle()).thenReturn("prop3");
+        when(ontologyProperty4.getTitle()).thenReturn("prop4");
 
         when(vertex.getPropertyValue(VisalloProperties.CONCEPT_TYPE.getPropertyName())).thenReturn("vertex");
         when(vertex.getProperties("prop1")).thenReturn(ImmutableList.of(elementProperty1));
         when(vertex.getProperties("prop2")).thenReturn(ImmutableList.of(elementProperty2a, elementProperty2b));
         when(vertex.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
+        when(vertex.getProperties("prop4")).thenReturn(Collections.emptyList());
 
         when(edge.getLabel()).thenReturn("edge");
         when(edge.getProperties("prop1")).thenReturn(ImmutableList.of(elementProperty1));
         when(edge.getProperties("prop2")).thenReturn(ImmutableList.of(elementProperty2a, elementProperty2b));
         when(edge.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
+        when(edge.getProperties("prop4")).thenReturn(Collections.emptyList());
 
         when(elementProperty1.getName()).thenReturn("prop1");
         when(elementProperty1.getKey()).thenReturn("keyA");
@@ -126,6 +134,10 @@ public class ACLProviderTest {
         when(aclProvider.canUpdateProperty(element, "keyA", "prop3", user)).thenReturn(true);
         when(aclProvider.canDeleteProperty(element, "keyA", "prop3", user)).thenReturn(false);
 
+        when(aclProvider.canAddProperty(element, null, "prop4", user)).thenReturn(false);
+        when(aclProvider.canUpdateProperty(element, null, "prop4", user)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(element, null, "prop4", user)).thenReturn(true);
+
         ClientApiElementAcl elementAcl = aclProvider.elementACL(element, user, ontologyRepository);
 
         assertThat(elementAcl.isAddable(), equalTo(true));
@@ -133,34 +145,52 @@ public class ACLProviderTest {
         assertThat(elementAcl.isDeleteable(), equalTo(true));
 
         List<ClientApiPropertyAcl> propertyAcls = elementAcl.getPropertyAcls();
-        assertThat(propertyAcls.size(), equalTo(4));
+        assertThat(propertyAcls.size(), equalTo(5));
 
-        ClientApiPropertyAcl propertyAcl = propertyAcls.get(0);
+        ClientApiPropertyAcl propertyAcl = findSinglePropertyAcl(propertyAcls, "prop1");
         assertThat(propertyAcl.getName(), equalTo("prop1"));
         assertThat(propertyAcl.getKey(), equalTo("keyA"));
         assertThat(propertyAcl.isAddable(), equalTo(true));
         assertThat(propertyAcl.isUpdateable(), equalTo(false));
         assertThat(propertyAcl.isDeleteable(), equalTo(true));
 
-        propertyAcl = propertyAcls.get(1);
+        propertyAcl = findMultiplePropertyAcls(propertyAcls, "prop2").get(0);
         assertThat(propertyAcl.getName(), equalTo("prop2"));
         assertThat(propertyAcl.getKey(), equalTo("keyA"));
         assertThat(propertyAcl.isAddable(), equalTo(false));
         assertThat(propertyAcl.isUpdateable(), equalTo(true));
         assertThat(propertyAcl.isDeleteable(), equalTo(false));
 
-        propertyAcl = propertyAcls.get(2);
+        propertyAcl = findMultiplePropertyAcls(propertyAcls, "prop2").get(1);
         assertThat(propertyAcl.getName(), equalTo("prop2"));
         assertThat(propertyAcl.getKey(), equalTo("keyB"));
         assertThat(propertyAcl.isAddable(), equalTo(true));
         assertThat(propertyAcl.isUpdateable(), equalTo(false));
         assertThat(propertyAcl.isDeleteable(), equalTo(true));
 
-        propertyAcl = propertyAcls.get(3);
+        propertyAcl = findSinglePropertyAcl(propertyAcls, "prop3");
         assertThat(propertyAcl.getName(), equalTo("prop3"));
         assertThat(propertyAcl.getKey(), equalTo("keyA"));
         assertThat(propertyAcl.isAddable(), equalTo(false));
         assertThat(propertyAcl.isUpdateable(), equalTo(true));
         assertThat(propertyAcl.isDeleteable(), equalTo(false));
+
+        propertyAcl = findSinglePropertyAcl(propertyAcls, "prop4");
+        assertThat(propertyAcl.getName(), equalTo("prop4"));
+        assertThat(propertyAcl.getKey(), nullValue());
+        assertThat(propertyAcl.isAddable(), equalTo(false));
+        assertThat(propertyAcl.isUpdateable(), equalTo(true));
+        assertThat(propertyAcl.isDeleteable(), equalTo(true));
+    }
+
+    private List<ClientApiPropertyAcl> findMultiplePropertyAcls(
+            List<ClientApiPropertyAcl> propertyAcls, String propertyName) {
+        return propertyAcls.stream().filter(pa -> pa.getName().equals(propertyName)).collect(Collectors.toList());
+    }
+
+    private ClientApiPropertyAcl findSinglePropertyAcl(List<ClientApiPropertyAcl> propertyAcls, String propertyName) {
+        List<ClientApiPropertyAcl> matches = findMultiplePropertyAcls(propertyAcls, propertyName);
+        assertThat(matches.size(), equalTo(1));
+        return matches.get(0);
     }
 }
