@@ -48,6 +48,7 @@
 
     <modules>
         <module>common</module>
+        <module>config</module>
         <module>core</module>
         <module>dev</module>
         <module>graph-property-worker</module>
