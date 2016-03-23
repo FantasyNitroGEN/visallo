@@ -21,6 +21,7 @@
         * [Activity](extension-points/front-end/activity/index.md)
         * [Admin](extension-points/front-end/admin/index.md)
         * [Authentication](extension-points/front-end/authentication/index.md)
+        * [Graph Decorations](extension-points/front-end/graphDecorations/index.md)
         * [Graph Layout](extension-points/front-end/graphLayout/index.md)
         * [Graph Options](extension-points/front-end/graphOptions/index.md)
         * [Graph Selector](extension-points/front-end/graphSelector/index.md)

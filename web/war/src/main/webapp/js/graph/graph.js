@@ -7,6 +7,7 @@ define([
     './stylesheet',
     './withControlDrag',
     './layouts/grid',
+    './decorations',
     'tpl!./graph',
     'tpl!./loading',
     'util/controls',
@@ -27,6 +28,7 @@ define([
     stylesheet,
     withControlDrag,
     BetterGrid,
+    decorations,
     template,
     loadingTemplate,
     Controls,
@@ -57,7 +59,13 @@ define([
         CYTOSCAPE_ANIMATION = {
             duration: 400,
             easing: 'spring(250, 20)'
-        };
+        },
+        // Used when animating element with decorations
+        CYTOSCAPE_ANIMATION_STEP_POSITION = _.extend({}, CYTOSCAPE_ANIMATION, {
+            step: function() {
+                this.trigger('position');
+            }
+        });
 
     return defineComponent(Graph, withAsyncQueue, withContextMenu, withControlDrag, withDataRequest);
 
@@ -91,6 +99,9 @@ define([
                 if (diff < which) return rounded - diff;
 
                 return rounded + (snap - diff)
+            },
+            animationOptionsForCyNode = function(cyNode) {
+                return cyNode.isChild() ? CYTOSCAPE_ANIMATION_STEP_POSITION : CYTOSCAPE_ANIMATION;
             },
             snapPosition = function(cyNode) {
                 var p = retina.pixelsToPoints(cyNode.position()),
@@ -230,7 +241,7 @@ define([
                     if (node.length) {
                         node.renderedPosition(renderedPosition);
                     } else {
-                        var classes = self.classesForVertex(vertex) + ' hover',
+                        var classes = self.classesForVertex(vertex, { hover: true }),
                             cyNode = idToCyNode[vertex.id];
 
                         if (cyNode.length) {
@@ -244,9 +255,11 @@ define([
                                 id: tempId
                             },
                             renderedPosition: renderedPosition,
+                            grabbable: false,
+                            selectable: false,
                             selected: false
                         };
-                        self.updateCyNodeData(cyNodeData.data, vertex);
+                        self.createCyNodeData(cyNodeData.data, vertex);
                         cy.add(cyNodeData);
                     }
 
@@ -326,7 +339,7 @@ define([
 
         this.addVertices = function(vertices, opts) {
             var self = this,
-                options = $.extend({ fit: false, animate: false }, opts),
+                options = $.extend({ fit: false }, opts),
                 addedVertices = [],
                 updatedVertices = [],
                 dragging = $('.ui-draggable-dragging:not(.clone-vertex)'),
@@ -354,8 +367,6 @@ define([
                     defaultAvailablePosition = _.pick(availableSpaceBox, 'x', 'y'),
                     nextAvailablePosition = null;
 
-                if (options.animate) container.removeClass('animateinstart').addClass('animatein');
-
                 defaultAvailablePosition.y += yInc;
 
                 var maxWidth = Math.max(availableSpaceBox.w, xInc * 10),
@@ -363,10 +374,7 @@ define([
                     vertexIds = _.pluck(vertices, 'id'),
                     existingNodes = currentNodes.filter(function(i, n) {
                         var nId = n.id();
-                        if (/^(NEW|controlDragNodeId)/.test(nId)) {
-                            return -1;
-                        }
-                        return vertexIds.indexOf(fromCyId(nId)) >= 0;
+                        return n.hasClass('v') && !n.hasClass('hover') && vertexIds.indexOf(fromCyId(nId)) >= 0;
                     }),
                     customLayout = $.Deferred();
 
@@ -398,7 +406,7 @@ define([
                             },
                             workspaceVertex = self.workspaceVertices[vertex.id];
 
-                        self.updateCyNodeData(cyNodeData.data, vertex);
+                        self.createCyNodeData(cyNodeData.data, vertex);
 
                         var needsAdding = false,
                             needsUpdating = false,
@@ -481,9 +489,7 @@ define([
                     });
 
                     if (options.fit && cy.nodes().length) {
-
                         _.defer(self.fit.bind(self));
-
                     } else if (isVisible && options.fitToVertexIds && options.fitToVertexIds.length) {
                         var zoomOutToNodes = cy.$(
                             options.fitToVertexIds.map(function(v) {
@@ -495,19 +501,6 @@ define([
                         })
                     }
 
-                    if (options.animate) {
-                        if (cy.nodes().length) {
-                            _.delay(function again() {
-                                container.on(TRANSITION_END, function(e) {
-                                    container.off(TRANSITION_END);
-                                    container.removeClass('animatein animatestart');
-                                });
-                                container.addClass('animateinstart');
-
-                            }, 250);
-                        } else container.removeClass('animatein animateinstart');
-                    }
-
                     if (cloned && !(existingNodes.length && cloned && cloned.length)) {
                         cloned.remove();
                     }
@@ -516,6 +509,10 @@ define([
                         self.trigger('updateWorkspace', {
                             entityUpdates: updatedVertices.concat(addedVertices)
                         });
+                    }
+
+                    if (vertices.length) {
+                        self.updateDecorations(vertices);
                     }
 
                     if (self.vertexIdsToSelect) {
@@ -529,9 +526,15 @@ define([
             });
         };
 
-        this.classesForVertex = function(vertex) {
+        this.classesForVertex = function(vertex, options) {
             var cls = [],
                 displayType = F.vertex.displayType(vertex);
+
+            if (options && options.hover) {
+                cls.push('hover')
+            } else {
+                cls.push('v')
+            }
 
             if (F.vertex.imageIsFromConcept(vertex) === false) {
                 cls.push('hasCustomGlyph');
@@ -545,10 +548,15 @@ define([
                     modifier(vertex, cls);
                 });
 
+            if (options && options.asArray) {
+                return cls;
+            }
+
             return cls.join(' ');
         };
 
-        this.updateCyNodeData = function(data, vertex) {
+        this.createCyNodeData = function(data, vertex) {
+
             var truncatedTitle = F.string.truncate(F.vertex.title(vertex), 3),
                 merged = data;
 
@@ -570,12 +578,14 @@ define([
             this.cytoscapeReady(function(cy) {
 
                 if (data.vertexIds.length) {
-                    cy.$(
+                    cy.batch(function() {
                         data.vertexIds.map(function(v) {
-                            return '#' + toCyId(v);
-                        }).join(',')
-                    ).remove();
-
+                            var cyNode = cy.getElementById(toCyId(v));
+                            if (cyNode.isChild()) {
+                            }
+                            cyNode.remove();
+                        });
+                    });
                     this.setWorkspaceDirty();
                     this.updateVertexSelections(cy);
                 }
@@ -634,27 +644,64 @@ define([
         this.onVerticesUpdated = function(evt, data) {
             var self = this;
             this.cytoscapeReady(function(cy) {
-                // TODO: consider using batchData
-                data.vertices
-                    .forEach(function(updatedVertex) {
-                        var cyNode = cy.nodes().filter('#' + toCyId(updatedVertex));
-                        if (cyNode.length) {
+                // 2-pass batch update (decorations can use updated data)
+                cy.batch(function() {
+                    data.vertices.forEach(function(updatedVertex) {
+                        var cyNode = cy.getElementById(toCyId(updatedVertex));
+                        if (cyNode.length && cyNode.is('node.v')) {
                             cyNode = cyNode[0];
-                            var newData = self.updateCyNodeData(cyNode.data(), updatedVertex);
-                            cyNode.data(newData);
-
-                            _.each(cyNode._private.classes, function(enabled, name) {
-                                cyNode.removeClass(name);
-                            });
-                            var classes = self.classesForVertex(updatedVertex);
-                            if (classes.length) {
-                                cyNode.addClass(classes);
-                            }
+                            self.updateCyNodeData(cyNode, updatedVertex);
+                            self.updateCyNodeClasses(cyNode, updatedVertex);
                         }
                     });
+                });
+
+                requestAnimationFrame(function() {
+                    self.updateDecorations(data.vertices);
+                })
             });
 
             this.setWorkspaceDirty();
+        };
+
+        this.updateDecorations = function(vertices) {
+            this.cytoscapeReady(function(cy) {
+                decorations.updateDecorations(vertices, {
+                    vertexToCyNode: function(vertex) {
+                        var cyNode = cy.getElementById(toCyId(vertex));
+                        if (cyNode.length && cyNode.is('node.v')) {
+                            return cyNode;
+                        }
+                    }
+                });
+            });
+        };
+
+        this.updateCyNodeData = function(cyNode, vertex) {
+            var currentData = _.clone(cyNode.data()),
+                newData = this.createCyNodeData(cyNode.data(), vertex),
+                same = _.isEqual(currentData, newData);
+
+            if (!same) {
+                cyNode._private.data = newData;
+                cyNode.trigger('data');
+                cyNode.updateStyle();
+            }
+        }
+
+        this.updateCyNodeClasses = function(cyNode, vertex) {
+            var existingClasses = _.keys(cyNode._private.classes),
+                newClasses = this.classesForVertex(vertex, { asArray: true }),
+                toRemove = _.reject(existingClasses, function(cls) {
+                    return _.contains(newClasses, cls);
+                }).join(' ');
+
+            if (toRemove) {
+                cyNode.toggleClass(toRemove, false)
+            }
+            newClasses.forEach(function(cls) {
+                cyNode.toggleClass(cls, true);
+            })
         };
 
         this.animateFromToNode = function(cyFromNode, cyToNode, delay) {
@@ -839,14 +886,14 @@ define([
             return Promise.resolve(cy || this.cytoscapeReady())
                 .then(function(cy) {
                     if (!nodes || !nodes.length) {
-                        nodes = cy.elements();
+                        nodes = cy.$('node.v,node.decoration');
                     }
                     if (nodes.size() === 0) {
                         cy.reset();
                     } else if (self.graphPadding) {
                         var $$ = cytoscape,
                             elements = nodes,
-                            bb = elements.boundingBox(),
+                            bb = elements.boundingBox({ includeLabels: true, includeNodes: true, includeEdges: false }),
                             style = cy.style(),
                             padding = _.extend({}, self.graphPadding),
                             pixelScale = cy.renderer().options.pixelRatio,
@@ -1163,7 +1210,7 @@ define([
                 this.select('contextMenuSelector').blur().parent().removeClass('open');
 
                 var originalEvent = event.originalEvent;
-                if (!cyTargetIsElement || !(/^(NEW|controlDragNodeId)/).test(event.cyTarget.id())) {
+                if (!cyTargetIsElement || event.cyTarget.is('node.v')) {
                     this.trigger(this.select('cytoscapeContainerSelector')[0], 'showVertexContextMenu', {
                         vertexId: cyTargetIsElement ?
                             fromCyId(event.cyTarget.id()) :
@@ -1270,7 +1317,7 @@ define([
         this.graphHold = function(event) {
             var cyTarget = event.cy !== event.cyTarget && event.cyTarget;
 
-            if (cyTarget && cyTarget.is('node')) {
+            if (cyTarget && cyTarget.is('node.v')) {
                 this.graphTapHoldFired = cyTarget;
                 this.graphTapHoldFired.unselectify();
                 this.previewVertex({ cyCollection: cyTarget });
@@ -1344,9 +1391,9 @@ define([
             var self = this;
             this.trigger('defocusPaths');
             this.cytoscapeReady(function(cy) {
-                var vertices = event.cyTarget.selected() ? cy.nodes().filter(':selected') : event.cyTarget;
+                var cyElements = event.cyTarget.selected() ? cy.nodes().filter(':selected') : event.cyTarget;
                 cy.startBatch();
-                this.grabbedVertices = vertices.not('.temp,#controlDragNodeId').each(function() {
+                this.grabbedCollection = cyElements.filter('node.v').each(function() {
                     var p = retina.pixelsToPoints(this.position());
                     this.stop(true);
                     this.data('freed', false);
@@ -1360,7 +1407,7 @@ define([
             if (!this.isWorkspaceEditable) return;
             var self = this,
                 dup = true, // CY is sending multiple "free" events, prevent that...
-                vertices = this.grabbedVertices;
+                cyElements = this.grabbedCollection;
 
             if (this.graphTapHoldFired) {
                 this.graphTapHoldFired.selectify();
@@ -1368,9 +1415,9 @@ define([
                 return;
             }
 
-            if (!vertices || vertices.length === 0) return;
+            if (!cyElements || cyElements.length === 0) return;
 
-            var cy = vertices[0].cy(),
+            var cy = cyElements[0].cy(),
                 verticesMoved = [],
                 targetPosition,
                 snapToGrid = visalloData.currentUser.uiPreferences.snapToGrid === 'true',
@@ -1383,34 +1430,34 @@ define([
                 };
 
             cy.startBatch()
-            vertices.each(function(i, vertex) {
-                var cyId = vertex.id(),
+            cyElements.each(function(i, cyElement) {
+                var cyId = cyElement.id(),
                     pCopy;
 
                 if (i === 0) {
-                    pCopy = calcPosition(vertex);
+                    pCopy = calcPosition(cyElement);
                     targetPosition = pCopy;
                 }
                 if (snapToGrid) {
-                    pCopy = snapPosition(vertex);
+                    pCopy = snapPosition(cyElement);
                 } else if (!pCopy) {
-                    pCopy = calcPosition(vertex);
+                    pCopy = calcPosition(cyElement);
                 }
 
-                if (!vertex.data('freed')) {
+                if (!cyElement.data('freed')) {
                     dup = false;
                 }
 
-                // Rounding can cause vertex to jump 1/2 pixel
+                // Rounding can cause cyElement to jump 1/2 pixel
                 // Jump immediately instead of after save
                 if (snapToGrid) {
-                    vertex.animate({
+                    cyElement.animate({
                         position: retina.pointsToPixels(pCopy)
-                    }, CYTOSCAPE_ANIMATION)
+                    }, animationOptionsForCyNode(cyElement))
                 } else {
-                    vertex.position(retina.pointsToPixels(pCopy));
+                    cyElement.position(retina.pointsToPixels(pCopy));
                 }
-                vertex.data('freed', true)
+                cyElement.data('freed', true)
 
                 verticesMoved.push({
                     vertexId: fromCyId(cyId),
@@ -1426,7 +1473,7 @@ define([
 
             // If the user didn't drag more than a few pixels, select the
             // object, it could be an accidental mouse move
-            var target = vertices[0],
+            var target = cyElements[0],
                 originalPosition = target.data('originalPosition'),
                 dx = targetPosition.x - originalPosition.x,
                 dy = targetPosition.y - originalPosition.y,
@@ -1450,13 +1497,9 @@ define([
 
             clearTimeout(this.mouseoverTimeout);
 
-            if (cyNode !== event.cy && cyNode.group() === 'nodes') {
+            if (cyNode !== event.cy && cyNode.is('node.v')) {
                 this.mouseoverTimeout = _.delay(function() {
                     var nId = cyNode.id();
-                    if (/^(NEW|controlDragNodeId)/.test(nId)) {
-                        return;
-                    }
-
                     self.dataRequest('vertex', 'store', { vertexIds: fromCyId(nId) })
                         .then(function(vertex) {
                             var truncatedTitle = cyNode.data('truncatedTitle');
@@ -1472,7 +1515,7 @@ define([
 
         this.graphMouseOut = function(event) {
             clearTimeout(this.mouseoverTimeout);
-            if (event.cyTarget !== event.cy) {
+            if (event.cyTarget !== event.cy && event.cyTarget.is('node.v')) {
                 event.cyTarget.data('truncatedTitle', event.cyTarget.data('previousTruncated'));
             }
         };
@@ -1499,7 +1542,7 @@ define([
 
         this.checkEmptyGraph = function() {
             this.cytoscapeReady(function(cy) {
-                var noVertices = cy.nodes().length === 0;
+                var noVertices = cy.$('node.v').length === 0;
 
                 this.select('emptyGraphSelector').toggle(noVertices);
                 this.updateCytoscapeControlBehavior();
@@ -1580,7 +1623,7 @@ define([
                 this.cytoscapeReady(function(cy) {
                     var self = this,
                         fitToIds = [],
-                        allNodes = cy.nodes();
+                        allNodes = cy.nodes().filter('.v');
 
                     allNodes[data.workspace.editable ? 'grabify' : 'ungrabify']();
 
@@ -1589,14 +1632,10 @@ define([
                             previousWorkspaceVertex = self.workspaceVertices[entityUpdate.vertexId];
 
                         if (cyNode.length && !cyNode.grabbed() && ('graphPosition' in entityUpdate)) {
+                            var newPosition = retina.pointsToPixels(entityUpdate.graphPosition);
                             cyNode
                                 .stop(true)
-                                .animate(
-                                    {
-                                        position: retina.pointsToPixels(entityUpdate.graphPosition)
-                                    },
-                                    CYTOSCAPE_ANIMATION
-                                );
+                                .animate({ position: newPosition }, animationOptionsForCyNode(cyNode));
                         }
 
                         var noPreviousGraphPosition = (
@@ -1620,7 +1659,7 @@ define([
                     self.workspaceVertices = _.omit(self.workspaceVertices, data.entityDeletes);
 
                     this.getNodesByVertexIds(cy, data.entityDeletes).remove();
-                    if (data.newVertices) {
+                    if (!_.isEmpty(data.newVertices)) {
                         if (this.cyNodesToRemoveOnWorkspaceUpdated) {
                             this.cyNodesToRemoveOnWorkspaceUpdated.remove();
                             this.cyNodesToRemoveOnWorkspaceUpdated = null;
@@ -1641,8 +1680,7 @@ define([
             if (workspace.data.vertices.length) {
                 var newWorkspace = !this.previousWorkspace || this.previousWorkspace !== workspace.workspaceId;
                 this.addVertices(workspace.data.vertices, {
-                    fit: newWorkspace,
-                    animate: false
+                    fit: newWorkspace
                 });
             } else {
                 this.hideLoading();
@@ -1656,15 +1694,19 @@ define([
             var self = this,
                 anchorTo = data && data.anchorTo;
 
-            if (!anchorTo || (!anchorTo.vertexId && !anchorTo.page)) {
-                return console.error('Registering for position events requires a vertexId');
+            if (!anchorTo || (!anchorTo.vertexId && !anchorTo.page && !anchorTo.decorationId)) {
+                return console.error('Registering for position events requires a vertexId, page, decorationId');
             }
 
             this.cytoscapeReady().then(function(cy) {
 
                 event.stopPropagation();
 
-                var cyNode = anchorTo.vertexId && cy.getElementById(toCyId(anchorTo.vertexId)),
+                var cyNode = anchorTo.vertexId ?
+                        cy.getElementById(toCyId(anchorTo.vertexId)) :
+                        anchorTo.decorationId ?
+                        cy.getElementById(anchorTo.decorationId) :
+                        undefined,
                     offset = self.$node.offset(),
                     cyPosition = anchorTo.page && cy.renderer().projectIntoViewport(
                         anchorTo.page.x + offset.left,
@@ -1715,7 +1757,7 @@ define([
                     fn: function(el) {
                         var eventData = {},
                             zoom = cy.zoom();
-                        if (anchorTo.vertexId) {
+                        if (anchorTo.vertexId || anchorTo.decorationId) {
                             if (!cyNode.removed()) {
                                 eventData = eventPositionDataForCyElement(cyNode);
                             }
@@ -1934,26 +1976,22 @@ define([
             if (!data || !data.snapToGrid) return;
 
             this.cytoscapeReady(function(cy) {
+                var verticesMoved = [];
                 cy.batch(function() {
-                    var verticesMoved = [];
-                    cy.nodes().forEach(function(cyNode) {
+                    cy.$('node.v').forEach(function(cyNode) {
                         var points = snapPosition(cyNode),
                             p = retina.pointsToPixels(points),
                             cyId = cyNode.id();
 
                         cyNode.position(p);
-
-                        if (!(/^(NEW|controlDragNodeId)/.test(cyId))) {
-                            verticesMoved.push({
-                                vertexId: fromCyId(cyId),
-                                graphPosition: points
-                            });
-                        }
+                        verticesMoved.push({
+                            vertexId: fromCyId(cyId),
+                            graphPosition: points
+                        });
                     });
-
-                    self.trigger('updateWorkspace', {
-                        entityUpdates: verticesMoved
-                    });
+                });
+                self.trigger('updateWorkspace', {
+                    entityUpdates: verticesMoved
                 });
             })
         };
@@ -2169,6 +2207,7 @@ define([
             var self = this;
 
             cytoscape('layout', 'bettergrid', BetterGrid);
+
             registry.extensionsForPoint('org.visallo.graph.layout').forEach(function(layout) {
                 cytoscape('layout', layout.identifier, layout);
             });
@@ -2188,15 +2227,7 @@ define([
                 motionBlur: false,
                 container: this.select('cytoscapeContainerSelector').css({height: '100%'})[0],
                 renderer: {
-                    showFps: (function() {
-                        try {
-                            if (localStorage.getItem('graphfps')) {
-                                return true;
-                            }
-                        } catch(e) { /*eslint no-empty:0*/ }
-
-                        return false;
-                    })()
+                    showFps: shouldShowFps()
                 },
                 style: style,
 
@@ -2274,6 +2305,15 @@ define([
                 }
             });
         };
+    }
+
+    function shouldShowFps() {
+        try {
+            if (localStorage.getItem('graphfps')) {
+                return true;
+            }
+        } catch(e) { /*eslint no-empty:0*/ }
+        return false;
     }
 
 });

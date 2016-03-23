@@ -39,7 +39,7 @@ define([], function() {
             this.cytoscapeReady(function(cy) {
                 var mousedown = function(event) {
                     if (state > STATE_NONE) return;
-                    if (event.originalEvent.ctrlKey && event.cyTarget !== cy) {
+                    if (event.originalEvent.ctrlKey && event.cyTarget !== cy && event.cyTarget.is('node.v')) {
                         self.trigger('startVertexConnection', {
                             vertexId: self.fromCyId(event.cyTarget.id())
                         });
@@ -163,7 +163,7 @@ define([], function() {
 
         this.onControlDragMouseMove = function(event) {
             var cy = event.cy,
-                target = event.cyTarget !== cy && event.cyTarget.is('node') ? event.cyTarget : null,
+                target = event.cyTarget !== cy && event.cyTarget.is('node.v') ? event.cyTarget : null,
                 targetIsSource = target === startControlDragTarget;
 
             cy.$('.controlDragSelection').removeClass('controlDragSelection');

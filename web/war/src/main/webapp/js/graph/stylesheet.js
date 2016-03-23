@@ -35,6 +35,7 @@ define([
                 'text-events': 'yes',
                 'text-outline-color': 'white',
                 'text-outline-width': 2,
+                'text-halign': 'center',
                 'text-valign': 'bottom',
                 opacity: 1,
                 color: '#999',
@@ -42,6 +43,50 @@ define([
                 height: GENERIC_SIZE * retina.devicePixelRatio,
                 shape: 'roundrectangle',
                 width: GENERIC_SIZE * retina.devicePixelRatio
+            })
+
+            .selector('node.decorationParent')
+            .css({
+                'background-image': 'none',
+                'compound-sizing-wrt-labels': 'exclude'
+            })
+            .selector('node.decorationParent:active')
+            .css({
+                'background-color': 'none',
+                'background-opacity': 0,
+                'overlay-color': 'none',
+                'overlay-padding': 0,
+                'overlay-opacity': 0,
+                'border-width': 0
+            })
+
+            .selector('node.decoration')
+            .css({
+                'background-color': '#F89406',
+                'background-image': 'none',
+                'border-width': 2,
+                'border-style': 'solid',
+                'border-color': '#EF8E06',
+                'text-halign': 'center',
+                'text-valign': 'center',
+                'font-size': 20,
+                color: 'white',
+                'text-outline-color': 'none',
+                'text-outline-width': 0,
+                content: 'data(label)',
+                events: 'no',
+                shape: 'roundrectangle',
+                'padding-left': 5,
+                'padding-right': 5,
+                'padding-top': 3,
+                'padding-bottom': 3,
+                width: 'label',
+                height: 'label'
+            })
+
+            .selector('node.decoration.hidden')
+            .css({
+                display: 'none'
             })
 
             .selector('node.video')
