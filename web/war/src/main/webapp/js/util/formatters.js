@@ -643,8 +643,11 @@ define([
                     withOffsetForDate = Date.now();
                 }
 
-                var momentZone = moment.tz.zone(name),
-                    offset = momentZone.offset(withOffsetForDate) * -1,
+                var momentZone = moment.tz.zone(name);
+                if (!momentZone) {
+                    throw new Error('Could not find timezone "' + name + '"');
+                }
+                var offset = momentZone.offset(withOffsetForDate) * -1,
                     tzInfo = {
                         tzOffset: offset,
                         tzAbbr: momentZone.abbr(withOffsetForDate),
