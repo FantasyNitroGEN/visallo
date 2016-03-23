@@ -504,6 +504,8 @@ define([
         };
 
         this.onSave = function(evt) {
+            var self = this;
+
             if (!this.valid) return;
 
             var vertexId = this.attr.data.id,
@@ -543,6 +545,7 @@ define([
                             metadata: this.currentMetadata
                         }, justification)
                 });
+                self.teardown();
             }
         };
     }

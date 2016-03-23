@@ -443,7 +443,7 @@ define([
                         actions: $.extend({
                             Open: 'open',
                             Fullscreen: 'fullscreen'
-                        }, Privileges.canEDIT && info.termMentionFor === 'VERTEX' && !F.vertex.isPublished(info) ? {
+                        }, Privileges.canEDIT && info.termMentionFor === 'VERTEX' ? {
                             Unresolve: 'unresolve'
                         } : {})
                     });
@@ -456,12 +456,19 @@ define([
                     self.off('fullscreen')
                     self.on('fullscreen', function(event) {
                         event.stopPropagation();
-                        self.trigger('openFullscreen', { vertices: $target.data('info').resolvedToVertexId });
+                        self.dataRequest('vertex', 'store', { vertexIds: $target.data('info').resolvedToVertexId })
+                            .then(function(vertices) {
+                                self.trigger('openFullscreen', { vertices: vertices });
+                            })
                     })
                     self.off('unresolve')
                     self.on('unresolve', function(event) {
                         event.stopPropagation();
-                        _.defer(self.dropdownEntity.bind(self), false, $target);
+                        _.defer(self.dropdownEntity.bind(self), {
+                            creating: false,
+                            insertAfterNode: $target,
+                            unresolve: true
+                        });
                     });
 
                 } else if (Privileges.canEDIT) {
@@ -478,7 +485,9 @@ define([
 
                     self.off('resolve');
                     self.on('resolve', function(event) {
-                        _.defer(self.dropdownEntity.bind(self), false, $target);
+                        _.defer(self.dropdownEntity.bind(self), {
+                             creating: false,
+                             insertAfterNode: $target});
                         event.stopPropagation();
                     })
                     self.off('property');
@@ -578,7 +587,11 @@ define([
                     self.on('resolve', function(event) {
                         event.stopPropagation();
 
-                        self.dropdownEntity(true, getNode(endContainer), selection, text);
+                        self.dropdownEntity({
+                            creating: true,
+                            insertAfterNode: getNode(endContainer),
+                            selection: selection,
+                            text: text});
                     });
 
                     function getNode(node) {
@@ -610,28 +623,29 @@ define([
             this.disableSelection = false;
         };
 
-        this.dropdownEntity = function(creating, insertAfterNode, selection, text) {
+        this.dropdownEntity = function(data) {
             this.tearDownDropdowns();
             this.disableSelection = true;
 
             var self = this,
                 form = $('<div class="underneath"/>'),
-                $node = $(insertAfterNode),
+                $node = $(data.insertAfterNode),
                 $textSection = $node.closest('.text-section'),
                 $textBody = $textSection.children('.text');
 
             $node.after(form);
             require(['../dropdowns/termForm/termForm'], function(TermForm) {
                 TermForm.attachTo(form, {
-                    sign: text,
+                    sign: data.text,
                     propertyKey: $textSection.data('key'),
-                    selection: selection,
-                    mentionNode: insertAfterNode,
-                    snippet: selection ?
-                        rangeUtils.createSnippetFromRange(selection.range, undefined, $textBody[0]) :
-                        rangeUtils.createSnippetFromNode(insertAfterNode[0], undefined, $textBody[0]),
-                    existing: !creating,
-                    artifactId: self.model.id
+                    selection: data.selection,
+                    mentionNode: data.insertAfterNode,
+                    snippet: data.selection ?
+                        rangeUtils.createSnippetFromRange(data.selection.range, undefined, $textBody[0]) :
+                        rangeUtils.createSnippetFromNode(data.insertAfterNode[0], undefined, $textBody[0]),
+                    existing: !data.creating,
+                    artifactId: self.model.id,
+                    unresolve: data.unresolve || false
                 });
             })
         };
