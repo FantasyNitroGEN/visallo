@@ -77,6 +77,7 @@ define([
             this.on(document, 'verticesDeleted', this.onVerticesDeleted);
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
+            this.on(document, 'searchResultsWithinRadius', this.onSearchResultsWithinRadius);
 
             this.padding = {l: 0, r: 0, b: 0, t: 0};
 
@@ -307,9 +308,34 @@ define([
                     type: conceptType,
                     scale: retina.devicePixelRatio > 1 ? '2' : '1'
                 }),
-                heading = F.vertex.heading(vertex);
+                heading = F.vertex.heading(vertex),
+                previousFeatures = [];
 
-            if (!geoLocations || geoLocations.length === 0) return;
+            _.each(map.featuresLayer.features, function(feature) {
+                if (feature.cluster) {
+                    feature.cluster.forEach(function(f) {
+                        if (f.id.indexOf(vertex.id) !== -1) {
+                            previousFeatures.push(f);
+                        }
+                    })
+                } else if (feature.id.indexOf(vertex.id) !== -1) {
+                    previousFeatures.push(feature);
+                }
+
+            });
+
+            if (!geoLocations || geoLocations.length === 0) {
+                if (previousFeatures && previousFeatures.length) {
+                    map.featuresLayer.removeFeatures(previousFeatures[0]);
+                }
+                return;
+            } else {
+                if (previousFeatures.length > geoLocations.length) {
+                    previousFeatures.forEach(function(feature) {
+                        map.featuresLayer.removeFeatures(feature);
+                    })
+                }
+            }
             if (selected) iconUrl += '&selected';
 
             return geoLocations.map(function(geoLocation) {
@@ -345,7 +371,12 @@ define([
                     if (feature.style.externalGraphic !== iconUrl) {
                         feature.style.externalGraphic = iconUrl;
                     }
+
+                    self.select('mapSelector').find('#' + feature.geometry.id).remove();
+                    feature.geometry = point(geoLocation.value.latitude, geoLocation.value.longitude);
                     feature.move(latLon(geoLocation.value.latitude, geoLocation.value.longitude));
+                    feature.attributes.vertex = feature.data.vertex = vertex;
+
                 }
 
                 return feature;
@@ -356,7 +387,8 @@ define([
             var self = this,
                 adding = options && options.adding,
                 preventShake = options && options.preventShake,
-                validAddition = false;
+                validAddition = false,
+                redraw = false;
 
             this.mapReady(function(map) {
                 self.dataRequest('workspace', 'store')
@@ -365,8 +397,8 @@ define([
                             var inWorkspace = vertex.id in workspaceVertices,
                                 markers = [];
 
-                            if (!adding && !inWorkspace) {
-
+                            if (!adding) {
+                                redraw = true;
                                 // Only update marker if it exists
                                 map.featuresLayer.features.forEach(function(f) {
                                     if (f.cluster) {
@@ -377,13 +409,8 @@ define([
                                         markers.push(f);
                                     }
                                 });
-
-                                if (markers.length) {
-                                    markers = self.findOrCreateMarkers(map, vertex);
-                                }
-                            } else {
-                                markers = self.findOrCreateMarkers(map, vertex);
                             }
+                            markers = self.findOrCreateMarkers(map, vertex);
 
                             if (markers && markers.length) {
                                 markers.forEach(function(m) {
@@ -393,7 +420,7 @@ define([
                             }
                         });
 
-                        self.clusterStrategy.cluster();
+                        self.clusterStrategy.cluster(null, redraw);
                         map.featuresLayer.redraw();
 
                         if (adding && vertices.length && validAddition) {
@@ -498,7 +525,7 @@ define([
                         menu.data('feature', feature);
                         this.toggleMenu({ positionUsingEvent: event }, menu);
                     }
-                } else this.toggleMenu({ positionUsingEvent: event }, this.select('contextMenuSelector'));
+                }
             });
         };
 
@@ -512,16 +539,27 @@ define([
             this.trigger('deleteVertices', { vertices: vertices });
         };
 
-        this.onContextMenuLoadResultsWithinRadius = function() {
+        this.onSearchResultsWithinRadius = function() {
             var self = this;
 
-            this.mode = MODE_REGION_SELECTION_MODE_POINT;
-            this.$node.find('.instructions').remove();
-            this.$node.append(centerTemplate({}));
-            $(document).on('keydown.regionselection', function(e) {
-                if (e.which === $.ui.keyCode.ESCAPE) {
-                    self.endRegionSelection();
-                }
+            if (this.mode === MODE_NORMAL) {
+                this.mode = MODE_REGION_SELECTION_MODE_POINT;
+                this.$node.find('.instructions').remove();
+                this.$node.append(centerTemplate({}));
+                $(document).on('keydown.regionselection', function(e) {
+                    if (e.which === $.ui.keyCode.ESCAPE) {
+                        self.endRegionSelection();
+                    }
+                });
+            } else if (this.mode === MODE_REGION_SELECTION_MODE_RADIUS) {
+                this.panToActiveRadius();
+            }
+        };
+
+        this.panToActiveRadius = function() {
+            var regionCenterLonLat = new OpenLayers.LonLat(this.regionCenterPoint.lon, this.regionCenterPoint.lat);
+            this.mapReady(function(map) {
+                map.panTo(regionCenterLonLat);
             });
         };
 
@@ -610,37 +648,21 @@ define([
                         lonlat = self.regionCenterPoint.transform(
                             map.getProjectionObject(),
                             new ol.Projection('EPSG:4326')
-                        );
+                        ),
+                        region = {
+                            radius: radius,
+                            longitude: lonlat.lon,
+                            latitude: lonlat.lat
+                        };
 
                     self.$node.find('.instructions').remove();
                     self.$node.append(loadingTemplate({}));
 
-                    self.dataRequest('vertex', 'geo-search',
-                        lonlat.lat,
-                        lonlat.lon,
-                        radius
-                    ).done(
-                        function(data) {
-                            self.endRegionSelection();
-                            self.trigger('updateWorkspace', {
-                                entityUpdates: data.elements.map(function(vertex) {
-                                    return {
-                                        vertexId: vertex.id,
-                                        graphLayoutJson: {
-                                            fromMapRegion: {
-                                                lat: lonlat.lat,
-                                                lon: lonlat.lon,
-                                                radius: radius
-                                            }
-                                        }
-                                    };
-                                })
-                            });
-                        }
-                    );
+                    self.trigger(document, 'regionSaved', region);
+                    $(document).off('regionSaved');
+                    self.endRegionSelection();
 
                     break;
-
             }
         };
 

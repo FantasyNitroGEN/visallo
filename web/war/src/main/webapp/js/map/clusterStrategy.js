@@ -54,14 +54,15 @@ define(['openlayers'], function(OpenLayers) {
             }
         },
 
-        cluster: function(event) {
+        cluster: function(event, redraw) {
             var i, len;
 
             if ((!event || event.zoomChanged) && this.features) {
                 var resolution = this.layer.map.getResolution();
                 if (resolution !== this.resolution ||
                     !this.clustersExist() ||
-                    this.previousCount !== this.features.length
+                    this.previousCount !== this.features.length ||
+                    redraw
                 ) {
                     this.previousCount = this.features.length;
                     this.resolution = resolution;
@@ -161,7 +162,7 @@ define(['openlayers'], function(OpenLayers) {
                 }.bind(this), 250);
             }
 
-            if (needsRedraw) {
+            if (needsRedraw || redraw) {
                 this._throttledRedraw();
             }
         },
