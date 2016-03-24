@@ -24,6 +24,7 @@ define([
                 this.model = data.model;
                 this.render();
             })
+            this.on(this.$node.parents('.type-content'), 'avLinkClicked', this.onAVLinkClicked);
             this.render();
         });
 
@@ -51,6 +52,10 @@ define([
                     this.rendered = true;
                 }
             }
+        };
+
+        this.onAVLinkClicked = function(event, data) {
+            this.trigger(this.select('previewSelector'), 'seekToTime', data);
         };
     }
 });

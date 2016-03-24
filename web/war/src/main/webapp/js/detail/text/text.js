@@ -55,6 +55,7 @@ define([
             resolvableSelector: '.vertex, .property',
             resolvedSelector: '.vertex.resolved',
             textSelector: '.text',
+            avLinkSelector: '.av-link',
             model: null
         });
 
@@ -92,7 +93,8 @@ define([
                 this.updateText();
             });
             this.on('click', {
-                resolvableSelector: this.onResolvableClick
+                resolvableSelector: this.onResolvableClick,
+                avLinkSelector: this.onAVLinkClick
             });
             this.on('focusOnSnippet', this.onFocusOnSnippet);
             this.on('copy cut', {
@@ -384,7 +386,7 @@ define([
                     return transcriptEntriesTemplate({
                         entries: _.map(json.entries, function(e) {
                             return {
-                                millis: e.start || e.end,
+                                millis: e.start,
                                 time: (_.isUndefined(e.start) ? '' : self.formatTimeOffset(e.start)) +
                                         ' - ' +
                                       (_.isUndefined(e.end) ? '' : self.formatTimeOffset(e.end)),
@@ -996,6 +998,14 @@ define([
             }
         };
 
+        this.onAVLinkClick = function(event, data) {
+            var seekTo = data.el.dataset.millis || '';
+            if (seekTo) {
+                this.trigger(this.$node.parents('.type-content'), 'avLinkClicked', {
+                    seekTo: seekTo
+                });
+            }
+        };
     }
 
     function isTextSelectable(event) {

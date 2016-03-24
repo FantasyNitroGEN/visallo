@@ -57,6 +57,8 @@ define([
                 .catch(function(e) {
                     throw e;
                 })
+
+            this.on('seekToTime', this.onSeekToTime);
         });
 
         this.getVideoDimensions = function() {
@@ -148,7 +150,6 @@ define([
                 this.off('click');
             });
             this.on('click', this.onClick);
-            this.on('seekToTime', this.onSeekToTime);
 
             this.loadVideoPreview()
                 .then(function(previewDimensions) {
@@ -184,6 +185,9 @@ define([
                         })
                 })
                 .catch(function() { })
+                .then(function() {
+                    self.setup = true;
+                })
         };
 
         this.loadPosterFrame = function() {
@@ -364,6 +368,7 @@ define([
         };
 
         this.onSeekToTime = function(event, data) {
+            if (!this.setup) this.setupVideo();
             this.startVideo({
                 seek: data.seekTo / 1000
             });
