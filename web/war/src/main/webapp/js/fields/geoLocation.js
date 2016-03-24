@@ -81,7 +81,8 @@ define([
             descriptionSelector: '.description',
             latSelector: '.lat',
             lonSelector: '.lon',
-            radiusSelector: '.radius'
+            radiusSelector: '.radius',
+            radiusSearchSelector: '.radius-search'
         });
 
         this.before('initialize', function(node, config) {
@@ -119,6 +120,18 @@ define([
                             })
                         }
                     })
+
+                    self.select('radiusSearchSelector').on('click', function() {
+                       self.trigger(document, 'changeView', {
+                           view: 'map'
+                       });
+                       self.trigger(document, 'searchResultsWithinRadius');
+
+                       $(document).on('regionSaved', function(event, data) {
+                           self.setValue(data);
+                           self.triggerFieldUpdated();
+                       });
+                    });
                 });
             })
         });
