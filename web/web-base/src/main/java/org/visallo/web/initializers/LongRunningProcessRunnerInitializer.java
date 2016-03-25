@@ -27,11 +27,11 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
 
     @Override
     public void initialize(ServletContext context) {
-        LOGGER.debug("setupLongRunningProcessRunner");
+        LOGGER.debug("Starting LongRunningProcessRunnerInitializer");
 
         int threadCount = config.getInt(CONFIG_THREAD_COUNT, DEFAULT_THREAD_COUNT);
 
-        LOGGER.debug("long running process runners: %d", threadCount);
+        LOGGER.debug("Starting LongRunningProcessRunners on %d threads", threadCount);
         for (int i = 0; i < threadCount; i++) {
             StoppableRunnable stoppable = new StoppableRunnable() {
                 private LongRunningProcessRunner longRunningProcessRunner = null;
@@ -51,6 +51,7 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
                 public void stop() {
                     try {
                         if (longRunningProcessRunner != null){
+                            LOGGER.debug("Stopping LongRunningProcessRunner");
                             longRunningProcessRunner.stop();
                         }
                     } catch (Exception ex) {
@@ -62,7 +63,7 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
             Thread t = new Thread(stoppable);
             t.setName("long-running-process-runner-" + t.getId());
             t.setDaemon(true);
-            LOGGER.debug("starting long running process runner thread: %s", t.getName());
+            LOGGER.debug("Starting LongRunningProcessRunner thread: %s", t.getName());
             t.start();
         }
     }

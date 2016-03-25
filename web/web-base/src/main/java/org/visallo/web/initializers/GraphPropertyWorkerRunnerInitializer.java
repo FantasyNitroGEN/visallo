@@ -34,12 +34,12 @@ public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapIn
 
     @Override
     public void initialize(ServletContext context) {
-        LOGGER.debug("setupGraphPropertyWorkerRunner");
+        LOGGER.debug("Starting GraphPropertyWorkerRunnerInitializer");
 
         int threadCount = config.getInt(CONFIG_THREAD_COUNT, DEFAULT_THREAD_COUNT);
         User user = userRepository.getSystemUser();
 
-        LOGGER.debug("starting graph property worker runners: %d", threadCount);
+        LOGGER.debug("Starting GraphPropertyRunners on %d threads", threadCount);
         for (int i = 0; i < threadCount; i++) {
             StoppableRunnable stoppable = new StoppableRunnable() {
                 private GraphPropertyRunner graphPropertyRunner = null;
@@ -59,6 +59,7 @@ public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapIn
                 public void stop() {
                     try {
                         if (graphPropertyRunner != null) {
+                            LOGGER.debug("Stopping GraphPropertyRunner");
                             graphPropertyRunner.stop();
                         }
                     } catch (Exception ex) {
@@ -68,9 +69,9 @@ public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapIn
             };
             stoppables.add(stoppable);
             Thread t = new Thread(stoppable);
-            t.setName("graph-property-worker-runner-" + t.getId());
+            t.setName("graph-property-runner-" + t.getId());
             t.setDaemon(true);
-            LOGGER.debug("starting graph property worker runner thread: %s", t.getName());
+            LOGGER.debug("Starting GraphPropertyRunner thread: %s", t.getName());
             t.start();
         }
     }
