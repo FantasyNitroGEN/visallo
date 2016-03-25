@@ -31,7 +31,7 @@ define([
                     i18n(true, 'field.' + config.property.dataType + '.placeholder') ||
                     config.property.displayName
                 ) : config.property.displayName;
-        })
+        });
 
         this.after('initialize', function() {
             var self = this;
@@ -50,7 +50,7 @@ define([
                 _.defer(function() {
                     self.select('inputSelector').eq(0).focus().select();
                 })
-            })
+            });
 
             if (!_.isFunction(this.getValue)) {
                 throw new Error('getValue is required function for fields');
@@ -63,7 +63,12 @@ define([
             this.on('fieldRendered', function handler() {
                 this.off('fieldRendered', handler);
                 rendered();
-            })
+            });
+
+            this.on('setValue', function(event, value) {
+               this.setValue(value);
+            });
+
             if (this.attr.asyncRender !== true) {
                 this.trigger('fieldRendered');
             }
