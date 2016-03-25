@@ -63,14 +63,14 @@ public class RdfXmlImportHelper {
     public void importRdfXml(
             File inputFile,
             GraphPropertyWorkData data,
-            String visibilitySource,
             Priority priority,
+            String visibilitySource,
             User user,
             Authorizations authorizations
     ) throws IOException {
         try (InputStream in = new FileInputStream(inputFile)) {
             File baseDir = inputFile.getParentFile();
-            importRdfXml(in, baseDir, data, visibilitySource, priority, user, authorizations);
+            importRdfXml(in, baseDir, data, priority, visibilitySource, user, authorizations);
         }
     }
 
@@ -78,8 +78,8 @@ public class RdfXmlImportHelper {
             InputStream in,
             File baseDir,
             GraphPropertyWorkData data,
-            String visibilitySource,
             Priority priority,
+            String visibilitySource,
             User user,
             Authorizations authorizations
     ) {

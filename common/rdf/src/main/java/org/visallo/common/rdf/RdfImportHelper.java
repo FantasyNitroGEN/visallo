@@ -53,13 +53,13 @@ public class RdfImportHelper {
         LOGGER.info("Importing file: %s", inputFile.getAbsolutePath());
         rdfTripleImportHelper.setFailOnFirstError(failOnFirstError);
         if (inputFile.getName().endsWith(".nt")) {
-            importFileRdfTriple(inputFile, timeZone, visibilitySource, authorizations);
+            importFileRdfTriple(inputFile, timeZone, priority, visibilitySource, user, authorizations);
         } else {
             try {
                 importFileRdfXml(inputFile, priority, visibilitySource, user, authorizations);
             } catch (JenaException ex) {
                 if (ex.getMessage().contains("Content is not allowed in prolog.")) {
-                    importFileRdfTriple(inputFile, timeZone, visibilitySource, authorizations);
+                    importFileRdfTriple(inputFile, timeZone, priority, visibilitySource, user, authorizations);
                 } else {
                     throw ex;
                 }
@@ -71,11 +71,12 @@ public class RdfImportHelper {
     private void importFileRdfTriple(
             File inputFile,
             TimeZone timeZone,
+            Priority priority,
             String visibilitySource,
+            User user,
             Authorizations authorizations
     ) throws IOException {
-        User user = userRepository.getSystemUser();
-        rdfTripleImportHelper.importRdfTriple(inputFile, timeZone, visibilitySource, user, authorizations);
+        rdfTripleImportHelper.importRdfTriple(inputFile, timeZone, priority, visibilitySource, user, authorizations);
     }
 
     private void importFileRdfXml(
@@ -85,6 +86,6 @@ public class RdfImportHelper {
             User user,
             Authorizations authorizations
     ) throws IOException {
-        rdfXmlImportHelper.importRdfXml(inputFile, null, visibilitySource, priority, user, authorizations);
+        rdfXmlImportHelper.importRdfXml(inputFile, null, priority, visibilitySource, user, authorizations);
     }
 }
