@@ -66,7 +66,8 @@ define([
             });
 
             this.on('setValue', function(event, value) {
-               this.setValue(value);
+                event.stopPropagation();
+                this.setValue(value);
             });
 
             if (this.attr.asyncRender !== true) {
