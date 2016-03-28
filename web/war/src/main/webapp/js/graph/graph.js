@@ -581,8 +581,6 @@ define([
                     cy.batch(function() {
                         data.vertexIds.map(function(v) {
                             var cyNode = cy.getElementById(toCyId(v));
-                            if (cyNode.isChild()) {
-                            }
                             cyNode.remove();
                         });
                     });
