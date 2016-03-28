@@ -111,7 +111,8 @@ define([
                                 self.showForm({
                                     property: property,
                                     value: property.value,
-                                    title: F.vertex.title(vertex)
+                                    title: F.vertex.title(vertex),
+                                    unresolve: true
                                 },
                                     //$.extend({}, property.value, {
                                         //title: F.vertex.title(vertex),
@@ -162,7 +163,8 @@ define([
                     }, data.value),
                     restrictConcept: data.value.concept,
                     existing: Boolean(data.property && data.property.resolvedVertexId),
-                    detectedObject: true
+                    detectedObject: true,
+                    unresolve: data.unresolve || false
                 });
             })
         };

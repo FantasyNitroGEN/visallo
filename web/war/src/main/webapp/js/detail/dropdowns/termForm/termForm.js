@@ -330,7 +330,6 @@ define([
                 var mentionVertex = $(this.attr.mentionNode);
                 data = mentionVertex.data('info');
                 existingEntity = this.attr.existing ? mentionVertex.addClass('focused').hasClass('resolved') : false;
-                graphVertexId = data && data.resolvedToVertexId;
                 title = $.trim(data && data.title || '');
 
                 if (this.attr.selection && !existingEntity) {
@@ -344,7 +343,8 @@ define([
 
                 if (existingEntity && mentionVertex.hasClass('resolved')) {
                     objectSign = title;
-                    this.unresolve = true;
+                    this.unresolve = this.attr.unresolve;
+                    graphVertexId = this.unresolve && data && (data.resolvedToVertexId || data.resolvedVertexId);
                     this.termMentionId = data && data.id;
                 } else {
                     objectSign = this.attr.sign || mentionVertex.text();
@@ -353,8 +353,8 @@ define([
                 data = this.attr.dataInfo;
                 objectSign = data && data.title;
                 existingEntity = this.attr.existing;
-                graphVertexId = data && (data.resolvedToVertexId || data.resolvedVertexId);
-                this.unresolve = graphVertexId && graphVertexId !== '';
+                this.unresolve = this.attr.unresolve;
+                graphVertexId = this.unresolve && data && (data.resolvedToVertexId || data.resolvedVertexId);
             }
 
             vertex.html(dropdownTemplate({
