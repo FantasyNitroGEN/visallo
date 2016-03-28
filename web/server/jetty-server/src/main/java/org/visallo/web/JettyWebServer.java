@@ -28,9 +28,6 @@ public class JettyWebServer extends WebServer {
 
     @Override
     protected int run() throws Exception {
-        int httpsPort = super.getHttpsPort();
-        int httpPort = super.getHttpPort();
-
         server = new org.eclipse.jetty.server.Server();
 
         // Setup JMX
@@ -41,13 +38,13 @@ public class JettyWebServer extends WebServer {
 
         HttpConfiguration http_config = new HttpConfiguration();
         http_config.setSecureScheme("https");
-        http_config.setSecurePort(httpsPort);
+        http_config.setSecurePort(getHttpsPort());
 
         ServerConnector httpConnector = new ServerConnector(
                 server,
                 new HttpConnectionFactory(http_config)
         );
-        httpConnector.setPort(httpPort);
+        httpConnector.setPort(getHttpPort());
 
         SslContextFactory sslContextFactory = new SslContextFactory();
         sslContextFactory.setKeyStorePath(getKeyStorePath().getAbsolutePath());
@@ -62,7 +59,7 @@ public class JettyWebServer extends WebServer {
         ServerConnector httpsConnector = new ServerConnector(server,
                 new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
                 new HttpConnectionFactory(https_config));
-        httpsConnector.setPort(httpsPort);
+        httpsConnector.setPort(getHttpsPort());
 
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setClassLoader(Thread.currentThread().getContextClassLoader());
@@ -78,10 +75,7 @@ public class JettyWebServer extends WebServer {
         server.setHandler(contexts);
 
         server.start();
-
-        String message = String.format("Listening on http port %d and https port %d", httpPort, httpsPort);
-        LOGGER.info(message);
-        System.out.println(message);
+        afterServerStart();
 
         if (!dontJoin) {
             server.join();
@@ -92,5 +86,11 @@ public class JettyWebServer extends WebServer {
 
     protected org.eclipse.jetty.server.Server getServer() {
         return server;
+    }
+
+    protected void afterServerStart() {
+        String message = String.format("Listening on http port %d and https port %d", getHttpPort(), getHttpsPort());
+        LOGGER.info(message);
+        System.out.println(message);
     }
 }
