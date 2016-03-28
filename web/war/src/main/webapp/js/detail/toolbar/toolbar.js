@@ -18,7 +18,8 @@ define([
             return e === 'DIVIDER' || (
                 ('event' in e) && ('title' in e)
                 );
-        }
+        },
+        'http://docs.visallo.org/extension-points/front-end/detailToolbar'
     );
 
     var DIVIDER = {
