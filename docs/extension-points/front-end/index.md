@@ -38,7 +38,7 @@ For example, to add an item to the menubar:
         icon: '../img/new.png'
     });
 
-Extension points do not need to be defined, simply ask the registry for all registered using a unique point name.
+Visallo plugins can also define extension points. They do not need to be defined ahead of time, simply ask the registry for all registered extensions using a unique point name.
 
     registry.extensionsForPoint([extension point name]);
     // Returns array of registered objects
@@ -50,6 +50,14 @@ It is good practice to define some documentation for your new extension point. D
         function validator(e) {
             return ('title' in e) && ('identifier' in e) && ('action' in e) && ('icon' in e);
         }
+    );
+
+This documentation appears in the admin pane under UI Extensions. Add an external documentation URL using an optional 3rd parameter.
+
+    registry.documentExtensionPoint('com.example.point',
+        'Description...',
+        function () { return true; },
+        'http://example.com/docs'
     );
 
 

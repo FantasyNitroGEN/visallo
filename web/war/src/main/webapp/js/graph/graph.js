@@ -2009,7 +2009,8 @@ define([
                 'Add menu options to export graph / workspace',
                 function(e) {
                     return ('menuItem' in e) && ('componentPath' in e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphExport'
             );
             registry.documentExtensionPoint('org.visallo.graph.selection',
                 'Add custom graph selection menu items',
@@ -2040,25 +2041,29 @@ define([
                 'Function that can change cytoscape classes of nodes',
                 function(e) {
                     return _.isFunction(e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphNode/class.html'
             );
             registry.documentExtensionPoint('org.visallo.graph.edge.class',
                 'Function that can change cytoscape classes of edges',
                 function(e) {
                     return _.isFunction(e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphEdge/class.html'
             );
             registry.documentExtensionPoint('org.visallo.graph.node.transformer',
                 'Function that can change cytoscape node structure',
                 function(e) {
                     return _.isFunction(e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphNode/transformer.html'
             );
             registry.documentExtensionPoint('org.visallo.graph.edge.transformer',
                 'Function that can change cytoscape edge structure',
                 function(e) {
                     return _.isFunction(e);
-                }
+                },
+                'http://docs.visallo.org/extension-points/front-end/graphEdge/transformer.html'
             );
 
             this.cytoscapeReady(function(cy) {
