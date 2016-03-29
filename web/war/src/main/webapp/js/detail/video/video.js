@@ -33,12 +33,15 @@ define([
             this.on('scrubberFrameChange', this.onScrubberFrameChange);
             this.on('playerTimeUpdate', this.onPlayerTimeUpdate);
             this.on('updateModel', this.onUpdateModel);
+            this.on(this.$node.parents('.type-content'), 'avLinkClicked', this.onAVLinkClicked);
 
             this.model = this.attr.model;
             this.render();
         });
 
         this.render = function() {
+            var self = this;
+
             if (!this.isVideoReady()) {
                 this.videoRendered = false;
                 return this.$node.empty();
@@ -136,6 +139,10 @@ define([
                 }
             }
             return bestMatch;
+        };
+
+        this.onAVLinkClicked = function(event, data) {
+            this.trigger(this.select('previewSelector'), 'seekToTime', data);
         };
     }
 
