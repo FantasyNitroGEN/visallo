@@ -29,7 +29,8 @@ define([
 
         this.defaultAttrs({
             fieldSelector: 'input',
-            removeReferenceSelector: '.remove'
+            removeReferenceSelector: '.remove',
+            justificationOverride: false
         });
 
         this.after('teardown', function() {
@@ -42,6 +43,9 @@ define([
             this.dataRequest('config', 'properties')
                 .done(function(properties) {
                     self.justificationValidation = properties['field.justification.validation'];
+                    if (self.attr.justificationOverride) {
+                        self.justificationValidation = self.attr.justificationOverride;
+                    }
                     if (VALIDATION_VALUES.indexOf(self.justificationValidation) === -1) {
                         throw new Error('web.ui.field.justification.validation must match:', VALIDATION_VALUES);
                     }
