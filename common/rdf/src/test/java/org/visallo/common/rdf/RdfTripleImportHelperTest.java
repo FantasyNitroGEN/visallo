@@ -12,6 +12,7 @@ import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
@@ -22,10 +23,7 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.vertexium.util.IterableUtils.toList;
@@ -40,6 +38,9 @@ public class RdfTripleImportHelperTest {
     private VisibilityTranslator visibilityTranslator;
 
     @Mock
+    private WorkQueueRepository workQueueRepository;
+
+    @Mock
     private User user;
     private String defaultVisibilitySource;
     private String sourceFileName;
@@ -51,7 +52,8 @@ public class RdfTripleImportHelperTest {
         authorizations = graph.createAuthorizations("A");
         timeZone = TimeZone.getDefault();
         visibilityTranslator = new DirectVisibilityTranslator();
-        rdfTripleImportHelper = new RdfTripleImportHelper(graph, visibilityTranslator);
+
+        rdfTripleImportHelper = new RdfTripleImportHelper(graph, visibilityTranslator, workQueueRepository);
         defaultVisibilitySource = "";
         sourceFileName = "test.nt";
         graph.addVertex("v1", new Visibility(""), authorizations);
@@ -305,6 +307,7 @@ public class RdfTripleImportHelperTest {
     }
 
     private void importRdfLine(String line) {
-        rdfTripleImportHelper.importRdfLine(sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
+        Set<Element> elements = new HashSet<>();
+        rdfTripleImportHelper.importRdfLine(elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
     }
 }
