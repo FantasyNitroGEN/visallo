@@ -188,7 +188,7 @@ define([
                             .orient('left')
                             .tickFormat(tickFormat),
                 svg = d3.select(node).selectAll('svg').data([1]).call(function() {
-                        var band = self.isHistogram ? dataScale(self.interval) : dataScale.rangeBand(),
+                        var band = self.isHistogram ? dataScale(dataScale.domain()[0] + self.interval) : dataScale.rangeBand(),
                             clip = { x: band / -2, y: 0, width: band, height: 30 };
                         this.enter()
                             .append('svg')
@@ -481,7 +481,7 @@ define([
                         var initialDate = dataScale.domain()[0].getTime();
                         return Math.max(1, dataScale(new Date(initialDate + self.interval)) - dataScale(initialDate));
                     } else {
-                        return Math.max(1, dataScale(self.interval))
+                        return Math.max(1, dataScale(dataScale.domain()[0] + self.interval))
                     }
                 } else {
                     return dataScale.rangeBand(d);
