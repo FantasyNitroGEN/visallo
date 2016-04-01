@@ -296,7 +296,7 @@ define([
             this.dataRequest(this.type, 'deleteProperty',
                 this.attr.data.id, data.property
             ).then(function() {
-                $(event.target).popover('hide');
+                self.hidePropertyInfo($(event.target));
             });
         };
 
