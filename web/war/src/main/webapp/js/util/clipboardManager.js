@@ -113,8 +113,9 @@ define([
         };
 
         this._onClick = function(event) {
-            var inFocus = $(':focus');
+            if ($(event.target).is('input,select,textarea,.visallo-allow-focus,.visallo-allow-focus *')) return;
 
+            var inFocus = $(':focus');
             // Check for previous focus, since we are going to steal it to
             // support browser cut/copy/paste events
             if (inFocus.length) {
@@ -123,7 +124,6 @@ define([
                 this.trigger(event.target, 'focusLostByClipboard');
             }
 
-            if ($(event.target).is('input,select,textarea,.visallo-allow-focus,.visallo-allow-focus *')) return;
             if (window.getSelection().isCollapsed === false) return;
 
             this.focus();

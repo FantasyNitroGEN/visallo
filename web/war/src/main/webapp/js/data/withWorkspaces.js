@@ -21,14 +21,16 @@ define(['util/undoManager'], function(UndoManager) {
             this.on(window, 'keydown', function(event) {
                 var character = String.fromCharCode(event.which).toUpperCase();
 
-                if (_isUndo(character, event)) {
-                    perform('performUndo');
-                    event.preventDefault();
-                }
+                if ($(event.target).hasClass('clipboardManager')) {
+                    if (_isUndo(character, event)) {
+                        perform('performUndo');
+                        event.preventDefault();
+                    }
 
-                if (_isRedo(character, event)) {
-                    perform('performRedo');
-                    event.preventDefault();
+                    if (_isRedo(character, event)) {
+                        perform('performRedo');
+                        event.preventDefault();
+                    }
                 }
 
                 function perform(type) {
