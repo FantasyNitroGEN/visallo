@@ -13,6 +13,7 @@ define([
             HAS_NOT: 'hasNot',
             CONTAINS: '~',
             EQUALS: '=',
+            IN: 'in',
             LESS_THAN: '<',
             GREATER_THAN: '>',
             BETWEEN: 'range',
@@ -45,7 +46,7 @@ define([
             this.on('click', {
                 predicateSelector: this.onPredicateClick,
                 removeSelector: this.onRemoveRow
-            })
+            });
 
             this.$node.html(template({}));
 
@@ -100,6 +101,8 @@ define([
                 } else if (this.filter.predicate === PREDICATES.WITHIN) {
                     var geo = _.first(this.filter.values);
                     filter.values = geo ? [geo.latitude, geo.longitude, geo.radius] : new Array(3);
+                } else if (this.filter.predicate === PREDICATES.IN) {
+                    filter.values = this.filter.values.slice(0);
                 } else {
                     filter.values = this.filter.values.slice(0, 1);
                 }
@@ -137,12 +140,9 @@ define([
         };
 
         this.onPredicateClick = function(event) {
-            var self = this,
-                $anchor = $(event.target),
-                predicate = this.filter.predicate = $anchor.data('value');
-
+            var $anchor = $(event.target);
+            this.filter.predicate = $anchor.data('value');
             $anchor.closest('.dropdown').find('.dropdown-toggle span').text($anchor.text());
-
             this.attachFields().done();
         };
 
@@ -156,7 +156,7 @@ define([
                 this.filter.values[index] = data.value;
             } else {
                 if (index !== 0) return;
-                this.filter.values = [data.value];
+                this.filter.values = _.isArray(data.value) ? data.value : [data.value];
             }
             this.filter.metadata = data.metadata;
 
@@ -256,7 +256,7 @@ define([
             } else if (property.dataType === 'directory/entity') {
                 fieldComponent = 'search/filters/directoryEntityField';
             } else {
-                fieldComponent = property.possibleValues ? 'fields/restrictValues' : 'fields/' + property.dataType;
+                fieldComponent = property.possibleValues ? 'fields/restrictValuesMulti' : 'fields/' + property.dataType;
             }
 
             return Promise.require(fieldComponent).then(function(PropertyFieldItem) {
@@ -275,6 +275,9 @@ define([
                 } else if (self.predicateNeedsValues()) {
                     node.eq(0).show();
                     node.eq(1).hide();
+                    if (self.filter.predicate === PREDICATES.IN) {
+                        self.filter.values = [self.filter.values];
+                    }
                 } else {
                     node.hide();
                 }
@@ -310,7 +313,7 @@ define([
             var standardPredicates = [PREDICATES.HAS, PREDICATES.HAS_NOT];
 
             if (property.possibleValues) {
-                return [PREDICATES.EQUALS].concat(standardPredicates);
+                return [PREDICATES.IN].concat(standardPredicates);
             }
 
             switch (property.dataType) {
@@ -340,7 +343,7 @@ define([
                         PREDICATES.GREATER_THAN,
                         PREDICATES.BETWEEN,
                         PREDICATES.EQUALS
-                    ].concat(standardPredicates)
+                    ].concat(standardPredicates);
 
                 default:
                     throw new Error('Unknown datatype: ' + property.dataType);

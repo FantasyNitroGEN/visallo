@@ -22,11 +22,10 @@ define([
                     }
                 });
 
-            this.indexedByValue = _.indexBy(possibleValues, 'value');
-
             this.$node.html(template({
                 displayName: this.attr.property.displayName,
-                values: possibleValues
+                values: possibleValues,
+                placeholderKey: this.attr.placeholderKey || 'field.restrict_values.form.placeholder'
             }));
         });
 
