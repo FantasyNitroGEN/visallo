@@ -49,6 +49,25 @@
   display: inline-block;
   font-size: 90%
 }
+.savedSearchesPopover .form .form-item {
+  display: flex;
+  margin-bottom: 0.5em;
+  input {
+    flex: 1;
+    margin: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+.savedSearchesPopover .form .global-search {
+  font-size: 90%;
+  margin: 0 0 0.75em;
+  input {
+    width: auto;
+    vertical-align: top;
+    margin-right: 0.5em;
+  }
+}
 .savedSearchesPopover .form button {    
   width: 25%;
   padding: 0.35em 0;
@@ -66,7 +85,9 @@
 .savedSearchesPopover ul li {
     position: relative;
 }
+.savedSearchesPopover ul li .badge,
 .savedSearchesPopover ul li .btn {
+    margin: 0;
     display: none;
     width: auto;  
     position: absolute;
@@ -76,11 +97,23 @@
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
 }
+.savedSearchesPopover ul li.loading .badge {
+  display: none;
+}
 .savedSearchesPopover ul li .btn.loading {
     display: block;
 }
-.savedSearchesPopover ul li:hover .btn {
+.savedSearchesPopover ul li .badge {
+  display: block;
+  font-size: 80%;
+}
+.savedSearchesPopover ul li:hover {
+  .btn {
     display: block;
+  }
+  .badge {
+    display: none;
+  }
 }
 .savedSearchesPopover pre {
     padding: 0;
