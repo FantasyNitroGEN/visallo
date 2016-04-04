@@ -100,29 +100,6 @@ define([
             return ajax('POST->HTML', '/admin/workspace/import', formData);
         },
 
-        queueVertices: function(priority, conceptType, propertyName) {
-            var data = {
-                priority: priority
-            };
-            if (conceptType) {
-                data.conceptType = conceptType;
-            }
-            if (propertyName) {
-                data.propertyName = propertyName;
-            }
-            return ajax('POST->HTML', '/admin/queueVertices', data);
-        },
-
-        queueEdges: function(priority, label) {
-            var data = {
-                priority: priority
-            };
-            if (label) {
-                data.label = label;
-            }
-            return ajax('POST->HTML', '/admin/queueEdges', data);
-        },
-
         ontologyUpload: function(iri, file) {
             var formData = new FormData();
             formData.append('file', file);

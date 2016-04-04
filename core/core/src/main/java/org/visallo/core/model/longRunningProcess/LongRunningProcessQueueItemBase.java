@@ -7,7 +7,7 @@ public abstract class LongRunningProcessQueueItemBase {
         return this.getClass().getName();
     }
 
-    protected static boolean isA(JSONObject json, Class<? extends LongRunningProcessQueueItemBase> clazz) {
+    public static boolean isA(JSONObject json, Class<? extends LongRunningProcessQueueItemBase> clazz) {
         String type = json.optString("type");
         if (type == null) {
             return false;
