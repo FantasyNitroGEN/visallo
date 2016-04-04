@@ -109,15 +109,15 @@ public class WebApp extends App {
         super.handle(request, response);
     }
 
-    private void register(String name, String type, String pathPrefix, Boolean includeInPage) {
-        register(name, type, pathPrefix, includeInPage, pluginsJsResourcesAfterAuth);
+    private void register(String name, String type, String pathPrefix, Boolean includeInPage, String closureExternResourcePath) {
+        register(name, type, pathPrefix, includeInPage, closureExternResourcePath, pluginsJsResourcesAfterAuth);
     }
 
-    private void register(String name, String type, String pathPrefix, Boolean includeInPage, List<String> resourceList) {
+    private void register(String name, String type, String pathPrefix, Boolean includeInPage, String closureExternResourcePath, List<String> resourceList) {
         String resourcePath = "/" + (pathPrefix + name).replaceAll("^/", "");
         if (type.equals("application/javascript") && !pluginDevMode) {
             boolean enableSourceMaps = isDevModeEnabled();
-            JavascriptResourceHandler handler = new JavascriptResourceHandler(name, resourcePath, enableSourceMaps);
+            JavascriptResourceHandler handler = new JavascriptResourceHandler(name, resourcePath, enableSourceMaps, closureExternResourcePath);
             get(resourcePath, handler);
             if (enableSourceMaps) {
                 get(resourcePath + ".map", handler);
@@ -135,6 +135,20 @@ public class WebApp extends App {
     /**
      * Register JavaScript file to be available for the application.
      *
+     * Include an optional resource path to closure compiler extern js file.
+     *
+     * @param scriptResourceName
+     * @param includeInPage
+     * @param closureExternResourcePath
+     */
+    public void registerJavaScript(String scriptResourceName, Boolean includeInPage, String closureExternResourcePath) {
+        register(scriptResourceName, "application/javascript", "jsc", includeInPage, closureExternResourcePath);
+    }
+
+
+    /**
+     * Register JavaScript file to be available for the application.
+     *
      * If includeInPage is false the file is still available for requiring before
      * authentication.
      *
@@ -142,7 +156,7 @@ public class WebApp extends App {
      * @param includeInPage Set to true to load automatically after authentication
      */
     public void registerJavaScript(String scriptResourceName, Boolean includeInPage) {
-        register(scriptResourceName, "application/javascript", "jsc", includeInPage);
+        register(scriptResourceName, "application/javascript", "jsc", includeInPage, null);
     }
 
     /**
@@ -161,6 +175,25 @@ public class WebApp extends App {
     /**
      * Register a JavaScript file to be loaded in web-worker thread.
      *
+     * Passes along an "externs" resource path to validate closure compilation.
+     *
+     * Loaded using requirejs, so use `define` to stop further plugin
+     * loading until all dependencies are met, or `require` to continue
+     * asynchronously.
+     *
+     * Use caution about loading visallo dependencies as they will be copies
+     * in the worker.
+     *
+     * @param scriptResourceName
+     * @param closureExternResourcePath
+     */
+    public void registerWebWorkerJavaScript(String scriptResourceName, String closureExternResourcePath) {
+        register(scriptResourceName, "application/javascript", "jsc", true, closureExternResourcePath, pluginsJsResourcesWebWorker);
+    }
+
+    /**
+     * Register a JavaScript file to be loaded in web-worker thread.
+     *
      * Loaded using requirejs, so use `define` to stop further plugin
      * loading until all dependencies are met, or `require` to continue
      * asynchronously.
@@ -171,7 +204,7 @@ public class WebApp extends App {
      * @param scriptResourceName Classpath to JavaScript file
      */
     public void registerWebWorkerJavaScript(String scriptResourceName) {
-        register(scriptResourceName, "application/javascript", "jsc", true, pluginsJsResourcesWebWorker);
+        registerWebWorkerJavaScript(scriptResourceName, null);
     }
 
     /**
@@ -185,7 +218,7 @@ public class WebApp extends App {
      * @param scriptResourceName Classpath to JavaScript file
      */
     public void registerBeforeAuthenticationJavaScript(String scriptResourceName) {
-        register(scriptResourceName, "application/javascript", "jsc", true, pluginsJsResourcesBeforeAuth);
+        register(scriptResourceName, "application/javascript", "jsc", true, null, pluginsJsResourcesBeforeAuth);
     }
 
     /**
@@ -194,7 +227,7 @@ public class WebApp extends App {
      * @param scriptResourceName Classpath to JavaScript template (ejs, hbs, etc)
      */
     public void registerJavaScriptTemplate(String scriptResourceName) {
-        register(scriptResourceName, "text/plain", "jsc", false);
+        register(scriptResourceName, "text/plain", "jsc", false, null);
     }
 
     /**
@@ -204,7 +237,7 @@ public class WebApp extends App {
      * @param mimeType Type to serve file as
      */
     public void registerFile(String resourceName, String mimeType) {
-        register(resourceName, mimeType, "", false);
+        register(resourceName, mimeType, "", false, null);
     }
 
     /**

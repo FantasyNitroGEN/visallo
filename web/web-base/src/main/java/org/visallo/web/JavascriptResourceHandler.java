@@ -20,6 +20,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -43,13 +45,19 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
     private String jsResourceName;
     private String jsResourcePath;
     private boolean enableSourceMaps;
+    private String closureExternResourcePath;
     private Future<CachedCompilation> compilationTask;
     private volatile CachedCompilation previousCompilation;
 
     public JavascriptResourceHandler(final String jsResourceName, final String jsResourcePath, boolean enableSourceMaps) {
+        this(jsResourceName, jsResourcePath, enableSourceMaps, null);
+    }
+
+    public JavascriptResourceHandler(final String jsResourceName, final String jsResourcePath, boolean enableSourceMaps, String closureExternResourcePath) {
         this.jsResourceName = jsResourceName;
         this.jsResourcePath = jsResourcePath;
         this.enableSourceMaps = enableSourceMaps;
+        this.closureExternResourcePath = closureExternResourcePath;
 
         compilationTask = compilationExecutor.submit(new Callable<CachedCompilation>() {
             @Override
@@ -146,6 +154,13 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
         List<SourceFile> externs = AbstractCommandLineRunner.getBuiltinExterns(compilerOptions);
         InputStream visalloExterns = JavascriptResourceHandler.class.getResourceAsStream("visallo-externs.js");
         externs.add(SourceFile.fromInputStream("visallo-externs.js", visalloExterns, Charset.forName("UTF-8")));
+
+        if (closureExternResourcePath != null) {
+            externs.add(SourceFile.fromInputStream(
+                    closureExternResourcePath,
+                    this.getClass().getResourceAsStream(closureExternResourcePath),
+                    Charset.forName("UTF-8")));
+        }
 
         Result result = compiler.compile(externs, inputs, compilerOptions);
         if (result.success) {
