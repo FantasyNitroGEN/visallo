@@ -132,8 +132,12 @@ define(['util/undoManager'], function(UndoManager) {
         // Worker Handlers
 
         this.edgesLoaded = function(message) {
+            var self = this,
+                edgeIds = _.pluck(message.edges, 'edgeId');
+
             lastReloadedState.edges = message;
             this.trigger('edgesLoaded', message);
+            this.loadFullEdges(edgeIds);
         };
 
         this.workspaceUpdated = function(message) {
@@ -163,6 +167,20 @@ define(['util/undoManager'], function(UndoManager) {
             this.trigger('workspaceLoaded', workspace);
             this.trigger('selectObjects');
             this.fireApplicationReadyOnce();
+        };
+
+        this.loadFullEdges = function(edgeIds) {
+            var self = this;
+            return this.dataRequestPromise.then(function(dataRequest) {
+                if (edgeIds.length) {
+                    return dataRequest('edge', 'multiple', { edgeIds: edgeIds })
+                }
+                return null;
+            }).then(function(data) {
+                if (data) {
+                    self.trigger('edgesLoaded', data);
+                }
+            });
         };
 
         function undoManagerForWorkspace(workspaceId) {

@@ -208,7 +208,7 @@ define([
         this.onDiffBadgeMouse = function(event) {
             this.trigger(
                 event.type === 'mouseenter' ? 'focusVertices' : 'defocusVertices',
-                { vertexIds: this.currentDiffIds || [] }
+                { elementIds: this.currentDiffIds || [] }
             );
         };
 
