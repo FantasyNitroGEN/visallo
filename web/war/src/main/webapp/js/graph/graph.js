@@ -73,6 +73,7 @@ define([
 
         var shiftKey = false,
             edgeIdToGroupedCyEdgeId = {},
+            ontologyRelationships = null,
             LAYOUT_OPTIONS = {
                 // Customize layout options
                 random: { padding: 10 },
@@ -133,11 +134,81 @@ define([
             generateCompoundEdgeId = function(edge) {
                 return edge.outVertexId + edge.inVertexId + edge.label;
             },
-            cyEdgeFromEdge = function(e, sourceNode, destNode, ontologyRelationships) {
+            createCyEdgeData = function(data, edge) {
+                var type = data.type,
+                    ontology = type && ontologyRelationships.byTitle[type],
+                    newData = _.extend(data, {
+                        type: type,
+                        label: (ontology && ontology.displayName || '') + (
+                            (edge.edges.length > 1) ?
+                                (' (' + F.number.pretty(edge.edges.length) + ')') :
+                                ''
+                        ),
+                        edges: edge.edges
+                    });
+
+                registry.extensionsForPoint('org.visallo.graph.edge.transformer').forEach(function(extension) {
+                    extension(newData);
+                });
+
+                return newData;
+            },
+            createCyNodeData = function(data, vertex) {
+                var truncatedTitle = F.string.truncate(F.vertex.title(vertex), 3),
+                    merged = data;
+
+                merged.previousTruncated = truncatedTitle;
+                merged.truncatedTitle = truncatedTitle;
+                merged.conceptType = F.vertex.prop(vertex, 'conceptType');
+                merged.imageSrc = F.vertex.image(vertex, null, 150);
+                merged.selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
+
+                registry.extensionsForPoint('org.visallo.graph.node.transformer')
+                    .forEach(function(dataTransform) {
+                        dataTransform(vertex, merged);
+                    });
+
+                return merged;
+            },
+            classesForVertex = function(vertex, options) {
+                var cls = [],
+                    displayType = F.vertex.displayType(vertex);
+
+                if (options && options.hover) {
+                    cls.push('hover')
+                } else {
+                    cls.push('v')
+                }
+
+                if (F.vertex.imageIsFromConcept(vertex) === false) {
+                    cls.push('hasCustomGlyph');
+                }
+                if (~['video', 'image'].indexOf(displayType)) {
+                    cls.push(displayType);
+                }
+
+                registry.extensionsForPoint('org.visallo.graph.node.class')
+                    .forEach(function(modifier) {
+                        modifier(vertex, cls);
+                    });
+
+                if (options && options.asArray) {
+                    return cls;
+                }
+
+                return cls.join(' ');
+            },
+            classesForEdge = function(edge) {
+                var classes = [];
+                registry.extensionsForPoint('org.visallo.graph.edge.class').forEach(function(extension) {
+                    extension(edge.edges, edge.type, classes);
+                });
+                return classes;
+            },
+            cyEdgeFromEdge = function(e, sourceNode, destNode) {
                 var source = e.sourceId || (e.source && e.source.id),
                     target = e.targetId || (e.target && e.target.id),
                     type = e.relationshipType || e.label || e.type,
-                    ontology = ontologyRelationships.byTitle[type],
                     cyEdgeId = toCyId(e.id),
                     classes = [];
 
@@ -145,31 +216,17 @@ define([
                     edgeIdToGroupedCyEdgeId[edge.edgeId || edge.id] = cyEdgeId;
                 });
 
-                var data = {
+                var data = createCyEdgeData({
                     id: cyEdgeId,
                     type: type,
                     source: sourceNode.id(),
-                    target: destNode.id(),
-                    label: (ontology && ontology.displayName || '') + (
-                        (e.edges.length > 1) ?
-                            (' (' + F.number.pretty(e.edges.length) + ')') :
-                            ''
-                    ),
-                    edges: e.edges
-                };
-
-                registry.extensionsForPoint('org.visallo.graph.edge.transformer').forEach(function(extension) {
-                    extension(data);
-                });
-
-                registry.extensionsForPoint('org.visallo.graph.edge.class').forEach(function(extension) {
-                    extension(e.edges, type, classes);
-                });
+                    target: destNode.id()
+                }, e);
 
                 return {
                     group: 'edges',
                     data: data,
-                    classes: classes.join(' ')
+                    classes: classesForEdge(e).join(' ')
                 };
             };
 
@@ -241,7 +298,7 @@ define([
                     if (node.length) {
                         node.renderedPosition(renderedPosition);
                     } else {
-                        var classes = self.classesForVertex(vertex, { hover: true }),
+                        var classes = classesForVertex(vertex, { hover: true }),
                             cyNode = idToCyNode[vertex.id];
 
                         if (cyNode.length) {
@@ -259,7 +316,7 @@ define([
                             selectable: false,
                             selected: false
                         };
-                        self.createCyNodeData(cyNodeData.data, vertex);
+                        createCyNodeData(cyNodeData.data, vertex);
                         cy.add(cyNodeData);
                     }
 
@@ -397,7 +454,7 @@ define([
 
                         var cyNodeData = {
                                 group: 'nodes',
-                                classes: self.classesForVertex(vertex),
+                                classes: classesForVertex(vertex),
                                 data: {
                                     id: toCyId(vertex)
                                 },
@@ -406,7 +463,7 @@ define([
                             },
                             workspaceVertex = self.workspaceVertices[vertex.id];
 
-                        self.createCyNodeData(cyNodeData.data, vertex);
+                        createCyNodeData(cyNodeData.data, vertex);
 
                         var needsAdding = false,
                             needsUpdating = false,
@@ -526,54 +583,6 @@ define([
             });
         };
 
-        this.classesForVertex = function(vertex, options) {
-            var cls = [],
-                displayType = F.vertex.displayType(vertex);
-
-            if (options && options.hover) {
-                cls.push('hover')
-            } else {
-                cls.push('v')
-            }
-
-            if (F.vertex.imageIsFromConcept(vertex) === false) {
-                cls.push('hasCustomGlyph');
-            }
-            if (~['video', 'image'].indexOf(displayType)) {
-                cls.push(displayType);
-            }
-
-            registry.extensionsForPoint('org.visallo.graph.node.class')
-                .forEach(function(modifier) {
-                    modifier(vertex, cls);
-                });
-
-            if (options && options.asArray) {
-                return cls;
-            }
-
-            return cls.join(' ');
-        };
-
-        this.createCyNodeData = function(data, vertex) {
-
-            var truncatedTitle = F.string.truncate(F.vertex.title(vertex), 3),
-                merged = data;
-
-            merged.previousTruncated = truncatedTitle;
-            merged.truncatedTitle = truncatedTitle;
-            merged.conceptType = F.vertex.prop(vertex, 'conceptType');
-            merged.imageSrc = F.vertex.image(vertex, null, 150);
-            merged.selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
-
-            registry.extensionsForPoint('org.visallo.graph.node.transformer')
-                .forEach(function(dataTransform) {
-                    dataTransform(vertex, merged);
-                });
-
-            return merged;
-        };
-
         this.onVerticesDeleted = function(event, data) {
             this.cytoscapeReady(function(cy) {
 
@@ -649,7 +658,7 @@ define([
                         if (cyNode.length && cyNode.is('node.v')) {
                             cyNode = cyNode[0];
                             self.updateCyNodeData(cyNode, updatedVertex);
-                            self.updateCyNodeClasses(cyNode, updatedVertex);
+                            self.updateCyElementClasses(cyNode, classesForVertex(updatedVertex, { asArray: true }))
                         }
                     });
                 });
@@ -677,7 +686,7 @@ define([
 
         this.updateCyNodeData = function(cyNode, vertex) {
             var currentData = _.clone(cyNode.data()),
-                newData = this.createCyNodeData(cyNode.data(), vertex),
+                newData = createCyNodeData(cyNode.data(), vertex),
                 same = _.isEqual(currentData, newData);
 
             if (!same) {
@@ -687,18 +696,17 @@ define([
             }
         }
 
-        this.updateCyNodeClasses = function(cyNode, vertex) {
-            var existingClasses = _.keys(cyNode._private.classes),
-                newClasses = this.classesForVertex(vertex, { asArray: true }),
+        this.updateCyElementClasses = function(cyElement, newClasses) {
+            var existingClasses = _.keys(cyElement._private.classes),
                 toRemove = _.reject(existingClasses, function(cls) {
                     return _.contains(newClasses, cls);
                 }).join(' ');
 
             if (toRemove) {
-                cyNode.toggleClass(toRemove, false)
+                cyElement.toggleClass(toRemove, false)
             }
             newClasses.forEach(function(cls) {
-                cyNode.toggleClass(cls, true);
+                cyElement.toggleClass(cls, true);
             })
         };
 
@@ -782,14 +790,16 @@ define([
 
                         if (sourceNode.length && destNode.length) {
                             relationshipEdges.push(
-                                cyEdgeFromEdge(edge, sourceNode, destNode, self.ontologyRelationships)
+                                cyEdgeFromEdge(edge, sourceNode, destNode)
                             );
                         }
                     });
 
                     if (relationshipEdges.length) {
-                        cy.edges().remove();
-                        cy.add(relationshipEdges);
+                        cy.batch(function() {
+                            cy.edges().remove();
+                            cy.add(relationshipEdges);
+                        })
                     }
                 }
             });
@@ -803,18 +813,24 @@ define([
                             cyEdge = cy.getElementById(toCyId(edge.outVertexId + edge.inVertexId + edge.label))
                         if (cyEdge.length) {
                             var edges = cyEdge.data('edges'),
-                                ontology = self.ontologyRelationships.byTitle[cyEdge.data('type')];
+                                edgeIndex = _.findIndex(edges, function(e) {
+                                    return (edge.edgeId === e.id) || (edge.edgeId === e.edgeId);
+                                });
 
-                            edges.push(edge);
-                            edges = _.unique(edges, false, _.property('edgeId'));
-                            cyEdge.data('edges', edges);
-                            cyEdge.data('label',
-                                (ontology && ontology.displayName || '') + (
-                                    (edges.length > 1) ?
-                                        (' (' + F.number.pretty(edges.length) + ')') :
-                                        ''
-                                )
-                            );
+                            if (edgeIndex >= 0) {
+                                edges.splice(edgeIndex, 1, fullEdge);
+                            } else {
+                                edges.push(fullEdge);
+                            }
+                            var newData = createCyEdgeData(cyEdge._private.data, {
+                                label: edge.label,
+                                edges: edges
+                            });
+                            cyEdge._private.data = newData;
+                            cyEdge.trigger('data');
+                            cyEdge.updateStyle();
+
+                            self.updateCyElementClasses(cyEdge, classesForEdge(newData));
                         } else {
                             var sourceNode = cy.getElementById(toCyId(edge.outVertexId)),
                                 destNode = cy.getElementById(toCyId(edge.inVertexId));
@@ -826,7 +842,7 @@ define([
                                     sourceId: edge.outVertexId,
                                     targetId: edge.inVertexId,
                                     edges: [edge]
-                                }, sourceNode, destNode, self.ontologyRelationships);
+                                }, sourceNode, destNode);
                             }
                         }
                     }));
@@ -844,7 +860,7 @@ define([
                     var edges = _.reject(cyEdge.data('edges'), function(e) {
                             return e.edgeId === data.edgeId
                         }),
-                        ontology = self.ontologyRelationships.byTitle[cyEdge.data('type')];
+                        ontology = ontologyRelationships.byTitle[cyEdge.data('type')];
 
                     if (edges.length) {
                         cyEdge.data('edges', edges);
@@ -985,8 +1001,8 @@ define([
             this.cytoscapeReady(function(cy) {
                 this.hoverDelay = _.delay(function() {
                     cy.elements('.focus').removeClass('focus');
-                    this.cyNodesForVertexIds(cy, data.vertexIds || []).addClass('focus');
-                    this.cyEdgesForEdgeIds(cy, data.edgeIds || []).addClass('focus');
+                    this.cyNodesForVertexIds(cy, data.vertexIds || data.elementIds || []).addClass('focus');
+                    this.cyEdgesForEdgeIds(cy, data.edgeIds || data.elementIds || []).addClass('focus');
                 }.bind(this), HOVER_FOCUS_DELAY_SECONDS * 1000);
             });
         };
@@ -1374,7 +1390,9 @@ define([
 
             edges.each(function(index, cyEdge) {
                 if (!cyEdge.hasClass('temp') && !cyEdge.hasClass('path-edge')) {
-                    edgeIds = edgeIds.concat(_.pluck(cyEdge.data('edges'), 'edgeId'));
+                    edgeIds = edgeIds.concat(cyEdge.data('edges').map(function(e) {
+                        return e.edgeId || e.id;
+                    }));
                 }
             });
 
@@ -2192,7 +2210,7 @@ define([
                         });
                     self.select('graphViewsSelector').append($views);
 
-                    self.ontologyRelationships = relationships;
+                    ontologyRelationships = relationships;
                     stylesheet(null, function(style) {
                         self.initializeGraph(style);
                     });
