@@ -387,6 +387,8 @@ public abstract class ElementSearchBase {
             graphQuery.has(propertyName);
         } else if ("hasNot".equals(predicateString)) {
             graphQuery.hasNot(propertyName);
+        } else if ("in".equals(predicateString)) {
+            graphQuery.has(propertyName, Contains.IN, JSONUtil.toList(obj.getJSONArray("values")));
         } else {
             PropertyType propertyDataType = PropertyType.convert(obj.optString("propertyDataType"));
             JSONArray values = obj.getJSONArray("values");
