@@ -138,14 +138,19 @@ public class WorkspaceUndoHelper {
                     continue;
                 }
                 ClientApiPropertyUndoItem propertyUndoItem = (ClientApiPropertyUndoItem) undoItem;
-                Vertex vertex = graph.getVertex(propertyUndoItem.getVertexId(), FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
-                if (vertex == null) {
+                Element element;
+                if (propertyUndoItem.getEdgeId() != null) {
+                    element = graph.getEdge(propertyUndoItem.getEdgeId(), FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
+                } else {
+                    element = graph.getVertex(propertyUndoItem.getVertexId(), FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
+                }
+                if (element == null) {
                     continue;
                 }
                 String propertyKey = propertyUndoItem.getKey();
                 String propertyName = propertyUndoItem.getName();
                 String propertyVisibilityString = propertyUndoItem.getVisibilityString();
-                List<Property> properties = IterableUtils.toList(vertex.getProperties(propertyKey, propertyName));
+                List<Property> properties = IterableUtils.toList(element.getProperties(propertyKey, propertyName));
                 SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
                 Property publicProperty = null;
 
@@ -168,9 +173,9 @@ public class WorkspaceUndoHelper {
                     if (WorkspaceDiffHelper.isPublicDelete(property, authorizations)) {
                         if (publicProperty == null) {
                             LOGGER.debug("un-hiding property: %s (workspaceId: %s)", property, workspaceId);
-                            vertex.markPropertyVisible(property, new Visibility(workspaceId), authorizations);
+                            element.markPropertyVisible(property, new Visibility(workspaceId), authorizations);
                             graph.flush();
-                            workQueueRepository.pushPropertyUnhide(vertex, propertyKey, propertyName, Priority.HIGH);
+                            workQueueRepository.pushPropertyUnhide(element, propertyKey, propertyName, Priority.HIGH);
                         }
                     } else if (propertySandboxStatus == SandboxStatus.PUBLIC) {
                         String error_msg = "Cannot undo a public property";
@@ -179,19 +184,19 @@ public class WorkspaceUndoHelper {
                         workspaceUndoResponse.addFailure(undoItem);
                     } else if (propertySandboxStatus == SandboxStatus.PUBLIC_CHANGED) {
                         long beforeActionTimestamp = System.currentTimeMillis() - 1;
-                        vertex.softDeleteProperty(propertyKey, propertyName, property.getVisibility(), authorizations);
+                        element.softDeleteProperty(propertyKey, propertyName, property.getVisibility(), authorizations);
                         if (publicProperty != null) {
-                            vertex.markPropertyVisible(publicProperty, new Visibility(workspaceId), authorizations);
+                            element.markPropertyVisible(publicProperty, new Visibility(workspaceId), authorizations);
                             graph.flush();
-                            workQueueRepository.pushPropertyUnhide(vertex, propertyKey, propertyName, Priority.HIGH);
+                            workQueueRepository.pushPropertyUnhide(element, propertyKey, propertyName, Priority.HIGH);
                         } else {
                             graph.flush();
-                            workQueueRepository.pushPropertyDeletion(vertex, propertyKey, propertyName, beforeActionTimestamp, Priority.HIGH);
+                            workQueueRepository.pushPropertyDeletion(element, propertyKey, propertyName, beforeActionTimestamp, Priority.HIGH);
                         }
                     } else {
-                        workspaceHelper.deleteProperty(vertex, property, false, workspaceId, Priority.HIGH, authorizations);
+                        workspaceHelper.deleteProperty(element, property, false, workspaceId, Priority.HIGH, authorizations);
                         graph.flush();
-                        workQueueRepository.broadcastUndoProperty(vertex, propertyKey, propertyName);
+                        workQueueRepository.broadcastUndoProperty(element, propertyKey, propertyName);
                     }
                 }
             } catch (Exception ex) {
