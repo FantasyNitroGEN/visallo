@@ -10,7 +10,8 @@ check: build
 	@find _book -name '*.md' | sed 's|^_book/||'_book
 
 install:
-	@./install.sh
+	@npm install
+	@./node_modules/.bin/gitbook install .
 
 clean:
 	@rm -rf _book
