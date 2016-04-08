@@ -120,12 +120,12 @@ define([
                 return F.className.from(cyId);
             },
             toCyId = function(v) {
-                var vId = _.isString(v) ? v : ('id' in v) ? v.id : v.edgeId;
+                var vId = _.isString(v) ? v : v.id;
                 return F.className.to(vId);
             },
             fullToSummaryEdge = function(fullEdge) {
                 return {
-                    edgeId: fullEdge.id,
+                    id: fullEdge.id,
                     label: fullEdge.label,
                     inVertexId: fullEdge.inVertexId,
                     outVertexId: fullEdge.outVertexId
@@ -213,7 +213,7 @@ define([
                     classes = [];
 
                 e.edges.forEach(function(edge) {
-                    edgeIdToGroupedCyEdgeId[edge.edgeId || edge.id] = cyEdgeId;
+                    edgeIdToGroupedCyEdgeId[edge.id] = cyEdgeId;
                 });
 
                 var data = createCyEdgeData({
@@ -622,7 +622,7 @@ define([
                                 _.map(edges, function(e) {
                                     var edge = fullToSummaryEdge(e);
                                     return [
-                                        '#' + toCyId(edge.edgeId),
+                                        '#' + toCyId(edge.id),
                                         '#' + toCyId(
                                             edge.outVertexId +
                                             edge.inVertexId +
@@ -779,7 +779,13 @@ define([
                                     type: e[0].label,
                                     sourceId: e[0].outVertexId,
                                     targetId: e[0].inVertexId,
-                                    edges: e
+                                    edges: e.map(function(e) {
+                                        var t = _.extend({}, e);
+                                        if ('edgeId' in t) {
+                                            t.id = t.edgeId;
+                                        }
+                                        return t;
+                                    })
                                 }
                             })
                             .value();
@@ -814,7 +820,7 @@ define([
                         if (cyEdge.length) {
                             var edges = cyEdge.data('edges'),
                                 edgeIndex = _.findIndex(edges, function(e) {
-                                    return (edge.edgeId === e.id) || (edge.edgeId === e.edgeId);
+                                    return edge.id === e.id;
                                 });
 
                             if (edgeIndex >= 0) {
@@ -858,7 +864,7 @@ define([
                 var self = this;
                 _.each(cy.edges(), function(cyEdge) {
                     var edges = _.reject(cyEdge.data('edges'), function(e) {
-                            return e.edgeId === data.edgeId
+                            return e.id === data.edgeId;
                         }),
                         ontology = ontologyRelationships.byTitle[cyEdge.data('type')];
 
@@ -1391,7 +1397,7 @@ define([
             edges.each(function(index, cyEdge) {
                 if (!cyEdge.hasClass('temp') && !cyEdge.hasClass('path-edge')) {
                     edgeIds = edgeIds.concat(cyEdge.data('edges').map(function(e) {
-                        return e.edgeId || e.id;
+                        return e.id;
                     }));
                 }
             });
