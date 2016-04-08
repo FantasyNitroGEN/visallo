@@ -71,6 +71,18 @@ define([
             });
         },
 
+        propertyHistory: function(edgeId, property, options) {
+            return ajax('GET', '/edge/property/history', _.extend(
+                {},
+                options || {},
+                {
+                    graphEdgeId: edgeId,
+                    propertyName: property.name,
+                    propertyKey: property.key
+                }
+            ));
+        },
+
         multiple: function(options) {
             return ajax('POST', '/edge/multiple', options);
         },
