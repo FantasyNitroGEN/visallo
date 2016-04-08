@@ -21,9 +21,11 @@ define([
         {
             applyTo: {
                 constraints: ['width', 'height'],
-                contexts: ['popup']
+                contexts: ['popup'],
+                type: 'vertex'
             },
             identifier: 'org.visallo.layout.root',
+            componentPath: 'detail/item/vertex',
             className: 'popupDetailPane',
             children: [
                 { ref: 'org.visallo.layout.header.text' },
