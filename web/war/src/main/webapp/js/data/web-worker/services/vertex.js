@@ -81,6 +81,18 @@ define([
             });
         },
 
+        propertyHistory: function(vertexId, property, options) {
+            return ajax('GET', '/vertex/property/history', _.extend(
+                {},
+                options || {},
+                {
+                    graphVertexId: vertexId,
+                    propertyName: property.name,
+                    propertyKey: property.key
+                }
+            ));
+        },
+
         multiple: function(options) {
             return ajax('POST', '/vertex/multiple', options);
         },
