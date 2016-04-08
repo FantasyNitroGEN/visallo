@@ -5,32 +5,17 @@ import java.io.*;
 import static org.vertexium.util.CloseableUtils.closeQuietly;
 
 /**
- * Helper class to handle Runtime.exec() output.
+ * This class is designed to log {@link Process} output on a thread.
  */
-public class StreamHelper extends Thread {
-
+public class LoggingThread extends Thread {
     private InputStream inputStream;
     private OutputStream outputStream;
-    protected StringBuffer contentBuffer = null;
+    private StringBuffer contentBuffer;
+    private String prefix;
+    private PrintWriter writer;
+    private VisalloLogger logger;
 
-    protected String prefix = null;
-
-    /**
-     * the output writer
-     */
-    protected PrintWriter writer = null;
-
-    /**
-     * Append messages to this logger
-     */
-    protected VisalloLogger logger = null;
-
-    /**
-     * True to keep reading the streams
-     */
-    boolean keepReading = true;
-
-    public StreamHelper(InputStream inputStream, VisalloLogger logger, String prefix) {
+    public LoggingThread(InputStream inputStream, VisalloLogger logger, String prefix) {
         this(inputStream, null, logger, null, prefix);
     }
 
@@ -44,8 +29,8 @@ public class StreamHelper extends Thread {
      * @param logger        the logger to append to
      * @param contentBuffer the buffer to write the captured output to
      */
-    public StreamHelper(InputStream inputStream, OutputStream redirect,
-                        VisalloLogger logger, StringBuffer contentBuffer, String prefix) {
+    public LoggingThread(InputStream inputStream, OutputStream redirect,
+                         VisalloLogger logger, StringBuffer contentBuffer, String prefix) {
         this.inputStream = inputStream;
         this.outputStream = redirect;
         this.logger = logger;
@@ -53,9 +38,6 @@ public class StreamHelper extends Thread {
         this.prefix = prefix;
     }
 
-    /**
-     * Thread run
-     */
     @Override
     public void run() {
         BufferedReader reader = null;
@@ -67,7 +49,7 @@ public class StreamHelper extends Thread {
             isreader = new InputStreamReader(inputStream);
             reader = new BufferedReader(isreader);
             String line;
-            while (keepReading && (line = reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 if (prefix != null) {
                     line = prefix + line;
                 }

@@ -64,15 +64,15 @@ public class ProcessRunner {
 
         final Process proc = procBuilder.start();
 
-        StreamHelper errStreamHelper = new StreamHelper(proc.getErrorStream(), LOGGER, logPrefix + programName + "(stderr): ");
-        errStreamHelper.start();
+        LoggingThread stderrThread = new LoggingThread(proc.getErrorStream(), LOGGER, logPrefix + programName + "(stderr): ");
+        stderrThread.start();
 
         final Exception[] pipeException = new Exception[1];
         Pipe pipe = null;
-        StreamHelper stdoutStreamHelper = null;
+        LoggingThread stdoutThread = null;
         if (out == null) {
-            stdoutStreamHelper = new StreamHelper(proc.getInputStream(), LOGGER, logPrefix + programName + "(stdout): ");
-            stdoutStreamHelper.start();
+            stdoutThread = new LoggingThread(proc.getInputStream(), LOGGER, logPrefix + programName + "(stdout): ");
+            stdoutThread.start();
         } else {
             Pipe.StatusHandler statusHandler = new Pipe.StatusHandler() {
                 @Override
@@ -91,10 +91,10 @@ public class ProcessRunner {
 
         proc.waitFor();
 
-        errStreamHelper.join(10000);
+        stderrThread.join(10000);
 
-        if (stdoutStreamHelper != null) {
-            stdoutStreamHelper.join(10000);
+        if (stdoutThread != null) {
+            stdoutThread.join(10000);
         }
 
         if (pipe != null) {
@@ -108,10 +108,10 @@ public class ProcessRunner {
         LOGGER.info(logPrefix + programName + "(returncode): " + proc.exitValue());
 
         if (proc.exitValue() != 0) {
-            throw new RuntimeException("unexpected return code: " + proc.exitValue() + " for command " + arrayToString(arguments));
+            throw new VisalloException("unexpected return code: " + proc.exitValue() + " for command " + arrayToString(arguments));
         }
         if (pipeException[0] != null) {
-            throw new RuntimeException("pipe exception", pipeException[0]);
+            throw new VisalloException("pipe exception", pipeException[0]);
         }
 
         return proc;
