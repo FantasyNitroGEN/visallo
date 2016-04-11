@@ -2,7 +2,10 @@ package org.visallo.core.model.workspace;
 
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
-public class WorkspaceUser {
+import java.io.Serializable;
+
+public class WorkspaceUser implements Serializable {
+    static long serialVersionUID = 1L;
     private final String userId;
     private final WorkspaceAccess workspaceAccess;
     private boolean isCreator = false;
@@ -23,5 +26,24 @@ public class WorkspaceUser {
 
     public WorkspaceAccess getWorkspaceAccess() {
         return workspaceAccess;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        WorkspaceUser that = (WorkspaceUser) o;
+
+        return userId.equals(that.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        return userId.hashCode();
     }
 }

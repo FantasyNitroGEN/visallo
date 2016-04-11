@@ -26,7 +26,6 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
-import org.visallo.core.model.workspace.WorkspaceDiffHelper;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
@@ -87,22 +86,23 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
     @Inject
     public VertexiumWorkspaceRepository(
-            final Graph graph,
-            final UserRepository userRepository,
-            final AuthorizationRepository authorizationRepository,
-            final WorkspaceDiffHelper workspaceDiff,
-            final LockRepository lockRepository,
-            final VisibilityTranslator visibilityTranslator,
-            final TermMentionRepository termMentionRepository,
-            final OntologyRepository ontologyRepository,
-            final WorkQueueRepository workQueueRepository
+            Graph graph,
+            UserRepository userRepository,
+            AuthorizationRepository authorizationRepository,
+            WorkspaceDiffHelper workspaceDiff,
+            LockRepository lockRepository,
+            VisibilityTranslator visibilityTranslator,
+            TermMentionRepository termMentionRepository,
+            OntologyRepository ontologyRepository,
+            WorkQueueRepository workQueueRepository
     ) {
         super(
                 graph,
                 visibilityTranslator,
                 termMentionRepository,
                 ontologyRepository,
-                workQueueRepository
+                workQueueRepository,
+                userRepository
         );
         this.userRepository = userRepository;
         this.authorizationRepository = authorizationRepository;
@@ -356,17 +356,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return workspaceVertices;
     }
 
-    @Traced
-    protected Iterable<Edge> findModifiedEdges(final Workspace workspace, List<WorkspaceEntity> workspaceEntities, boolean includeHidden, User user) {
-        Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
-
-        Iterable<Vertex> vertices = Iterables.filter(WorkspaceEntity.toVertices(workspaceEntities, getGraph(), authorizations), Predicates.notNull());
-        Iterable<String> edgeIds = getGraph().findRelatedEdgeIdsForVertices(vertices, authorizations);
-        edgeIds = getGraph().filterEdgeIdsByAuthorization(edgeIds, workspace.getWorkspaceId(), ElementFilter.ALL, authorizations);
-
-        return getGraph().getEdges(edgeIds, includeHidden ? FetchHint.ALL_INCLUDING_HIDDEN : FetchHint.ALL, authorizations);
-    }
-
     @Override
     public Workspace copyTo(Workspace workspace, User destinationUser, User user) {
         Workspace newWorkspace = super.copyTo(workspace, destinationUser, user);
@@ -533,7 +522,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         String extensionId = WorkspaceProperties.DASHBOARD_ITEM_EXTENSION_ID.getPropertyValue(dashboardItemVertex, null);
         String dashboardItemTitle = WorkspaceProperties.TITLE.getPropertyValue(dashboardItemVertex, null);
         String configuration = WorkspaceProperties.DASHBOARD_ITEM_CONFIGURATION.getPropertyValue(dashboardItemVertex, null);
-        return new DashboardItem(dashboardItemId, extensionId, dashboardItemTitle, configuration);
+        return new VertexiumDashboardItem(dashboardItemId, extensionId, dashboardItemTitle, configuration);
     }
 
     @Override
@@ -572,7 +561,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 return dashboardItemVertexToDashboardItem(dashboardItemVertex);
             }
         }));
-        return new Dashboard(dashboardVertex.getId(), workspaceId, title, items);
+        return new VertexiumDashboard(dashboardVertex.getId(), workspaceId, title, items);
     }
 
     @Override
@@ -655,10 +644,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
         List<WorkspaceUser> usersWithAccess = findUsersWithAccess(workspaceId, user);
         for (WorkspaceUser userWithAccess : usersWithAccess) {
-            if (userWithAccess.getUserId().equals(user.getUserId()) && (
-                    userWithAccess.getWorkspaceAccess() == WorkspaceAccess.WRITE ||
-                            userWithAccess.getWorkspaceAccess() == WorkspaceAccess.COMMENT
-            )) {
+            if (userWithAccess.getUserId().equals(user.getUserId())
+                    && WorkspaceAccess.hasCommentPermissions(userWithAccess.getWorkspaceAccess())) {
                 usersWithCommentAccessCache.put(cacheKey, true);
                 return true;
             }
@@ -680,7 +667,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
         List<WorkspaceUser> usersWithAccess = findUsersWithAccess(workspaceId, user);
         for (WorkspaceUser userWithAccess : usersWithAccess) {
-            if (userWithAccess.getUserId().equals(user.getUserId()) && userWithAccess.getWorkspaceAccess() == WorkspaceAccess.WRITE) {
+            if (userWithAccess.getUserId().equals(user.getUserId())
+                    && WorkspaceAccess.hasWritePermissions(userWithAccess.getWorkspaceAccess())) {
                 usersWithWriteAccessCache.put(cacheKey, true);
                 return true;
             }
@@ -704,7 +692,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         List<WorkspaceUser> usersWithAccess = findUsersWithAccess(workspaceId, user);
         for (WorkspaceUser userWithAccess : usersWithAccess) {
             if (userWithAccess.getUserId().equals(user.getUserId())
-                    && (userWithAccess.getWorkspaceAccess() == WorkspaceAccess.WRITE || userWithAccess.getWorkspaceAccess() == WorkspaceAccess.READ || userWithAccess.getWorkspaceAccess() == WorkspaceAccess.COMMENT)) {
+                    && WorkspaceAccess.hasReadPermissions(userWithAccess.getWorkspaceAccess())) {
                 return true;
             }
         }

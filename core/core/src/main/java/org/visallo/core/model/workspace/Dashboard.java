@@ -1,19 +1,17 @@
 package org.visallo.core.model.workspace;
 
-import java.util.Collection;
-import java.util.List;
+import java.io.Serializable;
 
-public class Dashboard {
+import static org.visallo.core.util.StreamUtil.stream;
+
+public abstract class Dashboard implements Serializable {
+    static long serialVersionUID = 1L;
     private final String id;
     private final String workspaceId;
-    private final String title;
-    private final List<DashboardItem> items;
 
-    public Dashboard(String id, String workspaceId, String title, List<DashboardItem> items) {
+    public Dashboard(String id, String workspaceId) {
         this.id = id;
         this.workspaceId = workspaceId;
-        this.title = title;
-        this.items = items;
     }
 
     public String getId() {
@@ -24,11 +22,42 @@ public class Dashboard {
         return workspaceId;
     }
 
-    public String getTitle() {
-        return title;
+    public abstract String getTitle();
+
+    public abstract Iterable<? extends DashboardItem> getItems();
+
+    public DashboardItem getItemById(String dashboardItemId) {
+        return stream(getItems())
+                .filter(dashboardItem -> dashboardItem.getId().equals(dashboardItemId))
+                .findFirst()
+                .orElse(null);
     }
 
-    public Collection<DashboardItem> getItems() {
-        return items;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Dashboard dashboard = (Dashboard) o;
+
+        return id.equals(dashboard.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Dashboard{" +
+                "title='" + getTitle() + '\'' +
+                ", id='" + id + '\'' +
+                ", workspaceId='" + workspaceId + '\'' +
+                '}';
     }
 }
