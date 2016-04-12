@@ -5,6 +5,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.ProvisionException;
 import org.visallo.core.bootstrap.lib.LibLoader;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
@@ -52,6 +53,9 @@ public class InjectHelper {
         }
         try {
             return injector.getInstance(clazz);
+        } catch (ProvisionException ex) {
+            LOGGER.error("Could not create class: %s: %s", clazz.getName(), ex.getMessage(), ex);
+            throw new VisalloException("Could not create class: " + clazz.getName(), ex);
         } catch (Throwable ex) {
             throw new VisalloException("Could not create class: " + clazz.getName(), ex);
         }
