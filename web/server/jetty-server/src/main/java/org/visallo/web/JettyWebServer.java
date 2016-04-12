@@ -17,6 +17,7 @@ import java.lang.management.ManagementFactory;
 
 public class JettyWebServer extends WebServer {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JettyWebServer.class, "web");
+    private static final int MAX_FORM_CONTENT_SIZE = 10000000;
     private Server server;
 
     @Parameter(names = {"--dontjoin"}, description = "Don't join the server thread and continue with exit")
@@ -66,6 +67,7 @@ public class JettyWebServer extends WebServer {
         webAppContext.setContextPath(this.getContextPath());
         webAppContext.setWar(getWebAppDir().getAbsolutePath());
         webAppContext.setSessionHandler(new HashSessionManager().getSessionHandler());
+        webAppContext.setMaxFormContentSize(MAX_FORM_CONTENT_SIZE);
         LOGGER.info("getMaxInactiveInterval() is %d seconds", webAppContext.getSessionHandler().getSessionManager().getMaxInactiveInterval());
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
