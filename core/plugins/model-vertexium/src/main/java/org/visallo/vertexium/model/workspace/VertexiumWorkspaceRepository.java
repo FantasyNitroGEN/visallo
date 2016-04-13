@@ -391,6 +391,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_LAYOUT_JSON.removeProperty(m, VISIBILITY.getVisibility());
                 WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_X.removeProperty(m, VISIBILITY.getVisibility());
                 WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_Y.removeProperty(m, VISIBILITY.getVisibility());
+                m.setIndexHint(IndexHint.DO_NOT_INDEX);
                 m.save(authorizations);
             }
         }
