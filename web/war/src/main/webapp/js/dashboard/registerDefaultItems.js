@@ -55,7 +55,6 @@ define(['configuration/plugins/registry'], function(registry) {
         description: 'Show total counts for relationship types',
         identifier: 'org-visallo-web-dashboard-edge-counts',
         report: {
-            type: 'LABELS_WITH_NUMBER_VALUES',
             defaultRenderer: 'org-visallo-pie',
             endpoint: '/edge/search',
             endpointParameters: {
@@ -69,9 +68,6 @@ define(['configuration/plugins/registry'], function(registry) {
                         field: '__edgeLabel'
                     }
                 ].map(JSON.stringify)
-            },
-            mapping: {
-                rootObject: 'aggregates.field.buckets'
             }
         },
         grid: {

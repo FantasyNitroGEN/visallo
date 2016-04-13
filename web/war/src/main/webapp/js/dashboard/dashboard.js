@@ -29,8 +29,9 @@ define([
     registry.documentExtensionPoint('org.visallo.web.dashboard.item',
         'Add items that can be placed on dashboards',
         function(e) {
-            return (_.isString(e.componentPath) || _.isObject(e.report));
-        }
+            return (_.isString(e.componentPath) || _.isObject(e.report)) && e.title && e.description;
+        },
+        'http://docs.visallo.org/extension-points/front-end/dashboard/item.html'
     );
 
     registry.documentExtensionPoint('org.visallo.web.dashboard.reportrenderer',
@@ -41,14 +42,16 @@ define([
                 e.identifier &&
                 _.isString(e.label) &&
                 e.componentPath;
-        }
+        },
+        'http://docs.visallo.org/extension-points/front-end/dashboard/report.html'
     );
 
     registry.documentExtensionPoint('org.visallo.web.dashboard.layout',
         'Define dashboard layout for new workspaces',
         function(e) {
             return _.isArray(e);
-        }
+        },
+        'http://docs.visallo.org/extension-points/front-end/dashboard/layout.html'
     );
 
     var reportRenderers,
