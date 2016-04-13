@@ -66,6 +66,7 @@ public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
             Vertex termMention = new TermMentionBuilder()
                     .outVertex(outVertex)
                     .propertyKey(data.getProperty().getKey())
+                    .propertyName(data.getProperty().getName())
                     .start(start)
                     .end(end)
                     .title(formattedNumber)

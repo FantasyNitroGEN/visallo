@@ -1,15 +1,17 @@
 package org.visallo.web.clientapi.codegen;
 
+import org.visallo.web.clientapi.codegen.ApiException;
 import org.visallo.web.clientapi.ApiInvoker;
 
 import org.visallo.web.clientapi.model.ClientApiEdgesExistsResponse;
 import org.visallo.web.clientapi.model.ClientApiElementAcl;
-import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
 import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
+import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
 import com.sun.jersey.multipart.FormDataMultiPart;
 
 import javax.ws.rs.core.MediaType;
 
+import java.io.File;
 import java.util.*;
 
 public class EdgeApi {

@@ -159,6 +159,7 @@ define([
             var parameters = {
                 sign: newObjectSign,
                 propertyKey: this.attr.propertyKey,
+                propertyName: this.attr.propertyName,
                 conceptId: this.selectedConceptId,
                 mentionStart: mentionStart,
                 mentionEnd: mentionEnd,
@@ -188,6 +189,7 @@ define([
                     parameters.sourceInfo = {
                         vertexId: parameters.artifactId,
                         textPropertyKey: parameters.propertyKey,
+                        textPropertyName: parameters.propertyName,
                         startOffset: parameters.mentionStart,
                         endOffset: parameters.mentionEnd,
                         snippet: self.attr.snippet

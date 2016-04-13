@@ -28,14 +28,14 @@ public class VertexApiExt extends VertexApi {
         return create(conceptType, visibilitySource, justificationText, null, null);
     }
 
-    public void resolveTerm(String artifactId, String propertyKey, int mentionStart, int mentionEnd, String sign, String conceptId, String visibilitySource) throws ApiException {
-        resolveTerm(artifactId, propertyKey, mentionStart, mentionEnd, sign, conceptId, visibilitySource, null, null, null);
+    public void resolveTerm(String artifactId, String propertyKey, String propertyName, int mentionStart, int mentionEnd, String sign, String conceptId, String visibilitySource) throws ApiException {
+        resolveTerm(artifactId, propertyKey, propertyName, mentionStart, mentionEnd, sign, conceptId, visibilitySource, null, null, null);
     }
 
-    public void resolveVideoTranscriptTerm(String artifactId, String propertyKey, int videoFrameIndex, int mentionStart, int mentionEnd, String sign, String conceptId, String visibilitySource) throws ApiException {
+    public void resolveVideoTranscriptTerm(String artifactId, String propertyKey, String propertyName, int videoFrameIndex, int mentionStart, int mentionEnd, String sign, String conceptId, String visibilitySource) throws ApiException {
         int mentionStartWithVideoFrame = (videoFrameIndex << VIDEO_TRANSCRIPT_OFFSET_BITS) | mentionStart;
         int mentionEndWithVideoFrame = (videoFrameIndex << VIDEO_TRANSCRIPT_OFFSET_BITS) | mentionEnd;
-        resolveTerm(artifactId, propertyKey, mentionStartWithVideoFrame, mentionEndWithVideoFrame, sign, conceptId, visibilitySource, null, null, null);
+        resolveTerm(artifactId, propertyKey, propertyName, mentionStartWithVideoFrame, mentionEndWithVideoFrame, sign, conceptId, visibilitySource, null, null, null);
     }
 
     public ClientApiArtifactImportResponse importFile(String visibilitySource, String fileName, InputStream data) throws ApiException, IOException {

@@ -65,6 +65,7 @@ public class ResolveTermEntity implements ParameterizedHandler {
     public ClientApiSuccess handle(
             @Required(name = "artifactId") String artifactId,
             @Required(name = "propertyKey") String propertyKey,
+            @Required(name = "propertyName") String propertyName,
             @Required(name = "mentionStart") long mentionStart,
             @Required(name = "mentionEnd") long mentionEnd,
             @Required(name = "sign") String title,
@@ -132,6 +133,7 @@ public class ResolveTermEntity implements ParameterizedHandler {
         new TermMentionBuilder()
                 .outVertex(artifactVertex)
                 .propertyKey(propertyKey)
+                .propertyName(propertyName)
                 .start(mentionStart)
                 .end(mentionEnd)
                 .title(title)

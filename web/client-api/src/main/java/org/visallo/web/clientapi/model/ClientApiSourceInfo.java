@@ -10,6 +10,7 @@ public class ClientApiSourceInfo {
     public String vertexId;
     public String snippet;
     public String textPropertyKey;
+    public String textPropertyName;
 
     public static ClientApiSourceInfo fromString(String sourceInfoString) {
         try {

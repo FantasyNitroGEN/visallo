@@ -45,7 +45,7 @@ public class VertexGetTermMentions implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException(String.format("property %s:%s not found on vertex %s", propertyKey, propertyName, vertex.getId()));
         }
 
-        Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndPropertyKey(graphVertexId, propertyKey, authorizations);
+        Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndProperty(graphVertexId, propertyKey, propertyName, authorizations);
         return ClientApiConverter.toTermMentionsResponse(termMentions, workspaceId, authorizations);
     }
 }

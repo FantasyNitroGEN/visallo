@@ -55,6 +55,7 @@ public class VisalloProperties {
     public static final LongSingleValueVisalloProperty TERM_MENTION_END_OFFSET = new LongSingleValueVisalloProperty("http://visallo.org/termMention#endOffset");
     public static final StringSingleValueVisalloProperty TERM_MENTION_PROCESS = new StringSingleValueVisalloProperty("http://visallo.org/termMention#process");
     public static final StringSingleValueVisalloProperty TERM_MENTION_PROPERTY_KEY = new StringSingleValueVisalloProperty("http://visallo.org/termMention#propertyKey");
+    public static final StringSingleValueVisalloProperty TERM_MENTION_PROPERTY_NAME = new StringSingleValueVisalloProperty("http://visallo.org/termMention#propertyName");
     public static final StringSingleValueVisalloProperty TERM_MENTION_RESOLVED_EDGE_ID = new StringSingleValueVisalloProperty("http://visallo.org/termMention#resolvedEdgeId");
     public static final StringSingleValueVisalloProperty TERM_MENTION_TITLE = new StringSingleValueVisalloProperty("http://visallo.org/termMention#title");
     public static final StringSingleValueVisalloProperty TERM_MENTION_CONCEPT_TYPE = new StringSingleValueVisalloProperty("http://visallo.org/termMention#conceptType");
