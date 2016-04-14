@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -30,10 +30,42 @@ public class StreamUtilTest {
     private Query query1, query2;
 
     @Test
+    public void streamWithEmptyIteratorsShouldReturnEmptyStream() {
+        Stream<Object> stream = StreamUtil.stream(
+                Collections.emptyList().iterator(), Collections.emptySet().iterator());
+
+        assertThat(stream.count(), is(0L));
+    }
+
+    @Test
+    public void streamWithOneIteratorsShouldReturnStreamWithSameContentsInOrder() {
+        List<String> list = ImmutableList.of("A", "B");
+
+        Stream<String> stream = StreamUtil.stream(list.iterator());
+
+        assertThat(
+                stream.collect(Collectors.toList()),
+                is(list));
+    }
+
+    @Test
+    public void streamWithMultipleIteratorsShouldReturnStreamWithAllContentsConcatenatedInOrder() {
+        Set<String> list1 = ImmutableSet.of("A1", "B1");
+        Set<String> list2 = ImmutableSet.of("A2", "B2");
+        Set<String> list3 = ImmutableSet.of("A3", "B3");
+
+        Stream<String> stream = StreamUtil.stream(list1.iterator(), list2.iterator(), list3.iterator());
+
+        assertThat(
+                stream.collect(Collectors.toList()),
+                is(ImmutableList.builder().addAll(list1).addAll(list2).addAll(list3).build()));
+    }
+
+    @Test
     public void streamWithEmptyIterablesShouldReturnEmptyStream() {
         Stream<Object> stream = StreamUtil.stream(Collections.emptyList(), Collections.emptySet());
 
-        assertThat(stream.count(), equalTo(0L));
+        assertThat(stream.count(), is(0L));
     }
 
     @Test
@@ -44,7 +76,7 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.collect(Collectors.toList()),
-                equalTo(list));
+                is(list));
     }
 
     @Test
@@ -57,7 +89,7 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.collect(Collectors.toList()),
-                equalTo(ImmutableList.builder().addAll(list1).addAll(list2).addAll(list3).build()));
+                is(ImmutableList.builder().addAll(list1).addAll(list2).addAll(list3).build()));
     }
 
     @SuppressWarnings("unchecked")
@@ -68,7 +100,7 @@ public class StreamUtilTest {
 
         Stream<Element> stream = StreamUtil.stream(query1, query2);
 
-        assertThat(stream.count(), equalTo(0L));
+        assertThat(stream.count(), is(0L));
     }
 
     @SuppressWarnings("unchecked")
@@ -85,7 +117,7 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.map(Element::getId).collect(Collectors.toList()),
-                equalTo(ImmutableList.of("v1", "v2")));
+                is(ImmutableList.of("v1", "v2")));
     }
 
     @SuppressWarnings("unchecked")
@@ -106,6 +138,6 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.map(Element::getId).collect(Collectors.toList()),
-                equalTo(ImmutableList.of("v1", "v2", "v3", "v4")));
+                is(ImmutableList.of("v1", "v2", "v3", "v4")));
     }
 }
