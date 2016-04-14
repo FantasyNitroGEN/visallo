@@ -11,8 +11,8 @@ For an example see the [dev ontology](https://github.com/v5analytics/visallo/tre
 Add the following to your [configuration](configuration.md).
 
 ```
-repository.ontology.owl.sample.iri=http://visallo.org/sample
-repository.ontology.owl.sample.dir=$VISALLO_DIR/config/ontology-sample
+repository.ontology.owl.default.iri=http://visallo.org/sample
+repository.ontology.owl.default.dir=$VISALLO_DIR/config/ontology-sample
 ```
 
 ## Visallo OWL Extensions
