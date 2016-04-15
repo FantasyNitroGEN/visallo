@@ -117,15 +117,17 @@ define(['util/undoManager'], function(UndoManager) {
                     .then(function(data) {
                         clearTimeout(buffer);
                         if (data.saved) {
-                            self.trigger('workspaceSaved', lastReloadedState.workspace);
+                            triggered = true;
                         }
                     })
-                    .finally(function() {
+                    .catch(function(e) {
+                        console.error(e);
+                    })
+                    .then(function() {
                         if (triggered) {
                             self.trigger('workspaceSaved', lastReloadedState.workspace);
                         }
                     })
-                    .done();
             });
         };
 
