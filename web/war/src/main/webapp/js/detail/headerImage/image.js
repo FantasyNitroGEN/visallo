@@ -38,6 +38,7 @@ define([
             this.on('filecomplete', this.onUploadComplete);
             this.on('fileerror', this.onUploadError);
             this.on(document, 'verticesUpdated', this.onVerticesUpdated);
+            this.on('updateModel', this.onUpdateModel);
             this.updateImageBackgroundSize = _.throttle(this.updateImageBackgroundSize.bind(this), 100);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
 
@@ -347,6 +348,16 @@ define([
                 this.ctx.clearRect(0, 0, this.canvas[0].width, this.canvas[0].height);
             }
             this.$node.removeClass('uploading');
+        };
+
+        this.onUpdateModel = function(event, data) {
+           var hasCustomImage = _.contains(data.model.edgeLabels, 'http://visallo.org/dev#entityHasImageRaw');
+
+           if (hasCustomImage) {
+              this.updateImageBackground(this.srcForGlyphIconUrl(F.vertex.imageDetail(data.model)));
+           } else {
+              this.updateImageBackground();
+           }
         };
     }
 });
