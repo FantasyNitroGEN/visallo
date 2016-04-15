@@ -90,6 +90,17 @@ define([
                     maximalAdjustments: 10
                 }
             },
+            entityUpdateSaveCountById = {},
+            changeEntityUpdateSaveCount = function(vId, change) {
+                if (!(vId in entityUpdateSaveCountById)) {
+                    entityUpdateSaveCountById[vId] = 0;
+                }
+                entityUpdateSaveCountById[vId] += change;
+                if (entityUpdateSaveCountById[vId] < 0) {
+                    entityUpdateSaveCountById[vId] = 0;
+                }
+                return entityUpdateSaveCountById[vId] === 0;
+            },
             snapCoordinate = function(value, snap) {
                 var rounded = Math.round(value),
                     diff = (rounded % snap),
@@ -245,7 +256,14 @@ define([
 
         this.onVerticesHoveringEnded = function(evt, data) {
             this.cytoscapeReady(function(cy) {
-                cy.$('.hover').remove();
+                cy.batch(function() {
+                    data.vertices.forEach(function(vertexId) {
+                        var cyNode = cy.getElementById('NEW-' + toCyId(vertexId));
+                        if (cyNode.length) {
+                            cyNode.remove();
+                        }
+                    })
+                })
             });
         };
 
@@ -366,8 +384,6 @@ define([
                         toRemove.push(node);
                     }
                 });
-
-                self.cyNodesToRemoveOnWorkspaceUpdated = cy.collection(toRemove);
 
                 if (toFitTo.length) {
                     Promise.resolve(self.fit(cy, null, { animate: true }))
@@ -1612,6 +1628,12 @@ define([
             if (data.options && data.options.selectAll && data.entityUpdates) {
                 this.vertexIdsToSelect = _.pluck(data.entityUpdates, 'vertexId');
             }
+            if (data && data.entityUpdates) {
+                data.entityUpdates.forEach(function(update) {
+                    var vId = update.vertexId;
+                    changeEntityUpdateSaveCount(vId, 1);
+                })
+            }
             if (data && data.entityDeletes && data.entityDeletes.length) {
                 cy.$(
                     data.entityDeletes.map(function(vertexId) {
@@ -1651,9 +1673,11 @@ define([
 
                     data.entityUpdates.forEach(function(entityUpdate) {
                         var cyNode = cy.getElementById(toCyId(entityUpdate.vertexId)),
-                            previousWorkspaceVertex = self.workspaceVertices[entityUpdate.vertexId];
+                            previousWorkspaceVertex = self.workspaceVertices[entityUpdate.vertexId],
+                            shouldAnimate = changeEntityUpdateSaveCount(entityUpdate.vertexId, -1);
 
-                        if (cyNode.length && !cyNode.grabbed() && ('graphPosition' in entityUpdate)) {
+                        if (cyNode.length && !cyNode.grabbed() &&
+                            ('graphPosition' in entityUpdate) && shouldAnimate) {
                             var newPosition = retina.pointsToPixels(entityUpdate.graphPosition);
                             cyNode
                                 .stop(true)
@@ -1680,12 +1704,18 @@ define([
                     });
                     self.workspaceVertices = _.omit(self.workspaceVertices, data.entityDeletes);
 
-                    this.getNodesByVertexIds(cy, data.entityDeletes).remove();
+                    cy.batch(function() {
+                        self.getNodesByVertexIds(cy, data.entityDeletes).remove();
+
+                        data.entityUpdates.forEach(function(update) {
+                            var cyNode = cy.getElementById('NEW-' + toCyId(update.vertexId));
+                            if (cyNode.length) {
+                                cyNode.remove();
+                            }
+                        })
+                    })
+
                     if (!_.isEmpty(data.newVertices)) {
-                        if (this.cyNodesToRemoveOnWorkspaceUpdated) {
-                            this.cyNodesToRemoveOnWorkspaceUpdated.remove();
-                            this.cyNodesToRemoveOnWorkspaceUpdated = null;
-                        }
                         this.addVertices(data.newVertices, {
                             fitToVertexIds: _.unique(fitToIds)
                         })

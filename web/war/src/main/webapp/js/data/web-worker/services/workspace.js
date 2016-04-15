@@ -2,8 +2,8 @@
 define([
     '../util/ajax',
     '../util/store',
-    '../util/abort'
-], function(ajax, store, abortPrevious) {
+    '../util/queue'
+], function(ajax, store, queue) {
     'use strict';
 
     var api = {
@@ -209,7 +209,7 @@ define([
                     })
         },
 
-        save: abortPrevious(function(workspaceId, changes) {
+        save: queue(function(workspaceId, changes) {
             if (arguments.length === 1) {
                 changes = workspaceId;
                 workspaceId = publicData.currentWorkspaceId;
@@ -260,7 +260,7 @@ define([
                 data: JSON.stringify(allChanges)
             }).then(function() {
                 return { saved: true, workspace: store.updateWorkspace(workspaceId, allChanges) };
-            })
+            });
         }),
 
         vertices: function(workspaceId) {

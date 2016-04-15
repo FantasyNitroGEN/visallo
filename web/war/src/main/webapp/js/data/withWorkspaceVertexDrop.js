@@ -104,7 +104,7 @@ define([], function() {
                                         });
                                         start = false;
                                     } else {
-                                        self.trigger('verticesHoveringEnded');
+                                        self.trigger('verticesHoveringEnded', { vertices: vertices });
                                     }
                                 }
                             });
