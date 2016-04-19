@@ -115,6 +115,10 @@ define([
                             return false;
                         }
 
+                        if (property.streamingPropertyValue) {
+                            return false;
+                        }
+
                         // Remove dependent properties from list since they
                         // rollup into compound properties
                         if (~dependentPropertyIris.indexOf(property.name)) {
