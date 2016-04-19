@@ -80,9 +80,9 @@ define(['util/promise'], function(Promise) {
                     try {
                         r.upload.removeEventListener('progress', progressHandler);
                     } catch(e) {}
-                    var text = r.status === 200 && r.responseText;
 
-                    if (text) {
+                    if (r.status === 200) {
+                        var text = r.responseText;
                         if (isJson) {
                             try {
                                 var json = JSON.parse(text);
