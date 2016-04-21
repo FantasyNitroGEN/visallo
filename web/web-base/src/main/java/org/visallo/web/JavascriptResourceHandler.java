@@ -20,15 +20,12 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
 
 public class JavascriptResourceHandler implements RequestResponseHandler {
-
     private static final int EXECUTOR_CONCURRENT = 3;
     private static final long EXECUTOR_IDLE_THREAD_RELEASE_SECONDS = 5;
     private static final ThreadPoolExecutor compilationExecutor = new ThreadPoolExecutor(
@@ -36,7 +33,7 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
             EXECUTOR_CONCURRENT,
             EXECUTOR_IDLE_THREAD_RELEASE_SECONDS,
             TimeUnit.SECONDS,
-            new LinkedBlockingQueue());
+            new LinkedBlockingQueue<>());
 
     static {
         compilationExecutor.allowCoreThreadTimeOut(true);
@@ -59,12 +56,7 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
         this.enableSourceMaps = enableSourceMaps;
         this.closureExternResourcePath = closureExternResourcePath;
 
-        compilationTask = compilationExecutor.submit(new Callable<CachedCompilation>() {
-            @Override
-            public CachedCompilation call() throws Exception {
-                return compileIfNecessary(null);
-            }
-        });
+        compilationTask = compilationExecutor.submit(() -> compileIfNecessary(null));
     }
 
     @Override
@@ -148,7 +140,7 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
         compilerOptions.setSourceMapFormat(SourceMap.Format.V3);
         compilerOptions.setSourceMapDetailLevel(SourceMap.DetailLevel.ALL);
 
-        List<SourceFile> inputs = new ArrayList<SourceFile>();
+        List<SourceFile> inputs = new ArrayList<>();
         inputs.add(SourceFile.fromCode(jsResourcePath + ".src", cachedCompilation.getInput()));
 
         List<SourceFile> externs = AbstractCommandLineRunner.getBuiltinExterns(compilerOptions);
@@ -215,8 +207,8 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
 
         public boolean isNecessary(long lastModified) {
             return getLastModified() == null ||
-                   getLastModified() != lastModified ||
-                   getOutput() == null;
+                    getLastModified() != lastModified ||
+                    getOutput() == null;
         }
     }
 
