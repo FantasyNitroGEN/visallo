@@ -1,5 +1,7 @@
 @import (reference) "../util/animation";
 
+@menuIconHeight: 20px;
+
 background: @menubar-background;
 
 .user-select(none);
@@ -11,7 +13,7 @@ background: @menubar-background;
 
   a {
     background: transparent;
-    background-size: auto 20px;
+    background-size: auto @menuIconHeight;
     background-repeat: no-repeat;
     background-position: center 5px;
     color: white;
@@ -35,6 +37,7 @@ background: @menubar-background;
     a {
       font-size: 0;
       padding: 5px 0;
+      height: @menuIconHeight;
     }
   }
 
@@ -179,7 +182,8 @@ background: @menubar-background;
 .content {
   &.hide-icon-text {
     .menu-top a, .menu-bottom a {
-      font-size: 0; 
+      font-size: 0;
+      height: @menuIconHeight;
       padding-top: 10px;
       padding-bottom: 5px;
     }
