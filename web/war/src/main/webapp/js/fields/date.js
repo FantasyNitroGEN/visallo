@@ -63,22 +63,35 @@ define([
                 self.triggerFieldUpdated();
             });
 
+            this.on('keydown', function(event) {
+                if (event.which === $.ui.keyCode.BACKSPACE) {
+                    this.preventDefaultChange = true;
+                }
+            });
+
             this.on('change keyup', {
                 inputSelector: function(event) {
                     if (this.disableEvents) return;
-                    if (event.type === 'change' || event.which === 13) {
-                        if (this.displayTime) {
-                            if ($(event.target).is('.date')) {
+                    if (event.type === 'keyup' && event.which === $.ui.keyCode.BACKSPACE) {
+                        this.preventDefaultChange = false;
+                    }
+                    if (!this.preventDefaultChange) {
+                        if (event.type === 'change' || event.which === $.ui.keyCode.ENTER) {
+                            if (this.displayTime) {
+                                if ($(event.target).is('.date')) {
+                                    this.triggerFieldUpdated();
+                                } else if (event.type === 'keyup') {
+                                    $(event.target).blur();
+                                }
+                            } else {
                                 this.triggerFieldUpdated();
-                            } else if (event.type === 'keyup') {
-                                $(event.target).blur();
                             }
-                        } else {
-                            this.triggerFieldUpdated();
                         }
                     }
                 }
             });
+
+            this.select('inputSelector').on('blur', self.triggerFieldUpdated.bind(self));
 
             this.$node.find('input').on('paste', function(event) {
                 var $this = $(this);
