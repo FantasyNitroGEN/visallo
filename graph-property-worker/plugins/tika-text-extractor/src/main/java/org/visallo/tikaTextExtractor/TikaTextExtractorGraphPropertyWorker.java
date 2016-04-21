@@ -64,7 +64,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * org.visallo.tikaTextExtractor.TikaTextExtractorGraphPropertyWorker.textExtractMapping.prop2.textDescription=My Property 2
  * </code></pre>
  */
-@Name("Tika MIME Text Extractor")
+@Name("Tika Text Extractor")
 @Description("Uses Apache Tika to extract text")
 public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TikaTextExtractorGraphPropertyWorker.class);
