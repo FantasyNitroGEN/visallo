@@ -422,6 +422,57 @@ public class Configuration {
         return properties;
     }
 
+    /**
+     * Similar to {@link Configuration#getMultiValue(java.lang.String)}, but returns a new instance of
+     * a configurable type for each prefix.
+     * <p>
+     * Given the following configuration:
+     * <p>
+     * <pre><code>
+     * repository.ontology.owl.dev.iri=http://visallo.org/dev
+     * repository.ontology.owl.dev.dir=examples/ontology-dev/
+     *
+     * repository.ontology.owl.csv.iri=http://visallo.org/csv
+     * repository.ontology.owl.csv.dir=storm/plugins/csv/ontology/
+     * </pre></code>
+     *
+     * And the following class.
+     *
+     * <pre><code>
+     * class OwlItem {
+     *   {@literal @}Configurable
+     *   public String iri;
+     *
+     *   {@literal @}Configurable
+     *   public String dir;
+     * }
+     * </pre></code>
+     *
+     * Would produce a map with two keys "dev" and "csv" mapped to an OwlItem object.
+     *
+     * @param prefix           The configuration key prefix
+     * @param configurableType The type of each configurable object to create instances of
+     */
+    public <T> Map<String, T> getMultiValueConfigurables(String prefix, Class<T> configurableType) {
+        Map<String, Map<String, String>> multiValues = getMultiValue(prefix);
+        Map<String, T> results = new HashMap<>();
+        for (Map.Entry<String, Map<String, String>> entry : multiValues.entrySet()) {
+            T o = null;
+            try {
+                o = configurableType.newInstance();
+            } catch (Exception e) {
+                throw new VisalloException("Could not create configurable: " + configurableType.getName(), e);
+            }
+            setConfigurables(o, entry.getValue());
+            results.put(entry.getKey(), o);
+        }
+        return results;
+    }
+
+    /**
+     * Similar to {@link Configuration#getMultiValue(java.lang.Iterable, java.lang.String)} but uses the internal
+     * configuration state.
+     */
     public Map<String, Map<String, String>> getMultiValue(String prefix) {
         return getMultiValue(this.config.entrySet(), prefix);
     }
@@ -429,11 +480,13 @@ public class Configuration {
     /**
      * Processing configuration items that looks like this:
      * <p/>
+     * <pre><code>
      * repository.ontology.owl.dev.iri=http://visallo.org/dev
      * repository.ontology.owl.dev.dir=examples/ontology-dev/
-     * <p/>
+     *
      * repository.ontology.owl.csv.iri=http://visallo.org/csv
      * repository.ontology.owl.csv.dir=storm/plugins/csv/ontology/
+     * </pre></code>
      * <p/>
      * Into a hash like this:
      * <p/>

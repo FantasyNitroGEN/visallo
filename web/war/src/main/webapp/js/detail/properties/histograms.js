@@ -598,6 +598,10 @@ define([
     function shouldDisplayProperty(property) {
         var propertyName = property.name;
 
+        if (property.streamingPropertyValue) {
+            return false;
+        }
+
         if (propertyName === CONCEPT_TYPE ||
            propertyName === GRAPH_TYPE ||
            propertyName === EDGE_LABEL) {

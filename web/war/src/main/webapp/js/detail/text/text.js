@@ -77,13 +77,14 @@ define([
             this.around('onToggleCollapsibleSection', function(fn, event) {
                 var args = _.rest(arguments, 1),
                     $section = $(event.target).closest('.text-section'),
-                    key = $section.attr('data-key');
+                    key = $section.attr('data-key'),
+                    propertyName = $section.attr('data-name');
 
                 event.stopPropagation();
                 if ($section.hasClass('expanded') || !$section.find('.text').is(':empty')) {
                     fn.apply(this, args);
-                } else if (key) {
-                    this.openText(key)
+                } else {
+                    this.openText(key, propertyName);
                 }
             });
 
@@ -116,11 +117,11 @@ define([
             var self = this;
             Promise.resolve(this.updatingPromise)
                 .then(function() {
-                    return self.openText(data.textPropertyKey)
+                    return self.openText(data.textPropertyKey, data.textPropertyName)
                 })
                 .then(function() {
                     var $text = self.$node.find('.ts-' +
-                            F.className.to(data.textPropertyKey) + ' .text'),
+                            F.className.to(data.textPropertyKey + data.textPropertyName) + ' .text'),
                         $transcript = $text.find('.av-times'),
                         focusOffsets = data.offsets;
 
@@ -220,86 +221,111 @@ define([
                 })
             }
 
-            var scrollParent = this.$node.scrollParent(),
-                scrollTop = scrollParent.scrollTop(),
-                expandedKey = this.$node.find('.text-section.expanded').data('key'),
-                textProperties = _.filter(this.model.properties, function(p) {
-                    return _.some(TEXT_PROPERTIES, function(name) {
-                        return name === p.name;
-                    });
-                });
-
-            this.node.classList.add('org-visallo-texts')
-
-            d3.select(self.node)
-                .selectAll('section.text-section')
-                .data(textProperties)
-                .call(function() {
-                    this.enter()
-                        .append('section')
-                        .attr('class', 'text-section collapsible')
-                        .call(function() {
-                            this.append('h1').attr('class', 'collapsible-header')
-                                .call(function() {
-                                    this.append('strong')
-                                    this.append('span').attr('class', 'badge')
-                                })
-                            this.append('div').attr('class', 'text');
-                        })
-
-                    this.attr('data-key', function(p) {
-                            return p.key;
-                        })
-                        .each(function() {
-                            var p = d3.select(this).datum();
-                            $(this).removePrefixedClasses('ts-').addClass('ts-' + F.className.to(p.key));
-                        })
-                    this.select('h1 strong').text(function(p) {
-                        var textDescription = 'http://visallo.org#textDescription';
-                        return p[textDescription] || p.metadata[textDescription] || p.key;
-                    })
-
-                    this.exit().remove();
-                });
-
-            if (textProperties.length) {
-                if (this.attr.focus) {
-                    return this.openText(this.attr.focus.textPropertyKey)
-                        .then(function() {
-                            var $text = self.$node.find('.ts-' +
-                                    F.className.to(self.attr.focus.textPropertyKey) + ' .text'),
-                                $transcript = $text.find('.av-times'),
-                                focusOffsets = self.attr.focus.offsets;
-
-                            if ($transcript.length) {
-                                var start = F.number.offsetValues(focusOffsets[0]),
-                                    end = F.number.offsetValues(focusOffsets[1]),
-                                    $container = $transcript.find('dd').eq(start.index);
-
-                                rangeUtils.highlightOffsets($container.get(0), [start.offset, end.offset]);
-                            } else {
-                                rangeUtils.highlightOffsets($text.get(0), focusOffsets);
+            return this.dataRequest('ontology', 'properties')
+                .then(function(properties) {
+                    var scrollParent = this.$node.scrollParent(),
+                        scrollTop = scrollParent.scrollTop(),
+                        expandedKey = this.$node.find('.text-section.expanded').data('key'),
+                        expandedName = this.$node.find('.text-section.expanded').data('name'),
+                        textProperties = _.filter(this.model.properties, function(p) {
+                            var ontologyProperty = properties.byTitle[p.name];
+                            if (!ontologyProperty) {
+                                return false;
                             }
-                            self.attr.focus = null;
+
+                            // support legacy ontologies where text is not set to longText
+                            var isTextProperty = _.some(TEXT_PROPERTIES, function(name) {
+                                return name === p.name;
+                            });
+                            if (isTextProperty) {
+                                return true;
+                            }
+
+                            if (!ontologyProperty.userVisible) {
+                                return false;
+                            }
+                            return ontologyProperty.displayType === 'longText';
                         });
-                } else if (expandedKey || textProperties.length === 1) {
-                    return this.openText(expandedKey || textProperties[0].key, {
-                        scrollToSection: textProperties.length !== 1
-                    }).then(function() {
-                        scrollParent.scrollTop(scrollTop);
-                    });
-                } else if (textProperties.length > 1) {
-                    return this.openText(textProperties[0].key, {
-                        expand: false
-                    });
-                }
-            }
+
+                    this.node.classList.add('org-visallo-texts');
+
+                    d3.select(self.node)
+                        .selectAll('section.text-section')
+                        .data(textProperties)
+                        .call(function() {
+                            this.enter()
+                                .append('section')
+                                .attr('class', 'text-section collapsible')
+                                .call(function() {
+                                    this.append('h1').attr('class', 'collapsible-header')
+                                        .call(function() {
+                                            this.append('strong');
+                                            this.append('span').attr('class', 'badge')
+                                        });
+                                    this.append('div').attr('class', 'text');
+                                });
+
+                            this.attr('data-key', function(p) {
+                                    return p.key;
+                                })
+                                .attr('data-name', function(p) {
+                                    return p.name;
+                                })
+                                .each(function() {
+                                    var p = d3.select(this).datum();
+                                    $(this).removePrefixedClasses('ts-').addClass('ts-' + F.className.to(p.key + p.name));
+                                });
+                            this.select('h1 strong').text(function(p) {
+                                var textDescription = 'http://visallo.org#textDescription';
+                                return p[textDescription] || p.metadata[textDescription] || p.key;
+                            });
+
+                            this.exit().remove();
+                        });
+
+                    if (textProperties.length) {
+                        if (this.attr.focus) {
+                            return this.openText(this.attr.focus.textPropertyKey, this.attr.focus.textPropertyName)
+                                .then(function() {
+                                    var $text = self.$node.find('.ts-' +
+                                            F.className.to(self.attr.focus.textPropertyKey + self.attr.focus.textPropertyName) + ' .text'),
+                                        $transcript = $text.find('.av-times'),
+                                        focusOffsets = self.attr.focus.offsets;
+
+                                    if ($transcript.length) {
+                                        var start = F.number.offsetValues(focusOffsets[0]),
+                                            end = F.number.offsetValues(focusOffsets[1]),
+                                            $container = $transcript.find('dd').eq(start.index);
+
+                                        rangeUtils.highlightOffsets($container.get(0), [start.offset, end.offset]);
+                                    } else {
+                                        rangeUtils.highlightOffsets($text.get(0), focusOffsets);
+                                    }
+                                    self.attr.focus = null;
+                                });
+                        } else if ((expandedName && expandedKey) || textProperties.length === 1) {
+                            return this.openText(
+                                expandedKey || textProperties[0].key,
+                                expandedName || textProperties[0].name,
+                                {
+                                    scrollToSection: textProperties.length !== 1
+                                }
+                            ).then(function() {
+                                scrollParent.scrollTop(scrollTop);
+                            });
+                        } else if (textProperties.length > 1) {
+                            return this.openText(textProperties[0].key, textProperties[0].name, {
+                                expand: false
+                            });
+                        }
+                    }
+                }.bind(this));
         };
 
-        this.openText = function(propertyKey, options) {
+        this.openText = function(propertyKey, propertyName, options) {
             var self = this,
                 expand = !options || options.expand !== false,
-                $section = this.$node.find('.ts-' + F.className.to(propertyKey)),
+                $section = this.$node.find('.ts-' + F.className.to(propertyKey + propertyName)),
                 isExpanded = $section.is('.expanded'),
                 $badge = $section.find('.badge'),
                 selection = getSelection(),
@@ -308,7 +334,7 @@ define([
                 hasOpenForm = isExpanded && $section.find('.underneath').length;
 
             if (hasSelection || hasOpenForm) {
-                this.reloadText = this.openText.bind(this, propertyKey, options);
+                this.reloadText = this.openText.bind(this, propertyKey, propertyName, options);
                 return Promise.resolve();
             }
 
@@ -335,6 +361,7 @@ define([
                     .then(function(Text) {
                         Text.attachTo($section.find('.text'), {
                             vertex: self.model,
+                            propertyName: propertyName,
                             propertyKey: propertyKey
                         });
                     })
@@ -342,7 +369,13 @@ define([
                         $section.find('.text').text('Error loading text');
                     })
             } else {
-                this.openTextRequest = this.dataRequest('vertex', 'highlighted-text', this.model.id, propertyKey);
+                this.openTextRequest = this.dataRequest(
+                    'vertex',
+                    'highlighted-text',
+                    this.model.id,
+                    propertyKey,
+                    propertyName
+                );
 
                 textPromise = this.openTextRequest
                     .catch(function() {
@@ -640,6 +673,7 @@ define([
                 TermForm.attachTo(form, {
                     sign: data.text,
                     propertyKey: $textSection.data('key'),
+                    propertyName: $textSection.data('name'),
                     selection: data.selection,
                     mentionNode: data.insertAfterNode,
                     snippet: data.selection ?
@@ -685,6 +719,7 @@ define([
                         {
                             vertexId: self.model.id,
                             textPropertyKey: $textSection.data('key'),
+                            textPropertyName: $textSection.data('name'),
                             startOffset: dataInfo.start,
                             endOffset: dataInfo.end,
                             snippet: rangeUtils.createSnippetFromNode($node[0], undefined, $textBody[0])
@@ -715,6 +750,7 @@ define([
                 snippet: contextHighlight,
                 vertexId: this.model.id,
                 textPropertyKey: $anchor.closest('.text-section').data('key'),
+                textPropertyName: $anchor.closest('.text-section').data('name'),
                 text: selection.toString(),
                 vertexTitle: F.vertex.title(this.model)
             };
@@ -980,6 +1016,7 @@ define([
                                 concept.children.forEach(apply);
                             }
                         }
+
                         apply(concepts.entityConcept);
 
                         // Artifacts
@@ -998,16 +1035,15 @@ define([
         this.scrollToRevealSection = function($section) {
             var scrollIfWithinPixelsFromBottom = 150,
                 y = $section.offset().top,
+                sectionScrollY = $section.offset().top - $section.offsetParent().offset().top,
                 scrollParent = $section.scrollParent(),
                 scrollTop = scrollParent.scrollTop(),
-                scrollHeight = scrollParent[0].scrollHeight,
                 height = scrollParent.outerHeight(),
-                maxScroll = height * 0.5,
                 fromBottom = height - y;
-
+            sectionScrollY += scrollTop + scrollIfWithinPixelsFromBottom;
             if (fromBottom < scrollIfWithinPixelsFromBottom) {
                 scrollParent.animate({
-                    scrollTop: Math.min(scrollHeight - scrollTop, maxScroll)
+                    scrollTop: sectionScrollY - height
                 }, 'fast');
             }
         };

@@ -146,23 +146,21 @@ define([], function() {
         this.onDeleteSelected = function(event, data) {
             var self = this;
 
-            require(['util/privileges'], function(Privileges) {
-                if (!Privileges.canEDIT) {
-                    return;
-                }
+            if (!visalloData.currentWorkspaceEditable) {
+                return;
+            }
 
-                if (data && data.vertexId) {
+            if (data && data.vertexId) {
+                self.trigger('updateWorkspace', {
+                    entityDeletes: [data.vertexId]
+                });
+            } else if (selectedObjects) {
+                if (selectedObjects.vertices.length) {
                     self.trigger('updateWorkspace', {
-                        entityDeletes: [data.vertexId]
+                        entityDeletes: _.pluck(selectedObjects.vertices, 'id')
                     });
-                } else if (selectedObjects) {
-                    if (selectedObjects.vertices.length) {
-                        self.trigger('updateWorkspace', {
-                            entityDeletes: _.pluck(selectedObjects.vertices, 'id')
-                        });
-                    }
                 }
-            });
+            }
         };
 
         this.onSelectObjects = function(event, data) {

@@ -2,6 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.visallo</groupId>
     <artifactId>visallo-root</artifactId>
@@ -74,7 +79,7 @@
         <log4j.version>1.2.17</log4j.version>
         <metrics.version>3.0.2</metrics.version>
         <vertexium.version>2.2.11</vertexium.version>
-        <simple-orm.version>1.1.0</simple-orm.version>
+        <simple-orm.version>1.1.1</simple-orm.version>
         <groovy.version>2.4.5</groovy.version>
         <zip4j.version>1.3.1</zip4j.version>
         <zookeeper.version>3.4.7</zookeeper.version>
@@ -146,41 +151,7 @@
         <frontend.installDirectory>${settings.localRepository}/node/${node.version}</frontend.installDirectory>
     </properties>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>v5analytics-snapshots</id>
-            <url>https://mvn.visallo.com/content/repositories/${distributionManagement.target}-snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>v5analytics</id>
-            <url>https://mvn.visallo.com/content/repositories/${distributionManagement.target}</url>
-        </repository>
-    </distributionManagement>
-
     <repositories>
-        <repository>
-            <id>v5analytics</id>
-            <url>https://mvn.visallo.com/content/groups/public</url>
-        </repository>
-        <repository>
-            <id>v5analytics-snapshots</id>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>interval:60</updatePolicy>
-            </snapshots>
-            <url>https://mvn.visallo.com/content/groups/public-snapshots</url>
-        </repository>
-
-        <!-- FOR: Vertexium, Webster Snapshots -->
-        <repository>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>interval:60</updatePolicy>
-            </snapshots>
-            <id>sonatype-snapshots</id>
-            <url>http://oss.sonatype.org/content/repositories/snapshots/</url>
-        </repository>
-
         <!-- FOR: CDH -->
         <repository>
             <id>com.cloudera</id>

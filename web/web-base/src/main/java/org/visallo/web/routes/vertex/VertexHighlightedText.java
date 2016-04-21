@@ -1,8 +1,10 @@
 package org.visallo.web.routes.vertex;
 
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
+import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.Authorizations;
@@ -43,6 +45,7 @@ public class VertexHighlightedText implements ParameterizedHandler {
     public String handle(
             @Required(name = "graphVertexId") String graphVertexId,
             @Required(name = "propertyKey") String propertyKey,
+            @Optional(name = "propertyName") String propertyName,
             @ActiveWorkspaceId String workspaceId,
             User user,
             Authorizations authorizations,
@@ -55,7 +58,11 @@ public class VertexHighlightedText implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Could not find vertex with id: " + graphVertexId);
         }
 
-        StreamingPropertyValue textPropertyValue = VisalloProperties.TEXT.getPropertyValue(artifactVertex, propertyKey);
+        if (Strings.isNullOrEmpty(propertyName)) {
+            propertyName = VisalloProperties.TEXT.getPropertyName();
+        }
+
+        StreamingPropertyValue textPropertyValue = (StreamingPropertyValue) artifactVertex.getPropertyValue(propertyKey, propertyName);
         if (textPropertyValue != null) {
             LOGGER.debug("returning text for vertexId:%s property:%s", artifactVertex.getId(), propertyKey);
             String highlightedText;
@@ -63,7 +70,7 @@ public class VertexHighlightedText implements ParameterizedHandler {
             if (text == null) {
                 highlightedText = "";
             } else {
-                Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizationsWithTermMention);
+                Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndProperty(artifactVertex.getId(), propertyKey, propertyName, authorizationsWithTermMention);
                 highlightedText = entityHighlighter.getHighlightedText(text, termMentions, workspaceId, authorizationsWithTermMention);
             }
 
@@ -74,7 +81,7 @@ public class VertexHighlightedText implements ParameterizedHandler {
         VideoTranscript videoTranscript = MediaVisalloProperties.VIDEO_TRANSCRIPT.getPropertyValue(artifactVertex, propertyKey);
         if (videoTranscript != null) {
             LOGGER.debug("returning video transcript for vertexId:%s property:%s", artifactVertex.getId(), propertyKey);
-            Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
+            Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndProperty(artifactVertex.getId(), propertyKey, propertyName, authorizations);
             VideoTranscript highlightedVideoTranscript = entityHighlighter.getHighlightedVideoTranscript(videoTranscript, termMentions, workspaceId, authorizations);
             response.setContentType("application/json");
             return highlightedVideoTranscript.toJson().toString();
@@ -83,7 +90,7 @@ public class VertexHighlightedText implements ParameterizedHandler {
         videoTranscript = JsonSerializer.getSynthesisedVideoTranscription(artifactVertex, propertyKey);
         if (videoTranscript != null) {
             LOGGER.debug("returning synthesised video transcript for vertexId:%s property:%s", artifactVertex.getId(), propertyKey);
-            Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndPropertyKey(artifactVertex.getId(), propertyKey, authorizations);
+            Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndProperty(artifactVertex.getId(), propertyKey, propertyName, authorizations);
             VideoTranscript highlightedVideoTranscript = entityHighlighter.getHighlightedVideoTranscript(videoTranscript, termMentions, workspaceId, authorizationsWithTermMention);
             response.setContentType("application/json");
             return highlightedVideoTranscript.toJson().toString();

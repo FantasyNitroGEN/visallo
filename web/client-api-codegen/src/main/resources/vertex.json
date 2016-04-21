@@ -236,7 +236,7 @@
                 {
                     "method": "GET",
                     "summary": "Gets a property history on a vertex",
-                    "type": "ClientApiHistoricalPropertyValues",
+                    "type": "ClientApiHistoricalPropertyResults",
                     "nickname": "getPropertyHistory",
                     "parameters": [
                         {
@@ -501,6 +501,13 @@
                         {
                             "name": "propertyKey",
                             "description": "key of the property",
+                            "required": true,
+                            "type": "string",
+                            "paramType": "query"
+                        },
+                        {
+                            "name": "propertyName",
+                            "description": "name of the property",
                             "required": true,
                             "type": "string",
                             "paramType": "query"

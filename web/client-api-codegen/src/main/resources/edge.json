@@ -36,7 +36,7 @@
                 {
                     "method": "GET",
                     "summary": "Gets a property history on a edge",
-                    "type": "ClientApiHistoricalPropertyValues",
+                    "type": "ClientApiHistoricalPropertyResults",
                     "nickname": "getPropertyHistory",
                     "parameters": [
                         {

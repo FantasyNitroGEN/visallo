@@ -6,11 +6,13 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.mockito.Mock;
 import org.vertexium.*;
 import org.vertexium.id.IdGenerator;
 import org.vertexium.id.QueueIdGenerator;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.inmemory.InMemoryGraphConfiguration;
+import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.search.DefaultSearchIndex;
 import org.vertexium.search.SearchIndex;
 import org.visallo.core.config.Configuration;
@@ -19,6 +21,7 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.graphProperty.*;
 import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
@@ -45,6 +48,9 @@ public abstract class GraphPropertyWorkerTestBase {
     private WorkQueueNames workQueueNames;
     private WorkQueueRepository workQueueRepository;
     private VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
+
+    @Mock
+    protected OntologyRepository ontologyRepository;
 
     protected GraphPropertyWorkerTestBase() {
 
@@ -151,6 +157,25 @@ public abstract class GraphPropertyWorkerTestBase {
             return IOUtils.toByteArray(in);
         } catch (IOException e) {
             throw new VisalloException("Could not load resource. " + sourceClass.getName() + " at " + resourceName, e);
+        }
+    }
+
+    protected void prepare(GraphPropertyWorker gpw) throws Exception {
+        gpw.setOntologyRepository(ontologyRepository);
+        gpw.setVisibilityTranslator(getVisibilityTranslator());
+        gpw.setGraph(getGraph());
+        gpw.setWorkQueueRepository(getWorkQueueRepository());
+        gpw.prepare(getWorkerPrepareData());
+    }
+
+    protected void run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e) {
+        for (Property property : e.getProperties()) {
+            InputStream in = null;
+            if (property.getValue() instanceof StreamingPropertyValue) {
+                StreamingPropertyValue spv = (StreamingPropertyValue) property.getValue();
+                in = spv.getInputStream();
+            }
+            run(gpw, workerPrepareData, e, property, in);
         }
     }
 

@@ -112,6 +112,14 @@ define([
             });
         },
 
+        propertyValue: function(vertexId, name, key) {
+            return ajax('GET->HTML', '/vertex/property', {
+                graphVertexId: vertexId,
+                propertyName: name,
+                propertyKey: key
+            });
+        },
+
         edges: function(vertexId, options) {
             var parameters = {
                 graphVertexId: vertexId
@@ -146,10 +154,11 @@ define([
             })
         },
 
-        'highlighted-text': function(vertexId, propertyKey) {
+        'highlighted-text': function(vertexId, propertyKey, propertyName) {
             return ajax('GET->HTML', '/vertex/highlighted-text', {
                 graphVertexId: vertexId,
-                propertyKey: propertyKey
+                propertyKey: propertyKey,
+                propertyName: propertyName
             });
         },
 

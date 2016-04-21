@@ -686,6 +686,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#text">
         <rdfs:label xml:lang="en">Text</rdfs:label>
+        <displayType>longText</displayType>
         <textIndexHints>FULL_TEXT</textIndexHints>
         <userVisible>false</userVisible>
         <rdfs:range rdf:resource="&xsd;string"/>
@@ -750,6 +751,19 @@
         <textIndexHints>NONE</textIndexHints>
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:range rdf:resource="&xsd;hexBinary"/>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://visallo.org#videoTranscript -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org#videoTranscript">
+        <rdfs:label xml:lang="en">Video Transcript</rdfs:label>
+        <displayType>longText</displayType>
+        <textIndexHints>FULL_TEXT</textIndexHints>
+        <userVisible>false</userVisible>
+        <rdfs:range rdf:resource="&xsd;string"/>
         <rdfs:domain rdf:resource="&owl;Thing"/>
     </owl:DatatypeProperty>
     

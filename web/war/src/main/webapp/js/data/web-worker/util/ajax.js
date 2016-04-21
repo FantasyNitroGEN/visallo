@@ -77,12 +77,12 @@ define(['util/promise'], function(Promise) {
 
                 r.onload = function() {
                     finished = true;
-                    if (r.upload) {
+                    try {
                         r.upload.removeEventListener('progress', progressHandler);
-                    }
-                    var text = r.status === 200 && r.responseText;
+                    } catch(e) {}
 
-                    if (text) {
+                    if (r.status === 200) {
+                        var text = r.responseText;
                         if (isJson) {
                             try {
                                 var json = JSON.parse(text);
@@ -116,14 +116,15 @@ define(['util/promise'], function(Promise) {
                 };
                 r.onerror = function() {
                     finished = true;
-                    if (r.upload) {
+                    try {
                         r.upload.removeEventListener('progress', progressHandler);
-                    }
+                    } catch(e) {}
                     reject(new Error('Network Error'));
                 };
                 r.open(method, resolvedUrl, true);
 
-                if (r.upload) {
+                // using try/catch here because I could not get feature detection to work in IE11
+                try {
                     r.upload.addEventListener('progress', (progressHandler = function(event) {
                         if (event.lengthComputable) {
                             var complete = (event.loaded / event.total || 0);
@@ -132,7 +133,7 @@ define(['util/promise'], function(Promise) {
                             }
                         }
                     }), false);
-                }
+                } catch(e) {}
 
                 if (method === 'POST' && parameters) {
                     formData = params;
