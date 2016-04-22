@@ -3,7 +3,6 @@ package org.visallo.web;
 import com.google.inject.Injector;
 import com.v5analytics.webster.App;
 import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.handlers.AppendableStaticResourceHandler;
 import com.v5analytics.webster.handlers.StaticResourceHandler;
 import com.v5analytics.webster.resultWriters.ResultWriterFactory;
 import org.json.JSONObject;
@@ -110,12 +109,20 @@ public class WebApp extends App {
     }
 
     private void register(String name, String type, String pathPrefix, Boolean includeInPage, String closureExternResourcePath) {
-        register(name, type, pathPrefix, includeInPage, closureExternResourcePath, pluginsJsResourcesAfterAuth);
+        register(name, type, pathPrefix, includeInPage, closureExternResourcePath, pluginsJsResourcesAfterAuth, false);
     }
 
-    private void register(String name, String type, String pathPrefix, Boolean includeInPage, String closureExternResourcePath, List<String> resourceList) {
+    private void register(
+            String name,
+            String type,
+            String pathPrefix,
+            boolean includeInPage,
+            String closureExternResourcePath,
+            List<String> resourceList,
+            boolean skipCompile
+    ) {
         String resourcePath = "/" + (pathPrefix + name).replaceAll("^/", "");
-        if (type.equals("application/javascript") && !pluginDevMode) {
+        if (type.equals("application/javascript") && !pluginDevMode && !skipCompile) {
             boolean enableSourceMaps = isDevModeEnabled();
             JavascriptResourceHandler handler = new JavascriptResourceHandler(name, resourcePath, enableSourceMaps, closureExternResourcePath);
             get(resourcePath, handler);
@@ -134,12 +141,8 @@ public class WebApp extends App {
 
     /**
      * Register JavaScript file to be available for the application.
-     *
+     * <p>
      * Include an optional resource path to closure compiler extern js file.
-     *
-     * @param scriptResourceName
-     * @param includeInPage
-     * @param closureExternResourcePath
      */
     public void registerJavaScript(String scriptResourceName, Boolean includeInPage, String closureExternResourcePath) {
         register(scriptResourceName, "application/javascript", "jsc", includeInPage, closureExternResourcePath);
@@ -148,12 +151,12 @@ public class WebApp extends App {
 
     /**
      * Register JavaScript file to be available for the application.
-     *
+     * <p>
      * If includeInPage is false the file is still available for requiring before
      * authentication.
      *
      * @param scriptResourceName Classpath to JavaScript file
-     * @param includeInPage Set to true to load automatically after authentication
+     * @param includeInPage      Set to true to load automatically after authentication
      */
     public void registerJavaScript(String scriptResourceName, Boolean includeInPage) {
         register(scriptResourceName, "application/javascript", "jsc", includeInPage, null);
@@ -161,7 +164,22 @@ public class WebApp extends App {
 
     /**
      * Register JavaScript file to be automatically loaded after authentication.
-     *
+     */
+    public void registerJavaScript(JavaScriptResource javaScriptResource) {
+        register(
+                javaScriptResource.getResourcePath(),
+                "application/javascript",
+                "jsc",
+                javaScriptResource.isIncludeInPage(),
+                null,
+                pluginsJsResourcesAfterAuth,
+                javaScriptResource.isSkipCompile()
+        );
+    }
+
+    /**
+     * Register JavaScript file to be automatically loaded after authentication.
+     * <p>
      * Loaded using requirejs, so use `define` to stop further plugin
      * loading until all dependencies are met, or `require` to continue
      * asynchronously.
@@ -174,13 +192,13 @@ public class WebApp extends App {
 
     /**
      * Register a JavaScript file to be loaded in web-worker thread.
-     *
+     * <p>
      * Passes along an "externs" resource path to validate closure compilation.
-     *
+     * <p>
      * Loaded using requirejs, so use `define` to stop further plugin
      * loading until all dependencies are met, or `require` to continue
      * asynchronously.
-     *
+     * <p>
      * Use caution about loading visallo dependencies as they will be copies
      * in the worker.
      *
@@ -188,16 +206,16 @@ public class WebApp extends App {
      * @param closureExternResourcePath
      */
     public void registerWebWorkerJavaScript(String scriptResourceName, String closureExternResourcePath) {
-        register(scriptResourceName, "application/javascript", "jsc", true, closureExternResourcePath, pluginsJsResourcesWebWorker);
+        register(scriptResourceName, "application/javascript", "jsc", true, closureExternResourcePath, pluginsJsResourcesWebWorker, false);
     }
 
     /**
      * Register a JavaScript file to be loaded in web-worker thread.
-     *
+     * <p>
      * Loaded using requirejs, so use `define` to stop further plugin
      * loading until all dependencies are met, or `require` to continue
      * asynchronously.
-     *
+     * <p>
      * Use caution about loading visallo dependencies as they will be copies
      * in the worker.
      *
@@ -210,7 +228,7 @@ public class WebApp extends App {
     /**
      * Register a JavaScript file to be loaded if user is not authenticated.
      * Primarily used for implementing the login authentication component.
-     *
+     * <p>
      * Loaded using requirejs, so use `define` to stop further plugin
      * loading until all dependencies are met, or `require` to continue
      * asynchronously.
@@ -218,7 +236,7 @@ public class WebApp extends App {
      * @param scriptResourceName Classpath to JavaScript file
      */
     public void registerBeforeAuthenticationJavaScript(String scriptResourceName) {
-        register(scriptResourceName, "application/javascript", "jsc", true, null, pluginsJsResourcesBeforeAuth);
+        register(scriptResourceName, "application/javascript", "jsc", true, null, pluginsJsResourcesBeforeAuth, false);
     }
 
     /**
@@ -234,7 +252,7 @@ public class WebApp extends App {
      * Register a new generic file.
      *
      * @param resourceName Classpath to file
-     * @param mimeType Type to serve file as
+     * @param mimeType     Type to serve file as
      */
     public void registerFile(String resourceName, String mimeType) {
         register(resourceName, mimeType, "", false, null);
@@ -334,5 +352,37 @@ public class WebApp extends App {
 
     public boolean isDevModeEnabled() {
         return devMode;
+    }
+
+    public static class JavaScriptResource {
+        private final String resourcePath;
+        private boolean includeInPage = true;
+        private boolean skipCompile = false;
+
+        public JavaScriptResource(String resourcePath) {
+            this.resourcePath = resourcePath;
+        }
+
+        public JavaScriptResource includeInPage(boolean includeInPage) {
+            this.includeInPage = includeInPage;
+            return this;
+        }
+
+        public String getResourcePath() {
+            return resourcePath;
+        }
+
+        public boolean isIncludeInPage() {
+            return includeInPage;
+        }
+
+        public boolean isSkipCompile() {
+            return skipCompile;
+        }
+
+        public JavaScriptResource skipCompile(boolean skipCompile) {
+            this.skipCompile = skipCompile;
+            return this;
+        }
     }
 }
