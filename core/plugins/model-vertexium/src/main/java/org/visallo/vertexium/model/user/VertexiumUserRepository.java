@@ -199,9 +199,7 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
-    public void setPassword(User user, String password) {
-        byte[] salt = UserPasswordUtil.getSalt();
-        byte[] passwordHash = UserPasswordUtil.hashPassword(password, salt);
+    public void setPassword(User user, byte[] salt, byte[] passwordHash) {
         Vertex userVertex = findByIdUserVertex(user.getUserId());
         UserVisalloProperties.PASSWORD_SALT.setProperty(userVertex, salt, VISIBILITY.getVisibility(), authorizations);
         UserVisalloProperties.PASSWORD_HASH.setProperty(userVertex, passwordHash, VISIBILITY.getVisibility(), authorizations);

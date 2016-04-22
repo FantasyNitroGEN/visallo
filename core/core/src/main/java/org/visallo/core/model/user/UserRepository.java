@@ -91,7 +91,13 @@ public abstract class UserRepository {
 
     protected abstract User addUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations);
 
-    public abstract void setPassword(User user, String password);
+    public void setPassword(User user, String password) {
+        byte[] salt = UserPasswordUtil.getSalt();
+        byte[] passwordHash = UserPasswordUtil.hashPassword(password, salt);
+        setPassword(user, salt, passwordHash);
+    }
+
+    public abstract void setPassword(User user, byte[] salt, byte[] passwordHash);
 
     public abstract boolean isPasswordValid(User user, String password);
 

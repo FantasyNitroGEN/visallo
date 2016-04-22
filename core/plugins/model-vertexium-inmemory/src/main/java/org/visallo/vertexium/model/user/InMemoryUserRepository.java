@@ -83,7 +83,7 @@ public class InMemoryUserRepository extends UserRepository {
     }
 
     @Override
-    public void setPassword(User user, String password) {
+    public void setPassword(User user, byte[] salt, byte[] passwordHash) {
         throw new RuntimeException("Not implemented");
     }
 

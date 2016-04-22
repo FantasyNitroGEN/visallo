@@ -2,11 +2,13 @@ package org.visallo.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 import org.vertexium.Authorizations;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.UserVisalloProperties;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -17,6 +19,7 @@ import org.visallo.web.clientapi.model.UserStatus;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -67,6 +70,9 @@ public class UserAdmin extends CommandLineTool {
             case CMD_ACTION_SET_DISPLAYNAME_EMAIL:
                 this.args = new SetDisplayNameEmailArgs();
                 break;
+            case CMD_ACTION_EXPORT_PASSWORDS:
+                this.args = new ExportPasswordsArgs();
+                break;
             default:
                 throw new VisalloException("Unhandled userAdminAction: " + userAdminAction);
         }
@@ -101,12 +107,37 @@ public class UserAdmin extends CommandLineTool {
                     return setAuthorizations((SetAuthorizationsArgs) args);
                 case CMD_ACTION_SET_DISPLAYNAME_EMAIL:
                     return setDisplayNameAndOrEmail((SetDisplayNameEmailArgs) this.args);
+                case CMD_ACTION_EXPORT_PASSWORDS:
+                    return exportPasswords((ExportPasswordsArgs) this.args);
             }
         } catch (UserNotFoundException ex) {
             System.err.println(ex.getMessage());
             return 2;
         }
         throw new VisalloException("Unhandled userAdminAction: " + userAdminAction);
+    }
+
+    private int exportPasswords(ExportPasswordsArgs args) {
+        List<User> sortedUsers = loadUsers().stream()
+                .sorted((u1, u2) -> u1.getUsername().compareTo(u2.getUsername()))
+                .collect(Collectors.toList());
+
+        if (!sortedUsers.isEmpty()) {
+            int maxUsernameWidth = sortedUsers.stream().map(User::getUsername).map(String::length).max(Integer::compareTo).get();
+            String format = String.format("%%%ds %%s%%n", -1 * maxUsernameWidth);
+            for (User user : sortedUsers) {
+                System.out.printf(format,
+                    user.getUsername(),
+                    Base64.getEncoder().encodeToString((byte[])user.getProperty(UserVisalloProperties.PASSWORD_SALT.getPropertyName())) +
+                        ":" +
+                        Base64.getEncoder().encodeToString((byte[])user.getProperty(UserVisalloProperties.PASSWORD_HASH.getPropertyName()))
+                );
+            }
+        } else {
+            System.out.println("No users");
+        }
+
+        return 0;
     }
 
     private int create(CreateUserArgs args) {
@@ -137,28 +168,12 @@ public class UserAdmin extends CommandLineTool {
     }
 
     private int list(ListUsersArgs args) {
-        int skip = 0;
-        int limit = 100;
-        List<User> sortedUsers = new ArrayList<>();
-        while (true) {
-            List<User> users = toList(getUserRepository().find(skip, limit));
-            if (users.size() == 0) {
-                break;
-            }
-            sortedUsers.addAll(users);
-            skip += limit;
-        }
-        Collections.sort(sortedUsers, new Comparator<User>() {
-            @Override
-            public int compare(User u1, User u2) {
-                Date d1 = u1.getCreateDate();
-                Date d2 = u2.getCreateDate();
-                if (d1 != null && d2 != null) {
-                    return d1.compareTo(d2);
-                }
-                return 0;
-            }
-        });
+        List<User> sortedUsers = loadUsers().stream().sorted((u1, u2) -> {
+            Date d1 = u1.getCreateDate();
+            Date d2 = u2.getCreateDate();
+            return d1 == d2 ? 0 : d1.compareTo(d2);
+        }).collect(Collectors.toList());
+
         if (args.asTable) {
             printUsers(sortedUsers);
         } else {
@@ -170,32 +185,12 @@ public class UserAdmin extends CommandLineTool {
     }
 
     private int active(ListActiveUsersArgs args) {
-        int skip = 0;
-        int limit = 100;
-        List<User> activeUsers = new ArrayList<>();
-        while (true) {
-            List<User> users = toList(getUserRepository().findByStatus(skip, limit, UserStatus.ACTIVE));
-            if (users.size() == 0) {
-                break;
-            }
-            activeUsers.addAll(users);
-            skip += limit;
-        }
+        List<User> activeUsers = loadUsers(UserStatus.ACTIVE);
         System.out.println(activeUsers.size() + " " + UserStatus.ACTIVE + " user" + (activeUsers.size() == 1 ? "" : "s"));
         printUsers(activeUsers);
 
         if (args.showIdle) {
-            skip = 0;
-            limit = 100;
-            List<User> idleUsers = new ArrayList<>();
-            while (true) {
-                List<User> users = toList(getUserRepository().findByStatus(skip, limit, UserStatus.IDLE));
-                if (users.size() == 0) {
-                    break;
-                }
-                idleUsers.addAll(users);
-                skip += limit;
-            }
+            List<User> idleUsers = loadUsers(UserStatus.IDLE);
             System.out.println(idleUsers.size() + " " + UserStatus.IDLE + " user" + (idleUsers.size() == 1 ? "" : "s"));
             printUsers(idleUsers);
         }
@@ -205,7 +200,14 @@ public class UserAdmin extends CommandLineTool {
 
     private int updatePassword(UpdatePasswordArgs args) {
         User user = findUser(args);
-        getUserRepository().setPassword(user, args.password);
+        if (!Strings.isNullOrEmpty(args.password)) {
+            getUserRepository().setPassword(user, args.password);
+        } else if (!Strings.isNullOrEmpty(args.passwordSaltAndHash)) {
+            String[] saltAndHashStrings = args.passwordSaltAndHash.split(":", -1);
+            byte[] salt = Base64.getDecoder().decode(saltAndHashStrings[0]);
+            byte[] passwordHash = Base64.getDecoder().decode(saltAndHashStrings[1]);
+            getUserRepository().setPassword(user, salt, passwordHash);
+        }
         printUser(user);
         return 0;
     }
@@ -377,6 +379,28 @@ public class UserAdmin extends CommandLineTool {
     private int maxWidth(Object o, int max) {
         int width = valueOrBlank(o).length();
         return width > max ? width : max;
+    }
+
+    private List<User> loadUsers() {
+        return loadUsers(null);
+    }
+
+    private List<User> loadUsers(UserStatus filter) {
+        List<User> allUsers = new ArrayList<>();
+
+        int limit = 100;
+        for (int skip = 0; ; skip += limit) {
+            Iterable<User> usersIterable = (filter == null) ?
+                    getUserRepository().find(skip, limit) :
+                    getUserRepository().findByStatus(skip, limit, filter);
+
+            List<User> userPage = toList(usersIterable);
+            if (userPage.size() == 0) {
+                break;
+            }
+            allUsers.addAll(userPage);
+        }
+        return allUsers;
     }
 
     @Inject

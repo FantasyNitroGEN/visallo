@@ -7,6 +7,7 @@ public enum UserAdminAction {
     CMD_ACTION_CREATE("create"),
     CMD_ACTION_LIST("list"),
     CMD_ACTION_ACTIVE("active"),
+    CMD_ACTION_EXPORT_PASSWORDS("export-passwords"),
     CMD_ACTION_UPDATE_PASSWORD("update-password"),
     CMD_ACTION_DELETE("delete"),
     CMD_ACTION_SET_PRIVILEGES("set-privileges"),
