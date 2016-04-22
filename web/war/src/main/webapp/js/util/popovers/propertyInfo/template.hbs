@@ -6,7 +6,7 @@
 
     {{#unless isComment}}
       {{#if canDelete}}
-      <li><button class="btn btn-danger btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.delete' }}</button></li>
+      <li><button class="btn btn-danger btn-small">{{ i18n 'popovers.property_info.button.delete' }}</button></li>
       {{/if}}
 
       {{#if canSearch}}
@@ -14,22 +14,24 @@
       {{/if}}
 
       {{#if canEdit}}
-      <li><button class="btn-edit btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
+      <li><button class="btn-edit btn btn-small">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
       {{else}}
           {{#if canAdd}}
-            <li><button class="btn-add btn btn-small requires-EDIT">{{ i18n 'popovers.property_info.button.add' }}</button></li>
+            <li><button class="btn-add btn btn-small">{{ i18n 'popovers.property_info.button.add' }}</button></li>
           {{/if}}
       {{/if}}
     {{/unless}}
 
     {{#if isComment}}
       {{#if canDelete}}
-      <li><button class="btn btn-danger btn-small requires-COMMENT">{{ i18n 'popovers.property_info.button.delete' }}</button></li>
+      <li><button class="btn btn-danger btn-small">{{ i18n 'popovers.property_info.button.delete' }}</button></li>
       {{/if}}
-      {{#if isCommentCreator}}
-      <li><button class="editadd btn btn-small requires-COMMENT btn-edit">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
+      {{#if canEdit}}
+      <li><button class="editadd btn btn-small btn-edit">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
       {{/if}}
-      <li><button class="reply btn btn-small requires-COMMENT">{{ i18n 'popovers.property_info.button.reply' }}</button></li>
+      {{#if canAdd}}
+      <li><button class="reply btn btn-small">{{ i18n 'popovers.property_info.button.reply' }}</button></li>
+      {{/if}}
     {{/if}}
     </ul>
   </div>

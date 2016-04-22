@@ -25,7 +25,7 @@ define([
         NO_GROUP = '${NO_GROUP}',
 
         // Property td types
-        GROUP = 0, NAME = 1, VALUE = 2,
+        GROUP = 0, NAME = 1, VALUE = 2, HIDDEN_COLLAPSE = 3,
 
         alreadyWarnedAboutMissingOntology = {};
 
@@ -464,21 +464,21 @@ define([
 
     function createPropertyGroups(vertex, ontologyProperties, showMoreExpanded, maxItemsBeforeHidden, expandedSections,
                                   config) {
-        this.enter()
-            .insert('tbody', '.buttons-row')
-            .attr('class', function(d, groupIndex, j) {
-                var cls = 'property-group collapsible';
-                if (groupIndex === 0) {
-                    return cls + ' expanded';
-                }
-
-                return cls + ' ' + (
-                    _.contains(expandedSections, d[0]) ?
-                        'expanded' : 'collapsed'
-                );
-            });
-
+        this.exit().remove();
+        this.enter().insert('tbody', '.buttons-row');
         this.order();
+
+        this.attr('class', function(d, groupIndex, j) {
+            var cls = 'property-group collapsible';
+            if (groupIndex === 0) {
+                return cls + ' expanded';
+            }
+
+            return cls + ' ' + (
+                _.contains(expandedSections, d[0]) ?
+                    'expanded' : 'collapsed'
+            );
+        });
 
         this.attr('data-section-name', function(d) {
             return d[0];
@@ -486,15 +486,22 @@ define([
 
         var totalPropertyCountsByName = {};
 
-        this.selectAll('tr.property-group-header, tr.property-row')
+        this.selectAll('tr.property-group-header, tr.property-row, tr.property-hidden')
             .data(function(pair) {
                 return _.chain(pair[1])
                     .map(function(p) {
-                        totalPropertyCountsByName[p[0]] = p[1].length - maxItemsBeforeHidden;
+                        var hidden = p[1].length - maxItemsBeforeHidden;
+                        totalPropertyCountsByName[p[0]] = hidden;
                         if (p[0] in showMoreExpanded) {
-                            return p[1];
+                            var expanded = p[1].slice(0);
+                            expanded.splice(maxItemsBeforeHidden, 0, { name: p[0], hidden: hidden, isExpanded: true });
+                            return expanded;
                         }
-                        return p[1].slice(0, maxItemsBeforeHidden);
+                        var truncated = p[1].slice(0, maxItemsBeforeHidden);
+                        if (hidden > 0) {
+                            truncated.push({ name: p[0], hidden: hidden, isExpanded: false });
+                        }
+                        return truncated;
                     })
                     .flatten()
                     .tap(function(list) {
@@ -519,8 +526,6 @@ define([
                           config
                 )
             )
-
-        this.exit().remove();
     }
 
     function createProperties(vertex,
@@ -530,16 +535,20 @@ define([
                               showMoreExpanded,
                               config) {
 
-        this.enter()
-            .append('tr')
-            .attr('class', function(datum) {
-                if (_.isString(datum[0])) {
-                    return 'property-group-header';
-                }
-                return 'property-row property-row-' + F.className.to(datum.name + datum.key);
-            });
 
+        this.exit().remove();
+        this.enter().append('tr')
         this.order();
+
+        this.attr('class', function(datum) {
+            if (_.isString(datum[0])) {
+                return 'property-group-header';
+            }
+            if ('hidden' in datum) {
+                return 'property-hidden';
+            }
+            return 'property-row property-row-' + F.className.to(datum.name + datum.key);
+        });
 
         var currentPropertyIndex = 0,
             lastPropertyName = '';
@@ -552,6 +561,12 @@ define([
                         name: datum[0],
                         count: datum[1]
                     }];
+                }
+                if ('hidden' in datum) {
+                    return [
+                        { type: HIDDEN_COLLAPSE, spacer: true },
+                        { type: HIDDEN_COLLAPSE, name: datum.name, hidden: datum.hidden, isExpanded: datum.isExpanded }
+                    ];
                 }
 
                 if (datum.name === lastPropertyName) {
@@ -578,35 +593,37 @@ define([
                 ];
             })
             .call(_.partial(createPropertyRow, vertex, ontologyProperties, maxItemsBeforeHidden, config));
-
-        this.exit().remove();
     }
 
     function createPropertyRow(vertex, ontologyProperties, maxItemsBeforeHidden, config) {
-        this.enter()
-            .append('td')
-            .each(function(datum) {
-                var d3element = d3.select(this);
-                switch (datum.type) {
-                    case GROUP:
-                        d3element.append('h1')
-                            .attr('class', 'collapsible-header')
-                            .call(function() {
-                                this.append('span').attr('class', 'badge');
-                                this.append('strong');
-                            });
-                            break;
-                    case NAME: d3element.append('strong'); break;
-                    case VALUE:
-                        d3element.append('span').attr('class', 'value');
-                        d3element.append('button').attr('class', 'info')
-                        d3element.append('span').attr('class', 'visibility');
-                        if (datum.propertyIndex === (maxItemsBeforeHidden - 1)) {
-                            d3element.append('a').attr('class', 'show-more');
-                        }
+        this.exit().remove();
+        this.enter().append('td').each(function(datum) {
+            var d3element = d3.select(this);
+            switch (datum.type) {
+                case HIDDEN_COLLAPSE:
+                    if (!datum.spacer) {
+                        d3element.append('a').attr('class', 'show-more');
+                    }
+                    break;
+                case GROUP:
+                    d3element.append('h1')
+                        .attr('class', 'collapsible-header')
+                        .call(function() {
+                            this.append('span').attr('class', 'badge');
+                            this.append('strong');
+                        });
                         break;
-                }
-            });
+                case NAME: d3element.append('strong'); break;
+                case VALUE:
+                    d3element.append('div').attr('class', 'value-container')
+                        .call(function() {
+                            this.append('span').attr('class', 'value');
+                            this.append('button').attr('class', 'info');
+                            this.append('span').attr('class', 'visibility');
+                        })
+                    break;
+            }
+        });
 
         this.order();
 
@@ -615,17 +632,14 @@ define([
                     return 'property-name';
                 } else if (datum.type === VALUE) {
                     return 'property-value';
-                }
-            })
-            .attr('width', function(datum) {
-                if (datum.type === NAME) {
-                    return '40%';
+                } else if (datum.type === HIDDEN_COLLAPSE && !datum.spacer) {
+                    return 'property-hidden-toggle'
                 }
             })
             .attr('colspan', function(datum) {
                 if (datum.type === GROUP) {
                     return '3';
-                } else if (datum.type === VALUE) {
+                } else if (datum.type === VALUE || (datum.type === HIDDEN_COLLAPSE && !datum.spacer)) {
                     return '2';
                 }
                 return '1';
@@ -636,10 +650,7 @@ define([
                 this.select('h1.collapsible-header strong').text(_.property('name'))
                 this.select('h1.collapsible-header .badge')
                     .text(function(d) {
-                        return i18n('properties.groups.count',
-                            F.number.pretty(d.count.propertyCount),
-                            F.number.pretty(d.count.valueCount)
-                        );
+                        return F.number.pretty(d.count.valueCount)
                     })
                     .attr('title', function(d) {
                         var propertyLabel = 'properties.groups.count.hover.property',
@@ -739,27 +750,25 @@ define([
                         }
                     });
 
-                this.select('.property-value .show-more')
+                this.select('.show-more')
                     .attr('data-property-name', function(d) {
-                        return d.property.name;
+                        return d.name;
                     })
                     .text(function(d) {
                         return i18n(
                             'properties.button.' + (d.isExpanded ? 'hide_more' : 'show_more'),
                             F.number.pretty(d.hidden),
-                            ontologyProperties.byTitle[d.property.name].displayName
+                            ontologyProperties.byTitle[d.name].displayName
                         );
                     })
                     .style('display', function(d) {
-                        if (d.showToggleLink && d.hidden > 0) {
+                        if (d.hidden > 0) {
                             return 'block';
                         }
 
                         return 'none';
                     });
             })
-
-        this.exit().remove();
     }
 
 });

@@ -4,12 +4,14 @@ define([
     '../withPopover',
     'util/vertex/formatters',
     'util/withDataRequest',
+    'util/privileges',
     'd3'
 ], function(
     defineComponent,
     withPopover,
     F,
     withDataRequest,
+    Privileges,
     d3) {
     'use strict';
 
@@ -31,14 +33,15 @@ define([
             config.isFullscreen = visalloData.isFullscreen;
             if (config.property) {
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
+                var hasWorkspaceWrite = config.isComment ? visalloData.currentWorkspaceCommentable : visalloData.currentWorkspaceEditable;
                 config.isCommentCreator = config.isComment &&
                     config.property.metadata &&
                     config.property.metadata['http://visallo.org#modifiedBy'] === visalloData.currentUser.id;
-                config.canEdit = config.property.updateable !== false &&
-                    (config.isComment ? config.isCommentCreator : true);
-                config.canDelete = config.property.deleteable !== false &&
-                    config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson';
-                config.canAdd = config.property.addable !== false;
+                config.canEdit = config.property.updateable !== false && (!config.isComment || config.isCommentCreator) && hasWorkspaceWrite;
+                config.canDelete = config.isComment ?
+                    config.isCommentCreator && hasWorkspaceWrite :
+                    (config.property.deleteable !== false && config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson');
+                config.canAdd = config.property.addable !== false && hasWorkspaceWrite;
 
                 var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
                     config.ontologyProperty.dependentPropertyIris.length;
@@ -219,6 +222,13 @@ define([
 
             row.exit().remove();
 
+            if (!this.popover.find('.popover-content table > tr:visible, .popover-content .buttons li').length) {
+                this.popover.find('.popover-content').html(
+                    $('<span>')
+                        .addClass('popover-empty')
+                        .text(i18n('popovers.property_info.no_metadata'))
+                );
+            }
             this.dialog.show();
             positionDialog();
         };

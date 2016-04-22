@@ -78,7 +78,11 @@ define([], function() {
                             distance = Math.sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y))
 
                         if (distance < 5) {
-                            self.teardown();
+                            // Wait a little in case other event handlers are
+                            // looking for popover
+                            _.defer(function() {
+                                self.teardown();
+                            })
                         }
                     })
                 })

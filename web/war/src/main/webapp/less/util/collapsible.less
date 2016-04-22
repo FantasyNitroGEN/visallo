@@ -25,13 +25,18 @@
   @color: darken(@pane-background, 30%);
   margin-top: 1px;
 
-  & > h1 {
+  & > h1, .collapsible-header {
     .badge {      
       position: absolute;
       right: 1ex;
       left: auto;
       top: 0.4ex;
 
+      &.loading {
+        left: auto;
+        right: 10px;
+        top: 2px;
+      }
       &:not(.loading) {
         background: inherit;
         color: @color;

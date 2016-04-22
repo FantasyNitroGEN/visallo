@@ -6,6 +6,13 @@
     min-width: 225px;
     padding: 0;
 
+    .popover-empty {
+      padding: 0.25em 0.5em;
+      color: #777;
+      font-style: italic;
+      display: block;
+      text-align: center;
+    }
     .justification, table {
       font-size: 85%;
       margin: 0.5em;
@@ -65,38 +72,14 @@
     .buttons {
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      display: flex;
+      flex-wrap: nowrap;
+      list-style: none;
 
       li {
-        display: inline-block;
-        float: left;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
-      }
-
-      /* one item */
-      li:first-child:nth-last-child(1) {
-        width: 100%;
-        float: none;
-      }
-
-      /* two items */
-      li:first-child:nth-last-child(2),
-      li:first-child:nth-last-child(2) ~ li {
-        width: 50%;
-      }
-
-      /* three items */
-      li:first-child:nth-last-child(3),
-      li:first-child:nth-last-child(3) ~ li {
-        width: 33.3333%;
-      }
-
-      /* four items */
-      li:first-child:nth-last-child(4),
-      li:first-child:nth-last-child(4) ~ li {
-        width: 25%;
+        flex: 1 1 auto;
       }
 
       li:first-child {
