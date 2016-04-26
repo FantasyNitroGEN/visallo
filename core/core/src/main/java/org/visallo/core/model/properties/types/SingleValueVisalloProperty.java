@@ -9,6 +9,8 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<TRaw, TGraph> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SingleValueVisalloProperty.class);
 
@@ -39,6 +41,13 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
     public final TRaw getPropertyValue(final Element element) {
         Object value = element != null ? element.getPropertyValue(getPropertyName()) : null;
         return value != null ? getRawConverter().apply(value) : null;
+    }
+
+    public final TRaw getPropertyValueRequired(final Element element) {
+        checkNotNull(element, "Element cannot be null");
+        Object value = element.getPropertyValue(getPropertyName());
+        checkNotNull(value, "Property value of property " + getPropertyName() + " cannot be null");
+        return getRawConverter().apply(value);
     }
 
     public final TRaw getPropertyValue(final Map<String, Object> map) {

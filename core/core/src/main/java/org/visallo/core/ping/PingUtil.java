@@ -1,7 +1,7 @@
 package org.visallo.core.ping;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -18,7 +18,6 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.Privilege;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -28,19 +27,18 @@ import java.util.List;
 public class PingUtil {
     public static final String VISIBILITY_STRING = "ping";
     public static final Visibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING).getVisibility();
-    private static final String USERNAME = "ping";
-    private static final String DISPLAY_NAME = "Ping User";
+    private final User systemUser;
 
-    public static void setup(AuthorizationRepository authorizationRepository, UserRepository userRepository) {
+    @Inject
+    public PingUtil(
+            AuthorizationRepository authorizationRepository,
+            UserRepository userRepository
+    ) {
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
-        userRepository.findOrAddUser(USERNAME, DISPLAY_NAME, null, UserRepository.createRandomPassword(), Sets.newHashSet(Privilege.READ), Sets.newHashSet(VISIBILITY_STRING));
+        this.systemUser = userRepository.getSystemUser();
     }
 
-    public static User getUser(UserRepository userRepository) {
-        return userRepository.findByUsername(USERNAME);
-    }
-
-    public static String search(Graph graph, Authorizations authorizations) {
+    public String search(Graph graph, Authorizations authorizations) {
         Query query = graph.query(authorizations).limit(1);
         List<Vertex> vertices = Lists.newArrayList(query.vertices());
         if (vertices.size() == 0) {
@@ -51,14 +49,14 @@ public class PingUtil {
         return vertices.get(0).getId();
     }
 
-    public static void retrieve(String vertexId, Graph graph, Authorizations authorizations) {
+    public void retrieve(String vertexId, Graph graph, Authorizations authorizations) {
         Vertex retrievedVertex = graph.getVertex(vertexId, authorizations);
         if (retrievedVertex == null) {
             throw new VisalloException("failed to retrieve vertex by id: " + vertexId);
         }
     }
 
-    public static Vertex createVertex(String remoteAddr, long searchTime, long retrievalTime, Graph graph, Authorizations authorizations) {
+    public Vertex createVertex(String remoteAddr, long searchTime, long retrievalTime, Graph graph, Authorizations authorizations) {
         Date createDate = new Date();
         String vertexId = PingOntology.getVertexId(createDate);
         ElementMutation<Vertex> mutation = graph.prepareVertex(vertexId, VISIBILITY);
@@ -72,13 +70,13 @@ public class PingUtil {
         return vertex;
     }
 
-    public static void enqueue(Vertex vertex, WorkQueueRepository workQueueRepository, Priority priority) {
+    public void enqueueToWorkQueue(Vertex vertex, WorkQueueRepository workQueueRepository, Priority priority) {
         workQueueRepository.pushElement(vertex, priority);
     }
 
-    public static void gpwUpdate(Vertex vertex, Graph graph, Authorizations authorizations) {
+    public void gpwUpdate(Vertex vertex, Graph graph, Authorizations authorizations) {
         Date updateDate = new Date();
-        Long waitTimeMs = updateDate.getTime() - PingOntology.CREATE_DATE.getPropertyValue(vertex).getTime();
+        Long waitTimeMs = updateDate.getTime() - PingOntology.CREATE_DATE.getPropertyValueRequired(vertex).getTime();
         ElementMutation<Vertex> mutation = vertex.prepareMutation();
         PingOntology.GRAPH_PROPERTY_WORKER_DATE.setProperty(mutation, updateDate, VISIBILITY);
         PingOntology.GRAPH_PROPERTY_WORKER_HOSTNAME.setProperty(mutation, getHostname(), VISIBILITY);
@@ -88,13 +86,13 @@ public class PingUtil {
         graph.flush();
     }
 
-    public static void enqueue(Vertex vertex, LongRunningProcessRepository longRunningProcessRepository, User user, Authorizations authorizations) {
-        longRunningProcessRepository.enqueue(new PingLongRunningProcessQueueItem(vertex).toJson(), user, authorizations);
+    public void enqueueToLongRunningProcess(Vertex vertex, LongRunningProcessRepository longRunningProcessRepository, Authorizations authorizations) {
+        longRunningProcessRepository.enqueue(new PingLongRunningProcessQueueItem(vertex).toJson(), systemUser, authorizations);
     }
 
-    public static void lrpUpdate(Vertex vertex, Graph graph, Authorizations authorizations) {
+    public void lrpUpdate(Vertex vertex, Graph graph, Authorizations authorizations) {
         Date updateDate = new Date();
-        Long waitTimeMs = updateDate.getTime() - PingOntology.CREATE_DATE.getPropertyValue(vertex).getTime();
+        Long waitTimeMs = updateDate.getTime() - PingOntology.CREATE_DATE.getPropertyValueRequired(vertex).getTime();
         ElementMutation<Vertex> mutation = vertex.prepareMutation();
         PingOntology.LONG_RUNNING_PROCESS_DATE.setProperty(mutation, updateDate, VISIBILITY);
         PingOntology.LONG_RUNNING_PROCESS_HOSTNAME.setProperty(mutation, getHostname(), VISIBILITY);
@@ -104,7 +102,7 @@ public class PingUtil {
         graph.flush();
     }
 
-    public static JSONObject getAverages(int minutes, Graph graph, Authorizations authorizations) {
+    public JSONObject getAverages(int minutes, Graph graph, Authorizations authorizations) {
         Date minutesAgo = new Date(System.currentTimeMillis() - minutes * 60 * 1000);
         Query q = graph.query(authorizations)
                 .has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), PingOntology.IRI_CONCEPT_PING)
@@ -131,7 +129,7 @@ public class PingUtil {
         return json;
     }
 
-    private static String getHostname() {
+    private String getHostname() {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
@@ -140,7 +138,7 @@ public class PingUtil {
         return "";
     }
 
-    private static String getHostAddress() {
+    private String getHostAddress() {
         try {
             return InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {

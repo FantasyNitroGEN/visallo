@@ -8,7 +8,6 @@ import org.vertexium.Vertex;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessWorker;
-import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.util.ClientApiConverter;
 
@@ -17,17 +16,17 @@ import org.visallo.core.util.ClientApiConverter;
 public class PingLongRunningProcess extends LongRunningProcessWorker {
     private final UserRepository userRepository;
     private final Graph graph;
+    private final PingUtil pingUtil;
 
     @Inject
     public PingLongRunningProcess(
             UserRepository userRepository,
             Graph graph,
-            AuthorizationRepository authorizationRepository
+            PingUtil pingUtil
     ) {
         this.userRepository = userRepository;
         this.graph = graph;
-
-        PingUtil.setup(authorizationRepository, userRepository);
+        this.pingUtil = pingUtil;
     }
 
     @Override
@@ -35,7 +34,7 @@ public class PingLongRunningProcess extends LongRunningProcessWorker {
         PingLongRunningProcessQueueItem queueItem = ClientApiConverter.toClientApi(jsonObject.toString(), PingLongRunningProcessQueueItem.class);
         Authorizations authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
         Vertex vertex = graph.getVertex(queueItem.getVertexId(), authorizations);
-        PingUtil.lrpUpdate(vertex, graph, authorizations);
+        pingUtil.lrpUpdate(vertex, graph, authorizations);
     }
 
     @Override

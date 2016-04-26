@@ -1,16 +1,17 @@
 package org.visallo.vertexium.model.longRunningProcess;
 
 import com.google.inject.Inject;
+import org.json.JSONObject;
+import org.vertexium.*;
+import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
-import org.json.JSONObject;
-import org.vertexium.*;
-import org.vertexium.util.ConvertingIterable;
 
 import java.util.List;
 
@@ -39,8 +40,13 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     public String enqueue(JSONObject longRunningProcessQueueItem, User user, Authorizations authorizations) {
         authorizations = getAuthorizations(user);
 
-        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
-        checkNotNull(userVertex, "Could not find user with id: " + user.getUserId());
+        Vertex userVertex;
+        if (user instanceof SystemUser) {
+            userVertex = null;
+        } else {
+            userVertex = graph.getVertex(user.getUserId(), authorizations);
+            checkNotNull(userVertex, "Could not find user with id: " + user.getUserId());
+        }
         Visibility visibility = getVisibility();
 
         VertexBuilder vertexBuilder = this.graph.prepareVertex(visibility);
@@ -50,7 +56,9 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(vertexBuilder, longRunningProcessQueueItem, visibility);
         Vertex longRunningProcessVertex = vertexBuilder.save(authorizations);
 
-        this.graph.addEdge(userVertex, longRunningProcessVertex, LongRunningProcessProperties.LONG_RUNNING_PROCESS_TO_USER_EDGE_IRI, visibility, authorizations);
+        if (userVertex != null) {
+            this.graph.addEdge(userVertex, longRunningProcessVertex, LongRunningProcessProperties.LONG_RUNNING_PROCESS_TO_USER_EDGE_IRI, visibility, authorizations);
+        }
 
         this.graph.flush();
 

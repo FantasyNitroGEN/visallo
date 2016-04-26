@@ -311,6 +311,7 @@ public class VertexiumUserRepository extends UserRepository {
     @Override
     @Traced
     public org.vertexium.Authorizations getAuthorizations(User user, String... additionalAuthorizations) {
+        checkNotNull(user, "User cannot be null");
         Set<String> userAuthorizations;
         if (user instanceof SystemUser) {
             userAuthorizations = new HashSet<>();

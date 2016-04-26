@@ -9,26 +9,23 @@ import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
 
 import java.io.InputStream;
 
 @Name("Ping")
 @Description("work on special Ping vertices to measure GPW wait time")
 public class PingGraphPropertyWorker extends GraphPropertyWorker {
+    private final PingUtil pingUtil;
+
     @Inject
-    public PingGraphPropertyWorker(
-            AuthorizationRepository authorizationRepository,
-            UserRepository userRepository
-    ) {
-        PingUtil.setup(authorizationRepository, userRepository);
+    public PingGraphPropertyWorker(PingUtil pingUtil) {
+        this.pingUtil = pingUtil;
     }
 
     @Override
     public void execute(InputStream in, GraphPropertyWorkData data) throws Exception {
         Vertex vertex = (Vertex) data.getElement();
-        PingUtil.gpwUpdate(vertex, getGraph(), getAuthorizations());
+        pingUtil.gpwUpdate(vertex, getGraph(), getAuthorizations());
     }
 
     @Override
