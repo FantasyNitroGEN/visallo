@@ -110,23 +110,15 @@ public class PingUtil {
                 .has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), PingOntology.IRI_CONCEPT_PING)
                 .has(PingOntology.CREATE_DATE.getPropertyName(), Compare.GREATER_THAN, minutesAgo)
                 .limit(0);
-        if (!(q instanceof GraphQueryWithStatisticsAggregation)) {
-            throw new VisalloException("Cannot get statistics from query " + q.getClass().getName());
-        }
-        GraphQueryWithStatisticsAggregation qWithAgg = (GraphQueryWithStatisticsAggregation) q;
-        qWithAgg.addStatisticsAggregation(PingOntology.SEARCH_TIME_MS.getPropertyName(), PingOntology.SEARCH_TIME_MS.getPropertyName());
-        qWithAgg.addStatisticsAggregation(PingOntology.RETRIEVAL_TIME_MS.getPropertyName(), PingOntology.RETRIEVAL_TIME_MS.getPropertyName());
-        qWithAgg.addStatisticsAggregation(PingOntology.GRAPH_PROPERTY_WORKER_WAIT_TIME_MS.getPropertyName(), PingOntology.GRAPH_PROPERTY_WORKER_WAIT_TIME_MS.getPropertyName());
-        qWithAgg.addStatisticsAggregation(PingOntology.LONG_RUNNING_PROCESS_WAIT_TIME_MS.getPropertyName(), PingOntology.LONG_RUNNING_PROCESS_WAIT_TIME_MS.getPropertyName());
-        Iterable<Vertex> vertices = q.vertices();
-        if (!(vertices instanceof IterableWithStatisticsResults)) {
-            throw new VisalloException("Cannot get statistics from results " + q.getClass().getName());
-        }
-        IterableWithStatisticsResults verticesWithAgg = (IterableWithStatisticsResults) vertices;
-        StatisticsResult searchTimeAgg = verticesWithAgg.getStatisticsResults(PingOntology.SEARCH_TIME_MS.getPropertyName());
-        StatisticsResult retrievalTimeAgg = verticesWithAgg.getStatisticsResults(PingOntology.RETRIEVAL_TIME_MS.getPropertyName());
-        StatisticsResult gpwWaitTimeAgg = verticesWithAgg.getStatisticsResults(PingOntology.GRAPH_PROPERTY_WORKER_WAIT_TIME_MS.getPropertyName());
-        StatisticsResult lrpWaitTimeAgg = verticesWithAgg.getStatisticsResults(PingOntology.LONG_RUNNING_PROCESS_WAIT_TIME_MS.getPropertyName());
+        q.addAggregation(new StatisticsAggregation(PingOntology.SEARCH_TIME_MS.getPropertyName(), PingOntology.SEARCH_TIME_MS.getPropertyName()));
+        q.addAggregation(new StatisticsAggregation(PingOntology.RETRIEVAL_TIME_MS.getPropertyName(), PingOntology.RETRIEVAL_TIME_MS.getPropertyName()));
+        q.addAggregation(new StatisticsAggregation(PingOntology.GRAPH_PROPERTY_WORKER_WAIT_TIME_MS.getPropertyName(), PingOntology.GRAPH_PROPERTY_WORKER_WAIT_TIME_MS.getPropertyName()));
+        q.addAggregation(new StatisticsAggregation(PingOntology.LONG_RUNNING_PROCESS_WAIT_TIME_MS.getPropertyName(), PingOntology.LONG_RUNNING_PROCESS_WAIT_TIME_MS.getPropertyName()));
+        QueryResultsIterable<Vertex> vertices = q.vertices();
+        StatisticsResult searchTimeAgg = vertices.getAggregationResult(PingOntology.SEARCH_TIME_MS.getPropertyName(), StatisticsResult.class);
+        StatisticsResult retrievalTimeAgg = vertices.getAggregationResult(PingOntology.RETRIEVAL_TIME_MS.getPropertyName(), StatisticsResult.class);
+        StatisticsResult gpwWaitTimeAgg = vertices.getAggregationResult(PingOntology.GRAPH_PROPERTY_WORKER_WAIT_TIME_MS.getPropertyName(), StatisticsResult.class);
+        StatisticsResult lrpWaitTimeAgg = vertices.getAggregationResult(PingOntology.LONG_RUNNING_PROCESS_WAIT_TIME_MS.getPropertyName(), StatisticsResult.class);
 
         JSONObject json = new JSONObject();
         json.put("pingCount", searchTimeAgg.getCount());
