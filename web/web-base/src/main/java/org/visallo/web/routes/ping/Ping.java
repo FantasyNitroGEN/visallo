@@ -8,20 +8,18 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.ping.PingUtil;
-import org.visallo.core.user.User;
 import org.visallo.web.parameterProviders.RemoteAddr;
 
 public class Ping implements ParameterizedHandler {
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
     private final LongRunningProcessRepository longRunningProcessRepository;
-    private final User user;
     private final Authorizations authorizations;
+    private final PingUtil pingUtil;
 
     @Inject
     public Ping(
@@ -29,15 +27,13 @@ public class Ping implements ParameterizedHandler {
             Graph graph,
             WorkQueueRepository workQueueRepository,
             LongRunningProcessRepository longRunningProcessRepository,
-            AuthorizationRepository authorizationRepository
+            PingUtil pingUtil
     ) {
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.longRunningProcessRepository = longRunningProcessRepository;
-
-        PingUtil.setup(authorizationRepository, userRepository);
-        user = PingUtil.getUser(userRepository);
-        authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
+        this.pingUtil = pingUtil;
+        this.authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
     }
 
     @Handle
@@ -45,23 +41,23 @@ public class Ping implements ParameterizedHandler {
     public PingResponse ping(@RemoteAddr String remoteAddr) {
         // test search
         long startTime = System.currentTimeMillis();
-        String vertexId = PingUtil.search(graph, authorizations);
+        String vertexId = pingUtil.search(graph, authorizations);
         long searchTime = System.currentTimeMillis() - startTime;
 
         // test retrieval
         startTime = System.currentTimeMillis();
-        PingUtil.retrieve(vertexId, graph, authorizations);
+        pingUtil.retrieve(vertexId, graph, authorizations);
         long retrievalTime = System.currentTimeMillis() - startTime;
 
         // test save
         startTime = System.currentTimeMillis();
-        Vertex pingVertex = PingUtil.createVertex(remoteAddr, searchTime, retrievalTime, graph, authorizations);
+        Vertex pingVertex = pingUtil.createVertex(remoteAddr, searchTime, retrievalTime, graph, authorizations);
         long saveTime = System.currentTimeMillis() - startTime;
 
         // test queues (and asynchronously test GPW and LRP)
         startTime = System.currentTimeMillis();
-        PingUtil.enqueue(pingVertex, workQueueRepository, Priority.HIGH);
-        PingUtil.enqueue(pingVertex, longRunningProcessRepository, user, authorizations);
+        pingUtil.enqueueToWorkQueue(pingVertex, workQueueRepository, Priority.HIGH);
+        pingUtil.enqueueToLongRunningProcess(pingVertex, longRunningProcessRepository, authorizations);
         long enqueueTime = System.currentTimeMillis() - startTime;
 
         return new PingResponse(searchTime, retrievalTime, saveTime, enqueueTime);

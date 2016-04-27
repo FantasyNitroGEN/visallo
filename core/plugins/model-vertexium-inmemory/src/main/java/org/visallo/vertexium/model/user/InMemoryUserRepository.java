@@ -22,6 +22,8 @@ import org.visallo.web.clientapi.model.UserStatus;
 import javax.inject.Inject;
 import java.util.*;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class InMemoryUserRepository extends UserRepository {
     private final Graph graph;
     private List<User> users = new ArrayList<>();
@@ -129,6 +131,7 @@ public class InMemoryUserRepository extends UserRepository {
 
     @Override
     public Authorizations getAuthorizations(User user, String... additionalAuthorizations) {
+        checkNotNull(user, "User cannot be null");
         List<String> auths = new ArrayList<>();
         if (user instanceof SystemUser) {
             auths.add(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
