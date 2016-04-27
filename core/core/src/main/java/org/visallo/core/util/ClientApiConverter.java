@@ -5,6 +5,7 @@ import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.vertexium.type.GeoRect;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.ingest.video.VideoPropertyHelper;
 import org.visallo.core.model.properties.MediaVisalloProperties;
@@ -13,12 +14,15 @@ import org.visallo.core.model.workspace.Dashboard;
 import org.visallo.core.model.workspace.DashboardItem;
 import org.visallo.web.clientapi.model.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApiConverter {
     public static final EnumSet<FetchHint> SEARCH_FETCH_HINTS = EnumSet.of(FetchHint.PROPERTIES, FetchHint.PROPERTY_METADATA, FetchHint.IN_EDGE_LABELS, FetchHint.OUT_EDGE_LABELS);
+    private static final int HISTORICAL_PROPERTY_MAX_SPV_SIZE = 2000;
 
     public static ClientApiTermMentionsResponse toTermMentionsResponse(Iterable<Vertex> termMentions, String workspaceId, Authorizations authorizations) {
         ClientApiTermMentionsResponse termMentionsResponse = new ClientApiTermMentionsResponse();
@@ -202,11 +206,36 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         for (Metadata.Entry entry : hpv.getMetadata().entrySet()) {
             result.metadata.put(entry.getKey(), toClientApiValue(entry.getValue()));
         }
-        result.value = toClientApiValue(hpv.getValue());
+        Object value = hpv.getValue();
+        if (value instanceof StreamingPropertyValue) {
+            value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value);
+        }
+        result.value = toClientApiValue(value);
         result.propertyKey = hpv.getPropertyKey();
         result.propertyName = hpv.getPropertyName();
         result.propertyVisibility = hpv.getPropertyVisibility().getVisibilityString();
         return result;
+    }
+
+    private static String readStreamingPropertyValueForHistory(StreamingPropertyValue spv) {
+        if (spv.getValueType() == String.class) {
+            return readStreamingPropertyValueStringForHistory(spv);
+        } else {
+            return String.format("Non-displayable data (%d bytes)", spv.getLength());
+        }
+    }
+
+    private static String readStreamingPropertyValueStringForHistory(StreamingPropertyValue spv) {
+        try (InputStream in = spv.getInputStream()) {
+            byte[] buffer = new byte[HISTORICAL_PROPERTY_MAX_SPV_SIZE];
+            int bytesRead = in.read(buffer, 0, HISTORICAL_PROPERTY_MAX_SPV_SIZE);
+            if (bytesRead < 0) {
+                return "";
+            }
+            return new String(buffer, 0, bytesRead);
+        } catch (IOException ex) {
+            throw new VisalloException("Could not read StreamingPropertyValue", ex);
+        }
     }
 
     public static ClientApiDashboards toClientApiDashboards(Collection<Dashboard> dashboards) {
