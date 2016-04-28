@@ -192,15 +192,23 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return null;
     }
 
-    public static ClientApiHistoricalPropertyResults toClientApi(Iterable<HistoricalPropertyValue> historicalPropertyValues) {
+    public static ClientApiHistoricalPropertyResults toClientApi(
+            Iterable<HistoricalPropertyValue> historicalPropertyValues,
+            Locale locale,
+            ResourceBundle resourceBundle
+    ) {
         ClientApiHistoricalPropertyResults result = new ClientApiHistoricalPropertyResults();
         for (HistoricalPropertyValue historicalPropertyValue : historicalPropertyValues) {
-            result.events.add(toClientApi(historicalPropertyValue));
+            result.events.add(toClientApi(historicalPropertyValue, locale, resourceBundle));
         }
         return result;
     }
 
-    public static ClientApiHistoricalPropertyResults.Event toClientApi(HistoricalPropertyValue hpv) {
+    public static ClientApiHistoricalPropertyResults.Event toClientApi(
+            HistoricalPropertyValue hpv,
+            Locale locale,
+            ResourceBundle resourceBundle
+    ) {
         ClientApiHistoricalPropertyResults.Event result = new ClientApiHistoricalPropertyResults.Event();
         result.timestamp = hpv.getTimestamp();
         for (Metadata.Entry entry : hpv.getMetadata().entrySet()) {
@@ -208,7 +216,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         }
         Object value = hpv.getValue();
         if (value instanceof StreamingPropertyValue) {
-            value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value);
+            value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value, locale, resourceBundle);
         }
         result.value = toClientApiValue(value);
         result.propertyKey = hpv.getPropertyKey();
@@ -217,11 +225,15 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return result;
     }
 
-    private static String readStreamingPropertyValueForHistory(StreamingPropertyValue spv) {
+    private static String readStreamingPropertyValueForHistory(
+            StreamingPropertyValue spv,
+            Locale locale,
+            ResourceBundle resourceBundle
+    ) {
         if (spv.getValueType() == String.class) {
             return readStreamingPropertyValueStringForHistory(spv);
         } else {
-            return String.format("Non-displayable data (%d bytes)", spv.getLength());
+            return String.format(locale, resourceBundle.getString("history.nondisplayable"), spv.getLength());
         }
     }
 

@@ -13,6 +13,9 @@ import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 public class EdgeGetHistory implements ParameterizedHandler {
     private Graph graph;
 
@@ -26,6 +29,8 @@ public class EdgeGetHistory implements ParameterizedHandler {
             @Required(name = "graphEdgeId") String graphEdgeId,
             @Optional(name = "startTime") Long startTime,
             @Optional(name = "endTime") Long endTime,
+            Locale locale,
+            ResourceBundle resourceBundle,
             Authorizations authorizations
     ) throws Exception {
         Edge edge = graph.getEdge(graphEdgeId, authorizations);
@@ -38,6 +43,6 @@ public class EdgeGetHistory implements ParameterizedHandler {
                 endTime,
                 authorizations
         );
-        return ClientApiConverter.toClientApi(historicalPropertyValues);
+        return ClientApiConverter.toClientApi(historicalPropertyValues, locale, resourceBundle);
     }
 }
