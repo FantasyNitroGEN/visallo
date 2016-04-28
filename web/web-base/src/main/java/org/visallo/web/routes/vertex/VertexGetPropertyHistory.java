@@ -10,6 +10,9 @@ import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 public class VertexGetPropertyHistory implements ParameterizedHandler {
     private Graph graph;
 
@@ -27,6 +30,8 @@ public class VertexGetPropertyHistory implements ParameterizedHandler {
             @Required(name = "propertyName") String propertyName,
             @Optional(name = "startTime") Long startTime,
             @Optional(name = "endTime") Long endTime,
+            Locale locale,
+            ResourceBundle resourceBundle,
             Authorizations authorizations
     ) throws Exception {
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
@@ -47,6 +52,6 @@ public class VertexGetPropertyHistory implements ParameterizedHandler {
                 endTime,
                 authorizations
         );
-        return ClientApiConverter.toClientApi(historicalPropertyValues);
+        return ClientApiConverter.toClientApi(historicalPropertyValues, locale, resourceBundle);
     }
 }
