@@ -6,30 +6,30 @@ public class ClientApiSearch implements ClientApiObject {
     public String id;
     public String url;
     public String name;
+    public Scope scope;
     public Map<String, Object> parameters;
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ClientApiSearch that = (ClientApiSearch) o;
 
-        if (!id.equals(that.id)) return false;
-        if (!url.equals(that.url)) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (parameters != null ? !parameters.equals(that.parameters) : that.parameters != null) return false;
+        if (!id.equals(that.id)) {
+            return false;
+        }
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + url.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
-        return result;
+        return id.hashCode();
     }
 
     @Override
@@ -38,7 +38,13 @@ public class ClientApiSearch implements ClientApiObject {
                 "id='" + id + '\'' +
                 ", url='" + url + '\'' +
                 ", name='" + name + '\'' +
+                ", scope='" + scope + '\'' +
                 ", parameters=" + parameters +
                 '}';
+    }
+
+    public enum Scope {
+        User,
+        Global
     }
 }

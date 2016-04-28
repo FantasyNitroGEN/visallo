@@ -1,10 +1,10 @@
 package org.visallo.web.clientapi.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ClientApiSearchListResponse implements ClientApiObject {
-    public List<ClientApiSearch> searches = new ArrayList<ClientApiSearch>();
+    public Set<ClientApiSearch> searches = new HashSet<ClientApiSearch>();
 
     @Override
     public boolean equals(Object o) {

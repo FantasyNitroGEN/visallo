@@ -251,7 +251,7 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
                 eq("prop1"),
                 any(Visibility.class),
                 eq(workspaceAuthorizations)
-        )).thenReturn(new ArrayList<Vertex>());
+        )).thenReturn(new ArrayList<>());
 
         VisibilityAndElementMutation<Vertex> setPropertyResult = graphRepository.setProperty(
                 entity1Vertex,

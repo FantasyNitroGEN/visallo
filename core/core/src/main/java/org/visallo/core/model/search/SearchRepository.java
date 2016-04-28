@@ -6,7 +6,21 @@ import org.visallo.web.clientapi.model.ClientApiSearch;
 import org.visallo.web.clientapi.model.ClientApiSearchListResponse;
 
 public abstract class SearchRepository {
-    public abstract String saveSearch(User user, String id, String name, String url, JSONObject searchParameters);
+    public abstract String saveSearch(
+            String id,
+            String name,
+            String url,
+            JSONObject searchParameters,
+            User user
+    );
+
+    public abstract String saveGlobalSearch(
+            String id,
+            String name,
+            String url,
+            JSONObject searchParameters,
+            User user
+    );
 
     public abstract ClientApiSearchListResponse getSavedSearches(User user);
 

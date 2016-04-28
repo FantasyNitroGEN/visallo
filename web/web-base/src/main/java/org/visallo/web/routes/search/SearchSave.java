@@ -8,7 +8,6 @@ import com.v5analytics.webster.annotations.Required;
 import org.json.JSONObject;
 import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSaveSearchResponse;
 
 public class SearchSave implements ParameterizedHandler {
@@ -20,17 +19,21 @@ public class SearchSave implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public ClientApiSaveSearchResponse handle(
             @Optional(name = "id") String id,
             @Optional(name = "name") String name,
             @Required(name = "url") String url,
             @Required(name = "parameters") JSONObject searchParameters,
-            User user,
-            VisalloResponse response
+            @Optional(name = "global", defaultValue = "false") boolean global,
+            User user
     ) throws Exception {
-        id = this.searchRepository.saveSearch(user, id, name, url, searchParameters);
+        if (global) {
+            id = this.searchRepository.saveGlobalSearch(id, name, url, searchParameters, user);
+        } else {
+            id = this.searchRepository.saveSearch(id, name, url, searchParameters, user);
+        }
         ClientApiSaveSearchResponse saveSearchResponse = new ClientApiSaveSearchResponse();
         saveSearchResponse.id = id;
-        response.respondWithClientApiObject(saveSearchResponse);
+        return saveSearchResponse;
     }
 }
