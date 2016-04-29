@@ -103,7 +103,7 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
         initMocks(this);
         InjectHelper.setInjector(injector);
 
-        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap<String, Object>());
+        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap<>());
         idGenerator = new VertexiumWorkspaceRepositoryTest.QueueUuidFallbackIdGenerator();
         graph = InMemoryGraph.create(config, idGenerator, new DefaultSearchIndex(config));
         authorizationRepository = new InMemoryAuthorizationRepository();
