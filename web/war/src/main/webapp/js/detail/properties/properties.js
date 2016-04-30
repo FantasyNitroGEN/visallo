@@ -92,7 +92,7 @@ define([
                 compoundPropertiesByNameToKeys = {},
                 displayProperties = _.chain(properties)
                     .filter(function(property) {
-                        if (isEdge && isJustification(property)) {
+                        if (isJustification(property)) {
                             $.extend(property, {
                                 hideInfo: true,
                                 hideVisibility: true,

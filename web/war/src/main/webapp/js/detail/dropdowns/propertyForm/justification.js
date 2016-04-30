@@ -140,7 +140,7 @@ define([
                     valid: this.isJustificationValid(value)
                 });
             } else {
-                var sourceInfo = _.pick(value, 'startOffset', 'endOffset', 'vertexId', 'snippet', 'textPropertyKey');
+                var sourceInfo = _.pick(value, 'startOffset', 'endOffset', 'vertexId', 'snippet', 'textPropertyKey', 'textPropertyName');
                 this.toggleView(true, value);
                 this.trigger('justificationchange', { sourceInfo: sourceInfo, valid: true });
             }
