@@ -95,7 +95,7 @@ define([
             this.$node.text('Loading...');
 
             this.on('click', function(e) {
-                if ($(e.target).is('.grid-scroller, .grid-stack, .grid-stack-item, .item-content')) {
+                if ($(e.target).closest('.header, .grid-scroller, .grid-stack, .grid-stack-item, .item-content').length) {
                     self.trigger('selectObjects');
                 }
             });
