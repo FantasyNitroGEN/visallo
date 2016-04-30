@@ -193,7 +193,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         if (config.getBoolean(Configuration.HTTP_GZIP_ENABLED, Configuration.HTTP_GZIP_ENABLED_DEFAULT)) {
             addGzipFilter(context);
         }
-        LOGGER.warn("JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
+        LOGGER.info("JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
     }
 
     private void addAtmosphereServlet(ServletContext context, Configuration config) {
