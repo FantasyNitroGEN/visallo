@@ -15,9 +15,14 @@ define([
             cancelButtonSelector: 'button.btn-default'
         });
 
+        this.before('teardown', function() {
+            this.popover.find('.plugin-content').teardownAllComponents();
+        });
+
         this.before('initialize', function(node, config) {
             config.template = 'exportWorkspace/template';
             config.title = i18n('popovers.export_workspace.title', config.exporter.menuItem);
+            config.hideDialog = true;
 
             this.after('setupWithTemplate', function() {
                 var self = this,
@@ -32,9 +37,11 @@ define([
                 require([this.attr.exporter.componentPath], function(C) {
                     C.attachTo(node, {
                         workspaceId: workspaceId,
-                        exporter: exporter
+                        exporter: exporter,
+                        cy: self.attr.cy
                     });
 
+                    self.dialog.show();
                     self.positionDialog();
                 });
             });

@@ -759,10 +759,16 @@ define([
                 workspaceId = this.previousWorkspace;
 
             if (exporter) {
-                require(['util/popovers/exportWorkspace/exportWorkspace'], function(ExportWorkspace) {
+                Promise.all([
+                    this.cytoscapeReady(),
+                    Promise.require('util/popovers/exportWorkspace/exportWorkspace')
+                ]).then(function(results) {
+                    var cy = results.shift(),
+                        ExportWorkspace = results.shift();
                     ExportWorkspace.attachTo($node, {
                         exporter: exporter,
                         workspaceId: workspaceId,
+                        cy: cy,
                         anchorTo: {
                             page: {
                                 x: window.lastMousePositionX,
@@ -2059,6 +2065,10 @@ define([
 
             this.$node.html(loadingTemplate({}));
 
+            registry.registerExtension(GRAPH_EXPORTER_POINT, {
+                menuItem: i18n('graph.export.png'),
+                componentPath: 'graph/export'
+            });
             registry.documentExtensionPoint(GRAPH_EXPORTER_POINT,
                 'Add menu options to export graph / workspace',
                 function(e) {

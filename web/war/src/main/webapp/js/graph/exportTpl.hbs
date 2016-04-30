@@ -1,0 +1,11 @@
+<div class="graph-png">
+  <div class="container">
+    <div class="preview"></div>
+  </div>
+  <div class="form">
+      <label><input type="radio" name="crop" value="full" checked>{{ i18n 'graph.export.png.crop.full' }}</label>
+      <label><input type="radio" name="crop" value="viewport">{{ i18n 'graph.export.png.crop.viewport' }}</label>
+      <label><input type="checkbox" name="bg">{{ i18n 'graph.export.png.transparent' }}</label>
+  </div>
+</div>
+<a disabled href="#" download="{{ workspaceName }}-graph.png" class="download btn btn-primary">{{ i18n 'graph.export.png.button' }}</a>

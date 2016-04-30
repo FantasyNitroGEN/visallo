@@ -84,6 +84,7 @@ define(['util/undoManager'], function(UndoManager) {
         this.onSwitchWorkspace = function(event, data) {
             lastReloadedState = {};
             this.setPublicApi('currentWorkspaceId', data.workspaceId);
+            this.setPublicApi('currentWorkspaceName', data.title);
             this.setPublicApi('currentWorkspaceEditable', data.editable);
             this.setPublicApi('currentWorkspaceCommentable', data.commentable);
             this.worker.postMessage({
@@ -150,6 +151,7 @@ define(['util/undoManager'], function(UndoManager) {
                 lastReloadedState.workspace = message.workspace;
             }
             this.trigger('workspaceUpdated', message);
+            this.setPublicApi('currentWorkspaceName', message.workspace.title);
             this.setPublicApi('currentWorkspaceEditable', message.workspace.editable);
             this.setPublicApi('currentWorkspaceCommentable', message.workspace.commentable);
             if (message.newVertices.length) {
@@ -167,6 +169,7 @@ define(['util/undoManager'], function(UndoManager) {
                 vertices: message.vertices
             };
             this.setPublicApi('currentWorkspaceId', workspace.workspaceId);
+            this.setPublicApi('currentWorkspaceName', workspace.title);
             this.setPublicApi('currentWorkspaceEditable', workspace.editable);
             this.setPublicApi('currentWorkspaceCommentable', workspace.commentable);
             this.trigger('workspaceLoaded', workspace);

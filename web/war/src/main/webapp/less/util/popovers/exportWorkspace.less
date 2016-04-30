@@ -1,0 +1,50 @@
+.exportWorkspacePopover {
+  .download {
+    display: block;
+    margin-top: 1em;
+  }
+  .graph-png {
+    display: flex;
+    width: 20em;
+
+    .container {
+      flex: 1;
+      margin: 0.25em;
+      border: 1px solid rgba(86, 105, 119, 0.4);
+      border-radius: 5px;
+      position: relative;
+      margin: 0 0.5em 0.5em 0;
+      box-shadow: 0 1px 5px rgba(86, 105, 119, 0.2);
+      background-color: #353956;
+      background-image:
+        linear-gradient(45deg, #9E9E9E 25%, transparent 25%, transparent 75%, #9E9E9E 75%, #9E9E9E),
+        linear-gradient(45deg, #9E9E9E 25%, transparent 25%, transparent 75%, #9E9E9E 75%, #9E9E9E);
+      background-size: 10px 10px;
+      background-position: 0 0, 5px 5px;
+      .preview {
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 100%;
+        position: absolute;
+        width: 100%;
+        background-color: rgba(86, 105, 119, 0.4);
+      }
+    }
+
+    .form {
+      flex: 1;
+      margin: 0.25em;
+      label {
+        display: block;
+        white-space: nowrap;
+        &:last-child {
+          margin-top: 1em;
+        }
+        input {
+          vertical-align: top; margin-right: 0.5em
+        }
+      }
+    }
+  }
+}
