@@ -4,37 +4,43 @@ Plugin to configure the user interface for activity items
 
 To register an activity item:
 
-        require(['configuration/plugins/registry'], function(registry) {
-            registry.registerExtension('org.visallo.activity', {
-                // Required Attributes
-                type: (string)
-                kind: (string)
-                titleRenderer: function(el, task)
+```js
+require(['configuration/plugins/registry'], function(registry) {
+    registry.registerExtension('org.visallo.activity', {
+        // Required Attributes
+        type: (string)
+        kind: (string)
+        titleRenderer: function(el, task)
 
-                // Optional
-                autoDismiss: (boolean)
-                allowCancel: (boolean)
-            });
-        })
+        // Optional
+        autoDismiss: (boolean)
+        allowCancel: (boolean)
+    });
+});
+```
 
 # Properties
 
 * `type`: (String) Name of activity type. 
 
     Define `activity.tasks.type.[MY_ACTIVITY_TYPE]` message bundle string for localized display.
-    
-        // Handler definition
-        { type: 'saveWorkspace', ... }
-        
-        // MessageBundle.properties
-        activity.tasks.type.saveWorkspace=Save Workspace
+
+    ```js
+    // Handler definition
+    { type: 'saveWorkspace', ... }
+
+    // MessageBundle.properties
+    activity.tasks.type.saveWorkspace=Save Workspace
+    ```
 
 * `kind`: (String) Kind of activity. Currently allows `eventWatcher`, `longRunningProcess`
 * `titleRenderer`: (function) Responsible for rendering the rows title. (Can be async)
 
-        function myRenderer(el, task) {
-            el.textContent = task.id;
-        }
+    ```js
+    function myRenderer(el, task) {
+        el.textContent = task.id;
+    }
+    ```
         
 * `autoDismiss`: (boolean) True to auto remove row on complete
 * `allowCancel`: (boolean) True to show cancel button (default false for eventWatcher, true for longRunningProcess)

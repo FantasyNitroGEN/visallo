@@ -97,28 +97,30 @@ Create a decoration that applies to all nodes that shows the number of propertie
 
 <img width=200 src="example.png">
 
-    registry.registerExtension('org.visallo.graph.node.decoration', {
-        applyTo: function(v) { return true; },
-        alignment: { h: 'left', v: 'top' },
-        classes: 'custom',
-        data: function(vertex) {
-            return {
-                label: vertex.properties.length
-            }
+```js
+registry.registerExtension('org.visallo.graph.node.decoration', {
+    applyTo: function(v) { return true; },
+    alignment: { h: 'left', v: 'top' },
+    classes: 'custom',
+    data: function(vertex) {
+        return {
+            label: vertex.properties.length
         }
-    })
+    }
+});
 
-    registry.registerExtension('org.visallo.graph.style', function(style) {
-        style
-            .selector('.decoration.custom')
-            .css({
-                shape: 'octagon',
-                'background-color': 'red',
-                'border-color': 'darkred',
-                'padding-left': 10,
-                'padding-right': 10
-            })
-    })
+registry.registerExtension('org.visallo.graph.style', function(style) {
+    style
+        .selector('.decoration.custom')
+        .css({
+            shape: 'octagon',
+            'background-color': 'red',
+            'border-color': 'darkred',
+            'padding-left': 10,
+            'padding-right': 10
+        })
+});
+```
 
 ### Decoration with Custom Popover
 
@@ -126,19 +128,20 @@ Popovers can be attached to decorations using a `decorationId` as the anchor.
 
 <img width=350 src="popover.png">
 
-    registry.registerExtension('org.visallo.graph.node.decoration', {
-        alignment: { h: 'left', v: 'top' },
-        onClick: function(event, data) {
-            var id = this.id();
-            // CustomPopover should mixin util/popovers/withPopover
-            // See examples in util/popovers...
-            CustomPopover.attachTo(data.cy.container(), {
-                anchorTo: {
-                    decorationId: id
-                }
-            });
-        },
-        data: { label: 'Click Me' }
-    })
-
+```js
+registry.registerExtension('org.visallo.graph.node.decoration', {
+    alignment: { h: 'left', v: 'top' },
+    onClick: function(event, data) {
+        var id = this.id();
+        // CustomPopover should mixin util/popovers/withPopover
+        // See examples in util/popovers...
+        CustomPopover.attachTo(data.cy.container(), {
+            anchorTo: {
+                decorationId: id
+            }
+        });
+    },
+    data: { label: 'Click Me' }
+});
+```
 

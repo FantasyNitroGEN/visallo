@@ -23,12 +23,13 @@ The `children` defined in a layout component can be references (`ref`) to other 
             Constraints control the layout selection for views that are width, and/or height constrained. The detail pane is set to be width constrained, whereas the full screen view has no constraints.
         * `contexts`: `[String]` For named templates. `popup` is defined by default for graph previews.
 
-
     * `Function` Set a function to determine the layout container for a specific model. If it returns true it will take precedence over any other applyTo specification. The function parameters are `model`, the current model in tree, and `match` which contains `constraints`, or `context` or both.
-    
-                function(model, match) {
-                    return isHandled;
-                }
+
+    ```js
+    function(model, match) {
+        return isHandled;
+    }
+    ```
         
     
 * `identifier` _(required)_ `[string]` Identifier of this component for use in other components in package syntax. Also transforms into css class – replacing package periods with dashes.
@@ -59,53 +60,59 @@ The `children` defined in a layout component can be references (`ref`) to other 
 
 This example creates a root component for all vertices that are derived from `http://visallo.org#thing`. It defines four children that render in flexbox column layout. The first is a reference (`ref`) to another layout component, while the others are FlightJS components.
 
-    registry.registerExtension('org.visallo.layout.component', {
-        identifier: 'org.visallo.detail.root',
-        applyTo: { conceptIri: 'http://visallo.org#thing' },
-        layout: { type: 'flex' options: { direction: 'column' } },
-        children: [
-            { ref: 'org.visallo.detail.header' },
-            { componentPath: 'toolbar' },
-            { componentPath: 'properties', model: function(v) { return v.properties; } },
-            { componentPath: 'relationships' }
-        ]
-    });
+```js
+registry.registerExtension('org.visallo.layout.component', {
+    identifier: 'org.visallo.detail.root',
+    applyTo: { conceptIri: 'http://visallo.org#thing' },
+    layout: { type: 'flex' options: { direction: 'column' } },
+    children: [
+        { ref: 'org.visallo.detail.header' },
+        { componentPath: 'toolbar' },
+        { componentPath: 'properties', model: function(v) { return v.properties; } },
+        { componentPath: 'relationships' }
+    ]
+});
+```
 
 Here the header layout component is defined with children for the title and concept of vertex.
 
-    registry.registerExtension('org.visallo.layout.component', {
-        identifier: 'org.visallo.detail.header',
-        layout: { type: 'flex', direction: 'column' },
-        // Draw entity image in background
-        componentPath: 'detail/components/header',
-        children: [
+```js
+registry.registerExtension('org.visallo.layout.component', {
+    identifier: 'org.visallo.detail.header',
+    layout: { type: 'flex', direction: 'column' },
+    // Draw entity image in background
+    componentPath: 'detail/components/header',
+    children: [
 
-            // org.visallo.layout.text is built in for displaying simple strings
-            { ref: 'org.visallo.layout.text', model: F.vertex.title },
-            {
-                ref: 'org.visallo.layout.text',
-                model: function(v) {
-                    // Model transformers can return promises
-                    return Promise.require('util/vertex/formatters')
-                    	.then(function(F) {
-                    		return F.vertex.concept(v).displayName;
-                    	});
-                } 
+        // org.visallo.layout.text is built in for displaying simple strings
+        { ref: 'org.visallo.layout.text', model: F.vertex.title },
+        {
+            ref: 'org.visallo.layout.text',
+            model: function(v) {
+                // Model transformers can return promises
+                return Promise.require('util/vertex/formatters')
+                    .then(function(F) {
+                        return F.vertex.concept(v).displayName;
+                    });
             }
-        ]
-    });
+        }
+    ]
+});
+```
 
 ### String Component
 
 `org.visallo.layout.text` is defined as a helper to render string models. The model passed to it is transformed to a string using `String(model)`. You can also specify a text `style`, which sets a css class with builtin text styling.
 
-        children: [
-            {
-                ref: 'org.visallo.layout.text',
-                model: 'hello world',
-                style: 'title'
-            }
-        ]
+```js
+children: [
+    {
+        ref: 'org.visallo.layout.text',
+        model: 'hello world',
+        style: 'title'
+    }
+]
+```
 
 Valid Style options: `title`, `subtitle`, `heading1`, `heading2`, `heading3`, `body`, `footnote`
 
@@ -113,36 +120,42 @@ Valid Style options: `title`, `subtitle`, `heading1`, `heading2`, `heading3`, `b
 
 Instead of setting a fixed number of `children`, specify `collectionItem` to render a dynamic number of child elements based on the model. For each item in a model array, the collection item is duplicated as a child. This requires the model to be an array, or an error is thrown.
 
-    registry.registerExtension('org.visallo.layout.component', {
-        identifier: 'com.example.using.collection',
-        children: [
-            { ref: 'com.example.my.collection', model: ['First', 'Second'] }
-        ]
-    })
+```js
+registry.registerExtension('org.visallo.layout.component', {
+    identifier: 'com.example.using.collection',
+    children: [
+        { ref: 'com.example.my.collection', model: ['First', 'Second'] }
+    ]
+});
 
-    registry.registerExtension('org.visallo.layout.component', {
-        identifier: 'com.example.my.collection',
-        // model: function(model) { /* optionally transform model */ return model; },
-        collectionItem: { ref: 'org.visallo.layout.text' }
-    })
+registry.registerExtension('org.visallo.layout.component', {
+    identifier: 'com.example.my.collection',
+    // model: function(model) { /* optionally transform model */ return model; },
+    collectionItem: { ref: 'org.visallo.layout.text' }
+});
+```
 
-    // Output
-    <div>First</div>
-    <div>Second</div>
+```html
+<!-- Output -->
+<div>First</div>
+<div>Second</div>
+```
 
 ### Using the Layout
 
 To initialize the renderer, attach the `Item` flight component to a dom element, and pass a model object.
-   
-	require(['detail/item/item'], function(Item) {
-		Item.attachTo(domElement, {
-			model: model,
-			// Optional [Array]
-			constraints: ['width'],
-			// Optional [String]
-			context: 'mycontext'
-		});
-	});
+
+```js
+require(['detail/item/item'], function(Item) {
+    Item.attachTo(domElement, {
+        model: model,
+        // Optional [Array]
+        constraints: ['width'],
+        // Optional [String]
+        context: 'mycontext'
+    });
+});
+```
 
 ### Layout Engine Psuedocode
 

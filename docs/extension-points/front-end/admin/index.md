@@ -4,14 +4,16 @@ Allows plugins to add items to the admin pane in existing or new sections.
 
 To register an admin item:
 
-        require(['configuration/plugins/registry'], function(registry) {
-            registry.registerExtension('org.visallo.admin', {
-                section: 'My New Section',
-                name: 'My Admin Tool',
-                subtitle: 'Some custom tools for administration',
-                componentPath: 'com/example/admin/tool'
-            });
-        })
+```js
+require(['configuration/plugins/registry'], function(registry) {
+    registry.registerExtension('org.visallo.admin', {
+        section: 'My New Section',
+        name: 'My Admin Tool',
+        subtitle: 'Some custom tools for administration',
+        componentPath: 'com/example/admin/tool'
+    });
+});
+```
 
 # Properties
 

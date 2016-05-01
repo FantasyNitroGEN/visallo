@@ -44,19 +44,21 @@ The render function is called with 4 parameters
 
 Here is an example renderer:
 
-        define(['flight/lib/component', './withRenderer'],
-            function(defineComponent, withReportRenderer) {
-                return defineComponent(MyReportRenderer, withReportRenderer)
-                function MyReportRenderer() {
-                    // Optional
-                    // this.processData = function(data) { ... };
+```js
+define(['flight/lib/component', './withRenderer'],
+    function(defineComponent, withReportRenderer) {
+        return defineComponent(MyReportRenderer, withReportRenderer)
+        function MyReportRenderer() {
+            // Optional
+            // this.processData = function(data) { ... };
 
-                    this.render = function(d3, node, data, d3tip) {
-                        d3.select(node).text(JSON.stringify(data));
-                    }
-                }
+            this.render = function(d3, node, data, d3tip) {
+                d3.select(node).text(JSON.stringify(data));
             }
-        );
+        }
+    }
+);
+```
 
 ### Built-In Report Renderers
 

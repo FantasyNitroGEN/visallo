@@ -24,7 +24,9 @@ The `org.visallo.web.dashboard.item` extension allows custom content to be rende
 
 The dashboard adjusts the size of items based on the window width. If the component needs to adjust rendering based on size, register a `reflow` handler.
 
-        this.on('reflow', this.onReflow);
+```js
+this.on('reflow', this.onReflow);
+```
 
 *Consider using `_.throttle` or `_.debounce` to limit the cost of many reflow events from user resizing.*
 
@@ -32,7 +34,9 @@ The dashboard adjusts the size of items based on the window width. If the compon
 
 The dashboard includes a refresh button in the top left. If you would like to refresh content in response, register a `refreshData` handler.
 
-        this.on('refreshData', this.onRefresh);
+```js
+this.on('refreshData', this.onRefresh);
+```
 
 ### Using `report`
 
@@ -51,27 +55,29 @@ An item can be a report if either: the extension defines the `report`, or a comp
 
 The example below defines a report to count all unique concept types, and set the default renderer to a pie chart.
 
-        registry.registerExtension('org.visallo.web.dashboard.item', {
-            title: 'Concept Type Counts',
-            description: 'Show total counts for entity types',
-            identifier: 'org-visallo-web-dashboard-concept-counts',
-            report: {
-                defaultRenderer: 'org-visallo-pie',
-                endpoint: '/vertex/search',
-                endpointParameters: {
-                    q: '*',
-                    size: 0,
-                    filter: '[]',
-                    aggregations: [
-                        {
-                            type: 'term',
-                            name: 'field',
-                            field: 'http://visallo.org#conceptType'
-                        }
-                    ].map(JSON.stringify)
+```js
+registry.registerExtension('org.visallo.web.dashboard.item', {
+    title: 'Concept Type Counts',
+    description: 'Show total counts for entity types',
+    identifier: 'org-visallo-web-dashboard-concept-counts',
+    report: {
+        defaultRenderer: 'org-visallo-pie',
+        endpoint: '/vertex/search',
+        endpointParameters: {
+            q: '*',
+            size: 0,
+            filter: '[]',
+            aggregations: [
+                {
+                    type: 'term',
+                    name: 'field',
+                    field: 'http://visallo.org#conceptType'
                 }
-            }
-        });
+            ].map(JSON.stringify)
+        }
+    }
+});
+```
 
 <img src="pie.png" width="300" style="text-align: center">
 
@@ -120,9 +126,10 @@ The configuration component gets attributes of the item when opened.
 
 To update an items configuration, trigger `configurationChanged`.
 
-            this.attr.item.configuration.myConfigOption = 'newValue';
-            this.trigger('configurationChanged', {
-                extension: this.attr.extension,
-                item: this.attr.item
-            });
-
+```js
+this.attr.item.configuration.myConfigOption = 'newValue';
+this.trigger('configurationChanged', {
+    extension: this.attr.extension,
+    item: this.attr.item
+});
+```

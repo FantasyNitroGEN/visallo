@@ -39,10 +39,12 @@ repository.ontology.owl.default.dir=$VISALLO_DIR/config/ontology-sample
 * **propertyGroup** - Allows multiple properties to be included under a unified header in the UI.
 * **possibleValues** - Creates a pick list on the UI. The value is a JSON document describing the possible values.
 
-        {
-          "M": "Male",
-          "F": "Female"
-        }
+```json
+{
+  "M": "Male",
+  "F": "Female"
+}
+```
         
 ### ObjectProperty
 
@@ -77,11 +79,13 @@ The ontology defines concepts, relationships, and properties. During data proces
 Intents can be defined in the ontology and overridden in the configuration. To assign an intent you add the
  intent attribute to an OWL element.
 
-    <owl:Class rdf:about="http://visallo.org/sample#phoneNumber">
-      <rdfs:label xml:lang="en">Phone Number</rdfs:label>
-      <visallo:intent>phoneNumber</visallo:intent>
-      ...
-    </owl:Class>
+```xml
+<owl:Class rdf:about="http://visallo.org/sample#phoneNumber">
+  <rdfs:label xml:lang="en">Phone Number</rdfs:label>
+  <visallo:intent>phoneNumber</visallo:intent>
+  ...
+</owl:Class>
+```
 
 To override an intent you can add the following to your configuration.
 

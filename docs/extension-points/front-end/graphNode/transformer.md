@@ -9,9 +9,11 @@ Register a function that can modify the cytoscape node data.
 
 ## Example
 
-    registry.registerExtension('org.visallo.graph.node.transformer', function(vertex, data) {
-        var customProp = _.findWhere(vertex.properties, { name: 'http://example.com#customProp' });
-        if (customProp) {
-            data.custPropValue = customProp.value;
-        }
-    });
+```js
+registry.registerExtension('org.visallo.graph.node.transformer', function(vertex, data) {
+    var customProp = _.findWhere(vertex.properties, { name: 'http://example.com#customProp' });
+    if (customProp) {
+        data.custPropValue = customProp.value;
+    }
+});
+```

@@ -4,11 +4,12 @@ Plugin to configure the user interface for displaying and editing visibility aut
 
 The visibility component requires two flightjs components registered for viewing and editing:
 
-    registry.registerExtension('org.visallo.visibility', {
-        editorComponentPath: 'myEditor',
-        viewerComponentPath: 'myViewer'
-    })
-
+```js
+registry.registerExtension('org.visallo.visibility', {
+    editorComponentPath: 'myEditor',
+    viewerComponentPath: 'myViewer'
+});
+```
 
 ## Visibility Editor Component
 
@@ -28,20 +29,23 @@ Visibility plugins event contract.
 
 * `visibilityclear`: Clears the current value
 
-        this.on('visibilityclear', function() {
-            // Clear the value
-            this.select('fieldSelector').val('');
-        });
-
+```js
+this.on('visibilityclear', function() {
+    // Clear the value
+    this.select('fieldSelector').val('');
+});
+```
 
 #### Must Fire:
 
 * `visibilitychange`: When the value changes. Send `valid` boolean if the current value is valid for submitting.
 
-        this.trigger("visibilitychange", {
-            value: "[current value]",
-            valid: [ true | false ] 
-        })
+```js
+this.trigger("visibilitychange", {
+    value: "[current value]",
+    valid: [ true | false ]
+});
+```
 
 ## Visibility Display Component
 
