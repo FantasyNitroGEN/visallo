@@ -607,7 +607,7 @@ define([
                                 centerPoint,
                                 // Default diameter is 10% of viewport
                                 map.getExtent().getWidth() * 0.1 / 2,
-                                30,
+                                100,
                                 0
                             ),
                             {},
@@ -643,7 +643,7 @@ define([
 
                     self.mode = MODE_REGION_SELECTION_MODE_LOADING;
 
-                    var area = self.regionFeature.geometry.getArea(),
+                    var area = self.regionFeature.geometry.getGeodesicArea(map.getProjectionObject()),
                         radius = 0.565352 * Math.sqrt(area) / 1000,
                         lonlat = self.regionCenterPoint.transform(
                             map.getProjectionObject(),
