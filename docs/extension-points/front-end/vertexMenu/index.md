@@ -22,26 +22,30 @@ Plugin to add new items to vertex context menu
 
 To register an item:
 
-        require([
-            'configuration/plugins/registry',
-            'util/messages'
-        ], function(registry, i18n) {
+```js
+require([
+    'configuration/plugins/registry',
+    'util/messages'
+], function(registry, i18n) {
 
-            registry.registerExtension('org.visallo.vertex.menu', {
-                label: i18n('com.myplugin.menu.label'),
-                shortcut: 'alt+i',
-                event: 'searchSimilar',
-                selection: 2,
-                options: {
-                    insertIntoMenuItems: function(item, items) {
-                        // Add item as fourth in list
-                        items.splice(3, 0, item);
-                    }
-                }
-            });
-        })
+    registry.registerExtension('org.visallo.vertex.menu', {
+        label: i18n('com.myplugin.menu.label'),
+        shortcut: 'alt+i',
+        event: 'searchSimilar',
+        selection: 2,
+        options: {
+            insertIntoMenuItems: function(item, items) {
+                // Add item as fourth in list
+                items.splice(3, 0, item);
+            }
+        }
+    });
+});
+```
 
 
 To add a divider:
 
-        registry.registerExtension('org.visallo.vertex.menu', 'DIVIDER');
+```js
+registry.registerExtension('org.visallo.vertex.menu', 'DIVIDER');
+```

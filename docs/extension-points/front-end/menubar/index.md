@@ -23,18 +23,20 @@ Plugin to add new menubar items.
 
 To register an item:
 
-    require(['configuration/plugins/registry', 'util/messages'], function(registry, i18n) {
-        registry.registerExtension('org.visallo.menubar', {
-            title: i18n('com.mypluginpackage.myplugin.menubar.title'),
-            identifier: 'com-mypluginpackage-myplugin',
-            action: {
-                type: 'pane',
-                componentPath: 'com/mypluginpackage/myplugin/component'
-            },
-            icon: '../img/glyphicons/white/glyphicons_066_tags@2x.png',
-            options: {
-                placementHint: 'top',
-                placementHintAfter: 'search',
-            }
-        })
+```js
+require(['configuration/plugins/registry', 'util/messages'], function(registry, i18n) {
+    registry.registerExtension('org.visallo.menubar', {
+        title: i18n('com.mypluginpackage.myplugin.menubar.title'),
+        identifier: 'com-mypluginpackage-myplugin',
+        action: {
+            type: 'pane',
+            componentPath: 'com/mypluginpackage/myplugin/component'
+        },
+        icon: '../img/glyphicons/white/glyphicons_066_tags@2x.png',
+        options: {
+            placementHint: 'top',
+            placementHintAfter: 'search',
+        }
     })
+});
+```

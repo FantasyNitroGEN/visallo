@@ -9,8 +9,10 @@ Register a function that can add or remove classes from cytoscape nodes for cust
 
 ## Example
 
-    registry.registerExtension('org.visallo.graph.node.class', function(vertex, classes) {
-        if (vertex.properties.length > 10) {
-            classes.push('many_properties')
-        }
-    });
+```js
+registry.registerExtension('org.visallo.graph.node.class', function(vertex, classes) {
+    if (vertex.properties.length > 10) {
+        classes.push('many_properties')
+    }
+});
+```

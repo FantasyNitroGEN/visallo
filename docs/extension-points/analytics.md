@@ -14,7 +14,7 @@ There are many examples of graph property workers in the open source Visallo pro
 
 Imagine we wanted to update a fraud score on a person vertex. We could write a GPW which listens for any changes made to any person vertex and update that fraud score. Below is some pseudo code on how you might do that.
 
-```
+```java
 public class PersonFraudScoreGPW extends GraphPropertyWorker {
   public boolean isHandled(Element element, Property property) {
     return isPersonVertex(element);

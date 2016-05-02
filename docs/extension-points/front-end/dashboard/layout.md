@@ -4,12 +4,14 @@ The `org.visallo.web.dashboard.layout` extension specifies the dashboard items, 
 
 The extension accepts only an `[Array]` of card configurations.
 
-        registry.registerExtension('org.visallo.web.dashboard.layout', [
-            {
-                extensionId: 'org-example-card-default',
-                configuration: { metrics: { x: 0, y: 0, width: 6, height: 5 } }
-            }
-        ]);
+```js
+registry.registerExtension('org.visallo.web.dashboard.layout', [
+    {
+        extensionId: 'org-example-card-default',
+        configuration: { metrics: { x: 0, y: 0, width: 6, height: 5 } }
+    }
+]);
+```
 
 ### Configuration
 

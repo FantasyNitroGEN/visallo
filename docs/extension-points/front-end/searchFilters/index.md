@@ -20,27 +20,28 @@ Plugin to add new items to search filter component.
 
 To register an item:
 
-        require([
-            'configuration/plugins/registry',
-            'util/messages'
-        ], function(SearchFilterExtension, i18n) {
-            registry.registerExtension('org.visallo.search.filter', {
-                componentPath: 'com.myplugin',
-                sectionHeader: 'My Search Filter',
-                filterKeys: ['mypluginKey', 'mypluginOptions'],
-                searchType: 'Visallo',
-                initHidden: true
+```js
+require([
+    'configuration/plugins/registry',
+    'util/messages'
+], function(SearchFilterExtension, i18n) {
+    registry.registerExtension('org.visallo.search.filter', {
+        componentPath: 'com.myplugin',
+        sectionHeader: 'My Search Filter',
+        filterKeys: ['mypluginKey', 'mypluginOptions'],
+        searchType: 'Visallo',
+        initHidden: true
+    });
+
+    define('com.myplugin', ['flight/lib/component'], function(defineComponent) {
+        return defineComponent(MySearchFilter);
+
+        function MySearchFilter() {
+            this.after('initialize', function() {
+                // To trigger changes:
+                this.trigger(this.attr.changedEventName, { mypluginKey: 'value' });
             })
-
-            define('com.myplugin', ['flight/lib/component'], function(defineComponent) {
-                return defineComponent(MySearchFilter);
-
-                function MySearchFilter() {
-                    this.after('initialize', function() {
-                        // To trigger changes: 
-                        this.trigger(this.attr.changedEventName, { mypluginKey: 'value' })
-                    })
-                }
-            })
-        })
-
+        }
+    });
+});
+```

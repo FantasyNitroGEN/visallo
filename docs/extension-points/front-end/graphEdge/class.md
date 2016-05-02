@@ -10,8 +10,10 @@ Register a function that can add or remove classes from cytoscape edges for cust
 
 ## Example
 
-    registry.registerExtension('org.visallo.graph.edge.class', function(edges, type, classes) {
-        if (type === 'myEdgeType') {
-            classes.push('myEdge')
-        }
-    });
+```js
+registry.registerExtension('org.visallo.graph.edge.class', function(edges, type, classes) {
+    if (type === 'myEdgeType') {
+        classes.push('myEdge')
+    }
+});
+```

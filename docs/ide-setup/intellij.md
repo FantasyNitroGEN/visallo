@@ -37,7 +37,7 @@ The last step is to name the IntelliJ project. The default should be fine, but y
 
 Visallo ships with a collection of useful run configurations for IntelliJ. Unfortunately, importing the project into IntelliJ deletes them from their proper location. To get them back, run the following command from the project root directory.
 
-        git checkout .idea/
+    git checkout .idea/
 
 The above command will re-checkout several files into the `$PROJECT_DIR/.idea/runConfigurations` directory. These files are the settings for each of the IntelliJ run configurations that ship with Visallo. They should automatically show up in the `Run -> Edit Configurations` dialog in IntelliJ.
 

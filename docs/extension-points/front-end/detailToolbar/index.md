@@ -15,38 +15,43 @@ Plugin to add toolbar items to the detail pane.
 * `options` _(optional)_ `[Object]`:
     * `insertIntoMenuItems` _(optional)_ `[Function]`: function to place the item in a specific location/order.
 
-            insertIntoMenuItems: function(item, items) {
-                // Insert item into specific position in items list
-                items.splice(3, 0, item);
-            }
+    ```js
+    insertIntoMenuItems: function(item, items) {
+        // Insert item into specific position in items list
+        items.splice(3, 0, item);
+    }
+    ```
 
 
 ## Example
 
 To register an item:
 
-        require([
-            'configuration/plugins/registry',
-            'util/messages'
-        ], function(registry, i18n) {
+```js
+require([
+    'configuration/plugins/registry',
+    'util/messages'
+], function(registry, i18n) {
 
-            registry.registerExtension('org.visallo.detail.toolbar', {
-                title: i18n('com.myplugin.toolbar.title'),
-                subtitle: i18n('com.myplugin.toolbar.subtitle'),
-                event: 'mypluginClick',
-                canHandle: function(objects) {
-                    return objects.length === 1 && objects[0].properties > 10;
-                },
-                options: {
-                    insertIntoMenuItems: function(item, items) {
-                        // Add item as fourth in list
-                        items.splice(3, 0, item);
-                    }
-                }
-            });
-        })
-
+    registry.registerExtension('org.visallo.detail.toolbar', {
+        title: i18n('com.myplugin.toolbar.title'),
+        subtitle: i18n('com.myplugin.toolbar.subtitle'),
+        event: 'mypluginClick',
+        canHandle: function(objects) {
+            return objects.length === 1 && objects[0].properties > 10;
+        },
+        options: {
+            insertIntoMenuItems: function(item, items) {
+                // Add item as fourth in list
+                items.splice(3, 0, item);
+            }
+        }
+    });
+});
+```
 
 To add a divider:
 
-        registry.registerExtension('org.visallo.detail.toolbar', { divider: true });
+```js
+registry.registerExtension('org.visallo.detail.toolbar', { divider: true });
+```
