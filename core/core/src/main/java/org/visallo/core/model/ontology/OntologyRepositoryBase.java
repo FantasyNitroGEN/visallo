@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import com.google.inject.Inject;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
@@ -17,7 +18,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
-import org.semanticweb.owlapi.owlxml.renderer.OWLXMLRenderer;
 import org.semanticweb.owlapi.search.EntitySearcher;
 import org.vertexium.Authorizations;
 import org.vertexium.DefinePropertyBuilder;
@@ -31,6 +31,7 @@ import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.VisalloProperty;
@@ -62,9 +63,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OntologyRepositoryBase.class);
     private static final String OBJECT_PROPERTY_DOMAIN_IRI = "http://visallo.org#objectPropertyDomain";
     private final Configuration configuration;
+    private final LockRepository lockRepository;
 
-    protected OntologyRepositoryBase(Configuration configuration) {
+    @Inject
+    protected OntologyRepositoryBase(Configuration configuration,
+                                     LockRepository lockRepository) {
         this.configuration = configuration;
+        this.lockRepository = lockRepository;
     }
 
     public static String getLabel(OWLOntology o, OWLEntity owlEntity) {
@@ -97,50 +102,48 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
-        Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null);
-        Concept entityConcept = getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null);
-        clearCache();
-        addEntityGlyphIcon(entityConcept);
+        lockRepository.lock("ontology", () -> {
+            Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null);
+            Concept entityConcept = getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null);
+            clearCache();
+            addEntityGlyphIcon(entityConcept);
 
-        importResourceOwl("base.owl", BASE_OWL_IRI, authorizations);
-        importResourceOwl("user.owl", UserRepository.OWL_IRI, authorizations);
-        importResourceOwl("termMention.owl", TermMentionRepository.OWL_IRI, authorizations);
-        importResourceOwl("workspace.owl", WorkspaceRepository.OWL_IRI, authorizations);
-        importResourceOwl("comment.owl", COMMENT_OWL_IRI, authorizations);
-        importResourceOwl("search.owl", SearchProperties.IRI, authorizations);
-        importResourceOwl("longRunningProcess.owl", LongRunningProcessProperties.OWL_IRI, authorizations);
-        importResourceOwl("ping.owl", PingOntology.BASE_IRI, authorizations);
+            importResourceOwl("base.owl", BASE_OWL_IRI, authorizations);
+            importResourceOwl("user.owl", UserRepository.OWL_IRI, authorizations);
+            importResourceOwl("termMention.owl", TermMentionRepository.OWL_IRI, authorizations);
+            importResourceOwl("workspace.owl", WorkspaceRepository.OWL_IRI, authorizations);
+            importResourceOwl("comment.owl", COMMENT_OWL_IRI, authorizations);
+            importResourceOwl("search.owl", SearchProperties.IRI, authorizations);
+            importResourceOwl("longRunningProcess.owl", LongRunningProcessProperties.OWL_IRI, authorizations);
+            importResourceOwl("ping.owl", PingOntology.BASE_IRI, authorizations);
 
-        for (Map.Entry<String, Map<String, String>> owlGroup : config.getMultiValue(Configuration.ONTOLOGY_REPOSITORY_OWL).entrySet()) {
-            String iri = owlGroup.getValue().get("iri");
-            String dir = owlGroup.getValue().get("dir");
-            String file = owlGroup.getValue().get("file");
+            for (Map.Entry<String, Map<String, String>> owlGroup : config.getMultiValue(Configuration.ONTOLOGY_REPOSITORY_OWL).entrySet()) {
+                String iri = owlGroup.getValue().get("iri");
+                String dir = owlGroup.getValue().get("dir");
+                String file = owlGroup.getValue().get("file");
 
-            if (iri == null) {
-                throw new VisalloException("iri is required for group " + Configuration.ONTOLOGY_REPOSITORY_OWL + "." + owlGroup.getKey());
-            }
-            if (dir == null && file == null) {
-                throw new VisalloException("dir or file is required for " + Configuration.ONTOLOGY_REPOSITORY_OWL + "." + owlGroup.getKey());
-            }
-            if (dir != null && file != null) {
-                throw new VisalloException("you cannot specify both dir and file for " + Configuration.ONTOLOGY_REPOSITORY_OWL + "." + owlGroup.getKey());
-            }
-
-            if (isOntologyDefined(iri)) {
-                LOGGER.debug("Ontology %s (iri: %s) is already defined", dir != null ? dir : file, iri);
-                continue;
-            }
-
-            if (dir != null) {
-                File owlFile = findOwlFile(new File(dir));
-                if (owlFile == null) {
-                    throw new VisalloResourceNotFoundException("could not find owl file in directory " + new File(dir).getAbsolutePath());
+                if (iri == null) {
+                    throw new VisalloException("iri is required for group " + Configuration.ONTOLOGY_REPOSITORY_OWL + "." + owlGroup.getKey());
                 }
-                importFile(owlFile, IRI.create(iri), authorizations);
-            } else {
-                writePackage(new File(file), IRI.create(iri), authorizations);
+                if (dir == null && file == null) {
+                    throw new VisalloException("dir or file is required for " + Configuration.ONTOLOGY_REPOSITORY_OWL + "." + owlGroup.getKey());
+                }
+                if (dir != null && file != null) {
+                    throw new VisalloException("you cannot specify both dir and file for " + Configuration.ONTOLOGY_REPOSITORY_OWL + "." + owlGroup.getKey());
+                }
+
+                if (dir != null) {
+                    File owlFile = findOwlFile(new File(dir));
+                    if (owlFile == null) {
+                        throw new VisalloResourceNotFoundException("could not find owl file in directory " + new File(dir).getAbsolutePath());
+                    }
+                    importFile(owlFile, IRI.create(iri), authorizations);
+                } else {
+                    writePackage(new File(file), IRI.create(iri), authorizations);
+                }
             }
-        }
+            return true;
+        });
     }
 
     private void importResourceOwl(String fileName, String iri, Authorizations authorizations) {
@@ -314,18 +317,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     private void importObjectProperties(OWLOntology o, Authorizations authorizations) {
         for (OWLObjectProperty objectProperty : o.getObjectPropertiesInSignature()) {
-            if (!o.isDeclared(objectProperty, Imports.EXCLUDED)) {
-                continue;
-            }
             importObjectProperty(o, objectProperty, authorizations);
         }
     }
 
     private void importDataProperties(OWLOntology o) {
         for (OWLDataProperty dataTypeProperty : o.getDataPropertiesInSignature()) {
-            if (!o.isDeclared(dataTypeProperty, Imports.EXCLUDED)) {
-                continue;
-            }
             importDataProperty(o, dataTypeProperty);
         }
     }
@@ -342,9 +339,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     private void importOntologyClasses(OWLOntology o, File inDir, Authorizations authorizations) throws IOException {
         for (OWLClass ontologyClass : o.getClassesInSignature()) {
-            if (!o.isDeclared(ontologyClass, Imports.EXCLUDED)) {
-                continue;
-            }
             importOntologyClass(o, ontologyClass, inDir, authorizations);
         }
     }
@@ -441,6 +435,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
 
             if (annotationIri.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+                result.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), valueString, authorizations);
                 continue;
             }
 
@@ -639,10 +634,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     protected Relationship importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty, Authorizations authorizations) {
         String iri = objectProperty.getIRI().toString();
         String label = getLabel(o, objectProperty);
-        String[] intents = getIntents(o, objectProperty);
-        boolean userVisible = getUserVisible(o, objectProperty);
-        boolean deleteable = getDeleteable(o, objectProperty);
-        boolean updateable = getUpdateable(o, objectProperty);
 
         checkNotNull(label, "label cannot be null or empty for " + iri);
         LOGGER.info("Importing ontology object property " + iri + " (label: " + label + ")");
@@ -652,13 +643,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 parent,
                 getDomainsConcepts(o, objectProperty),
                 getRangesConcepts(o, objectProperty),
-                iri,
-                label,
-                intents,
-                userVisible,
-                deleteable,
-                updateable
+                iri
         );
+
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(objectProperty, o)) {
             String annotationIri = annotation.getProperty().getIRI().toString();
             OWLLiteral valueLiteral = (OWLLiteral) annotation.getValue();
@@ -685,6 +672,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
 
             if (annotationIri.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+                relationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), valueString, authorizations);
                 continue;
             }
 
@@ -1408,7 +1396,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             if (searchable && (textIndexHints.isEmpty() || textIndexHints.equals(TextIndexHint.NONE))) {
                 searchable = false;
             } else if (!searchable && (!textIndexHints.isEmpty() || !textIndexHints.equals(TextIndexHint.NONE))) {
-                throw new VisalloException("textIndexHints should not be specified for non-searchable string property: " + propertyIri);
+                LOGGER.info("textIndexHints was specified for non-UI-searchable string property:: " + propertyIri);
             }
         }
         return searchable;

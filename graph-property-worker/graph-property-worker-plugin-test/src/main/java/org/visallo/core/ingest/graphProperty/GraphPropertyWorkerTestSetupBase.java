@@ -10,13 +10,13 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.InMemoryAuthorizationRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.test.GraphPropertyWorkerTestBase;
-import org.visallo.vertexium.model.user.InMemoryAuthorizationRepository;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.*;

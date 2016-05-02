@@ -19,11 +19,11 @@ import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.InMemoryAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.vertexium.model.user.InMemoryAuthorizationRepository;
 import org.visallo.vertexium.model.user.VertexiumUser;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
 

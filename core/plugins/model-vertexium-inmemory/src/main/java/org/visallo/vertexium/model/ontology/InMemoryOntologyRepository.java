@@ -13,6 +13,7 @@ import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -32,17 +33,19 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     private final Map<String, InMemoryOntologyProperty> propertiesCache = new HashMap<>();
     private final Map<String, InMemoryRelationship> relationshipsCache = new HashMap<>();
     private final List<OwlData> fileCache = new ArrayList<>();
+    private Authorizations authorizations;
 
     @Inject
     public InMemoryOntologyRepository(
             final Graph graph,
-            final Configuration configuration
+            final Configuration configuration,
+            final LockRepository lockRepository
     ) throws Exception {
-        super(configuration);
+        super(configuration, lockRepository);
         this.graph = graph;
 
         clearCache();
-        Authorizations authorizations = new InMemoryAuthorizations(VISIBILITY_STRING);
+        this.authorizations = new InMemoryAuthorizations(VISIBILITY_STRING);
         owlConfig.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 
         loadOntologies(getConfiguration(), authorizations);
@@ -53,6 +56,13 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         InMemoryConcept concept = (InMemoryConcept) super.importOntologyClass(o, ontologyClass, inDir, authorizations);
         conceptsCache.put(concept.getIRI(), concept);
         return concept;
+    }
+
+    @Override
+    protected Relationship importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty, Authorizations authorizations) {
+        InMemoryRelationship relationship = (InMemoryRelationship) super.importObjectProperty(o, objectProperty, authorizations);
+        relationshipsCache.put(relationship.getIRI(), relationship);
+        return relationship;
     }
 
     @Override
@@ -373,12 +383,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             Relationship parent,
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
-            String relationshipIRI,
-            String displayName,
-            String[] intents,
-            boolean userVisible,
-            boolean deleteable,
-            boolean updateable
+            String relationshipIRI
     ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
@@ -404,14 +409,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         InMemoryRelationship inMemRelationship = new InMemoryRelationship(
                 parentIRI,
                 relationshipIRI,
-                displayName,
                 domainConceptIris,
                 rangeConceptIris,
-                properties,
-                intents,
-                userVisible,
-                deleteable,
-                updateable
+                properties
         );
         relationshipsCache.put(relationshipIRI, inMemRelationship);
         return inMemRelationship;

@@ -1,6 +1,5 @@
-package org.visallo.vertexium.model.user;
+package org.visallo.core.model.user;
 
-import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 

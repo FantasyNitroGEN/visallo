@@ -12,9 +12,7 @@ import org.visallo.core.security.VisalloVisibility;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -66,12 +64,7 @@ public interface OntologyRepository {
             Relationship parent,
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
-            String relationshipIRI,
-            String displayName,
-            String[] intents,
-            boolean userVisible,
-            boolean deleteable,
-            boolean updateable
+            String relationshipIRI
     );
 
     OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition);

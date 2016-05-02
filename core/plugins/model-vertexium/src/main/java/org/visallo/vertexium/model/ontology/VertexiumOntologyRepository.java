@@ -13,11 +13,13 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.vertexium.*;
+import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -62,9 +64,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     public VertexiumOntologyRepository(
             final Graph graph,
             final Configuration config,
-            final AuthorizationRepository authorizationRepository
+            final AuthorizationRepository authorizationRepository,
+            final LockRepository lockRepository
     ) throws Exception {
-        super(config);
+        super(config, lockRepository);
         this.graph = graph;
 
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
@@ -504,6 +507,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
         Concept concept = getConceptByIRI(conceptIRI);
         if (concept != null) {
+            Vertex vertex = ((VertexiumConcept) concept).getVertex();
+            deleteChangeableProperties(vertex, authorizations);
             return concept;
         }
 
@@ -565,37 +570,58 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             boolean updateable
     ) {
         checkNotNull(concepts, "vertex was null");
-        OntologyProperty property = getOrCreatePropertyType(
+        Vertex vertex = getOrCreatePropertyVertex(
                 propertyIri,
                 dataType,
-                displayName,
-                possibleValues,
                 textIndexHints,
-                userVisible,
-                searchable,
-                addable,
                 sortable,
-                displayType,
-                propertyGroup,
                 boost,
-                validationFormula,
-                displayFormula,
-                dependentPropertyIris,
-                intents,
-                deleteable,
-                updateable
+                possibleValues,
+                concepts,
+                relationships
         );
-        checkNotNull(property, "Could not find property: " + propertyIri);
+        checkNotNull(vertex, "Could not find property: " + propertyIri);
 
-        for (Concept concept : concepts) {
-            findOrAddEdge(((VertexiumConcept) concept).getVertex(), ((VertexiumOntologyProperty) property).getVertex(), LabelName.HAS_PROPERTY.toString());
+        ExistingElementMutation<Vertex> builder = vertex.prepareMutation();
+        searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
+        OntologyProperties.SEARCHABLE.setProperty(builder, searchable, VISIBILITY.getVisibility());
+        OntologyProperties.SORTABLE.setProperty(builder, sortable, VISIBILITY.getVisibility());
+        OntologyProperties.ADDABLE.setProperty(builder, addable, VISIBILITY.getVisibility());
+        OntologyProperties.DELETEABLE.setProperty(builder, deleteable, VISIBILITY.getVisibility());
+        OntologyProperties.UPDATEABLE.setProperty(builder, updateable, VISIBILITY.getVisibility());
+        OntologyProperties.USER_VISIBLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
+        if (boost != null) {
+            OntologyProperties.BOOST.setProperty(builder, boost, VISIBILITY.getVisibility());
         }
-        for (Relationship relationship : relationships) {
-            findOrAddEdge(((VertexiumRelationship) relationship).getVertex(), ((VertexiumOntologyProperty) property).getVertex(), LabelName.HAS_PROPERTY.toString());
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            OntologyProperties.DISPLAY_NAME.setProperty(builder, displayName.trim(), VISIBILITY.getVisibility());
         }
+        if (displayType != null && !displayType.trim().isEmpty()) {
+            OntologyProperties.DISPLAY_TYPE.setProperty(builder, displayType, VISIBILITY.getVisibility());
+        }
+        if (propertyGroup != null && !propertyGroup.trim().isEmpty()) {
+            OntologyProperties.PROPERTY_GROUP.setProperty(builder, propertyGroup, VISIBILITY.getVisibility());
+        }
+        if (validationFormula != null && !validationFormula.trim().isEmpty()) {
+            OntologyProperties.VALIDATION_FORMULA.setProperty(builder, validationFormula, VISIBILITY.getVisibility());
+        }
+        if (displayFormula != null && !displayFormula.trim().isEmpty()) {
+            OntologyProperties.DISPLAY_FORMULA.setProperty(builder, displayFormula, VISIBILITY.getVisibility());
+        }
+        if (dependentPropertyIris != null) {
+            saveDependentProperties(vertex.getId(), dependentPropertyIris);
+        }
+        if (intents != null) {
+            for (String intent : intents) {
+                OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
+            }
+        }
+
+        vertex = builder.save(authorizations);
 
         graph.flush();
-        return property;
+
+        return createOntologyProperty(vertex, dependentPropertyIris);
     }
 
     @Override
@@ -621,28 +647,17 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Relationship parent,
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
-            String relationshipIRI,
-            String displayName,
-            String[] intents,
-            boolean userVisible,
-            boolean deleteable,
-            boolean updateable
+            String relationshipIRI
     ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
+            deleteChangeableProperties(((VertexiumRelationship) relationship).getVertex(), authorizations);
             return relationship;
         }
 
         VertexBuilder builder = graph.prepareVertex(ID_PREFIX_RELATIONSHIP + relationshipIRI, VISIBILITY.getVisibility());
         VisalloProperties.CONCEPT_TYPE.setProperty(builder, TYPE_RELATIONSHIP, VISIBILITY.getVisibility());
         OntologyProperties.ONTOLOGY_TITLE.setProperty(builder, relationshipIRI, VISIBILITY.getVisibility());
-        OntologyProperties.DISPLAY_NAME.setProperty(builder, displayName, VISIBILITY.getVisibility());
-        OntologyProperties.USER_VISIBLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
-        OntologyProperties.DELETEABLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
-        OntologyProperties.UPDATEABLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
-        for (String intent : intents) {
-            OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
-        }
         Vertex relationshipVertex = builder.save(getAuthorizations());
 
         for (Concept domainConcept : domainConcepts) {
@@ -680,29 +695,19 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris, properties);
     }
 
-    private OntologyProperty getOrCreatePropertyType(
+    private Vertex getOrCreatePropertyVertex(
             final String propertyIri,
             final PropertyType dataType,
-            final String displayName,
-            Map<String, String> possibleValues,
             Collection<TextIndexHint> textIndexHints,
-            boolean userVisible,
-            boolean searchable,
-            boolean addable,
             boolean sortable,
-            String displayType,
-            String propertyGroup,
             Double boost,
-            String validationFormula,
-            String displayFormula,
-            ImmutableList<String> dependentPropertyIris,
-            String[] intents,
-            boolean deleteable,
-            boolean updateable
+            Map<String, String> possibleValues,
+            List<Concept> concepts,
+            List<Relationship> relationships
     ) {
         OntologyProperty typeProperty = getPropertyByIRI(propertyIri);
+        Vertex propertyVertex;
         if (typeProperty == null) {
-            searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
 
             String propertyVertexId = ID_PREFIX_PROPERTY + propertyIri;
@@ -710,46 +715,23 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             VisalloProperties.CONCEPT_TYPE.setProperty(builder, TYPE_PROPERTY, VISIBILITY.getVisibility());
             OntologyProperties.ONTOLOGY_TITLE.setProperty(builder, propertyIri, VISIBILITY.getVisibility());
             OntologyProperties.DATA_TYPE.setProperty(builder, dataType.toString(), VISIBILITY.getVisibility());
-            OntologyProperties.USER_VISIBLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
-            OntologyProperties.SEARCHABLE.setProperty(builder, searchable, VISIBILITY.getVisibility());
-            OntologyProperties.SORTABLE.setProperty(builder, sortable, VISIBILITY.getVisibility());
-            OntologyProperties.ADDABLE.setProperty(builder, addable, VISIBILITY.getVisibility());
-            OntologyProperties.DELETEABLE.setProperty(builder, deleteable, VISIBILITY.getVisibility());
-            OntologyProperties.UPDATEABLE.setProperty(builder, updateable, VISIBILITY.getVisibility());
-            if (boost != null) {
-                OntologyProperties.BOOST.setProperty(builder, boost, VISIBILITY.getVisibility());
-            }
-            if (displayName != null && !displayName.trim().isEmpty()) {
-                OntologyProperties.DISPLAY_NAME.setProperty(builder, displayName.trim(), VISIBILITY.getVisibility());
-            }
             if (possibleValues != null) {
                 OntologyProperties.POSSIBLE_VALUES.setProperty(builder, JSONUtil.toJson(possibleValues), VISIBILITY.getVisibility());
             }
-            if (displayType != null && !displayType.trim().isEmpty()) {
-                OntologyProperties.DISPLAY_TYPE.setProperty(builder, displayType, VISIBILITY.getVisibility());
-            }
-            if (propertyGroup != null && !propertyGroup.trim().isEmpty()) {
-                OntologyProperties.PROPERTY_GROUP.setProperty(builder, propertyGroup, VISIBILITY.getVisibility());
-            }
-            if (validationFormula != null && !validationFormula.trim().isEmpty()) {
-                OntologyProperties.VALIDATION_FORMULA.setProperty(builder, validationFormula, VISIBILITY.getVisibility());
-            }
-            if (displayFormula != null && !displayFormula.trim().isEmpty()) {
-                OntologyProperties.DISPLAY_FORMULA.setProperty(builder, displayFormula, VISIBILITY.getVisibility());
-            }
-            if (dependentPropertyIris != null) {
-                saveDependentProperties(propertyVertexId, dependentPropertyIris);
-            }
-            if (intents != null) {
-                for (String intent : intents) {
-                    OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
-                }
-            }
-            Vertex propertyVertex = builder.save(getAuthorizations());
-            typeProperty = createOntologyProperty(propertyVertex, dependentPropertyIris);
+            propertyVertex = builder.save(getAuthorizations());
             graph.flush();
+
+            for (Concept concept : concepts) {
+                findOrAddEdge(((VertexiumConcept) concept).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
+            }
+            for (Relationship relationship : relationships) {
+                findOrAddEdge(((VertexiumRelationship) relationship).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
+            }
+        } else {
+            propertyVertex = ((VertexiumOntologyProperty) typeProperty).getVertex();
+            deleteChangeableProperties(propertyVertex, authorizations);
         }
-        return typeProperty;
+        return propertyVertex;
     }
 
     private void saveDependentProperties(String propertyVertexId, Collection<String> dependentPropertyIris) {
@@ -870,5 +852,13 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
      */
     protected Concept createConcept(Vertex vertex) {
         return new VertexiumConcept(vertex);
+    }
+
+    private void deleteChangeableProperties(Vertex vertex, Authorizations authorizations) {
+        for (Property property : vertex.getProperties()) {
+            if (OntologyProperties.CHANGEABLE_PROPERTY_IRI.contains(property.getName())) {
+                vertex.softDeleteProperty(property.getKey(), property.getName(), authorizations);
+            }
+        }
     }
 }

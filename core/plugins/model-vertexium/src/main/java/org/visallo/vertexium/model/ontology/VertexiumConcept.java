@@ -164,9 +164,13 @@ public class VertexiumConcept extends Concept {
         getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
     }
 
+    public void removeProperty(String key, String name, Authorizations authorizations) {
+        getVertex().softDeleteProperty(key, name, authorizations);
+    }
+
     @Override
     public void removeProperty(String name, Authorizations authorizations) {
-        getVertex().softDeleteProperty(ElementMutation.DEFAULT_KEY, name, authorizations);
+        removeProperty(ElementMutation.DEFAULT_KEY, name, authorizations);
     }
 
     @Override
