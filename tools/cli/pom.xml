@@ -40,6 +40,13 @@
             <artifactId>visallo-tools-format</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Groovy is required when Visallo is configured to use in-process elasticsearch -->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>
