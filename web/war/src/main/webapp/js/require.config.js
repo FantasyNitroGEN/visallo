@@ -70,7 +70,7 @@
             'rangy-cssclassapplier': '../libs/rangy/lib/rangy-classapplier',
             'rangy-serializer': '../libs/rangy/lib/rangy-serializer',
             'sf': '../libs/sf/sf',
-            'text': '../libs/text/text',
+            'text': '../libs/requirejs-text/text',
             'tpl': '../libs/requirejs-ejs-plugin/rejs',
             'underscore': '../libs/underscore/underscore-min',
             'underscore.inflection': '../libs/underscore.inflection/lib/underscore.inflection',
