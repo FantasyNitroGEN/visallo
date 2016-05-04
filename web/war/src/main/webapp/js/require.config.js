@@ -61,7 +61,7 @@
             'moment': '../libs/moment/min/moment-with-locales.min',
             'moment-timezone': '../libs/moment-timezone/builds/moment-timezone-with-data.min',
             'normalize': '../libs/requirejs-less/normalize',
-            'openlayers': '../libs/openlayers2/build/OpenLayers',
+            'openlayers': '../libs/@visallo/openlayers2/build/OpenLayers',
             'pathfinding': '../libs/pathfinding/lib/pathfinding-browser.min',
             'propertyParser': '../libs/requirejs-plugins/src/propertyParser',
             'rangy-core': '../libs/rangy/lib/rangy-core',
