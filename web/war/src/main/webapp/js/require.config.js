@@ -71,7 +71,7 @@
             'rangy-serializer': '../libs/rangy/lib/rangy-serializer',
             'sf': '../libs/sf/sf',
             'text': '../libs/requirejs-text/text',
-            'tpl': '../libs/requirejs-ejs-plugin/rejs',
+            'tpl': '../libs/@visallo/requirejs-ejs-plugin/rejs',
             'underscore': '../libs/underscore/underscore-min',
             'underscore.inflection': '../libs/underscore.inflection/lib/underscore.inflection',
             'videojs': '../libs/video.js/dist/video'
