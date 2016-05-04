@@ -55,7 +55,7 @@
             'jquery': '../libs/jquery/dist/jquery.min',
             'jquery-ui-bundle': '../libs/jquery-ui-bundle/jquery-ui.min',
             'jquery-scrollstop': '../libs/jquery-scrollstop/jquery.scrollstop',
-            'jscache': '../libs/jscache-lru/cache',
+            'jscache': '../libs/@visallo/jscache-lru/cache',
             'less': '../libs/requirejs-less/less',
             'lessc': '../libs/requirejs-less/lessc',
             'moment': '../libs/moment/min/moment-with-locales.min',
