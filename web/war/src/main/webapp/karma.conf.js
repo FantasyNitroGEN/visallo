@@ -30,7 +30,7 @@ module.exports = function(config) {
                 // Included libs
                 'libs/jquery/dist/jquery.js',
                 'libs/underscore/underscore.js',
-                'libs/bootstrap/docs/assets/js/bootstrap.js',
+                'libs/@visallo/bootstrap/docs/assets/js/bootstrap.js',
 
                 // Libraries
                 {pattern: 'libs/**/*.js', included: false},

@@ -29,7 +29,7 @@
             'async': '../libs/requirejs-plugins/src/async',
             'atmosphere': '../libs/atmosphere.js/lib/atmosphere',
             'beautify': '../libs/js-beautify/js/lib/beautify',
-            'bootstrap': '../libs/bootstrap/docs/assets/js/bootstrap.min',
+            'bootstrap': '../libs/@visallo/bootstrap/docs/assets/js/bootstrap.min',
             'bootstrap-datepicker': '../libs/bootstrap-datepicker/js/bootstrap-datepicker',
             'bootstrap-timepicker': '../libs/bootstrap-timepicker/js/bootstrap-timepicker',
             'bluebird': '../libs/bluebird/js/browser/bluebird',
