@@ -5,7 +5,7 @@ In the majority of cases, most Visallo components can be built by simply opening
 <a name="root-module"/>
 ## Root Module Installation
 
-You'll need to install the Visallo `root` Maven module after you've cloned the [source code](source-code.md) and any time you pull the latest Visallo source code.
+You'll need to install the Visallo `root` Maven module after you've cloned the [source code](source-code.md) and any time you pull the latest Visallo source code. Please note that you will need to [configure Maven to use a proxy](https://maven.apache.org/guides/mini/guide-proxies.html) if your network requires a web proxy to access content on the Internet.
 
     mvn install -f root/pom.xml
 
