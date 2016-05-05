@@ -13,8 +13,12 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 
+import java.util.stream.Stream;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.single;
 import static org.vertexium.util.IterableUtils.singleOrDefault;
+import static org.visallo.core.util.StreamUtil.stream;
 
 public class TermMentionRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TermMentionRepository.class);
@@ -221,6 +225,30 @@ public class TermMentionRepository {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
         Vertex inVertex = graph.getVertex(inVertexId, authorizationsWithTermMention);
         return inVertex.getVertices(Direction.IN, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, authorizationsWithTermMention);
+    }
+
+    public Stream<Vertex> findResolvedToForRef(String inVertexId, String refPropertyKey, String refPropertyName, Authorizations authorizations) {
+        checkNotNull(refPropertyKey, "refPropertyKey cannot be null");
+        checkNotNull(refPropertyName, "refPropertyName cannot be null");
+
+        return stream(findResolvedTo(inVertexId, authorizations))
+                .filter(vertex -> {
+                    String vertexRefPropertyKey = VisalloProperties.TERM_MENTION_REF_PROPERTY_KEY.getPropertyValue(vertex, null);
+                    String vertexRefPropertyName = VisalloProperties.TERM_MENTION_REF_PROPERTY_NAME.getPropertyValue(vertex, null);
+                    return refPropertyKey.equals(vertexRefPropertyKey) && refPropertyName.equals(vertexRefPropertyName);
+                });
+    }
+
+    /**
+     * Gets all the resolve to term mentions for the element not a particular property.
+     */
+    public Stream<Vertex> findResolvedToForRefElement(String inVertexId, Authorizations authorizations) {
+        return stream(findResolvedTo(inVertexId, authorizations))
+                .filter(vertex -> {
+                    String vertexRefPropertyKey = VisalloProperties.TERM_MENTION_REF_PROPERTY_KEY.getPropertyValue(vertex, null);
+                    String vertexRefPropertyName = VisalloProperties.TERM_MENTION_REF_PROPERTY_NAME.getPropertyValue(vertex, null);
+                    return vertexRefPropertyKey == null && vertexRefPropertyName == null;
+                });
     }
 
     public void delete(Vertex termMention, Authorizations authorizations) {
