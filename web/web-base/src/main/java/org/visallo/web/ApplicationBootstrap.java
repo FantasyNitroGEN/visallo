@@ -192,7 +192,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         addAtmosphereServlet(context, config);
         addDebugFilter(context);
         addCacheFilter(context);
-        if (shouldAddGzipFilter(config)) {
+        if (shouldAddGzipFilter(context, config)) {
             addGzipFilter(context);
         }
         LOGGER.info("JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
@@ -234,8 +234,10 @@ public class ApplicationBootstrap implements ServletContextListener {
         }
     }
 
-    private boolean shouldAddGzipFilter(Configuration config) {
-        if (System.getProperty("catalina.home") != null || System.getProperty("catalina.base") != null) {
+    private boolean shouldAddGzipFilter(ServletContext context, Configuration config) {
+        if (System.getProperty("catalina.base") != null ||
+                System.getProperty("catalina.home") != null ||
+                (context.getServerInfo() != null && context.getServerInfo().toLowerCase().contains("tomcat"))) {
             return false;
         }
         return config.getBoolean(Configuration.HTTP_GZIP_ENABLED, Configuration.HTTP_GZIP_ENABLED_DEFAULT);
