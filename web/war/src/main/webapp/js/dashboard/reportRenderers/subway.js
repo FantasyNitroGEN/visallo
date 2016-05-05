@@ -187,6 +187,25 @@ define([
                                     'text-anchor': 'middle'
                                 })
                             })
+                            this.append('circle')
+                            .attr({
+                                class: 'click-target clickable',
+                                r: outerRadius,
+                                cx: outerRadius,
+                                cy: 0,
+                                'fill-opacity': 0
+                            })
+                            .call(function() {
+                               this.on('click', function(data) {
+                                   var filters = [{
+                                      propertyId: data.field,
+                                      values: [data.name]
+                                   }];
+                                   self.handleClick({
+                                    filters: filters
+                                   });
+                               });
+                            })
                         })
                     })
                     .attr('transform', function(d, i) {
