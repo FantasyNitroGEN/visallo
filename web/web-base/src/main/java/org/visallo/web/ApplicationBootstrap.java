@@ -85,7 +85,9 @@ public class ApplicationBootstrap implements ServletContextListener {
                 }
             });
         } catch (Throwable ex) {
-            LOGGER.error("Could not startup context", ex);
+            if (LOGGER != null) {
+                LOGGER.error("Could not startup context", ex);
+            }
             throw new VisalloException("Could not startup context", ex);
         }
     }
