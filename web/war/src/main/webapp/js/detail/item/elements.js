@@ -65,7 +65,7 @@ define([
                         $list.resizable('destroy');
                     }
                 })
-                .on('resizestop', function() {
+                .on('resizestop', function(event) {
                     if ($(event.target).closest($list).length) return;
                     if (!$list.data('ui-resizable')) {
                         createResizable($list);
