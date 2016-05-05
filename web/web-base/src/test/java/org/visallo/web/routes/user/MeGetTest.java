@@ -19,8 +19,8 @@ public class MeGetTest extends RouteTestBase {
     private MeGet meGet;
 
     @Before
-    public void setUp() throws IOException {
-        super.setUp();
+    public void before() throws IOException {
+        super.before();
         meGet = new MeGet(userRepository, workspaceRepository);
     }
 

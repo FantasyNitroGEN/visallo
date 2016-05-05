@@ -1,5 +1,6 @@
 package org.visallo.vertexium.model.search;
 
+import com.google.inject.Injector;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
+import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.search.SearchProperties;
@@ -30,6 +33,7 @@ public class VertexiumSearchRepositoryTest {
     private VertexiumSearchRepository searchRepository;
     private InMemoryGraph graph;
     private Authorizations authorizations;
+    private String userId;
 
     @Mock
     private UserRepository userRepository;
@@ -38,17 +42,24 @@ public class VertexiumSearchRepositoryTest {
     private AuthorizationRepository authorizationRepository;
 
     @Mock
+    private Configuration configuration;
+
+    @Mock
     private User user;
-    private String userId;
+
+    @Mock
+    private Injector injector;
 
     @Mock
     private User systemUser;
 
     @Before
     public void setUp() {
+        InjectHelper.setInjector(injector);
+
         graph = InMemoryGraph.create();
         authorizations = graph.createAuthorizations(VertexiumSearchRepository.VISIBILITY_STRING, UserRepository.VISIBILITY_STRING);
-        searchRepository = new VertexiumSearchRepository(graph, userRepository, authorizationRepository);
+        searchRepository = new VertexiumSearchRepository(graph, userRepository, configuration, authorizationRepository);
 
         userId = "USER123";
         when(user.getUserId()).thenReturn(userId);

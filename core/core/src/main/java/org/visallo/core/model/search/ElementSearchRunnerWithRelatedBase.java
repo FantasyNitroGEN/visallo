@@ -1,6 +1,5 @@
-package org.visallo.web.routes.vertex;
+package org.visallo.core.model.search;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -16,17 +15,15 @@ import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public abstract class ElementSearchWithRelatedBase extends ElementSearchBase {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchWithRelatedBase.class);
+public abstract class ElementSearchRunnerWithRelatedBase extends ElementSearchRunnerBase {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchRunnerWithRelatedBase.class);
 
-    protected ElementSearchWithRelatedBase(
+    protected ElementSearchRunnerWithRelatedBase(
             OntologyRepository ontologyRepository,
             Graph graph,
             Configuration configuration,
@@ -36,16 +33,16 @@ public abstract class ElementSearchWithRelatedBase extends ElementSearchBase {
     }
 
     @Override
-    protected QueryAndData getQuery(HttpServletRequest request, final Authorizations authorizations) {
-        final String[] relatedToVertexIdsParam = VisalloBaseParameterProvider.getOptionalParameterArray(request, "relatedToVertexIds[]");
-        final JSONArray filterJson = getFilterJson(request);
+    protected QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations) {
+        final String[] relatedToVertexIdsParam = searchOptions.getOptionalParameter("relatedToVertexIds[]", String[].class);
+        final JSONArray filterJson = getFilterJson(searchOptions);
         final List<String> relatedToVertexIds;
         final String queryString;
         if (relatedToVertexIdsParam == null) {
-            queryString = VisalloBaseParameterProvider.getRequiredParameter(request, "q");
+            queryString = searchOptions.getRequiredParameter("q", String.class);
             relatedToVertexIds = ImmutableList.of();
         } else {
-            queryString = VisalloBaseParameterProvider.getOptionalParameter(request, "q");
+            queryString = searchOptions.getOptionalParameter("q", String.class);
             relatedToVertexIds = ImmutableList.copyOf(relatedToVertexIdsParam);
         }
         LOGGER.debug("search %s (relatedToVertexIds: %s)\n%s", queryString, Joiner.on(",").join(relatedToVertexIds), filterJson.toString(2));
@@ -56,12 +53,10 @@ public abstract class ElementSearchWithRelatedBase extends ElementSearchBase {
         } else if (relatedToVertexIds.size() == 1) {
             graphQuery = query(queryString, relatedToVertexIds.get(0), authorizations);
         } else {
-            graphQuery = new CompositeGraphQuery(Lists.transform(relatedToVertexIds, new Function<String, Query>() {
-                @Override
-                public Query apply(String relatedToVertexId) {
-                    return query(queryString, relatedToVertexId, authorizations);
-                }
-            }));
+            graphQuery = new CompositeGraphQuery(Lists.transform(
+                    relatedToVertexIds,
+                    relatedToVertexId -> query(queryString, relatedToVertexId, authorizations)
+            ));
         }
 
         return new QueryAndData(graphQuery);

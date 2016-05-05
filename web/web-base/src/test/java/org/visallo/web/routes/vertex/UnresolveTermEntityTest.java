@@ -27,8 +27,8 @@ public class UnresolveTermEntityTest extends RouteTestBase {
     private Authorizations authorizations;
 
     @Before
-    public void setUp() throws IOException {
-        super.setUp();
+    public void before() throws IOException {
+        super.before();
 
         visibility = new Visibility("");
         termMentionVisibility = new Visibility(TermMentionRepository.VISIBILITY_STRING);

@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.vertexium.*;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.search.SearchProperties;
@@ -18,7 +19,6 @@ import org.visallo.web.clientapi.model.ClientApiSearchListResponse;
 import org.visallo.web.clientapi.model.Privilege;
 
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.util.StreamUtil.stream;
@@ -34,8 +34,10 @@ public class VertexiumSearchRepository extends SearchRepository {
     public VertexiumSearchRepository(
             Graph graph,
             UserRepository userRepository,
+            Configuration configuration,
             AuthorizationRepository authorizationRepository
     ) {
+        super(configuration);
         this.graph = graph;
         this.userRepository = userRepository;
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);

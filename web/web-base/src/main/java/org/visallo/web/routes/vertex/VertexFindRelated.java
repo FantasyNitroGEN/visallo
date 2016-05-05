@@ -1,94 +1,62 @@
 package org.visallo.web.routes.vertex;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.annotations.Optional;
-import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
-import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.properties.VisalloProperties;
+import org.vertexium.Authorizations;
+import org.vertexium.Element;
+import org.vertexium.Vertex;
+import org.visallo.core.model.search.SearchOptions;
+import org.visallo.core.model.search.SearchRepository;
+import org.visallo.core.model.search.VertexFindRelatedSearchResults;
+import org.visallo.core.model.search.VertexFindRelatedSearchRunner;
+import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiElementFindRelatedResponse;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.routes.search.WebSearchOptionsFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashSet;
-import java.util.Set;
 
 public class VertexFindRelated implements ParameterizedHandler {
-    private final Graph graph;
-    private final OntologyRepository ontologyRepository;
+    private final VertexFindRelatedSearchRunner searchRunner;
 
     @Inject
-    public VertexFindRelated(
-            final OntologyRepository ontologyRepository,
-            final Graph graph
-    ) {
-        this.ontologyRepository = ontologyRepository;
-        this.graph = graph;
+    public VertexFindRelated(SearchRepository searchRepository) {
+        this.searchRunner =
+                (VertexFindRelatedSearchRunner) searchRepository.findSearchRunnerByUri(VertexFindRelatedSearchRunner.URI);
     }
 
     @Handle
     public ClientApiElementFindRelatedResponse handle(
-            @Required(name = "graphVertexIds[]") String[] graphVertexIds,
-            @Optional(name = "limitParentConceptId") String limitParentConceptId,
-            @Optional(name = "limitEdgeLabel") String limitEdgeLabel,
-            @Optional(name = "maxVerticesToReturn", defaultValue = "250") long maxVerticesToReturn,
             HttpServletRequest request,
             @ActiveWorkspaceId String workspaceId,
+            User user,
             Authorizations authorizations
     ) throws Exception {
-        Set<String> limitConceptIds = new HashSet<>();
-
-        if (limitParentConceptId != null) {
-            Set<Concept> limitConcepts = ontologyRepository.getConceptAndAllChildrenByIri(limitParentConceptId);
-            if (limitConcepts == null) {
-                throw new RuntimeException("Bad 'limitParentConceptId', no concept found for id: " +
-                        limitParentConceptId);
-            }
-            for (Concept con : limitConcepts) {
-                limitConceptIds.add(con.getIRI());
-            }
-        }
-
-        return getVertices(request, workspaceId, graphVertexIds, limitEdgeLabel, limitConceptIds, maxVerticesToReturn, authorizations);
+        SearchOptions searchOptions = WebSearchOptionsFactory.create(request, workspaceId);
+        return getVertices(searchOptions, user, authorizations);
     }
 
     /**
      * This is overridable so web plugins can modify the resulting set of vertices.
      */
-    protected ClientApiElementFindRelatedResponse getVertices(HttpServletRequest request, String workspaceId,
-                                                              String[] graphVertexIds, String limitEdgeLabel,
-                                                              Set<String> limitConceptIds, long maxVerticesToReturn,
-                                                              Authorizations authorizations) {
-        Set<String> visitedIds = new HashSet<>();
-        ClientApiElementFindRelatedResponse vertexResult = new ClientApiElementFindRelatedResponse();
-        long count = visitedIds.size();
-        Iterable<Vertex> vertices = graph.getVertices(Lists.newArrayList(graphVertexIds), FetchHint.EDGE_REFS, authorizations);
-        for (Vertex v : vertices) {
-            Iterable<Vertex> relatedVertices = v.getVertices(Direction.BOTH, limitEdgeLabel, ClientApiConverter.SEARCH_FETCH_HINTS, authorizations);
-            for (Vertex vertex : relatedVertices) {
-                if (!visitedIds.add(vertex.getId())) {
-                    continue;
-                }
-                if (limitConceptIds.size() == 0 || !isLimited(vertex, limitConceptIds)) {
-                    if (count < maxVerticesToReturn) {
-                        vertexResult.getElements().add(ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations));
-                    }
-                    count++;
-                }
-            }
+    protected ClientApiElementFindRelatedResponse getVertices(
+            SearchOptions searchOptions,
+            User user,
+            Authorizations authorizations
+    ) {
+        VertexFindRelatedSearchResults results = this.searchRunner.run(searchOptions, user, authorizations);
+        ClientApiElementFindRelatedResponse response = new ClientApiElementFindRelatedResponse();
+        for (Element element : results.getElements()) {
+            Vertex vertex = (Vertex) element;
+            ClientApiVertex clientApiVertex = ClientApiConverter.toClientApiVertex(vertex, searchOptions.getWorkspaceId(), authorizations);
+            response.getElements().add(clientApiVertex);
         }
-        vertexResult.setCount(count);
-        return vertexResult;
+        response.setCount(results.getCount());
+        return response;
     }
 
-    private boolean isLimited(Vertex vertex, Set<String> limitConceptIds) {
-        String conceptId = VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex);
-        return !limitConceptIds.contains(conceptId);
-    }
 }
 
