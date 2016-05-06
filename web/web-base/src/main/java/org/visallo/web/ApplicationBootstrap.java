@@ -235,12 +235,18 @@ public class ApplicationBootstrap implements ServletContextListener {
     }
 
     private boolean shouldAddGzipFilter(ServletContext context, Configuration config) {
-        if (System.getProperty("catalina.base") != null ||
-                System.getProperty("catalina.home") != null ||
-                (context.getServerInfo() != null && context.getServerInfo().toLowerCase().contains("tomcat"))) {
-            return false;
+        return config.getBoolean(Configuration.HTTP_GZIP_ENABLED, getGzipEnabledDefault(context));
+    }
+
+    private boolean getGzipEnabledDefault(ServletContext context) {
+        if (isJetty(context)) {
+            return true;
         }
-        return config.getBoolean(Configuration.HTTP_GZIP_ENABLED, Configuration.HTTP_GZIP_ENABLED_DEFAULT);
+        return false;
+    }
+
+    private boolean isJetty(ServletContext context) {
+        return context.getServerInfo() != null && context.getServerInfo().toLowerCase().contains("jetty");
     }
 
     private void addGzipFilter(ServletContext context) {
