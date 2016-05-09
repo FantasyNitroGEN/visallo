@@ -2,7 +2,8 @@ define([
     'd3',
     'd3-plugins/tile/amd/index'
 ], function(
-    d3) {
+    d3,
+    d3Tile) {
     'use strict';
 
     return withMapTiles;
@@ -116,7 +117,7 @@ define([
         };
 
         this.addMapTileLayer = function(svg, projection) {
-            var tile = d3.geo.tile()
+            var tile = d3Tile.default()
                     .scale(projection.scale() * 2 * Math.PI)
                     .translate(projection.translate())
                     .size([svg.attr('width'), svg.attr('height')]),
