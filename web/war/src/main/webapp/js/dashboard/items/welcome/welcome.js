@@ -25,14 +25,14 @@ define([
                 map: 'hbs!dashboard/items/welcome/map'
             },
             icons = {
-                activity: '../img/glyphicons/white/glyphicons_023_cogwheels@2x.png',
-                admin: '../img/glyphicons/white/glyphicons_439_wrench@2x.png',
-                dashboard: '../img/visallo-icon@2x.png',
-                graph: '../img/glyphicons/white/glyphicons_326_share@2x.png',
-                logout: '../img/glyphicons/white/glyphicons_387_log_out@2x.png',
-                search: '../img/glyphicons/white/glyphicons_027_search@2x.png',
-                workspaces: '../img/glyphicons/white/glyphicons_153_more_windows@2x.png',
-                map: '../img/glyphicons/white/glyphicons_242_google_maps@2x.png'
+                activity: 'img/glyphicons/white/glyphicons_023_cogwheels@2x.png',
+                admin: 'img/glyphicons/white/glyphicons_439_wrench@2x.png',
+                dashboard: 'img/visallo-icon@2x.png',
+                graph: 'img/glyphicons/white/glyphicons_326_share@2x.png',
+                logout: 'img/glyphicons/white/glyphicons_387_log_out@2x.png',
+                search: 'img/glyphicons/white/glyphicons_027_search@2x.png',
+                workspaces: 'img/glyphicons/white/glyphicons_153_more_windows@2x.png',
+                map: 'img/glyphicons/white/glyphicons_242_google_maps@2x.png'
             },
             menubarExtensions = registry.extensionsForPoint('org.visallo.menubar');
 

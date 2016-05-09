@@ -15,7 +15,7 @@
 
     <link href='css/visallo.css' rel='stylesheet' media='screen'>
     {{#each pluginCssResources}}
-    <link href='{{.}}' rel='stylesheet' media='screen'>
+    <link href='{{contextPath}}/{{.}}' rel='stylesheet' media='screen'>
     {{/each}}
 
     <script src='jsc/require.config.js'></script>
@@ -33,13 +33,13 @@
       require.urlArgs = window.visalloCacheBreaker = "vslo_v=" + versionParameter;
       window.visalloPluginResources = {
         beforeAuth: [
-        {{#each pluginJsResourcesBeforeAuth}}  '{{.}}'{{#unless @last}},{{/unless}}
+        {{#each pluginJsResourcesBeforeAuth}}  '{{contextPath}}{{.}}'{{#unless @last}},{{/unless}}
         {{/each}}],
         afterAuth: [
-        {{#each pluginJsResourcesAfterAuth}}  '{{.}}'{{#unless @last}},{{/unless}}
+        {{#each pluginJsResourcesAfterAuth}}  '{{contextPath}}{{.}}'{{#unless @last}},{{/unless}}
         {{/each}}],
         webWorker: [
-        {{#each pluginJsResourcesWebWorker}}  '{{.}}'{{#unless @last}},{{/unless}}
+        {{#each pluginJsResourcesWebWorker}}  '{{contextPath}}{{.}}'{{#unless @last}},{{/unless}}
         {{/each}}]
       };
     })();
