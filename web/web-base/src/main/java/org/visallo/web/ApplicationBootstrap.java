@@ -192,7 +192,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         addAtmosphereServlet(context, config);
         addDebugFilter(context);
         addCacheFilter(context);
-        if (config.getBoolean(Configuration.HTTP_GZIP_ENABLED, Configuration.HTTP_GZIP_ENABLED_DEFAULT)) {
+        if (shouldAddGzipFilter(context, config)) {
             addGzipFilter(context);
         }
         LOGGER.info("JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
@@ -232,6 +232,21 @@ public class ApplicationBootstrap implements ServletContextListener {
         for (String mapping : mappings) {
             filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, mapping);
         }
+    }
+
+    private boolean shouldAddGzipFilter(ServletContext context, Configuration config) {
+        return config.getBoolean(Configuration.HTTP_GZIP_ENABLED, getGzipEnabledDefault(context));
+    }
+
+    private boolean getGzipEnabledDefault(ServletContext context) {
+        if (isJetty(context)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isJetty(ServletContext context) {
+        return context.getServerInfo() != null && context.getServerInfo().toLowerCase().contains("jetty");
     }
 
     private void addGzipFilter(ServletContext context) {
