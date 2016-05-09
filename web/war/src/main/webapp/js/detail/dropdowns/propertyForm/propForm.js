@@ -341,6 +341,7 @@ define([
                         fieldComponent;
 
                     if (isCompoundField) {
+                        self.currentValue = _.pluck(F.vertex.props(self.attr.data, propertyName), 'value');
                         fieldComponent = 'fields/compound/compound';
                     } else if (propertyDetails.displayType === 'duration') {
                         fieldComponent = 'fields/duration';
@@ -545,7 +546,6 @@ define([
                             metadata: this.currentMetadata
                         }, justification)
                 });
-                self.teardown();
             }
         };
     }
