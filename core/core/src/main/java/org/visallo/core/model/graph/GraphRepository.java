@@ -201,26 +201,29 @@ public class GraphRepository {
             vertexBuilder = graph.prepareVertex(visalloVisibility.getVisibility());
         }
         VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visalloVisibility.getVisibility());
-        Metadata propertyMetadata = new Metadata();
+        Metadata conceptTypeMetadata = new Metadata();
         Visibility metadataVisibility = visibilityTranslator.getDefaultVisibility();
-        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(propertyMetadata, new Date(), metadataVisibility);
-        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(propertyMetadata, user.getUserId(), metadataVisibility);
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, visibilityJson, metadataVisibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptType, propertyMetadata, visalloVisibility.getVisibility());
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(conceptTypeMetadata, new Date(), metadataVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(conceptTypeMetadata, user.getUserId(), metadataVisibility);
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(conceptTypeMetadata, visibilityJson, metadataVisibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptType, conceptTypeMetadata, visalloVisibility.getVisibility());
 
-        if (justificationText != null) {
-            PropertyJustificationMetadata propertyJustificationMetadata = new PropertyJustificationMetadata(justificationText);
-            VisalloProperties.JUSTIFICATION.setProperty(vertexBuilder, propertyJustificationMetadata, visalloVisibility.getVisibility());
-        } else if (sourceInfo != null) {
-            VisalloProperties.JUSTIFICATION.removeProperty(vertexBuilder, visalloVisibility.getVisibility());
-        }
+        boolean justificationAdded = addJustification(
+                vertexBuilder,
+                justificationText,
+                visalloVisibility,
+                visibilityJson,
+                user
+        );
 
         Vertex vertex = vertexBuilder.save(authorizations);
         graph.flush();
 
-        if (justificationText != null) {
+        if (justificationAdded) {
             termMentionRepository.removeSourceInfoEdgeFromVertex(vertex.getId(), vertex.getId(), null, null, visalloVisibility, authorizations);
         } else if (sourceInfo != null) {
+            VisalloProperties.JUSTIFICATION.removeProperty(vertexBuilder, visalloVisibility.getVisibility());
+
             Vertex sourceDataVertex = graph.getVertex(sourceInfo.vertexId, authorizations);
             termMentionRepository.addSourceInfoToVertex(
                     vertex,
@@ -261,7 +264,7 @@ public class GraphRepository {
         ElementBuilder<Edge> edgeBuilder;
         if (edgeId == null) {
             edgeBuilder = graph.prepareEdge(outVertex, inVertex, predicateLabel, visalloVisibility.getVisibility());
-        } else{
+        } else {
             edgeBuilder = graph.prepareEdge(edgeId, outVertex, inVertex, predicateLabel, visalloVisibility.getVisibility());
         }
         VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visalloVisibility.getVisibility());
@@ -269,18 +272,21 @@ public class GraphRepository {
         VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, now, visalloVisibility.getVisibility());
         VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), visalloVisibility.getVisibility());
 
-        if (justificationText != null) {
-            PropertyJustificationMetadata propertyJustificationMetadata = new PropertyJustificationMetadata(justificationText);
-            VisalloProperties.JUSTIFICATION.setProperty(edgeBuilder, propertyJustificationMetadata, visalloVisibility.getVisibility());
-        } else if (sourceInfo != null) {
-            VisalloProperties.JUSTIFICATION.removeProperty(edgeBuilder, visalloVisibility.getVisibility());
-        }
+        boolean justificationAdded = addJustification(
+                edgeBuilder,
+                justificationText,
+                visalloVisibility,
+                visibilityJson,
+                user
+        );
 
         Edge edge = edgeBuilder.save(authorizations);
 
-        if (justificationText != null) {
+        if (justificationAdded) {
             termMentionRepository.removeSourceInfoEdgeFromEdge(edge, null, null, visalloVisibility, authorizations);
         } else if (sourceInfo != null) {
+            VisalloProperties.JUSTIFICATION.removeProperty(edgeBuilder, visalloVisibility.getVisibility());
+
             Vertex sourceDataVertex = graph.getVertex(sourceInfo.vertexId, authorizations);
             termMentionRepository.addSourceInfoEdgeToEdge(
                     edge,
@@ -301,5 +307,27 @@ public class GraphRepository {
         }
 
         return edge;
+    }
+
+    private boolean addJustification(
+            ElementBuilder elementBuilder,
+            String justificationText,
+            VisalloVisibility visalloVisibility,
+            VisibilityJson visibilityJson,
+            User user
+    ) {
+        Visibility visibility = visalloVisibility.getVisibility();
+        if (justificationText != null) {
+            Metadata metadata = new Metadata();
+            Visibility metadataVisibility = visibilityTranslator.getDefaultVisibility();
+            VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), metadataVisibility);
+            VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), metadataVisibility);
+            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, metadataVisibility);
+
+            PropertyJustificationMetadata value = new PropertyJustificationMetadata(justificationText);
+            VisalloProperties.JUSTIFICATION.setProperty(elementBuilder, value, metadata, visibility);
+            return true;
+        }
+        return false;
     }
 }
