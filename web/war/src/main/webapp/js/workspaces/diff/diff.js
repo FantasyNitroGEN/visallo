@@ -113,20 +113,20 @@ define([
 
             return Promise.all([
                 this.dataRequest('vertex', 'store', { vertexIds: _.unique(referencedVertices) }),
-                this.dataRequest('edge', 'store', { edgeIds: _.unique(referencedEdges) })
-            ])
-                .then(function(result) {
-                    var vertices = _.compact(result.shift()),
-                        edges = _.compact(result.shift()),
+                this.dataRequest('edge', 'store', { edgeIds: _.unique(referencedEdges) }),
+                visalloData.selectedObjectsPromise()
+            ]).spread(function(vertexResults, edgeResults, selectedObjects) {
+                    var vertices = _.compact(vertexResults),
+                        edges = _.compact(edgeResults),
                         verticesById = _.indexBy(vertices, 'id'),
-                        edgesById = _.indexBy(edges, 'id');
-                    var previousSelections = self.diffs.reduce(function(previous, diff) {
-                        if (diff.active) {
-                            previous[diff.vertexId || diff.edgeId] = true;
-                        }
-                        return previous;
-                    }, {});
-                    var previousDiffsById = self.diffsById || {};
+                        edgesById = _.indexBy(edges, 'id'),
+                        selectedById = selectedObjects.vertices.concat(selectedObjects.edges)
+                            .map(function(object) { return object.id; })
+                            .reduce(function(selected, id) {
+                                selected[id] = true;
+                                return selected;
+                            }, {}),
+                        previousDiffsById = self.diffsById || {};
                     self.diffsForElementId = {};
                     self.diffsById = {};
                     self.diffDependencies = {};
@@ -141,7 +141,7 @@ define([
                             outputItem = {
                                 properties: [],
                                 action: {},
-                                active: previousSelections[elementId],
+                                active: selectedById[elementId],
                                 publish: previousDiffsById[elementId] && previousDiffsById[elementId].publish,
                                 undo: previousDiffsById[elementId] && previousDiffsById[elementId].undo,
                                 className: F.className.to(elementId)
