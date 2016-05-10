@@ -1,6 +1,5 @@
 package org.visallo.web.clientapi.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.visallo.web.clientapi.util.ClientApiConverter;
@@ -15,16 +14,7 @@ import org.visallo.web.clientapi.util.ClientApiConverter;
         @JsonSubTypes.Type(value = ClientApiRelationshipUndoItem.class, name = "relationship")
 })
 public abstract class ClientApiUndoItem implements ClientApiObject {
-    private Action action;
     private String errorMessage;
-
-    public Action getAction() {
-        return action;
-    }
-
-    public void setAction(Action action) {
-        this.action = action;
-    }
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
@@ -39,20 +29,5 @@ public abstract class ClientApiUndoItem implements ClientApiObject {
     @Override
     public String toString() {
         return ClientApiConverter.clientApiToString(this);
-    }
-
-    public enum Action {
-        DELETE, ADD_OR_UPDATE;
-
-        @JsonCreator
-        public static Action create(String value) {
-            if (value == null) {
-                return ADD_OR_UPDATE;
-            }
-            if (value.equalsIgnoreCase(DELETE.name())) {
-                return DELETE;
-            }
-            return ADD_OR_UPDATE;
-        }
     }
 }
