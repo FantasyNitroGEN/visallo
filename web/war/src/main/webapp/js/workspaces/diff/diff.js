@@ -612,7 +612,7 @@ define([
 
                     if (!state) {
                         vertexDiff = self.diffsForElementId[diff.elementId];
-                        if (vertexDiff) {
+                        if (vertexDiff && vertexDiff.undo) {
                             self.onMarkUndo(vertexDiff.id, false);
                             self.trigger('markUndoDiffItem', { diffId: vertexDiff.id, state: false });
                         }
