@@ -66,8 +66,6 @@ define([
             })
         });
 
-        this.applyingAll = false;
-
         this.setup = function() {
             var self = this;
             this.diffs = [];
@@ -369,98 +367,52 @@ define([
         this.onSelectAllUndo = _.partial(this.onSelectAll, 'undo');
 
         this.onApplyAll = function(type) {
+            var self = this,
+                diffsToSend = this.buildDiffsToSend(type);
             this.publishing = type === 'publish';
             this.undoing = type === 'undo';
             this.render();
-
-            var self = this;
-            var diffsToSend = this.diffs.reduce(function(diffsToSend, diff) {
-                if (diff[type]) {
-                    if (diff.vertex) {
-                        diffsToSend.push(reduceVertex(diff));
-                    } else if (diff.edge) {
-                        diffsToSend.push(reduceEdge(diff));
-                    }
-                }
-                return diffsToSend.concat(diff.properties
-                    .filter(function(diff) { return diff[type]; })
-                    .reduce(reduceProperties, []))
-            }, []);
-
-            function reduceVertex(diff) {
-                var vertex = self.diffsById[diff.vertexId];
-
-                return {
-                    type: 'vertex',
-                    vertexId: diff.vertexId,
-                    action: vertex.deleted ? 'delete' : 'create',
-                    status: vertex.sandboxStatus
-                };
-            }
-
-            function reduceEdge(diff) {
-                var edge = self.diffsById[diff.edgeId];
-
-                return {
-                    type: 'relationship',
-                    edgeId: diff.edgeId,
-                    sourceId: edge.outVertexId,
-                    destId: edge.inVertexId,
-                    action: edge.deleted ? 'delete' : 'create',
-                    status: edge.sandboxStatus
-                };
-            }
-
-            function reduceProperties(diffsToSend, diff) {
-                if (diff.diffs) {
-                    return diffsToSend
-                        .concat(diff.diffs.reduce(reduceProperty, []));
-                }
-
-                return reduceProperty(diffsToSend, diff);
-            }
-
-            function reduceProperty(diffsToSend, diff) {
-                var diffToSend = {
-                    type: 'property',
-                    key: diff.key,
-                    name: diff.dependentName || diff.name,
-                    action: diff.deleted ? 'delete' : 'update',
-                    status: diff.sandboxStatus
-                };
-                diffToSend[diff.elementType + 'Id'] = diff.elementId;
-                diffsToSend.push(diffToSend);
-                return diffsToSend;
-            }
 
             this.dataRequest('workspace', type, diffsToSend)
                 .finally(function() {
                     self.publishing = self.undoing = false;
                     self.trigger(document, 'updateDiff');
-                    self.render();
                 })
                 .then(function(response) {
-                    //FIXME move to react
                     var failures = response.failures,
-                        success = response.success;
+                        success = response.success,
+                        nextDiffs = self.buildNextDiffs(type, failures);
 
-                    if (failures && failures.length) {
-                        var error = $('<div>')
-                            .addClass('alert alert-error')
-                            .html(
-                                '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
-                                '<ul><li>' + _.pluck(failures, 'errorMessage').join('</li><li>') + '</li></ul>'
-                            )
-                            .prependTo(self.$node.find('.diff-content'))
-                            .alert();
-                    }
+                    return self
+                        .processDiffs(nextDiffs)
+                        .then(function(processDiffs) {
+                            if (processDiffs.length) {
+                                self.diffs = processDiffs;
+                                self.render();
+                                self.updateVisibility();
+                                self.updateDraggables();
 
-                    if (type === 'undo') {
-                        self.trigger('loadCurrentWorkspace');
-                    }
+                                if (failures && failures.length) {
+                                    var error = $('<div>')
+                                        .addClass('alert alert-error')
+                                        .html(
+                                            '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                                            '<ul><li>' + _.pluck(failures, 'errorMessage').join('</li><li>') + '</li></ul>'
+                                        )
+                                        .prependTo(self.$node.find('.diff-content'))
+                                        .alert();
+                                }
+
+                                if (type === 'undo') {
+                                    self.trigger('loadCurrentWorkspace');
+                                }
+                            } else {
+                                self.trigger('toggleDiffPanel');
+                            }
+                        });
                 })
                 .catch(function(errorText) {
-                    //FIXME move to react
+                    //TODO move to react
                     var error = $('<div>')
                         .addClass('alert alert-error')
                         .html(
@@ -476,7 +428,110 @@ define([
         this.onApplyPublishClick = _.partial(this.onApplyAll, 'publish');
         this.onApplyUndoClick = _.partial(this.onApplyAll, 'undo');
 
+        this.buildDiffsToSend = function(applyType) {
+            var self = this,
+                diffsToSend = [];
+            this.diffs.forEach(function(diff) {
+                var vertexId = diff.vertexId,
+                    edgeId = diff.edgeId,
+                    properties = diff.properties;
+                if (diff[applyType]) {
+                    if (diff.vertex) {
+                        diffsToSend.push(vertexDiffToSend(diff));
+                    } else if (diff.edge) {
+                        diffsToSend.push(edgeDiffToSend(diff));
+                    }
+                    diff.applying = self.diffsById[vertexId || edgeId].applying = true;
+                }
+                properties
+                    .filter(function(property) { return property[applyType]; })
+                    .forEach(function(property) {
+                        property.applying = self.diffsById[property.id].applying = true;
+                        if (property.diffs) {
+                            diffsToSend = diffsToSend.concat(property.diffs.map(propertyDiffToSend))
+                        } else {
+                            diffsToSend.push(propertyDiffToSend(property));
+                        }
+                    });
+            });
+            return diffsToSend;
 
+            function vertexDiffToSend(diff) {
+                var vertex = self.diffsById[diff.vertexId];
+
+                return {
+                    type: 'vertex',
+                    vertexId: diff.vertexId,
+                    action: vertex.deleted ? 'delete' : 'create',
+                    status: vertex.sandboxStatus
+                };
+            }
+
+            function edgeDiffToSend(diff) {
+                var edge = self.diffsById[diff.edgeId];
+
+                return {
+                    type: 'relationship',
+                    edgeId: diff.edgeId,
+                    sourceId: edge.outVertexId,
+                    destId: edge.inVertexId,
+                    action: edge.deleted ? 'delete' : 'create',
+                    status: edge.sandboxStatus
+                };
+            }
+
+            function propertyDiffToSend(diff) {
+                var diffToSend = {
+                    type: 'property',
+                    key: diff.key,
+                    name: diff.dependentName || diff.name,
+                    action: diff.deleted ? 'delete' : 'update',
+                    status: diff.sandboxStatus
+                };
+                diffToSend[diff.elementType + 'Id'] = diff.elementId;
+                return diffToSend;
+            }
+        };
+
+        this.buildNextDiffs = function(applyType, failures) {
+            var self = this,
+                failuresById = failures.reduce(function(failures, failure) {
+                    var type = failure.type,
+                        vertexId = failure.vertexId,
+                        edgeId = failure.edgeId,
+                        name = failure.name,
+                        key = failure.key,
+                        id;
+
+                    switch (type) {
+                        case 'vertex':
+                            id = failure.vertexId;
+                            break;
+                        case 'relationship':
+                            id = failure.edgeId;
+                            break;
+                        case 'property':
+                            id = (vertexId || edgeId) + name + key;
+                            break;
+                    }
+                    failures[id] = true;
+                    return failures;
+                }, {});
+            return Object.keys(self.diffsById)
+                .map(function(id) {
+                    return self.diffsById[id];
+                })
+                .reduce(function(diffsToProcess, diff) {
+                    if (!diff.applying || failuresById[diff.id]) {
+                        diffsToProcess.push(diff);
+                    }
+                    diff[applyType] = diff.applying ? failuresById[diff.id] : diff[applyType];
+                    diff.applying = false;
+                    return diffsToProcess;
+                }, []);
+        };
+
+        //TODO handle in react
         this.updateDraggables = function() {
             this.$node.find('.vertex-label h1')
                 .draggable({

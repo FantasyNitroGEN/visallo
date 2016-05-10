@@ -71,7 +71,8 @@ define([
         },
 
         renderHeaderActions: function(publishingAll, undoingAll) {
-            const { onSelectAllPublishClick, onSelectAllUndoClick, onDeselectAllClick } = this.props;
+            const { publishing, undoing, onSelectAllPublishClick, onSelectAllUndoClick, onDeselectAllClick } = this.props;
+            const applying = publishing || undoing;
 
             return (
               <div className="select-actions">
@@ -82,8 +83,9 @@ define([
                             classNames('btn btn-mini select-all-publish requires-PUBLISH', {
                                 'btn-success': publishingAll
                             })}
-                            data-action="publish"
-                            onClick={publishingAll ? onDeselectAllClick : onSelectAllPublishClick}>
+                            onClick={publishingAll ? onDeselectAllClick : onSelectAllPublishClick}
+                            disabled={applying}
+                            data-action="publish">
                             {i18n('workspaces.diff.button.publish')}
                         </button>
                     ) : null}
@@ -92,8 +94,9 @@ define([
                             classNames('btn btn-mini select-all-undo requires-EDIT', {
                                 'btn-danger': undoingAll
                             })}
-                            data-action="undo"
-                            onClick={undoingAll ? onDeselectAllClick : onSelectAllUndoClick}>
+                            onClick={undoingAll ? onDeselectAllClick : onSelectAllUndoClick}
+                            disabled={applying}
+                            data-action="undo">
                             {i18n('workspaces.diff.button.undo')}
                         </button>
                     ) : null}
@@ -103,7 +106,8 @@ define([
         },
 
         renderDiffActions: function(id, { publish, undo }) {
-            const { onPublishClick, onUndoClick } = this.props;
+            const { publishing, undoing, onPublishClick, onUndoClick } = this.props;
+            const applying = publishing || undoing;
 
             return (
                 <td className="actions">
@@ -116,7 +120,8 @@ define([
                                 onClick={e => {
                                     e.stopPropagation();
                                     onPublishClick(id);
-                                }}>
+                                }}
+                                disabled={applying}>
                                 {i18n('workspaces.diff.button.publish')}
                             </button>
                         ) : null}
@@ -128,7 +133,8 @@ define([
                                 onClick={e => {
                                     e.stopPropagation();
                                     onUndoClick(id);
-                                }}>
+                                }}
+                                disabled={applying}>
                                 {i18n('workspaces.diff.button.undo')}
                             </button>
                         ) : null}
