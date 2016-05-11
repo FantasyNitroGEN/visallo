@@ -386,7 +386,9 @@ define([
                             PropertyField.attachTo(config, {
                                 property: propertyDetails,
                                 vertex: self.attr.data,
-                                values: F.vertex.props(self.attr.data, propertyDetails.title, property.key)
+                                values: property.key !== undefined ?
+                                    F.vertex.props(self.attr.data, propertyDetails.title, property.key) :
+                                    null
                             });
                         } else {
                             PropertyField.attachTo(config, {
