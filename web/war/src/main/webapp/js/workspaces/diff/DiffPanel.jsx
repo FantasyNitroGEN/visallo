@@ -230,6 +230,12 @@ define([
         renderPropertyDiff: function(property) {
             const { className, deleted, id, name, new: nextProp, old: previousProp, publish, undo } = property;
             const { formatLabel } = this.props;
+            const nextVisibility = nextProp ? formatVisibility(nextProp) : null;
+            const visibility = previousProp ? formatVisibility(previousProp) : null;
+            const nextValue = nextProp ? formatValue(name, nextProp, property) : null;
+            const value = previousProp ? formatValue(name, previousProp, property) : null;
+            const valueStyle = value !== nextValue ? { textDecoration: 'line-through'} : {};
+            const visibilityStyle = visibility !== nextVisibility ? { textDecoration: 'line-through'} : {};
 
             return (
                 <tr className={
@@ -245,16 +251,19 @@ define([
                     })}>
                     {previousProp && nextProp ? (
                         <div>
-                            {formatValue(name, nextProp, property)}
-                            <div className="visibility" data-visibility={ formatVisibility(nextProp) }></div>
-                            <div style={{ textDecoration: 'line-through'}}>{ formatValue(name, previousProp, property) }</div>
-                            <div className="visibility" data-visibility={ formatVisibility(previousProp) }></div>
+                            {nextValue}
+                            <div className="visibility" data-visibility={nextVisibility} />
+                            <div style={valueStyle}>{value}</div>
+                            <div
+                                className="visibility"
+                                data-visibility={visibility}
+                                style={visibilityStyle} />
                         </div>
                     ) : null}
                     {!previousProp && nextProp ? (
                         <div>
-                            {formatValue(name, nextProp, property)}
-                            <div className="visibility" data-visibility={ formatVisibility(nextProp) }></div>
+                            {nextValue}
+                            <div className="visibility" data-visibility={nextVisibility} />
                         </div>
                     ) : null}
                 </td>
