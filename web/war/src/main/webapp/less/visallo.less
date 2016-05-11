@@ -26,7 +26,7 @@
 @import "util/nav-lists";
 
 // Import bootstrap
-@import "../libs/bootstrap/less/bootstrap.less";
+@import "../libs/@visallo/bootstrap/less/bootstrap.less";
 #grid {
     .core  {
         .span(@gridColumns) {
@@ -35,15 +35,15 @@
     }
 };
 // Override sprite paths
-@iconSpritePath: "../libs/bootstrap/img/glyphicons-halflings.png";
-@iconWhiteSpritePath: "../libs/bootstrap/img/glyphicons-halflings-white.png";
+@iconSpritePath: "../libs/@visallo/bootstrap/img/glyphicons-halflings.png";
+@iconWhiteSpritePath: "../libs/@visallo/bootstrap/img/glyphicons-halflings-white.png";
 @import "../libs/bootstrap-datepicker/less/datepicker.less";
 @import "../libs/bootstrap-timepicker/less/timepicker.less";
 
 @import "../libs/video.js/dist/video-js.min.css";
 @import (less) "../libs/jquery-ui-bundle/jquery-ui.css";
 @import (less) "../libs/jquery-ui-bundle/jquery-ui.theme.css";
-@import (less) "../libs/openlayers2/theme/default/style.css";
+@import (less) "../libs/@visallo/openlayers2/theme/default/style.css";
 @import "../libs/gridstack/dist/gridstack.min.css";
 
 @import "dashboard/dashboard";

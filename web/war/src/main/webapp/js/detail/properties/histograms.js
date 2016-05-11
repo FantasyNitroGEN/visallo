@@ -622,7 +622,7 @@ define([
             getWidthOfNodeByClass = function(cls) {
                 var node = self.parentNode;
                 while ((node = node.nextSibling)) {
-                    if (node.classList.contains(cls)) {
+                    if (node.getAttribute('class').indexOf(cls) !== -1) {
                         return node.getBBox().width;
                     }
                 }

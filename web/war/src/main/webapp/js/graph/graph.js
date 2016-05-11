@@ -1825,6 +1825,7 @@ define([
                                 y: cyPosition[1] * zoom + cy.pan().y
                             };
                         }
+                        eventData.anchor = anchorTo;
                         eventData.zoom = zoom;
                         this.trigger(el, 'positionChanged', eventData);
                     }

@@ -29,6 +29,7 @@ define([
             config.template = 'detail/template';
             config.teardownOnTap = false;
             config.hideDialog = true;
+            config.keepInView = false;
 
             this.after('setupWithTemplate', function() {
                 var self = this;

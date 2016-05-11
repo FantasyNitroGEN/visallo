@@ -68,7 +68,10 @@ public class WorkspaceDiffHelper {
             result.add(createWorkspaceDiffEdgeItem(edge, sandboxStatus, isPublicDelete));
         }
 
-        diffProperties(workspace, edge, result, hiddenAuthorizations);
+        // don't report properties individually when deleting the edge
+        if (!isPublicDelete) {
+            diffProperties(workspace, edge, result, hiddenAuthorizations);
+        }
 
         return result;
     }
@@ -117,7 +120,10 @@ public class WorkspaceDiffHelper {
             result.add(createWorkspaceDiffVertexItem(entityVertex, sandboxStatus, userContext, workspaceEntity.isVisible(), isPublicDelete));
         }
 
-        diffProperties(workspace, entityVertex, result, authorizations);
+        // don't report properties individually when deleting the vertex
+        if (!isPublicDelete) {
+            diffProperties(workspace, entityVertex, result, authorizations);
+        }
 
         return result;
     }
@@ -166,7 +172,7 @@ public class WorkspaceDiffHelper {
         }
         JsonNode newData = JSONUtil.toJsonNode(JsonSerializer.toJsonProperty(workspaceProperty));
         return new ClientApiWorkspaceDiff.PropertyItem(
-                element instanceof Edge ? "edge" : "vertex",
+                ElementType.getTypeFromElement(element).name().toLowerCase(),
                 element.getId(),
                 VisalloProperties.CONCEPT_TYPE.getPropertyValue(element),
                 workspaceProperty.getName(),

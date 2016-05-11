@@ -5,7 +5,7 @@ In the majority of cases, most Visallo components can be built by simply opening
 <a name="root-module"/>
 ## Root Module Installation
 
-You'll need to install the Visallo `root` Maven module after you've cloned the [source code](source-code.md) and any time you pull the latest Visallo source code.
+You'll need to install the Visallo `root` Maven module after you've cloned the [source code](source-code.md) and any time you pull the latest Visallo source code. Please note that you will need to [configure Maven to use a proxy](https://maven.apache.org/guides/mini/guide-proxies.html) if your network requires a web proxy to access content on the Internet.
 
     mvn install -f root/pom.xml
 
@@ -28,9 +28,11 @@ It is a known issue that some unit tests fail on Windows. The following are expe
 
 Building the Visallo web application is very similar to running it. From the root directory of the Visallo project, run
 
-    mvn package -pl web/war -am -DskipTests -Dsource.skip=true
+    mvn package -pl web/war -am -Pdefault-webapp -DskipTests -Dsource.skip=true
 
-The previous command will create a WAR file in the `web/war/target` directory.
+The previous command will create a default WAR file in the `web/war/target` directory. This WAR file is meant to mimic
+the webapp that starts when you run the maven command described in the section on [running](running.md). You will need
+to set the `VISALLO_DIR` environment variable to point to the parent directory of your Visallo configuration files.
 
 <a name="web-plugin"/>
 ## Web Application Plugins

@@ -175,5 +175,21 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>default-webapp</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.visallo</groupId>
+                    <artifactId>visallo-dev-jetty-server</artifactId>
+                    <version>${project.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>org.visallo</groupId>
+                            <artifactId>visallo-jetty-server</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 </project>

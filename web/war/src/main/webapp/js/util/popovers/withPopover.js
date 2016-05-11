@@ -11,7 +11,8 @@ define([], function() {
 
         this.defaultAttrs({
             withPopoverInputSelector: 'input,select',
-            hideDialog: false
+            hideDialog: false,
+            keepInView: true
         })
 
         this.before('teardown', function() {
@@ -121,6 +122,10 @@ define([], function() {
         };
 
         this.onPositionChange = function(event, data) {
+            if (!_.isEqual(data.anchor, this.attr.anchorTo)) {
+                return;
+            }
+
             clearTimeout(this.positionChangeErrorCheck);
             var allBlank = !data || _.every(data.position, function(val) {
                     return val === 0;
@@ -145,6 +150,7 @@ define([], function() {
         };
 
         this.positionDialog = function() {
+            var self = this;
             var pos = this.dialogPositionIf && this.dialogPositionIf.above || this.dialogPosition;
             if (pos) {
                 var $arrow = this.dialog.find('.arrow'),
@@ -167,8 +173,8 @@ define([], function() {
                             calcTop = (pos.yMax || pos.y) + padding;
                         }
                         return {
-                            left: Math.max(menubarWidth + padding, Math.min(maxLeft - padding, calcLeft)),
-                            top: Math.max(padding, Math.min(maxTop - padding, calcTop))
+                            left: self.attr.keepInView ? Math.max(menubarWidth + padding, Math.min(maxLeft - padding, calcLeft)) : calcLeft,
+                            top: self.attr.keepInView ? Math.max(padding, Math.min(maxTop - padding, calcTop)) : calcTop
                         };
                     },
                     proposed = proposedForPosition(pos, 'above');

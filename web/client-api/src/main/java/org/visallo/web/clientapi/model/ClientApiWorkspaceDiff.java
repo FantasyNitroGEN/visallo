@@ -74,7 +74,9 @@ public class ClientApiWorkspaceDiff implements ClientApiObject {
             super("EdgeDiffItem", SandboxStatus.PRIVATE, false);
         }
 
-        public EdgeItem(String edgeId, String label, String outVertexId, String inVertexId, JsonNode visibilityJson, SandboxStatus sandboxStatus, boolean deleted) {
+        public EdgeItem(
+                String edgeId, String label, String outVertexId, String inVertexId, JsonNode visibilityJson,
+                SandboxStatus sandboxStatus, boolean deleted) {
             super("EdgeDiffItem", sandboxStatus, deleted);
             this.edgeId = edgeId;
             this.label = label;
@@ -170,7 +172,9 @@ public class ClientApiWorkspaceDiff implements ClientApiObject {
             super("PropertyDiffItem", SandboxStatus.PRIVATE, false);
         }
 
-        public PropertyItem(String elementType, String elementId, String elementConcept, String name, String key, JsonNode oldData, JsonNode newData, SandboxStatus sandboxStatus, boolean deleted, String visibilityString) {
+        public PropertyItem(
+                String elementType, String elementId, String elementConcept, String name, String key, JsonNode oldData,
+                JsonNode newData, SandboxStatus sandboxStatus, boolean deleted, String visibilityString) {
             super("PropertyDiffItem", sandboxStatus, deleted);
             this.elementType = elementType;
             this.elementId = elementId;
