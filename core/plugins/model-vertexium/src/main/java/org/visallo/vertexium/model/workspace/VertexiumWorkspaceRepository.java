@@ -1,12 +1,9 @@
 package org.visallo.vertexium.model.workspace;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicates;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -43,11 +40,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.vertexium.util.IterableUtils.toList;
+import static org.visallo.core.util.StreamUtil.stream;
 
 @Singleton
 public class VertexiumWorkspaceRepository extends WorkspaceRepository {
@@ -119,16 +116,13 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
 
-        lockRepository.lock(getLockName(workspace), new Runnable() {
-            @Override
-            public void run() {
-                Authorizations authorizations = userRepository.getAuthorizations(user, UserRepository.VISIBILITY_STRING, VisalloVisibility.SUPER_USER_VISIBILITY_STRING, workspace.getWorkspaceId());
-                Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
-                getGraph().softDeleteVertex(workspaceVertex, authorizations);
-                getGraph().flush();
+        lockRepository.lock(getLockName(workspace), () -> {
+            Authorizations authorizations = userRepository.getAuthorizations(user, UserRepository.VISIBILITY_STRING, VisalloVisibility.SUPER_USER_VISIBILITY_STRING, workspace.getWorkspaceId());
+            Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
+            getGraph().softDeleteVertex(workspaceVertex, authorizations);
+            getGraph().flush();
 
-                authorizationRepository.removeAuthorizationFromGraph(workspace.getWorkspaceId());
-            }
+            authorizationRepository.removeAuthorizationFromGraph(workspace.getWorkspaceId());
         });
     }
 
@@ -220,14 +214,13 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, UserRepository.VISIBILITY_STRING);
         Vertex userVertex = getGraph().getVertex(user.getUserId(), authorizations);
         checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
-        return toList(new ConvertingIterable<Vertex, Workspace>(userVertex.getVertices(Direction.IN, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations)) {
-            @Override
-            protected Workspace convert(Vertex workspaceVertex) {
-                String cacheKey = getUserWorkspaceVertexCacheKey(workspaceVertex.getId(), user);
-                userWorkspaceVertexCache.put(cacheKey, workspaceVertex);
-                return new VertexiumWorkspace(workspaceVertex);
-            }
-        });
+        return stream(userVertex.getVertices(Direction.IN, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations))
+                .map((Vertex workspaceVertex) -> {
+                    String cacheKey = getUserWorkspaceVertexCacheKey(workspaceVertex.getId(), user);
+                    userWorkspaceVertexCache.put(cacheKey, workspaceVertex);
+                    return new VertexiumWorkspace(workspaceVertex);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -254,22 +247,21 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspaceId);
         Vertex workspaceVertex = getVertex(workspaceId, user);
         Iterable<Edge> userEdges = workspaceVertex.getEdges(Direction.BOTH, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations);
-        usersWithAccess = toList(new ConvertingIterable<Edge, WorkspaceUser>(userEdges) {
-            @Override
-            protected WorkspaceUser convert(Edge edge) {
-                String userId = edge.getOtherVertexId(workspaceId);
+        usersWithAccess = stream(userEdges)
+                .map((edge) -> {
+                    String userId = edge.getOtherVertexId(workspaceId);
 
-                String accessString = WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.getPropertyValue(edge);
-                WorkspaceAccess workspaceAccess = WorkspaceAccess.NONE;
-                if (accessString != null && accessString.length() > 0) {
-                    workspaceAccess = WorkspaceAccess.valueOf(accessString);
-                }
+                    String accessString = WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.getPropertyValue(edge);
+                    WorkspaceAccess workspaceAccess = WorkspaceAccess.NONE;
+                    if (accessString != null && accessString.length() > 0) {
+                        workspaceAccess = WorkspaceAccess.valueOf(accessString);
+                    }
 
-                boolean isCreator = WorkspaceProperties.WORKSPACE_TO_USER_IS_CREATOR.getPropertyValue(edge, false);
+                    boolean isCreator = WorkspaceProperties.WORKSPACE_TO_USER_IS_CREATOR.getPropertyValue(edge, false);
 
-                return new WorkspaceUser(userId, workspaceAccess, isCreator);
-            }
-        });
+                    return new WorkspaceUser(userId, workspaceAccess, isCreator);
+                })
+                .collect(Collectors.toList());
         this.usersWithAccessCache.put(cacheKey, usersWithAccess);
         LOGGER.debug("END findUsersWithAccess query");
         return usersWithAccess;
@@ -281,12 +273,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
 
-        return lockRepository.lock(getLockName(workspace), new Callable<List<WorkspaceEntity>>() {
-            @Override
-            public List<WorkspaceEntity> call() throws Exception {
-                return findEntitiesNoLock(workspace, false, fetchVertices, user);
-            }
-        });
+        return lockRepository.lock(getLockName(workspace), () -> findEntitiesNoLock(workspace, false, fetchVertices, user));
     }
 
     @Traced
@@ -302,7 +289,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
         Vertex workspaceVertex = getVertexFromWorkspace(workspace, includeHidden, authorizations);
-        List<Edge> entityEdges = toList(workspaceVertex.getEdges(Direction.BOTH, WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI, authorizations));
+        List<Edge> entityEdges = stream(workspaceVertex.getEdges(Direction.BOTH, WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI, authorizations))
+                .collect(Collectors.toList());
 
         final Map<String, Vertex> workspaceVertices;
         if (fetchVertices) {
@@ -311,26 +299,26 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             workspaceVertices = null;
         }
 
-        results = Lists.newArrayList(Iterables.filter(Iterables.transform(entityEdges, new Function<Edge, WorkspaceEntity>() {
-            @Override
-            public WorkspaceEntity apply(Edge edge) {
-                String entityVertexId = edge.getOtherVertexId(workspace.getWorkspaceId());
+        results = entityEdges.stream()
+                .map(edge -> {
+                    String entityVertexId = edge.getOtherVertexId(workspace.getWorkspaceId());
 
-                Integer graphPositionX = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_X.getPropertyValue(edge);
-                Integer graphPositionY = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_Y.getPropertyValue(edge);
-                String graphLayoutJson = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_LAYOUT_JSON.getPropertyValue(edge);
-                boolean visible = WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.getPropertyValue(edge, false);
-                if (!includeHidden && !visible) {
-                    return null;
-                }
+                    Integer graphPositionX = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_X.getPropertyValue(edge);
+                    Integer graphPositionY = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_Y.getPropertyValue(edge);
+                    String graphLayoutJson = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_LAYOUT_JSON.getPropertyValue(edge);
+                    boolean visible = WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.getPropertyValue(edge, false);
+                    if (!includeHidden && !visible) {
+                        return null;
+                    }
 
-                Vertex workspaceVertex = null;
-                if (fetchVertices) {
-                    workspaceVertex = workspaceVertices.get(entityVertexId);
-                }
-                return new WorkspaceEntity(entityVertexId, visible, graphPositionX, graphPositionY, graphLayoutJson, workspaceVertex);
-            }
-        }), Predicates.notNull()));
+                    Vertex workspaceVertex1 = null;
+                    if (fetchVertices) {
+                        workspaceVertex1 = workspaceVertices.get(entityVertexId);
+                    }
+                    return new WorkspaceEntity(entityVertexId, visible, graphPositionX, graphPositionY, graphLayoutJson, workspaceVertex1);
+                })
+                .filter(o -> o != null)
+                .collect(Collectors.toList());
         workspaceEntitiesCached.put(cacheKey, results);
         LOGGER.debug("END findEntitiesNoLock (found: %d entities, time: %dms)", results.size(), System.currentTimeMillis() - startTime);
         return results;
@@ -338,13 +326,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
     protected Map<String, Vertex> getWorkspaceVertices(final Workspace workspace, List<Edge> entityEdges, Authorizations authorizations) {
         Map<String, Vertex> workspaceVertices;
-        Iterable<String> workspaceVertexIds = Iterables.transform(entityEdges, new Function<Edge, String>() {
-            @Nullable
-            @Override
-            public String apply(Edge edge) {
-                return edge.getOtherVertexId(workspace.getWorkspaceId());
-            }
-        });
+        Iterable<String> workspaceVertexIds = entityEdges.stream()
+                .map(edge -> edge.getOtherVertexId(workspace.getWorkspaceId()))
+                .collect(Collectors.toList());
         Iterable<Vertex> vertices = getGraph().getVertices(workspaceVertexIds, FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
         workspaceVertices = Maps.uniqueIndex(vertices, new Function<Vertex, String>() {
             @Nullable
@@ -373,7 +357,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
         Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
         final Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
-        List<Edge> allEdges = toList(workspaceVertex.getEdges(Direction.BOTH, authorizations));
+        List<Edge> allEdges = stream(workspaceVertex.getEdges(Direction.BOTH, authorizations)).collect(Collectors.toList());
 
         for (final String vertexId : entityIdsToDelete) {
             LOGGER.debug("workspace delete (%s): %s", workspace.getWorkspaceId(), vertexId);
@@ -407,38 +391,30 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
 
-        lockRepository.lock(getLockName(workspace.getWorkspaceId()), new Runnable() {
-            @Override
-            public void run() {
-                Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
+        lockRepository.lock(getLockName(workspace.getWorkspaceId()), () -> {
+            Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
 
-                Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
-                if (workspaceVertex == null) {
-                    throw new VisalloResourceNotFoundException("Could not find workspace vertex: " + workspace.getWorkspaceId(), workspace.getWorkspaceId());
-                }
-
-                Iterable<String> vertexIds = new ConvertingIterable<Update, String>(updates) {
-                    @Override
-                    protected String convert(Update o) {
-                        return o.getVertexId();
-                    }
-                };
-                Iterable<Vertex> vertices = getGraph().getVertices(vertexIds, authorizations);
-                ImmutableMap<String, Vertex> verticesMap = Maps.uniqueIndex(vertices, new Function<Vertex, String>() {
-                    @Override
-                    public String apply(Vertex vertex) {
-                        return vertex.getId();
-                    }
-                });
-
-                for (Update update : updates) {
-                    Vertex otherVertex = verticesMap.get(update.getVertexId());
-                    checkNotNull(otherVertex, "Could not find vertex with id: " + update.getVertexId());
-                    createEdge(workspaceVertex, otherVertex, update.getGraphPosition(), update.getGraphLayoutJson(), update.getVisible(), authorizations);
-                }
-                getGraph().flush();
-                workspaceEntitiesCached.invalidateAll();
+            Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
+            if (workspaceVertex == null) {
+                throw new VisalloResourceNotFoundException("Could not find workspace vertex: " + workspace.getWorkspaceId(), workspace.getWorkspaceId());
             }
+
+            Iterable<String> vertexIds = new ConvertingIterable<Update, String>(updates) {
+                @Override
+                protected String convert(Update o) {
+                    return o.getVertexId();
+                }
+            };
+            Iterable<Vertex> vertices = getGraph().getVertices(vertexIds, authorizations);
+            ImmutableMap<String, Vertex> verticesMap = Maps.uniqueIndex(vertices, Element::getId);
+
+            for (Update update : updates) {
+                Vertex otherVertex = verticesMap.get(update.getVertexId());
+                checkNotNull(otherVertex, "Could not find vertex with id: " + update.getVertexId());
+                createEdge(workspaceVertex, otherVertex, update.getGraphPosition(), update.getGraphLayoutJson(), update.getVisible(), authorizations);
+            }
+            getGraph().flush();
+            workspaceEntitiesCached.invalidateAll();
         });
     }
 
@@ -485,12 +461,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have read access to workspace " + workspaceId, user, workspaceId);
         }
         Iterable<Vertex> dashboardVertices = workspaceVertex.getVertices(Direction.OUT, WorkspaceProperties.WORKSPACE_TO_DASHBOARD_RELATIONSHIP_IRI, authorizations);
-        return toList(Iterables.transform(dashboardVertices, new Function<Vertex, Dashboard>() {
-            @Override
-            public Dashboard apply(Vertex dashboardVertex) {
-                return dashboardVertexToDashboard(workspaceId, dashboardVertex, authorizations);
-            }
-        }));
+        return stream(dashboardVertices)
+                .map(dashboardVertex -> dashboardVertexToDashboard(workspaceId, dashboardVertex, authorizations))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -556,12 +529,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     private Dashboard dashboardVertexToDashboard(String workspaceId, Vertex dashboardVertex, Authorizations authorizations) {
         String title = WorkspaceProperties.TITLE.getPropertyValue(dashboardVertex);
         Iterable<Vertex> dashboardItemVertices = dashboardVertex.getVertices(Direction.OUT, WorkspaceProperties.DASHBOARD_TO_DASHBOARD_ITEM_RELATIONSHIP_IRI, authorizations);
-        List<DashboardItem> items = toList(Iterables.transform(dashboardItemVertices, new Function<Vertex, DashboardItem>() {
-            @Override
-            public DashboardItem apply(Vertex dashboardItemVertex) {
-                return dashboardItemVertexToDashboardItem(dashboardItemVertex);
-            }
-        }));
+        List<DashboardItem> items = stream(dashboardItemVertices)
+                .map(this::dashboardItemVertexToDashboardItem)
+                .collect(Collectors.toList());
         return new VertexiumDashboard(dashboardVertex.getId(), workspaceId, title, items);
     }
 
@@ -611,23 +581,20 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
 
-        lockRepository.lock(getLockName(workspace), new Runnable() {
-            @Override
-            public void run() {
-                Authorizations authorizations = userRepository.getAuthorizations(user, UserRepository.VISIBILITY_STRING, VISIBILITY_STRING, workspace.getWorkspaceId());
-                Vertex userVertex = getGraph().getVertex(userId, authorizations);
-                if (userVertex == null) {
-                    throw new VisalloResourceNotFoundException("Could not find user: " + userId, userId);
-                }
-                Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
-                List<Edge> edges = toList(workspaceVertex.getEdges(userVertex, Direction.BOTH, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations));
-                for (Edge edge : edges) {
-                    getGraph().softDeleteEdge(edge, authorizations);
-                }
-                getGraph().flush();
-
-                clearCache();
+        lockRepository.lock(getLockName(workspace), () -> {
+            Authorizations authorizations = userRepository.getAuthorizations(user, UserRepository.VISIBILITY_STRING, VISIBILITY_STRING, workspace.getWorkspaceId());
+            Vertex userVertex = getGraph().getVertex(userId, authorizations);
+            if (userVertex == null) {
+                throw new VisalloResourceNotFoundException("Could not find user: " + userId, userId);
             }
+            Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
+            List<Edge> edges = stream(workspaceVertex.getEdges(userVertex, Direction.BOTH, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations)).collect(Collectors.toList());
+            for (Edge edge : edges) {
+                getGraph().softDeleteEdge(edge, authorizations);
+            }
+            getGraph().flush();
+
+            clearCache();
         });
     }
 
@@ -706,41 +673,39 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
 
-        lockRepository.lock(getLockName(workspace), new Runnable() {
-            @Override
-            public void run() {
-                Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
-                Vertex otherUserVertex;
-                if (userRepository instanceof VertexiumUserRepository) {
-                    otherUserVertex = ((VertexiumUserRepository) userRepository).findByIdUserVertex(userId);
-                } else {
-                    otherUserVertex = getGraph().getVertex(userId, authorizations);
-                }
-                if (otherUserVertex == null) {
-                    throw new VisalloResourceNotFoundException("Could not find user: " + userId, userId);
-                }
-
-                Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
-                if (workspaceVertex == null) {
-                    throw new VisalloResourceNotFoundException("Could not find workspace vertex: " + workspace.getWorkspaceId(), workspace.getWorkspaceId());
-                }
-
-                List<Edge> existingEdges = toList(workspaceVertex.getEdges(otherUserVertex, Direction.OUT, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations));
-                if (existingEdges.size() > 0) {
-                    for (Edge existingEdge : existingEdges) {
-                        WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.setProperty(existingEdge, workspaceAccess.toString(), VISIBILITY.getVisibility(), authorizations);
-                    }
-                } else {
-
-                    EdgeBuilder edgeBuilder = getGraph().prepareEdge(workspaceVertex, otherUserVertex, WORKSPACE_TO_USER_RELATIONSHIP_IRI, VISIBILITY.getVisibility());
-                    WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.setProperty(edgeBuilder, workspaceAccess.toString(), VISIBILITY.getVisibility());
-                    edgeBuilder.save(authorizations);
-                }
-
-                getGraph().flush();
-
-                clearCache();
+        lockRepository.lock(getLockName(workspace), () -> {
+            Authorizations authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, workspace.getWorkspaceId());
+            Vertex otherUserVertex;
+            if (userRepository instanceof VertexiumUserRepository) {
+                otherUserVertex = ((VertexiumUserRepository) userRepository).findByIdUserVertex(userId);
+            } else {
+                otherUserVertex = getGraph().getVertex(userId, authorizations);
             }
+            if (otherUserVertex == null) {
+                throw new VisalloResourceNotFoundException("Could not find user: " + userId, userId);
+            }
+
+            Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
+            if (workspaceVertex == null) {
+                throw new VisalloResourceNotFoundException("Could not find workspace vertex: " + workspace.getWorkspaceId(), workspace.getWorkspaceId());
+            }
+
+            List<Edge> existingEdges = stream(workspaceVertex.getEdges(otherUserVertex, Direction.OUT, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations))
+                    .collect(Collectors.toList());
+            if (existingEdges.size() > 0) {
+                for (Edge existingEdge : existingEdges) {
+                    WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.setProperty(existingEdge, workspaceAccess.toString(), VISIBILITY.getVisibility(), authorizations);
+                }
+            } else {
+
+                EdgeBuilder edgeBuilder = getGraph().prepareEdge(workspaceVertex, otherUserVertex, WORKSPACE_TO_USER_RELATIONSHIP_IRI, VISIBILITY.getVisibility());
+                WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.setProperty(edgeBuilder, workspaceAccess.toString(), VISIBILITY.getVisibility());
+                edgeBuilder.save(authorizations);
+            }
+
+            getGraph().flush();
+
+            clearCache();
         });
     }
 
@@ -751,15 +716,12 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new VisalloAccessDeniedException("user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(), user, workspace.getWorkspaceId());
         }
 
-        return lockRepository.lock(getLockName(workspace), new Callable<ClientApiWorkspaceDiff>() {
-            @Override
-            public ClientApiWorkspaceDiff call() throws Exception {
-                List<WorkspaceEntity> workspaceEntities = findEntitiesNoLock(workspace, true, true, user);
-                Iterable<Edge> workspaceEdges = findModifiedEdges(workspace, workspaceEntities, true, user);
+        return lockRepository.lock(getLockName(workspace), () -> {
+            List<WorkspaceEntity> workspaceEntities = findEntitiesNoLock(workspace, true, true, user);
+            Iterable<Edge> workspaceEdges = findModifiedEdges(workspace, workspaceEntities, true, user);
 
-                FormulaEvaluator.UserContext userContext = new FormulaEvaluator.UserContext(locale, timeZone, workspace.getWorkspaceId());
-                return workspaceDiff.diff(workspace, workspaceEntities, workspaceEdges, userContext, user);
-            }
+            FormulaEvaluator.UserContext userContext = new FormulaEvaluator.UserContext(locale, timeZone, workspace.getWorkspaceId());
+            return workspaceDiff.diff(workspace, workspaceEntities, workspaceEdges, userContext, user);
         });
     }
 }

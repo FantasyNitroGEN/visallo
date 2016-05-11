@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.search.SearchProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -40,6 +41,9 @@ public class VertexiumSearchRepositoryTest {
     private User user;
     private String userId;
 
+    @Mock
+    private User systemUser;
+
     @Before
     public void setUp() {
         graph = InMemoryGraph.create();
@@ -50,6 +54,9 @@ public class VertexiumSearchRepositoryTest {
         when(user.getUserId()).thenReturn(userId);
         graph.addVertex(userId, new Visibility(""), authorizations);
         graph.flush();
+
+        when(userRepository.getSystemUser()).thenReturn(systemUser);
+        when(userRepository.getAuthorizations(eq(systemUser), eq(VertexiumSearchRepository.VISIBILITY_STRING))).thenReturn(authorizations);
 
         when(userRepository.getAuthorizations(eq(user), eq(VertexiumSearchRepository.VISIBILITY_STRING), eq(UserRepository.VISIBILITY_STRING))).thenReturn(authorizations);
     }
@@ -62,7 +69,7 @@ public class VertexiumSearchRepositoryTest {
         JSONObject searchParameters = new JSONObject();
         searchParameters.put("key1", "value1");
 
-        String foundId = searchRepository.saveSearch(user, id, name, url, searchParameters);
+        String foundId = searchRepository.saveSearch(id, name, url, searchParameters, user);
         assertEquals(id, foundId);
 
         Vertex userVertex = graph.getVertex(userId, authorizations);
@@ -72,7 +79,7 @@ public class VertexiumSearchRepositoryTest {
         assertEquals(SearchProperties.CONCEPT_TYPE_SAVED_SEARCH, VisalloProperties.CONCEPT_TYPE.getPropertyValue(savedSearchVertex, null));
         assertEquals(name, SearchProperties.NAME.getPropertyValue(savedSearchVertex, null));
         assertEquals(url, SearchProperties.URL.getPropertyValue(savedSearchVertex, null));
-        assertEquals(searchParameters.toString(), SearchProperties.PARAMETERS.getPropertyValue(savedSearchVertex).toString());
+        assertEquals(searchParameters.toString(), SearchProperties.PARAMETERS.getPropertyValueRequired(savedSearchVertex).toString());
     }
 
     @Test
@@ -95,12 +102,17 @@ public class VertexiumSearchRepositoryTest {
 
         ClientApiSearchListResponse response = searchRepository.getSavedSearches(user);
         assertEquals(1, response.searches.size());
-        ClientApiSearch search = response.searches.get(0);
-        assertEquals(id, search.id);
-        assertEquals(name, search.name);
-        assertEquals(url, search.url);
-        assertEquals(parameters.keySet().size(), search.parameters.size());
-        assertEquals(parameters.getString("key1"), search.parameters.get("key1"));
+        for (ClientApiSearch search : response.searches) {
+            if (search.id.equals(id)) {
+                assertEquals(id, search.id);
+                assertEquals(name, search.name);
+                assertEquals(url, search.url);
+                assertEquals(parameters.keySet().size(), search.parameters.size());
+                assertEquals(parameters.getString("key1"), search.parameters.get("key1"));
+            } else {
+                throw new VisalloException("Invalid search item");
+            }
+        }
     }
 
     @Test

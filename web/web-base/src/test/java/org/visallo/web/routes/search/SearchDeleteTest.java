@@ -5,12 +5,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSearch;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,9 +25,6 @@ public class SearchDeleteTest {
     @Mock
     private User user;
 
-    @Mock
-    private VisalloResponse response;
-
     @Before
     public void setUp() {
         searchDelete = new SearchDelete(searchRepository);
@@ -40,7 +37,7 @@ public class SearchDeleteTest {
 
         when(searchRepository.getSavedSearch(eq(id), eq(user))).thenReturn(savedSearch);
 
-        searchDelete.handle(id, user, response);
+        searchDelete.handle(id, user);
 
         verify(searchRepository).deleteSearch(id, user);
     }
@@ -51,8 +48,11 @@ public class SearchDeleteTest {
 
         when(searchRepository.getSavedSearch(eq(id), eq(user))).thenReturn(null);
 
-        searchDelete.handle(id, user, response);
-
-        verify(response).respondWithNotFound(any(String.class));
+        try {
+            searchDelete.handle(id, user);
+            throw new VisalloException("Should have thrown not found");
+        } catch (VisalloResourceNotFoundException ex) {
+            // OK
+        }
     }
 }
