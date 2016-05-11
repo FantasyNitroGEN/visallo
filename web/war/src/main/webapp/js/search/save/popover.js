@@ -11,6 +11,10 @@ define([
     Privileges) {
     'use strict';
 
+    var SCOPES = {
+        GLOBAL: 'Global'
+    };
+
     return defineComponent(SavedSearches, withPopover, withDataRequest);
 
     function normalizeParameters(params) {
@@ -48,11 +52,11 @@ define([
             config.canSaveGlobal = Privileges.canADMIN;
             config.maxHeight = $(window).height() / 2;
             config.name = config.update && config.update.name || '';
-            config.updatingGlobal = config.update && config.update.scope === 'Global';
+            config.updatingGlobal = config.update && config.update.scope === SCOPES.GLOBAL;
             config.text = i18n('search.savedsearches.button.' + (config.update ? 'update' : 'create'));
             config.teardownOnTap = true;
             config.list = config.list.map(function(item) {
-                var isGlobal = item.scope === 'Global',
+                var isGlobal = item.scope === SCOPES.GLOBAL,
                     canDelete = true;
                 if (isGlobal) {
                     canDelete = Privileges.canADMIN;
