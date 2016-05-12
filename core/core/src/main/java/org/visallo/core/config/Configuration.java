@@ -189,7 +189,7 @@ public class Configuration {
         setConfigurables(o, subset);
     }
 
-    public void setConfigurables(Object o, Map<String, String> config) {
+    public static void setConfigurables(Object o, Map<String, String> config) {
         ConvertUtilsBean convertUtilsBean = new ConvertUtilsBean();
         Map<Method, PostConfigurationValidator> validatorMap = new HashMap<>();
 
@@ -228,7 +228,7 @@ public class Configuration {
         }
     }
 
-    private List<Field> getAllFields(Object o) {
+    private static List<Field> getAllFields(Object o) {
         List<Field> fields = new ArrayList<>();
         Class c = o.getClass();
         while (c != null) {
@@ -238,7 +238,7 @@ public class Configuration {
         return fields;
     }
 
-    private void setConfigurablesMethod(Object o, Method m, Map<String, String> config, ConvertUtilsBean convertUtilsBean) {
+    private static void setConfigurablesMethod(Object o, Method m, Map<String, String> config, ConvertUtilsBean convertUtilsBean) {
         Configurable configurableAnnotation = m.getAnnotation(Configurable.class);
         if (configurableAnnotation == null) {
             return;
@@ -263,7 +263,7 @@ public class Configuration {
         } else {
             if (Configurable.DEFAULT_VALUE.equals(defaultValue)) {
                 if (configurableAnnotation.required()) {
-                    throw new VisalloException("Could not find property " + name + " for " + o.getClass().getName() + " and no default value was specified.");
+                    throw new VisalloException(String.format("Could not find property \"%s\" for \"%s\" and no default value was specified.", name, o.getClass().getName()));
                 } else {
                     return;
                 }
@@ -278,7 +278,7 @@ public class Configuration {
         }
     }
 
-    private void setConfigurablesField(Object o, Field f, Map<String, String> config, ConvertUtilsBean convertUtilsBean) {
+    private static void setConfigurablesField(Object o, Field f, Map<String, String> config, ConvertUtilsBean convertUtilsBean) {
         Configurable configurableAnnotation = f.getAnnotation(Configurable.class);
         if (configurableAnnotation == null) {
             return;
