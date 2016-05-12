@@ -172,10 +172,10 @@ define([
                 options = data && data.options,
                 newFilters = _.omit(data, 'options');
 
+            this.disableMatchEdges = data.options && data.options.disableMatchEdges === true;
             this.clearFilters({ triggerUpdates: false }).done(function() {
                 _.extend(self.otherFilters, newFilters);
                 $(event.target).closest('.extension-filter-row').show();
-                self.disableMatchEdges = data.options && data.options.disableMatchEdges === true;
                 self.notifyOfFilters();
             })
         };
@@ -276,7 +276,8 @@ define([
         this.setMatchType = function(type) {
             this.matchType = type;
             this.$node.find('.match-type-' + type).prop('checked', true);
-            this.$node.find('input').prop('disabled', this.disableMatchEdges === true);
+            this.$node.find('.match-type-edge').closest('label').andSelf()
+                .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
             this.select('edgeLabelFilterSelector').toggle(type === 'edge');
             if (this.matchType === 'vertex') {
@@ -441,8 +442,8 @@ define([
             keys.forEach(function(key) {
                 delete self.otherFilters[key];
             })
-            this.disabledMatchEdges = false;
-            this.notifyOfFilters();
+            this.disableMatchEdges = false;
+            this.setMatchType(this.matchType);
         };
 
         this.createNewRowIfNeeded = function() {
