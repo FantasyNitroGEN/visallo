@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.apache.commons.lang.time.DateUtils;
 import org.json.JSONObject;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LeaderListener;
 import org.visallo.core.model.lock.LockRepository;
@@ -19,21 +20,28 @@ import java.util.List;
 
 public class SystemNotificationRepository extends NotificationRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SystemNotificationRepository.class);
+    private static final Integer CHECK_INTERVAL_SECONDS_DEFAULT = 60;
+    private static final String CHECK_INTERVAL_CONFIG_NAME = SystemNotificationRepository.class.getName() + ".checkIntervalSeconds";
     private static final String LOCK_NAME = SystemNotificationRepository.class.getName();
     private static final String VISIBILITY_STRING = "";
     private final UserRepository userRepository;
-    private boolean enabled;
+    private final int checkIntervalSeconds;
+    private volatile boolean enabled;
 
     @Inject
     public SystemNotificationRepository(
+            Configuration configuration,
             SimpleOrmSession simpleOrmSession,
             LockRepository lockRepository,
             UserRepository userRepository,
             WorkQueueRepository workQueueRepository
     ) {
         super(simpleOrmSession);
+        this.checkIntervalSeconds = configuration.getInt(CHECK_INTERVAL_CONFIG_NAME, CHECK_INTERVAL_SECONDS_DEFAULT);
         this.userRepository = userRepository;
-        startBackgroundThread(lockRepository, userRepository, workQueueRepository);
+        if (this.checkIntervalSeconds > 0) {
+            startBackgroundThread(lockRepository, userRepository, workQueueRepository);
+        }
     }
 
     public List<SystemNotification> getActiveNotifications(User user) {
@@ -119,33 +127,30 @@ public class SystemNotificationRepository extends NotificationRepository {
     }
 
     protected void startBackgroundThread(final LockRepository lockRepository, final UserRepository userRepository, final WorkQueueRepository workQueueRepository) {
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                enabled = false;
-                lockRepository.leaderElection(LOCK_NAME, new LeaderListener() {
-                    @Override
-                    public void isLeader() {
-                        LOGGER.debug("using successfully acquired lock (%s)", Thread.currentThread().getName());
-                        enabled = true;
-                    }
-
-                    @Override
-                    public void notLeader() {
-                        LOGGER.debug("lost leadership (%s)", Thread.currentThread().getName());
-                        disable();
-                    }
-                });
-
-                while (true) {
-                    try {
-                        Thread.sleep(10 * 1000);
-                    } catch (InterruptedException e) {
-                        LOGGER.error("Failed to sleep", e);
-                        throw new VisalloException("Failed to sleep", e);
-                    }
-                    runPeriodically(userRepository, workQueueRepository);
+        Thread t = new Thread(() -> {
+            enabled = false;
+            lockRepository.leaderElection(LOCK_NAME, new LeaderListener() {
+                @Override
+                public void isLeader() {
+                    LOGGER.debug("using successfully acquired lock (%s)", Thread.currentThread().getName());
+                    enabled = true;
                 }
+
+                @Override
+                public void notLeader() {
+                    LOGGER.debug("lost leadership (%s)", Thread.currentThread().getName());
+                    disable();
+                }
+            });
+
+            while (true) {
+                try {
+                    Thread.sleep(10 * 1000); // wait for enabled to change
+                } catch (InterruptedException e) {
+                    LOGGER.error("Failed to sleep", e);
+                    throw new VisalloException("Failed to sleep", e);
+                }
+                runPeriodically(userRepository, workQueueRepository);
             }
         });
         t.setDaemon(true);
@@ -158,18 +163,16 @@ public class SystemNotificationRepository extends NotificationRepository {
             while (enabled) {
                 LOGGER.debug("running periodically");
                 Date now = new Date();
-                Date nowPlusOneMinute = DateUtils.addMinutes(now, 1);
-                List<SystemNotification> notifications = getFutureNotifications(nowPlusOneMinute, userRepository.getSystemUser());
-                for (SystemNotification notification : notifications) {
-                    workQueueRepository.pushSystemNotification(notification);
-                }
+                Date nowPlusOneMinute = DateUtils.addSeconds(now, checkIntervalSeconds);
+                getFutureNotifications(nowPlusOneMinute, userRepository.getSystemUser())
+                        .forEach(workQueueRepository::pushSystemNotification);
                 try {
                     long remainingMilliseconds = nowPlusOneMinute.getTime() - System.currentTimeMillis();
                     if (remainingMilliseconds > 0) {
                         Thread.sleep(remainingMilliseconds);
                     }
                 } catch (InterruptedException e) {
-                    // do nothing
+                    break;
                 }
             }
         } catch (Throwable ex) {
