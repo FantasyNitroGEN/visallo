@@ -62,6 +62,10 @@ public abstract class LibLoader {
         LOGGER.info("adding lib: %s", f.getAbsolutePath());
         loadedLibFiles.add(f);
 
+        if (!f.canRead()) {
+            throw new VisalloException("Invalid read permissions on lib: " + f.getAbsolutePath());
+        }
+
         ClassLoader classLoader = LibLoader.class.getClassLoader();
         while (classLoader != null) {
             if (tryAddUrl(classLoader, f)) {
