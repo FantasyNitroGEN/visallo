@@ -55,7 +55,7 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
                 case TYPE_SET_ACTIVE_WORKSPACE:
                     return false;
                 case TYPE_SESSION_EXPIRATION:
-                    return true;
+                    return session == null;
             }
         }
 

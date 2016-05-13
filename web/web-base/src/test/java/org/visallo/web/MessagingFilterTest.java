@@ -62,6 +62,14 @@ public class MessagingFilterTest {
     }
 
     @Test
+    public void testShouldNotSendMessageSessionNotNullAndSessionExpiration() {
+        JSONObject message = new JSONObject();
+        message.put("type", MessagingFilter.TYPE_SESSION_EXPIRATION);
+
+        assertFalse(messagingFilter.shouldSendMessage(message, session));
+    }
+
+    @Test
     public void testShouldSendMessageSessionNotNull() {
         JSONObject message = new JSONObject();
 
