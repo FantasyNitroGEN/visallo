@@ -49,7 +49,6 @@ define([
     var HOVER_FOCUS_DELAY_SECONDS = 0.25,
         MAX_TITLE_LENGTH = 15,
         MAX_POPUP_DETAIL_PANES_AT_ONCE = 5,
-        SELECTION_THROTTLE = 100,
         GRAPH_PADDING_BORDER = 20,
         GRAPH_SNAP_TO_GRID = 175,
         GRAPH_SNAP_TO_GRID_Y = 75,
@@ -74,6 +73,7 @@ define([
         var shiftKey = false,
             edgeIdToGroupedCyEdgeId = {},
             ontologyRelationships = null,
+            SELECTION_THROTTLE = visalloData.graphSelectionThrottle,
             LAYOUT_OPTIONS = {
                 // Customize layout options
                 random: { padding: 10 },

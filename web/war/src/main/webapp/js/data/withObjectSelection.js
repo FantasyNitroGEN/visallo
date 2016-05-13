@@ -23,10 +23,11 @@ define([], function() {
         var selectedObjects,
             selectedObjectsStackByWorkspace = {},
             previousSelectedObjects,
-            edges;
+            GRAPH_SELECTION_THROTTLE = 100;
 
         this.after('initialize', function() {
             this.setPublicApi('selectedObjects', defaultNoObjectsOrData());
+            this.setPublicApi('graphSelectionThrottle', GRAPH_SELECTION_THROTTLE);
 
             // Guarantees that we aren't after a selectObjects call but before objectsSelected
             this.currentSelectObjectsPromise = Promise.resolve();
@@ -70,6 +71,12 @@ define([], function() {
             this.on('objectsSelected', this.onObjectsSelected);
         });
 
+        this.displayInfo = function(i18nMessage) {
+            this.trigger('displayInformation', {
+                message: i18n.apply(null, arguments)
+            });
+        };
+
         this.selectedObjectsPromise = function() {
             return this.currentSelectObjectsPromise.then(function() {
                 return selectedObjects;
@@ -77,16 +84,13 @@ define([], function() {
         };
 
         this.onEdgesLoaded = function(event, data) {
-            edges = data.edges;
-            this.setPublicApi('workspaceEdges', edges);
+            this.setPublicApi('workspaceEdges', data.edges);
         };
 
         this.onSelectAll = function(event, data) {
             var self = this;
 
-            this.trigger('displayInformation', {
-                message: 'Selecting All Objects...'
-            });
+            this.displayInfo('graph.select.all.starting');
             this.on(document, 'objectsSelected objectsSelectedAborted', function handler() {
                 self.trigger('hideInformation');
                 self.off(document, 'objectsSelected objectsSelectedAborted', handler);
@@ -110,37 +114,79 @@ define([], function() {
         this.onSelectConnected = function(event, data) {
             var self = this;
 
-            this.selectedObjectsPromise().then(function(selectedObjects) {
-                var vertices = selectedObjects.vertices;
+            this.displayInfo('graph.select.connected.starting');
 
-                if (vertices.length && edges && edges.length) {
-                    self.dataRequestPromise.done(function(dataRequest) {
-                        dataRequest('workspace', 'store')
-                            .done(function(workspaceVertices) {
-                                var selected = _.pluck(vertices, 'id'),
-                                    toSelect = _.chain(edges)
-                                        .map(function(e) {
-                                            return selected.map(function(v) {
-                                                return e.outVertexId === v ?
-                                                    e.inVertexId :
-                                                    e.inVertexId === v ?
-                                                    e.outVertexId :
-                                                    null
-                                            })
-                                        })
-                                        .flatten()
-                                        .compact()
-                                        .unique()
-                                        .filter(function(vId) {
-                                            return vId in workspaceVertices;
-                                        })
-                                        .value();
+            Promise.all([getSelectedVertices(), getWorkspaceEdges()])
+                .spread(function(vertices, edges) {
+                    if (vertices.length && edges.length) {
+                        return [vertices, edges, getWorkspaceVertices()]
+                    }
+                })
+                .spread(getOtherVertices)
+                .then(function(vertexIds) {
+                    if (vertexIds) {
+                        displayMessageForVertexIds(vertexIds);
+                        if (vertexIds.length) {
+                            selectVertexIds(vertexIds)
+                        }
+                    }
+                });
 
-                                self.trigger('selectObjects', { vertexIds: toSelect });
+            function displayMessageForVertexIds(ids) {
+                var suffix = ids.length === 1 ? '' : '.plural';
+                self.displayInfo('graph.select.connected.finished' + suffix, ids.length)
+            }
+
+            function selectVertexIds(ids) {
+                self.trigger('selectObjects', { vertexIds: ids });
+            }
+
+            function getOtherVertices(vertices, edges, workspaceVertices) {
+                if (!vertices) return;
+
+                var selected = _.pluck(vertices, 'id'),
+                    toSelect = _.chain(edges)
+                        .map(function(e) {
+                            return selected.map(function(v) {
+                                return e.outVertexId === v ?
+                                    e.inVertexId :
+                                    e.inVertexId === v ?
+                                    e.outVertexId :
+                                    null
                             })
-                    })
-                }
-            })
+                        })
+                        .flatten()
+                        .compact()
+                        .unique()
+                        .filter(function(vId) {
+                            return vId in workspaceVertices;
+                        })
+                        .value();
+                return toSelect;
+            }
+
+            function getWorkspaceVertices() {
+                return self.dataRequestPromise.then(function(dataRequest) {
+                    return dataRequest('workspace', 'store');
+                });
+            }
+
+            function getSelectedVertices() {
+                var graphSelectionDelay = Promise.timeout(GRAPH_SELECTION_THROTTLE);
+                return graphSelectionDelay
+                    .then(getSelectedObjects)
+                    .then(_.property('vertices'));
+            }
+
+            function getWorkspaceEdges() {
+                return self.dataRequestPromise.then(function(dataRequest) {
+                    return dataRequest('workspace', 'edges');
+                });
+            }
+
+            function getSelectedObjects() {
+                return self.selectedObjectsPromise();
+            }
         };
 
         this.onDeleteSelected = function(event, data) {
