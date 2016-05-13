@@ -266,8 +266,8 @@ define([
                         }
                         count++;
                         return true;
-                    }),
-                    formattedCount = F.number.pretty(count);
+                    });
+                self.formattedCount = F.number.pretty(count);
 
                 self.currentDiffIds = _.uniq(filteredDiffs.map(function(diff) {
                     return diff.vertexId || diff.elementId || diff.edgeId;
@@ -330,12 +330,12 @@ define([
 
                 badge.removePrefixedClasses('badge-').addClass('badge-info')
                     .attr('title', i18n('workspaces.diff.unpublished_change.' + (
-                        formattedCount === 1 ?
-                        'one' : 'some'), formattedCount))
-                    .text(count > 0 ? formattedCount : '');
+                        self.formattedCount === 1 ?
+                        'one' : 'some'), self.formattedCount))
+                    .text(count > 0 ? self.formattedCount : '');
 
                 if (count > 0) {
-                    self.animateBadge(badge, formattedCount);
+                    self.animateBadge(badge);
                 } else if (count === 0) {
                     badge.popover('destroy');
                 }
@@ -343,10 +343,11 @@ define([
         };
 
         var badgeReset, animateTimer;
-        this.animateBadge = function(badge, formattedCount) {
-            badge.text(formattedCount).css('width', 'auto');
+        this.animateBadge = function(badge) {
+            badge.text(this.formattedCount).css('width', 'auto');
 
-            var html = '<span class="number">' + formattedCount + '</span>' +
+            var self = this,
+                html = '<span class="number">' + this.formattedCount + '</span>' +
                     '<span class="suffix"> ' + i18n('workspaces.diff.unpublished') + '</span>',
                 previousWidth = badge.outerWidth(),
                 findWidth = function() {
@@ -360,7 +361,7 @@ define([
             if (animateTimer) {
                 clearTimeout(animateTimer);
                 animateTimer = _.delay(
-                    badgeReset.bind(null, previousWidth, formattedCount),
+                    badgeReset.bind(null, previousWidth),
                     SHOW_UNPUBLUSHED_CHANGES_SECONDS * 1000
                 );
                 return badge.html(html).css({ width: findWidth() })
@@ -382,19 +383,19 @@ define([
                     transition: 'opacity ease-out ' + duration
                 })
 
-                animateTimer = _.delay((badgeReset = function(previousWidth, formattedCount) {
+                animateTimer = _.delay((badgeReset = function(previousWidth) {
                     animateTimer = null;
                     badge.on(TRANSITION_END, function(e) {
                         if (e.originalEvent.propertyName === 'width') {
                             badge.off(TRANSITION_END);
-                            badge.text(formattedCount).css('width', 'auto');
+                            badge.text(self.formattedCount).css('width', 'auto');
                         }
                     }).css({
                         transition: 'all cubic-bezier(.92,-0.42,.37,1.31) ' + duration,
                         backgroundColor: '#0088cc',
                         width: previousWidth + 'px'
                     }).find('.suffix').css('opacity', 0);
-                }).bind(null, previousWidth, formattedCount), SHOW_UNPUBLUSHED_CHANGES_SECONDS * 1000);
+                }).bind(null, previousWidth), SHOW_UNPUBLUSHED_CHANGES_SECONDS * 1000);
             })
         };
 
