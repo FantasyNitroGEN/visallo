@@ -83,6 +83,19 @@ define([
         };
     }
 
+    function getCreated(p) {
+        var d = F.date.utc(p.key),
+            millis = d && d.getTime();
+        if (millis && !isNaN(millis)) {
+            return millis;
+        }
+    }
+
+    function isEdited(created, modified) {
+        var equalTolerance = 5000;
+        return (modified - created) > equalTolerance
+    }
+
     function Comments() {
 
         this.attributes({
@@ -152,6 +165,7 @@ define([
                     this.append('ul').attr('class', 'collapsed');
                 })
 
+            selection.order()
             selection.select('.comment-text')
                 .classed('redacted', function(p) {
                     return p[0].redacted || false;
@@ -205,16 +219,30 @@ define([
                         return '';
                     }
                     var modified = p[0].metadata['http://visallo.org#modifiedDate'],
+                        created = getCreated(p[0]) || modified,
                         relativeString = modified && F.date.relativeToNow(F.date.utc(modified));
 
-                    return relativeString || '';
+                    if (relativeString) {
+                        if (isEdited(created, modified)) {
+                            return i18n('detail.comments.date.edited', relativeString);
+                        }
+                        return relativeString;
+                    }
+                    return '';
                 })
                 .attr('title', function(p) {
                     if (p[0].redacted) {
                         return '';
                     }
-                    var modified = p[0].metadata['http://visallo.org#modifiedDate'];
-                    return modified && F.date.dateTimeString(modified) || '';
+                    var modified = p[0].metadata['http://visallo.org#modifiedDate'],
+                        created = getCreated(p[0]) || modified,
+                        modifiedStr = modified && F.date.dateTimeString(modified) || '',
+                        createdStr = created && F.date.dateTimeString(created) || '';
+
+                    if (isEdited(created, modified)) {
+                        return i18n('detail.comments.date.hover.edited', createdStr, modifiedStr);
+                    }
+                    return modifiedStr;
                 });
             selection.select('.replies')
                 .attr('style', function(p) {
@@ -270,7 +298,6 @@ define([
                 selection = d3.select(this.$node.find('.comment-content ul').get(0))
                     .selectAll('.comment-0')
                     .data(commentsTree)
-                    .order();
 
             this.renderCommentLevel(commentsTreeResponse.maxDepth, 0, selection);
             this.dataRequest('user', 'getUserNames', commentsTreeResponse.userIds)
