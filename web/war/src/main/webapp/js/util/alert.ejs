@@ -1,13 +1,23 @@
+<% (function() { var info, infoHtml; %>
 <% if (typeof error !== "undefined") { %>
   <div class="alert alert-error">
     <% info = error; %>
+<% } else if (typeof errorHtml !== "undefined") { %>
+  <div class="alert alert-error 2222">
+    <% infoHtml = errorHtml; %>
 <% } else if (typeof warning !== "undefined") { %>
   <div class="alert alert-warning">
     <% info = warning; %>
+<% } else if (typeof warningHtml !== "undefined") { %>
+  <div class="alert alert-warning">
+    <% infoHtml = warningHtml; %>
 <% } else if (typeof message !== "undefined") { %>
     <% info = message; %>
   <div class="alert alert-info">
-<% } %>
+<% } else if (typeof messageHtml !== "undefined") { %>
+    <% infoHtml = messageHtml; %>
+  <div class="alert alert-info">
+<% } else { throw new Error("Invalid alert message"); } %>
 
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 
@@ -15,16 +25,20 @@
     <strong><%= type %></strong>
   <% } %>
 
-
-  <% if (_.isArray(info) && info.length > 1) { %>
-    <ul>
-    <% info.forEach(function(error) { %>
-      <li><%= error %></li>
-    <% }); %>
-    </ul>
-  <% } else if (_.isArray(info)) { %>
-  <%= info[0] %>
-  <% } else { %>
-  <%= info %>
+  <% if (typeof info !== "undefined") { %>
+    <% if (_.isArray(info) && info.length > 1) { %>
+      <ul>
+      <% info.forEach(function(error) { %>
+        <li><%= error %></li>
+      <% }); %>
+      </ul>
+    <% } else if (_.isArray(info)) { %>
+    <%= info[0] %>
+    <% } else { %>
+    <%= info %>
+    <% } %>
+  <% } else if (infoHtml !== "undefined") { %>
+    <%- infoHtml %>
   <% } %>
 </div>
+<% })() %>
