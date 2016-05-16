@@ -60,6 +60,8 @@ public interface OntologyRepository {
 
     Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir);
 
+    Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean isDeclaredInOntology);
+
     Relationship getOrCreateRelationshipType(
             Relationship parent,
             Iterable<Concept> domainConcepts,

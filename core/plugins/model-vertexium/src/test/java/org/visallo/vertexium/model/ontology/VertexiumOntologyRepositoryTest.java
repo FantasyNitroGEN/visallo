@@ -33,7 +33,9 @@ import static org.junit.Assert.*;
 public class VertexiumOntologyRepositoryTest {
     private static final String TEST_OWL = "test.owl";
     private static final String TEST_CHANGED_OWL = "test_changed.owl";
+    private static final String TEST01_OWL = "test01.owl";
     private static final String TEST_IRI = "http://visallo.org/test";
+    private static final String TEST01_IRI = "http://visallo.org/test01";
     private VertexiumOntologyRepository ontologyRepository;
     private Authorizations authorizations;
     private Graph graph;
@@ -61,7 +63,7 @@ public class VertexiumOntologyRepositoryTest {
         File testOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(TEST_OWL).toURI());
         ontologyRepository.importFile(testOwl, IRI.create(TEST_IRI), authorizations);
         validateTestOwlRelationship();
-        validateTestOwlConcepts();
+        validateTestOwlConcepts(2, 2);
         validateTestOwlProperties();
     }
 
@@ -74,6 +76,23 @@ public class VertexiumOntologyRepositoryTest {
         validateChangedOwlRelationships();
         validateChangedOwlConcepts();
         validateChangedOwlProperties();
+    }
+
+    @Test
+    public void dependenciesBetweenOntologyFilesShouldNotChangeParentProperties() throws Exception {
+        File changedOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(TEST01_OWL).toURI());
+
+        ontologyRepository.importFile(changedOwl, IRI.create(TEST01_IRI), authorizations);
+        validateTestOwlRelationship();
+        validateTestOwlConcepts(2, 3);
+        validateTestOwlProperties();
+
+        OntologyProperty aliasProperty = ontologyRepository.getPropertyByIRI(TEST01_IRI + "#alias");
+        Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person");
+        assertTrue(person.getProperties()
+                .stream()
+                .anyMatch(p -> p.getIri().equals(aliasProperty.getIri()))
+        );
     }
 
     private void validateTestOwlRelationship() {
@@ -130,7 +149,7 @@ public class VertexiumOntologyRepositoryTest {
         );
     }
 
-    private void validateTestOwlConcepts() throws IOException {
+    private void validateTestOwlConcepts(int expectedIntentSize, int expectedIriSize) throws IOException {
         Concept contact = ontologyRepository.getConceptByIRI(TEST_IRI + "#contact");
         assertEquals("Contact", contact.getDisplayName());
         assertEquals("rgb(149, 138, 218)", contact.getColor());
@@ -139,7 +158,7 @@ public class VertexiumOntologyRepositoryTest {
         Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person");
         assertEquals("Person", person.getDisplayName());
         List<String> intents = Arrays.asList(person.getIntents());
-        assertEquals(2, intents.size());
+        assertEquals(expectedIntentSize, intents.size());
         assertTrue(intents.contains("person"));
         assertTrue(intents.contains("face"));
         assertEquals("prop('http://visallo.org/test#birthDate') || ''", person.getTimeFormula());
@@ -153,7 +172,7 @@ public class VertexiumOntologyRepositoryTest {
         List<String> iris = Lists.newArrayList();
         conceptAndAllChildren.stream()
                 .forEach(c -> iris.add(c.getIRI()));
-        assertEquals(2, iris.size());
+        assertEquals(expectedIriSize, iris.size());
         assertTrue(iris.contains(contact.getIRI()));
         assertTrue(iris.contains(person.getIRI()));
     }

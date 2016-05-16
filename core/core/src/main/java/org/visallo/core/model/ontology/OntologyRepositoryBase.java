@@ -374,8 +374,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         checkNotNull(label, "label cannot be null or empty: " + uri);
         LOGGER.info("Importing ontology class " + uri + " (label: " + label + ")");
 
+        boolean isDeclaredInOntology = o.isDeclared(ontologyClass);
+
         Concept parent = getParentConcept(o, ontologyClass, inDir, authorizations);
-        Concept result = getOrCreateConcept(parent, uri, label, inDir);
+        Concept result = getOrCreateConcept(parent, uri, label, inDir, isDeclaredInOntology);
 
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(ontologyClass, o)) {
             String annotationIri = annotation.getProperty().getIRI().toString();

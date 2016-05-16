@@ -505,10 +505,17 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true);
+    }
+
+    @Override
+    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean isDeclaredInOntology) {
         Concept concept = getConceptByIRI(conceptIRI);
         if (concept != null) {
             Vertex vertex = ((VertexiumConcept) concept).getVertex();
-            deleteChangeableProperties(vertex, authorizations);
+            if (isDeclaredInOntology) {
+                deleteChangeableProperties(vertex, authorizations);
+            }
             return concept;
         }
 
