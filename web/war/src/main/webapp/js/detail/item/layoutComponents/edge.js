@@ -32,7 +32,7 @@ define([
             componentPath: 'detail/item/edge',
             children: [
                 { ref: 'org.visallo.layout.header' },
-                { ref: 'org.visallo.layout.body', style: { flex: 1, overflow: 'auto' } }
+                { ref: 'org.visallo.layout.body', style: { flex: '1 1 auto', overflow: 'auto' } }
             ]
         },
         {

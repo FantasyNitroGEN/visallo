@@ -7,7 +7,12 @@ define([], function() {
     };
 
     function removeAllStyles(el) {
-        removeStyles.apply(null, [el].concat(_.keys(el.style)));
+        var styles = [];
+        //loop through style object for IE11
+        for (var i in el.style) {
+            styles.push(i);
+        }
+        removeStyles.apply(null, [el].concat(styles));
     }
 
     function removeStyles(el /*, classes...*/) {
