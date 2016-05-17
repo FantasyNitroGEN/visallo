@@ -725,6 +725,12 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             if (possibleValues != null) {
                 OntologyProperties.POSSIBLE_VALUES.setProperty(builder, JSONUtil.toJson(possibleValues), VISIBILITY.getVisibility());
             }
+            if (textIndexHints.size() > 0) {
+                textIndexHints.stream().forEach(i -> {
+                    String textIndexHint = i.toString();
+                    OntologyProperties.TEXT_INDEX_HINTS.addPropertyValue(builder, textIndexHint, textIndexHint, VISIBILITY.getVisibility());
+                });
+            }
             propertyVertex = builder.save(getAuthorizations());
             graph.flush();
 
