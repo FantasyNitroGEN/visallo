@@ -168,14 +168,17 @@ define([
             this.updateWorkspaceTooltip(workspace);
         };
 
-        this.onSwitchWorkspace = function() {
-            this.previousDiff = null;
-            this.$node.find('.badge').popover('destroy').remove();
+        this.onSwitchWorkspace = function(event, data) {
+            if (this.previousWorkspace !== data.workspaceId) {
+                this.previousDiff = null;
+                this.$node.find('.badge').popover('destroy').remove();
+            }
         };
 
         this.onWorkspaceLoaded = function(event, data) {
             this.$node.show();
             this.updateWithNewWorkspaceData(data);
+            this.previousWorkspace = data.workspaceId;
         };
 
         this.onWorkspaceUpdated = function(event, data) {
