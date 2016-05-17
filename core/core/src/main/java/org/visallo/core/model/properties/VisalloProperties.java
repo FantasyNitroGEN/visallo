@@ -48,6 +48,7 @@ public class VisalloProperties {
     public static final StringVisalloProperty SOURCE_URL = new StringVisalloProperty("http://visallo.org#sourceUrl");
     public static final StringVisalloProperty TITLE = new StringVisalloProperty("http://visallo.org#title");
     public static final StringVisalloProperty COMMENT = new StringVisalloProperty("http://visallo.org/comment#entry");
+    public static final StringMetadataVisalloProperty COMMENT_PATH_METADATA = new StringMetadataVisalloProperty("http://visallo.org/comment#path");
 
     public static final DetectedObjectProperty DETECTED_OBJECT = new DetectedObjectProperty("http://visallo.org#detectedObject");
 
