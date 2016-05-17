@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.web.RouteTestBase;
+import org.visallo.web.routes.RouteTestBase;
 import org.visallo.web.clientapi.model.ClientApiUser;
 
 import java.io.IOException;

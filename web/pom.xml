@@ -15,6 +15,7 @@
 
     <modules>
         <module>web-base</module>
+        <module>web-base-test</module>
         <module>server</module>
         <module>war</module>
         <module>plugins</module>

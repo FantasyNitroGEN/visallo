@@ -10,7 +10,7 @@ import org.vertexium.Vertex;
 import org.vertexium.Visibility;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.web.RouteTestBase;
+import org.visallo.web.routes.RouteTestBase;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.IOException;

@@ -9,7 +9,7 @@ import org.vertexium.Vertex;
 import org.vertexium.Visibility;
 import org.visallo.core.model.workspace.WorkspaceEntity;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspace;
-import org.visallo.web.RouteTestBase;
+import org.visallo.web.routes.RouteTestBase;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceEdges;
 
 import javax.servlet.http.HttpServletRequest;
