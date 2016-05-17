@@ -3,11 +3,13 @@ package org.visallo.web;
 import com.v5analytics.webster.HandlerChain;
 import org.json.JSONArray;
 import org.mockito.Mock;
+import org.mockito.stubbing.Answer;
 import org.vertexium.Graph;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
@@ -23,11 +25,9 @@ import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -74,12 +74,18 @@ public abstract class RouteTestBase {
 
     private ByteArrayOutputStream responseByteArrayOutputStream;
 
-    protected void setUp() throws IOException {
+    private HashMap<String, String[]> requestParameters;
+
+    private HashMap<String, Object> attributes;
+
+    protected void before() throws IOException {
+        requestParameters = new HashMap<>();
+        attributes = new HashMap<>();
         Map config = new HashMap();
         ConfigurationLoader hashMapConfigurationLoader = new HashMapConfigurationLoader(config);
         configuration = new Configuration(hashMapConfigurationLoader, new HashMap<>());
 
-        graph = InMemoryGraph.create();
+        graph = InMemoryGraph.create(getGraphConfiguration());
 
         Set<String> privileges = new HashSet<>();
         String[] authorizations = new String[0];
@@ -99,6 +105,38 @@ public abstract class RouteTestBase {
 
         responseByteArrayOutputStream = new ByteArrayOutputStream();
         when(response.getWriter()).thenReturn(new PrintWriter(responseByteArrayOutputStream));
+
+        when(request.getParameterNames()).thenAnswer(
+                (Answer<Enumeration<String>>) invocationOnMock -> Collections.enumeration(requestParameters.keySet())
+        );
+        when(request.getParameterValues(any(String.class))).thenAnswer(
+                (Answer<String[]>) invocationOnMock -> {
+                    Object key = invocationOnMock.getArguments()[0];
+                    return (String[]) requestParameters.get(key);
+                }
+        );
+        when(request.getParameter(any(String.class))).thenAnswer(
+                (Answer<String>) invocationOnMock -> {
+                    Object key = invocationOnMock.getArguments()[0];
+                    String[] value = requestParameters.get(key);
+                    if (value == null) {
+                        return null;
+                    }
+                    if (value.length != 1) {
+                        throw new VisalloException("Unexpected number of values. Expected 1 found " + value.length);
+                    }
+                    return value[0];
+                }
+        );
+        when(request.getParameterMap()).thenReturn(requestParameters);
+
+        when(request.getAttributeNames()).thenAnswer(
+                (Answer<Enumeration<String>>) invocationOnMock -> Collections.enumeration(attributes.keySet())
+        );
+    }
+
+    protected Map<String, Object> getGraphConfiguration() {
+        return new HashMap<>();
     }
 
     protected byte[] getResponse() {
@@ -106,7 +144,7 @@ public abstract class RouteTestBase {
     }
 
     protected void setArrayParameter(String parameterName, String[] values) {
-        when(request.getParameterValues(eq(parameterName))).thenReturn(values);
+        requestParameters.put(parameterName, values);
     }
 
     protected void setParameter(String parameterName, JSONArray json) {
@@ -114,6 +152,6 @@ public abstract class RouteTestBase {
     }
 
     protected void setParameter(String parameterName, String value) {
-        when(request.getParameter(eq(parameterName))).thenReturn(value);
+        requestParameters.put(parameterName, new String[]{value});
     }
 }

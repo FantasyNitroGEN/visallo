@@ -29,8 +29,8 @@ public class WorkspaceEdgesTest extends RouteTestBase {
     private Authorizations authorizations;
 
     @Before
-    public void setUp() throws IOException {
-        super.setUp();
+    public void before() throws IOException {
+        super.before();
         workspaceEdges = new WorkspaceEdges(graph, workspaceRepository) {
             @Override
             protected ClientApiWorkspaceEdges getEdges(HttpServletRequest request, String workspaceId, Iterable<String> vertexIds, Authorizations authorizations) {

@@ -1,4 +1,4 @@
-package org.visallo.web.routes.vertex;
+package org.visallo.web.routes.edge;
 
 import org.json.JSONArray;
 import org.junit.Before;
@@ -8,8 +8,8 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.Vertex;
+import org.visallo.core.model.search.EdgeSearchRunner;
 import org.visallo.core.model.search.SearchOptions;
-import org.visallo.core.model.search.VertexSearchRunner;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import org.visallo.web.routes.search.QueryResultsIterableSearchResultsSearchRouteTestBase;
 
@@ -21,23 +21,26 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class VertexSearchTest extends QueryResultsIterableSearchResultsSearchRouteTestBase {
-    private VertexSearch vertexSearch;
+public class EdgeSearchTest extends QueryResultsIterableSearchResultsSearchRouteTestBase {
+    private EdgeSearch edgeSearch;
 
     @Mock
-    private VertexSearchRunner vertexSearchRunner;
+    private EdgeSearchRunner edgeSearchRunner;
 
     @Before
     public void before() throws IOException {
         super.before();
 
-        when(searchRepository.findSearchRunnerByUri(VertexSearchRunner.URI)).thenReturn(vertexSearchRunner);
-        vertexSearch = new VertexSearch(searchRepository);
+        when(searchRepository.findSearchRunnerByUri(EdgeSearchRunner.URI)).thenReturn(edgeSearchRunner);
+
+        edgeSearch = new EdgeSearch(searchRepository);
     }
 
     @Test
     public void testSearch() throws Exception {
         Vertex v1 = graph.addVertex("v1", visibility, authorizations);
+        Vertex v2 = graph.addVertex("v2", visibility, authorizations);
+        graph.addEdge("e1", v1, v2, "label", visibility, authorizations);
 
         setParameter("q", "*");
         JSONArray filter = new JSONArray();
@@ -46,7 +49,7 @@ public class VertexSearchTest extends QueryResultsIterableSearchResultsSearchRou
         queryResultsIterableTotalHits = 1;
         queryResultsIterableElements.add(v1);
 
-        when(vertexSearchRunner.run(argThat(new ArgumentMatcher<SearchOptions>() {
+        when(edgeSearchRunner.run(argThat(new ArgumentMatcher<SearchOptions>() {
             @Override
             public boolean matches(Object o) {
                 SearchOptions searchOptions = (SearchOptions) o;
@@ -57,7 +60,7 @@ public class VertexSearchTest extends QueryResultsIterableSearchResultsSearchRou
             }
         }), eq(user), eq(authorizations))).thenReturn(results);
 
-        ClientApiElementSearchResponse response = vertexSearch.handle(request, WORKSPACE_ID, user, authorizations);
+        ClientApiElementSearchResponse response = edgeSearch.handle(request, WORKSPACE_ID, user, authorizations);
         assertEquals(1, response.getElements().size());
         assertEquals(1, response.getItemCount());
     }
