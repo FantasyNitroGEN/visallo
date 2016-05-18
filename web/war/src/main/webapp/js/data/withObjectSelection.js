@@ -418,9 +418,9 @@ define([], function() {
                 currentEdgeIds = currentVertexIds.length === 0 && _.keys(currentObjects.edgeIds);
 
             if (!_.isEmpty(currentVertexIds) || !_.isEmpty(currentEdgeIds)) {
-
                 var listedIndex = -1,
-                    newSelectionIndex = -1;
+                    newSelectionIndex = -1,
+                    multiple = (currentVertexIds.length || 0 + currentEdgeIds.length || 0) > 1;
 
                 selectedObjectsStack.forEach(function(stack, index) {
                     var listed = function(v, e) {
@@ -444,7 +444,8 @@ define([], function() {
                     selectedObjectsStack.push({
                         vertexIds: currentVertexIds || [],
                         edgeIds: currentEdgeIds || [],
-                        hide: true
+                        hide: true,
+                        multiple: multiple
                     });
                 }
 
@@ -501,12 +502,15 @@ define([], function() {
                             var verticesById = _.indexBy(_.compact(vertices), 'id');
                             notHidden.forEach(function(s) {
                                 var hadVertexIds = s.vertexIds.length;
-                                s.vertexIds = _.filter(s.vertexIds, function(vertexId) {
-                                    return vertexId in verticesById;
-                                });
-                                s.edgeIds = _.filter(s.edgeIds, function(edgeId) {
-                                    return edgeId in edgesById;
-                                });
+                                if (!s.multiple) {
+                                    s.vertexIds = _.filter(s.vertexIds, function(vertexId) {
+                                        return vertexId in verticesById;
+                                    });
+                                    s.edgeIds = _.filter(s.edgeIds, function(edgeId) {
+                                        return edgeId in edgesById;
+                                    });
+                                }
+
                                 if (hadVertexIds) {
                                     if (s.vertexIds.length === 1) {
                                         s.title = F.vertex.title(verticesById[s.vertexIds[0]]);
