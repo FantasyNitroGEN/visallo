@@ -1,4 +1,4 @@
-package org.visallo.web;
+package org.visallo.web.routes;
 
 import com.v5analytics.webster.HandlerChain;
 import org.json.JSONArray;
@@ -18,6 +18,8 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
+import org.visallo.web.CurrentUser;
+import org.visallo.web.SessionUser;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

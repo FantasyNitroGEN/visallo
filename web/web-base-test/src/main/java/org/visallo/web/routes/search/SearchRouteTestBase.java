@@ -5,7 +5,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Visibility;
 import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.search.SearchRepository;
-import org.visallo.web.RouteTestBase;
+import org.visallo.web.routes.RouteTestBase;
 
 import java.io.IOException;
 
