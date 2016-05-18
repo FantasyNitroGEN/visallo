@@ -81,7 +81,15 @@ define([
             this.select('saveButtonSelector').attr('disabled', true);
             this.select('deleteButtonSelector').hide();
             this.select('saveButtonSelector').hide();
-
+            this.on('change keyup paste', {
+                configurationSelector: function(event, data) {
+                    if (event.type === 'change') return;
+                    this.trigger(event.target, 'change');
+                    this.onModified();
+                },
+                justificationSelector: this.onModified,
+                visibilitySelector: this.onModified
+            });
             if (this.attr.property) {
                 this.trigger('propertyselected', {
                     disablePreviousValuePrompt: true,
@@ -311,11 +319,8 @@ define([
 
             var button = this.select('saveButtonSelector')
                 .text(isExistingProperty ? i18n('property.form.button.update') : i18n('property.form.button.add'));
-            if (isExistingProperty) {
-                button.removeAttr('disabled');
-            } else {
-                button.attr('disabled', true);
-            }
+
+            button.attr('disabled', true);
 
             this.dataRequest('ontology', 'properties').done(function(properties) {
                 var propertyDetails = properties.byTitle[propertyName];
@@ -422,6 +427,36 @@ define([
             this.checkValid();
         };
 
+        this.onModified = function(event, data) {
+            if (this.attr.modified) return;
+            var checkModified = checkForValueModifications.bind(this);
+            this.attr.modified = checkModified();
+            this.checkValid();
+
+            function checkForValueModifications() {
+                var currentValue = this.currentValue,
+                    currentJustification = this.justification.justificationText || '',
+                    currentVisibility = this.visibilitySource.value || '',
+                    property = this.currentProperty,
+                    metadata = this.currentProperty.metadata,
+                    previousValue = property.value || '',
+                    previousJustification = metadata ? metadata['http://visallo.org#justification'].justificationText : '',
+                    previousVisibility = metadata ? metadata['http://visallo.org#visibilityJson'].source : '';
+
+                if (metadata) {
+                    if (currentValue !== previousValue ||
+                        currentJustification !== previousJustification ||
+                        currentVisibility !== previousVisibility) {
+                        return true;
+                    }
+                } else if (currentValue || currentJustification || currentVisibility) {
+                    return true;
+                }
+
+                return false;
+            }
+        };
+
         this.onPropertyInvalid = function(event, data) {
             event.stopPropagation();
 
@@ -433,12 +468,17 @@ define([
             if (this.settingVisibility) {
                 this.valid = this.visibilitySource && this.visibilitySource.valid;
             } else {
-                this.valid = !this.propertyInvalid &&
+                var valid = !this.propertyInvalid &&
                     (this.visibilitySource && this.visibilitySource.valid) &&
                     (this.justification && this.justification.valid);
+                var empty = _.reject(this.$node.find('.configuration input'), function(input) {
+                    return !!input.value;
+                }).length > 0;
+
+                this.valid = valid && !empty;
             }
 
-            if (this.valid) {
+            if (this.valid && this.attr.modified) {
                 this.select('saveButtonSelector').removeAttr('disabled');
             } else {
                 this.select('saveButtonSelector').attr('disabled', true);
