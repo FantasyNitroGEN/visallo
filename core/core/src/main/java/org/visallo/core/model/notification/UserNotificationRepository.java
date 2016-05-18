@@ -56,12 +56,28 @@ public class UserNotificationRepository extends NotificationRepository {
             ExpirationAge expirationAge,
             User authUser
     ) {
-        UserNotification notification = new UserNotification(userId, title, message, actionEvent, actionPayload, expirationAge);
+        UserNotification notification = new UserNotification(
+                userId, title, message, actionEvent, actionPayload, expirationAge);
+        saveNotification(notification, authUser);
+        return notification;
+    }
 
-        notification.setMarkedRead(false);
+    public UserNotification createNotification(
+            String userId,
+            String title,
+            String message,
+            String externalUrl,
+            ExpirationAge expirationAge,
+            User authUser) {
+        UserNotification notification = new UserNotification(userId, title, message, null, null, expirationAge);
+        notification.setExternalUrl(externalUrl);
+        saveNotification(notification, authUser);
+        return notification;
+    }
+
+    private void saveNotification(UserNotification notification, User authUser) {
         getSimpleOrmSession().save(notification, VISIBILITY_STRING, getUserRepository().getSimpleOrmContext(authUser));
         workQueueRepository.pushUserNotification(notification);
-        return notification;
     }
 
     public UserNotification getNotification(String notificationId, User user) {

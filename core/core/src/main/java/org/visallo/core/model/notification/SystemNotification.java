@@ -24,7 +24,7 @@ public class SystemNotification extends Notification {
         super();
     }
 
-    public SystemNotification(Date startDate, String title, String message, String actionEvent, JSONObject actionPayload) {
+    SystemNotification(Date startDate, String title, String message, String actionEvent, JSONObject actionPayload) {
         super(createId(startDate), title, message, actionEvent, actionPayload);
     }
 
@@ -57,13 +57,6 @@ public class SystemNotification extends Notification {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
-    }
-
-    public void setExternalUrl(String externalUrl) {
-        this.setActionEvent(ACTION_EVENT_EXTERNAL_URL);
-        JSONObject payload = new JSONObject();
-        payload.put("url", externalUrl);
-        this.setActionPayload(payload);
     }
 
     public boolean isActive() {
