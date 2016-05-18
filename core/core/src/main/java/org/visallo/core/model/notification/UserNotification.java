@@ -37,9 +37,6 @@ public class UserNotification extends Notification {
         if (expirationAge != null) {
             this.expirationAgeAmount = expirationAge.getAmount();
             this.expirationAgeUnit = expirationAge.getExpirationAgeUnit();
-        } else {
-            this.expirationAgeAmount = null;
-            this.expirationAgeUnit = null;
         }
     }
 
