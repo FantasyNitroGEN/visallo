@@ -63,7 +63,7 @@ public class RdfTripleImportHelperTest {
 
     @Test
     public void testImportConceptType() {
-        String line = "<v1> <" + RdfTripleImportHelper.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>";
+        String line = "<v1> <" + VisalloRdfTriple.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>";
         importRdfLine(line);
         graph.flush();
 
@@ -78,7 +78,7 @@ public class RdfTripleImportHelperTest {
         graph.deleteVertex(v1, authorizations);
         graph.flush();
 
-        String line = "<v1[A]> <" + RdfTripleImportHelper.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>";
+        String line = "<v1[A]> <" + VisalloRdfTriple.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>";
         importRdfLine(line);
         graph.flush();
 
@@ -96,7 +96,7 @@ public class RdfTripleImportHelperTest {
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        Property property = v1.getProperty(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        Property property = v1.getProperty(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertEquals("hello world", property.getValue());
         assertEquals(new VisalloVisibility("").getVisibility().getVisibilityString(), property.getVisibility().getVisibilityString());
         assertEquals(new VisibilityJson(""), VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata()));
@@ -110,7 +110,7 @@ public class RdfTripleImportHelperTest {
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        Property property = v1.getProperty(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        Property property = v1.getProperty(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertEquals("hello world", property.getValue());
         assertEquals(new VisalloVisibility("(A)").getVisibility().getVisibilityString(), property.getVisibility().getVisibilityString());
         assertEquals(new VisibilityJson("A"), VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata()));
@@ -125,7 +125,7 @@ public class RdfTripleImportHelperTest {
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        Property prop1 = v1.getProperty(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        Property prop1 = v1.getProperty(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertEquals("hello world", prop1.getValue());
         assertEquals("metadata value 1", prop1.getMetadata().getValue("metadata1"));
         assertEquals("metadata value 2", prop1.getMetadata().getValue("metadata2", new Visibility("")));
@@ -134,24 +134,24 @@ public class RdfTripleImportHelperTest {
 
     @Test
     public void testImportDateProperty() {
-        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_DATE + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        Date date = (Date) v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        Date date = (Date) v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertEquals(new VisalloDate(2015, 5, 21), VisalloDate.create(date));
         assertEquals("Date should be midnight in GMT: " + date, 1432166400000L, date.getTime());
     }
 
     @Test
     public void testImportDateTimeNoTimeZoneProperty() {
-        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE_TIME + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_DATE_TIME + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        VisalloDateTime dateTime = VisalloDateTime.create(v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1"));
+        VisalloDateTime dateTime = VisalloDateTime.create(v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1"));
         assertEquals(new VisalloDateTime(2015, 5, 21, 8, 42, 22, 0, TimeZone.getDefault().getID()), dateTime);
 
         Calendar cal = Calendar.getInstance(TimeZone.getDefault());
@@ -162,12 +162,12 @@ public class RdfTripleImportHelperTest {
 
     @Test
     public void testImportDateTimeWithGMTTimeZoneProperty() {
-        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22Z\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE_TIME + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22Z\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_DATE_TIME + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        VisalloDateTime dateTime = VisalloDateTime.create(v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1"));
+        VisalloDateTime dateTime = VisalloDateTime.create(v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1"));
         assertEquals(new VisalloDateTime(2015, 5, 21, 8, 42, 22, 0, "GMT"), dateTime);
         assertEquals("Time incorrect: " + dateTime.toDateGMT(), 1432197742000L, dateTime.getEpoch());
     }
@@ -176,24 +176,24 @@ public class RdfTripleImportHelperTest {
     public void testImportDateTimeWithESTTimeZoneProperty() {
         TimeZone tz = TimeZone.getTimeZone("America/Anchorage");
         String timeZoneOffset = "-0" + Math.abs(tz.getOffset(new VisalloDate(2015, Calendar.MAY, 21).getEpoch()) / 1000 / 60 / 60) + ":00";
-        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22" + timeZoneOffset + "\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DATE_TIME + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"2015-05-21T08:42:22" + timeZoneOffset + "\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_DATE_TIME + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        VisalloDateTime dateTime = VisalloDateTime.create(v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1"));
+        VisalloDateTime dateTime = VisalloDateTime.create(v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1"));
         assertEquals(new VisalloDateTime(2015, 5, 21, 8, 42, 22, 0, "America/Anchorage"), dateTime);
         assertEquals("Time incorrect: " + dateTime.toDateGMT(), 1432226542000L, dateTime.getEpoch());
     }
 
     @Test
     public void testImportGeoPoint() {
-        String line = "<v1> <http://visallo.org/test#prop1> \"Dulles International Airport, VA [38.955589294433594, -77.44930267333984]\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_GEOLOCATION + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"Dulles International Airport, VA [38.955589294433594, -77.44930267333984]\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_GEOLOCATION + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        GeoPoint prop1 = (GeoPoint) v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        GeoPoint prop1 = (GeoPoint) v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertEquals("Dulles International Airport, VA", prop1.getDescription());
         assertEquals(38.955589294433594, prop1.getLatitude(), 0.00001);
         assertEquals(-77.44930267333984, prop1.getLongitude(), 0.00001);
@@ -201,12 +201,12 @@ public class RdfTripleImportHelperTest {
 
     @Test
     public void testImportDirectoryEntity() {
-        String line = "<v1> <http://visallo.org/test#prop1> \"joe\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_DIRECTORY_ENTITY + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"joe\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_DIRECTORY_ENTITY + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        String prop1 = (String) v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        String prop1 = (String) v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertEquals("joe", prop1);
     }
 
@@ -255,24 +255,24 @@ public class RdfTripleImportHelperTest {
 
         FileUtils.writeStringToFile(file, "hello world");
 
-        String line = "<v1> <http://visallo.org/test#prop1> \"" + file.getAbsolutePath() + "\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"" + file.getAbsolutePath() + "\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        Object propertyValue = v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        Object propertyValue = v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertTrue(propertyValue instanceof StreamingPropertyValue);
         assertEquals("hello world", IOUtils.toString(((StreamingPropertyValue) propertyValue).getInputStream()));
     }
 
     @Test
     public void testImportStreamingPropertyValueInline() throws IOException {
-        String line = "<v1> <http://visallo.org/test#prop1> \"hello world\"^^<" + RdfTripleImportHelper.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE + ">";
+        String line = "<v1> <http://visallo.org/test#prop1> \"hello world\"^^<" + VisalloRdfTriple.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE + ">";
         importRdfLine(line);
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        Object propertyValue = v1.getPropertyValue(RdfTripleImportHelper.MULTI_KEY, "http://visallo.org/test#prop1");
+        Object propertyValue = v1.getPropertyValue(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
         assertTrue(propertyValue instanceof StreamingPropertyValue);
         assertEquals("hello world", IOUtils.toString(((StreamingPropertyValue) propertyValue).getInputStream()));
     }
