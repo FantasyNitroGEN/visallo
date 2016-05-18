@@ -321,6 +321,21 @@ public class RdfTripleImportHelperTest {
         assertEquals("edge1", edges.get(0).getId());
     }
 
+    @Test
+    public void testImportEdgeProperty() {
+        graph.addEdge("edge1", "v1", "v2", "label1", new Visibility(""), authorizations);
+
+        String line = "<EDGE:edge1> <http://visallo.org/test#prop1> \"hello world\"";
+        importRdfLine(line);
+        graph.flush();
+
+        Edge edge1 = graph.getEdge("edge1", authorizations);
+        Property property = edge1.getProperty(VisalloRdfTriple.MULTI_KEY, "http://visallo.org/test#prop1");
+        assertEquals("hello world", property.getValue());
+        assertEquals(new VisalloVisibility("").getVisibility().getVisibilityString(), property.getVisibility().getVisibilityString());
+        assertEquals(new VisibilityJson(""), VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata()));
+    }
+
     private void importRdfLine(String line) {
         Set<Element> elements = new HashSet<>();
         rdfTripleImportHelper.importRdfLine(elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);

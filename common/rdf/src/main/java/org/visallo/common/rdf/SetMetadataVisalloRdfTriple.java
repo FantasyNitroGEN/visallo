@@ -1,5 +1,6 @@
 package org.visallo.common.rdf;
 
+import org.vertexium.ElementType;
 import org.vertexium.Visibility;
 
 public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
@@ -7,9 +8,10 @@ public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
     private final Visibility metadataVisibility;
 
     public SetMetadataVisalloRdfTriple(
-            String vertexId,
-            Visibility vertexVisibility,
-            String vertexVisibilitySource,
+            ElementType elementType,
+            String elementId,
+            Visibility elementVisibility,
+            String elementVisibilitySource,
             String propertyKey,
             String propertyName,
             Visibility propertyVisibility,
@@ -19,9 +21,10 @@ public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
             Object value
     ) {
         super(
-                vertexId,
-                vertexVisibility,
-                vertexVisibilitySource,
+                elementType,
+                elementId,
+                elementVisibility,
+                elementVisibilitySource,
                 propertyKey,
                 propertyName,
                 propertyVisibility,

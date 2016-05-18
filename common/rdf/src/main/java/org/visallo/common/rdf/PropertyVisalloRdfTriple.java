@@ -1,8 +1,9 @@
 package org.visallo.common.rdf;
 
+import org.vertexium.ElementType;
 import org.vertexium.Visibility;
 
-public abstract class PropertyVisalloRdfTriple extends VertexVisalloRdfTriple {
+public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
     private final String propertyKey;
     private final String propertyName;
     private final Visibility propertyVisibility;
@@ -10,16 +11,17 @@ public abstract class PropertyVisalloRdfTriple extends VertexVisalloRdfTriple {
     private final Object value;
 
     public PropertyVisalloRdfTriple(
-            String vertexId,
-            Visibility vertexVisibility,
-            String vertexVisibilitySource,
+            ElementType elementType,
+            String elementId,
+            Visibility elementVisibility,
+            String elementVisibilitySource,
             String propertyKey,
             String propertyName,
             Visibility propertyVisibility,
             String propertyVisibilitySource,
             Object value
     ) {
-        super(vertexId, vertexVisibility, vertexVisibilitySource);
+        super(elementType, elementId, elementVisibility, elementVisibilitySource);
         this.propertyKey = propertyKey;
         this.propertyName = propertyName;
         this.propertyVisibility = propertyVisibility;

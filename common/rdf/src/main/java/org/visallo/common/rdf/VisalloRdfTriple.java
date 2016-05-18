@@ -1,6 +1,7 @@
 package org.visallo.common.rdf;
 
 import org.apache.commons.lang.StringUtils;
+import org.vertexium.ElementType;
 import org.vertexium.Visibility;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
@@ -35,6 +36,7 @@ public abstract class VisalloRdfTriple {
     public static final String PROPERTY_TYPE_CURRENCY = "http://visallo.org#currency";
     public static final String PROPERTY_TYPE_INT = "http://www.w3.org/2001/XMLSchema#int";
     public static final String PROPERTY_TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
+    private static final Pattern ELEMENT_TYPE_PATTERN = Pattern.compile("(EDGE|VERTEX):(.*)");
     private static final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
     private static final Pattern METADATA_PATTERN = Pattern.compile("(.*)@(.*)");
     private static final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
@@ -55,29 +57,29 @@ public abstract class VisalloRdfTriple {
             throw new VisalloException("Unexpected second part of RDF triple. Expected UriPart but was " + rdfTriple.getSecond().getClass().getName());
         }
 
-        String vertexId = ((RdfTriple.UriPart) rdfTriple.getFirst()).getUri();
+        String elementId = ((RdfTriple.UriPart) rdfTriple.getFirst()).getUri();
         String label = ((RdfTriple.UriPart) rdfTriple.getSecond()).getUri();
         RdfTriple.Part third = rdfTriple.getThird();
 
-        String vertexVisibilitySource;
-        Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(vertexId);
+        String elementVisibilitySource;
+        Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(elementId);
         if (visibilityMatcher.matches()) {
-            vertexId = visibilityMatcher.group(1);
-            vertexVisibilitySource = visibilityMatcher.group(2);
+            elementId = visibilityMatcher.group(1);
+            elementVisibilitySource = visibilityMatcher.group(2);
         } else {
-            vertexVisibilitySource = defaultVisibilitySource;
+            elementVisibilitySource = defaultVisibilitySource;
         }
-        Visibility vertexVisibility = getVisibility(vertexVisibilitySource, visibilityTranslator);
+        Visibility elementVisibility = getVisibility(elementVisibilitySource, visibilityTranslator);
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
-            return parseConceptTypeTriple(vertexId, vertexVisibility, vertexVisibilitySource, third);
+            return parseConceptTypeTriple(elementId, elementVisibility, elementVisibilitySource, third);
         }
 
         if (third instanceof RdfTriple.LiteralPart) {
             return parsePropertyTriple(
-                    vertexId,
-                    vertexVisibility,
-                    vertexVisibilitySource,
+                    elementId,
+                    elementVisibility,
+                    elementVisibilitySource,
                     label,
                     (RdfTriple.LiteralPart) third,
                     defaultVisibilitySource,
@@ -89,7 +91,7 @@ public abstract class VisalloRdfTriple {
 
         if (third instanceof RdfTriple.UriPart) {
             return parseAddEdgeTriple(
-                    vertexId,
+                    elementId,
                     label,
                     (RdfTriple.UriPart) third,
                     defaultVisibilitySource,
@@ -115,9 +117,9 @@ public abstract class VisalloRdfTriple {
     }
 
     private static VisalloRdfTriple parsePropertyTriple(
-            String vertexId,
-            Visibility vertexVisibility,
-            String vertexVisibilitySource,
+            String elementId,
+            Visibility elementVisibility,
+            String elementVisibilitySource,
             String label,
             RdfTriple.LiteralPart propertyValuePart,
             String defaultVisibilitySource,
@@ -127,6 +129,15 @@ public abstract class VisalloRdfTriple {
     ) {
         String metadataKey = null;
         String propertyKey = MULTI_KEY;
+
+        ElementType elementType;
+        Matcher elementTypeMatcher = ELEMENT_TYPE_PATTERN.matcher(elementId);
+        if (elementTypeMatcher.matches()) {
+            elementType = ElementType.valueOf(elementTypeMatcher.group(1));
+            elementId = elementTypeMatcher.group(2);
+        } else {
+            elementType = ElementType.VERTEX;
+        }
 
         Matcher metadataMatcher = METADATA_PATTERN.matcher(label);
         if (metadataMatcher.matches()) {
@@ -169,9 +180,10 @@ public abstract class VisalloRdfTriple {
             }
 
             return new SetMetadataVisalloRdfTriple(
-                    vertexId,
-                    vertexVisibility,
-                    vertexVisibilitySource,
+                    elementType,
+                    elementId,
+                    elementVisibility,
+                    elementVisibilitySource,
                     propertyKey,
                     propertyName,
                     propertyVisibility,
@@ -182,9 +194,10 @@ public abstract class VisalloRdfTriple {
             );
         } else {
             return new SetPropertyVisalloRdfTriple(
-                    vertexId,
-                    vertexVisibility,
-                    vertexVisibilitySource,
+                    elementType,
+                    elementId,
+                    elementVisibility,
+                    elementVisibilitySource,
                     propertyKey,
                     propertyName,
                     propertyVisibility,

@@ -61,3 +61,11 @@ You can supply an edge id by appending `:edgeId` to the label.
         <http://dbpedia.org/resource/Aristotle> <http://dbpedia.org/property/mainInterests:edge1> <http://dbpedia.org/resource/Physics> .
 
 This will create an edge with id `edge1`.
+
+### Edge Properties
+
+To add an edge property the first triple must be prefixed with `EDGE:`
+
+        <EDGE:edge1> <http://visallo.org#source> "RDF Triple Import" .
+
+This will add a source property to `edge1`.

@@ -1,9 +1,9 @@
 package org.visallo.common.rdf;
 
+import org.vertexium.ElementType;
 import org.vertexium.Visibility;
-import org.visallo.core.exception.VisalloException;
 
-public class ConceptTypeVisalloRdfTriple extends VertexVisalloRdfTriple {
+public class ConceptTypeVisalloRdfTriple extends ElementVisalloRdfTriple {
     private final String conceptType;
 
     public ConceptTypeVisalloRdfTriple(
@@ -12,7 +12,7 @@ public class ConceptTypeVisalloRdfTriple extends VertexVisalloRdfTriple {
             String vertexVisibilitySource,
             String conceptType
     ) {
-        super(vertexId, vertexVisibility, vertexVisibilitySource);
+        super(ElementType.VERTEX, vertexId, vertexVisibility, vertexVisibilitySource);
         this.conceptType = conceptType;
     }
 

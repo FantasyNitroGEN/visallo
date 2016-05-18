@@ -232,13 +232,8 @@ public class RdfTripleImportHelper {
         if (triple instanceof SetMetadataVisalloRdfTriple) {
             SetMetadataVisalloRdfTriple setMetadataVisalloRdfTriple = (SetMetadataVisalloRdfTriple) triple;
 
-            Vertex v = graph.getVertex(triple.getVertexId(), authorizations);
-            if (v == null) {
-                graph.flush();
-                v = graph.getVertex(triple.getVertexId(), authorizations);
-            }
-            checkNotNull(v, "Could not find vertex with id " + triple.getVertexId() + " to update metadata");
-            m = v.prepareMutation();
+            Element elem = getExistingElement(triple, authorizations);
+            m = elem.prepareMutation();
             ((ExistingElementMutation) m).setPropertyMetadata(
                     triple.getPropertyKey(),
                     triple.getPropertyName(),
@@ -247,7 +242,7 @@ public class RdfTripleImportHelper {
                     setMetadataVisalloRdfTriple.getMetadataVisibility()
             );
         } else {
-            m = graph.prepareVertex(triple.getVertexId(), triple.getVertexVisibility());
+            m = getMutationForUpdate(triple, authorizations);
             m.addPropertyValue(
                     triple.getPropertyKey(),
                     triple.getPropertyName(),
@@ -259,6 +254,29 @@ public class RdfTripleImportHelper {
 
         Element element = m.save(authorizations);
         elements.add(element);
+    }
+
+    private ElementMutation getMutationForUpdate(PropertyVisalloRdfTriple triple, Authorizations authorizations) {
+        if (triple.getElementType() == ElementType.VERTEX) {
+            return graph.prepareVertex(triple.getElementId(), triple.getElementVisibility());
+        } else {
+            Edge element = (Edge) getExistingElement(triple, authorizations);
+            return element.prepareMutation();
+        }
+    }
+
+    private Element getExistingElement(PropertyVisalloRdfTriple triple, Authorizations authorizations) {
+        Element elem = triple.getElementType() == ElementType.VERTEX
+                ? graph.getVertex(triple.getElementId(), authorizations)
+                : graph.getEdge(triple.getElementId(), authorizations);
+        if (elem == null) {
+            graph.flush();
+            elem = triple.getElementType() == ElementType.VERTEX
+                    ? graph.getVertex(triple.getElementId(), authorizations)
+                    : graph.getEdge(triple.getElementId(), authorizations);
+        }
+        checkNotNull(elem, "Could not find element with id " + triple.getElementId());
+        return elem;
     }
 
     private void setConceptType(
@@ -274,15 +292,15 @@ public class RdfTripleImportHelper {
         if (sourceFileName != null) {
             VisalloProperties.SOURCE_FILE_NAME_METADATA.setMetadata(metadata, sourceFileName, defaultVisibility);
         }
-        VisibilityJson visibilityJson = new VisibilityJson(triple.getVertexVisibilitySource());
+        VisibilityJson visibilityJson = new VisibilityJson(triple.getElementVisibilitySource());
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, defaultVisibility);
         VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), defaultVisibility);
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, defaultVisibility);
 
-        VertexBuilder m = graph.prepareVertex(triple.getVertexId(), triple.getVertexVisibility());
-        VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), metadata, triple.getVertexVisibility());
-        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, triple.getVertexVisibility());
+        VertexBuilder m = graph.prepareVertex(triple.getElementId(), triple.getElementVisibility());
+        VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), metadata, triple.getElementVisibility());
+        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, triple.getElementVisibility());
         Vertex vertex = m.save(authorizations);
         elements.add(vertex);
     }
