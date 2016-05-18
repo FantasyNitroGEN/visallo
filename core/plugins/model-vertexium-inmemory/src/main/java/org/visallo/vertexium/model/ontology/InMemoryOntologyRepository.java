@@ -362,6 +362,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true);
+    }
+
+    @Override
+    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean isDeclaredInOntology) {
         InMemoryConcept concept = (InMemoryConcept) getConceptByIRI(conceptIRI);
         if (concept != null) {
             return concept;

@@ -91,6 +91,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#configuration">
         <rdfs:domain rdf:resource="http://visallo.org/workspace#dashboardItem"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:userVisible>false</visallo:userVisible>
     </owl:DatatypeProperty>
     
 
@@ -100,6 +101,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#extensionId">
         <rdfs:domain rdf:resource="http://visallo.org/workspace#dashboardItem"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:userVisible>false</visallo:userVisible>
     </owl:DatatypeProperty>
     
 

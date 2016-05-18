@@ -63,7 +63,7 @@ public class VertexiumUserRepositoryTest {
         InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap());
         authorizationRepository = new InMemoryAuthorizationRepository();
         authorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING.toString());
-        when(ontologyRepository.getOrCreateConcept((Concept) isNull(), eq(UserRepository.USER_CONCEPT_IRI), anyString(), (java.io.File) anyObject())).thenReturn(userConcept);
+        when(ontologyRepository.getOrCreateConcept((Concept) isNull(), eq(UserRepository.USER_CONCEPT_IRI), anyString(), (java.io.File) anyObject(), anyBoolean())).thenReturn(userConcept);
         when(userConcept.getIRI()).thenReturn(UserRepository.USER_CONCEPT_IRI);
 
         Configuration visalloConfiguration = new HashMapConfigurationLoader(new HashMap()).createConfiguration();
