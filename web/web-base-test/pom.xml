@@ -19,6 +19,11 @@
             <artifactId>visallo-web</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium-inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
