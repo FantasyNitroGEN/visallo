@@ -53,3 +53,11 @@ You can also inline the streaming property value using `http://visallo.org#strea
         <http://dbpedia.org/resource/Aristotle> <http://visallo.org#raw> "Some really long text..."^^<http://visallo.org#streamingPropertyValueInline>
 
 This will create a property called `http://visallo.org#raw` with the contents of `Some really long text...`
+
+### Edge Id
+
+You can supply an edge id by appending `:edgeId` to the label.
+
+        <http://dbpedia.org/resource/Aristotle> <http://dbpedia.org/property/mainInterests:edge1> <http://dbpedia.org/resource/Physics> .
+
+This will create an edge with id `edge1`.

@@ -38,6 +38,7 @@ public abstract class VisalloRdfTriple {
     private static final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
     private static final Pattern METADATA_PATTERN = Pattern.compile("(.*)@(.*)");
     private static final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
+    private static final Pattern EDGE_ID_PATTERN = Pattern.compile("(.*#.*):(.*)");
     private static final Map<String, Visibility> visibilityCache = new HashMap<>();
 
     public static VisalloRdfTriple parse(
@@ -195,7 +196,6 @@ public abstract class VisalloRdfTriple {
 
     private static VisalloRdfTriple parseAddEdgeTriple(String outVertexId, String label, RdfTriple.UriPart third, String defaultVisibilitySource, VisibilityTranslator visibilityTranslator) {
         String inVertexId = third.getUri();
-        String edgeId = outVertexId + "_" + label + "_" + inVertexId;
 
         Visibility visibility;
         Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(label);
@@ -204,6 +204,15 @@ public abstract class VisalloRdfTriple {
             visibility = getVisibility(visibilityMatcher.group(2), visibilityTranslator);
         } else {
             visibility = getVisibility(defaultVisibilitySource, visibilityTranslator);
+        }
+
+        String edgeId;
+        Matcher edgeIdMatcher = EDGE_ID_PATTERN.matcher(label);
+        if (edgeIdMatcher.matches()) {
+            label = edgeIdMatcher.group(1);
+            edgeId = edgeIdMatcher.group(2);
+        } else {
+            edgeId = outVertexId + "_" + label + "_" + inVertexId;
         }
 
         return new AddEdgeVisalloRdfTriple(

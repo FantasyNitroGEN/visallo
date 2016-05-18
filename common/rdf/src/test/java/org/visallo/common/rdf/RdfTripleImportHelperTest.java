@@ -306,6 +306,21 @@ public class RdfTripleImportHelperTest {
         assertEquals("v2", edges.get(0).getOtherVertex("v1", authorizations).getId());
     }
 
+    @Test
+    public void testImportEdgeWithId() {
+        String line = "<v1> <http://visallo.org/test#edgeLabel1:edge1> <v2>";
+        importRdfLine(line);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        assertEquals(1, v1.getEdgeCount(Direction.OUT, authorizations));
+        List<Edge> edges = toList(v1.getEdges(Direction.OUT, authorizations));
+        assertEquals(1, edges.size());
+        assertEquals("http://visallo.org/test#edgeLabel1", edges.get(0).getLabel());
+        assertEquals("v2", edges.get(0).getOtherVertex("v1", authorizations).getId());
+        assertEquals("edge1", edges.get(0).getId());
+    }
+
     private void importRdfLine(String line) {
         Set<Element> elements = new HashSet<>();
         rdfTripleImportHelper.importRdfLine(elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
