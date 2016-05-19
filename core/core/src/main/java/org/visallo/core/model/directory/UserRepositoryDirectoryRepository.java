@@ -50,4 +50,9 @@ public class UserRepositoryDirectoryRepository extends DirectoryRepository {
     public String getDirectoryEntityId(User user) {
         return user.getUserId();
     }
+
+    @Override
+    public List<DirectoryPerson> findAllPeopleInGroup(DirectoryGroup group) {
+        return Collections.emptyList();
+    }
 }

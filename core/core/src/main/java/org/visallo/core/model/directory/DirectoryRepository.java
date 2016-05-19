@@ -15,4 +15,6 @@ public abstract class DirectoryRepository {
     public abstract DirectoryEntity findById(String id, User user);
 
     public abstract String getDirectoryEntityId(User user);
+
+    public abstract List<DirectoryPerson> findAllPeopleInGroup(DirectoryGroup group);
 }
