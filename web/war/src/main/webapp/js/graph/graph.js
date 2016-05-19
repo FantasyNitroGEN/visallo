@@ -1734,11 +1734,13 @@ define([
         }
 
         this.onWorkspaceLoaded = function(evt, workspace) {
-            this.resetGraph();
             this.isWorkspaceEditable = workspace.editable;
             this.workspaceVertices = workspace.vertices;
             if (workspace.data.vertices.length) {
                 var newWorkspace = !this.previousWorkspace || this.previousWorkspace !== workspace.workspaceId;
+                if (newWorkspace) {
+                    this.resetGraph();
+                }
                 this.addVertices(workspace.data.vertices, {
                     fit: newWorkspace
                 });
