@@ -413,7 +413,9 @@ define([
                 node.teardownComponent(FieldSelection);
                 FieldSelection.attachTo(node, {
                     selectedProperty: options.selected && properties.byTitle[options.selected] || null,
-                    properties: properties.list,
+                    properties: _.reject(properties.list, function(p) {
+                        return p.title !== 'http://visallo.org#conceptType' && p.userVisible === false;
+                    }),
                     showAdminProperties: true,
                     placeholder: options.placeholder || ''
                 });
