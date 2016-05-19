@@ -534,7 +534,7 @@ public abstract class WorkspaceRepository {
         // we need to alter the visibility of the json property, otherwise we'll have two json properties, one with the old visibility and one with the new.
         VisalloProperties.VISIBILITY_JSON.alterVisibility(vertexElementMutation, visalloVisibility.getVisibility());
         VisalloProperties.VISIBILITY_JSON.setProperty(vertexElementMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
-        vertexElementMutation.save(authorizations);
+        vertexElementMutation.save(authWithVideoFrame);
 
         for (Vertex termMention : termMentionRepository.findByVertexId(vertex.getId(), authorizations)) {
             termMentionRepository.updateVisibility(termMention, visalloVisibility.getVisibility(), authorizations);
