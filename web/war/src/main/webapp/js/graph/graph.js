@@ -285,7 +285,8 @@ define([
                     },
                     inc = GRID_LAYOUT_X_INCREMENT * cy.zoom() * retina.devicePixelRatio,
                     yinc = GRID_LAYOUT_Y_INCREMENT * cy.zoom() * retina.devicePixelRatio,
-                    width = inc * 4;
+                    width = inc * 4,
+                    firstVertexId;
 
                 if (data.start) {
                     idToCyNode = {};
@@ -295,10 +296,11 @@ define([
 
                     // Sort existing nodes to end, except leave the first
                     // dragging vertex
+                    firstVertexId = data.vertices[0].id;
                     vertices = data.vertices.sort(function(a, b) {
                         var cyA = idToCyNode[a.id], cyB = idToCyNode[b.id];
-                        if (data.vertices[0].id === a.id) return -1;
-                        if (data.vertices[0].id === b.id) return 1;
+                        if (firstVertexId === a.id) return -1;
+                        if (firstVertexId === b.id) return 1;
                         if (cyA.length && !cyB.length) return 1;
                         if (cyB.length && !cyA.length) return -1;
 
