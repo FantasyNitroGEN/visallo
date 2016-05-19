@@ -1,26 +1,26 @@
 package org.visallo.common.rdf;
 
-import org.vertexium.Visibility;
+import com.google.common.base.Strings;
 
 public class AddEdgeVisalloRdfTriple extends VisalloRdfTriple {
     private final String edgeId;
     private final String edgeLabel;
     private final String outVertexId;
     private final String inVertexId;
-    private final Visibility edgeVisibility;
+    private final String edgeVisibilitySource;
 
     protected AddEdgeVisalloRdfTriple(
             String edgeId,
             String outVertexId,
             String inVertexId,
             String edgeLabel,
-            Visibility edgeVisibility
+            String edgeVisibilitySource
     ) {
         this.edgeId = edgeId;
         this.edgeLabel = edgeLabel;
         this.outVertexId = outVertexId;
         this.inVertexId = inVertexId;
-        this.edgeVisibility = edgeVisibility;
+        this.edgeVisibilitySource = edgeVisibilitySource;
     }
 
     public String getEdgeId() {
@@ -39,7 +39,54 @@ public class AddEdgeVisalloRdfTriple extends VisalloRdfTriple {
         return inVertexId;
     }
 
-    public Visibility getEdgeVisibility() {
-        return edgeVisibility;
+    public String getEdgeVisibilitySource() {
+        return edgeVisibilitySource;
+    }
+
+    @Override
+    public String toString() {
+        String label = getEdgeLabel();
+        if (!Strings.isNullOrEmpty(getEdgeId())) {
+            label += ":" + getEdgeId();
+        }
+        if (!Strings.isNullOrEmpty(getEdgeVisibilitySource())) {
+            label += String.format("[%s]", getEdgeVisibilitySource());
+        }
+        return String.format("<%s> <%s> <%s>", getOutVertexId(), label, getInVertexId());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AddEdgeVisalloRdfTriple that = (AddEdgeVisalloRdfTriple) o;
+
+        if (edgeId != null ? !edgeId.equals(that.edgeId) : that.edgeId != null) {
+            return false;
+        }
+        if (edgeLabel != null ? !edgeLabel.equals(that.edgeLabel) : that.edgeLabel != null) {
+            return false;
+        }
+        if (outVertexId != null ? !outVertexId.equals(that.outVertexId) : that.outVertexId != null) {
+            return false;
+        }
+        if (inVertexId != null ? !inVertexId.equals(that.inVertexId) : that.inVertexId != null) {
+            return false;
+        }
+        if (edgeVisibilitySource != null ? !edgeVisibilitySource.equals(that.edgeVisibilitySource) : that.edgeVisibilitySource != null) {
+            return false;
+        }
+
+        return super.equals(that);
+    }
+
+    @Override
+    public int hashCode() {
+        return edgeId.hashCode();
     }
 }

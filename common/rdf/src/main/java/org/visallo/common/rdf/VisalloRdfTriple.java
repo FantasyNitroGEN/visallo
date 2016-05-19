@@ -2,19 +2,15 @@ package org.visallo.common.rdf;
 
 import org.apache.commons.lang.StringUtils;
 import org.vertexium.ElementType;
-import org.vertexium.Visibility;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.util.VisalloDate;
 import org.visallo.core.util.VisalloDateTime;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,12 +37,10 @@ public abstract class VisalloRdfTriple {
     private static final Pattern METADATA_PATTERN = Pattern.compile("(.*)@(.*)");
     private static final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
     private static final Pattern EDGE_ID_PATTERN = Pattern.compile("(.*#.*):(.*)");
-    private static final Map<String, Visibility> visibilityCache = new HashMap<>();
 
     public static VisalloRdfTriple parse(
             RdfTriple rdfTriple,
             String defaultVisibilitySource,
-            VisibilityTranslator visibilityTranslator,
             File workingDir,
             TimeZone timeZone
     ) {
@@ -69,23 +63,20 @@ public abstract class VisalloRdfTriple {
         } else {
             elementVisibilitySource = defaultVisibilitySource;
         }
-        Visibility elementVisibility = getVisibility(elementVisibilitySource, visibilityTranslator);
 
         if (label.equals(LABEL_CONCEPT_TYPE)) {
-            return parseConceptTypeTriple(elementId, elementVisibility, elementVisibilitySource, third);
+            return parseConceptTypeTriple(elementId, elementVisibilitySource, third);
         }
 
         if (third instanceof RdfTriple.LiteralPart) {
             return parsePropertyTriple(
                     elementId,
-                    elementVisibility,
                     elementVisibilitySource,
                     label,
                     (RdfTriple.LiteralPart) third,
                     defaultVisibilitySource,
                     workingDir,
-                    timeZone,
-                    visibilityTranslator
+                    timeZone
             );
         }
 
@@ -94,8 +85,7 @@ public abstract class VisalloRdfTriple {
                     elementId,
                     label,
                     (RdfTriple.UriPart) third,
-                    defaultVisibilitySource,
-                    visibilityTranslator
+                    defaultVisibilitySource
             );
         }
 
@@ -104,13 +94,11 @@ public abstract class VisalloRdfTriple {
 
     private static VisalloRdfTriple parseConceptTypeTriple(
             String vertexId,
-            Visibility vertexVisibility,
             String vertexVisibilitySource,
             RdfTriple.Part third
     ) {
         return new ConceptTypeVisalloRdfTriple(
                 vertexId,
-                vertexVisibility,
                 vertexVisibilitySource,
                 getConceptType(third)
         );
@@ -118,14 +106,12 @@ public abstract class VisalloRdfTriple {
 
     private static VisalloRdfTriple parsePropertyTriple(
             String elementId,
-            Visibility elementVisibility,
             String elementVisibilitySource,
             String label,
             RdfTriple.LiteralPart propertyValuePart,
             String defaultVisibilitySource,
             File workingDir,
-            TimeZone timeZone,
-            VisibilityTranslator visibilityTranslator
+            TimeZone timeZone
     ) {
         String metadataKey = null;
         String propertyKey = MULTI_KEY;
@@ -154,7 +140,6 @@ public abstract class VisalloRdfTriple {
         } else {
             propertyVisibilitySource = defaultVisibilitySource;
         }
-        Visibility propertyVisibility = getVisibility(propertyVisibilitySource, visibilityTranslator);
 
         // property key
         Matcher keyMatch = PROPERTY_KEY_PATTERN.matcher(label);
@@ -168,55 +153,56 @@ public abstract class VisalloRdfTriple {
 
         if (metadataKey != null) {
             String metadataName;
-            Visibility metadataVisibility;
+            String metadataVisibilitySource;
 
             visibilityMatch = VISIBILITY_PATTERN.matcher(metadataKey);
             if (visibilityMatch.matches()) {
                 metadataName = visibilityMatch.group(1);
-                metadataVisibility = getVisibility(visibilityMatch.group(2), visibilityTranslator);
+                metadataVisibilitySource = visibilityMatch.group(2);
             } else {
                 metadataName = metadataKey;
-                metadataVisibility = propertyVisibility;
+                metadataVisibilitySource = propertyVisibilitySource;
             }
 
             return new SetMetadataVisalloRdfTriple(
                     elementType,
                     elementId,
-                    elementVisibility,
                     elementVisibilitySource,
                     propertyKey,
                     propertyName,
-                    propertyVisibility,
                     propertyVisibilitySource,
                     metadataName,
-                    metadataVisibility,
+                    metadataVisibilitySource,
                     value
             );
         } else {
             return new SetPropertyVisalloRdfTriple(
                     elementType,
                     elementId,
-                    elementVisibility,
                     elementVisibilitySource,
                     propertyKey,
                     propertyName,
-                    propertyVisibility,
                     propertyVisibilitySource,
                     value
             );
         }
     }
 
-    private static VisalloRdfTriple parseAddEdgeTriple(String outVertexId, String label, RdfTriple.UriPart third, String defaultVisibilitySource, VisibilityTranslator visibilityTranslator) {
+    private static VisalloRdfTriple parseAddEdgeTriple(
+            String outVertexId,
+            String label,
+            RdfTriple.UriPart third,
+            String defaultVisibilitySource
+    ) {
         String inVertexId = third.getUri();
 
-        Visibility visibility;
+        String visibilitySource;
         Matcher visibilityMatcher = VISIBILITY_PATTERN.matcher(label);
         if (visibilityMatcher.matches()) {
             label = visibilityMatcher.group(1);
-            visibility = getVisibility(visibilityMatcher.group(2), visibilityTranslator);
+            visibilitySource = visibilityMatcher.group(2);
         } else {
-            visibility = getVisibility(defaultVisibilitySource, visibilityTranslator);
+            visibilitySource = defaultVisibilitySource;
         }
 
         String edgeId;
@@ -233,7 +219,7 @@ public abstract class VisalloRdfTriple {
                 outVertexId,
                 inVertexId,
                 label,
-                visibility
+                visibilitySource
         );
     }
 
@@ -247,16 +233,6 @@ public abstract class VisalloRdfTriple {
         }
 
         throw new VisalloException("Unhandled part type: " + third.getClass().getName());
-    }
-
-    private static Visibility getVisibility(String visibilityString, VisibilityTranslator visibilityTranslator) {
-        Visibility visibility = visibilityCache.get(visibilityString);
-        if (visibility != null) {
-            return visibility;
-        }
-        visibility = visibilityTranslator.toVisibility(visibilityString).getVisibility();
-        visibilityCache.put(visibilityString, visibility);
-        return visibility;
     }
 
     private static Object getPropertyValue(RdfTriple.LiteralPart propertyValuePart, File workingDir, TimeZone timeZone) {
@@ -354,5 +330,20 @@ public abstract class VisalloRdfTriple {
     private static Date parseDateTime(String dateTimeString, TimeZone timeZone) {
         VisalloDateTime visalloDateTime = VisalloDateTime.create(dateTimeString, timeZone);
         return visalloDateTime.toDateGMT();
+    }
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        return true;
     }
 }
