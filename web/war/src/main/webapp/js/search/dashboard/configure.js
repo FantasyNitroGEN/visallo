@@ -210,7 +210,9 @@ define([
 
         this.updateAggregationDependents = function(type, preventTrigger) {
             var self = this,
-                item = this.attr.item;
+                item = this.attr.item,
+                searchId = this.attr.item.configuration.searchId,
+                conceptType = searchId ? this.searchesById[searchId].parameters.conceptType : null;
 
             if (type) {
                 if (item.configuration.searchParameters) {
@@ -227,17 +229,23 @@ define([
 
                 Promise.all([
                     this.dataRequest('ontology', 'properties'),
-                    Promise.require('search/sort')
-                ]).done(function(results) {
-                    var properties = results.shift(),
-                        Sort = results.shift(),
-                        node = self.$node.find('.sort').show();
+                    Promise.require('search/sort'),
+                    conceptType && this.dataRequest('ontology', 'propertiesByConceptId', conceptType)
+                ]).spread(function(properties, Sort, propertiesByConceptId) {
+                    var node = self.$node.find('.sort').show(),
+                        sortFieldsNode = node.find('.sort-fields');
 
-                    console.log('showing', type)
-
-                    Sort.attachTo(node.find('.sort-fields').teardownComponent(Sort), {
+                    Sort.attachTo(sortFieldsNode.teardownComponent(Sort), {
                         sorts: self.sortFields
-                    })
+                    });
+
+                    if (propertiesByConceptId) {
+                        sortFieldsNode.trigger('filterProperties', {
+                            properties: propertiesByConceptId.list.filter(function(property) {
+                                return !property.dependentPropertyIris
+                            })
+                        });
+                    }
                 });
                 this.aggregationField = null;
                 if (item.configuration.searchParameters) {
