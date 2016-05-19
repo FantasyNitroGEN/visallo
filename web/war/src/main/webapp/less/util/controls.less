@@ -17,9 +17,6 @@
 
   .tools {
     .disable-text-selection;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
     margin: 0 8px 0 0;
     position: absolute;
     right: 100%;
@@ -27,6 +24,10 @@
     width: auto;
     & > * {
       margin-left: 0.5em;     
+    }
+
+    & > div {
+      display: block;
     }
 
     .select {
