@@ -54,7 +54,7 @@ define([
                 showInputs: false,
                 showSeconds: false,
                 minuteStep: 15,
-                maxHours: 23,
+                maxHours: 24,
                 defaultTime: timeString || false,
                 showMeridian: false,
                 disableMousewheel: true
