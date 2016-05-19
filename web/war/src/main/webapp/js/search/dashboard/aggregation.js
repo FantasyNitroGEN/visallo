@@ -85,6 +85,7 @@ define([
             })
 
             this.on('propertyselected', this.onPropertySelected);
+            this.on('filterProperties', this.onFilterProperties);
 
             this.$node.html(template({
                 aggregations: AGGREGATIONS,
@@ -399,21 +400,33 @@ define([
             })
         };
 
+        this.onFilterProperties = function(event, data) {
+            if ($(event.target).is('.property-select')) return;
+
+            if (!data || _.isEmpty(data.properties)) {
+                this.filteredProperties = null;
+            } else {
+                this.filteredProperties = data.properties;
+            }
+
+            this.$node.find('.property-select').trigger(event.type, {
+                properties: this.filteredProperties
+            });
+        };
+
         this.attachPropertySelection = function(node, options) {
+            var self = this;
             if (!options) {
                 options = {};
             }
             return Promise.all([
                 this.dataRequest('ontology', 'properties'),
                 Promise.require('util/ontology/propertySelect')
-            ]).done(function(results) {
-                var properties = results.shift(),
-                    FieldSelection = results.shift();
-
+            ]).spread(function(properties, FieldSelection) {
                 node.teardownComponent(FieldSelection);
                 FieldSelection.attachTo(node, {
                     selectedProperty: options.selected && properties.byTitle[options.selected] || null,
-                    properties: _.reject(properties.list, function(p) {
+                    properties: _.reject(self.filteredProperties || properties.list, function(p) {
                         var isSearchable = p.dataType === 'string' && p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false,
                             isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible;
                         return !isSearchable || !isUserVisible;

@@ -134,15 +134,29 @@ define([
         };
 
         this.updateAggregationVisibility = function(preventTrigger) {
-            var self = this;
+            var self = this,
+                searchId = this.attr.item.configuration.searchId,
+                conceptType = searchId ? this.searchesById[searchId].parameters.conceptType : null;
 
-            require(['./aggregation'], function(Aggregation) {
-                self.select('aggregationSectionSelector').toggle(!!self.attr.item.configuration.searchId);
-                Aggregation.attachTo(self.select('aggregationSectionSelector'), {
+            Promise.all([
+                Promise.require('search/dashboard/aggregation'),
+                conceptType && this.dataRequest('ontology', 'propertiesByConceptId', conceptType)
+            ]).spread(function(Aggregation, propertiesByConceptId) {
+                var node = self.select('aggregationSectionSelector');
+
+                node.toggle(!!self.attr.item.configuration.searchId);
+                Aggregation.attachTo(node.teardownComponent(Aggregation), {
                     aggregations: self.aggregations
                 })
                 var aggregation = _.first(self.aggregations);
                 self.updateAggregationDependents(aggregation && aggregation.type, preventTrigger);
+                if (propertiesByConceptId) {
+                    node.trigger('filterProperties', {
+                        properties: propertiesByConceptId.list.filter(function(property) {
+                            return !property.dependentPropertyIris
+                        })
+                    });
+                }
             });
         };
 
