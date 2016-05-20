@@ -18,7 +18,7 @@ public class VisalloResourceBundleManager {
 
     public VisalloResourceBundleManager() {
         unlocalizedProperties = new Properties();
-        localizedProperties = new HashMap<Locale, Properties>();
+        localizedProperties = new HashMap<>();
     }
 
     public void register(InputStream inputStream) throws IOException {
@@ -36,12 +36,12 @@ public class VisalloResourceBundleManager {
 
     public ResourceBundle getBundle() {
         Locale defaultLocale = Locale.getDefault();
-        LOGGER.info("returning a bundle configured for the default locale: %s ", defaultLocale);
+        LOGGER.debug("returning a bundle configured for the default locale: %s ", defaultLocale);
         return createBundle(defaultLocale);
     }
 
     public ResourceBundle getBundle(Locale locale) {
-        LOGGER.info("returning a bundle configured for locale: %s ", locale);
+        LOGGER.debug("returning a bundle configured for locale: %s ", locale);
         return createBundle(locale);
     }
 
