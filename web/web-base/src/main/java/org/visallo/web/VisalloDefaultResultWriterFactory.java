@@ -72,10 +72,12 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                         response.addHeader("X-Content-Type-Options", "nosniff");
                     }
                     response.setCharacterEncoding("UTF-8");
-                    if (resultIsClientApiObject) {
+                    if (resultIsClientApiObject || result instanceof JSONObject) {
                         response.addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
                         response.addHeader("Pragma", "no-cache");
                         response.addHeader("Expires", "0");
+                    }
+                    if (resultIsClientApiObject) {
                         ClientApiObject clientApiObject = (ClientApiObject) result;
                         User user = VisalloBaseParameterProvider.getUser(request, userRepository);
                         clientApiObject = aclProvider.appendACL(clientApiObject, user);
