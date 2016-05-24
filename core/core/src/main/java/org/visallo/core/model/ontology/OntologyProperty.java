@@ -75,6 +75,10 @@ public abstract class OntologyProperty {
 
     public abstract String[] getIntents();
 
+    public abstract String[] getTextIndexHints();
+
+    public abstract void addTextIndexHints(String textIndexHints, Authorizations authorizations);
+
     public abstract void addIntent(String intent, Authorizations authorizations);
 
     public abstract void removeIntent(String intent, Authorizations authorizations);
@@ -125,6 +129,9 @@ public abstract class OntologyProperty {
             }
             if (getIntents() != null) {
                 result.getIntents().addAll(Arrays.asList(getIntents()));
+            }
+            if (getTextIndexHints() != null) {
+                result.getTextIndexHints().addAll(Arrays.asList(getTextIndexHints()));
             }
             return result;
         } catch (JSONException e) {

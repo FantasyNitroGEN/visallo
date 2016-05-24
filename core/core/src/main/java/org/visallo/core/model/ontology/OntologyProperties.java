@@ -11,7 +11,7 @@ public class OntologyProperties {
     public static final StringSingleValueVisalloProperty TITLE = new StringSingleValueVisalloProperty("http://visallo.org#title");
     public static final StreamingVisalloProperty ONTOLOGY_FILE = new StreamingVisalloProperty("http://visallo.org#ontologyFile");
     public static final IntegerSingleValueVisalloProperty DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME = new IntegerSingleValueVisalloProperty("order");
-    public static final StringSingleValueVisalloProperty TEXT_INDEX_HINTS = new StringSingleValueVisalloProperty("http://visallo.org#textIndexHints");
+    public static final StringVisalloProperty TEXT_INDEX_HINTS = new StringVisalloProperty("http://visallo.org#textIndexHints");
     public static final StringSingleValueVisalloProperty ONTOLOGY_TITLE = new StringSingleValueVisalloProperty("http://visallo.org#ontologyTitle");
     public static final StringSingleValueVisalloProperty DISPLAY_NAME = new StringSingleValueVisalloProperty("http://visallo.org#displayName");
     public static final StringSingleValueVisalloProperty DISPLAY_TYPE = new StringSingleValueVisalloProperty("http://visallo.org#displayType");

@@ -220,6 +220,7 @@ public class ClientApiOntology implements ClientApiObject {
         private boolean deleteable;
         private boolean updateable;
         private List<String> intents = new ArrayList<String>();
+        private List<String> textIndexHints = new ArrayList<String>();
 
         public String getTitle() {
             return title;
@@ -349,6 +350,11 @@ public class ClientApiOntology implements ClientApiObject {
         @JsonInclude(JsonInclude.Include.NON_EMPTY)
         public List<String> getIntents() {
             return intents;
+        }
+
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        public List<String> getTextIndexHints() {
+            return textIndexHints;
         }
     }
 

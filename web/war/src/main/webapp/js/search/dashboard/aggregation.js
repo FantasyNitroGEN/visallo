@@ -414,7 +414,9 @@ define([
                 FieldSelection.attachTo(node, {
                     selectedProperty: options.selected && properties.byTitle[options.selected] || null,
                     properties: _.reject(properties.list, function(p) {
-                        return p.title !== 'http://visallo.org#conceptType' && p.userVisible === false;
+                        var isSearchable = p.dataType === 'string' && p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false,
+                            isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible;
+                        return !isSearchable || !isUserVisible;
                     }),
                     showAdminProperties: true,
                     placeholder: options.placeholder || ''

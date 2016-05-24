@@ -260,6 +260,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             if (displayName != null && !displayName.trim().isEmpty()) {
                 property.setDisplayName(displayName);
             }
+            if (textIndexHints.size() > 0) {
+                for (TextIndexHint textIndexHint : textIndexHints) {
+                    property.addTextIndexHints(textIndexHint.toString());
+                }
+            }
             property.setPossibleValues(possibleValues);
             propertiesCache.put(propertyIri, property);
         }

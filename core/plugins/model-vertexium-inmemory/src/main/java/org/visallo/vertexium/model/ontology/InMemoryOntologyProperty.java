@@ -29,6 +29,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private boolean deleteable;
     private ImmutableList<String> dependentPropertyIris = ImmutableList.of();
     private List<String> intents = new ArrayList<>();
+    private List<String> textIndexHints = new ArrayList<>();
 
     @Override
     public String getTitle() {
@@ -103,6 +104,20 @@ public class InMemoryOntologyProperty extends OntologyProperty {
 
     public String[] getIntents() {
         return this.intents.toArray(new String[this.intents.size()]);
+    }
+
+    @Override
+    public String[] getTextIndexHints() {
+        return this.textIndexHints.toArray(new String[this.textIndexHints.size()]);
+    }
+
+    @Override
+    public void addTextIndexHints(String textIndexHints, Authorizations authorizations) {
+        addTextIndexHints(textIndexHints);
+    }
+
+    public void addTextIndexHints (String textIndexHints) {
+        this.textIndexHints.add(textIndexHints);
     }
 
     public String getDisplayType() {

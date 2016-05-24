@@ -60,6 +60,16 @@ public class VertexiumOntologyProperty extends OntologyProperty {
     }
 
     @Override
+    public String[] getTextIndexHints() {
+        return IterableUtils.toArray(OntologyProperties.TEXT_INDEX_HINTS.getPropertyValues(vertex), String.class);
+    }
+
+    @Override
+    public void addTextIndexHints(String textIndexHints, Authorizations authorizations) {
+        OntologyProperties.TEXT_INDEX_HINTS.addPropertyValue(vertex, textIndexHints, textIndexHints, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+    }
+
+    @Override
     public void addIntent(String intent, Authorizations authorizations) {
         OntologyProperties.INTENT.addPropertyValue(vertex, intent, intent, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
     }
