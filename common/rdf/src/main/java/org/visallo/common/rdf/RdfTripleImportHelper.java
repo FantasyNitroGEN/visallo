@@ -16,10 +16,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.*;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -28,6 +25,7 @@ public class RdfTripleImportHelper {
     private final Graph graph;
     private final VisibilityTranslator visibilityTranslator;
     private WorkQueueRepository workQueueRepository;
+    private static final Map<String, Visibility> visibilityCache = new HashMap<>();
 
     public void setFailOnFirstError(boolean failOnFirstError) {
         this.failOnFirstError = failOnFirstError;
@@ -163,7 +161,6 @@ public class RdfTripleImportHelper {
         VisalloRdfTriple triple = VisalloRdfTriple.parse(
                 rdfTriple,
                 defaultVisibilitySource,
-                visibilityTranslator,
                 workingDir,
                 timeZone
         );
@@ -201,7 +198,7 @@ public class RdfTripleImportHelper {
                 triple.getOutVertexId(),
                 triple.getInVertexId(),
                 triple.getEdgeLabel(),
-                triple.getEdgeVisibility(),
+                getVisibility(triple.getEdgeVisibilitySource()),
                 authorizations
         );
         elements.add(edge);
@@ -239,7 +236,7 @@ public class RdfTripleImportHelper {
                     triple.getPropertyName(),
                     setMetadataVisalloRdfTriple.getMetadataName(),
                     triple.getValue(),
-                    setMetadataVisalloRdfTriple.getMetadataVisibility()
+                    getVisibility(setMetadataVisalloRdfTriple.getMetadataVisibilitySource())
             );
         } else {
             m = getMutationForUpdate(triple, authorizations);
@@ -248,7 +245,7 @@ public class RdfTripleImportHelper {
                     triple.getPropertyName(),
                     triple.getValue(),
                     metadata,
-                    triple.getPropertyVisibility()
+                    getVisibility(triple.getPropertyVisibilitySource())
             );
         }
 
@@ -258,7 +255,7 @@ public class RdfTripleImportHelper {
 
     private ElementMutation getMutationForUpdate(PropertyVisalloRdfTriple triple, Authorizations authorizations) {
         if (triple.getElementType() == ElementType.VERTEX) {
-            return graph.prepareVertex(triple.getElementId(), triple.getElementVisibility());
+            return graph.prepareVertex(triple.getElementId(), getVisibility(triple.getElementVisibilitySource()));
         } else {
             Edge element = (Edge) getExistingElement(triple, authorizations);
             return element.prepareMutation();
@@ -298,10 +295,21 @@ public class RdfTripleImportHelper {
         VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), defaultVisibility);
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, defaultVisibility);
 
-        VertexBuilder m = graph.prepareVertex(triple.getElementId(), triple.getElementVisibility());
-        VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), metadata, triple.getElementVisibility());
-        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, triple.getElementVisibility());
+        Visibility elementVisibility = getVisibility(triple.getElementVisibilitySource());
+        VertexBuilder m = graph.prepareVertex(triple.getElementId(), elementVisibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), metadata, elementVisibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, elementVisibility);
         Vertex vertex = m.save(authorizations);
         elements.add(vertex);
+    }
+
+    private Visibility getVisibility(String visibilityString) {
+        Visibility visibility = visibilityCache.get(visibilityString);
+        if (visibility != null) {
+            return visibility;
+        }
+        visibility = visibilityTranslator.toVisibility(visibilityString).getVisibility();
+        visibilityCache.put(visibilityString, visibility);
+        return visibility;
     }
 }
