@@ -1227,7 +1227,32 @@ define([
             });
         };
 
-        this.graphTap = throttle('selection', SELECTION_THROTTLE, function(event) {
+        this.graphTap = function(event) {
+            var self = this;
+
+            if (isDiscontiguousSelectionKeyPressed(event.originalEvent) && event.cyTarget !== event.cy) {
+                if (event.cyTarget.selected()) {
+                    _.defer(function() {
+                        event.cyTarget.unselect();
+                        self.updateVertexSelections(event.cy, event.cyTarget);
+                    });
+                    return;
+                }
+            }
+
+            this.graphTapThrottle(event);
+
+            function isDiscontiguousSelectionKeyPressed(event) {
+                var isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                if (isMac) {
+                    return event.metaKey;
+                } else {
+                    return event.ctrlKey;
+                }
+            }
+        };
+
+        this.graphTapThrottle = throttle('selection', SELECTION_THROTTLE, function(event) {
             this.trigger('defocusPaths');
             this.trigger('defocusVertices');
 
