@@ -15,7 +15,7 @@ define([
             componentPath: 'detail/item/vertex',
             children: [
                 { ref: 'org.visallo.layout.header' },
-                { ref: 'org.visallo.layout.body', style: { flex: 1, overflow: 'auto' } }
+                { ref: 'org.visallo.layout.body', style: { flex: '1 1 auto', overflow: 'auto' } }
             ]
         },
         {
