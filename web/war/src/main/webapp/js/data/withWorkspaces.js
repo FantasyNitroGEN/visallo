@@ -216,7 +216,7 @@ define(['util/undoManager'], function(UndoManager) {
 
             if (workspaceUpdates.entityUpdates) {
                 workspaceUpdates.entityUpdates.forEach(function(update) {
-                    inverted.entityUpdates.push($.extend(true, {}, workspaceVertices[update.vertexId]));
+                    inverted.entityDeletes.push(update.vertexId);
                 })
             }
             if (workspaceUpdates.entityDeletes) {
