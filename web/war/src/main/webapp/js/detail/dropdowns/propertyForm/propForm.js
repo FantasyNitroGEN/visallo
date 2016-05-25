@@ -50,6 +50,8 @@ define([
                 property = this.attr.property,
                 vertex = this.attr.data;
 
+            this.modified = {};
+
             this.on('click', {
                 saveButtonSelector: this.onSave,
                 deleteButtonSelector: this.onDelete,
@@ -81,14 +83,10 @@ define([
             this.select('saveButtonSelector').attr('disabled', true);
             this.select('deleteButtonSelector').hide();
             this.select('saveButtonSelector').hide();
-            this.on('change keyup paste', {
+            this.on('keyup paste', {
                 configurationSelector: function(event, data) {
-                    if (event.type === 'change') return;
                     this.trigger(event.target, 'change');
-                    this.onModified();
-                },
-                justificationSelector: this.onModified,
-                visibilitySelector: this.onModified
+                }
             });
             if (this.attr.property) {
                 this.trigger('propertyselected', {
@@ -412,48 +410,53 @@ define([
                                 } : null
                             });
                         }
+                        self.previousPropertyValue = self.getConfigurationValues();
                     });
                 } else console.warn('Property ' + propertyName + ' not found in ontology');
             });
         };
 
         this.onVisibilityChange = function(event, data) {
+            var self = this;
+
             this.visibilitySource = data;
+            this.modified.visibility = this.currentProperty.metadata ? visibilityModified() : !!this.visibilitySource.value;
             this.checkValid();
+
+            function visibilityModified() {
+                var currentVisibility = self.visibilitySource.value,
+                    previousVisibility;
+                if (self.currentProperty.title === 'http://visallo.org#visibilityJson') {
+                    previousVisibility = self.currentProperty.value.source;
+                } else {
+                    previousVisibility = self.currentProperty.metadata['http://visallo.org#visibilityJson'].source;
+                }
+
+                if (!currentVisibility) {
+                    return !!previousVisibility;
+                } else {
+                    return currentVisibility !== previousVisibility;
+                }
+            }
         };
 
         this.onJustificationChange = function(event, data) {
+            var self = this;
+
             this.justification = data;
-            this.checkValid();
-        };
-
-        this.onModified = function(event, data) {
-            if (this.attr.modified) return;
-            var checkModified = checkForValueModifications.bind(this);
-            this.attr.modified = checkModified();
+            this.modified.justification = this.currentProperty.metadata ? justificationModified() : !!this.justification.justificationText;
             this.checkValid();
 
-            function checkForValueModifications() {
-                var currentValue = this.currentValue,
-                    currentJustification = this.justification.justificationText || '',
-                    currentVisibility = this.visibilitySource.value || '',
-                    property = this.currentProperty,
-                    metadata = this.currentProperty.metadata,
-                    previousValue = property.value || '',
-                    previousJustification = metadata ? metadata['http://visallo.org#justification'].justificationText : '',
-                    previousVisibility = metadata ? metadata['http://visallo.org#visibilityJson'].source : '';
+            function justificationModified() {
+                var previousJustification = self.currentProperty.metadata['http://visallo.org#justification'],
+                    currentJustificationText = self.justification && self.justification.hasOwnProperty('justificationText') ?
+                        self.justification.justificationText : undefined;
 
-                if (metadata) {
-                    if (currentValue !== previousValue ||
-                        currentJustification !== previousJustification ||
-                        currentVisibility !== previousVisibility) {
-                        return true;
-                    }
-                } else if (currentValue || currentJustification || currentVisibility) {
-                    return true;
+                if (previousJustification !== undefined) {
+                    return currentJustificationText !== previousJustification.justificationText;
+                } else {
+                    return !!currentJustificationText;
                 }
-
-                return false;
             }
         };
 
@@ -470,7 +473,7 @@ define([
             } else {
                 var valid = !this.propertyInvalid &&
                     (this.visibilitySource && this.visibilitySource.valid) &&
-                    (this.justification && this.justification.valid);
+                    (this.justification ? this.justification.valid : true);
                 var empty = _.reject(this.$node.find('.configuration input'), function(input) {
                     return !!input.value;
                 }).length > 0;
@@ -478,7 +481,7 @@ define([
                 this.valid = valid && !empty;
             }
 
-            if (this.valid && this.attr.modified) {
+            if (this.valid && _.some(this.modified)) {
                 this.select('saveButtonSelector').removeAttr('disabled');
             } else {
                 this.select('saveButtonSelector').attr('disabled', true);
@@ -486,9 +489,9 @@ define([
         };
 
         this.onPropertyChange = function(event, data) {
-            this.propertyInvalid = false;
-            this.checkValid();
+            var self = this;
 
+            this.propertyInvalid = false;
             event.stopPropagation();
 
             var isCompoundField = this.currentPropertyDetails.dependentPropertyIris,
@@ -517,6 +520,20 @@ define([
             }
 
             this.currentMetadata = data.metadata;
+            this.modified.value = this.currentProperty.value ? valueModified() : !!this.currentValue;
+            this.checkValid();
+
+
+            function valueModified() {
+                var previousValue = self.previousPropertyValue,
+                    propertyValue = self.getConfigurationValues();
+
+                if (previousValue !== undefined) {
+                    return propertyValue !== previousValue;
+                } else {
+                    return !!propertyValue;
+                }
+            }
         };
 
         this.onPropertyError = function(event, data) {
@@ -528,6 +545,12 @@ define([
                 })
             ).show();
             _.defer(this.clearLoading.bind(this));
+        };
+
+        this.getConfigurationValues = function() {
+            var config = this.select('configurationSelector').lookupAllComponents().shift();
+
+            return _.isFunction(config.getValue) ? config.getValue() : config.getValues();
         };
 
         this.onKeyup = function(evt) {
