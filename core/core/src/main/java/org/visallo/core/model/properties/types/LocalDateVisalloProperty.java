@@ -4,14 +4,14 @@ import java.time.LocalDate;
 import java.util.Date;
 
 /**
- * A single-value property that converts a java.time.LocalDate object, which represents only a date without time
+ * A multi-value property that converts a java.time.LocalDate object, which represents only a date without time
  * information, to an appropriate value for storage in Vertexium.
  */
-public class LocalDateSingleValueVisalloProperty
-        extends SingleValueVisalloProperty<LocalDate, Date>
+public class LocalDateVisalloProperty
+        extends VisalloProperty<LocalDate, Date>
         implements WrapsLocalDate {
 
-    public LocalDateSingleValueVisalloProperty(String propertyName) {
+    public LocalDateVisalloProperty(String propertyName) {
         super(propertyName);
     }
 
