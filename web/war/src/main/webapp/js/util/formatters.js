@@ -492,8 +492,11 @@ define([
             },
             utc: function(str) {
                 if (_.isUndefined(str)) return '';
-                var dateInLocale = FORMATTERS.date.local(str),
-                    millisInMinutes = 1000 * 60,
+
+                var dateInLocale = FORMATTERS.date.local(str);
+                if (!dateInLocale) return '';
+
+                var millisInMinutes = 1000 * 60,
                     millisFromLocaleToUTC = dateInLocale.getTimezoneOffset() * millisInMinutes,
                     dateInUTC = new Date(dateInLocale.getTime() + millisFromLocaleToUTC);
                 return dateInUTC;

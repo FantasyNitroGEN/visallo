@@ -230,7 +230,7 @@ define([
                 f.date.dateTimeString(dateLocal.getTime()).should.match(/^2015-06-23 13:16 .+$/)
             })
 
-            it('should format to prefered format', function() {
+            it('should format to preferred format', function() {
                 var now = new Date(),
                 month = String(now.getMonth() + 1);
 
@@ -250,6 +250,11 @@ define([
                 f.date.dateString().should.equal('')
                 f.date.dateTimeString().should.equal('')
                 f.date.timeString().should.equal('')
+            })
+
+            it('should return empty strings when formatted incorrectly', function() {
+                f.date.local('2015-06-23 13:1').should.equal('')
+                f.date.utc('2015-06-23 13:1').should.equal('')
             })
 
             it('should format dates when string thats actually a time millis', function() {
