@@ -1759,13 +1759,13 @@ define([
         }
 
         this.onWorkspaceLoaded = function(evt, workspace) {
+            var newWorkspace = !this.previousWorkspace || this.previousWorkspace !== workspace.workspaceId;
             this.isWorkspaceEditable = workspace.editable;
             this.workspaceVertices = workspace.vertices;
+            if (newWorkspace) {
+                this.resetGraph();
+            }
             if (workspace.data.vertices.length) {
-                var newWorkspace = !this.previousWorkspace || this.previousWorkspace !== workspace.workspaceId;
-                if (newWorkspace) {
-                    this.resetGraph();
-                }
                 this.addVertices(workspace.data.vertices, {
                     fit: newWorkspace
                 });
