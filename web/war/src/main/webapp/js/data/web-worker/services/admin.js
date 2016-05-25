@@ -51,6 +51,9 @@ define([
             if ('endDate' in options && !options.endDate) {
                 delete options.endDate;
             }
+            if ('externalUrl' in options && !options.externalUrl) {
+                delete options.externalUrl;
+            }
             return ajax('POST', '/notification/system', options);
         },
 

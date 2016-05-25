@@ -39,7 +39,7 @@ public class SystemNotificationSave implements ParameterizedHandler {
             @Required(name = "message") String message,
             @Required(name = "startDate") String startDateParameter,
             @Optional(name = "endDate") String endDateParameter,
-            @Optional(name = "externalUrl") String externalUrl,
+            @Optional(name = "externalUrl", allowEmpty = false) String externalUrl,
             User user
     ) throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
