@@ -1,6 +1,8 @@
 package org.visallo.core.model.notification;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -8,18 +10,17 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.visallo.core.util.StreamUtil.stream;
 
 public class UserNotificationRepository extends NotificationRepository {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserNotificationRepository.class);
     private static final String VISIBILITY_STRING = "";
     private final WorkQueueRepository workQueueRepository;
     private UserRepository userRepository;
@@ -33,18 +34,42 @@ public class UserNotificationRepository extends NotificationRepository {
         this.workQueueRepository = workQueueRepository;
     }
 
-    public List<UserNotification> getActiveNotifications(User user) {
+    @VisibleForTesting
+    public UserNotificationRepository(
+            SimpleOrmSession simpleOrmSession,
+            WorkQueueRepository workQueueRepository,
+            UserRepository userRepository
+    ) {
+        this(simpleOrmSession, workQueueRepository);
+        this.userRepository = userRepository;
+    }
+
+    public Stream<UserNotification> getActiveNotifications(User user) {
         Date now = new Date();
-        List<UserNotification> activeNotifications = new ArrayList<>();
-        for (UserNotification notification : getSimpleOrmSession().findAll(UserNotification.class, getUserRepository().getSimpleOrmContext(user))) {
-            if (user.getUserId().equals(notification.getUserId()) &&
-                    notification.getSentDate().before(now) &&
-                    notification.isActive()) {
-                activeNotifications.add(notification);
-            }
-        }
-        LOGGER.debug("returning %d active user notifications", activeNotifications.size());
-        return activeNotifications;
+        return findAll(user)
+                .filter(notification ->
+                                user.getUserId().equals(notification.getUserId())
+                                        && notification.getSentDate().before(now)
+                                        && notification.isActive()
+                );
+    }
+
+    private Stream<UserNotification> findAll(User user) {
+        SimpleOrmContext ctx = getUserRepository().getSimpleOrmContext(user);
+        return stream(getSimpleOrmSession().findAll(UserNotification.class, ctx));
+    }
+
+    public Stream<UserNotification> getActiveNotificationsOlderThan(int duration, TimeUnit timeUnit, User user) {
+        Date now = new Date();
+        return findAll(user)
+                .filter(notification -> {
+                            if (!notification.isActive()) {
+                                return false;
+                            }
+                            Date t = new Date(notification.getSentDate().getTime() + timeUnit.toMillis(duration));
+                            return t.before(now);
+                        }
+                );
     }
 
     public UserNotification createNotification(
@@ -57,7 +82,13 @@ public class UserNotificationRepository extends NotificationRepository {
             User authUser
     ) {
         UserNotification notification = new UserNotification(
-                userId, title, message, actionEvent, actionPayload, expirationAge);
+                userId,
+                title,
+                message,
+                actionEvent,
+                actionPayload,
+                expirationAge
+        );
         saveNotification(notification, authUser);
         return notification;
     }
@@ -68,7 +99,8 @@ public class UserNotificationRepository extends NotificationRepository {
             String message,
             String externalUrl,
             ExpirationAge expirationAge,
-            User authUser) {
+            User authUser
+    ) {
         UserNotification notification = new UserNotification(userId, title, message, null, null, expirationAge);
         notification.setExternalUrl(externalUrl);
         saveNotification(notification, authUser);
@@ -81,7 +113,11 @@ public class UserNotificationRepository extends NotificationRepository {
     }
 
     public UserNotification getNotification(String notificationId, User user) {
-        return getSimpleOrmSession().findById(UserNotification.class, notificationId, getUserRepository().getSimpleOrmContext(user));
+        return getSimpleOrmSession().findById(
+                UserNotification.class,
+                notificationId,
+                getUserRepository().getSimpleOrmContext(user)
+        );
     }
 
     public void markRead(String[] notificationIds, User user) {

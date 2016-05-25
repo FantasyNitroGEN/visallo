@@ -29,10 +29,29 @@ public class UserNotification extends Notification {
         super();
     }
 
-    UserNotification(String userId, String title, String message, String actionEvent, JSONObject actionPayload, ExpirationAge expirationAge) {
-        super(createRowKey(), title, message, actionEvent, actionPayload);
+    UserNotification(
+            String userId,
+            String title,
+            String message,
+            String actionEvent,
+            JSONObject actionPayload,
+            ExpirationAge expirationAge
+    ) {
+        this(userId, title, message, actionEvent, actionPayload, new Date(), expirationAge);
+    }
+
+    UserNotification(
+            String userId,
+            String title,
+            String message,
+            String actionEvent,
+            JSONObject actionPayload,
+            Date sentDate,
+            ExpirationAge expirationAge
+    ) {
+        super(createRowKey(sentDate), title, message, actionEvent, actionPayload);
         this.userId = userId;
-        this.sentDate = new Date();
+        this.sentDate = sentDate;
         this.markedRead = false;
         if (expirationAge != null) {
             this.expirationAgeAmount = expirationAge.getAmount();
@@ -40,9 +59,8 @@ public class UserNotification extends Notification {
         }
     }
 
-    private static String createRowKey() {
-        Date now = new Date();
-        return Long.toString(now.getTime()) + ":" + UUID.randomUUID().toString();
+    private static String createRowKey(Date date) {
+        return Long.toString(date.getTime()) + ":" + UUID.randomUUID().toString();
     }
 
     public String getUserId() {
@@ -101,5 +119,17 @@ public class UserNotification extends Notification {
         json.put("sentDate", getSentDate());
         json.put("expirationAge", getExpirationAge());
         json.put("markedRead", isMarkedRead());
+    }
+
+    @Override
+    public String toString() {
+        return "UserNotification{" +
+                "userId='" + userId + '\'' +
+                ", title=" + getTitle() +
+                ", sentDate=" + sentDate +
+                ", expirationAgeAmount=" + expirationAgeAmount +
+                ", expirationAgeUnit=" + expirationAgeUnit +
+                ", markedRead=" + markedRead +
+                '}';
     }
 }
