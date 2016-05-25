@@ -427,7 +427,7 @@ define([
                 FieldSelection.attachTo(node, {
                     selectedProperty: options.selected && properties.byTitle[options.selected] || null,
                     properties: _.reject(self.filteredProperties || properties.list, function(p) {
-                        var isSearchable = p.dataType === 'string' && p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false,
+                        var isSearchable = p.dataType !== 'string' || (p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false),
                             isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible;
                         return !isSearchable || !isUserVisible;
                     }),
