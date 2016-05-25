@@ -39,15 +39,24 @@ define([
         this.onSeekToTime = function(event, data) {
             var self = this,
                 time = data.seekTo / 1000,
-                player = this.$player[0];
+                player = this.$player[0],
+                autoPlay = data.autoPlay === undefined || data.autoPlay;
 
             if (player.readyState === 4) {
                 player.currentTime = time;
-                player.play();
+                if (autoPlay) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
             } else {
                 this.$player.one('canplay', function() {
                     player.currentTime = time;
-                    player.play();
+                    if (autoPlay) {
+                        player.play();
+                    } else {
+                        player.pause();
+                    }
                 })
                 player.load();
             }

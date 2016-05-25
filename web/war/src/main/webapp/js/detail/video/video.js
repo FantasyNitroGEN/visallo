@@ -63,20 +63,29 @@ define([
             }
 
             if (this.videoRendered && !this.transcriptRendered) {
-                var transcriptProperties = _.where(this.model.properties, { name: 'http://visallo.org#videoTranscript' });
-                if (transcriptProperties.length) {
-                    this.dataRequest('vertex', 'highlighted-text', this.model.id, transcriptProperties[0].key)
-                        .catch(function() {
-                            return '';
-                        })
-                        .then(function(artifactText) {
-                            self.currentTranscript = processArtifactText(artifactText);
-                            self.updateCurrentTranscript(0);
-                        });
-                    this.transcriptRendered = true;
-                }
+                this.renderTranscript();
             }
-        }
+        };
+
+        this.renderTranscript = function(key, time) {
+            var self = this,
+                currentTime = time || 0,
+                transcriptProperties = _.where(this.model.properties, { name: 'http://visallo.org#videoTranscript' });
+
+            if (!transcriptProperties.length) return;
+
+            var transcriptKey = key ? key : transcriptProperties[0].key;
+
+            this.dataRequest('vertex', 'highlighted-text', this.model.id, transcriptKey)
+                .catch(function() {
+                    return '';
+                })
+                .then(function(artifactText) {
+                    self.currentTranscriptKey = transcriptKey;
+                    self.currentTranscript = processArtifactText(artifactText);
+                    self.updateCurrentTranscript(currentTime);
+                });
+        };
 
         this.onUpdateModel = function(event, data) {
             this.model = data.model;
@@ -143,6 +152,9 @@ define([
 
         this.onAVLinkClicked = function(event, data) {
             this.trigger(this.select('previewSelector'), 'seekToTime', data);
+            if (data.transcriptKey !== this.currentTranscriptKey) {
+                this.renderTranscript(data.transcriptKey, data.seekTo);
+            }
         };
     }
 

@@ -224,6 +224,9 @@ define([
                         node.children[i].__isLayoutComponent && child.componentPath
                     )) {
                         $el = $(node.children[i]);
+                        $el.contents().filter(function() {
+                            return this.nodeType === Node.TEXT_NODE;
+                        }).remove();
                     } else {
                         el = document.createElement('div');
                         node.insertBefore(el, node.children[i]);

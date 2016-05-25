@@ -290,7 +290,8 @@ define([
             var self = this,
                 options = opts || {},
                 $video = this.select('videoSelector'),
-                videoPlayer = $video.length && $video[0];
+                videoPlayer = $video.length && $video[0],
+                autoPlay = opts ? opts.autoPlay === undefined || opts.autoPlay : true;
 
             this.videoStarted = true;
             this.$node.css('height', 'auto');
@@ -302,7 +303,11 @@ define([
                             options.seek ? options.seek : 0.0
                        ) - 1.0
                 );
-                videoPlayer.play();
+                if (autoPlay) {
+                    videoPlayer.play();
+                } else {
+                    videoPlayer.pause();
+                }
             } else {
                 var players = videojs.players,
                     video = $(videoTemplate(
@@ -328,40 +333,46 @@ define([
 
                 this.trigger('videoPlayerInitialized');
 
-                _.defer(videojs, video[0], {
-                    controls: true,
-                    autoplay: true,
-                    preload: 'auto'
-                }, function() {
-                    /*eslint consistent-this:0*/
-                    var $videoel = this;
+                _.defer(function() {
+                    videojs(video[0], {
+                        controls: true,
+                        autoplay: true,
+                        preload: 'auto'
+                    }, function() {
+                        /*eslint consistent-this:0*/
+                        var $videoel = this;
 
-                    if (options.seek || options.percentSeek) {
-                        $videoel.on('durationchange', durationchange);
-                        $videoel.on('loadedmetadata', durationchange);
-                    }
-                    $videoel.on('timeupdate', timeupdate);
-
-                    function timeupdate(event) {
-                        self.trigger('playerTimeUpdate', {
-                            currentTime: $videoel.currentTime(),
-                            duration: $videoel.duration()
-                        });
-                    }
-
-                    function durationchange(event) {
-                        var duration = $videoel.duration();
-                        if (duration > 0.0) {
-                            $videoel.off('durationchange', durationchange);
-                            $videoel.off('loadedmetadata', durationchange);
-                            $videoel.currentTime(
-                                Math.max(0.0,
-                                    (options.percentSeek ?
-                                        duration * self.scrubPercent :
-                                        options.seek) - 1.0
-                                )
-                            );
+                        if (options.seek || options.percentSeek) {
+                            $videoel.on('durationchange', durationchange);
+                            $videoel.on('loadedmetadata', durationchange);
                         }
+                        $videoel.on('timeupdate', timeupdate);
+
+                        function timeupdate(event) {
+                            self.trigger('playerTimeUpdate', {
+                                currentTime: $videoel.currentTime(),
+                                duration: $videoel.duration()
+                            });
+                        }
+
+                        function durationchange(event) {
+                            var duration = $videoel.duration();
+                            if (duration > 0.0) {
+                                $videoel.off('durationchange', durationchange);
+                                $videoel.off('loadedmetadata', durationchange);
+                                $videoel.currentTime(
+                                    Math.max(0.0,
+                                        (options.percentSeek ?
+                                            duration * self.scrubPercent :
+                                            options.seek) - 1.0
+                                    )
+                                );
+                            }
+                        }
+                    });
+
+                    if (!autoPlay) {
+                        setTimeout(function() {video[0].pause(); }, 100);
                     }
                 });
             }
@@ -370,7 +381,8 @@ define([
         this.onSeekToTime = function(event, data) {
             if (!this.setup) this.setupVideo();
             this.startVideo({
-                seek: data.seekTo / 1000
+                seek: data.seekTo / 1000,
+                autoPlay: data.autoPlay
             });
         };
 

@@ -41,7 +41,11 @@ define([
             'http://visallo.org#text'
         ],
         rangeUtils,
-        d3;
+        d3,
+        PREVIEW_SELECTORS = {
+            audio: 'div .audio-preview',
+            video: '.org-visallo-video'
+        };
 
     registry.documentExtensionPoint('org.visallo.detail.text', 'Replace Extracted Text with custom component', function(e) {
         return _.isFunction(e.shouldReplaceTextSectionForVertex) && _.isString(e.componentPath);
@@ -56,6 +60,7 @@ define([
             resolvedSelector: '.vertex.resolved',
             textSelector: '.text',
             avLinkSelector: '.av-link',
+            detailSectionContainerSelector: '.org-visallo-layout-body',
             model: null
         });
 
@@ -1048,12 +1053,33 @@ define([
             }
         };
 
+        this.scrollToMediaPreview = function($detailBody) {
+            if (!this.mediaType) {
+                this.mediaType = $detailBody.find(PREVIEW_SELECTORS.audio).parent().length > 0 ? 'audio' : 'video';
+                this.$mediaNode = this.mediaType === 'audio' ?
+                    $detailBody.find(PREVIEW_SELECTORS.audio).parent() :
+                    $detailBody.find(PREVIEW_SELECTORS.video);
+            }
+            var $scrollParent = visalloData.isFullscreen ? $('html, body') : $detailBody,
+                scrollTop = visalloData.isFullscreen ? this.$mediaNode.offset().top : this.$mediaNode.position().top;
+
+            $scrollParent.animate({
+                scrollTop: scrollTop
+            }, 'fast');
+        };
+
         this.onAVLinkClick = function(event, data) {
             var seekTo = data.el.dataset.millis || '';
+            var transcriptKey = $(event.target).parents('section').data().key;
+
             if (seekTo) {
                 this.trigger(this.$node.parents('.type-content'), 'avLinkClicked', {
-                    seekTo: seekTo
+                    seekTo: seekTo,
+                    autoPlay: false,
+                    transcriptKey: transcriptKey
                 });
+
+                this.scrollToMediaPreview(this.$node.parents(this.attr.detailSectionContainerSelector));
             }
         };
     }
