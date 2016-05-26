@@ -210,6 +210,9 @@ define([
                         this.enter()
                             .append('span')
                             .attr('class', 'detected-object-tag')
+                            .attr('data-vertex-id', function(detectedObject) {
+                                return detectedObject.value.resolvedVertexId;
+                            })
                             .append('a');
 
                         this
@@ -266,7 +269,7 @@ define([
                         );
 
                     if (vertices.length) {
-                        self.trigger('updateDraggables');
+                        self.updateDraggables();
                     }
                 });
         };
@@ -282,5 +285,28 @@ define([
             );
         };
 
+        this.updateDraggables = function() {
+            var self = this,
+                objects = this.$node.children();
+
+            objects.each(function(i, object) {
+                $(object).draggable({
+                    helper: 'clone',
+                    revert: 'invalid',
+                    revertDuration: 250,
+                    scroll: false,
+                    zIndex: 100,
+                    distance: 10,
+                    start: function() {
+                        $(this)
+                            .parent().addClass('drag-focus');
+                    },
+                    stop: function() {
+                        $(this)
+                            .parent().removeClass('drag-focus');
+                    }
+                });
+            })
+        };
     }
 });
