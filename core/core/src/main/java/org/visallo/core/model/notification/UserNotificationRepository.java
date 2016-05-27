@@ -6,7 +6,6 @@ import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
@@ -120,15 +119,27 @@ public class UserNotificationRepository extends NotificationRepository {
         );
     }
 
+    /**
+     * This method only allows marking items read for the passed in user
+     */
     public void markRead(String[] notificationIds, User user) {
         Collection<UserNotification> toSave = new ArrayList<>();
         for (String notificationId : notificationIds) {
             UserNotification notification = getNotification(notificationId, user);
             checkNotNull(notification, "Could not find notification with id " + notificationId);
-            if (notification.getUserId().equals(user.getUserId())) {
-                notification.setMarkedRead(true);
-                toSave.add(notification);
-            } else throw new VisalloException("User cannot mark notifications read that aren't issued to them");
+            notification.setMarkedRead(true);
+            toSave.add(notification);
+        }
+        getSimpleOrmSession().saveMany(toSave, VISIBILITY_STRING, getUserRepository().getSimpleOrmContext(user));
+    }
+
+    public void markNotified(Iterable<String> notificationIds, User user) {
+        Collection<UserNotification> toSave = new ArrayList<>();
+        for (String notificationId : notificationIds) {
+            UserNotification notification = getNotification(notificationId, user);
+            checkNotNull(notification, "Could not find notification with id " + notificationId);
+            notification.setNotified(true);
+            toSave.add(notification);
         }
         getSimpleOrmSession().saveMany(toSave, VISIBILITY_STRING, getUserRepository().getSimpleOrmContext(user));
     }

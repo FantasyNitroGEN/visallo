@@ -1,5 +1,6 @@
 package org.visallo.core.model.notification;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.v5analytics.simpleorm.Entity;
 import com.v5analytics.simpleorm.Field;
 import org.json.JSONObject;
@@ -23,13 +24,17 @@ public class UserNotification extends Notification {
     @Field
     private boolean markedRead;
 
+    @Field
+    private boolean notified;
+
     // Used by SimpleOrm to create instance
     @SuppressWarnings("UnusedDeclaration")
     protected UserNotification() {
         super();
     }
 
-    UserNotification(
+    @VisibleForTesting
+    public UserNotification(
             String userId,
             String title,
             String message,
@@ -40,7 +45,8 @@ public class UserNotification extends Notification {
         this(userId, title, message, actionEvent, actionPayload, new Date(), expirationAge);
     }
 
-    UserNotification(
+    @VisibleForTesting
+    public UserNotification(
             String userId,
             String title,
             String message,
@@ -53,6 +59,7 @@ public class UserNotification extends Notification {
         this.userId = userId;
         this.sentDate = sentDate;
         this.markedRead = false;
+        this.notified = false;
         if (expirationAge != null) {
             this.expirationAgeAmount = expirationAge.getAmount();
             this.expirationAgeUnit = expirationAge.getExpirationAgeUnit();
@@ -84,6 +91,14 @@ public class UserNotification extends Notification {
 
     public void setMarkedRead(boolean markedRead) {
         this.markedRead = markedRead;
+    }
+
+    public boolean isNotified() {
+        return notified;
+    }
+
+    public void setNotified(boolean notified) {
+        this.notified = notified;
     }
 
     public boolean isActive() {
@@ -119,6 +134,7 @@ public class UserNotification extends Notification {
         json.put("sentDate", getSentDate());
         json.put("expirationAge", getExpirationAge());
         json.put("markedRead", isMarkedRead());
+        json.put("notified", isNotified());
     }
 
     @Override
@@ -130,6 +146,7 @@ public class UserNotification extends Notification {
                 ", expirationAgeAmount=" + expirationAgeAmount +
                 ", expirationAgeUnit=" + expirationAgeUnit +
                 ", markedRead=" + markedRead +
+                ", notified=" + notified +
                 '}';
     }
 }
