@@ -427,9 +427,13 @@ define([
                 FieldSelection.attachTo(node, {
                     selectedProperty: options.selected && properties.byTitle[options.selected] || null,
                     properties: _.reject(self.filteredProperties || properties.list, function(p) {
-                        var isSearchable = p.dataType !== 'string' || (p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false),
-                            isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible;
-                        return !isSearchable || !isUserVisible;
+                        var isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible,
+                            isPropString = p.dataType === 'string';
+                        if (isPropString) {
+                            var isSearchable = p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false;
+                            return !isSearchable || !isUserVisible;
+                        }
+                        return !isUserVisible;
                     }),
                     showAdminProperties: true,
                     placeholder: options.placeholder || ''
