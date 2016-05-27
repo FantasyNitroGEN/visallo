@@ -39,5 +39,10 @@
             <artifactId>mockito-core</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.v5analytics.simpleorm</groupId>
+            <artifactId>simple-orm-in-memory</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

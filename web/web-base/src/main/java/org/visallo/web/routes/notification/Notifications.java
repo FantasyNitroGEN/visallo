@@ -9,7 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.model.notification.SystemNotification;
 import org.visallo.core.model.notification.SystemNotificationRepository;
-import org.visallo.core.model.notification.UserNotification;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.user.User;
 
@@ -51,9 +50,9 @@ public class Notifications implements ParameterizedHandler {
         systemNotifications.put("future", futureNotifications);
 
         JSONArray userNotifications = new JSONArray();
-        for (UserNotification notification : userNotificationRepository.getActiveNotifications(user)) {
-            userNotifications.put(notification.toJSONObject());
-        }
+        userNotificationRepository.getActiveNotifications(user)
+                .map(notification -> notification.toJSONObject())
+                .forEach(json -> userNotifications.put(json));
 
         notifications.put("system", systemNotifications);
         notifications.put("user", userNotifications);
