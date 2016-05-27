@@ -1,3 +1,4 @@
 org.visallo.web.initializers.ExternalResourceWorkersInitializer
 org.visallo.web.initializers.GraphPropertyWorkerRunnerInitializer
 org.visallo.web.initializers.LongRunningProcessRunnerInitializer
+org.visallo.web.initializers.SystemNotificationInitializer

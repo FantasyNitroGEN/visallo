@@ -50,7 +50,7 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
                 @Override
                 public void stop() {
                     try {
-                        if (longRunningProcessRunner != null){
+                        if (longRunningProcessRunner != null) {
                             LOGGER.debug("Stopping LongRunningProcessRunner");
                             longRunningProcessRunner.stop();
                         }
