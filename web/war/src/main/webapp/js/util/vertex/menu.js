@@ -48,7 +48,10 @@ define([
                             {
                                 label: i18n('vertex.contextmenu.open.preview'),
                                 subtitle: i18n('vertex.contextmenu.open.preview.subtitle'),
-                                event: 'previewVertex'
+                                event: 'previewVertex',
+                                shouldDisable: function(selection, vertexId, target) {
+                                    return $(target).closest('.graph-pane').length === 0;
+                                }
                             },
                             {
                                 label: i18n('vertex.contextmenu.open.fullscreen'),
@@ -79,7 +82,7 @@ define([
                         event: 'addRelatedItems',
                         shortcut: 'alt+r',
                         shouldDisable: function(selection, vertexId, target) {
-                            return !visalloData.currentWorkspaceEditable;
+                            return !visalloData.currentWorkspaceEditable || $(target).closest('.graph-pane').length === 0;
                         }
                     },
 
