@@ -97,6 +97,8 @@ define([
         };
 
         this.addToCurrentWorkspace = function() {
+            var isGraphVisible = !!this.$node.find('.graph-pane.visible').length;
+
             this.trigger('updateWorkspace', {
                 options: {
                     selectAll: true
@@ -108,6 +110,10 @@ define([
                     }
                 })
             });
+            if (!isGraphVisible) {
+                this.trigger('menubarToggleDisplay', { name: 'graph' });
+                this.trigger('reloadWorkspace');
+            }
             this.teardown();
         }
 
