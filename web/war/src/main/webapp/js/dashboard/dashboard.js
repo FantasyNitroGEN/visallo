@@ -322,7 +322,7 @@ define([
                     this.gridstack.disable();
                     this.$node.removeClass('editing');
                     finished = Promise.resolve();
-                    $header.attr('readonly', true);
+                    $header.attr('disabled', true);
                 } else {
                     $edit
                         .text(i18n('dashboard.title.editing.done'))
@@ -330,7 +330,7 @@ define([
                     this.$node.addClass('editing');
                     this.gridstack.enable();
                     finished = this.createDashboardItemToGridStack();
-                    $header.removeAttr('readonly');
+                    $header.removeAttr('disabled');
                 }
                 this.adjustHeader();
 
