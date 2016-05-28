@@ -169,7 +169,8 @@ define([
                 Promise.resolve(this.attr.result)
                     .then(setAggregations)
                     .then(loadUsingData) :
-                refresh();
+                refresh()
+                    .catch(errorHandler);
 
             loadingPromise
                 .catch(errorHandler)
