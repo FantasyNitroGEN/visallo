@@ -23,14 +23,27 @@ define([
             }
 
             this.node.ondragover = function(e) {
-                e.dataTransfer.dropEffect = 'copy';
-                $(this).addClass('file-hover'); return false;
+                if (Privileges.canEDIT) {
+                    e.dataTransfer.dropEffect = 'copy';
+                    $(this).addClass('file-hover');
+                } else {
+                    e.dataTransfer.dropEffect = 'none';
+                    self.trigger('displayInformation', {
+                        message: i18n('graph.workspace.readonly'),
+                        position: [e.pageX, e.pageY]
+                    });
+                }
+                return false;
             };
             this.node.ondragenter = function(e) {
                 $(this).addClass('file-hover'); return false;
             };
             this.node.ondragleave = function(e) {
-                $(this).removeClass('file-hover'); return false;
+                if (!Privileges.canEDIT) {
+                    self.trigger('hideInformation');
+                }
+                $(this).removeClass('file-hover');
+                return false;
             };
             this.node.ondrop = function(e) {
                 if (e.dataTransfer &&
@@ -84,6 +97,8 @@ define([
                                     position: [e.pageX, e.pageY]
                                 });
                             })
+                    } else {
+                        self.trigger('hideInformation');
                     }
                 }
             };
