@@ -55,13 +55,14 @@ public class UserNotificationRepositoryTest {
 
     @Test
     public void testGetActiveNotifications() {
+        Date now = new Date();
         simpleOrmSession.save(new UserNotification(
                 "user1",
                 "Expired",
                 "Message 1",
                 null,
                 null,
-                new Date(new Date().getTime() - (2 * 60 * 1000)),
+                new Date(now.getTime() - (2 * 60 * 1000)),
                 new ExpirationAge(1, ExpirationAgeUnit.MINUTE)
         ), "", simpleOrmContext);
         simpleOrmSession.save(new UserNotification(
@@ -70,7 +71,7 @@ public class UserNotificationRepositoryTest {
                 "Message 2",
                 null,
                 null,
-                new Date(),
+                new Date(now.getTime() - 1000),
                 new ExpirationAge(1, ExpirationAgeUnit.MINUTE)
         ), "", simpleOrmContext);
         simpleOrmSession.save(new UserNotification(
@@ -79,7 +80,7 @@ public class UserNotificationRepositoryTest {
                 "Message 3",
                 null,
                 null,
-                new Date(),
+                new Date(now.getTime() - 1000),
                 new ExpirationAge(1, ExpirationAgeUnit.MINUTE)
         ), "", simpleOrmContext);
 
