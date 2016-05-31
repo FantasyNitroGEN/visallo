@@ -21,9 +21,11 @@ define([
     'use strict';
 
     var NO_DATA = 'NO_DATA_MARKER',
-        TO_MANY_BUCKETS = 'TOO_MANY_BUCKETS',
-        TO_MANY_BUCKETS_HISTOGRAM = 'TOO_MANY_BUCKETS_HISTOGRAM',
+        TOO_MANY_BUCKETS = 'TOO_MANY_BUCKETS',
+        TOO_MANY_BUCKETS_HISTOGRAM = 'TOO_MANY_BUCKETS_HISTOGRAM',
+        TOO_MANY_BUCKETS_GEOHASH = 'TOO_MANY_BUCKETS_GEOHASH',
         MAX_BUCKETS_BEFORE_ERROR = 150,
+        MAX_GEOHASH_BUCKETS_BEFORE_ERROR = 1024,
         TYPE_ELEMENTS = 'TYPE_ELEMENTS',
         TYPE_AGGREGATION = 'TYPE_AGGREGATION',
         TYPE_UNKNOWN = 'TYPE_UNKNOWN',
@@ -82,12 +84,18 @@ define([
                             if (result.type === TYPE_AGGREGATION && (!_.isArray(result.root) || _.isEmpty(result.root[0].buckets))) {
                                 throw new Error(NO_DATA);
                             }
-                            if (result.type === TYPE_AGGREGATION && _.isArray(result.root) &&
-                                result.root[0].buckets.length > MAX_BUCKETS_BEFORE_ERROR) {
-                                if (result.root[0].type === 'histogram') {
-                                    throw new Error(TO_MANY_BUCKETS_HISTOGRAM);
+                            if (result.type === TYPE_AGGREGATION && _.isArray(result.root)) {
+                                var bucketCount = result.root[0].buckets.length,
+                                    aggregationType = result.root[0].type;
+
+                                if (aggregationType === 'geohash' && bucketCount > MAX_GEOHASH_BUCKETS_BEFORE_ERROR) {
+                                    throw new Error(TOO_MANY_BUCKETS_GEOHASH);
+                                } else if (bucketCount > MAX_BUCKETS_BEFORE_ERROR) {
+                                    if (aggregationType === 'histogram') {
+                                        throw new Error(TOO_MANY_BUCKETS_HISTOGRAM);
+                                    }
+                                    throw new Error(TOO_MANY_BUCKETS);
                                 }
-                                throw new Error(TO_MANY_BUCKETS);
                             }
                             if (_.isFunction(self.processData)) {
                                 return self.processData(frozen);
@@ -122,10 +130,13 @@ define([
                     if (error && error.message === NO_DATA) {
                         type = 'info';
                         message = 'no-data';
-                    } else if (error && error.message === TO_MANY_BUCKETS_HISTOGRAM) {
+                    } else if (error && error.message === TOO_MANY_BUCKETS_GEOHASH) {
+                        type = 'info';
+                        message = 'bucket-overload.geohash';
+                    } else if (error && error.message === TOO_MANY_BUCKETS_HISTOGRAM) {
                         type = 'info';
                         message = 'bucket-overload.histogram';
-                    } else if (error && error.message === TO_MANY_BUCKETS) {
+                    } else if (error && error.message === TOO_MANY_BUCKETS) {
                         type = 'info';
                         message = 'bucket-overload';
                     } else {
