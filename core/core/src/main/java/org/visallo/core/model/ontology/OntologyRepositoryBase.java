@@ -1395,6 +1395,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected boolean determineSearchable(String propertyIri, PropertyType dataType, Collection<TextIndexHint> textIndexHints, boolean searchable) {
         if (dataType == PropertyType.STRING) {
+            checkNotNull(textIndexHints, "textIndexHints are required for string properties");
             if (searchable && (textIndexHints.isEmpty() || textIndexHints.equals(TextIndexHint.NONE))) {
                 searchable = false;
             } else if (!searchable && (!textIndexHints.isEmpty() || !textIndexHints.equals(TextIndexHint.NONE))) {
