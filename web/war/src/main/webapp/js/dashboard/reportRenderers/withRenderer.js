@@ -90,7 +90,7 @@ define([
 
                                 if (aggregationType === 'geohash' && bucketCount > MAX_GEOHASH_BUCKETS_BEFORE_ERROR) {
                                     throw new Error(TOO_MANY_BUCKETS_GEOHASH);
-                                } else if (bucketCount > MAX_BUCKETS_BEFORE_ERROR) {
+                                } else if (aggregationType !== 'geohash' && bucketCount > MAX_BUCKETS_BEFORE_ERROR) {
                                     if (aggregationType === 'histogram') {
                                         throw new Error(TOO_MANY_BUCKETS_HISTOGRAM);
                                     }
