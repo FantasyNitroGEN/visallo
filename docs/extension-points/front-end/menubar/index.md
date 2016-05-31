@@ -8,8 +8,9 @@ Plugin to add new menubar items.
 * title: The text under icon
 * identifier: Identifier of this menubar icon (must be valid css class)
 * action: (object)
-    * type: either `pane` or `fullscreen`
-    * componentPath: path to component to initialize on activation
+    * type: either `pane`, `fullscreen`, or `url`
+    * componentPath: path to component to initialize on activation (valid for `pane` or `fullscreen` action types)
+    * url: the url to open when clicked (valid for `url` action type)
 * icon: path to icon
 
 ## Optional parameters:
