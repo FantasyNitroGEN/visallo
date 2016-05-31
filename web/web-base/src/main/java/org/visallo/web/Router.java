@@ -48,8 +48,6 @@ import org.visallo.web.routes.search.SearchList;
 import org.visallo.web.routes.search.SearchRun;
 import org.visallo.web.routes.search.SearchSave;
 import org.visallo.web.routes.user.*;
-import org.visallo.web.routes.userGuide.UserGuide;
-import org.visallo.web.routes.userGuide.UserGuideShortUrl;
 import org.visallo.web.routes.vertex.*;
 import org.visallo.web.routes.workspace.*;
 
@@ -223,9 +221,6 @@ public class Router extends HttpServlet {
 
             app.get("/ping", RateLimitFilter.class, Ping.class);
             app.get("/ping/stats", authenticator, AdminPrivilegeFilter.class, PingStats.class);
-
-            app.get(UserGuideShortUrl.CONTEXT_PATH + "/{key*}", authenticator, csrfProtector, UserGuideShortUrl.class);
-            app.get(UserGuide.CONTEXT_PATH + "/{path*}", authenticator, csrfProtector, UserGuide.class);
 
             List<WebAppPlugin> webAppPlugins = toList(ServiceLoaderUtil.load(WebAppPlugin.class, configuration));
             for (WebAppPlugin webAppPlugin : webAppPlugins) {

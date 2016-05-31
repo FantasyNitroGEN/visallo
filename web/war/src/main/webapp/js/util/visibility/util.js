@@ -1,4 +1,4 @@
-define(['configuration/plugins/registry'], function(registry) {
+define(['configuration/plugins/registry', 'util/promise'], function(registry) {
     'use strict';
 
     registry.documentExtensionPoint('org.visallo.visibility',

@@ -1,6 +1,5 @@
 
 define([
     './formatters',
-    './eachWithLimit',
-    './userGuide'
+    './eachWithLimit'
 ]);

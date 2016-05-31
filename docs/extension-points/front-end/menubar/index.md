@@ -8,12 +8,14 @@ Plugin to add new menubar items.
 * title: The text under icon
 * identifier: Identifier of this menubar icon (must be valid css class)
 * action: (object)
-    * type: either `pane` or `fullscreen`
-    * componentPath: path to component to initialize on activation
+    * type: either `pane`, `fullscreen`, or `url`
+    * componentPath: path to component to initialize on activation (valid for `pane` or `fullscreen` action types)
+    * url: the url to open when clicked (valid for `url` action type)
 * icon: path to icon
 
 ## Optional parameters:
 
+* welcomeTemplatePath: (string) Path to template to render in **Welcome to Visallo** dashboard card. 
 * options: (object)
     * placementHint: either `top` or `bottom`
     * placementHintBefore: class of menubar icon to position before
@@ -32,6 +34,7 @@ require(['configuration/plugins/registry', 'util/messages'], function(registry, 
             type: 'pane',
             componentPath: 'com/mypluginpackage/myplugin/component'
         },
+        welcomeTemplatePath: 'hbs!com/mypluginpackage/myplugin/templates/welcome',
         icon: '../img/glyphicons/white/glyphicons_066_tags@2x.png',
         options: {
             placementHint: 'top',

@@ -100,15 +100,15 @@ public class ResolveTermEntity implements ParameterizedHandler {
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
         Metadata metadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
-        ElementMutation<Vertex> vertexMutation;
         Vertex vertex;
         if (resolvedVertexId != null) {
             vertex = graph.getVertex(id, authorizations);
-            vertexMutation = vertex.prepareMutation();
         } else {
-            vertexMutation = graph.prepareVertex(id, visalloVisibility.getVisibility());
+            ElementMutation<Vertex> vertexMutation = graph.prepareVertex(id, visalloVisibility.getVisibility());
             VisalloProperties.CONCEPT_TYPE.setProperty(vertexMutation, conceptId, metadata, visalloVisibility.getVisibility());
             VisalloProperties.TITLE.addPropertyValue(vertexMutation, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
+            VisalloProperties.MODIFIED_BY.setProperty(vertexMutation, user.getUserId(), visalloVisibility.getVisibility());
+            VisalloProperties.MODIFIED_DATE.setProperty(vertexMutation, new Date(), visalloVisibility.getVisibility());
 
             if (justificationText != null) {
                 PropertyJustificationMetadata propertyJustificationMetadata = new PropertyJustificationMetadata(justificationText);
@@ -143,8 +143,6 @@ public class ResolveTermEntity implements ParameterizedHandler {
                 .resolvedTo(vertex, edge)
                 .process(getClass().getSimpleName())
                 .save(this.graph, visibilityTranslator, user, authorizations);
-
-        vertexMutation.save(authorizations);
 
         this.graph.flush();
         workQueueRepository.pushTextUpdated(artifactId);

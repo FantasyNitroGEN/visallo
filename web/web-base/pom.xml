@@ -95,61 +95,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>build-user-guide</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>${plugin.frontend}</version>
-                        <configuration>
-                            <workingDirectory>src/main/resources/META-INF/user-guide</workingDirectory>
-                            <installDirectory>${frontend.installDirectory}</installDirectory>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>install-npm-modules</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <phase>generate-resources</phase>
-                                <configuration>
-                                    <arguments>install</arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>${plugin.maven.exec.version}</version>
-                        <configuration>
-                            <workingDirectory>src/main/resources/META-INF/user-guide</workingDirectory>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>run-gitbook</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>${frontend.installDirectory}/node/node</executable>
-                                    <commandlineArgs>node_modules/gitbook-cli/bin/gitbook.js install .</commandlineArgs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>
