@@ -14,6 +14,7 @@ Plugin to add new menubar items.
 
 ## Optional parameters:
 
+* welcomeTemplatePath: (string) Path to template to render in **Welcome to Visallo** dashboard card. 
 * options: (object)
     * placementHint: either `top` or `bottom`
     * placementHintBefore: class of menubar icon to position before
@@ -32,6 +33,7 @@ require(['configuration/plugins/registry', 'util/messages'], function(registry, 
             type: 'pane',
             componentPath: 'com/mypluginpackage/myplugin/component'
         },
+        welcomeTemplatePath: 'hbs!com/mypluginpackage/myplugin/templates/welcome',
         icon: '../img/glyphicons/white/glyphicons_066_tags@2x.png',
         options: {
             placementHint: 'top',

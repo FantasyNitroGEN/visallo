@@ -28,7 +28,8 @@ define([
 
         ACTION_TYPES = {
             full: MUTALLY_EXCLUSIVE_SWITCHES[0],
-            pane: MUTALLY_EXCLUSIVE_SWITCHES[1]
+            pane: MUTALLY_EXCLUSIVE_SWITCHES[1],
+            url: { names: [], options: {}}
         },
 
         // Don't change state to highlighted on click
@@ -62,6 +63,7 @@ define([
             if (!_.contains(DISABLE_HIDE_TOOLTIP_ON_CLICK, name)) {
                 icon.tooltip('hide');
             }
+
             if (isSwitch && icon.hasClass('active')) {
                 icon.toggleClass('toggled');
             } else {
@@ -70,10 +72,22 @@ define([
                     if (name in self.extensions) {
                         data.action = self.extensions[name].action;
                     }
-                    self.trigger(document, 'menubarToggleDisplay', data);
+                    if (data.action && data.action.type === 'url') {
+                        flashIcon(icon);
+                        window.open(data.action.url);
+                    } else {
+                        self.trigger(document, 'menubarToggleDisplay', data);
+                    }
                 });
             }
         };
+    }
+
+    function flashIcon(icon) {
+        icon.addClass('active');
+        _.delay(function() {
+            icon.removeClass('active');
+        }, 200);
     }
 
     function Menubar() {
