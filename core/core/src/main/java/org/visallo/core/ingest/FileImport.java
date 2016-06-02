@@ -67,7 +67,16 @@ public class FileImport {
         this.configuration = configuration;
     }
 
-    public void importDirectory(File dataDir, boolean queueDuplicates, String conceptTypeIRI, String visibilitySource, Workspace workspace, Priority priority, User user, Authorizations authorizations) throws IOException {
+    public void importDirectory(
+            File dataDir,
+            boolean queueDuplicates,
+            String conceptTypeIRI,
+            String visibilitySource,
+            Workspace workspace,
+            Priority priority,
+            User user,
+            Authorizations authorizations
+    ) throws IOException {
         ensureInitialized();
 
         LOGGER.debug("Importing files from %s", dataDir);
@@ -90,7 +99,22 @@ public class FileImport {
 
                 LOGGER.debug("Importing file (%d/%d): %s", fileCount + 1, totalFileCount, f.getAbsolutePath());
                 try {
-                    importFile(f, queueDuplicates, conceptTypeIRI, null, visibilitySource, workspace, false, priority, user, authorizations);
+                    ClientApiImportProperty[] properties = null;
+                    boolean findExistingByFileHash = true;
+                    boolean addToWorkspace = false;
+                    importFile(
+                            f,
+                            queueDuplicates,
+                            conceptTypeIRI,
+                            properties,
+                            visibilitySource,
+                            workspace,
+                            addToWorkspace,
+                            findExistingByFileHash,
+                            priority,
+                            user,
+                            authorizations
+                    );
                     importedFileCount++;
                 } catch (Exception ex) {
                     LOGGER.error("Could not import %s", f.getAbsolutePath(), ex);
@@ -122,7 +146,23 @@ public class FileImport {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        return importFile(f, queueDuplicates, null, null, visibilitySource, workspace, false, priority, user, authorizations);
+        String conceptId = null;
+        ClientApiImportProperty[] properties = null;
+        boolean findExistingByFileHash = true;
+        boolean addToWorkspace = false;
+        return importFile(
+                f,
+                queueDuplicates,
+                conceptId,
+                properties,
+                visibilitySource,
+                workspace,
+                addToWorkspace,
+                findExistingByFileHash,
+                priority,
+                user,
+                authorizations
+        );
     }
 
     public Vertex importFile(
@@ -133,35 +173,54 @@ public class FileImport {
             String visibilitySource,
             Workspace workspace,
             boolean addToWorkspace,
+            boolean findExistingByFileHash,
             Priority priority,
             User user,
             Authorizations authorizations
     ) throws Exception {
+        Vertex vertex;
         ensureInitialized();
 
         String hash = calculateFileHash(f);
 
-        Vertex vertex = findExistingVertexWithHash(hash, authorizations);
-        if (vertex != null) {
-            LOGGER.warn("vertex already exists with hash %s", hash);
-            if (queueDuplicates) {
-                LOGGER.debug("pushing %s on to %s queue", vertex.getId(), workQueueNames.getGraphPropertyQueueName());
-                if (workspace != null) {
-                    workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), addToWorkspace ? true : null, null, user);
-                    workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
-                    workQueueRepository.pushGraphPropertyQueue(
-                            vertex,
-                            MULTI_VALUE_KEY,
-                            VisalloProperties.RAW.getPropertyName(),
-                            workspace.getWorkspaceId(),
-                            visibilitySource,
-                            priority
+        if (findExistingByFileHash) {
+            vertex = findExistingVertexWithHash(hash, authorizations);
+            if (vertex != null) {
+                LOGGER.debug("vertex already exists with hash %s", hash);
+                if (queueDuplicates) {
+                    LOGGER.debug(
+                            "pushing %s on to %s queue",
+                            vertex.getId(),
+                            workQueueNames.getGraphPropertyQueueName()
                     );
-                } else {
-                    workQueueRepository.pushGraphPropertyQueue(vertex, MULTI_VALUE_KEY, VisalloProperties.RAW.getPropertyName(), priority);
+                    if (workspace != null) {
+                        workspaceRepository.updateEntityOnWorkspace(
+                                workspace,
+                                vertex.getId(),
+                                addToWorkspace ? true : null,
+                                null,
+                                user
+                        );
+                        workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
+                        workQueueRepository.pushGraphPropertyQueue(
+                                vertex,
+                                MULTI_VALUE_KEY,
+                                VisalloProperties.RAW.getPropertyName(),
+                                workspace.getWorkspaceId(),
+                                visibilitySource,
+                                priority
+                        );
+                    } else {
+                        workQueueRepository.pushGraphPropertyQueue(
+                                vertex,
+                                MULTI_VALUE_KEY,
+                                VisalloProperties.RAW.getPropertyName(),
+                                priority
+                        );
+                    }
                 }
+                return vertex;
             }
-            return vertex;
         }
 
         List<FileImportSupportingFileHandler.AddSupportingFilesResult> addSupportingFilesResults = new ArrayList<>();
@@ -268,6 +327,7 @@ public class FileImport {
             List<FileOptions> files,
             Priority priority,
             boolean addToWorkspace,
+            boolean findExistingByFileHash,
             User user,
             Authorizations authorizations
     ) throws Exception {
@@ -288,6 +348,7 @@ public class FileImport {
                     file.getVisibilitySource(),
                     workspace,
                     addToWorkspace,
+                    findExistingByFileHash,
                     priority,
                     user,
                     authorizations

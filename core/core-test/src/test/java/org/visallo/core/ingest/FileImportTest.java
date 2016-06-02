@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.when;
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -103,41 +104,118 @@ public class FileImportTest {
     @Test
     public void testImportVertices() throws Exception {
         File testFile = File.createTempFile("test", "test");
-        testFile.deleteOnExit();
+        try {
+            FileUtils.writeStringToFile(testFile, "<html><head><title>Test HTML</title><body>Hello Test</body></html>");
 
-        FileUtils.writeStringToFile(testFile, "<html><head><title>Test HTML</title><body>Hello Test</body></html>");
+            List<FileImport.FileOptions> files = new ArrayList<>();
+            FileImport.FileOptions file = new FileImport.FileOptions();
+            file.setConceptId("http://visallo.org/testConcept");
+            file.setFile(testFile);
+            ClientApiImportProperty[] properties = new ClientApiImportProperty[1];
+            properties[0] = new ClientApiImportProperty();
+            properties[0].setKey("k1");
+            properties[0].setName(PROP1_NAME);
+            properties[0].setVisibilitySource("");
+            properties[0].setValue("42");
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("m1", "v1");
+            properties[0].setMetadata(metadata);
+            file.setProperties(properties);
+            file.setVisibilitySource("");
+            files.add(file);
+            Priority priority = Priority.NORMAL;
+            List<Vertex> results = fileImport.importVertices(
+                    workspace,
+                    files,
+                    priority,
+                    false,
+                    true,
+                    user,
+                    authorizations
+            );
+            assertEquals(1, results.size());
 
-        List<FileImport.FileOptions> files = new ArrayList<>();
-        FileImport.FileOptions file = new FileImport.FileOptions();
-        file.setConceptId("http://visallo.org/testConcept");
-        file.setFile(testFile);
-        ClientApiImportProperty[] properties = new ClientApiImportProperty[1];
-        properties[0] = new ClientApiImportProperty();
-        properties[0].setKey("k1");
-        properties[0].setName(PROP1_NAME);
-        properties[0].setVisibilitySource("");
-        properties[0].setValue("42");
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("m1", "v1");
-        properties[0].setMetadata(metadata);
-        file.setProperties(properties);
-        file.setVisibilitySource("");
-        files.add(file);
-        Priority priority = Priority.NORMAL;
-        List<Vertex> results = fileImport.importVertices(workspace, files, priority, false, user, authorizations);
-        assertEquals(1, results.size());
-
-        Vertex v1 = graph.getVertex(results.get(0).getId(), authorizations);
-        List<Property> foundProperties = toList(v1.getProperties());
-        assertEquals(6, foundProperties.size());
-        for (int i = 0; i < 6; i++) {
-            Property foundProperty = foundProperties.get(i);
-            if (foundProperty.getName().equals(PROP1_NAME)) {
-                assertEquals("k1", foundProperty.getKey());
-                assertEquals(42, foundProperty.getValue());
-                assertEquals(1, foundProperty.getMetadata().entrySet().size());
-                assertEquals("v1", foundProperty.getMetadata().getValue("m1"));
+            Vertex v1 = graph.getVertex(results.get(0).getId(), authorizations);
+            List<Property> foundProperties = toList(v1.getProperties());
+            assertEquals(6, foundProperties.size());
+            for (int i = 0; i < 6; i++) {
+                Property foundProperty = foundProperties.get(i);
+                if (foundProperty.getName().equals(PROP1_NAME)) {
+                    assertEquals("k1", foundProperty.getKey());
+                    assertEquals(42, foundProperty.getValue());
+                    assertEquals(1, foundProperty.getMetadata().entrySet().size());
+                    assertEquals("v1", foundProperty.getMetadata().getValue("m1"));
+                }
             }
+        } finally {
+            testFile.delete();
+        }
+    }
+
+    @Test
+    public void testImportDuplicateFiles() throws Exception {
+        boolean findExistingByFileHash = true;
+        ImportTwiceResults results = importFileTwice(findExistingByFileHash);
+        assertEquals(results.firstVertexId, results.secondVertexId);
+    }
+
+    @Test
+    public void testImportDuplicateFilesIgnoreHash() throws Exception {
+        boolean findExistingByFileHash = false;
+        ImportTwiceResults results = importFileTwice(findExistingByFileHash);
+        assertNotEquals(results.firstVertexId, results.secondVertexId);
+    }
+
+    private ImportTwiceResults importFileTwice(boolean findExistingByFileHash) throws Exception {
+        File testFile = File.createTempFile("test", "test");
+        try {
+            FileUtils.writeStringToFile(testFile, "Hello World");
+
+            List<FileImport.FileOptions> files = new ArrayList<>();
+            FileImport.FileOptions file = new FileImport.FileOptions();
+            file.setConceptId("http://visallo.org/testConcept");
+            file.setFile(testFile);
+            file.setVisibilitySource("");
+            files.add(file);
+
+            Priority priority = Priority.NORMAL;
+            List<Vertex> results = fileImport.importVertices(
+                    workspace,
+                    files,
+                    priority,
+                    false,
+                    findExistingByFileHash,
+                    user,
+                    authorizations
+            );
+            assertEquals(1, results.size());
+            String firstVertexId = results.get(0).getId();
+
+            results = fileImport.importVertices(
+                    workspace,
+                    files,
+                    priority,
+                    false,
+                    findExistingByFileHash,
+                    user,
+                    authorizations
+            );
+            assertEquals(1, results.size());
+            String secondVertexId = results.get(0).getId();
+
+            return new ImportTwiceResults(firstVertexId, secondVertexId);
+        } finally {
+            testFile.delete();
+        }
+    }
+
+    private static class ImportTwiceResults {
+        public final String firstVertexId;
+        public final String secondVertexId;
+
+        public ImportTwiceResults(String firstVertexId, String secondVertexId) {
+            this.firstVertexId = firstVertexId;
+            this.secondVertexId = secondVertexId;
         }
     }
 }
