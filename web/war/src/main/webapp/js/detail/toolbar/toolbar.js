@@ -171,7 +171,7 @@ define([
                         submenu: _.compact([
                             this.addPropertyToolbarItem(model, acl),
                             this.addImageToolbarItem(model),
-                            ToolbarComponent.ITEMS.ADD_COMMENT
+                            this.addCommentToolbarItem(model, acl)
                         ])
                     },
                     {
@@ -313,6 +313,15 @@ define([
 
             if (!disableAddImage && (displayType !== 'image' && displayType !== 'video')) {
                 return ToolbarComponent.ITEMS.ADD_IMAGE;
+            }
+        };
+
+        this.addCommentToolbarItem = function(model, acl) {
+            var hasAddableCommentProperty = _.where(acl.propertyAcls, { name: 'http://visallo.org/comment#entry', addable: true }).length > 0,
+                disableAdd = (model.hasOwnProperty('updateable') && !model.updateable) || !hasAddableCommentProperty;
+
+            if (!disableAdd) {
+                return ToolbarComponent.ITEMS.ADD_COMMENT;
             }
         };
 

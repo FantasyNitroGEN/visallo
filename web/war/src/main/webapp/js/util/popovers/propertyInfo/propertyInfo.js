@@ -32,19 +32,31 @@ define([
             config.template = 'propertyInfo/template';
             config.isFullscreen = visalloData.isFullscreen;
             if (config.property) {
+
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
-                var hasWorkspaceWrite = config.isComment ? visalloData.currentWorkspaceCommentable : visalloData.currentWorkspaceEditable;
+
                 config.isCommentCreator = config.isComment &&
                     config.property.metadata &&
                     config.property.metadata['http://visallo.org#modifiedBy'] === visalloData.currentUser.id;
-                config.canEdit = config.property.updateable !== false && (!config.isComment || config.isCommentCreator) && hasWorkspaceWrite;
-                config.canDelete = config.isComment ?
-                    config.isCommentCreator && hasWorkspaceWrite :
-                    (config.property.deleteable !== false && config.canEdit && config.property.name !== 'http://visallo.org#visibilityJson');
-                config.canAdd = config.property.addable !== false && hasWorkspaceWrite;
+
+                config.canAdd = config.canEdit = config.canDelete = false;
+
+                if (config.isComment && Privileges.canCOMMENT && visalloData.currentWorkspaceCommentable) {
+                    config.canAdd = config.property.addable !== false;
+                    if (config.isCommentCreator) {
+                        config.canEdit = config.property.updateable !== false;
+                        config.canDelete = config.property.deleteable !== false;
+                    }
+                } else if (Privileges.canEDIT && visalloData.currentWorkspaceEditable) {
+                    config.canAdd = config.property.addable !== false;
+                    config.canEdit = config.property.updateable !== false;
+                    config.canDelete = config.property.deleteable !== false &&
+                        config.property.name !== 'http://visallo.org#visibilityJson';
+                }
 
                 var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
                     config.ontologyProperty.dependentPropertyIris.length;
+
                 config.canSearch = config.ontologyProperty &&
                     (config.ontologyProperty.searchable || isCompoundField) &&
                     !config.isFullscreen;
@@ -222,13 +234,6 @@ define([
 
             row.exit().remove();
 
-            if (!this.popover.find('.popover-content table > tr:visible, .popover-content .buttons li').length) {
-                this.popover.find('.popover-content').html(
-                    $('<span>')
-                        .addClass('popover-empty')
-                        .text(i18n('popovers.property_info.no_metadata'))
-                );
-            }
             this.dialog.show();
             positionDialog();
         };

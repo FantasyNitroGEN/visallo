@@ -30,11 +30,7 @@ define([
         },
 
         setProperty: function(edgeId, property, optionalWorkspaceId) {
-            var url = '/edge/' + (
-                property.name === 'http://visallo.org/comment#entry' ?
-                'comment' : 'property'
-            );
-
+            var url = storeHelper.edgePropertyUrl(property);
             return ajax('POST', url, _.tap({
                  edgeId: edgeId,
                  propertyName: property.name,
@@ -58,7 +54,8 @@ define([
         },
 
         deleteProperty: function(edgeId, property) {
-            return ajax('DELETE', '/edge/property', {
+            var url = storeHelper.edgePropertyUrl(property);
+            return ajax('DELETE', url, {
                 edgeId: edgeId,
                 propertyName: property.name,
                 propertyKey: property.key

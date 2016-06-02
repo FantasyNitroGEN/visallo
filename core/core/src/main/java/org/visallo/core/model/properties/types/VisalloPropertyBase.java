@@ -35,6 +35,14 @@ public abstract class VisalloPropertyBase<TRaw, TGraph> {
         return propertyName;
     }
 
+    public boolean isSameName(Property property) {
+        return isSameName(property.getName());
+    }
+
+    public boolean isSameName(String propertyName) {
+        return this.propertyName.equals(propertyName);
+    }
+
     protected Function<Object, TRaw> getRawConverter() {
         return rawConverter;
     }

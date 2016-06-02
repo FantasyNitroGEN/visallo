@@ -147,7 +147,8 @@ define([
         },
 
         deleteProperty: function(vertexId, property) {
-            return ajax('DELETE', '/vertex/property', {
+            var url = storeHelper.vertexPropertyUrl(property);
+            return ajax('DELETE', url, {
                 graphVertexId: vertexId,
                 propertyName: property.name,
                 propertyKey: property.key
@@ -243,11 +244,7 @@ define([
         },
 
         setProperty: function(vertexId, property, optionalWorkspaceId) {
-            var url = '/vertex/' + (
-                property.name === 'http://visallo.org/comment#entry' ?
-                'comment' : 'property'
-            );
-
+            var url = storeHelper.vertexPropertyUrl(property);
             return ajax('POST', url, _.tap({
                  graphVertexId: vertexId,
                  propertyName: property.name,

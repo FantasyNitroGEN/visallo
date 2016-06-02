@@ -6,19 +6,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Edge;
-import org.vertexium.Element;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
+import org.vertexium.*;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiElementAcl;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.ClientApiPropertyAcl;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -29,9 +29,17 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
+import static org.visallo.core.model.properties.VisalloProperties.COMMENT;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ACLProviderTest {
+    private static final String REGULAR_PROP_NAME = "regularPropName";
+    private static final String REGULAR_PROP_KEY = "regularPropKey";
+    private static final String COMMENT_PROP_KEY = "commentPropKey";
+    private static final String COMMENT_PROP_NAME = COMMENT.getPropertyName();
+    private static final Visibility VISIBILITY = Visibility.EMPTY;
+    private static final VisibilityJson VISIBILITY_JSON = new VisibilityJson();
+
     @Mock private OntologyRepository ontologyRepository;
     @Mock private OntologyProperty ontologyProperty1;
     @Mock private OntologyProperty ontologyProperty2;
@@ -46,7 +54,10 @@ public class ACLProviderTest {
     @Mock private Property elementProperty2a;
     @Mock private Property elementProperty2b;
     @Mock private Property elementProperty3;
-    @Mock private User user;
+    @Mock private Property user1RegularProperty;
+    @Mock private Property user1CommentProperty;
+    @Mock private User user1;
+    @Mock private User user2;
 
     private ACLProvider aclProvider;
 
@@ -58,7 +69,16 @@ public class ACLProviderTest {
         when(aclProvider.elementACL(any(Element.class), any(User.class), any(OntologyRepository.class)))
                 .thenCallRealMethod();
         when(aclProvider.appendACL(any(ClientApiObject.class), any(User.class))).thenCallRealMethod();
+        when(aclProvider.isAuthor(any(Element.class), anyString(), anyString(), any(User.class))).thenCallRealMethod();
+        when(aclProvider.isComment(anyString())).thenCallRealMethod();
         doCallRealMethod().when(aclProvider).appendACL(any(Collection.class), any(User.class));
+        doCallRealMethod().when(aclProvider)
+                          .checkCanAddOrUpdateProperty(any(Element.class), anyString(), anyString(), any(User.class));
+        doCallRealMethod().when(aclProvider)
+                          .checkCanDeleteProperty(any(Element.class), anyString(), anyString(), any(User.class));
+
+        when(user1.getUserId()).thenReturn("USER_1");
+        when(user2.getUserId()).thenReturn("USER_2");
 
         when(ontologyRepository.getConceptByIRI("vertex")).thenReturn(vertexConcept);
         when(ontologyRepository.getConceptByIRI("parent")).thenReturn(parentConcept);
@@ -114,31 +134,123 @@ public class ACLProviderTest {
         elementAclShouldPopulateClientApiElementAcl(edge);
     }
 
+    @Test
+    public void checkCanAddOrUpdatePropertyShouldNotThrowWhenUserUpdatesAccessibleRegularProperty() {
+        setupForRegularPropertyTests();
+
+        aclProvider.checkCanAddOrUpdateProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1);
+    }
+
+    @Test(expected = VisalloAccessDeniedException.class)
+    public void checkCanAddOrUpdatePropertyShouldThrowWhenUserUpdatesInaccessibleRegularProperty() {
+        setupForRegularPropertyTests();
+
+        aclProvider.checkCanAddOrUpdateProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2);
+    }
+
+    @Test
+    public void checkCanDeletePropertyShouldNotThrowWhenUserDeletesAccessibleRegularProperty() {
+        setupForRegularPropertyTests();
+
+        aclProvider.checkCanDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1);
+    }
+
+    @Test(expected = VisalloAccessDeniedException.class)
+    public void checkCanDeletePropertyShouldThrowWhenUserDeletesInaccessibleRegularProperty() {
+        setupForRegularPropertyTests();
+
+        aclProvider.checkCanDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2);
+    }
+
+    @Test
+    public void checkCanAddOrUpdatePropertyShouldNotThrowWhenUserUpdatesOwnComment() {
+        setupForCommentPropertyTests();
+
+        aclProvider.checkCanAddOrUpdateProperty(vertex, COMMENT_PROP_KEY, COMMENT.getPropertyName(), user1);
+    }
+
+    @Test(expected = VisalloAccessDeniedException.class)
+    public void checkCanAddOrUpdatePropertyShouldThrowWhenUserUpdatesAnotherUsersComment() {
+        setupForCommentPropertyTests();
+
+        aclProvider.checkCanAddOrUpdateProperty(vertex, COMMENT_PROP_KEY, COMMENT.getPropertyName(), user2);
+    }
+
+    @Test
+    public void checkCanDeletePropertyShouldNotThrowWhenUserDeletesOwnComment() {
+        setupForCommentPropertyTests();
+
+        aclProvider.checkCanDeleteProperty(vertex, COMMENT_PROP_KEY, COMMENT.getPropertyName(), user1);
+    }
+
+    @Test(expected = VisalloAccessDeniedException.class)
+    public void checkCanDeletePropertyShouldThrowWhenUserDeletesAnotherUsersComment() {
+        setupForCommentPropertyTests();
+
+        aclProvider.checkCanDeleteProperty(vertex, COMMENT_PROP_KEY, COMMENT.getPropertyName(), user2);
+    }
+
+    private void setupForCommentPropertyTests() {
+        // user1 and user2 can both add/update/delete the comment property
+
+        Metadata user1CommentMetadata = new PropertyMetadata(user1, VISIBILITY_JSON, VISIBILITY).createMetadata();
+        when(user1CommentProperty.getMetadata()).thenReturn(user1CommentMetadata);
+        when(vertex.getProperty(COMMENT_PROP_KEY, COMMENT.getPropertyName())).thenReturn(user1CommentProperty);
+
+        when(aclProvider.canUpdateElement(vertex, user1)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user1)).thenReturn(true);
+        when(aclProvider.canAddProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user1)).thenReturn(true);
+
+        when(aclProvider.canUpdateElement(vertex, user2)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user2)).thenReturn(true);
+        when(aclProvider.canAddProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user2)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user2)).thenReturn(true);
+    }
+
+    private void setupForRegularPropertyTests() {
+        // only user1 can add/update/delete the regular property
+
+        Metadata user1PropertyMetadata = new PropertyMetadata(user1, VISIBILITY_JSON, VISIBILITY).createMetadata();
+        when(user1RegularProperty.getMetadata()).thenReturn(user1PropertyMetadata);
+        when(vertex.getProperty(REGULAR_PROP_KEY, REGULAR_PROP_NAME)).thenReturn(user1RegularProperty);
+
+        when(aclProvider.canUpdateElement(vertex, user1)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1)).thenReturn(true);
+        when(aclProvider.canAddProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1)).thenReturn(true);
+
+        when(aclProvider.canUpdateElement(vertex, user2)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
+        when(aclProvider.canAddProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
+        when(aclProvider.canDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
+    }
+
     private void elementAclShouldPopulateClientApiElementAcl(Element element) {
-        when(aclProvider.canUpdateElement(element, user)).thenReturn(true);
-        when(aclProvider.canDeleteElement(element, user)).thenReturn(true);
+        when(aclProvider.canUpdateElement(element, user1)).thenReturn(true);
+        when(aclProvider.canDeleteElement(element, user1)).thenReturn(true);
 
-        when(aclProvider.canAddProperty(element, "keyA", "prop1", user)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(element, "keyA", "prop1", user)).thenReturn(false);
-        when(aclProvider.canDeleteProperty(element, "keyA", "prop1", user)).thenReturn(true);
+        when(aclProvider.canAddProperty(element, "keyA", "prop1", user1)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(element, "keyA", "prop1", user1)).thenReturn(false);
+        when(aclProvider.canDeleteProperty(element, "keyA", "prop1", user1)).thenReturn(true);
 
-        when(aclProvider.canAddProperty(element, "keyA", "prop2", user)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(element, "keyA", "prop2", user)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(element, "keyA", "prop2", user)).thenReturn(false);
+        when(aclProvider.canAddProperty(element, "keyA", "prop2", user1)).thenReturn(false);
+        when(aclProvider.canUpdateProperty(element, "keyA", "prop2", user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(element, "keyA", "prop2", user1)).thenReturn(false);
 
-        when(aclProvider.canAddProperty(element, "keyB", "prop2", user)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(element, "keyB", "prop2", user)).thenReturn(false);
-        when(aclProvider.canDeleteProperty(element, "keyB", "prop2", user)).thenReturn(true);
+        when(aclProvider.canAddProperty(element, "keyB", "prop2", user1)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(element, "keyB", "prop2", user1)).thenReturn(false);
+        when(aclProvider.canDeleteProperty(element, "keyB", "prop2", user1)).thenReturn(true);
 
-        when(aclProvider.canAddProperty(element, "keyA", "prop3", user)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(element, "keyA", "prop3", user)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(element, "keyA", "prop3", user)).thenReturn(false);
+        when(aclProvider.canAddProperty(element, "keyA", "prop3", user1)).thenReturn(false);
+        when(aclProvider.canUpdateProperty(element, "keyA", "prop3", user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(element, "keyA", "prop3", user1)).thenReturn(false);
 
-        when(aclProvider.canAddProperty(element, null, "prop4", user)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(element, null, "prop4", user)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(element, null, "prop4", user)).thenReturn(true);
+        when(aclProvider.canAddProperty(element, null, "prop4", user1)).thenReturn(false);
+        when(aclProvider.canUpdateProperty(element, null, "prop4", user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(element, null, "prop4", user1)).thenReturn(true);
 
-        ClientApiElementAcl elementAcl = aclProvider.elementACL(element, user, ontologyRepository);
+        ClientApiElementAcl elementAcl = aclProvider.elementACL(element, user1, ontologyRepository);
 
         assertThat(elementAcl.isAddable(), equalTo(true));
         assertThat(elementAcl.isUpdateable(), equalTo(true));

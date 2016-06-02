@@ -27,7 +27,7 @@ public class JustificationTextParameterProviderFactory extends ParameterProvider
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 String propertyName = getOptionalParameter(request, "propertyName");
                 if (propertyName != null && propertyName.length() > 0) {
-                    boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
+                    boolean isComment = VisalloProperties.COMMENT.isSameName(propertyName);
                     String sourceInfo = getOptionalParameter(request, "sourceInfo");
                     return getJustificationText(isComment, sourceInfo, request);
                 } else {

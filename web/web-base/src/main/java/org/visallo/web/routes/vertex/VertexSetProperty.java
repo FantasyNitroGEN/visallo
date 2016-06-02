@@ -8,7 +8,6 @@ import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
@@ -99,16 +98,17 @@ public class VertexSetProperty implements ParameterizedHandler {
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-        boolean autoPublish = isComment && autoPublishComments;
-        if (autoPublish) {
-            workspaceId = null;
-        }
+        boolean isComment = VisalloProperties.COMMENT.isSameName(propertyName);
 
         if (isComment && request.getPathInfo().equals("/vertex/property")) {
             throw new VisalloException("Use /vertex/comment to save comment properties");
         } else if (request.getPathInfo().equals("/vertex/comment") && !isComment) {
             throw new VisalloException("Use /vertex/property to save non-comment properties");
+        }
+
+        boolean autoPublish = isComment && autoPublishComments;
+        if (autoPublish) {
+            workspaceId = null;
         }
 
         if (propertyKey == null) {
@@ -119,9 +119,7 @@ public class VertexSetProperty implements ParameterizedHandler {
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
 
-        if (!isComment) {
-            ensureCanUpdate(vertex, propertyKey, propertyName, user);
-        }
+        aclProvider.checkCanAddOrUpdateProperty(vertex, propertyKey, propertyName, user);
 
         List<SavePropertyResults> savePropertyResults = saveProperty(
                 vertex,
@@ -187,7 +185,7 @@ public class VertexSetProperty implements ParameterizedHandler {
         }
 
         Object value;
-        if (propertyName.equals(VisalloProperties.COMMENT.getPropertyName())) {
+        if (VisalloProperties.COMMENT.isSameName(propertyName)) {
             value = valueStr;
         } else {
             OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
@@ -257,13 +255,6 @@ public class VertexSetProperty implements ParameterizedHandler {
     private String createCommentPropertyKey() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         return dateFormat.format(new Date());
-    }
-
-    private void ensureCanUpdate(Vertex vertex, String propertyKey, String propertyName, User user) {
-        if (!aclProvider.canAddOrUpdateProperty(vertex, propertyKey, propertyName, user)) {
-            throw new VisalloAccessDeniedException(propertyName + " cannot be set due to ACL restriction", user,
-                    vertex.getId());
-        }
     }
 
     private static class SavePropertyResults {

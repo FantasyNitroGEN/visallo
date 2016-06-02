@@ -2,6 +2,11 @@
 define(['../util/store'], function(store) {
     'use strict';
 
+    function propertyUrl(elementType, property) {
+        return '/' + elementType + '/' +
+            (property.name === 'http://visallo.org/comment#entry' ? 'comment' : 'property');
+    }
+
     return {
         createStoreAccessorOrDownloader: function(kind, idsParam, responseObject, downloadPromiss) {
             return function(opts) {
@@ -57,6 +62,14 @@ define(['../util/store'], function(store) {
                         })
                 }
             };
+        },
+
+        vertexPropertyUrl: function(property) {
+            return propertyUrl('vertex', property);
+        },
+
+        edgePropertyUrl: function(property) {
+            return propertyUrl('edge', property);
         }
     };
 });

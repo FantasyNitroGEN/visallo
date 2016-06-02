@@ -5,6 +5,7 @@ import org.vertexium.Element;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -38,11 +39,35 @@ public abstract class ACLProvider {
 
     public abstract boolean canAddProperty(ClientApiElement element, ClientApiProperty p, User user);
 
-    public boolean canAddOrUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
-        return canUpdateElement(element, user) &&
-                (element.getProperty(propertyKey, propertyName) != null
-                        ? canUpdateProperty(element, propertyKey, propertyName, user)
-                        : canAddProperty(element, propertyKey, propertyName, user));
+    public void checkCanAddOrUpdateProperty(Element element, String propertyKey, String propertyName, User user)
+            throws VisalloAccessDeniedException {
+        boolean isUpdate = element.getProperty(propertyKey, propertyName) != null;
+        boolean canAddOrUpdate = isUpdate
+                ? canUpdateProperty(element, propertyKey, propertyName, user)
+                : canAddProperty(element, propertyKey, propertyName, user);
+
+        if (canAddOrUpdate && isUpdate && isComment(propertyName)) {
+            canAddOrUpdate = isAuthor(element, propertyKey, propertyName, user);
+        }
+
+        if (!canAddOrUpdate) {
+            throw new VisalloAccessDeniedException(
+                    propertyName + " cannot be added or updated due to ACL restriction", user, element.getId());
+        }
+    }
+
+    public void checkCanDeleteProperty(Element element, String propertyKey, String propertyName, User user)
+            throws VisalloAccessDeniedException {
+        boolean canDelete = canDeleteProperty(element, propertyKey, propertyName, user);
+
+        if (canDelete && isComment(propertyName)) {
+            canDelete = isAuthor(element, propertyKey, propertyName, user);
+        }
+
+        if (!canDelete) {
+            throw new VisalloAccessDeniedException(
+                    propertyName + " cannot be deleted due to ACL restriction", user, element.getId());
+        }
     }
 
     public ClientApiElementAcl elementACL(Element element, User user, OntologyRepository ontologyRepository) {
@@ -96,6 +121,20 @@ public abstract class ACLProvider {
         }
     }
 
+    public Set<String> getAllPrivileges() {
+        return Privilege.getAllBuiltIn();
+    }
+
+    protected boolean isComment(String propertyName) {
+        return VisalloProperties.COMMENT.isSameName(propertyName);
+    }
+
+    protected boolean isAuthor(Element element, String propertyKey, String propertyName, User user) {
+        Property property = element.getProperty(propertyKey, propertyName);
+        String authorUserId = VisalloProperties.MODIFIED_BY_METADATA.getMetadataValue(property.getMetadata());
+        return user.getUserId().equals(authorUserId);
+    }
+
     protected void appendACL(ClientApiElement apiElement, User user) {
         for (ClientApiProperty property : apiElement.getProperties()) {
             property.setUpdateable(canUpdateProperty(apiElement, property, user));
@@ -146,13 +185,5 @@ public abstract class ACLProvider {
         propertyAcl.setUpdateable(canUpdateProperty(element, key, name, user));
         propertyAcl.setDeleteable(canDeleteProperty(element, key, name, user));
         return propertyAcl;
-    }
-
-    public Set<String> getAllPrivileges() {
-        return Privilege.getAllBuiltIn();
-    }
-
-    public Set<String> getSystemUserPrivileges() {
-        return getAllPrivileges();
     }
 }

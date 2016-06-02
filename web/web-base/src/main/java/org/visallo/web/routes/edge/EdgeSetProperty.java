@@ -7,7 +7,6 @@ import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
@@ -88,16 +87,17 @@ public class EdgeSetProperty implements ParameterizedHandler {
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
-        boolean isComment = VisalloProperties.COMMENT.getPropertyName().equals(propertyName);
-        boolean autoPublish = isComment && autoPublishComments;
-        if (autoPublish) {
-            workspaceId = null;
-        }
+        boolean isComment = VisalloProperties.COMMENT.isSameName(propertyName);
 
         if (isComment && request.getPathInfo().equals("/edge/property")) {
             throw new VisalloException("Use /edge/comment to save comment properties");
         } else if (!isComment && request.getPathInfo().equals("/edge/comment")) {
             throw new VisalloException("Use /edge/property to save non-comment properties");
+        }
+
+        boolean autoPublish = isComment && autoPublishComments;
+        if (autoPublish) {
+            workspaceId = null;
         }
 
         OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
@@ -108,9 +108,7 @@ public class EdgeSetProperty implements ParameterizedHandler {
             propertyKey = graph.getIdGenerator().nextId();
         }
 
-        if (!isComment) {
-            ensureCanUpdate(edge, propertyKey, propertyName, user);
-        }
+        aclProvider.checkCanAddOrUpdateProperty(edge, propertyKey, propertyName, user);
 
         Object value;
         try {
@@ -147,12 +145,5 @@ public class EdgeSetProperty implements ParameterizedHandler {
         workQueueRepository.pushGraphPropertyQueue(edge, propertyKey, propertyName, workspaceId, visibilitySource, Priority.HIGH);
 
         return VisalloResponse.SUCCESS;
-    }
-
-    private void ensureCanUpdate(Edge edge, String propertyKey, String propertyName, User user) {
-        if (!aclProvider.canAddOrUpdateProperty(edge, propertyKey, propertyName, user)) {
-            throw new VisalloAccessDeniedException(propertyName + " cannot be set due to ACL restriction", user,
-                    edge.getId());
-        }
     }
 }
