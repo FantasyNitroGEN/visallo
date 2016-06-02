@@ -1,7 +1,6 @@
 package org.visallo.core.config;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
@@ -65,9 +64,13 @@ public class FileConfigurationLoader extends ConfigurationLoader {
 
     private Map<String, String> getDefaultProperties() {
         Map<String, String> defaultProperties = new HashMap<>();
-        if (!Strings.isNullOrEmpty(System.getenv(ENV_VISALLO_DIR))) {
-            defaultProperties.put(ENV_VISALLO_DIR, System.getenv(ENV_VISALLO_DIR));
+
+        List<File> configDirs = getVisalloDirectoriesFromMostPriority("config");
+        if (configDirs.size() > 0) {
+            String visalloDir = configDirs.get(0).getParentFile().getAbsolutePath();
+            defaultProperties.put(ENV_VISALLO_DIR, visalloDir);
         }
+
         return defaultProperties;
     }
 
@@ -80,7 +83,11 @@ public class FileConfigurationLoader extends ConfigurationLoader {
                 case AppData:
                     String appData = System.getProperty("appdata");
                     if (appData != null && appData.length() > 0) {
-                        addVisalloSubDirectory(results, new File(new File(appData), "Visallo").getAbsolutePath(), subDirectory);
+                        addVisalloSubDirectory(
+                                results,
+                                new File(new File(appData), "Visallo").getAbsolutePath(),
+                                subDirectory
+                        );
                     }
                     break;
 
@@ -95,7 +102,11 @@ public class FileConfigurationLoader extends ConfigurationLoader {
                 case UserHome:
                     String userHome = System.getProperty("user.home");
                     if (userHome != null && userHome.length() > 0) {
-                        addVisalloSubDirectory(results, new File(new File(userHome), ".visallo").getAbsolutePath(), subDirectory);
+                        addVisalloSubDirectory(
+                                results,
+                                new File(new File(userHome), ".visallo").getAbsolutePath(),
+                                subDirectory
+                        );
                     }
                     break;
 
