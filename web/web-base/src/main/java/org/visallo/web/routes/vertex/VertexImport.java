@@ -92,6 +92,7 @@ public class VertexImport implements ParameterizedHandler {
     public ClientApiArtifactImportResponse handle(
             @Optional(name = "publish", defaultValue = "false") boolean shouldPublish,
             @Optional(name = "addToWorkspace", defaultValue = "false") boolean addToWorkspace,
+            @Optional(name = "findExistingByFileHash", defaultValue = "true") boolean findExistingByFileHash,
             @ActiveWorkspaceId String workspaceId,
             Authorizations authorizations,
             User user,
@@ -115,7 +116,15 @@ public class VertexImport implements ParameterizedHandler {
 
             Workspace workspace = workspaceRepository.findById(workspaceId, user);
 
-            List<Vertex> vertices = fileImport.importVertices(workspace, files, Priority.HIGH, addToWorkspace, user, authorizations);
+            List<Vertex> vertices = fileImport.importVertices(
+                    workspace,
+                    files,
+                    Priority.HIGH,
+                    addToWorkspace,
+                    findExistingByFileHash,
+                    user,
+                    authorizations
+            );
 
             return toArtifactImportResponse(vertices);
         } finally {
