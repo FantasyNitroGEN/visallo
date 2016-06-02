@@ -54,6 +54,7 @@ public class Configuration {
     public static final String ONTOLOGY_REPOSITORY_OWL = "repository.ontology.owl";
     public static final String ACL_PROVIDER_REPOSITORY = "repository.acl";
     public static final String FILE_SYSTEM_REPOSITORY = "repository.fileSystem";
+    public static final String AUTHORIZATION_MAPPER = "authorizationMapper";
     public static final String GRAPH_PROVIDER = "graph";
     public static final String VISIBILITY_TRANSLATOR = "security.visibilityTranslator";
     public static final String DEFAULT_PRIVILEGES = "newuser.privileges";

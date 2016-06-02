@@ -126,11 +126,12 @@ public class UserAdmin extends CommandLineTool {
             int maxUsernameWidth = sortedUsers.stream().map(User::getUsername).map(String::length).max(Integer::compareTo).get();
             String format = String.format("%%%ds %%s%%n", -1 * maxUsernameWidth);
             for (User user : sortedUsers) {
-                System.out.printf(format,
-                    user.getUsername(),
-                    Base64.getEncoder().encodeToString((byte[])user.getProperty(UserVisalloProperties.PASSWORD_SALT.getPropertyName())) +
-                        ":" +
-                        Base64.getEncoder().encodeToString((byte[])user.getProperty(UserVisalloProperties.PASSWORD_HASH.getPropertyName()))
+                String passwordSalt = Base64.getEncoder().encodeToString((byte[]) user.getProperty(UserVisalloProperties.PASSWORD_SALT.getPropertyName()));
+                String passwordHash = Base64.getEncoder().encodeToString((byte[]) user.getProperty(UserVisalloProperties.PASSWORD_HASH.getPropertyName()));
+                System.out.printf(
+                        format,
+                        user.getUsername(),
+                        passwordSalt + ":" + passwordHash
                 );
             }
         } else {
@@ -152,7 +153,14 @@ public class UserAdmin extends CommandLineTool {
             privileges = Privilege.stringToPrivileges(args.privileges);
         }
 
-        getUserRepository().findOrAddUser(args.userName, args.userName, null, args.password, privileges, authorizations);
+        getUserRepository().findOrAddUser(
+                args.userName,
+                args.userName,
+                null,
+                args.password,
+                privileges,
+                authorizations
+        );
 
         User user = getUserRepository().findByUsername(args.userName);
 
@@ -233,28 +241,13 @@ public class UserAdmin extends CommandLineTool {
     }
 
     private int setAuthorizations(SetAuthorizationsArgs args) {
-        List<String> authorizations = new ArrayList<>();
+        Set<String> authorizations = new HashSet<>();
         if (args.authorizations != null && args.authorizations.length() > 0) {
             authorizations.addAll(Arrays.asList(StringUtils.split(args.authorizations, ',')));
         }
 
         User user = findUser(args);
-
-        for (String auth : getUserRepository().getAuthorizations(user).getAuthorizations()) {
-            if (authorizations.contains(auth)) {
-                System.out.println("Keeping authorization:  " + auth);
-                authorizations.remove(auth); // so we don't add it later
-            } else {
-                System.out.println("Removing authorization: " + auth);
-                getUserRepository().removeAuthorization(user, auth, getUserRepository().getSystemUser());
-            }
-        }
-        for (String auth : authorizations) {
-            System.out.println("Adding authorization:   " + auth);
-            getUserRepository().addAuthorization(user, auth, getUserRepository().getSystemUser());
-        }
-        System.out.println("");
-
+        getUserRepository().setAuthorizations(user, authorizations, getUserRepository().getSystemUser());
         printUser(user);
         return 0;
     }
@@ -305,7 +298,8 @@ public class UserAdmin extends CommandLineTool {
         System.out.println("Previous Login Remote Addr: " + valueOrBlank(user.getPreviousLoginRemoteAddr()));
         System.out.println("               Login Count: " + user.getLoginCount());
         System.out.println("                Privileges: " + privilegesAsString(user.getPrivileges()));
-        System.out.println("            Authorizations: " + authorizationsAsString(getUserRepository().getAuthorizations(user)));
+        System.out.println("            Authorizations: "
+                                   + authorizationsAsString(getUserRepository().getAuthorizations(user)));
         System.out.println("");
     }
 
@@ -326,15 +320,19 @@ public class UserAdmin extends CommandLineTool {
                 maxDisplayNameWidth = maxWidth(user.getDisplayName(), maxDisplayNameWidth);
                 maxLoginCountWidth = maxWidth(Integer.toString(user.getLoginCount()), maxLoginCountWidth);
             }
-            String format = String.format("%%%ds %%%ds %%%ds %%%ds %%%ds %%%dd %%%ds%%n", -1 * maxCreateDateWidth,
+            String format = String.format(
+                    "%%%ds %%%ds %%%ds %%%ds %%%ds %%%dd %%%ds%%n",
+                    -1 * maxCreateDateWidth,
                     -1 * maxIdWidth,
                     -1 * maxUsernameWidth,
                     -1 * maxEmailAddressWidth,
                     -1 * maxDisplayNameWidth,
                     maxLoginCountWidth,
-                    -1 * maxPrivilegesWidth);
+                    -1 * maxPrivilegesWidth
+            );
             for (User user : users) {
-                System.out.printf(format,
+                System.out.printf(
+                        format,
                         valueOrBlank(user.getCreateDate()),
                         user.getUserId(),
                         user.getUsername(),
