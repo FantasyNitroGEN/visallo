@@ -18,6 +18,7 @@ import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.search.SearchRepository;
+import org.visallo.core.model.user.AuthorizationMapper;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
@@ -175,6 +176,9 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(FileSystemRepository.class)
                 .toProvider(VisalloBootstrap.<FileSystemRepository>getConfigurableProvider(configuration, Configuration.FILE_SYSTEM_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(AuthorizationMapper.class)
+                .toProvider(VisalloBootstrap.<AuthorizationMapper>getConfigurableProvider(configuration, Configuration.AUTHORIZATION_MAPPER))
                 .in(Scopes.SINGLETON);
         bind(TimeRepository.class)
                 .toInstance(new TimeRepository());

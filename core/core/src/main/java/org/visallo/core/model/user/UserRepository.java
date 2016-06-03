@@ -1,6 +1,7 @@
 package org.visallo.core.model.user;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
@@ -89,7 +90,14 @@ public abstract class UserRepository {
 
     public abstract User findById(String userId);
 
-    protected abstract User addUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations);
+    protected abstract User addUser(
+            String username,
+            String displayName,
+            String emailAddress,
+            String password,
+            Set<String> privileges,
+            Set<String> userAuthorizations
+    );
 
     public void setPassword(User user, String password) {
         byte[] salt = UserPasswordUtil.getSalt();
@@ -284,7 +292,10 @@ public abstract class UserRepository {
         return getSimpleOrmContext(authorizations);
     }
 
-    public SimpleOrmContext getSimpleOrmContext(org.vertexium.Authorizations authorizations, String... additionalAuthorizations) {
+    public SimpleOrmContext getSimpleOrmContext(
+            org.vertexium.Authorizations authorizations,
+            String... additionalAuthorizations
+    ) {
         ArrayList<String> auths = new ArrayList<>();
 
         if (authorizations.getAuthorizations() != null) {
@@ -316,7 +327,14 @@ public abstract class UserRepository {
         );
     }
 
-    public User findOrAddUser(String username, String displayName, String emailAddress, String password, Set<String> privileges, Set<String> userAuthorizations) {
+    public User findOrAddUser(
+            String username,
+            String displayName,
+            String emailAddress,
+            String password,
+            Set<String> privileges,
+            Set<String> userAuthorizations
+    ) {
         return lockRepository.lock("findOrAddUser", new Callable<User>() {
             @Override
             public User call() throws Exception {
@@ -347,9 +365,28 @@ public abstract class UserRepository {
     protected abstract void internalDelete(User user);
 
     public final void setPrivileges(User user, Set<String> privileges, User authUser) {
-        internalSetPrivileges(user, privileges, authUser);
-        sendNotificationToUserAboutPrivilegeChange(user, privileges, authUser);
-        fireUserPrivilegesUpdatedEvent(user, privileges);
+        if (!privileges.equals(user.getPrivileges())) {
+            internalSetPrivileges(user, privileges, authUser);
+            sendNotificationToUserAboutPrivilegeChange(user, privileges, authUser);
+            fireUserPrivilegesUpdatedEvent(user, privileges);
+        }
+    }
+
+    public void setAuthorizations(User user, Set<String> authorizations, User authUser) {
+        ImmutableSet<String> currentAuthorizations = ImmutableSet.copyOf(getAuthorizations(user).getAuthorizations());
+        if (!authorizations.equals(currentAuthorizations)) {
+            Set<String> toRemoveAuthorizations = new HashSet<>(currentAuthorizations);
+            for (String auth : authorizations) {
+                if (currentAuthorizations.contains(auth)) {
+                    toRemoveAuthorizations.remove(auth);
+                } else {
+                    addAuthorization(user, auth, authUser);
+                }
+            }
+            for (String auth : toRemoveAuthorizations) {
+                removeAuthorization(user, auth, authUser);
+            }
+        }
     }
 
     private void sendNotificationToUserAboutPrivilegeChange(User user, Set<String> privileges, User authUser) {
