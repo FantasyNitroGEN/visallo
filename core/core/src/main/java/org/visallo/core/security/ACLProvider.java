@@ -85,8 +85,12 @@ public abstract class ACLProvider {
                 iri = concept.getParentConceptIRI();
             }
         } else if (element instanceof Edge) {
-            Relationship relationship = ontologyRepository.getRelationshipByIRI(((Edge) element).getLabel());
-            populatePropertyAcls(relationship, element, user, propertyAcls);
+            String iri = ((Edge) element).getLabel();
+            while (iri != null) {
+                Relationship relationship = ontologyRepository.getRelationshipByIRI(iri);
+                populatePropertyAcls(relationship, element, user, propertyAcls);
+                iri = relationship.getParentIRI();
+            }
         } else {
             throw new VisalloException("unsupported Element class " + element.getClass().getName());
         }
@@ -157,8 +161,10 @@ public abstract class ACLProvider {
         }
     }
 
-    private void populatePropertyAcls(HasOntologyProperties hasOntologyProperties, Element element, User user,
-                                      List<ClientApiPropertyAcl> propertyAcls) {
+    private void populatePropertyAcls(
+            HasOntologyProperties hasOntologyProperties, Element element, User user,
+            List<ClientApiPropertyAcl> propertyAcls
+    ) {
         Collection<OntologyProperty> ontologyProperties = hasOntologyProperties.getProperties();
         Set<String> addedPropertyNames = new HashSet<>();
         for (OntologyProperty ontologyProperty : ontologyProperties) {
@@ -171,10 +177,17 @@ public abstract class ACLProvider {
         }
 
         // for properties that don't exist on the element, use the ontology property definition and omit the key.
-        propertyAcls.addAll(ontologyProperties.stream()
-                .filter(ontologyProperty -> !addedPropertyNames.contains(ontologyProperty.getTitle()))
-                .map(ontologyProperty -> newClientApiPropertyAcl(element, null, ontologyProperty.getTitle(), user))
-                .collect(Collectors.toList()));
+        propertyAcls.addAll(
+                ontologyProperties.stream()
+                        .filter(ontologyProperty -> !addedPropertyNames.contains(ontologyProperty.getTitle()))
+                        .map(ontologyProperty -> newClientApiPropertyAcl(
+                                element,
+                                null,
+                                ontologyProperty.getTitle(),
+                                user
+                        ))
+                        .collect(Collectors.toList())
+        );
     }
 
     private ClientApiPropertyAcl newClientApiPropertyAcl(Element element, String key, String name, User user) {

@@ -36,6 +36,7 @@
         <rdfs:label xml:lang="en">Comment</rdfs:label>
         <visallo:textIndexHints>FULL_TEXT</visallo:textIndexHints>
         <rdfs:domain rdf:resource="&owl;Thing"/>
+        <visallo:objectPropertyDomain rdf:resource="&owl;topObjectProperty"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
