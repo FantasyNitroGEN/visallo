@@ -1,6 +1,8 @@
 .PHONY: serve build check install clean clone push link-check
 
 serve: install
+	@mvn javadoc:aggregate -f ./../pom.xml
+	@cp -r ../target/site/apidocs ./java
 	@./node_modules/.bin/gitbook serve
 
 build: install

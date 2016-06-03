@@ -1,4 +1,7 @@
-# REST Ingestion
+# Ingestion
+
+
+## REST
 
 Ingesting data into Visallo using the REST API is not the most performant way of getting lot of data into the system but it is one of the easiest and the most compatible with non-JVM languages.
 
