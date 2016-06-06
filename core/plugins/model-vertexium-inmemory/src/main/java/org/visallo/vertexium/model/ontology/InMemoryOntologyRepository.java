@@ -52,21 +52,40 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    protected Concept importOntologyClass(OWLOntology o, OWLClass ontologyClass, File inDir, Authorizations authorizations) throws IOException {
+    protected Concept importOntologyClass(
+            OWLOntology o,
+            OWLClass ontologyClass,
+            File inDir,
+            Authorizations authorizations
+    ) throws IOException {
         InMemoryConcept concept = (InMemoryConcept) super.importOntologyClass(o, ontologyClass, inDir, authorizations);
         conceptsCache.put(concept.getIRI(), concept);
         return concept;
     }
 
     @Override
-    protected Relationship importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty, Authorizations authorizations) {
-        InMemoryRelationship relationship = (InMemoryRelationship) super.importObjectProperty(o, objectProperty, authorizations);
+    protected Relationship importObjectProperty(
+            OWLOntology o,
+            OWLObjectProperty objectProperty,
+            Authorizations authorizations
+    ) {
+        InMemoryRelationship relationship = (InMemoryRelationship) super.importObjectProperty(
+                o,
+                objectProperty,
+                authorizations
+        );
         relationshipsCache.put(relationship.getIRI(), relationship);
         return relationship;
     }
 
     @Override
-    protected void setIconProperty(Concept concept, File inDir, String glyphIconFileName, String propertyKey, Authorizations authorizations) throws IOException {
+    protected void setIconProperty(
+            Concept concept,
+            File inDir,
+            String glyphIconFileName,
+            String propertyKey,
+            Authorizations authorizations
+    ) throws IOException {
         if (glyphIconFileName == null) {
             concept.setProperty(propertyKey, null, authorizations);
         } else {
@@ -116,7 +135,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    protected List<OWLOntology> loadOntologyFiles(OWLOntologyManager m, OWLOntologyLoaderConfiguration config, IRI excludedIRI) throws Exception {
+    protected List<OWLOntology> loadOntologyFiles(
+            OWLOntologyManager m,
+            OWLOntologyLoaderConfiguration config,
+            IRI excludedIRI
+    ) throws Exception {
         List<OWLOntology> loadedOntologies = new ArrayList<>();
         for (OwlData owlData : fileCache) {
             IRI visalloBaseOntologyIRI = IRI.create(owlData.iri);
@@ -126,7 +149,10 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             try (InputStream visalloBaseOntologyIn = new ByteArrayInputStream(owlData.data)) {
                 Reader visalloBaseOntologyReader = new InputStreamReader(visalloBaseOntologyIn);
                 LOGGER.info("Loading existing ontology: %s", owlData.iri);
-                OWLOntologyDocumentSource visalloBaseOntologySource = new ReaderDocumentSource(visalloBaseOntologyReader, visalloBaseOntologyIRI);
+                OWLOntologyDocumentSource visalloBaseOntologySource = new ReaderDocumentSource(
+                        visalloBaseOntologyReader,
+                        visalloBaseOntologyIRI
+                );
                 OWLOntology o = m.loadOntologyFromOntologyDocument(visalloBaseOntologySource, config);
                 loadedOntologies.add(o);
             }
@@ -260,7 +286,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             if (displayName != null && !displayName.trim().isEmpty()) {
                 property.setDisplayName(displayName);
             }
-            if (textIndexHints.size() > 0) {
+            if (textIndexHints != null && textIndexHints.size() > 0) {
                 for (TextIndexHint textIndexHint : textIndexHints) {
                     property.addTextIndexHints(textIndexHint.toString());
                 }
@@ -371,7 +397,13 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean isDeclaredInOntology) {
+    public Concept getOrCreateConcept(
+            Concept parent,
+            String conceptIRI,
+            String displayName,
+            File inDir,
+            boolean isDeclaredInOntology
+    ) {
         InMemoryConcept concept = (InMemoryConcept) getConceptByIRI(conceptIRI);
         if (concept != null) {
             return concept;
