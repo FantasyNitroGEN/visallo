@@ -62,12 +62,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     public static final String RESOURCE_ENTITY_PNG = "entity.png";
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OntologyRepositoryBase.class);
     private static final String OBJECT_PROPERTY_DOMAIN_IRI = "http://visallo.org#objectPropertyDomain";
+    private static final String TOP_OBJECT_PROPERTY_IRI = "http://www.w3.org/2002/07/owl#topObjectProperty";
     private final Configuration configuration;
     private final LockRepository lockRepository;
 
     @Inject
-    protected OntologyRepositoryBase(Configuration configuration,
-                                     LockRepository lockRepository) {
+    protected OntologyRepositoryBase(
+            Configuration configuration,
+            LockRepository lockRepository
+    ) {
         this.configuration = configuration;
         this.lockRepository = lockRepository;
     }
@@ -105,6 +108,8 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         lockRepository.lock("ontology", () -> {
             Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null);
             Concept entityConcept = getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null);
+            getOrCreateTopObjectPropertyRelationship(authorizations);
+
             clearCache();
             addEntityGlyphIcon(entityConcept);
 
@@ -135,7 +140,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 if (dir != null) {
                     File owlFile = findOwlFile(new File(dir));
                     if (owlFile == null) {
-                        throw new VisalloResourceNotFoundException("could not find owl file in directory " + new File(dir).getAbsolutePath());
+                        throw new VisalloResourceNotFoundException(
+                                "could not find owl file in directory " + new File(dir).getAbsolutePath()
+                        );
                     }
                     importFile(owlFile, IRI.create(iri), authorizations);
                 } else {
@@ -144,6 +151,19 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
             return true;
         });
+    }
+
+    private Relationship getOrCreateTopObjectPropertyRelationship(Authorizations authorizations) {
+        Relationship topObjectProperty = getOrCreateRelationshipType(
+                null,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                TOP_OBJECT_PROPERTY_IRI
+        );
+        if (topObjectProperty.getUserVisible()) {
+            topObjectProperty.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), false, authorizations);
+        }
+        return topObjectProperty;
     }
 
     private void importResourceOwl(String fileName, String iri, Authorizations authorizations) {
@@ -253,7 +273,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     @Override
-    public void importFileData(byte[] inFileData, IRI documentIRI, File inDir, Authorizations authorizations) throws Exception {
+    public void importFileData(
+            byte[] inFileData,
+            IRI documentIRI,
+            File inDir,
+            Authorizations authorizations
+    ) throws Exception {
         Reader inFileReader = new InputStreamReader(new ByteArrayInputStream(inFileData));
 
         OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
@@ -333,7 +358,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    protected void importOntologyAnnotationProperty(OWLOntology o, OWLAnnotationProperty annotationProperty, File inDir, Authorizations authorizations) {
+    protected void importOntologyAnnotationProperty(
+            OWLOntology o,
+            OWLAnnotationProperty annotationProperty,
+            File inDir,
+            Authorizations authorizations
+    ) {
 
     }
 
@@ -343,7 +373,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    public OWLOntologyManager createOwlOntologyManager(OWLOntologyLoaderConfiguration config, IRI excludeDocumentIRI) throws Exception {
+    public OWLOntologyManager createOwlOntologyManager(
+            OWLOntologyLoaderConfiguration config,
+            IRI excludeDocumentIRI
+    ) throws Exception {
         OWLOntologyManager m = OWLManager.createOWLOntologyManager();
         config.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         loadOntologyFiles(m, config, excludeDocumentIRI);
@@ -352,7 +385,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract void storeOntologyFile(InputStream inputStream, IRI documentIRI);
 
-    protected abstract List<OWLOntology> loadOntologyFiles(OWLOntologyManager m, OWLOntologyLoaderConfiguration config, IRI excludedIRI) throws Exception;
+    protected abstract List<OWLOntology> loadOntologyFiles(
+            OWLOntologyManager m,
+            OWLOntologyLoaderConfiguration config,
+            IRI excludedIRI
+    ) throws Exception;
 
     private OWLOntology findOntology(List<OWLOntology> loadedOntologies, IRI documentIRI) {
         for (OWLOntology o : loadedOntologies) {
@@ -364,7 +401,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
-    protected Concept importOntologyClass(OWLOntology o, OWLClass ontologyClass, File inDir, Authorizations authorizations) throws IOException {
+    protected Concept importOntologyClass(
+            OWLOntology o,
+            OWLClass ontologyClass,
+            File inDir,
+            Authorizations authorizations
+    ) throws IOException {
         String uri = ontologyClass.getIRI().toString();
         if ("http://www.w3.org/2002/07/owl#Thing".equals(uri)) {
             return getEntityConcept();
@@ -414,17 +456,35 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
 
             if (annotationIri.equals(OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyName())) {
-                setIconProperty(result, inDir, valueString, OntologyProperties.GLYPH_ICON.getPropertyName(), authorizations);
+                setIconProperty(
+                        result,
+                        inDir,
+                        valueString,
+                        OntologyProperties.GLYPH_ICON.getPropertyName(),
+                        authorizations
+                );
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.GLYPH_ICON_SELECTED_FILE_NAME.getPropertyName())) {
-                setIconProperty(result, inDir, valueString, OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName(), authorizations);
+                setIconProperty(
+                        result,
+                        inDir,
+                        valueString,
+                        OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName(),
+                        authorizations
+                );
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.MAP_GLYPH_ICON_FILE_NAME.getPropertyName())) {
-                setIconProperty(result, inDir, valueString, OntologyProperties.MAP_GLYPH_ICON.getPropertyName(), authorizations);
+                setIconProperty(
+                        result,
+                        inDir,
+                        valueString,
+                        OntologyProperties.MAP_GLYPH_ICON.getPropertyName(),
+                        authorizations
+                );
                 continue;
             }
 
@@ -432,7 +492,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 if (valueString.trim().length() == 0) {
                     continue;
                 }
-                result.setProperty(OntologyProperties.ADD_RELATED_CONCEPT_WHITE_LIST.getPropertyName(), valueString.trim(), authorizations);
+                result.setProperty(
+                        OntologyProperties.ADD_RELATED_CONCEPT_WHITE_LIST.getPropertyName(),
+                        valueString.trim(),
+                        authorizations
+                );
                 continue;
             }
 
@@ -459,7 +523,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return result;
     }
 
-    protected void setIconProperty(Concept concept, File inDir, String glyphIconFileName, String propertyKey, Authorizations authorizations) throws IOException {
+    protected void setIconProperty(
+            Concept concept,
+            File inDir,
+            String glyphIconFileName,
+            String propertyKey,
+            Authorizations authorizations
+    ) throws IOException {
         if (glyphIconFileName != null) {
             File iconFile = new File(inDir, glyphIconFileName);
             if (!iconFile.exists()) {
@@ -474,7 +544,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    protected Concept getParentConcept(OWLOntology o, OWLClass ontologyClass, File inDir, Authorizations authorizations) throws IOException {
+    protected Concept getParentConcept(
+            OWLOntology o,
+            OWLClass ontologyClass,
+            File inDir,
+            Authorizations authorizations
+    ) throws IOException {
         Collection<OWLClassExpression> superClasses = EntitySearcher.getSuperClasses(ontologyClass, o);
         if (superClasses.size() == 0) {
             return getEntityConcept();
@@ -633,7 +708,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean updateable
     );
 
-    protected Relationship importObjectProperty(OWLOntology o, OWLObjectProperty objectProperty, Authorizations authorizations) {
+    protected Relationship importObjectProperty(
+            OWLOntology o,
+            OWLObjectProperty objectProperty,
+            Authorizations authorizations
+    ) {
         String iri = objectProperty.getIRI().toString();
         String label = getLabel(o, objectProperty);
 
@@ -659,22 +738,38 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
 
             if (annotationIri.equals(OntologyProperties.USER_VISIBLE.getPropertyName())) {
-                relationship.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), Boolean.parseBoolean(valueString), authorizations);
+                relationship.setProperty(
+                        OntologyProperties.USER_VISIBLE.getPropertyName(),
+                        Boolean.parseBoolean(valueString),
+                        authorizations
+                );
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.DELETEABLE.getPropertyName())) {
-                relationship.setProperty(OntologyProperties.DELETEABLE.getPropertyName(), Boolean.parseBoolean(valueString), authorizations);
+                relationship.setProperty(
+                        OntologyProperties.DELETEABLE.getPropertyName(),
+                        Boolean.parseBoolean(valueString),
+                        authorizations
+                );
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.UPDATEABLE.getPropertyName())) {
-                relationship.setProperty(OntologyProperties.UPDATEABLE.getPropertyName(), Boolean.parseBoolean(valueString), authorizations);
+                relationship.setProperty(
+                        OntologyProperties.UPDATEABLE.getPropertyName(),
+                        Boolean.parseBoolean(valueString),
+                        authorizations
+                );
                 continue;
             }
 
             if (annotationIri.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
-                relationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), valueString, authorizations);
+                relationship.setProperty(
+                        OntologyProperties.DISPLAY_NAME.getPropertyName(),
+                        valueString,
+                        authorizations
+                );
                 continue;
             }
 
@@ -683,10 +778,14 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return relationship;
     }
 
-    private Relationship getParentObjectProperty(OWLOntology o, OWLObjectProperty objectProperty, Authorizations authorizations) {
+    private Relationship getParentObjectProperty(
+            OWLOntology o,
+            OWLObjectProperty objectProperty,
+            Authorizations authorizations
+    ) {
         Collection<OWLObjectPropertyExpression> superProperties = EntitySearcher.getSuperProperties(objectProperty, o);
         if (superProperties.size() == 0) {
-            return null;
+            return getOrCreateTopObjectPropertyRelationship(authorizations);
         } else if (superProperties.size() == 1) {
             OWLObjectPropertyExpression superPropertyExpr = superProperties.iterator().next();
             OWLObjectProperty superProperty = superPropertyExpr.asOWLObjectProperty();
@@ -725,7 +824,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    protected abstract void getOrCreateInverseOfRelationship(Relationship fromRelationship, Relationship inverseOfRelationship);
+    protected abstract void getOrCreateInverseOfRelationship(
+            Relationship fromRelationship,
+            Relationship inverseOfRelationship
+    );
 
     private Iterable<Concept> getRangesConcepts(OWLOntology o, OWLObjectProperty objectProperty) {
         List<Concept> ranges = new ArrayList<>();
@@ -864,10 +966,18 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     protected ImmutableList<String> getDependentPropertyIris(OWLOntology o, OWLEntity owlEntity) {
         List<String> results = new ArrayList<>();
 
-        ImmutableList<String> dependentPropertyIris = getAnnotationValuesByUriOrNull(o, owlEntity, "http://visallo.org#dependentPropertyIris");
+        ImmutableList<String> dependentPropertyIris = getAnnotationValuesByUriOrNull(
+                o,
+                owlEntity,
+                "http://visallo.org#dependentPropertyIris"
+        );
         addAllDependentPropertyIris(results, dependentPropertyIris);
 
-        ImmutableList<String> dependentPropertyIri = getAnnotationValuesByUriOrNull(o, owlEntity, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY);
+        ImmutableList<String> dependentPropertyIri = getAnnotationValuesByUriOrNull(
+                o,
+                owlEntity,
+                OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY
+        );
         addAllDependentPropertyIris(results, dependentPropertyIri);
 
         if (results.size() == 0) {
@@ -940,7 +1050,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     protected Collection<TextIndexHint> getTextIndexHints(OWLOntology o, OWLDataProperty owlEntity) {
-        return TextIndexHint.parse(getAnnotationValueByUri(o, owlEntity, OntologyProperties.TEXT_INDEX_HINTS.getPropertyName()));
+        return TextIndexHint.parse(getAnnotationValueByUri(
+                o,
+                owlEntity,
+                OntologyProperties.TEXT_INDEX_HINTS.getPropertyName()
+        ));
     }
 
     protected String getAnnotationValueByUri(OWLOntology o, OWLEntity owlEntity, String uri) {
@@ -1317,7 +1431,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     @Override
-    public <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
+    public <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(
+            String intent,
+            Class<T> visalloPropertyType
+    ) {
         T result = getVisalloPropertyByIntent(intent, visalloPropertyType);
         if (result == null) {
             throw new VisalloException("Could not find property by intent: " + intent);
@@ -1375,7 +1492,14 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return configuration;
     }
 
-    protected void definePropertyOnGraph(Graph graph, String propertyIri, PropertyType dataType, Collection<TextIndexHint> textIndexHints, Double boost, boolean sortable) {
+    protected void definePropertyOnGraph(
+            Graph graph,
+            String propertyIri,
+            PropertyType dataType,
+            Collection<TextIndexHint> textIndexHints,
+            Double boost,
+            boolean sortable
+    ) {
         DefinePropertyBuilder definePropertyBuilder = graph.defineProperty(propertyIri).sortable(sortable);
         definePropertyBuilder.dataType(PropertyType.getTypeClass(dataType));
         if (dataType == PropertyType.DIRECTORY_ENTITY) {
@@ -1393,7 +1517,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         definePropertyBuilder.define();
     }
 
-    protected boolean determineSearchable(String propertyIri, PropertyType dataType, Collection<TextIndexHint> textIndexHints, boolean searchable) {
+    protected boolean determineSearchable(
+            String propertyIri,
+            PropertyType dataType,
+            Collection<TextIndexHint> textIndexHints,
+            boolean searchable
+    ) {
         if (dataType == PropertyType.STRING) {
             checkNotNull(textIndexHints, "textIndexHints are required for string properties");
             if (searchable && (textIndexHints.isEmpty() || textIndexHints.equals(TextIndexHint.NONE))) {
