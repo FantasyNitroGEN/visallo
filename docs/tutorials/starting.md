@@ -13,7 +13,7 @@ One of the major components of Visallo is the system of Graph Property Workers t
 We will be using maven archetypes to do most of the bootstrapping of Visallo so that we can only focus on developing our graph property worker.
 
 <div class="alert alert-warning">
-  Please contact us at <a href='https://www.visallo.com/content/contact'>visallo.com</a> in order to recieve the archetype jar and instructions.  The archetype jar will allow you to complete all of the tutorials.
+  Please contact us at <a href='https://www.visallo.com/content/contact'>visallo.com</a> in order to receive the archetype jar and instructions.  The archetype jar will allow you to complete all of the tutorials.
 </div>
 
 * Run the following command in a directory of your choosing:
