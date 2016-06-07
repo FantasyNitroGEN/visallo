@@ -31,7 +31,7 @@ define([
             layout: { type: 'flex', options: { direction: 'column' }},
             componentPath: 'detail/item/edge',
             children: [
-                { ref: 'org.visallo.layout.header' },
+                { ref: 'org.visallo.layout.header', style: { flex: '0 0 auto' } },
                 { ref: 'org.visallo.layout.body', style: { flex: '1 1 auto', overflow: 'auto' } }
             ]
         },
