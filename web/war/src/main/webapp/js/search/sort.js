@@ -101,11 +101,17 @@ define([
         this.onPropertySelected = function(event, data) {
             event.stopPropagation();
             this.attachPropertyField();
-            this.sortFields.push({
-                field: data.property.title,
-                direction: 'ASCENDING'
+
+            var hasSort = _.some(this.sortFields, function(sort) {
+                return sort.field === data.property.title;
             });
-            this.updateSortFields();
+            if (!hasSort) {
+                this.sortFields.push({
+                    field: data.property.title,
+                    direction: 'ASCENDING'
+                });
+                this.updateSortFields();
+            }
         };
 
         this.updateSortFields = function(preventTrigger) {
