@@ -39,13 +39,15 @@ define([
                 e.stopPropagation();
                 e.preventDefault();
 
-                var vertexIds = d.vertexIds || (d.objects ? _.pluck(d.objects, 'id') : null);
-                if (vertexIds) {
-                    vertexIds = _.isArray(vertexIds) ? vertexIds : [vertexIds];
-                    self.updateVertices({
-                        add: vertexIds
-                    })
-                }
+                var vertexIds = _.compact(_.isArray(d.vertexIds) ? d.vertexIds : [d.vertexIds]);
+                var edgeIds = _.compact(_.isArray(d.edgeIds) ? d.edgeIds : [d.edgeIds]);
+
+                self.updateItems({
+                    add: {
+                        vertexIds: vertexIds,
+                        edgeIds: edgeIds
+                    }
+                });
             });
             this._windowIsHidden = false;
             this.on(document, 'window-visibility-change', this.onVisibilityChange);
@@ -55,6 +57,9 @@ define([
             });
             this.on('click', this.clearFlashing.bind(this));
             $(window).focus(this.clearFlashing.bind(this));
+
+            this.on(document, 'verticesDeleted', this.onVerticesDeleted);
+            this.on(document, 'edgesDeleted', this.onEdgesDeleted);
 
             this.objects = [];
             this.fullscreenIdentifier = Math.floor((1 + Math.random()) * 0xFFFFFF).toString(16).substring(1);
@@ -66,6 +71,67 @@ define([
         this.clearFlashing = function() {
             clearTimeout(this.timer);
             this._windowIsHidden = false;
+        };
+
+        this.onVerticesDeleted = function(event, data) {
+            var self = this;
+
+            if (this.attr.edgeIds.length) {
+                removeRelatedEdges(data.vertexIds);
+            }
+
+            this.attr.vertexIds = _.difference(this.attr.vertexIds, data.vertexIds);
+            if (this.attr.previousVertexIds && !_.difference(this.attr.previousVertexIds, this.attr.vertexIds).length) return;
+            this.attr.previousVertexIds = this.attr.vertexIds;
+
+            this.onItemsDeleted();
+
+            function removeRelatedEdges(vertexIds) {
+                var edgesToRemove = _.filter(self.objects, function(object) {
+                    if (object.type !== 'edge') return false;
+
+                    var hasDeletedVertex = _.some(vertexIds, function(vId) {
+                        return vId === object.inVertexId || vId === object.outVertexId;
+                    })
+
+                    return hasDeletedVertex;
+                });
+
+                self.attr.edgeIds = _.difference(self.attr.edgeIds, _.pluck(edgesToRemove, 'id'));
+            }
+        };
+
+        this.onEdgesDeleted = function(event, data) {
+            this.attr.edgeIds = _.without(this.attr.edgeIds, data.edgeId);
+            if (this.attr.previousEdgeIds && !_.difference(this.attr.previousEdgeIds, this.attr.edgeIds).length) return;
+            this.attr.previousEdgeIds = this.attr.edgeIds;
+
+            this.onItemsDeleted();
+        };
+
+        this.onItemsDeleted = function() {
+            var self = this;
+
+            Promise.all([
+                self.attr.vertexIds.length ?
+                    self.dataRequest('vertex', 'multiple', {
+                        vertexIds: self.attr.vertexIds
+                    }) : Promise.resolve([]),
+                self.attr.edgeIds.length ?
+                    self.dataRequest('edge', 'multiple', {
+                        edgeIds: self.attr.edgeIds
+                    }) : Promise.resolve([])
+            ])
+            .then(function(results) {
+                var vertices = results.shift().vertices || [],
+                    edges = results.shift().edges || [];
+
+                self.objects = vertices.concat(edges);
+
+                self.updateLocationHash();
+                self.handleObjectsLoaded(self.objects);
+            })
+            .catch(self.handleVerticesFailed.bind(self));
         };
 
         this.updateLocationHash = function() {
@@ -174,18 +240,18 @@ define([
                 this.loadWorkspaces();
             }
 
-            this.objects.forEach(function(v) {
-                if (v.notFound) return;
+            this.objects.forEach(function(object) {
+                if (object.notFound) return;
 
-                var node = filterEntity(v) ?
+                var node = filterEntity(object) ?
                         this.$node.find('.entities-container') :
                         this.$node.find('.artifacts-container'),
-                    type = filterArtifacts(v) ? 'artifact' : 'entity',
-                    subType = F.vertex.displayType(v),
+                    type = filterArtifacts(object) ? 'artifact' : 'entity',
+                    subType = F.vertex.displayType(object),
                     $newPane = $('<div class="detail-pane visible highlight-none">')
                         .addClass('type-' + type +
                                   (subType ? (' subType-' + subType) : '') +
-                                  ' ' + F.className.to(v.id))
+                                  ' ' + F.className.to(object.id))
                         .append('<div class="content">')
                         .appendTo(node)
                         .find('.content')
@@ -199,7 +265,7 @@ define([
                 });
 
                 var constraints = this.objects.length === 1 ? [] : ['width'];
-                Detail.attachTo($newPane, { model: v, constraints: constraints });
+                Detail.attachTo($newPane, { model: object, constraints: constraints });
             }.bind(this));
 
             if (data && data.preventRecursiveUrlChange !== true) {
@@ -296,17 +362,22 @@ define([
                 } else deferred.resolve();
             } else deferred.resolve();
 
-            var toRemove = _.difference(this.attr.graphVertexIds, data.graphVertexIds),
-                toAdd = _.difference(data.graphVertexIds, this.attr.graphVertexIds);
+            var vertexIds = _.difference(data.vertexIds, this.attr.vertexIds);
+            var edgeIds = _.difference(data.edgeIds, this.attr.edgeIds);
 
-            if (data.graphVertexIds) {
-                this.attr.graphVertexIds = data.graphVertexIds;
-            }
+            var toRemove = [];
+            toRemove.concat(
+                _.difference(this.attr.vertexIds, data.vertexIds),
+                _.difference(this.attr.edgeIds, data.edgeIds)
+            );
 
             deferred.done(function() {
-                self.updateVertices({
+                self.updateItems({
                     remove: toRemove,
-                    add: toAdd,
+                    add: {
+                        vertexIds: vertexIds,
+                        edgeIds: edgeIds
+                    },
                     preventRecursiveUrlChange: true
                 });
             })
@@ -320,27 +391,36 @@ define([
             }
         };
 
-        this.updateVertices = function(data) {
+        this.updateItems = function(data) {
             var self = this,
                 willRemove = !_.isEmpty(data.remove),
-                willAdd = !_.isEmpty(data.add);
+                willAdd = !_.isEmpty(data.add) && !!(data.add.vertexIds.length || data.add.edgeIds.length);
 
             if (!willRemove && !willAdd) {
                 return;
             }
 
             if (willAdd) {
-                return this.dataRequest('vertex', 'store', {
-                    vertexIds: _.uniq(data.add.concat(_.pluck(this.objects, 'id')))
-                })
-                    .then(function(vertices) {
-                        self.handleVerticesLoaded(vertices, data);
-                    });
+                var vertexIds = this.attr.vertexIds = _.uniq(data.add.vertexIds.concat(self.attr.vertexIds));
+                var edgeIds = this.attr.edgeIds = _.uniq(data.add.edgeIds.concat(self.attr.edgeIds));
+                Promise.all([
+                    vertexIds.length ?
+                        self.dataRequest('vertex', 'store', {
+                            vertexIds: vertexIds
+                        }) : Promise.resolve([]),
+                    edgeIds.length ?
+                        self.dataRequest('edge', 'store', {
+                            edgeIds: edgeIds
+                        }) : Promise.resolve([])
+                    ])
+                    .then(function(results) {
+                        self.handleObjectsLoaded(_.flatten(results), data);
+                    })
             }
 
             if (willRemove) {
-                data.remove.forEach(function(vertexId) {
-                    var $pane = self.$node.find('.detail-pane.' + F.className.to(vertexId));
+                data.remove.forEach(function(id) {
+                    var $pane = self.$node.find('.detail-pane.' + F.className.to(id));
                     if ($pane.length) {
                         $pane
                             .find('.content').teardownAllComponents()
@@ -349,8 +429,8 @@ define([
                     }
                 });
 
-                this.objects = _.reject(this.objects, function(v) {
-                    return _.contains(data.remove, v.id);
+                this.objects = _.reject(this.objects, function(object) {
+                    return _.contains(data.remove, object.id);
                 });
             }
 
@@ -359,29 +439,6 @@ define([
             }
             self.updateLayout();
             self.updateTitle();
-        };
-
-        this.addVertexIds = function(vertexIds, targetIdentifier) {
-            var self = this;
-
-            if (targetIdentifier !== this.fullscreenIdentifier) {
-                return;
-            }
-
-            var existingVertexIds = _.pluck(this.objects, 'id'),
-                newVertices = _.reject(vertexIds, function(v) {
-                    return existingVertexIds.indexOf(v) >= 0;
-                });
-
-            if (newVertices.length === 0) {
-                return;
-            }
-
-            this.dataRequest('vertex', 'store', { vertexIds: existingVertexIds.concat(newVertices) })
-                .done(function(vertices) {
-                    self.handleVerticesLoaded(vertices);
-                    self.flashTitle(newVertices);
-                })
         };
 
         this.flashTitle = function(newVertexIds, newVertices) {
