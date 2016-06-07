@@ -93,6 +93,7 @@ define([
             identifier: 'org.visallo.layout.body.split',
             children: [
                 { componentPath: 'detail/image/image', className: 'org-visallo-image' },
+                { componentPath: 'detail/detectedObjects/detectedObjects' },
                 { ref: 'org.visallo.layout.body.split.artifact' }
             ]
         },
