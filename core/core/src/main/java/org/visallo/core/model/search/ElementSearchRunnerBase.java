@@ -16,6 +16,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.PropertyType;
 
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.*;
 
@@ -91,28 +92,28 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         Aggregation aggregation;
         switch (type) {
             case "term":
-                field = aggregateJson.getString("field");
-                aggregation = new TermsAggregation(aggregationName, field);
+                aggregation = getTermsAggregation(aggregationName, aggregateJson);
                 break;
             case "geohash":
-                field = aggregateJson.getString("field");
-                int precision = aggregateJson.getInt("precision");
-                aggregation = new GeohashAggregation(aggregationName, field, precision);
+                aggregation = getGeohashAggregation(aggregationName, aggregateJson);
                 break;
             case "histogram":
-                field = aggregateJson.getString("field");
-                String interval = aggregateJson.getString("interval");
-                Long minDocumentCount = JSONUtil.getOptionalLong(aggregateJson, "minDocumentCount");
-                aggregation = new HistogramAggregation(aggregationName, field, interval, minDocumentCount);
+                aggregation = getHistogramAggregation(aggregationName, aggregateJson);
                 break;
             case "statistics":
-                field = aggregateJson.getString("field");
-                aggregation = new StatisticsAggregation(aggregationName, field);
+                aggregation = getStatisticsAggregation(aggregationName, aggregateJson);
+                break;
+            case "calendar":
+                aggregation = getCalendarFieldAggregation(aggregationName, aggregateJson);
                 break;
             default:
                 throw new VisalloException("Invalid aggregation type: " + type);
         }
 
+        return addNestedAggregations(aggregation, aggregateJson);
+    }
+
+    private Aggregation addNestedAggregations(Aggregation aggregation, JSONObject aggregateJson) {
         JSONArray nestedAggregates = aggregateJson.optJSONArray("nested");
         if (nestedAggregates != null && nestedAggregates.length() > 0) {
             if (!(aggregation instanceof SupportsNestedAggregationsAggregation)) {
@@ -126,6 +127,47 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         }
 
         return aggregation;
+    }
+
+    private Aggregation getTermsAggregation(String aggregationName, JSONObject aggregateJson) {
+        String field = aggregateJson.getString("field");
+        return new TermsAggregation(aggregationName, field);
+    }
+
+    private Aggregation getGeohashAggregation(String aggregationName, JSONObject aggregateJson) {
+        String field = aggregateJson.getString("field");
+        int precision = aggregateJson.getInt("precision");
+        return new GeohashAggregation(aggregationName, field, precision);
+    }
+
+    private Aggregation getHistogramAggregation(String aggregationName, JSONObject aggregateJson) {
+        String field = aggregateJson.getString("field");
+        String interval = aggregateJson.getString("interval");
+        Long minDocumentCount = JSONUtil.getOptionalLong(aggregateJson, "minDocumentCount");
+        return new HistogramAggregation(aggregationName, field, interval, minDocumentCount);
+    }
+
+    private Aggregation getStatisticsAggregation(String aggregationName, JSONObject aggregateJson) {
+        String field = aggregateJson.getString("field");
+        return new StatisticsAggregation(aggregationName, field);
+    }
+
+    private Aggregation getCalendarFieldAggregation(String aggregationName, JSONObject aggregateJson) {
+        String field = aggregateJson.getString("field");
+        Long minDocumentCount = JSONUtil.getOptionalLong(aggregateJson, "minDocumentCount");
+        String timeZoneString = aggregateJson.optString("timeZone");
+        TimeZone timeZone = timeZoneString == null ? TimeZone.getDefault() : TimeZone.getTimeZone(timeZoneString);
+        int calendarField = getCalendarField(aggregateJson.getString("calendarField"));
+        return new CalendarFieldAggregation(aggregationName, field, minDocumentCount, timeZone, calendarField);
+    }
+
+    private int getCalendarField(String calendarField) {
+        try {
+            Field field = Calendar.class.getDeclaredField(calendarField);
+            return field.getInt(null);
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            throw new VisalloException("Invalid calendar field: " + calendarField, ex);
+        }
     }
 
     protected void applySortToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {

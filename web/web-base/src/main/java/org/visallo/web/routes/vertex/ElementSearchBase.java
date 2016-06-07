@@ -93,7 +93,7 @@ public abstract class ElementSearchBase {
             aggResult = searchResults.getAggregationResult(aggregation.getAggregationName(), TermsResult.class);
         } else if (aggregation instanceof GeohashAggregation) {
             aggResult = searchResults.getAggregationResult(aggregation.getAggregationName(), GeohashResult.class);
-        } else if (aggregation instanceof HistogramAggregation) {
+        } else if (aggregation instanceof HistogramAggregation || aggregation instanceof CalendarFieldAggregation) {
             aggResult = searchResults.getAggregationResult(aggregation.getAggregationName(), HistogramResult.class);
         } else if (aggregation instanceof StatisticsAggregation) {
             aggResult = searchResults.getAggregationResult(aggregation.getAggregationName(), StatisticsResult.class);
