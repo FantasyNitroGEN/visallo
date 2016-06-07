@@ -20,9 +20,6 @@ define([
 
         this.after('initialize', function() {
 
-            this.on(document, 'verticesUpdated', this.onCheckUpdate);
-            this.on(document, 'edgesUpdated', this.onCheckUpdate);
-
             this.on(this.select('listSelector'), 'selectObjects', this.onSelectObjects);
             this.on(this.select('listSelector'), 'objectsSelected', this.onObjectsSelected);
 
@@ -85,25 +82,6 @@ define([
                 })
                 .done();
         });
-
-        this.onCheckUpdate = function(event, data) {
-            var self = this,
-                changed = false,
-                changedObjects = data.vertices || data.edges,
-                newModel = self.attr.model.map(function(m) {
-                    var index = _.findIndex(changedObjects, function(v) {
-                        return m.id === v.id;
-                    });
-                    if (index === -1) {
-                        return m;
-                    }
-                    changed = true;
-                    return changedObjects[index];
-                })
-            if (changed) {
-                self.trigger('updateModel', { model: newModel })
-            }
-        };
 
         this.onObjectsSelected = function(event, data) {
             event.stopPropagation();

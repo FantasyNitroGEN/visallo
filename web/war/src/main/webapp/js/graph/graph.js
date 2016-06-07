@@ -905,6 +905,7 @@ define([
                         cyEdge.remove();
                     }
                 });
+                this.updateVertexSelections(cy);
             });
         };
 
