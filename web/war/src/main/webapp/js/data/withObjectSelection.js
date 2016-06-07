@@ -362,6 +362,8 @@ define([], function() {
         this.onAddRelatedItems = function(event, data) {
             var self = this;
 
+            if ($(event.target).closest('.graph-pane').length === 0) return;
+
             Promise.require('util/vertex/formatters')
                 .then(function(F) {
                     return F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true });
