@@ -1,12 +1,12 @@
 define([
     'flight/lib/component',
     'util/withDataRequest',
-    'util/vertex/list',
+    'util/element/list',
     'util/popovers/withPopover'
 ], function(
     defineComponent,
     withDataRequest,
-    VertexList,
+    ElementList,
     withPopover) {
     'use strict';
 
@@ -51,8 +51,8 @@ define([
                                         $list.removeClass('loading-small-animate');
                                         f();
                                     });
-                                    VertexList.attachTo($list.empty(), {
-                                        vertices: results.elements
+                                    ElementList.attachTo($list.empty(), {
+                                        items: results.elements
                                     });
                                 });
                             }

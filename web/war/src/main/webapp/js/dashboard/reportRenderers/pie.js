@@ -2,11 +2,13 @@ define([
     'flight/lib/component',
     'util/formatters',
     'util/requirejs/promise!util/service/ontologyPromise',
+    'text!./pieCss.css',
     './withRenderer'
 ], function(
     defineComponent,
     F,
     ontology,
+    pieCss,
     withRenderer) {
     'use strict';
 
@@ -125,6 +127,7 @@ define([
                 svg = d3.select(node).selectAll('svg').data([1]).call(function() {
                     this.enter().append('svg');
                     this.attr('width', width).attr('height', height);
+                    this.append('defs').append('style').attr('type', 'text/css').text(pieCss);
                 }),
                 gPie = svg.selectAll('g').data([1]).call(function() {
                         this.enter().append('g')

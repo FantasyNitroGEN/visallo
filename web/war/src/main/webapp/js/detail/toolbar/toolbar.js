@@ -95,7 +95,7 @@ define([
             var config = this.calculateItemsForModel(model, acl),
                 toolbarItems = config.items,
                 objects = config.objects,
-                toolbarExtensions = registry.extensionsForPoint('org.visallo.detail.toolbar');
+                toolbarExtensions = _.sortBy(registry.extensionsForPoint('org.visallo.detail.toolbar'), 'title');
 
             toolbarExtensions.forEach(function(item) {
                 if (!_.isFunction(item.canHandle) || item.canHandle(objects)) {

@@ -1,6 +1,10 @@
 <div class="grid-stack-item loading-card" {{#each dataAttrs}}data-{{key}}="{{value}}" {{/each}}>
   <div class="grid-stack-item-content">
-    <h1><span>{{title}}</span>{{#if creator}}<button class="configure btn btn-small">{{ i18n 'dashboard.configure.button' }}</button>{{/if}}</h1>
+    <h1><span>{{title}}</span>
+      <ul class="card-toolbar">
+        {{#if creator}}<li><button title="{{ i18n 'dashboard.configure.button' }}" class="configure btn btn-small">{{ i18n 'dashboard.configure.button' }}</button></li>{{/if}}
+      </ul>
+    </h1>
     <button class="remove-item">&times;</button>
     <div class="item-content"></div>
   </div>

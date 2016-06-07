@@ -8,6 +8,7 @@ define([
     'hbs!./dashboardTpl',
     'hbs!./item',
     'hbs!./addItemTpl',
+    './extensionToolbarPopover',
     'gridstack',
     'require',
     './registerDefaultItems',
@@ -22,6 +23,7 @@ define([
     template,
     itemTemplate,
     addItemTemplate,
+    ToolbarExtensionPopover,
     gridStack,
     require) {
     'use strict';
@@ -54,7 +56,19 @@ define([
         'http://docs.visallo.org/extension-points/front-end/dashboard/layout.html'
     );
 
+    registry.documentExtensionPoint('org.visallo.dashboard.toolbar.item',
+        'Define toolbar items for dashboard cards',
+        function(e) {
+            return e.identifier && e.icon && e.action && (
+                (e.action.type === 'popover' && e.action.componentPath) ||
+                e.action.type === 'event'
+            );
+        }
+    );
+
     var reportRenderers,
+        toolbarExtensions,
+        toolbarExtensionsById,
         extensions,
         extensionsById,
         layouts,
@@ -78,7 +92,8 @@ define([
             editDashboardSelector: '.edit-dashboard',
             configureItemSelector: '.grid-stack-item-content > h1 .configure',
             removeItemSelector: '.remove-item',
-            gridScrollerSelector: '.grid-scroller'
+            gridScrollerSelector: '.grid-scroller',
+            toolbarExtensionSelector: '.card-toolbar-item'
         });
 
         this.after('initialize', function() {
@@ -87,6 +102,8 @@ define([
             reportRenderers = registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer');
             extensions = registry.extensionsForPoint('org.visallo.web.dashboard.item');
             layouts = registry.extensionsForPoint('org.visallo.web.dashboard.layout');
+            toolbarExtensions = registry.extensionsForPoint('org.visallo.dashboard.toolbar.item');
+            toolbarExtensionsById = _.indexBy(toolbarExtensions, 'identifier');
             extensionsById = _.indexBy(extensions, 'identifier');
 
             this.request = this.dataRequest.bind(this, 'dashboard');
@@ -103,7 +120,8 @@ define([
                 editDashboardSelector: this.onEditDashboard,
                 configureItemSelector: this.onConfigure,
                 removeItemSelector: this.onRemoveItem,
-                refreshSelector: this.onRefresh
+                refreshSelector: this.onRefresh,
+                toolbarExtensionSelector: this.onToolbarExtensionClick
             });
             this.on('change keyup', {
                 headerSelector: this.onChangeTitle
@@ -132,6 +150,33 @@ define([
                 }
             })
         });
+
+        this.onToolbarExtensionClick = function(event) {
+            var $item = $(event.target).closest('.card-toolbar-item'),
+                $button = $item.find('button'),
+                extensionId = $item.data('identifier'),
+                extension = toolbarExtensionsById[extensionId],
+                itemId = $item.closest('.grid-stack-item').attr('data-item-id'),
+                item = _.findWhere(this.dashboard.items, { id: itemId });
+
+            if (extension && item) {
+                switch (extension.action && extension.action.type || '') {
+                  case 'popover':
+                    this.toggleExtensionPopover($button, item, extension);
+                    break;
+
+                  case 'event':
+                    $item.trigger(extension.action.name, {
+                        item: item,
+                        extension: extension
+                    });
+                    break;
+
+                  default:
+                      throw new Error('Unknown action for toolbar item extension: ' + JSON.stringify(extension));
+                }
+            } else throw new Error('Extension not found for toolbar item: ' + event.target);
+        };
 
         this.onRefresh = function(event) {
             this.trigger('dashboardRefreshData');
@@ -213,7 +258,6 @@ define([
                 cloned = this.cloneItemConfiguration(data.item),
                 changed = !_.isEqual(this.configuringItem, cloned);
 
-
             if (data.options && data.options.changed === 'item.title') {
                 node.find('.grid-stack-item-content > h1 span').text(
                     data.item.title || data.extension.title
@@ -222,6 +266,10 @@ define([
                 this.createDashboardItemComponent(node, data.item);
             }
             if (changed) {
+                if (!data.extension) {
+                    data.extension = extensionsById[data.item.extensionId];
+                }
+                this.updateToolbarExtensions(node, data.item, data.extension);
                 this.configuringItem = cloned;
                 this.request('dashboardItemUpdate', data.item);
             }
@@ -238,7 +286,10 @@ define([
                 alreadyAttached = ConfigPopover && node.lookupComponent(ConfigPopover);
 
             if (alreadyAttached) {
-                return node.teardownComponent(ConfigPopover);
+                _.defer(function() {
+                    node.teardownComponent(ConfigPopover);
+                });
+                return;
             }
 
             require(['./configure'], function(_ConfigPopover) {
@@ -256,6 +307,7 @@ define([
                             item: item,
                             scrollSelector: '.grid-scroller'
                         });
+                        self.trigger('positionDialog');
                     }
                 }
             })
@@ -263,6 +315,27 @@ define([
 
         this.onConfigure = function(event) {
             this.trigger(event.target, 'configureItem');
+        };
+
+        this.toggleExtensionPopover = function($toolbarButton, item, toolbarExtension) {
+            var self = this;
+
+            if ($toolbarButton.lookupComponent(ToolbarExtensionPopover)) {
+                _.defer(function() {
+                    $toolbarButton.teardownAllComponents();
+                });
+                return;
+            }
+
+            Promise.require(toolbarExtension.action.componentPath)
+                .then(function(Component) {
+                    ToolbarExtensionPopover.attachTo($toolbarButton, {
+                        Component: Component,
+                        item: item,
+                        extension: extensionsById[item.extensionId],
+                        scrollSelector: '.grid-scroller'
+                    })
+                })
         };
 
         this.requestTitleChange = function(newTitle) {
@@ -500,7 +573,8 @@ define([
         };
 
         this.createDashboardItemComponent = function(node, item) {
-            var extension = extensionsById[item.extensionId],
+            var self = this,
+                extension = extensionsById[item.extensionId],
                 path = extension.componentPath,
                 isReport = false,
                 reportConfiguration = {},
@@ -562,6 +636,7 @@ define([
                     if (!report && (!extension.options || !extension.options.manuallyFinishLoading)) {
                         $gridItem.removeClass('loading-card');
                     }
+                    self.updateToolbarExtensions($gridItem, item, extension);
                 })
             } else {
                 console.error('No component to render for ', extension);
@@ -647,13 +722,33 @@ define([
 
         this.createDashboardItemNode = function(item, extension) {
             var config = item && item.configuration || {},
-                metrics = config.metrics || {};
-            return $(itemTemplate({
-                title: item && item.title || extension.title,
-                extension: extension,
-                creator: this.isCreator,
-                dataAttrs: this.gridOptions(_.extend({}, extension.grid, metrics))
-                    .concat([{ key: 'item-id', value: item && item.id }])
+                metrics = config.metrics || {},
+                dom = $(itemTemplate({
+                    title: item && item.title || extension.title,
+                    extension: extension,
+                    creator: this.isCreator,
+                    dataAttrs: this.gridOptions(_.extend({}, extension.grid, metrics))
+                        .concat([{ key: 'item-id', value: item && item.id }])
+                }));
+            return dom;
+        };
+
+        this.updateToolbarExtensions = function(el, item, extension) {
+            var validExtensions = _.reject(toolbarExtensions, function(e) {
+                    return _.isFunction(e.canHandle) &&
+                        !e.canHandle({
+                            item: item,
+                            extension: extension,
+                            element: _.isElement(el) ? el : el.get(0)
+                        });
+                }),
+                $toolbar = $(el).find('.card-toolbar');
+            $toolbar.find('.card-toolbar-item').remove();
+            $toolbar.find('.configure').closest('li').before($.map(validExtensions, function(e) {
+                return $('<li>')
+                    .addClass('card-toolbar-item')
+                    .attr('data-identifier', e.identifier)
+                    .append($('<button>').attr('title', e.tooltip).css('background-image', 'url(' + e.icon + ')'))
             }));
         };
 

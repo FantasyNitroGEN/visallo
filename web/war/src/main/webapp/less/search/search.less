@@ -46,14 +46,44 @@ width: 215px;
     padding-right: 28px;
   }
 
+  .below-query {
+    display: flex;
+    .extensions {
+      flex: 1;
+      text-align: right;
+      min-height: 20px;
+      display: block;
+
+      & > button {
+        background: none;
+        border: 0;
+        margin: -2px 0 0 0;
+        padding: 0;
+        background-size: 60%;
+        background-position: center;
+        width: 20px;
+        height: 20px;
+        font-size: 0;
+        opacity: 0.4;
+        background-repeat: no-repeat;
+        &:hover {
+           opacity: 0.8;    
+        }
+      }
+    }
+  }
+
   .search-hits {
     font-size: 95%;
-    margin: 0;
+    margin: 0 0 0 0.5em;
     color: #999;
     text-align: right;
     text-shadow: 0 1px 0 white;
     font-style: italic;
     text-align: right;
+    &:empty {
+      display: none;
+    }
   }
 
   .search-query-container {

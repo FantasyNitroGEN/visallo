@@ -16,7 +16,7 @@ define([
     function ConfigPopover() {
 
         this.before('teardown', function() {
-            this.$node.removeClass('active');
+            this.$node.closest('.card-toolbar').removeClass('active');
         })
 
         this.before('initialize', function(node, config) {
@@ -52,7 +52,7 @@ define([
                 var self = this,
                     item = this.attr.item;
 
-                this.$node.addClass('active');
+                this.$node.closest('.card-toolbar').addClass('active');
                 this.on(this.popover, 'redirectEventToItem', function(event, data) {
                     this.$node.closest('.grid-stack-item').find('.item-content').trigger(data.name, data.data);
                 });

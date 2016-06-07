@@ -35,6 +35,7 @@ define([
         });
 
         this.after('initialize', function() {
+            var self = this;
             this.on('change', {
                 searchSelector: this.onChangeSearch,
                 limitSelector: this.onChangeLimit
@@ -47,7 +48,11 @@ define([
             this.sortFields = this.getSortFields();
             this.limit = this.getLimit();
 
-            this.render().done(this.updateAggregationVisibility.bind(this, true));
+            this.render()
+                .then(this.updateAggregationVisibility.bind(this, true))
+                .then(function() {
+                    self.trigger('positionDialog');
+                })
         });
 
         this.onStatisticsForAggregation = function(event, data) {
@@ -63,7 +68,7 @@ define([
                     }].map(JSON.stringify)
                 })
 
-            this.dataRequest('search', 'run', searchId, paramsWithStats)
+            return this.dataRequest('search', 'run', searchId, paramsWithStats)
                 .then(function(r) {
                     if (r && r.aggregates) {
                         $(event.target).trigger('aggregationStatistics', {
@@ -138,7 +143,7 @@ define([
                 searchId = this.attr.item.configuration.searchId,
                 conceptType = searchId ? this.searchesById[searchId].parameters.conceptType : null;
 
-            Promise.all([
+            return Promise.all([
                 Promise.require('search/dashboard/aggregation'),
                 conceptType && this.dataRequest('ontology', 'propertiesByConceptId', conceptType)
             ]).spread(function(Aggregation, propertiesByConceptId) {
@@ -148,8 +153,6 @@ define([
                 Aggregation.attachTo(node.teardownComponent(Aggregation), {
                     aggregations: self.aggregations
                 })
-                var aggregation = _.first(self.aggregations);
-                self.updateAggregationDependents(aggregation && aggregation.type, preventTrigger);
                 if (propertiesByConceptId) {
                     node.trigger('filterProperties', {
                         properties: propertiesByConceptId.list.filter(function(property) {
@@ -157,6 +160,9 @@ define([
                         })
                     });
                 }
+                var aggregation = _.first(self.aggregations);
+                return self.updateAggregationDependents(aggregation && aggregation.type, preventTrigger);
+
             });
         };
 
@@ -269,6 +275,17 @@ define([
                 if (preventTrigger !== true) {
                     this.triggerChange();
                 }
+
+                return Promise.all([
+                    this.dataRequest('ontology', 'properties'),
+                    Promise.require('search/sort')
+                ]).spread(function(properties, Sort) {
+                    var node = self.$node.find('.sort').show();
+
+                    Sort.attachTo(node.find('.sort-fields').teardownComponent(Sort), {
+                        sorts: self.sortFields
+                    })
+                });
             }
         };
 

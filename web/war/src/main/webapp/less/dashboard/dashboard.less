@@ -214,48 +214,57 @@
     padding: 0;
     margin: 0;
     position: relative;
+    display: flex; 
     .transition(~"padding-left ease-in 0.2s,background-color ease-in 0.2s");
 
     span {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 0.25em 0.5em;
-      margin-right: 25px;
-    }
-    button {
-      position: absolute;
-      right: 0;
-      top: 0;
-      height: 100%;
+      flex: 1;
       margin: 0;
-      border: 0;    
+      padding: 0 0.25em 0 0;
+    }
+    .card-toolbar {
+      list-style: none;
+      margin: 0;
       padding: 0;
-      width: 25px;
-      height: 100%;
-      font-size: 0;
-      background-color: transparent;
-      background-image: url(../img/glyphicons/glyphicons_019_cogwheel@2x.png);
-      background-repeat: no-repeat;
-      background-size: 60%;
-      background-position: center;
       display: none;
-      opacity: 0.3;
-      &.active {
-        display: block;
-      }
-      &:hover {
-        background-position: center;
+      li button {
         background-color: transparent;
-        opacity: 0.6;    
+        background-repeat: no-repeat;
+        background-size: auto 70%;
+        background-position: center;
+        box-shadow: none;
+        border: 0;
+        width: 22px;
+        height: 19px;
+        opacity: 0.3;
+        font-size: 0;
+        outline: none;
+        &.configure {
+          background-image: url(../img/glyphicons/glyphicons_019_cogwheel@2x.png);
+        }
+        &:active {
+          position: relative;
+          top: 1px;
+        }
+        &:hover {
+          background-position: center;
+          background-color: transparent;
+          opacity: 0.6;    
+        }
       }
     }
   }
 
-  .grid-stack-item:hover .grid-stack-item-content > h1 button {
-    display: block;
-    border: 0;
-    box-shadow: none;
+  .grid-stack-item .grid-stack-item-content > h1 .card-toolbar.active,
+  .grid-stack-item:hover .grid-stack-item-content > h1 .card-toolbar  {
+    display: flex;
+    li button {
+      border: 0;
+      box-shadow: none;
+    }
   }
   .grid-stack > .grid-stack-item > .grid-stack-item-content,
   .grid-stack .grid-stack-placeholder > .placeholder-content {
@@ -306,7 +315,7 @@
   &.editing .grid-stack {
     .disable-text-selection;
   }
-  &.editing .grid-stack-item:hover .grid-stack-item-content>h1 .configure {
+  &.editing .grid-stack-item:hover .grid-stack-item-content>h1 .card-toolbar {
     display: none;
   }
   &.editing button.remove-item {
@@ -406,12 +415,6 @@
     .clickable {
       cursor: pointer;
     }
-    .legend text {
-      font-family: HelveticaNeue, AvenirNext-Medium, Arial;
-      font-size: 90%;
-      font-weight: normal;
-      fill: #555;
-    }
 
     .zips {
       background-color: rgb(253, 250, 245);
@@ -421,15 +424,6 @@
       pointer-events: none;
       .disable-text-selection;
     }
-    .axis path, .axis .tick line {
-      fill: none;
-      stroke: #767676;
-      stroke-width: 1px;
-      shape-rendering: crispEdges;
-    }
-    .axis text {
-      fill: #767676;
-    } 
 
     rect {
       shape-rendering: crispEdges;

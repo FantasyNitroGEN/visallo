@@ -2,11 +2,13 @@ define([
     'flight/lib/component',
     'util/vertex/formatters',
     'util/requirejs/promise!util/service/ontologyPromise',
+    'text!./barCss.css',
     './withRenderer'
 ], function(
     defineComponent,
     F,
     ontology,
+    barCss,
     withRenderer) {
     'use strict';
 
@@ -196,9 +198,12 @@ define([
                             .append('svg')
                             .call(function() {
                                 this.append('defs')
-                                    .append('clipPath').attr('id', 'xAxisLabelClip')
-                                    .append('rect')
-                                    .attr(clip)
+                                    .call(function() {
+                                        this.append('style').attr('type', 'text/css').text(barCss);
+                                        this.append('clipPath').attr('id', 'xAxisLabelClip')
+                                            .append('rect')
+                                            .attr(clip)
+                                    })
                                 this.append('g')
                                     .attr('class', 'padding')
                                     .attr('transform', 'translate(0, ' + padding + ')');

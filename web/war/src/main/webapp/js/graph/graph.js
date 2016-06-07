@@ -1305,78 +1305,84 @@ define([
                     menu.find('.layouts-multi').hide();
                 }
 
-                if (menu.is(self.attr.contextMenuSelector)) {
-                    var graphExporters = registry.extensionsForPoint(GRAPH_EXPORTER_POINT);
-
-                    if (graphExporters.length) {
-                        var $exporters = menu.find('.exporters');
-
+                var graphExporters = registry.extensionsForPoint(GRAPH_EXPORTER_POINT);
+                if (graphExporters.length) {
+                    var divider = '<li class="divider"></li>',
+                        $exporters = menu.find('.exporters'),
+                        $exporter = function(exporter) {
+                            return $('<li class="exporter"><a href="#"></a></li>')
+                                .find('a')
+                                .text(exporter.menuItem)
+                                .attr('data-func', 'exportWorkspace')
+                                .attr('data-args', JSON.stringify([exporter._identifier]))
+                                .end();
+                        };
+                    if (graphExporters.length === 1) {
+                        var exporter = graphExporters[0];
+                        exporter._identifier = 'EXPORTER_0';
+                        menu.children('.exporter').prev('.divider').andSelf().remove();
+                        $exporter(exporter).appendTo(menu).before(divider)
+                    } else {
                         if ($exporters.length === 0) {
                             $exporters = $('<li class="dropdown-submenu"><a>' +
                                 i18n('graph.contextmenu.export_workspace') +
                                 '</a>' +
                                 '<ul class="dropdown-menu exporters"></ul></li>'
-                            ).appendTo(menu).before('<li class="divider"></li>').find('ul');
+                            ).appendTo(menu).before(divider).find('ul');
                         }
 
                         $exporters.empty();
                         graphExporters.forEach(function(exporter, i) {
                             exporter._identifier = 'EXPORTER_' + i;
-                            $exporters.append(
-                                $('<li><a href="#"></a></li>')
+                            $exporters.append($exporter(exporter));
+                        });
+                    }
+                }
+
+                var graphSelections = registry.extensionsForPoint('org.visallo.graph.selection');
+                if (graphSelections.length) {
+                    var $selectorMenu = menu.find('.selectors .dropdown-menu');
+                    $selectorMenu.find('.plugin').remove();
+                    var selected = event.cy.nodes().filter(':selected').length > 0;
+                    graphSelections.forEach(function(selector) {
+                        if ((selected && _.contains(['always', 'selected'], selector.visibility)) ||
+                            (!selected && _.contains(['always', 'none-selected'], selector.visibility))) {
+
+                            $selectorMenu.append(
+                                $('<li class="plugin"><a href="#" tabindex="-1"></a></li>')
                                     .find('a')
-                                    .text(exporter.menuItem)
-                                    .attr('data-func', 'exportWorkspace')
-                                    .attr('data-args', JSON.stringify([exporter._identifier]))
+                                    .text(i18n('graph.selector.' + selector.identifier + '.displayName'))
+                                    .attr('data-func', 'select')
+                                    .attr('data-args', '["' + selector.identifier + '"]')
+                                    .end()
+                            );
+                        }
+                    });
+                }
+
+                var graphLayouts = registry.extensionsForPoint('org.visallo.graph.layout');
+                if (graphLayouts.length) {
+                    var appendLayoutMenuItems = function($layoutMenu, onlySelected) {
+                        var onlySelectedArg = onlySelected ? ',{"onlySelected":true}' : '';
+
+                        $layoutMenu.find('.plugin').remove();
+
+                        graphLayouts.forEach(function(layout) {
+                            $layoutMenu.append(
+                                $('<li class="plugin"><a href="#" tabindex="-1"></a></li>')
+                                    .find('a')
+                                    .text(i18n('graph.layout.' + layout.identifier + '.displayName'))
+                                    .attr('data-func', 'layout')
+                                    .attr('data-args', '["' + layout.identifier + '"' + onlySelectedArg + ']')
                                     .end()
                             );
                         });
-                    }
+                    };
 
-                    var graphSelections = registry.extensionsForPoint('org.visallo.graph.selection');
-                    if (graphSelections.length) {
-                        var $selectorMenu = menu.find('.selectors .dropdown-menu');
-                        $selectorMenu.find('.plugin').remove();
-                        var selected = event.cy.nodes().filter(':selected').length > 0;
-                        graphSelections.forEach(function(selector) {
-                            if ((selected && _.contains(['always', 'selected'], selector.visibility)) ||
-                                (!selected && _.contains(['always', 'none-selected'], selector.visibility))) {
-
-                                $selectorMenu.append(
-                                    $('<li class="plugin"><a href="#" tabindex="-1"></a></li>')
-                                        .find('a')
-                                        .text(i18n('graph.selector.' + selector.identifier + '.displayName'))
-                                        .attr('data-func', 'select')
-                                        .attr('data-args', '["' + selector.identifier + '"]')
-                                        .end()
-                                );
-                            }
-                        });
-                    }
-
-                    var graphLayouts = registry.extensionsForPoint('org.visallo.graph.layout');
-                    if (graphLayouts.length) {
-                        var appendLayoutMenuItems = function($layoutMenu, onlySelected) {
-                            var onlySelectedArg = onlySelected ? ',{"onlySelected":true}' : '';
-
-                            $layoutMenu.find('.plugin').remove();
-
-                            graphLayouts.forEach(function(layout) {
-                                $layoutMenu.append(
-                                    $('<li class="plugin"><a href="#" tabindex="-1"></a></li>')
-                                        .find('a')
-                                        .text(i18n('graph.layout.' + layout.identifier + '.displayName'))
-                                        .attr('data-func', 'layout')
-                                        .attr('data-args', '["' + layout.identifier + '"' + onlySelectedArg + ']')
-                                        .end()
-                                );
-                            });
-                        };
-
-                        appendLayoutMenuItems(menu.find('.layouts .dropdown-menu'), false);
-                        appendLayoutMenuItems(menu.find('.layouts-multi .dropdown-menu'), true);
-                    }
+                    appendLayoutMenuItems(menu.find('.layouts .dropdown-menu'), false);
+                    appendLayoutMenuItems(menu.find('.layouts-multi .dropdown-menu'), true);
                 }
+
                 menu.find('.layouts, .layouts-multi, .layouts li, .layouts-multi li').toggleClass('disabled', visalloData.currentWorkspaceEditable === false);
 
                 this.toggleMenu({positionUsingEvent: event}, menu);
@@ -2095,10 +2101,6 @@ define([
 
             this.$node.html(loadingTemplate({}));
 
-            registry.registerExtension(GRAPH_EXPORTER_POINT, {
-                menuItem: i18n('graph.export.png'),
-                componentPath: 'graph/export'
-            });
             registry.documentExtensionPoint(GRAPH_EXPORTER_POINT,
                 'Add menu options to export graph / workspace',
                 function(e) {

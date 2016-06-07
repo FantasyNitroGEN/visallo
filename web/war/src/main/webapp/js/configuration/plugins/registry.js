@@ -5,6 +5,7 @@ define(['underscore'], function(_) {
         extensionDocumentation = {},
         uuidToExtensionPoint = {},
         uuidGen = 0,
+        alreadyWarnedAboutDocsByExtensionPoint = {},
         verifyArguments = function(extensionPoint, extension) {
             if (!_.isString(extensionPoint) && extensionPoint) {
                 throw new Error('extensionPoint must be string');
@@ -19,6 +20,13 @@ define(['underscore'], function(_) {
                     extensionPoint: extensionPoint
                 })
             }
+        },
+        shouldWarn = function(extensionPoint) {
+            if (extensionPoint in alreadyWarnedAboutDocsByExtensionPoint) {
+                return;
+            }
+            alreadyWarnedAboutDocsByExtensionPoint[extensionPoint] = true;
+            return true;
         },
         api = {
             debug: function() {
@@ -118,7 +126,7 @@ define(['underscore'], function(_) {
                 var documentation = extensionDocumentation[extensionPoint],
                     byId = extensions[extensionPoint];
 
-                if (!documentation) {
+                if (!documentation && shouldWarn(extensionPoint)) {
                     console.warn('Consider adding documentation for ' +
                         extensionPoint +
                         '\n\tUsage: registry.documentExtensionPoint(\'' + extensionPoint + '\', desc, validator)'

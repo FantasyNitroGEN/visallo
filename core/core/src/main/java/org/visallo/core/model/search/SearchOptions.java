@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.visallo.core.exception.VisalloException;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -27,7 +28,11 @@ public class SearchOptions {
             return null;
         }
         try {
-            if (resultType.isArray() && !obj.getClass().isArray()) {
+            if (resultType.isArray() && obj instanceof Collection) {
+                Collection collection = (Collection) obj;
+                Class type = resultType.getComponentType();
+                return (T) collection.toArray((Object[]) Array.newInstance(type, collection.size()));
+            } else if (resultType.isArray() && !obj.getClass().isArray()) {
                 Object[] array = (Object[]) Array.newInstance(resultType.getComponentType(), 1);
                 array[0] = objectToType(obj, resultType.getComponentType());
                 return objectToType(array, resultType);

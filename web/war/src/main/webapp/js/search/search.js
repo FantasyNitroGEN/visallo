@@ -6,7 +6,9 @@ define([
     'util/withDataRequest',
     'util/formatters',
     'util/popovers/withElementScrollingPositionUpdates',
-    'configuration/plugins/registry'
+    'configuration/plugins/registry',
+    'd3',
+    './extensionToolbarPopover'
 ], function(
     require,
     defineComponent,
@@ -15,10 +17,27 @@ define([
     withDataRequest,
     F,
     withElementScrollingPositionUpdates,
-    registry) {
+    registry,
+    d3,
+    SearchToolbarExtensionPopover) {
     'use strict';
 
     var SEARCH_TYPES = ['Visallo', 'Workspace'];
+
+    registry.documentExtensionPoint('org.visallo.search.toolbar',
+        'Add toolbar icons under search query box',
+        function(e) {
+            return (!e.canHandle || _.isFunction(e.canHandle)) &&
+                (!e.onElementCreated || _.isFunction(e.onElementCreated)) &&
+                (!e.onClick || _.isFunction(e.onClick)) &&
+                _.isString(e.tooltip) &&
+                _.isString(e.icon) &&
+                e.action && (
+                    (e.action.type === 'popover' && e.action.componentPath) ||
+                    (e.action.type === 'event' && e.action.name)
+                )
+        },
+        'http://docs.visallo.com/extension-points/front-end/searchToolbar')
 
     return defineComponent(Search, withDataRequest, withElementScrollingPositionUpdates);
 
@@ -36,6 +55,8 @@ define([
             formSelector: '.navbar-search',
             querySelector: '.navbar-search .search-query',
             queryValidationSelector: '.search-query-validation',
+            queryExtensionsSelector: '.below-query .extensions',
+            queryExtensionsButtonSelector: '.below-query .extensions > button',
             hitsSelector: '.search-hits',
             advancedSearchDropdownSelector: '.search-dropdowns .advanced',
             advancedSearchTypeSelector: '.search-dropdowns .advanced-dropdown li a',
@@ -69,7 +90,8 @@ define([
                 segmentedControlSelector: this.onSegmentedControlsClick,
                 clearSearchSelector: this.onClearSearchClick,
                 advancedSearchTypeSelector: this.onAdvancedSearchTypeClick,
-                savedSearchSelector: this.onSavedSearch
+                savedSearchSelector: this.onSavedSearch,
+                queryExtensionsButtonSelector: this.onExtensionToolbarClick
             });
             this.on(this.select('advancedSearchDropdownSelector'), 'click', this.onAdvancedSearchDropdown);
             this.on('change keydown keyup paste', {
@@ -131,10 +153,95 @@ define([
                 if (visalloFilter.test(data.url)) {
                     this.currentSearchByUrl['/vertex/search'] = data;
                 }
+                this.currentSearch = data;
             } else {
                 this.currentSearchByUrl = {};
+                this.currentSearch = null;
             }
             this.select('savedSearchSelector').trigger(event.type, this.currentSearchByUrl[this.currentSearchUrl]);
+            this.updateQueryToolbarExtensions();
+        };
+
+        this.updateQueryToolbarExtensions = function() {
+            var self = this,
+                extensions = registry.extensionsForPoint('org.visallo.search.toolbar');
+            if (!this.toolbarExtensionsById) {
+                var inc = 0,
+                    mapped = extensions.map(function(e) {
+                        e.identifier = inc++;
+                        return e;
+                    });
+                this.toolbarExtensionsById = _.indexBy(mapped, 'identifier')
+            }
+
+            var $container = this.select('queryExtensionsSelector'),
+                items = _.filter(extensions, function(e) {
+                    return !_.isFunction(e.canHandle) || e.canHandle(self.currentSearch);
+                });
+
+            d3.select($container.get(0))
+                .selectAll('button')
+                .data(items)
+                .call(function() {
+                    this.enter().append('button')
+                        .each(function(e) {
+                            if (_.isFunction(e.onElementCreated)) {
+                                e.onElementCreated(this)
+                            }
+                        })
+                        .attr('title', _.property('tooltip'))
+                        .style('background-image', function(e) {
+                            return 'url(' + e.icon + ')'
+                        })
+                    this.order()
+                    this.exit().remove();
+                })
+        };
+
+        this.onExtensionToolbarClick = function(event) {
+            var self = this,
+                $toolbarButton = $(event.target),
+                extension = d3.select(event.target).datum();
+
+            event.preventDefault();
+            if (extension) {
+                if (_.isFunction(extension.onClick)) {
+                    if (extension.onClick(event) === false) {
+                        event.stopPropagation();
+                        return;
+                    }
+                }
+                switch (extension.action && extension.action.type || '') {
+                  case 'popover':
+                    if ($toolbarButton.lookupComponent(SearchToolbarExtensionPopover)) {
+                        _.defer(function() {
+                            $toolbarButton.teardownAllComponents();
+                        });
+                        return;
+                    }
+                    Promise.require(extension.action.componentPath)
+                        .then(function(Component) {
+                            SearchToolbarExtensionPopover.attachTo($toolbarButton, {
+                                Component: Component,
+                                model: {
+                                    search: self.currentSearch
+                                },
+                                extension: extension
+                            })
+                        });
+                    break;
+
+                  case 'event':
+                    $toolbarButton.trigger(extension.action.name, {
+                        extension: extension,
+                        currentSearch: this.currentSearch
+                    });
+                    break;
+
+                  default:
+                      throw new Error('Unknown action for toolbar item extension: ' + JSON.stringify(extension));
+                }
+            }
         };
 
         this.onToggleDisplay = function(event, data) {
@@ -145,6 +252,7 @@ define([
 
         this.onSearchTypeLoaded = function() {
             this.trigger('paneResized');
+            this.updateQueryToolbarExtensions();
         };
 
         this.openSearchType = function(searchType) {
@@ -234,9 +342,9 @@ define([
 
                 if (data && data.message) {
                     $hits.text(data.message);
-                } else $hits.html('&nbsp;')
+                } else $hits.empty();
             } else {
-                $hits.html('&nbsp;');
+                $hits.empty();
                 $error.html(
                     alertTemplate({ error: data.error || i18n('search.query.error') })
                 )
@@ -550,7 +658,7 @@ define([
             $query.val(this.savedQueries[newSearchType].query);
             if (this.savedQueries[newSearchType].hits) {
                 $hits.text(this.savedQueries[newSearchType].hits);
-            } else $hits.html('&nbsp;')
+            } else $hits.empty();
 
             this.updateClearSearch();
         };
