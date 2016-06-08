@@ -51,11 +51,11 @@ gremlins();
 
 ## Extensibility
 
-For more extensibility options, see README in the sub-directories of `web/war/src/main/webapp/js/configuration/plugins`.
+View the [Extension Point Documentation](../extension-points/front-end/index.md) for information on extending Visallo components.
 
 ### Localization
 
-All strings are loaded from `MessageBundle.properties`. Extend / replace strings using a web plugin that defines / overrides strings in another bundle.
+All strings are loaded from `MessageBundle.properties`. Extend / replace strings using a web plugin that defines / overrides strings in another bundle using a web plugin.
 
 For example:
 
@@ -82,7 +82,7 @@ i18n("my.property", "quick", "jumps");
 
 ### Property Info Metadata
 
-Configure properties in `/opt/visallo`
+Properties have an *info* icon that opens a metadata popover. The metadata displayed can be configured with configuration property files.
 
     properties.metadata.propertyNames: Lists metadata properties to display in popover
     properties.metadata.propertyNameDisplay: Lists metadata display name keys (MessageBundle.properties)
@@ -119,7 +119,7 @@ require(['util/vertex/formatters'], function(F) {
 
 ### Ontology Property Data Types
 
-Allows custom DOM per ontology data type.
+Allows custom DOM per ontology displayType.
 
 1. Create a web plugin and extend / override formatters.
 
@@ -127,7 +127,7 @@ Allows custom DOM per ontology data type.
 require(['util/vertex/formatters'], function(F) {
     $.extend(F.vertex.properties, {
 
-        // Will be executed for properties that have dataType='link'
+        // Will be executed for properties that have displayType='link'
         link: function(domElement, property, vertexId) {
             $('<a>')
                 .attr('href', property.value)
