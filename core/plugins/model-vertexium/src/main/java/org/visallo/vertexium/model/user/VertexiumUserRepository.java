@@ -239,6 +239,8 @@ public class VertexiumUserRepository extends UserRepository {
 
         m.save(authorizations);
         graph.flush();
+
+        fireUserLoginEvent(user, remoteAddr);
     }
 
     @Override
@@ -274,6 +276,7 @@ public class VertexiumUserRepository extends UserRepository {
         UserVisalloProperties.STATUS.setProperty(userVertex, status.toString(), VISIBILITY.getVisibility(), authorizations);
         graph.flush();
         user.setUserStatus(status);
+        fireUserStatusChangeEvent(user, status);
         return user;
     }
 

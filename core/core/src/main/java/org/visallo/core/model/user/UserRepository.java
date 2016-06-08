@@ -46,8 +46,9 @@ public abstract class UserRepository {
     private final WorkQueueRepository workQueueRepository;
     private final UserNotificationRepository userNotificationRepository;
     private final LockRepository lockRepository;
+    private final Configuration configuration;
     private LongRunningProcessRepository longRunningProcessRepository; // can't inject this because of circular dependencies
-    private List<UserListener> userListeners;
+    private Collection<UserListener> userListeners;
 
     protected UserRepository(
             Configuration configuration,
@@ -57,6 +58,7 @@ public abstract class UserRepository {
             UserNotificationRepository userNotificationRepository,
             LockRepository lockRepository
     ) {
+        this.configuration = configuration;
         this.simpleOrmSession = simpleOrmSession;
         this.userSessionCounterRepository = userSessionCounterRepository;
         this.workQueueRepository = workQueueRepository;
@@ -474,12 +476,21 @@ public abstract class UserRepository {
         }
     }
 
-    private List<UserListener> getUserListeners() {
+    protected void fireUserLoginEvent(User user, String remoteAddr) {
+        for (UserListener userListener : getUserListeners()) {
+            userListener.userLogin(user, remoteAddr);
+        }
+    }
+
+    protected void fireUserStatusChangeEvent(User user, UserStatus status) {
+        for (UserListener userListener : getUserListeners()) {
+            userListener.userStatusChange(user, status);
+        }
+    }
+
+    private Iterable<UserListener> getUserListeners() {
         if (userListeners == null) {
-            userListeners = toList(ServiceLoader.load(UserListener.class));
-            for (UserListener userListener : userListeners) {
-                InjectHelper.inject(userListener);
-            }
+            userListeners = InjectHelper.getInjectedServices(UserListener.class, configuration);
         }
         return userListeners;
     }
