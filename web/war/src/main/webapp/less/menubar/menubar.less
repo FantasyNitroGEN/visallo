@@ -103,14 +103,24 @@ background: @menubar-background;
     position: relative;
 
     a {
+      opacity: 1;
+
       &:before {
         .spinning-image('white/glyphicons_019_cogwheel@2x', 18px, -4px, -4px);
         .spin(4s, forward);
+        opacity: .5;
       }
 
       &:after {
         .spinning-image('white/glyphicons_019_cogwheel@2x', 14px, 6px, 6px);
         .spin(4s, reverse);
+        opacity: .5;
+      }
+    }
+
+    &.active a {
+      &:before, &:after {
+        opacity: 1;
       }
     }
 
