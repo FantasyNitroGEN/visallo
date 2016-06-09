@@ -27,9 +27,9 @@ define([], function() {
                 var toOpen = V.parametersInUrl(url);
 
                 return toOpen &&
-                    (toOpen.vertexIds && toOpen.vertexIds.length) ||
-                    (toOpen.edgeIds && toOpen.edgeIds.length) &&
-                    toOpen.type === 'FULLSCREEN';
+                    toOpen.type === 'FULLSCREEN' &&
+                    ((toOpen.vertexIds && toOpen.vertexIds.length) ||
+                    (toOpen.edgeIds && toOpen.edgeIds.length));
             },
 
             parametersInUrl: function(url) {
