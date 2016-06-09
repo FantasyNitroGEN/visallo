@@ -6,7 +6,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
@@ -16,7 +16,6 @@ import org.visallo.web.clientapi.model.ClientApiEdgeMultipleResponse;
 import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.AuthorizationsParameterProviderFactory;
-import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -28,16 +27,19 @@ public class EdgeMultiple implements ParameterizedHandler {
     private final Graph graph;
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final AuthorizationRepository authorizationRepository;
 
     @Inject
     public EdgeMultiple(
-            final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository
+            Graph graph,
+            UserRepository userRepository,
+            WorkspaceRepository workspaceRepository,
+            AuthorizationRepository authorizationRepository
     ) {
         this.graph = graph;
         this.userRepository = userRepository;
         this.workspaceRepository = workspaceRepository;
+        this.authorizationRepository = authorizationRepository;
     }
 
     @Handle
@@ -71,7 +73,7 @@ public class EdgeMultiple implements ParameterizedHandler {
         for (Edge e : graphEdges) {
             Vertex source = vertices.get(e.getVertexId(Direction.OUT));
             Vertex destination = vertices.get(e.getVertexId(Direction.IN));
-            ClientApiEdgeWithVertexData clientApiEdgeWithVertexData = (ClientApiEdgeWithVertexData) ClientApiConverter.toClientApiEdgeWithVertexData(
+            ClientApiEdgeWithVertexData clientApiEdgeWithVertexData = ClientApiConverter.toClientApiEdgeWithVertexData(
                     e,
                     source,
                     destination,
@@ -87,10 +89,15 @@ public class EdgeMultiple implements ParameterizedHandler {
         GetAuthorizationsResult result = new GetAuthorizationsResult();
         result.requiredFallback = false;
         try {
-            return AuthorizationsParameterProviderFactory.getAuthorizations(request, userRepository, workspaceRepository);
+            return AuthorizationsParameterProviderFactory.getAuthorizations(
+                    request,
+                    userRepository,
+                    authorizationRepository,
+                    workspaceRepository
+            );
         } catch (VisalloAccessDeniedException ex) {
             if (fallbackToPublic) {
-                return userRepository.getAuthorizations(user);
+                return authorizationRepository.getGraphAuthorizations(user);
             } else {
                 throw ex;
             }

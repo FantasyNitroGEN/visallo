@@ -17,8 +17,8 @@ import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.InMemoryAuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
+import org.visallo.core.model.user.InMemoryGraphAuthorizationRepository;
 import org.visallo.web.clientapi.model.PropertyType;
 
 import java.io.File;
@@ -39,7 +39,7 @@ public class VertexiumOntologyRepositoryTest {
     private VertexiumOntologyRepository ontologyRepository;
     private Authorizations authorizations;
     private Graph graph;
-    private AuthorizationRepository authorizationRepository;
+    private GraphAuthorizationRepository graphAuthorizationRepository;
     private LockRepository lockRepository;
     @Mock
     private Configuration configuration;
@@ -48,9 +48,10 @@ public class VertexiumOntologyRepositoryTest {
     public void setup() throws Exception {
         graph = InMemoryGraph.create();
         authorizations = new InMemoryAuthorizations();
-        authorizationRepository = new InMemoryAuthorizationRepository();
+        graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
         lockRepository = new NonLockingLockRepository();
-        ontologyRepository = new VertexiumOntologyRepository(graph, configuration, authorizationRepository, lockRepository) {
+        ontologyRepository = new VertexiumOntologyRepository(graph, configuration,
+                                                             graphAuthorizationRepository, lockRepository) {
             @Override
             public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
                 Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null);

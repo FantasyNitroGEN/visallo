@@ -1,8 +1,5 @@
 package org.visallo.core.model.user;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONArray;
@@ -12,9 +9,6 @@ import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
-import org.visallo.core.model.notification.ExpirationAge;
-import org.visallo.core.model.notification.UserNotification;
-import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.SystemUser;
@@ -29,7 +23,6 @@ import org.visallo.web.clientapi.model.UserStatus;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -39,14 +32,13 @@ public abstract class UserRepository {
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
     public static final String OWL_IRI = "http://visallo.org/user";
     public static final String USER_CONCEPT_IRI = "http://visallo.org/user#user";
-    private final Set<String> defaultPrivileges;
-    private final Set<String> defaultAuthorizations;
     private final SimpleOrmSession simpleOrmSession;
     private final UserSessionCounterRepository userSessionCounterRepository;
     private final WorkQueueRepository workQueueRepository;
-    private final UserNotificationRepository userNotificationRepository;
     private final LockRepository lockRepository;
     private final Configuration configuration;
+    private final AuthorizationRepository authorizationRepository;
+    private final PrivilegeRepository privilegeRepository;
     private LongRunningProcessRepository longRunningProcessRepository; // can't inject this because of circular dependencies
     private Collection<UserListener> userListeners;
 
@@ -55,21 +47,17 @@ public abstract class UserRepository {
             SimpleOrmSession simpleOrmSession,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
-            UserNotificationRepository userNotificationRepository,
-            LockRepository lockRepository
+            LockRepository lockRepository,
+            AuthorizationRepository authorizationRepository,
+            PrivilegeRepository privilegeRepository
     ) {
         this.configuration = configuration;
         this.simpleOrmSession = simpleOrmSession;
         this.userSessionCounterRepository = userSessionCounterRepository;
         this.workQueueRepository = workQueueRepository;
-        this.userNotificationRepository = userNotificationRepository;
         this.lockRepository = lockRepository;
-        this.defaultPrivileges = Privilege.stringToPrivileges(configuration.get(Configuration.DEFAULT_PRIVILEGES, ""));
-        this.defaultAuthorizations = parseAuthorizations(configuration.get(Configuration.DEFAULT_AUTHORIZATIONS, ""));
-    }
-
-    private Set<String> parseAuthorizations(String authorizations) {
-        return Sets.newHashSet(authorizations.split(","));
+        this.authorizationRepository = authorizationRepository;
+        this.privilegeRepository = privilegeRepository;
     }
 
     public abstract User findByUsername(String username);
@@ -96,9 +84,7 @@ public abstract class UserRepository {
             String username,
             String displayName,
             String emailAddress,
-            String password,
-            Set<String> privileges,
-            Set<String> userAuthorizations
+            String password
     );
 
     public void setPassword(User user, String password) {
@@ -111,67 +97,16 @@ public abstract class UserRepository {
 
     public abstract boolean isPasswordValid(User user, String password);
 
-    public abstract void recordLogin(User user, String remoteAddr);
+    /**
+     * Called by web authentication handlers when a user is authenticated
+     */
+    public abstract void updateUser(User user, AuthorizationContext authorizationContext);
 
     public abstract User setCurrentWorkspace(String userId, String workspaceId);
 
     public abstract String getCurrentWorkspaceId(String userId);
 
     public abstract User setStatus(String userId, UserStatus status);
-
-    public void addAuthorization(User user, String auth, User authUser) {
-        internalAddAuthorization(user, auth, authUser);
-        sendNotificationToUserAboutAddAuthorization(user, auth, authUser);
-        fireUserAddAuthorizationEvent(user, auth);
-    }
-
-    private void sendNotificationToUserAboutAddAuthorization(User user, String auth, User authUser) {
-        String title = "Authorization Added";
-        String message = "Authorization Added: " + auth;
-        String actionEvent = null;
-        JSONObject actionPayload = null;
-        ExpirationAge expirationAge = null;
-        UserNotification userNotification = userNotificationRepository.createNotification(
-                user.getUserId(),
-                title,
-                message,
-                actionEvent,
-                actionPayload,
-                expirationAge,
-                authUser
-        );
-        workQueueRepository.pushUserNotification(userNotification);
-    }
-
-    protected abstract void internalAddAuthorization(User user, String auth, User authUser);
-
-    public void removeAuthorization(User user, String auth, User authUser) {
-        internalRemoveAuthorization(user, auth, authUser);
-        sendNotificationToUserAboutRemoveAuthorization(user, auth, authUser);
-        fireUserRemoveAuthorizationEvent(user, auth);
-    }
-
-    private void sendNotificationToUserAboutRemoveAuthorization(User user, String auth, User authUser) {
-        String title = "Authorization Removed";
-        String message = "Authorization Removed: " + auth;
-        String actionEvent = null;
-        JSONObject actionPayload = null;
-        ExpirationAge expirationAge = null;
-        UserNotification userNotification = userNotificationRepository.createNotification(
-                user.getUserId(),
-                title,
-                message,
-                actionEvent,
-                actionPayload,
-                expirationAge,
-                authUser
-        );
-        workQueueRepository.pushUserNotification(userNotification);
-    }
-
-    protected abstract void internalRemoveAuthorization(User user, String auth, User authUser);
-
-    public abstract org.vertexium.Authorizations getAuthorizations(User user, String... additionalAuthorizations);
 
     public abstract void setDisplayName(User user, String displayName);
 
@@ -183,14 +118,14 @@ public abstract class UserRepository {
         JSONObject json = toJson(user);
 
         JSONArray authorizations = new JSONArray();
-        for (String a : getAuthorizations(user).getAuthorizations()) {
+        for (String a : authorizationRepository.getAuthorizations(user)) {
             authorizations.put(a);
         }
         json.put("authorizations", authorizations);
 
         json.put("uiPreferences", user.getUiPreferences());
 
-        Set<String> privileges = user.getPrivileges();
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         json.put("privileges", Privilege.toJson(privileges));
 
         return json;
@@ -203,7 +138,7 @@ public abstract class UserRepository {
     public ClientApiUser toClientApiPrivate(User user) {
         ClientApiUser u = toClientApi(user);
 
-        for (String a : getAuthorizations(user).getAuthorizations()) {
+        for (String a : authorizationRepository.getAuthorizations(user)) {
             u.addAuthorization(a);
         }
 
@@ -215,7 +150,7 @@ public abstract class UserRepository {
 
         u.getProperties().putAll(user.getCustomProperties());
 
-        Set<String> privileges = user.getPrivileges();
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         u.getPrivileges().addAll(privileges);
 
         return u;
@@ -232,7 +167,7 @@ public abstract class UserRepository {
         return this.longRunningProcessRepository;
     }
 
-    private ClientApiUser toClientApi(User user) {
+    public ClientApiUser toClientApi(User user) {
         return toClientApi(user, null);
     }
 
@@ -290,33 +225,9 @@ public abstract class UserRepository {
     }
 
     public SimpleOrmContext getSimpleOrmContext(User user) {
-        String[] authorizations = getAuthorizations(user).getAuthorizations();
+        Set<String> authorizationsSet = authorizationRepository.getAuthorizations(user);
+        String[] authorizations = authorizationsSet.toArray(new String[authorizationsSet.size()]);
         return getSimpleOrmContext(authorizations);
-    }
-
-    public SimpleOrmContext getSimpleOrmContext(
-            org.vertexium.Authorizations authorizations,
-            String... additionalAuthorizations
-    ) {
-        ArrayList<String> auths = new ArrayList<>();
-
-        if (authorizations.getAuthorizations() != null) {
-            for (String a : authorizations.getAuthorizations()) {
-                if (a != null && a.length() > 0) {
-                    auths.add(a);
-                }
-            }
-        }
-
-        if (additionalAuthorizations != null) {
-            for (String a : additionalAuthorizations) {
-                if (a != null && a.length() > 0) {
-                    auths.add(a);
-                }
-            }
-        }
-
-        return getSimpleOrmContext(auths.toArray(new String[auths.size()]));
     }
 
     public SimpleOrmContext getSimpleOrmContext(String... authorizations) {
@@ -331,28 +242,15 @@ public abstract class UserRepository {
             String username,
             String displayName,
             String emailAddress,
-            String password,
-            Set<String> privileges,
-            Set<String> userAuthorizations
+            String password
     ) {
-        return lockRepository.lock("findOrAddUser", new Callable<User>() {
-            @Override
-            public User call() throws Exception {
-                User user = findByUsername(username);
-                if (user == null) {
-                    user = addUser(username, displayName, emailAddress, password, privileges, userAuthorizations);
-                }
-                return user;
+        return lockRepository.lock("findOrAddUser", () -> {
+            User user = findByUsername(username);
+            if (user == null) {
+                user = addUser(username, displayName, emailAddress, password);
             }
+            return user;
         });
-    }
-
-    public Set<String> getDefaultPrivileges() {
-        return defaultPrivileges;
-    }
-
-    public Set<String> getDefaultAuthorizations() {
-        return defaultAuthorizations;
     }
 
     public final void delete(User user) {
@@ -363,51 +261,6 @@ public abstract class UserRepository {
     }
 
     protected abstract void internalDelete(User user);
-
-    public final void setPrivileges(User user, Set<String> privileges, User authUser) {
-        if (!privileges.equals(user.getPrivileges())) {
-            internalSetPrivileges(user, privileges, authUser);
-            sendNotificationToUserAboutPrivilegeChange(user, privileges, authUser);
-            fireUserPrivilegesUpdatedEvent(user, privileges);
-        }
-    }
-
-    public void setAuthorizations(User user, Set<String> authorizations, User authUser) {
-        ImmutableSet<String> currentAuthorizations = ImmutableSet.copyOf(getAuthorizations(user).getAuthorizations());
-        if (!authorizations.equals(currentAuthorizations)) {
-            Set<String> toRemoveAuthorizations = new HashSet<>(currentAuthorizations);
-            for (String auth : authorizations) {
-                if (currentAuthorizations.contains(auth)) {
-                    toRemoveAuthorizations.remove(auth);
-                } else {
-                    addAuthorization(user, auth, authUser);
-                }
-            }
-            for (String auth : toRemoveAuthorizations) {
-                removeAuthorization(user, auth, authUser);
-            }
-        }
-    }
-
-    private void sendNotificationToUserAboutPrivilegeChange(User user, Set<String> privileges, User authUser) {
-        String title = "Privileges Changed";
-        String message = "New Privileges: " + Joiner.on(", ").join(privileges);
-        String actionEvent = null;
-        JSONObject actionPayload = null;
-        ExpirationAge expirationAge = null;
-        UserNotification userNotification = userNotificationRepository.createNotification(
-                user.getUserId(),
-                title,
-                message,
-                actionEvent,
-                actionPayload,
-                expirationAge,
-                authUser
-        );
-        workQueueRepository.pushUserNotification(userNotification);
-    }
-
-    protected abstract void internalSetPrivileges(User user, Set<String> privileges, User authUser);
 
     public Iterable<User> find(String query) {
         final String lowerCaseQuery = query == null ? null : query.toLowerCase();
@@ -456,27 +309,9 @@ public abstract class UserRepository {
         }
     }
 
-    private void fireUserPrivilegesUpdatedEvent(User user, Set<String> privileges) {
+    protected void fireUserLoginEvent(User user, AuthorizationContext authorizationContext) {
         for (UserListener userListener : getUserListeners()) {
-            userListener.userPrivilegesUpdated(user, privileges);
-        }
-    }
-
-    private void fireUserAddAuthorizationEvent(User user, String auth) {
-        for (UserListener userListener : getUserListeners()) {
-            userListener.userAddAuthorization(user, auth);
-        }
-    }
-
-    private void fireUserRemoveAuthorizationEvent(User user, String auth) {
-        for (UserListener userListener : getUserListeners()) {
-            userListener.userRemoveAuthorization(user, auth);
-        }
-    }
-
-    protected void fireUserLoginEvent(User user, String remoteAddr) {
-        for (UserListener userListener : getUserListeners()) {
-            userListener.userLogin(user, remoteAddr);
+            userListener.userLogin(user, authorizationContext);
         }
     }
 
@@ -486,7 +321,7 @@ public abstract class UserRepository {
         }
     }
 
-    private Iterable<UserListener> getUserListeners() {
+    private Collection<UserListener> getUserListeners() {
         if (userListeners == null) {
             userListeners = InjectHelper.getInjectedServices(UserListener.class, configuration);
         }
@@ -494,4 +329,12 @@ public abstract class UserRepository {
     }
 
     public abstract void setPropertyOnUser(User user, String propertyName, Object value);
+
+    protected AuthorizationRepository getAuthorizationRepository() {
+        return authorizationRepository;
+    }
+
+    protected PrivilegeRepository getPrivilegeRepository() {
+        return privilegeRepository;
+    }
 }

@@ -104,9 +104,7 @@ public abstract class GraphPropertyWorkerTestBase {
 
     protected User getUser() {
         if (user == null) {
-            Set<String> privileges = Privilege.getAllBuiltIn();
-            String[] authorizations = new String[0];
-            user = new InMemoryUser("test", "Test User", "test@visallo.org", privileges, authorizations, null);
+            user = new InMemoryUser("test", "Test User", "test@visallo.org", null);
         }
         return user;
     }

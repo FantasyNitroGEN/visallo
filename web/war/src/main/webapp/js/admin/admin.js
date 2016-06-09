@@ -3,8 +3,7 @@ define([
     'configuration/plugins/registry',
     'hbs!./template',
     'util/component/attacher',
-    'tpl!util/alert',
-    './bundled/index'
+    'tpl!util/alert'
 ], function(
     defineComponent,
     registry,
@@ -20,7 +19,7 @@ define([
                 e.section && e.name && e.subtitle
         },
         'http://docs.visallo.org/extension-points/front-end/admin'
-    )
+    );
 
     return defineComponent(AdminList);
 
@@ -187,7 +186,7 @@ define([
                                         .text(component.subtitle)
                                 });
                         });
-                    })
+                    });
 
                 if (extensions.length === 0) {
                     self.$node.prepend(alertTemplate({

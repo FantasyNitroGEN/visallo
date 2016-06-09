@@ -17,7 +17,7 @@ import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
@@ -118,8 +118,8 @@ public class ApplicationBootstrap implements ServletContextListener {
 
     private void setupGraphAuthorizations() {
         LOGGER.debug("setupGraphAuthorizations");
-        AuthorizationRepository authorizationRepository = InjectHelper.getInstance(AuthorizationRepository.class);
-        authorizationRepository.addAuthorizationToGraph(
+        GraphAuthorizationRepository graphAuthorizationRepository = InjectHelper.getInstance(GraphAuthorizationRepository.class);
+        graphAuthorizationRepository.addAuthorizationToGraph(
                 VisalloVisibility.SUPER_USER_VISIBILITY_STRING,
                 UserRepository.VISIBILITY_STRING,
                 TermMentionRepository.VISIBILITY_STRING,

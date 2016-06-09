@@ -14,23 +14,12 @@ public final class Privilege {
     public static final String PUBLISH = "PUBLISH";
     public static final String ADMIN = "ADMIN";
 
-    private static final List<String> ALL_BUILT_IN;
-
     public static final Set<String> NONE = Collections.emptySet();
 
-    static {
-        List<String> allBuiltIn = new ArrayList<String>();
-        allBuiltIn.add(READ);
-        allBuiltIn.add(COMMENT);
-        allBuiltIn.add(COMMENT_EDIT_ANY);
-        allBuiltIn.add(COMMENT_DELETE_ANY);
-        allBuiltIn.add(EDIT);
-        allBuiltIn.add(PUBLISH);
-        allBuiltIn.add(ADMIN);
-        ALL_BUILT_IN = Collections.unmodifiableList(allBuiltIn);
-    }
+    private final String name;
 
-    private Privilege() {
+    public Privilege(String name) {
+        this.name = name;
     }
 
     public static Set<String> newSet(String... privileges) {
@@ -40,23 +29,9 @@ public final class Privilege {
     }
 
     private static List<String> sortPrivileges(Collection<String> privileges) {
-        List<String> results = new ArrayList<String>();
-
-        for (String builtIn : ALL_BUILT_IN) {
-            if (privileges.contains(builtIn)) {
-                results.add(builtIn);
-            }
-        }
-
         List<String> sortedPrivileges = new ArrayList<String>(privileges);
         Collections.sort(sortedPrivileges);
-        for (String privilege : privileges) {
-            if (!ALL_BUILT_IN.contains(privilege)) {
-                results.add(privilege);
-            }
-        }
-
-        return results;
+        return sortedPrivileges;
     }
 
     public static JSONArray toJson(Set<String> privileges) {
@@ -78,7 +53,7 @@ public final class Privilege {
             if (privilegesStringPart.trim().length() == 0) {
                 continue;
             }
-            privileges.add(privilegesStringPart);
+            privileges.add(privilegesStringPart.trim());
         }
         return privileges;
     }
@@ -96,7 +71,7 @@ public final class Privilege {
         return true;
     }
 
-    public static Set<String> getAllBuiltIn() {
-        return newSet(ALL_BUILT_IN.toArray(new String[ALL_BUILT_IN.size()]));
+    public String getName() {
+        return name;
     }
 }

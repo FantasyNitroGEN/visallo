@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Graph;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
@@ -17,7 +17,7 @@ public class ModelUtil {
             SimpleOrmSession simpleOrmSession,
             UserRepository userRepository,
             WorkQueueRepository workQueueRepository,
-            AuthorizationRepository authorizationRepository,
+            GraphAuthorizationRepository graphAuthorizationRepository,
             User user
     ) {
         ModelUtil.clearTables(userRepository, simpleOrmSession, user);
@@ -26,9 +26,9 @@ public class ModelUtil {
         // graph.delete(getUser());
 
         LOGGER.debug("BEGIN remove all authorizations");
-        for (String auth : authorizationRepository.getGraphAuthorizations()) {
+        for (String auth : graphAuthorizationRepository.getGraphAuthorizations()) {
             LOGGER.debug("removing auth %s", auth);
-            authorizationRepository.removeAuthorizationFromGraph(auth);
+            graphAuthorizationRepository.removeAuthorizationFromGraph(auth);
         }
         LOGGER.debug("END remove all authorizations");
 

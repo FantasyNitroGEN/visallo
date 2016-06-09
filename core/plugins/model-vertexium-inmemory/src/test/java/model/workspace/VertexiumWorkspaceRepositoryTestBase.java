@@ -1,10 +1,8 @@
 package model.workspace;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Injector;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.junit.After;
-import org.junit.Before;
 import org.mockito.Mock;
 import org.vertexium.Metadata;
 import org.vertexium.Vertex;
@@ -27,10 +25,7 @@ import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.InMemoryAuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.user.UserSessionCounterRepository;
+import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceDiffHelper;
 import org.visallo.core.model.workspace.WorkspaceHelper;
@@ -63,7 +58,7 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
     protected VertexiumWorkspaceRepository workspaceRepository;
     protected WorkspaceHelper workspaceHelper;
     protected WorkspaceUndoHelper workspaceUndoHelper;
-    protected AuthorizationRepository authorizationRepository;
+    protected GraphAuthorizationRepository graphAuthorizationRepository;
     protected GraphRepository graphRepository;
     protected UserRepository userRepository;
 
@@ -84,6 +79,9 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
     @Mock
     protected Injector injector;
 
+    protected UserPropertyAuthorizationRepository authorizationRepository;
+    protected UserPropertyPrivilegeRepository privilegeRepository;
+
     protected static class QueueUuidFallbackIdGenerator extends QueueIdGenerator {
         private IdGenerator fallbackIdGenerator = new UUIDIdGenerator(null);
 
@@ -97,56 +95,89 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
         }
     }
 
-    @Before
-    public void setup() throws Exception {
+    public void before() throws Exception {
         initMocks(this);
         InjectHelper.setInjector(injector);
 
         InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap<>());
         idGenerator = new VertexiumWorkspaceRepositoryTest.QueueUuidFallbackIdGenerator();
         graph = InMemoryGraph.create(config, idGenerator, new DefaultSearchIndex(config));
-        authorizationRepository = new InMemoryAuthorizationRepository();
+        graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
 
-        Configuration visalloConfiguration = new HashMapConfigurationLoader(new HashMap()).createConfiguration();
+        HashMap configMap = new HashMap();
+        configMap.put("org.visallo.core.model.user.UserPropertyAuthorizationRepository.defaultAuthorizations", "");
+        Configuration visalloConfiguration = new HashMapConfigurationLoader(configMap).createConfiguration();
         LockRepository lockRepository = new NonLockingLockRepository();
 
-        userRepository = new InMemoryUserRepository(
+        authorizationRepository = new UserPropertyAuthorizationRepository(
                 graph,
+                ontologyRepository,
+                visalloConfiguration,
+                userNotificationRepository,
+                workQueueRepository
+        ) {
+            @Override
+            protected UserRepository getUserRepository() {
+                return userRepository;
+            }
+        };
+
+        privilegeRepository = new UserPropertyPrivilegeRepository(
+                ontologyRepository,
+                visalloConfiguration,
+                userNotificationRepository,
+                workQueueRepository
+        ) {
+            @Override
+            protected UserRepository getUserRepository() {
+                return userRepository;
+            }
+        };
+
+        userRepository = new InMemoryUserRepository(
                 visalloConfiguration,
                 simpleOrmSession,
                 userSessionCounterRepository,
                 workQueueRepository,
-                userNotificationRepository,
-                lockRepository
+                lockRepository,
+                authorizationRepository,
+                privilegeRepository
         );
 
-        user1 = (InMemoryUser) userRepository.findOrAddUser("user1", "user1", null, "none", Sets.newHashSet(), Sets.newHashSet());
+        user1 = (InMemoryUser) userRepository.findOrAddUser("user1", "user1", null, "none");
         graph.addVertex(user1.getUserId(), DEFAULT_VISIBILITY, NO_AUTHORIZATIONS);
 
-        user2 = (InMemoryUser) userRepository.findOrAddUser("user2", "user2", null, "none", Sets.newHashSet(), Sets.newHashSet());
+        user2 = (InMemoryUser) userRepository.findOrAddUser("user2", "user2", null, "none");
         graph.addVertex(user2.getUserId(), DEFAULT_VISIBILITY, NO_AUTHORIZATIONS);
 
-        WorkspaceDiffHelper workspaceDiff = new WorkspaceDiffHelper(graph, userRepository, formulaEvaluator);
+        WorkspaceDiffHelper workspaceDiff = new WorkspaceDiffHelper(
+                graph,
+                userRepository,
+                authorizationRepository,
+                formulaEvaluator
+        );
 
         workspaceRepository = new VertexiumWorkspaceRepository(
                 graph,
                 userRepository,
-                authorizationRepository,
+                graphAuthorizationRepository,
                 workspaceDiff,
                 lockRepository,
                 VISIBILITY_TRANSLATOR,
                 termMentionRepository,
                 ontologyRepository,
-                workQueueRepository
+                workQueueRepository,
+                authorizationRepository
         );
 
         workspaceHelper = new WorkspaceHelper(
                 termMentionRepository,
-                userRepository,
                 workQueueRepository,
                 graph,
                 ontologyRepository,
-                workspaceRepository
+                workspaceRepository,
+                privilegeRepository,
+                authorizationRepository
         );
 
         workspaceUndoHelper = new WorkspaceUndoHelper(

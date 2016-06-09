@@ -58,7 +58,10 @@ public class ExternalResourceRunner {
             statusServer = startStatusServer(runningWorkers);
         }
 
-        Collection<ExternalResourceWorker> workers = InjectHelper.getInjectedServices(ExternalResourceWorker.class, config);
+        Collection<ExternalResourceWorker> workers = InjectHelper.getInjectedServices(
+                ExternalResourceWorker.class,
+                config
+        );
         for (final ExternalResourceWorker worker : workers) {
             runningWorkers.add(start(worker, user));
         }
@@ -80,14 +83,11 @@ public class ExternalResourceRunner {
 
     private RunningWorker start(final ExternalResourceWorker worker, final User user) {
         worker.prepare(user);
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    worker.run();
-                } catch (Throwable ex) {
-                    LOGGER.error("Failed running external resource worker: " + worker.getClass().getName(), ex);
-                }
+        Thread t = new Thread(() -> {
+            try {
+                worker.run();
+            } catch (Throwable ex) {
+                LOGGER.error("Failed running external resource worker: " + worker.getClass().getName(), ex);
             }
         });
         t.setName("external-resource-worker-" + worker.getClass().getSimpleName() + "-" + t.getId());

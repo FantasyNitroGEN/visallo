@@ -18,10 +18,7 @@ import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.search.SearchRepository;
-import org.visallo.core.model.user.AuthorizationMapper;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.user.UserSessionCounterRepository;
+import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.ACLProvider;
@@ -151,8 +148,8 @@ public class VisalloBootstrap extends AbstractModule {
         bind(WorkspaceRepository.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.WORKSPACE_REPOSITORY))
                 .in(Scopes.SINGLETON);
-        bind(AuthorizationRepository.class)
-                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.AUTHORIZATION_REPOSITORY))
+        bind(GraphAuthorizationRepository.class)
+                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.GRAPH_AUTHORIZATION_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(OntologyRepository.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.ONTOLOGY_REPOSITORY))
@@ -178,8 +175,11 @@ public class VisalloBootstrap extends AbstractModule {
         bind(FileSystemRepository.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.FILE_SYSTEM_REPOSITORY))
                 .in(Scopes.SINGLETON);
-        bind(AuthorizationMapper.class)
-                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.AUTHORIZATION_MAPPER))
+        bind(AuthorizationRepository.class)
+                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.AUTHORIZATION_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(PrivilegeRepository.class)
+                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.PRIVILEGE_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(TimeRepository.class)
                 .toInstance(new TimeRepository());
@@ -236,7 +236,6 @@ public class VisalloBootstrap extends AbstractModule {
             checkVisalloGraphVersion(g);
 
             getShutdownService().register(new GraphShutdownListener(g));
-
             return g;
         };
     }

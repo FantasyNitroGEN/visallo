@@ -9,8 +9,8 @@ import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.InMemoryAuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
+import org.visallo.core.model.user.InMemoryGraphAuthorizationRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
@@ -43,7 +43,7 @@ public abstract class GraphPropertyWorkerTestSetupBase {
     protected WorkspaceRepository workspaceRepository;
     @Mock
     protected WorkQueueRepository workQueueRepository;
-    protected AuthorizationRepository authorizationRepository;
+    protected GraphAuthorizationRepository graphAuthorizationRepository;
     protected TermMentionRepository termMentionRepository;
     protected Map<String, String> configuration = new HashMap<>();
     protected InMemoryAuthorizations authorizations;
@@ -86,8 +86,8 @@ public abstract class GraphPropertyWorkerTestSetupBase {
         visibilityJson.setSource(VISIBILITY_SOURCE);
         visibilityJson.addWorkspace(WORKSPACE_ID);
         visibilityTranslator = new DirectVisibilityTranslator();
-        authorizationRepository = new InMemoryAuthorizationRepository();
-        termMentionRepository = new TermMentionRepository(graph, authorizationRepository);
+        graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
+        termMentionRepository = new TermMentionRepository(graph, graphAuthorizationRepository);
 
         worker = createGraphPropertyWorker();
         worker.setVisibilityTranslator(visibilityTranslator);

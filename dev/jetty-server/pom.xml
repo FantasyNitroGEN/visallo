@@ -53,6 +53,11 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-plugins-admin-user-property-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-web-admin-import-rdf</artifactId>
             <version>${project.version}</version>
         </dependency>

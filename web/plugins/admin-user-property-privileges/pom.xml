@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>visallo-web-plugin-base</artifactId>
+        <groupId>org.visallo</groupId>
+        <version>2.1-SNAPSHOT</version>
+        <relativePath>../../web-plugin-base</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>visallo-web-plugins-admin-user-property-privileges</artifactId>
+    <name>Visallo: Web: Plugin: Admin User Tools: User Property Privileges</name>
+
+</project>

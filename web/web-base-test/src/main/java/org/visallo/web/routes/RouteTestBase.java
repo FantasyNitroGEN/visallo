@@ -31,7 +31,10 @@ import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -105,17 +108,8 @@ public abstract class RouteTestBase {
         visibilityTranslator = createVisibilityTranslator();
         resourceBundle = createResourceBundle();
 
-        Set<String> privileges = new HashSet<>();
-        String[] authorizations = new String[0];
         String currentWorkspaceId = null;
-        nonProxiedUser = new InMemoryUser(
-                "jdoe",
-                "Jane Doe",
-                "jane.doe@email.com",
-                privileges,
-                authorizations,
-                currentWorkspaceId
-        );
+        nonProxiedUser = new InMemoryUser("jdoe", "Jane Doe", "jane.doe@email.com", currentWorkspaceId);
         when(userRepository.findById(eq(USER_ID))).thenReturn(nonProxiedUser);
 
         sessionUser = new SessionUser(USER_ID);

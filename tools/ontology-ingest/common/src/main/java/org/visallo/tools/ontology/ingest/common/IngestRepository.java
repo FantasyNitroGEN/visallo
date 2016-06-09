@@ -7,9 +7,9 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.VisibilityTranslator;
-import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.PropertyType;
@@ -20,15 +20,14 @@ import java.util.*;
 
 public class IngestRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(IngestRepository.class);
+    private final Graph graph;
+    private final AuthorizationRepository authorizationRepository;
+    private final VisibilityTranslator visibilityTranslator;
+    private final OntologyRepository ontologyRepository;
 
-    private Graph graph;
-    private UserRepository userRepository;
-    private VisibilityTranslator visibilityTranslator;
-    private OntologyRepository ontologyRepository;
-
-    private Set<Class> verifiedClasses = new HashSet<>();
-    private Set<String> verifiedRelationshipConcepts = new HashSet<>();
-    private Set<String> verifiedClassProperties = new HashSet<>();
+    private final Set<Class> verifiedClasses = new HashSet<>();
+    private final Set<String> verifiedRelationshipConcepts = new HashSet<>();
+    private final Set<String> verifiedClassProperties = new HashSet<>();
 
     private IngestOptions defaultIngestOptions;
 
@@ -36,14 +35,14 @@ public class IngestRepository {
     public IngestRepository(
             Graph graph,
             UserRepository userRepository,
+            AuthorizationRepository authorizationRepository,
             VisibilityTranslator visibilityTranslator,
             OntologyRepository ontologyRepository
     ) throws JsonProcessingException {
         this.graph = graph;
-        this.userRepository = userRepository;
+        this.authorizationRepository = authorizationRepository;
         this.visibilityTranslator = visibilityTranslator;
         this.ontologyRepository = ontologyRepository;
-
         defaultIngestOptions = new IngestOptions(userRepository.getSystemUser());
     }
 
@@ -92,8 +91,16 @@ public class IngestRepository {
 
     private Vertex save(IngestOptions ingestOptions, ConceptBuilder conceptBuilder) {
         Visibility conceptVisibility = getVisibility(ingestOptions, conceptBuilder.getVisibility());
-        VertexBuilder vertexBuilder = graph.prepareVertex(conceptBuilder.getId(), getTimestamp(ingestOptions, conceptBuilder.getTimestamp()), conceptVisibility);
-        vertexBuilder.setProperty(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptBuilder.getIri(), visibilityTranslator.getDefaultVisibility());
+        VertexBuilder vertexBuilder = graph.prepareVertex(
+                conceptBuilder.getId(),
+                getTimestamp(ingestOptions, conceptBuilder.getTimestamp()),
+                conceptVisibility
+        );
+        vertexBuilder.setProperty(
+                VisalloProperties.CONCEPT_TYPE.getPropertyName(),
+                conceptBuilder.getIri(),
+                visibilityTranslator.getDefaultVisibility()
+        );
 
         addProperties(ingestOptions, vertexBuilder, conceptBuilder);
 
@@ -118,7 +125,11 @@ public class IngestRepository {
         return edgeBuilder.save(getAuthorizations(ingestOptions));
     }
 
-    private void addProperties(IngestOptions ingestOptions, ElementBuilder elementBuilder, EntityBuilder entityBuilder) {
+    private void addProperties(
+            IngestOptions ingestOptions,
+            ElementBuilder elementBuilder,
+            EntityBuilder entityBuilder
+    ) {
         for (PropertyAddition<?> propertyAddition : entityBuilder.getPropertyAdditions()) {
             if (propertyAddition.getValue() != null) {
                 elementBuilder.addPropertyValue(
@@ -159,7 +170,12 @@ public class IngestRepository {
 
         String cacheKey = getRelationshipConceptCacheKey(builder);
         if (!verifiedRelationshipConcepts.contains(cacheKey)) {
-            LOGGER.trace("Validating Relationship In/Out on %s: %s => %s", builder.getIri(), builder.getOutVertexIri(), builder.getInVertexIri());
+            LOGGER.trace(
+                    "Validating Relationship In/Out on %s: %s => %s",
+                    builder.getIri(),
+                    builder.getOutVertexIri(),
+                    builder.getInVertexIri()
+            );
             Relationship relationship = ontologyRepository.getRelationshipByIRI(builder.getIri());
             List<String> domainConceptIRIs = relationship.getDomainConceptIRIs();
             List<String> outVertexAndParentIris = getConceptIriWithParents(builder.getOutVertexIri());
@@ -195,7 +211,10 @@ public class IngestRepository {
         return conceptIriWithParents;
     }
 
-    private ValidationResult validateProperties(EntityBuilder entityBuilder, Set<PropertyAddition<?>> propertyAdditions) {
+    private ValidationResult validateProperties(
+            EntityBuilder entityBuilder,
+            Set<PropertyAddition<?>> propertyAdditions
+    ) {
         return propertyAdditions.stream()
                 .map(propertyAddition -> validateProperty(entityBuilder, propertyAddition))
                 .filter(validationResult -> !validationResult.isValid())
@@ -286,9 +305,21 @@ public class IngestRepository {
 
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), defaultVisibility);
-        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, ingestOptions.getIngestUser().getUserId(), defaultVisibility);
-        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, defaultVisibility);
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, new VisibilityJson(visibilitySource), defaultVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(
+                metadata,
+                ingestOptions.getIngestUser().getUserId(),
+                defaultVisibility
+        );
+        VisalloProperties.CONFIDENCE_METADATA.setMetadata(
+                metadata,
+                GraphRepository.SET_PROPERTY_CONFIDENCE,
+                defaultVisibility
+        );
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(
+                metadata,
+                new VisibilityJson(visibilitySource),
+                defaultVisibility
+        );
 
         if (ingestOptions.getDefaultMetadata() != null) {
             ingestOptions.getDefaultMetadata().forEach((k, v) -> metadata.add(k, v, defaultVisibility));
@@ -302,7 +333,7 @@ public class IngestRepository {
     }
 
     private Authorizations getAuthorizations(IngestOptions ingestOptions) {
-        return userRepository.getAuthorizations(ingestOptions.getIngestUser());
+        return authorizationRepository.getGraphAuthorizations(ingestOptions.getIngestUser());
     }
 
     public static class ValidationResult {

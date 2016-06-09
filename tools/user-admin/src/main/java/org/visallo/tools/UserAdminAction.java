@@ -10,8 +10,6 @@ public enum UserAdminAction {
     CMD_ACTION_EXPORT_PASSWORDS("export-passwords"),
     CMD_ACTION_UPDATE_PASSWORD("update-password"),
     CMD_ACTION_DELETE("delete"),
-    CMD_ACTION_SET_PRIVILEGES("set-privileges"),
-    CMD_ACTION_SET_AUTHORIZATIONS("set-authorizations"),
     CMD_ACTION_SET_DISPLAYNAME_EMAIL("set-displayname-and-or-email");
 
     private final String commandLineString;

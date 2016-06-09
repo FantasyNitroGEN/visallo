@@ -18,21 +18,36 @@ public class UserParameterProviderFactory extends ParameterProviderFactory<User>
 
     @Inject
     public UserParameterProviderFactory(UserRepository userRepository, Configuration configuration) {
-        parameterProvider = new VisalloBaseParameterProvider<User>(userRepository, configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<User>(
+                userRepository,
+                configuration
+        ) {
             @Override
-            public User getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
+            public User getParameter(
+                    HttpServletRequest request,
+                    HttpServletResponse response,
+                    HandlerChain chain
+            ) {
                 return getUser(request);
             }
         };
     }
 
     @Override
-    public boolean isHandled(Method handleMethod, Class<? extends User> parameterType, Annotation[] parameterAnnotations) {
+    public boolean isHandled(
+            Method handleMethod,
+            Class<? extends User> parameterType,
+            Annotation[] parameterAnnotations
+    ) {
         return User.class.isAssignableFrom(parameterType);
     }
 
     @Override
-    public ParameterProvider<User> createParameterProvider(Method handleMethod, Class<?> parameterType, Annotation[] parameterAnnotations) {
+    public ParameterProvider<User> createParameterProvider(
+            Method handleMethod,
+            Class<?> parameterType,
+            Annotation[] parameterAnnotations
+    ) {
         return parameterProvider;
     }
 }

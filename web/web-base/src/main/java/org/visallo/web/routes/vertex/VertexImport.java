@@ -51,6 +51,7 @@ public class VertexImport implements ParameterizedHandler {
     private final FileImport fileImport;
     private final WorkspaceRepository workspaceRepository;
     private final VisibilityTranslator visibilityTranslator;
+    private final WorkspaceHelper workspaceHelper;
     private Authorizations authorizations;
 
     @Inject
@@ -58,12 +59,14 @@ public class VertexImport implements ParameterizedHandler {
             Graph graph,
             FileImport fileImport,
             WorkspaceRepository workspaceRepository,
-            VisibilityTranslator visibilityTranslator
+            VisibilityTranslator visibilityTranslator,
+            WorkspaceHelper workspaceHelper
     ) {
         this.graph = graph;
         this.fileImport = fileImport;
         this.workspaceRepository = workspaceRepository;
         this.visibilityTranslator = visibilityTranslator;
+        this.workspaceHelper = workspaceHelper;
     }
 
     protected static String getFilename(Part part) {
@@ -103,7 +106,7 @@ public class VertexImport implements ParameterizedHandler {
             throw new BadRequestException("file", "Could not process request without multi-part content");
         }
 
-        workspaceId = WorkspaceHelper.getWorkspaceIdOrNullIfPublish(workspaceId, shouldPublish, user);
+        workspaceId = workspaceHelper.getWorkspaceIdOrNullIfPublish(workspaceId, shouldPublish, user);
 
         this.authorizations = authorizations;
 
@@ -164,11 +167,15 @@ public class VertexImport implements ParameterizedHandler {
                 addConceptIdToFilesList(files, conceptIndex.getAndIncrement(), conceptId);
             } else if (part.getName().equals("properties")) {
                 String propertiesString = IOUtils.toString(part.getInputStream(), "UTF8");
-                ClientApiImportProperty[] properties = convertPropertiesStringToClientApiImportProperties(propertiesString);
+                ClientApiImportProperty[] properties = convertPropertiesStringToClientApiImportProperties(
+                        propertiesString);
                 addPropertiesToFilesList(files, propertiesIndex.getAndIncrement(), properties);
             } else if (part.getName().equals("visibilitySource")) {
                 String visibilitySource = IOUtils.toString(part.getInputStream(), "UTF8");
-                if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
+                if (!graph.isVisibilityValid(
+                        visibilityTranslator.toVisibility(visibilitySource).getVisibility(),
+                        authorizations
+                )) {
                     invalidVisibilities.add(visibilitySource);
                 }
                 addVisibilityToFilesList(files, visibilitySourceIndex.getAndIncrement(), visibilitySource);
@@ -176,8 +183,16 @@ public class VertexImport implements ParameterizedHandler {
         }
 
         if (invalidVisibilities.size() > 0) {
-            LOGGER.warn("%s is not a valid visibility for %s user", invalidVisibilities.toString(), user.getDisplayName());
-            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"), invalidVisibilities);
+            LOGGER.warn(
+                    "%s is not a valid visibility for %s user",
+                    invalidVisibilities.toString(),
+                    user.getDisplayName()
+            );
+            throw new BadRequestException(
+                    "visibilitySource",
+                    resourceBundle.getString("visibility.invalid"),
+                    invalidVisibilities
+            );
         }
 
         return files;
@@ -198,7 +213,11 @@ public class VertexImport implements ParameterizedHandler {
         return clientApiProperties;
     }
 
-    protected void addPropertiesToFilesList(List<FileImport.FileOptions> files, int index, ClientApiImportProperty[] properties) {
+    protected void addPropertiesToFilesList(
+            List<FileImport.FileOptions> files,
+            int index,
+            ClientApiImportProperty[] properties
+    ) {
         ensureFilesSize(files, index);
         if (properties != null && properties.length > 0) {
             files.get(index).setProperties(properties);

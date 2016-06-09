@@ -69,27 +69,6 @@ define([
             });
         },
 
-        userUpdatePrivileges: function(userName, privileges) {
-            return ajax('POST', '/user/privileges/update', {
-                'user-name': userName,
-                privileges: _.isArray(privileges) ? privileges.join(',') : privileges
-            });
-        },
-
-        userAuthAdd: function(userName, auth) {
-            return ajax('POST', '/user/auth/add', {
-                'user-name': userName,
-                auth: auth
-            });
-        },
-
-        userAuthRemove: function(userName, auth) {
-            return ajax('POST', '/user/auth/remove', {
-                'user-name': userName,
-                auth: auth
-            });
-        },
-
         workspaceShare: function(workspaceId, userName) {
             return ajax('POST', '/workspace/shareWithMe', {
                 'user-name': userName,

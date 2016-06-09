@@ -13,7 +13,8 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
@@ -35,47 +36,59 @@ public class WorkspaceHelper {
     //TODO fix this key when there's a migration capability
     private static final String DETECTED_OBJECT_MULTI_VALUE_KEY_PREFIX = "org.visallo.web.routes.vertex.ResolveDetectedObject";
     private final TermMentionRepository termMentionRepository;
-    private final UserRepository userRepository;
     private final WorkQueueRepository workQueueRepository;
     private final Graph graph;
     private final OntologyRepository ontologyRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final PrivilegeRepository privilegeRepository;
     private String entityHasImageIri;
+    private final AuthorizationRepository authorizationRepository;
     private String artifactContainsImageOfEntityIri;
 
     @Inject
     public WorkspaceHelper(
-            final TermMentionRepository termMentionRepository,
-            final UserRepository userRepository,
-            final WorkQueueRepository workQueueRepository,
-            final Graph graph,
-            final OntologyRepository ontologyRepository,
-            final WorkspaceRepository workspaceRepository
+            TermMentionRepository termMentionRepository,
+            WorkQueueRepository workQueueRepository,
+            Graph graph,
+            OntologyRepository ontologyRepository,
+            WorkspaceRepository workspaceRepository,
+            PrivilegeRepository privilegeRepository,
+            AuthorizationRepository authorizationRepository
     ) {
         this.termMentionRepository = termMentionRepository;
-        this.userRepository = userRepository;
         this.workQueueRepository = workQueueRepository;
         this.graph = graph;
         this.ontologyRepository = ontologyRepository;
         this.workspaceRepository = workspaceRepository;
-
+        this.privilegeRepository = privilegeRepository;
+        this.authorizationRepository = authorizationRepository;
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
+
         if (this.entityHasImageIri == null) {
             LOGGER.warn("'entityHasImage' intent has not been defined. Please update your ontology.");
         }
 
-        this.artifactContainsImageOfEntityIri = ontologyRepository.getRelationshipIRIByIntent("artifactContainsImageOfEntity");
+        this.artifactContainsImageOfEntityIri = ontologyRepository.getRelationshipIRIByIntent(
+                "artifactContainsImageOfEntity");
         if (this.artifactContainsImageOfEntityIri == null) {
             LOGGER.warn("'artifactContainsImageOfEntity' intent has not been defined. Please update your ontology.");
         }
     }
 
-    public static String getWorkspaceIdOrNullIfPublish(String workspaceId, boolean shouldPublish, User user) {
+    public String getWorkspaceIdOrNullIfPublish(
+            String workspaceId,
+            boolean shouldPublish,
+            User user
+    ) {
         if (shouldPublish) {
-            if (user.getPrivileges().contains(Privilege.PUBLISH)) {
+            if (privilegeRepository.hasPrivilege(user, Privilege.PUBLISH)) {
                 workspaceId = null;
             } else {
-                throw new VisalloAccessDeniedException("The publish parameter was sent in the request, but the user does not have publish privilege.", user, "publish");
+                throw new VisalloAccessDeniedException(
+                        "The publish parameter was sent in the request, but the user does not have publish privilege.",
+                        user,
+                        "publish"
+                );
             }
         } else if (workspaceId == null) {
             throw new VisalloException("workspaceId parameter required");
@@ -104,7 +117,14 @@ public class WorkspaceHelper {
         graph.flush();
     }
 
-    public void deleteProperty(Element e, Property property, boolean propertyIsPublic, String workspaceId, Priority priority, Authorizations authorizations) {
+    public void deleteProperty(
+            Element e,
+            Property property,
+            boolean propertyIsPublic,
+            String workspaceId,
+            Priority priority,
+            Authorizations authorizations
+    ) {
         long beforeActionTimestamp = System.currentTimeMillis() - 1;
         ElementOrPropertyStatus status;
         if (propertyIsPublic && workspaceId != null) {
@@ -157,7 +177,11 @@ public class WorkspaceHelper {
                 }
             }
 
-            for (Vertex termMention : termMentionRepository.findByEdgeId(outVertex.getId(), edge.getId(), authorizations)) {
+            for (Vertex termMention : termMentionRepository.findByEdgeId(
+                    outVertex.getId(),
+                    edge.getId(),
+                    authorizations
+            )) {
                 termMentionRepository.markHidden(termMention, workspaceVisibility, authorizations);
                 workQueueRepository.pushTextUpdated(outVertex.getId());
             }
@@ -175,7 +199,11 @@ public class WorkspaceHelper {
                 }
             }
 
-            for (Vertex termMention : termMentionRepository.findByEdgeId(outVertex.getId(), edge.getId(), authorizations)) {
+            for (Vertex termMention : termMentionRepository.findByEdgeId(
+                    outVertex.getId(),
+                    edge.getId(),
+                    authorizations
+            )) {
                 termMentionRepository.delete(termMention, authorizations);
                 workQueueRepository.pushTextUpdated(outVertex.getId());
             }
@@ -190,16 +218,19 @@ public class WorkspaceHelper {
             this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
         }
         if (this.artifactContainsImageOfEntityIri == null) {
-            this.artifactContainsImageOfEntityIri = ontologyRepository.getRelationshipIRIByIntent("artifactContainsImageOfEntity");
+            this.artifactContainsImageOfEntityIri = ontologyRepository.getRelationshipIRIByIntent(
+                    "artifactContainsImageOfEntity");
         }
     }
 
-    public void deleteProperties(Element e,
-                                 String propertyKey,
-                                 String propertyName,
-                                 OntologyProperty ontologyProperty,
-                                 String workspaceId,
-                                 Authorizations authorizations, User user) {
+    public void deleteProperties(
+            Element e,
+            String propertyKey,
+            String propertyName,
+            OntologyProperty ontologyProperty,
+            String workspaceId,
+            Authorizations authorizations, User user
+    ) {
         List<Property> properties = new ArrayList<>();
         properties.addAll(toList(e.getProperties(propertyKey, propertyName)));
 
@@ -210,15 +241,32 @@ public class WorkspaceHelper {
         }
 
         if (properties.size() == 0) {
-            throw new VisalloResourceNotFoundException(String.format("Could not find property %s:%s on %s", propertyName, propertyKey, e));
+            throw new VisalloResourceNotFoundException(String.format(
+                    "Could not find property %s:%s on %s",
+                    propertyName,
+                    propertyKey,
+                    e
+            ));
         }
 
         if (workspaceId != null) {
             if (e instanceof Edge) {
                 Edge edge = (Edge) e;
                 // add the vertex to the workspace so that the changes show up in the diff panel
-                workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);
-                workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.OUT), null, null, user);
+                workspaceRepository.updateEntityOnWorkspace(
+                        workspaceId,
+                        edge.getVertexId(Direction.IN),
+                        null,
+                        null,
+                        user
+                );
+                workspaceRepository.updateEntityOnWorkspace(
+                        workspaceId,
+                        edge.getVertexId(Direction.OUT),
+                        null,
+                        null,
+                        user
+                );
             } else if (e instanceof Vertex) {
                 // add the vertex to the workspace so that the changes show up in the diff panel
                 workspaceRepository.updateEntityOnWorkspace(workspaceId, e.getId(), null, null, user);
@@ -247,8 +295,21 @@ public class WorkspaceHelper {
         }
     }
 
-    public void deleteVertex(Vertex vertex, String workspaceId, boolean isPublicVertex, Priority priority, Authorizations authorizations, User user) {
-        LOGGER.debug("BEGIN deleteVertex(vertexId: %s, workspaceId: %s, isPublicVertex: %b, user: %s)", vertex.getId(), workspaceId, isPublicVertex, user.getUsername());
+    public void deleteVertex(
+            Vertex vertex,
+            String workspaceId,
+            boolean isPublicVertex,
+            Priority priority,
+            Authorizations authorizations,
+            User user
+    ) {
+        LOGGER.debug(
+                "BEGIN deleteVertex(vertexId: %s, workspaceId: %s, isPublicVertex: %b, user: %s)",
+                vertex.getId(),
+                workspaceId,
+                isPublicVertex,
+                user.getUsername()
+        );
         ensureOntologyIrisInitialized();
         long beforeActionTimestamp = System.currentTimeMillis() - 1;
 
@@ -315,7 +376,11 @@ public class WorkspaceHelper {
         } else {
             // because we store workspaces with an added visibility we need to delete them with that added authorizations.
             LOGGER.debug("soft delete edges");
-            Authorizations systemAuthorization = userRepository.getAuthorizations(user, WorkspaceRepository.VISIBILITY_STRING, workspaceId);
+            Authorizations systemAuthorization = authorizationRepository.getGraphAuthorizations(
+                    user,
+                    WorkspaceRepository.VISIBILITY_STRING,
+                    workspaceId
+            );
             Vertex workspaceVertex = graph.getVertex(workspaceId, systemAuthorization);
             for (Edge edge : workspaceVertex.getEdges(vertex, Direction.BOTH, systemAuthorization)) {
                 graph.softDeleteEdge(edge, systemAuthorization);
@@ -351,9 +416,18 @@ public class WorkspaceHelper {
             Priority priority,
             Authorizations authorizations
     ) {
-        for (ArtifactDetectedObject artifactDetectedObject : VisalloProperties.DETECTED_OBJECT.getPropertyValues(outVertex)) {
+        for (ArtifactDetectedObject artifactDetectedObject : VisalloProperties.DETECTED_OBJECT.getPropertyValues(
+                outVertex)) {
             if (edge.getId().equals(artifactDetectedObject.getEdgeId())) {
-                unresolveDetectedObject(artifactDetectedObject, workspaceId, edge, outVertex, inVertex, priority, authorizations);
+                unresolveDetectedObject(
+                        artifactDetectedObject,
+                        workspaceId,
+                        edge,
+                        outVertex,
+                        inVertex,
+                        priority,
+                        authorizations
+                );
             }
         }
     }
