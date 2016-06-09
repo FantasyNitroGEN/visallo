@@ -47,7 +47,7 @@ define([
                         config.canEdit = config.property.updateable !== false;
                         config.canDelete = config.property.deleteable !== false;
                     }
-                } else if (Privileges.canEDIT && visalloData.currentWorkspaceEditable) {
+                } else if (!config.isComment && Privileges.canEDIT && visalloData.currentWorkspaceEditable) {
                     config.canAdd = config.property.addable !== false;
                     config.canEdit = config.property.updateable !== false;
                     config.canDelete = config.property.deleteable !== false &&
