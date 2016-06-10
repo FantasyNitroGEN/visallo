@@ -315,7 +315,12 @@ define([
             if (search) {
                 title += ': ' + search.name;
             }
-            this.attr.item.title = title;
+
+            if (this.attr.item.title === this.attr.item.configuration.initialTitle) {
+                this.attr.item.title = title;
+                this.trigger('cardTitleChanged', { title: title });
+            }
+
             this.attr.item.configuration.initialTitle = title;
         };
 

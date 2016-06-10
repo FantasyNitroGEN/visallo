@@ -41,6 +41,10 @@ define(['flight/lib/component'], function(defineComponent) {
             this.on('keyup change', {
                 inputSelector: this.onChange
             });
+
+            this.$node.closest('.dashboardConfigurePopover').on('cardTitleChanged', function(event, data) {
+                self.select('inputSelector').val(data.title);
+            });
         });
 
         this.hasCustomTitle = function() {
