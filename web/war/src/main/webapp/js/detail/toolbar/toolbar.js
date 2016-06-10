@@ -299,7 +299,10 @@ define([
         };
 
         this.addPropertyToolbarItem = function(model, acl) {
-            var hasAddableProperties = _.where(acl.propertyAcls, { addable: true }).length > 0,
+            var propertyAcls = _.reject(acl.propertyAcls, function(property) {
+                    return property.name === 'http://visallo.org/comment#entry';
+                }),
+                hasAddableProperties = _.where(propertyAcls, { addable: true }).length > 0,
                 disableAdd = (model.hasOwnProperty('updateable') && !model.updateable) || !hasAddableProperties;
 
             if (!disableAdd) {
