@@ -131,7 +131,7 @@ define([
             applyTo: { displayType: 'image', constraints: ['width'] },
             identifier: 'org.visallo.layout.body',
             children: [
-                { componentPath: 'detail/image/image' },
+                { componentPath: 'detail/image/image', className: 'org-visallo-image'},
                 { componentPath: 'detail/detectedObjects/detectedObjects' },
                 { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
