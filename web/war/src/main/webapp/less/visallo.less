@@ -410,3 +410,9 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"], in
 .btn-link:focus {
   outline: none;
 }
+
+// fix for IE displaying it's own "x" in text areas to clear text
+::-ms-clear {
+  width : 0;
+  height: 0;
+}
