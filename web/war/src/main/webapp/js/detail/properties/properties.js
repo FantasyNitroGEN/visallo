@@ -311,23 +311,24 @@ define([
                     F.vertex.isEdge(this.data) ? 'edge' : 'vertex',
                     'deleteProperty',
                     vertexId, data.property
-                ).then(this.closePropertyForm.bind(this))
-                 .catch(this.requestFailure.bind(this, event.target))
+                ).then(this.closePropertyForm.bind(this, data.node))
+                 .catch(function(error) { self.requestFailure.call(self, error, data.node) })
         };
 
         this.onAddProperty = function(event, data) {
+            var self = this;
             var vertexId = data.vertexId || this.data.id;
 
             if (data.property.name === 'http://visallo.org#visibilityJson') {
                 var visibilitySource = data.property.visibilitySource || '';
                 if (data.isEdge) {
                     this.dataRequest('edge', 'setVisibility', vertexId, visibilitySource)
-                        .then(this.closePropertyForm.bind(this))
-                        .catch(this.requestFailure.bind(this))
+                        .then(this.closePropertyForm.bind(this, data.node))
+                        .catch(function(error) { self.requestFailure.call(self, error, data.node) })
                 } else {
                     this.dataRequest('vertex', 'setVisibility', vertexId, visibilitySource)
-                        .then(this.closePropertyForm.bind(this))
-                        .catch(this.requestFailure.bind(this));
+                        .then(this.closePropertyForm.bind(this, data.node))
+                        .catch(function(error) { self.requestFailure.call(self, error, data.node) });
                 }
             } else {
                 this.dataRequest(
@@ -335,18 +336,18 @@ define([
                     'setProperty',
                     vertexId,
                     data.property)
-                    .then(this.closePropertyForm.bind(this))
-                    .catch(this.requestFailure.bind(this));
+                    .then(this.closePropertyForm.bind(this, data.node))
+                    .catch(function(error) { self.requestFailure.call(self, error, data.node) });
             }
 
         };
 
-        this.closePropertyForm = function() {
-            this.$node.find('.underneath').teardownComponent(PropertyForm);
+        this.closePropertyForm = function(node) {
+            $(node).teardownComponent(PropertyForm);
         };
 
-        this.requestFailure = function(error) {
-            var target = this.$node.find('.underneath');
+        this.requestFailure = function(error, node) {
+            var target = $(node);
             this.trigger(target, 'propertyerror', { error: error });
         };
 

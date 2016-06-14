@@ -563,7 +563,8 @@ define([
             _.defer(this.buttonLoading.bind(this, this.attr.deleteButtonSelector));
             this.trigger('deleteProperty', {
                 vertexId: this.attr.data.id,
-                property: _.pick(this.currentProperty, 'key', 'name')
+                property: _.pick(this.currentProperty, 'key', 'name'),
+                node: this.node
             });
         };
 
@@ -607,7 +608,8 @@ define([
                             visibilitySource: this.visibilitySource.value,
                             oldVisibilitySource: oldVisibilitySource,
                             metadata: this.currentMetadata
-                        }, justification)
+                        }, justification),
+                    node: this.node
                 });
             }
         };
