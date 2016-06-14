@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.visallo.core.util.StreamUtil.stream;
 
 public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApiConverter {
     public static final EnumSet<FetchHint> SEARCH_FETCH_HINTS = EnumSet.of(
@@ -29,26 +30,23 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
     );
     private static final int HISTORICAL_PROPERTY_MAX_SPV_SIZE = 2000;
 
-    public static ClientApiTermMentionsResponse toTermMentionsResponse(
-            Iterable<Vertex> termMentions,
-            String workspaceId,
-            Authorizations authorizations
-    ) {
-        ClientApiTermMentionsResponse termMentionsResponse = new ClientApiTermMentionsResponse();
-        for (ClientApiElement element : toClientApi(termMentions, workspaceId, authorizations)) {
-            termMentionsResponse.getTermMentions().add(element);
-        }
-        return termMentionsResponse;
-    }
-
     public static List<ClientApiElement> toClientApi(
             Iterable<? extends org.vertexium.Element> elements,
             String workspaceId,
             Authorizations authorizations
     ) {
+        return toClientApi(elements, workspaceId, false, authorizations);
+    }
+
+    public static List<ClientApiElement> toClientApi(
+            Iterable<? extends org.vertexium.Element> elements,
+            String workspaceId,
+            boolean includeEdgeInfos,
+            Authorizations authorizations
+    ) {
         List<ClientApiElement> clientApiElements = new ArrayList<>();
         for (org.vertexium.Element element : elements) {
-            clientApiElements.add(toClientApi(element, workspaceId, authorizations));
+            clientApiElements.add(toClientApi(element, workspaceId, includeEdgeInfos, authorizations));
         }
         return clientApiElements;
     }
@@ -70,9 +68,18 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             String workspaceId,
             Authorizations authorizations
     ) {
+        return toClientApi(element, workspaceId, false, authorizations);
+    }
+
+    public static ClientApiElement toClientApi(
+            org.vertexium.Element element,
+            String workspaceId,
+            boolean includeEdgeInfos,
+            Authorizations authorizations
+    ) {
         checkNotNull(element, "element cannot be null");
         if (element instanceof Vertex) {
-            return toClientApiVertex((Vertex) element, workspaceId, authorizations);
+            return toClientApiVertex((Vertex) element, workspaceId, null, includeEdgeInfos, authorizations);
         }
         if (element instanceof Edge) {
             return toClientApiEdge((Edge) element, workspaceId);
@@ -80,8 +87,21 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         throw new RuntimeException("Unexpected element type: " + element.getClass().getName());
     }
 
-    public static ClientApiVertex toClientApiVertex(Vertex vertex, String workspaceId, Authorizations authorizations) {
+    public static ClientApiVertex toClientApiVertex(
+            Vertex vertex,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         return toClientApiVertex(vertex, workspaceId, null, authorizations);
+    }
+
+    public static ClientApiVertex toClientApiVertex(
+            Vertex vertex,
+            String workspaceId,
+            Integer commonCount,
+            Authorizations authorizations
+    ) {
+        return toClientApiVertex(vertex, workspaceId, commonCount, false, authorizations);
     }
 
     /**
@@ -91,14 +111,21 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             Vertex vertex,
             String workspaceId,
             Integer commonCount,
+            boolean includeEdgeInfos,
             Authorizations authorizations
     ) {
         checkNotNull(vertex, "vertex is required");
         ClientApiVertex v = new ClientApiVertex();
 
-        List<String> vertexEdgeLabels = getVertexEdgeLabels(vertex, authorizations);
-        if (vertexEdgeLabels != null) {
-            v.getEdgeLabels().addAll(vertexEdgeLabels);
+        if (authorizations != null) {
+            stream(vertex.getEdgeLabels(Direction.BOTH, authorizations))
+                    .forEach(v::addEdgeLabel);
+
+            if (includeEdgeInfos) {
+                stream(vertex.getEdgeInfos(Direction.BOTH, authorizations))
+                        .map(ClientApiConverter::toClientApi)
+                        .forEach(v::addEdgeInfo);
+            }
         }
 
         populateClientApiElement(v, vertex, workspaceId);
@@ -106,13 +133,12 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return v;
     }
 
-    private static List<String> getVertexEdgeLabels(Vertex vertex, Authorizations authorizations) {
-        checkNotNull(vertex, "vertex is required");
-        if (authorizations == null) {
-            return null;
-        }
-        Iterable<String> edgeLabels = vertex.getEdgeLabels(Direction.BOTH, authorizations);
-        return IterableUtils.toList(edgeLabels);
+    private static ClientApiEdgeInfo toClientApi(EdgeInfo edgeInfo) {
+        return new ClientApiEdgeInfo(
+                edgeInfo.getEdgeId(),
+                edgeInfo.getLabel(),
+                edgeInfo.getVertexId()
+        );
     }
 
     public static ClientApiEdge toClientApiEdge(Edge edge, String workspaceId) {
