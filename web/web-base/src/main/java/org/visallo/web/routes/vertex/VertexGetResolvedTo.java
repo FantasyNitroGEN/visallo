@@ -48,13 +48,27 @@ public class VertexGetResolvedTo implements ParameterizedHandler {
         if (propertyKey != null || propertyName != null) {
             Property property = vertex.getProperty(propertyKey, propertyName);
             if (property == null) {
-                throw new VisalloResourceNotFoundException(String.format("property %s:%s not found on vertex %s", propertyKey, propertyName, vertex.getId()));
+                throw new VisalloResourceNotFoundException(String.format(
+                        "property %s:%s not found on vertex %s",
+                        propertyKey,
+                        propertyName,
+                        vertex.getId()
+                ));
             }
-            termMentions = termMentionRepository.findResolvedToForRef(graphVertexId, propertyKey, propertyName, authorizations);
+            termMentions = termMentionRepository.findResolvedToForRef(
+                    graphVertexId,
+                    propertyKey,
+                    propertyName,
+                    authorizations
+            );
         } else {
             termMentions = termMentionRepository.findResolvedToForRefElement(graphVertexId, authorizations);
         }
 
-        return ClientApiConverter.toTermMentionsResponse(termMentions.collect(Collectors.toList()), workspaceId, authorizations);
+        return ClientApiConverter.toTermMentionsResponse(
+                termMentions.collect(Collectors.toList()),
+                workspaceId,
+                authorizations
+        );
     }
 }

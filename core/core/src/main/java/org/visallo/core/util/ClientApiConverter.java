@@ -21,10 +21,19 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApiConverter {
-    public static final EnumSet<FetchHint> SEARCH_FETCH_HINTS = EnumSet.of(FetchHint.PROPERTIES, FetchHint.PROPERTY_METADATA, FetchHint.IN_EDGE_LABELS, FetchHint.OUT_EDGE_LABELS);
+    public static final EnumSet<FetchHint> SEARCH_FETCH_HINTS = EnumSet.of(
+            FetchHint.PROPERTIES,
+            FetchHint.PROPERTY_METADATA,
+            FetchHint.IN_EDGE_LABELS,
+            FetchHint.OUT_EDGE_LABELS
+    );
     private static final int HISTORICAL_PROPERTY_MAX_SPV_SIZE = 2000;
 
-    public static ClientApiTermMentionsResponse toTermMentionsResponse(Iterable<Vertex> termMentions, String workspaceId, Authorizations authorizations) {
+    public static ClientApiTermMentionsResponse toTermMentionsResponse(
+            Iterable<Vertex> termMentions,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         ClientApiTermMentionsResponse termMentionsResponse = new ClientApiTermMentionsResponse();
         for (ClientApiElement element : toClientApi(termMentions, workspaceId, authorizations)) {
             termMentionsResponse.getTermMentions().add(element);
@@ -32,7 +41,11 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return termMentionsResponse;
     }
 
-    public static List<ClientApiElement> toClientApi(Iterable<? extends org.vertexium.Element> elements, String workspaceId, Authorizations authorizations) {
+    public static List<ClientApiElement> toClientApi(
+            Iterable<? extends org.vertexium.Element> elements,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         List<ClientApiElement> clientApiElements = new ArrayList<>();
         for (org.vertexium.Element element : elements) {
             clientApiElements.add(toClientApi(element, workspaceId, authorizations));
@@ -40,7 +53,11 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return clientApiElements;
     }
 
-    public static List<ClientApiVertex> toClientApiVertices(Iterable<? extends Vertex> vertices, String workspaceId, Authorizations authorizations) {
+    public static List<ClientApiVertex> toClientApiVertices(
+            Iterable<? extends Vertex> vertices,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         List<ClientApiVertex> clientApiElements = new ArrayList<>();
         for (Vertex v : vertices) {
             clientApiElements.add(toClientApiVertex(v, workspaceId, authorizations));
@@ -48,7 +65,11 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return clientApiElements;
     }
 
-    public static ClientApiElement toClientApi(org.vertexium.Element element, String workspaceId, Authorizations authorizations) {
+    public static ClientApiElement toClientApi(
+            org.vertexium.Element element,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         checkNotNull(element, "element cannot be null");
         if (element instanceof Vertex) {
             return toClientApiVertex((Vertex) element, workspaceId, authorizations);
@@ -66,7 +87,12 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
     /**
      * @param commonCount the number of vertices this vertex has in common with other vertices.
      */
-    public static ClientApiVertex toClientApiVertex(Vertex vertex, String workspaceId, Integer commonCount, Authorizations authorizations) {
+    public static ClientApiVertex toClientApiVertex(
+            Vertex vertex,
+            String workspaceId,
+            Integer commonCount,
+            Authorizations authorizations
+    ) {
         checkNotNull(vertex, "vertex is required");
         ClientApiVertex v = new ClientApiVertex();
 
@@ -95,7 +121,13 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return e;
     }
 
-    public static ClientApiEdgeWithVertexData toClientApiEdgeWithVertexData(Edge edge, Vertex source, Vertex target, String workspaceId, Authorizations authorizations) {
+    public static ClientApiEdgeWithVertexData toClientApiEdgeWithVertexData(
+            Edge edge,
+            Vertex source,
+            Vertex target,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
         checkNotNull(source, "source vertex is required");
         checkNotNull(target, "target vertex is required");
         ClientApiEdgeWithVertexData e = new ClientApiEdgeWithVertexData();
@@ -113,7 +145,11 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         populateClientApiElement(e, edge, workspaceId);
     }
 
-    private static void populateClientApiElement(ClientApiElement clientApiElement, org.vertexium.Element element, String workspaceId) {
+    private static void populateClientApiElement(
+            ClientApiElement clientApiElement,
+            org.vertexium.Element element,
+            String workspaceId
+    ) {
         clientApiElement.setId(element.getId());
         clientApiElement.getProperties().addAll(toClientApiProperties(element.getProperties(), workspaceId));
         clientApiElement.setSandboxStatus(SandboxStatusUtil.getSandboxStatus(element, workspaceId));
@@ -140,8 +176,16 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             SandboxStatus sandboxStatus = sandboxStatuses[i];
             VideoFrameInfo videoFrameInfo;
             if ((videoFrameInfo = VideoPropertyHelper.getVideoFrameInfoFromProperty(property)) != null) {
-                String textDescription = VisalloProperties.TEXT_DESCRIPTION_METADATA.getMetadataValueOrDefault(property.getMetadata(), null);
-                addVideoFramePropertyToResults(clientApiProperties, videoFrameInfo.getPropertyKey(), textDescription, sandboxStatus);
+                String textDescription = VisalloProperties.TEXT_DESCRIPTION_METADATA.getMetadataValueOrDefault(
+                        property.getMetadata(),
+                        null
+                );
+                addVideoFramePropertyToResults(
+                        clientApiProperties,
+                        videoFrameInfo.getPropertyKey(),
+                        textDescription,
+                        sandboxStatus
+                );
             } else {
                 ClientApiProperty clientApiProperty = toClientApiProperty(property);
                 clientApiProperty.setSandboxStatus(sandboxStatus);
@@ -170,20 +214,36 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return clientApiProperty;
     }
 
-    private static void addVideoFramePropertyToResults(List<ClientApiProperty> clientApiProperties, String propertyKey, String textDescription, SandboxStatus sandboxStatus) {
-        ClientApiProperty clientApiProperty = findProperty(clientApiProperties, MediaVisalloProperties.VIDEO_TRANSCRIPT.getPropertyName(), propertyKey);
+    private static void addVideoFramePropertyToResults(
+            List<ClientApiProperty> clientApiProperties,
+            String propertyKey,
+            String textDescription,
+            SandboxStatus sandboxStatus
+    ) {
+        ClientApiProperty clientApiProperty = findProperty(
+                clientApiProperties,
+                MediaVisalloProperties.VIDEO_TRANSCRIPT.getPropertyName(),
+                propertyKey
+        );
         if (clientApiProperty == null) {
             clientApiProperty = new ClientApiProperty();
             clientApiProperty.setKey(propertyKey);
             clientApiProperty.setName(MediaVisalloProperties.VIDEO_TRANSCRIPT.getPropertyName());
             clientApiProperty.setSandboxStatus(sandboxStatus);
-            clientApiProperty.getMetadata().put(VisalloProperties.TEXT_DESCRIPTION_METADATA.getMetadataKey(), textDescription);
+            clientApiProperty.getMetadata().put(
+                    VisalloProperties.TEXT_DESCRIPTION_METADATA.getMetadataKey(),
+                    textDescription
+            );
             clientApiProperty.setStreamingPropertyValue(true);
             clientApiProperties.add(clientApiProperty);
         }
     }
 
-    private static ClientApiProperty findProperty(List<ClientApiProperty> clientApiProperties, String propertyName, String propertyKey) {
+    private static ClientApiProperty findProperty(
+            List<ClientApiProperty> clientApiProperties,
+            String propertyName,
+            String propertyKey
+    ) {
         for (ClientApiProperty property : clientApiProperties) {
             if (property.getName().equals(propertyName) && property.getKey().equals(propertyKey)) {
                 return property;
