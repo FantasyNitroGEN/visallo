@@ -68,7 +68,6 @@ public class JettyWebServer extends WebServer {
         webAppContext.setWar(getWebAppDir().getAbsolutePath());
         webAppContext.setSessionHandler(new HashSessionManager().getSessionHandler());
         webAppContext.setMaxFormContentSize(MAX_FORM_CONTENT_SIZE);
-        LOGGER.info("getMaxInactiveInterval() is %d seconds", webAppContext.getSessionHandler().getSessionManager().getMaxInactiveInterval());
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
         contexts.setHandlers(new Handler[]{webAppContext});
@@ -78,6 +77,10 @@ public class JettyWebServer extends WebServer {
 
         server.start();
         afterServerStart();
+
+        LOGGER.info(
+                "Session timeout is %d seconds",
+                webAppContext.getSessionHandler().getSessionManager().getMaxInactiveInterval());
 
         if (!dontJoin) {
             server.join();
