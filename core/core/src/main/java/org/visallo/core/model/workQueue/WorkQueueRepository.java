@@ -449,12 +449,12 @@ public abstract class WorkQueueRepository {
         pushGraphPropertyQueue(element, key, name, ElementOrPropertyStatus.DELETION, beforeDeletionTimestamp, priority);
     }
 
-    public void pushPropertyUnhide(Element element, String key, String name, Priority priority) {
+    public void pushUndoPublicPropertyDeletion(Element element, String key, String name, Priority priority) {
         broadcastUndoPropertyDelete(element, key, name);
         pushGraphPropertyQueue(element, key, name, ElementOrPropertyStatus.UNHIDDEN, null, priority);
     }
 
-    public void pushPropertyDeletion(Element element, String key, String name, long beforeDeletionTimestamp, Priority priority) {
+    public void pushUndoSandboxProperty(Element element, String key, String name, long beforeDeletionTimestamp, Priority priority) {
         broadcastUndoPropertyDelete(element, key, name);
         pushGraphPropertyQueue(element, key, name, ElementOrPropertyStatus.DELETION, beforeDeletionTimestamp, priority);
     }

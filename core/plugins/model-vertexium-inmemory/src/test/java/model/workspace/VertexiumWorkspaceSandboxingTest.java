@@ -564,7 +564,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         changePublicPropertyValueOnWorkspace();
         List<ClientApiWorkspaceDiff.PropertyItem> diffs = getDiffsFromWorkspace(ClientApiWorkspaceDiff.PropertyItem.class);
         undoPropertyDiffs(diffs);
-        verify(workQueueRepository).pushPropertyDeletion(eq(entity1Vertex), eq("key1"), eq("prop1"), any(Long.class), eq(Priority.HIGH));
+        verify(workQueueRepository).pushUndoSandboxProperty(eq(entity1Vertex), eq("key1"), eq("prop1"), any(Long.class), eq(Priority.HIGH));
     }
 
     @Test
@@ -572,7 +572,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         markPublicPropertyHiddenOnWorkspace();
         List<ClientApiWorkspaceDiff.PropertyItem> diffs = getDiffsFromWorkspace(ClientApiWorkspaceDiff.PropertyItem.class);
         undoPropertyDiffs(diffs);
-        verify(workQueueRepository).pushPropertyUnhide(eq(entity1Vertex), eq("key1"), eq("prop1"), eq(Priority.HIGH));
+        verify(workQueueRepository).pushUndoPublicPropertyDeletion(eq(entity1Vertex), eq("key1"), eq("prop1"), eq(Priority.HIGH));
     }
 
     @Test
