@@ -84,7 +84,7 @@ define([
     }
 
     function getCreated(p) {
-        var d = F.date.utc(p.key),
+        var d = F.date.utc(p.key.replace(/Z$/, '') + 'Z'),
             millis = d && d.getTime();
         if (millis && !isNaN(millis)) {
             return millis;
