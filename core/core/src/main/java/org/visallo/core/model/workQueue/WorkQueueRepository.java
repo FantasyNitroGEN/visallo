@@ -128,13 +128,31 @@ public abstract class WorkQueueRepository {
         broadcastEntityImage(element, propertyKey, propertyName);
     }
 
-    public void pushGraphPropertyQueue(final Element element, String propertyKey, final String propertyName, Priority priority) {
-        checkNotNull(element, "element cannot be null");
+    public void pushGraphPropertyQueue(
+            final Element element,
+            String propertyKey,
+            final String propertyName,
+            Priority priority) {
         pushGraphPropertyQueue(element, propertyKey, propertyName, ElementOrPropertyStatus.UPDATE, null, priority);
     }
 
-    public void pushGraphPropertyQueue(final Element element, String propertyKey, final String propertyName, ElementOrPropertyStatus status, Long beforeActionTimestamp, Priority priority) {
-        checkNotNull(element, "element cannot be null");
+    public void pushGraphPropertyQueue(
+            final Element element,
+            String propertyKey,
+            final String propertyName,
+            Long beforeActionTimestamp,
+            Priority priority) {
+        pushGraphPropertyQueue(
+                element, propertyKey, propertyName, ElementOrPropertyStatus.UPDATE, beforeActionTimestamp, priority);
+    }
+
+    public void pushGraphPropertyQueue(
+            final Element element,
+            String propertyKey,
+            final String propertyName,
+            ElementOrPropertyStatus status,
+            Long beforeActionTimestamp,
+            Priority priority) {
         pushGraphPropertyQueue(
                 element,
                 propertyKey,
@@ -292,9 +310,9 @@ public abstract class WorkQueueRepository {
         data.put(GraphPropertyMessage.PROPERTY_NAME, propertyName);
         data.put(GraphPropertyMessage.STATUS, status);
         if (status == ElementOrPropertyStatus.DELETION || status == ElementOrPropertyStatus.HIDDEN) {
-            checkNotNull(beforeActionTimestamp, "Timestamp before " + status + " is invalid");
-            data.put(GraphPropertyMessage.BEFORE_ACTION_TIMESTAMP, beforeActionTimestamp);
+            checkNotNull(beforeActionTimestamp, "Timestamp before " + status + " cannot be null");
         }
+        data.put(GraphPropertyMessage.BEFORE_ACTION_TIMESTAMP, beforeActionTimestamp);
         return data;
     }
 
@@ -414,6 +432,10 @@ public abstract class WorkQueueRepository {
 
     public void pushElement(Element element, Priority priority) {
         pushGraphPropertyQueue(element, null, null, priority);
+    }
+
+    public void pushElement(Element element, long beforeDeletionTimestamp, Priority priority) {
+        pushGraphPropertyQueue(element, (String) null, null, beforeDeletionTimestamp, priority);
     }
 
     @Deprecated
