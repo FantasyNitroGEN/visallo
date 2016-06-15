@@ -173,6 +173,12 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
     protected void applySortToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
         String[] sorts = searchOptions.getOptionalParameter("sort[]", String[].class);
         if (sorts == null) {
+            JSONArray sortsJson = searchOptions.getOptionalParameter("sort", JSONArray.class);
+            if (sortsJson != null) {
+                sorts = JSONUtil.toStringList(sortsJson).toArray(new String[sortsJson.length()]);
+            }
+        }
+        if (sorts == null) {
             return;
         }
         for (String sort : sorts) {
