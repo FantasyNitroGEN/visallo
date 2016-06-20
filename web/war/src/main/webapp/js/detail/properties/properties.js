@@ -598,7 +598,23 @@ define([
 
     function createPropertyRow(vertex, ontologyProperties, maxItemsBeforeHidden, config) {
         this.exit().remove();
-        this.enter().append('td').each(function(datum) {
+        this.each(function(datum) {
+            var d3element = d3.select(this),
+                resetUnless = function(selector) {
+                    if (d3element.select(selector).size() === 0) {
+                        d3element.text('');
+                    }
+                };
+            switch (datum.type) {
+                case HIDDEN_COLLAPSE: resetUnless('a.show-more'); break;
+                case GROUP: resetUnless('.collapsible-header'); break;
+                case NAME: resetUnless('strong'); break;
+                case VALUE: resetUnless('.value-container'); break;
+            }
+        })
+        this.enter().append('td')
+        this.each(function(datum) {
+            if (this.childElementCount > 0) return;
             var d3element = d3.select(this);
             switch (datum.type) {
                 case HIDDEN_COLLAPSE:
