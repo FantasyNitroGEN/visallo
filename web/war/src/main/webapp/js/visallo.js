@@ -51,7 +51,8 @@ function(jQuery,
         progressBarText = null,
         TOTAL_PROGRESS = 4,
         MAX_RESIZE_TRIGGER_INTERVAL = 250,
-        App, FullScreenApp, F, withDataRequest;
+        App, FullScreenApp, F, withDataRequest,
+        previousUrl = window.location.href;
 
     $(function() {
         require(['cli']);
@@ -123,13 +124,16 @@ function(jQuery,
             event = e && e.originalEvent,
 
             // Is this the default visallo application?
-            mainApp = !popoutDetails;
+            mainApp = !popoutDetails,
+            newUrl = window.location.href;
 
-        if (event && isAddUrl(event.oldURL) && isMainApp(event.newURL)) {
+        if (event && isAddUrl(previousUrl) && isMainApp(newUrl)) {
+            previousUrl = newUrl;
             return;
         }
 
-        if (event && isPopoutUrl(event.oldURL) && isPopoutUrl(event.newURL)) {
+        if (event && isPopoutUrl(previousUrl) && isPopoutUrl(newUrl)) {
+            previousUrl = newUrl;
             return $('#app').trigger('vertexUrlChanged', {
                 vertexIds: vertexIds,
                 edgeIds: edgeIds,
@@ -137,6 +141,7 @@ function(jQuery,
             });
         }
 
+        previousUrl = newUrl;
         Promise.all(visalloPluginResources.beforeAuth.map(Promise.require))
             .then(function() {
                 return withDataRequest.dataRequest('user', 'me')
