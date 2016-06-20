@@ -222,6 +222,7 @@ public abstract class GraphPropertyWorkerTestBase {
                     workspaceId,
                     visibilitySource,
                     Priority.NORMAL,
+                    prop.getTimestamp() - 1,
                     status
             );
             if (gpw.isLocalFileRequired() && executeData.getLocalFile() == null && in != null) {

@@ -297,6 +297,7 @@ public class GraphPropertyRunner extends WorkerBase {
                 message.getWorkspaceId(),
                 message.getVisibilitySource(),
                 message.getPriority(),
+                message.getBeforeActionTimestamp(),
                 status
         );
 

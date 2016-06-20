@@ -16,6 +16,7 @@ public class GraphPropertyWorkData {
     private final String visibilitySource;
     private final Priority priority;
     private File localFile;
+    private long beforeActionTimestamp;
     private ElementOrPropertyStatus status;
 
     public GraphPropertyWorkData(
@@ -41,6 +42,7 @@ public class GraphPropertyWorkData {
             String workspaceId,
             String visibilitySource,
             Priority priority,
+            long beforeActionTimestamp,
             ElementOrPropertyStatus status
     ) {
         this.visibilityTranslator = visibilityTranslator;
@@ -49,6 +51,7 @@ public class GraphPropertyWorkData {
         this.workspaceId = workspaceId;
         this.visibilitySource = visibilitySource;
         this.priority = priority;
+        this.beforeActionTimestamp = beforeActionTimestamp;
         this.status = status;
     }
 
@@ -82,6 +85,10 @@ public class GraphPropertyWorkData {
 
     public Priority getPriority() {
         return priority;
+    }
+
+    public long getBeforeActionTimestamp() {
+        return beforeActionTimestamp;
     }
 
     public ElementOrPropertyStatus getPropertyStatus() { return status; }
