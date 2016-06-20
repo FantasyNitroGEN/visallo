@@ -29,7 +29,8 @@ define([
 
         this.before('initialize', function(node, config) {
             if (config.vertex) {
-                if (config.vertex.length > 1) {
+                config.multiple = config.vertex.length > 1;
+                if (config.multiple) {
                     config.title = i18n('popovers.add_related.title_multiple', config.vertex.length);
                 } else {
                     config.title = '"' + F.vertex.title(config.vertex[0]) + '"';

@@ -9,7 +9,9 @@
     <div class="concept"></div>
     <div class="relationship"></div>
 
-    <button style="display:none" class="btn search">{{ i18n 'popovers.add_related.button.search' }}</button>
+    {{#unless multiple}}
+        <button style="display:none" class="btn search">{{ i18n 'popovers.add_related.button.search' }}</button>
+    {{/unless}}
     <button style="display:none" class="btn btn-primary prompt-add">{{ i18n 'popovers.add_related.button.add' }}</button>
     <button class="btn btn-primary add">{{ i18n 'popovers.add_related.button.add' }}</button>
     <button style="display:none" class="btn btn-danger cancel">{{ i18n 'popovers.add_related.button.cancel' }}</button>
