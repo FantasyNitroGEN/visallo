@@ -47,10 +47,17 @@ define([
                 this.on('addImage', this.onAddImage);
                 this.on('openOriginal', this.onOpenOriginal);
                 this.on('downloadOriginal', this.onDownloadOriginal);
+                this.on('updateModel', this.onUpdateModel);
 
                 this.makeVertexTitlesDraggable();
             }
         });
+
+        this.onUpdateModel = function(event, data) {
+            if (event.target === this.node) {
+                this.attr.model = data.model;
+            }
+        };
 
         this.redirectToPropertiesComponent = function(event, data) {
             if ($(event.target).closest('.comments').length) {
