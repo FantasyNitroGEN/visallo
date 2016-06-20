@@ -190,7 +190,7 @@ public class WorkspaceUndoHelper {
                     LOGGER.debug("un-hiding property: %s (workspaceId: %s)", property, workspaceId);
                     element.markPropertyVisible(property, new Visibility(workspaceId), authorizations);
                     graph.flush();
-                    workQueueRepository.pushPropertyUnhide(element, propertyKey, propertyName, Priority.HIGH);
+                    workQueueRepository.pushUndoPublicPropertyDeletion(element, propertyKey, propertyName, Priority.HIGH);
                 }
             } else if (propertySandboxStatus == SandboxStatus.PUBLIC) {
                 LOGGER.warn("Cannot undo a public property");
@@ -200,10 +200,10 @@ public class WorkspaceUndoHelper {
                 if (publicProperty != null) {
                     element.markPropertyVisible(publicProperty, new Visibility(workspaceId), authorizations);
                     graph.flush();
-                    workQueueRepository.pushPropertyUnhide(element, propertyKey, propertyName, Priority.HIGH);
+                    workQueueRepository.pushUndoPublicPropertyDeletion(element, propertyKey, propertyName, Priority.HIGH);
                 } else {
                     graph.flush();
-                    workQueueRepository.pushPropertyDeletion(element, propertyKey, propertyName, beforeActionTimestamp, Priority.HIGH);
+                    workQueueRepository.pushUndoSandboxProperty(element, propertyKey, propertyName, beforeActionTimestamp, Priority.HIGH);
                 }
             } else {
                 workspaceHelper.deleteProperty(element, property, false, workspaceId, Priority.HIGH, authorizations);
