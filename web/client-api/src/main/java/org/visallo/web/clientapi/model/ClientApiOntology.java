@@ -1,8 +1,13 @@
 package org.visallo.web.clientapi.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.util.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 public class ClientApiOntology implements ClientApiObject {
     private List<Concept> concepts = new ArrayList<Concept>();
@@ -331,6 +336,7 @@ public class ClientApiOntology implements ClientApiObject {
             return displayFormula;
         }
 
+        @JsonSetter
         public void setDependentPropertyIris(String[] dependentPropertyIris) {
             this.dependentPropertyIris = dependentPropertyIris;
         }

@@ -3,25 +3,26 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.visallo</groupId>
-        <artifactId>visallo</artifactId>
+        <artifactId>visallo-tools-group</artifactId>
         <version>1.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>visallo-tools-group</artifactId>
+    <artifactId>visallo-tools-ontology-ingest</artifactId>
     <packaging>pom</packaging>
 
-    <name>Visallo: Tools</name>
-	
-	<modules>
-        <module>cli</module>
-        <module>import</module>
-        <module>format</module>
-        <module>ontology-ingest</module>
-        <module>owl</module>
-        <module>rdf-import</module>
-        <module>reindex</module>
-        <module>user-admin</module>
+    <dependencies>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <modules>
+        <module>common</module>
+        <module>codegen</module>
     </modules>
 </project>
