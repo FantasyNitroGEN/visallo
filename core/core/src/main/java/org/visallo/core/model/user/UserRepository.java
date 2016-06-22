@@ -324,9 +324,7 @@ public abstract class UserRepository {
     }
 
     public User getSystemUser() {
-        return new SystemUser(
-                getSimpleOrmContext(VisalloVisibility.SUPER_USER_VISIBILITY_STRING)
-        );
+        return new SystemUser();
     }
 
     public User findOrAddUser(

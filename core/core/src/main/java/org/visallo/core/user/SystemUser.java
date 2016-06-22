@@ -1,6 +1,5 @@
 package org.visallo.core.user;
 
-import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.clientapi.model.UserStatus;
@@ -15,10 +14,8 @@ public class SystemUser implements User {
     private static final long serialVersionUID = 1L;
     public static final String USERNAME = "system";
     public static final String USER_ID = UserRepository.GRAPH_USER_ID_PREFIX + "system";
-    private final SimpleOrmContext simpleOrmContext;
 
-    public SystemUser(SimpleOrmContext simpleOrmContext) {
-        this.simpleOrmContext = simpleOrmContext;
+    public SystemUser() {
     }
 
     @Override
@@ -119,5 +116,28 @@ public class SystemUser implements User {
     @Override
     public Map<String, Object> getCustomProperties() {
         return new HashMap<>();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SystemUser that = (SystemUser) o;
+
+        if (!getUserId().equals(that.getUserId())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return getUserId().hashCode();
     }
 }
