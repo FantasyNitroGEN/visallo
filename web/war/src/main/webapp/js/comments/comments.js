@@ -99,7 +99,7 @@ define([
     }
 
     function isEdited(created, modified) {
-        var equalTolerance = 5000;
+        var equalTolerance = 1000;
         return (modified - created) > equalTolerance
     }
 
