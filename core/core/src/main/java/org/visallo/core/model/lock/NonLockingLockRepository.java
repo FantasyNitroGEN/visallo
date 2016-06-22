@@ -1,8 +1,11 @@
 package org.visallo.core.model.lock;
 
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 
 public class NonLockingLockRepository extends LockRepository {
+    private WeakHashMap<Long, Thread> threads = new WeakHashMap<>();
+
     @Override
     public Lock createLock(String lockName) {
         return new Lock(lockName) {
@@ -19,19 +22,23 @@ public class NonLockingLockRepository extends LockRepository {
 
     @Override
     public void leaderElection(String lockName, final LeaderListener listener) {
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        Thread t = new Thread(() -> {
+            try {
                 listener.isLeader();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         });
         t.setName(NonLockingLockRepository.class.getSimpleName() + "-LeaderElection-" + lockName);
         t.setDaemon(true);
         t.start();
+        threads.put(t.getId(), t);
     }
 
     @Override
     public void shutdown() {
-        // no implementation required
+        for (Thread thread : threads.values()) {
+            thread.interrupt();
+        }
     }
 }

@@ -5,11 +5,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 public class NonLockingLockRepositoryTest extends LockRepositoryTestBase {
-    private LockRepository lockRepository = new NonLockingLockRepository();
-
     @Test
     public void testCreateLock() throws Exception {
         super.testCreateLock(lockRepository);
@@ -25,10 +21,15 @@ public class NonLockingLockRepositoryTest extends LockRepositoryTestBase {
         for (int i = 2; i < 5; i++) {
             threads.add(createLeaderElectingThread(lockRepository, "leaderTwo", i, messages));
         }
-        for (Thread t : threads) {
-            t.start();
-        }
-        Thread.sleep(1000);
-        assertEquals(5, messages.size()); // this isn't what we really want but it is expected for this implementation
+        startThreadsWaitForMessagesThenStopThreads(
+                threads,
+                messages,
+                5
+        ); // this isn't what we really want but it is expected for this implementation
+    }
+
+    @Override
+    protected LockRepository createLockRepository() {
+        return new NonLockingLockRepository();
     }
 }
