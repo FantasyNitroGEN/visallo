@@ -6,7 +6,10 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Metadata;
+import org.vertexium.Vertex;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -32,10 +35,7 @@ import org.visallo.web.parameterProviders.JustificationText;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class VertexSetProperty implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSetProperty.class);
@@ -253,7 +253,8 @@ public class VertexSetProperty implements ParameterizedHandler {
     }
 
     private String createCommentPropertyKey() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return dateFormat.format(new Date());
     }
 

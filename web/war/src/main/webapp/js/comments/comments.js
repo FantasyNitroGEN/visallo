@@ -84,8 +84,15 @@ define([
     }
 
     function getCreated(p) {
-        var d = F.date.utc(p.key.replace(/Z$/, '') + 'Z'),
-            millis = d && d.getTime();
+        // setProperty would set key in servers timezone instead of UTC
+        var isLegacyKeyInServerTimezone = !(/Z$/).test(p.key),
+            date = null;
+        if (isLegacyKeyInServerTimezone) {
+            date = F.date.utc(new Date(p.key + 'Z').getTime());
+        } else {
+            date = F.date.local(p.key);
+        }
+        var millis = date && date.getTime();
         if (millis && !isNaN(millis)) {
             return millis;
         }
