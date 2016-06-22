@@ -10,7 +10,6 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
@@ -56,6 +55,6 @@ public class VertexGetTermMentions implements ParameterizedHandler {
                 propertyName,
                 authorizations
         );
-        return ClientApiConverter.toTermMentionsResponse(termMentions, workspaceId, authorizations);
+        return termMentionRepository.toClientApi(termMentions, workspaceId, authorizations);
     }
 }

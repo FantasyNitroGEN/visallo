@@ -11,7 +11,6 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
@@ -65,7 +64,7 @@ public class VertexGetResolvedTo implements ParameterizedHandler {
             termMentions = termMentionRepository.findResolvedToForRefElement(graphVertexId, authorizations);
         }
 
-        return ClientApiConverter.toTermMentionsResponse(
+        return termMentionRepository.toClientApi(
                 termMentions.collect(Collectors.toList()),
                 workspaceId,
                 authorizations

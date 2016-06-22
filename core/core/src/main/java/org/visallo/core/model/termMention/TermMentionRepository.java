@@ -9,9 +9,11 @@ import org.visallo.core.model.PropertyJustificationMetadata;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 
 import java.util.stream.Stream;
 
@@ -737,5 +739,18 @@ public class TermMentionRepository {
         result.endOffset = VisalloProperties.TERM_MENTION_END_OFFSET.getPropertyValue(termMention);
         result.snippet = VisalloProperties.TERM_MENTION_SNIPPET.getPropertyValue(termMention);
         return result;
+    }
+
+    public ClientApiTermMentionsResponse toClientApi(
+            Iterable<Vertex> termMentions,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
+        authorizations = getAuthorizations(authorizations);
+        ClientApiTermMentionsResponse termMentionsResponse = new ClientApiTermMentionsResponse();
+        termMentionsResponse.getTermMentions().addAll(
+                ClientApiConverter.toClientApi(termMentions, workspaceId, true, authorizations)
+        );
+        return termMentionsResponse;
     }
 }
