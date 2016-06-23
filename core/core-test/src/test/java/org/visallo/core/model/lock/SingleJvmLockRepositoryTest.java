@@ -5,11 +5,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 public class SingleJvmLockRepositoryTest extends LockRepositoryTestBase {
-    private LockRepository lockRepository = new SingleJvmLockRepository();
-
     @Test
     public void testCreateLock() throws Exception {
         super.testCreateLock(lockRepository);
@@ -25,10 +21,11 @@ public class SingleJvmLockRepositoryTest extends LockRepositoryTestBase {
         for (int i = 2; i < 5; i++) {
             threads.add(createLeaderElectingThread(lockRepository, "leaderTwo", i, messages));
         }
-        for (Thread t : threads) {
-            t.start();
-        }
-        Thread.sleep(1000);
-        assertEquals(2, messages.size());
+        startThreadsWaitForMessagesThenStopThreads(threads, messages, 2);
+    }
+
+    @Override
+    protected LockRepository createLockRepository() {
+        return new SingleJvmLockRepository();
     }
 }

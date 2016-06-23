@@ -2,9 +2,12 @@ package org.visallo.core.model.lock;
 
 import org.visallo.core.exception.VisalloException;
 
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 
 public class SingleJvmLockRepository extends LockRepository {
+    private WeakHashMap<Long, Thread> threads = new WeakHashMap<>();
+
     @Override
     public Lock createLock(String lockName) {
         final Object synchronizationObject = getSynchronizationObject(lockName);
@@ -25,21 +28,25 @@ public class SingleJvmLockRepository extends LockRepository {
     @Override
     public void leaderElection(String lockName, final LeaderListener listener) {
         final Object synchronizationObject = getSynchronizationObject(lockName);
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (synchronizationObject) {
+        Thread t = new Thread(() -> {
+            synchronized (synchronizationObject) {
+                try {
                     listener.isLeader();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
         });
         t.setName(SingleJvmLockRepository.class.getSimpleName() + "-LeaderElection-" + lockName);
         t.setDaemon(true);
         t.start();
+        threads.put(t.getId(), t);
     }
 
     @Override
     public void shutdown() {
-        // no implementation required
+        for (Thread thread : threads.values()) {
+            thread.interrupt();
+        }
     }
 }

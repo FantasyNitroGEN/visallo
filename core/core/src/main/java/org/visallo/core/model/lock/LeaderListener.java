@@ -1,7 +1,7 @@
 package org.visallo.core.model.lock;
 
 public interface LeaderListener {
-    void isLeader();
+    void isLeader() throws InterruptedException;
 
-    void notLeader();
+    void notLeader() throws InterruptedException;
 }
