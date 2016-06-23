@@ -13,6 +13,7 @@ import java.util.List;
 public class PropertyMetadata {
     private final Date modifiedDate;
     private final User modifiedBy;
+    private final Double confidence;
     private final VisibilityJson visibilityJson;
     private final Visibility visibility;
     private final List<AdditionalMetadataItem> additionalMetadataItems = new ArrayList<>();
@@ -22,8 +23,15 @@ public class PropertyMetadata {
     }
 
     public PropertyMetadata(Date modifiedDate, User modifiedBy, VisibilityJson visibilityJson, Visibility visibility) {
+        this(modifiedDate, modifiedBy, null, visibilityJson, visibility);
+    }
+
+    public PropertyMetadata(
+            Date modifiedDate, User modifiedBy, Double confidence, VisibilityJson visibilityJson,
+            Visibility visibility) {
         this.modifiedDate = modifiedDate;
         this.modifiedBy = modifiedBy;
+        this.confidence = confidence;
         this.visibilityJson = visibilityJson;
         this.visibility = visibility;
     }
@@ -33,6 +41,9 @@ public class PropertyMetadata {
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
         VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, modifiedBy.getUserId(), visibility);
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibility);
+        if (confidence != null) {
+            VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, confidence, visibility);
+        }
         for (AdditionalMetadataItem additionalMetadataItem : additionalMetadataItems) {
             metadata.add(
                     additionalMetadataItem.getKey(),
