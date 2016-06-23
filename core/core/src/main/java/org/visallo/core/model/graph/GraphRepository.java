@@ -84,16 +84,26 @@ public class GraphRepository {
                 : VisibilityJson.updateVisibilitySource(visibilityJson, visibilitySource);
 
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
+        Visibility visibility = visalloVisibility.getVisibility();
 
-        ExistingElementMutation<T> m = element.<T>prepareMutation().alterElementVisibility(visalloVisibility.getVisibility());
-        if (VisalloProperties.VISIBILITY_JSON.getPropertyValue(element) != null) {
+        ExistingElementMutation<T> m = element.<T>prepareMutation().alterElementVisibility(visibility);
+
+        if (VisalloProperties.VISIBILITY_JSON.hasProperty(element)) {
             Property visibilityJsonProperty = VisalloProperties.VISIBILITY_JSON.getProperty(element);
-            m.alterPropertyVisibility(visibilityJsonProperty.getKey(), VisalloProperties.VISIBILITY_JSON.getPropertyName(), defaultVisibility);
+            m.alterPropertyVisibility(
+                    visibilityJsonProperty.getKey(), VisalloProperties.VISIBILITY_JSON.getPropertyName(),
+                    defaultVisibility);
         }
-        Metadata metadata = new Metadata();
-        metadata.add(VisalloProperties.VISIBILITY_JSON.getPropertyName(), visibilityJson.toString(), defaultVisibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
 
-        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, defaultVisibility);
+        if (VisalloProperties.CONCEPT_TYPE.hasProperty(element)) {
+            Property conceptTypeProperty = VisalloProperties.CONCEPT_TYPE.getProperty(element);
+            m.alterPropertyVisibility(
+                    conceptTypeProperty.getKey(), VisalloProperties.CONCEPT_TYPE.getPropertyName(), visibility);
+            Metadata metadata = conceptTypeProperty.getMetadata();
+            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
+        }
+
         m.save(authorizations);
         return new VisibilityAndElementMutation<>(visalloVisibility, m);
     }
