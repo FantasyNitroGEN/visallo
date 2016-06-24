@@ -113,4 +113,13 @@
       padding-right: 3em;
     }
   }
+
+  &.disabled > h1:before,
+  &.disabled .collapsible-header:before {
+    display: none;
+  }
+  &.disabled > h1,
+  &.disabled .collapsible-header {
+    cursor: default;
+  }
 }

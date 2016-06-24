@@ -20,6 +20,7 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
             chai: '../node_modules/chai/chai',
             'chai-datetime': '../node_modules/chai-datetime/chai-datetime',
             'chai-spies': '../node_modules/chai-spies/chai-spies',
+            'chai-as-promised': '../node_modules/chai-as-promised/lib/chai-as-promised',
             'mocha-flight': '../test/unit/utils/mocha-flight',
 
             // MOCKS
@@ -50,6 +51,19 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
                     return _.bind.apply(_, bindArgs);
                 }
             }
+            console.warn = _.wrap(console.warn, function() {
+                var args = _.toArray(arguments),
+                    fn = args.shift(),
+                    isPhantomJS = navigator.userAgent.indexOf('PhantomJS') >= 0,
+                    isWrongPromiseWarning = isPhantomJS && _.isString(args[0]) && args[0].indexOf('rejected with a non-error: [object Error]') >= 0;
+
+                // Bug with phantom and bluebird
+                // https://github.com/petkaantonov/bluebird/issues/990
+
+                if (!isWrongPromiseWarning) {
+                    return fn.apply(this, args);
+                }
+            });
 
             window.visalloData = {
                 currentWorkspaceId: 'w1'
@@ -62,16 +76,18 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
             require([
                 'chai-datetime',
                 'chai-spies',
+                'chai-as-promised',
                 'util/handlebars/before_auth_helpers',
                 'util/handlebars/after_auth_helpers',
                 'util/jquery.flight',
                 'util/jquery.removePrefixedClasses',
                 'mocha-flight'
-            ], function(chaiDateTime, chaiSpies) {
+            ], function(chaiDateTime, chaiSpies, chaiAsPromised) {
 
                 chai.should();
                 chai.use(chaiDateTime);
                 chai.use(chaiSpies);
+                chai.use(chaiAsPromised);
 
                 var originalError = console.error.bind(console);
                 console.error = function() {

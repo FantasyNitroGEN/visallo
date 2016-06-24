@@ -10,6 +10,7 @@ globals:
     FileList: false
 ecmaFeatures:
     jsx: true
+    blockBindings: true
 env:
     browser: true
     amd: true

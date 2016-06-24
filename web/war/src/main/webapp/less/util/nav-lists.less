@@ -38,5 +38,26 @@
       }
     }
 
+    &.loading {
+      position: relative;
+      a {
+        padding-right: 2.5em;
+      }
+      &:after {
+        content: '';
+        background-image: url(../img/loading.gif);
+        background-size: contain;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translate(0, -50%);
+      }
+      &.active:after {
+        background-image: url(../img/loading-active.gif);
+      }
+    }
+
   }
 }

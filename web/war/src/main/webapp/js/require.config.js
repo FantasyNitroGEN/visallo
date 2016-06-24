@@ -87,7 +87,6 @@
             'bootstrap': { exports: 'window', deps: ['jquery', 'jquery-ui-bundle'] },
             'bootstrap-datepicker': { exports: 'window', deps: ['bootstrap'] },
             'bootstrap-timepicker': { exports: 'window', deps: ['bootstrap'] },
-            'bluebird': { exports: 'Promise' },
             'chrono': { exports: 'chrono' },
             'colorjs': { init: function() { return this.net.brehaut.Color; } },
             'd3': { exports: 'd3' },

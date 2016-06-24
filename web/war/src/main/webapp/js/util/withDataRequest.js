@@ -62,7 +62,7 @@ define([
             nodeEl = $node[0],
             $nodeInDom = $.contains(document.documentElement, nodeEl) ? $node : $(document),
             args = arguments.length > argsStartIndex ? _.rest(arguments, argsStartIndex) : [],
-            promise = new Promise(function(fulfill, reject) {
+            promise = new Promise(function(fulfill, reject, onCancel) {
                 Promise.require('util/requirejs/promise!util/service/dataPromise')
                     .then(function() {
                         requests[thisRequestId] = {
@@ -85,16 +85,15 @@ define([
                             parameters: args
                         });
                     })
+                onCancel(function() {
+                    var request = cleanRequest(thisRequestId);
+                    if (request) {
+                        $nodeInDom.trigger('dataRequestCancel', {
+                            requestId: thisRequestId
+                        });
+                    }
+                })
             });
-
-        promise.cancel = function() {
-            var request = cleanRequest(thisRequestId);
-            if (request) {
-                $nodeInDom.trigger('dataRequestCancel', {
-                    requestId: thisRequestId
-                });
-            }
-        };
 
         return promise;
     }

@@ -10,7 +10,7 @@
     "@visallo/requirejs-ejs-plugin": "0.3.1",
     "@visallo/requirejs-less": "1.0.0",
     "atmosphere.js": "2.3.1",
-    "bluebird": "3.3.5",
+    "bluebird": "3.4.1",
     "bootstrap-datepicker": "1.5.0",
     "bootstrap-timepicker": "0.5.1",
     "chrono-node": "1.1.2",
@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "chai": "3.4.1",
+    "chai-as-promised": "^5.3.0",
     "chai-datetime": "1.4.0",
     "chai-spies": "0.7.1",
     "eslint-plugin-react": "^3.16.1",

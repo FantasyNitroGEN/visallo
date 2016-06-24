@@ -2,19 +2,21 @@ define([
     'flight/lib/component',
     'configuration/plugins/registry',
     'hbs!./template',
+    'util/component/attacher',
     'tpl!util/alert',
     './bundled/index'
 ], function(
     defineComponent,
     registry,
     template,
+    attacher,
     alertTemplate) {
     'use strict';
 
     registry.documentExtensionPoint('org.visallo.admin',
         'Add admin tools to admin pane',
         function(e) {
-            return (e.Component || e.componentPath) &&
+            return (e.Component || e.componentPath || e.url) &&
                 e.section && e.name && e.subtitle
         },
         'http://docs.visallo.org/extension-points/front-end/admin'
@@ -31,6 +33,7 @@ define([
         });
 
         this.after('initialize', function() {
+            this.loadingAdminExtension = Promise.resolve();
             this.on(document, 'showAdminPlugin', this.onShowAdminPlugin);
             this.on(document, 'menubarToggleDisplay', this.onToggleDisplay);
             this.on('click', {
@@ -43,12 +46,10 @@ define([
         this.onToggleDisplay = function(event, data) {
             if (data.name === 'admin' && this.$node.closest('.visible').length === 0) {
                 this.$node.find('.admin-list .active').removeClass('active');
-                this.select('formSelector')
-                    .hide()
-                    .find('.content')
-                        .teardownAllComponents()
-                        .removePrefixedClasses('admin_less_cls')
-                        .empty();
+                this.loadingAdminExtension.cancel();
+                var form = this.select('formSelector').hide().find('.content').removePrefixedClasses('admin_less_cls')
+                attacher().node(form).teardown()
+                form.empty();
             }
         };
 
@@ -65,42 +66,65 @@ define([
                 data.section = data.section.toLowerCase();
             }
 
-            this.select('listSelector').find('li').filter(function() {
+            var $adminListItem = this.select('listSelector').find('li').filter(function() {
                     return _.isEqual($(this).data('component'), data);
-                })
-                .addClass('active')
-                .siblings('.active')
-                .removeClass('active');
+                }),
+                container = this.select('formSelector'),
+                form = container.find('.content');
 
-            var container = this.select('formSelector'),
-                form = container.resizable({
-                        handles: 'e',
-                        minWidth: 120,
-                        maxWidth: 500,
-                        resize: function() {
-                            self.trigger(document, 'paneResized');
-                        }
-                    }).show().find('.content'),
-                component = _.find(registry.extensionsForPoint('org.visallo.admin'), function(e) {
+            if ($adminListItem.hasClass('active')) {
+                attacher().node(form).teardown()
+                $adminListItem.removeClass('active');
+                self.select('formSelector').hide();
+                self.trigger(container, 'paneResized');
+                return;
+            }
+            this.loadingAdminExtension.cancel();
+            $adminListItem.addClass('active').siblings('.active').removeClass('active loading').end()
+
+            container.resizable({
+                handles: 'e',
+                minWidth: 120,
+                maxWidth: 500,
+                resize: function() {
+                    self.trigger(document, 'paneResized');
+                }
+            })
+            var extension = _.find(registry.extensionsForPoint('org.visallo.admin'), function(e) {
                     return e.name.toLowerCase() === data.name &&
                         e.section.toLowerCase() === data.section;
                 });
 
-            form.teardownAllComponents()
-                .removePrefixedClasses('admin_less_cls')
-                .empty();
-            if (component) {
-                (
-                    component.Component ?
-                        Promise.resolve(component.Component) :
-                        Promise.require(component.componentPath)
-                ).then(function(Component) {
-                    Component.attachTo(form, data);
-                    self.trigger(container, 'paneResized');
-                })
-            }
+            form.removePrefixedClasses('admin_less_cls')
 
-            this.trigger(container, 'paneResized');
+            if (extension) {
+                if (extension.url) {
+                    window.open(extension.url, 'ADMIN_OPEN_URL');
+                    container.hide();
+                    self.trigger(document, 'paneResized');
+                    _.delay(function() {
+                        $adminListItem.removeClass('active');
+                    }, 100)
+                } else {
+                    $adminListItem.addClass('loading');
+                    var promise = attacher()
+                        .node(form)
+                        .component(extension.component)
+                        .path(extension.componentPath)
+                        .params(data)
+                        .attach({ teardown: true, empty: true })
+                        .then(function() {
+                            self.trigger(container.show(), 'paneResized');
+                        })
+
+                    promise.finally(function() {
+                        $adminListItem.removeClass('loading');
+                    })
+                    this.loadingAdminExtension = promise;
+                }
+            } else {
+                this.trigger(container, 'paneResized');
+            }
         };
 
         this.update = function() {
