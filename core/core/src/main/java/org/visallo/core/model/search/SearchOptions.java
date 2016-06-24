@@ -50,6 +50,9 @@ public class SearchOptions {
         if (resultType == Double.class && obj instanceof String) {
             return resultType.cast(Double.parseDouble((String) obj));
         }
+        if (resultType == Float.class && obj instanceof String) {
+            return resultType.cast(Float.parseFloat((String) obj));
+        }
         if (resultType == JSONArray.class && obj instanceof String) {
             return resultType.cast(new JSONArray((String) obj));
         }
