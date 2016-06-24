@@ -47,7 +47,7 @@ define([
             })
 
             if (authPlugins.length === 0) {
-                error = 'No authentication extension registered.');
+                error = 'No authentication extension registered.';
             } else if (authPlugins.length > 1) {
                 error = 'Multiple authentication extensions registered. (See console for more info)';
                 console.error('Authentication plugins:', authPlugins);
