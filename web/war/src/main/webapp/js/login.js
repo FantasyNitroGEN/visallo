@@ -47,10 +47,9 @@ define([
             })
 
             if (authPlugins.length === 0) {
-                console.warn('No authentication extension registered, Falling back to old plugin');
-                componentPath = 'configuration/plugins/authentication/authentication';
+                error = 'No authentication extension registered.';
             } else if (authPlugins.length > 1) {
-                error = 'Multiple authentication extensions registered. (See console for more)';
+                error = 'Multiple authentication extensions registered. (See console for more info)';
                 console.error('Authentication plugins:', authPlugins);
             } else {
                 componentPath = authPlugins[0].componentPath;
