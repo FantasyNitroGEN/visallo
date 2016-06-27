@@ -8,6 +8,7 @@ import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.web.clientapi.JsonUtil;
 import org.visallo.web.clientapi.UserNameAndPasswordVisalloApi;
+import org.visallo.web.clientapi.UserNameOnlyVisalloApi;
 import org.visallo.web.clientapi.VisalloApi;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 
@@ -47,6 +48,10 @@ public class ModelCodeGen extends CommandLineTool {
             ontologyJsonString = new String(Files.readAllBytes(inputJsonFile.toPath()), Charset.forName("UTF-8"));
         } else if (!Strings.isNullOrEmpty(visalloUrl) && !Strings.isNullOrEmpty(visalloUsername) && !Strings.isNullOrEmpty(visalloPassword)) {
             VisalloApi visalloApi = new UserNameAndPasswordVisalloApi(visalloUrl, visalloUsername, visalloPassword, true);
+            ontologyJsonString = visalloApi.invokeAPI("/ontology", "GET", null, null, null, null, "application/json");
+            visalloApi.logout();
+        } else if (!Strings.isNullOrEmpty(visalloUrl) && !Strings.isNullOrEmpty(visalloUsername)) {
+            VisalloApi visalloApi = new UserNameOnlyVisalloApi(visalloUrl, visalloUsername, true);
             ontologyJsonString = visalloApi.invokeAPI("/ontology", "GET", null, null, null, null, "application/json");
             visalloApi.logout();
         } else {

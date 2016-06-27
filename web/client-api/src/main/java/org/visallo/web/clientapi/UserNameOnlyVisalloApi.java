@@ -11,7 +11,7 @@ public class UserNameOnlyVisalloApi extends FormLoginVisalloApi {
     }
 
     public UserNameOnlyVisalloApi(String basePath, String username, boolean ignoreSslErrors) {
-        super(basePath);
+        super(basePath, ignoreSslErrors);
         this.username = username;
         logIn();
     }

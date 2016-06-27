@@ -1,6 +1,8 @@
 package org.visallo.web.clientapi;
 
 
+import org.visallo.web.clientapi.model.ClientApiWorkspace;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -53,7 +55,7 @@ public abstract class FormLoginVisalloApi extends VisalloApi {
         }
     }
 
-    protected void logIn() {
+    protected ClientApiWorkspace logIn() {
         try {
             URL url = new URL(getBasePath() + "/login");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -85,7 +87,8 @@ public abstract class FormLoginVisalloApi extends VisalloApi {
                     cookieValue = cookieValue.substring(0, sep);
                 }
                 ApiInvoker.getInstance().setJSessionId(cookieValue);
-                return;
+
+                return loginAndGetCurrentWorkspace();
             }
             throw new VisalloClientApiException("Could not find JSESSIONID cookie");
         } catch (Exception e) {
