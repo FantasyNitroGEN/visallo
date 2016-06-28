@@ -74,7 +74,7 @@ public class ImportRdf implements ParameterizedHandler {
     private File savePartToTemp(Part part) {
         File tempDir = Files.createTempDir();
         try {
-            File uploadFile = new File(tempDir, "upload.unknown");
+            File uploadFile = new File(tempDir, part.getSubmittedFileName());
             try (OutputStream uploadFileOut = new FileOutputStream(uploadFile)) {
                 IOUtils.copy(part.getInputStream(), uploadFileOut);
             }
