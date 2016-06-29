@@ -200,12 +200,27 @@ define([
 
             if (justificationMetadata && justificationMetadata.justificationText) {
                 justification.push({
-                    justificationText: property.metadata['http://visallo.org#justification']
+                    justificationText: justificationMetadata
                 })
             }
 
             if (isVisibility) {
-                this.renderJustification([])
+                var entityJustification = _.findWhere(this.attr.data.properties, { name: 'http://visallo.org#justification' }),
+                    sourceInfo = entityJustification && entityJustification.value;
+                if (sourceInfo && 'justificationText' in sourceInfo) {
+                    justification = [{ justificationText: sourceInfo }];
+                } else {
+                    justification = [];
+                }
+                this.renderJustification(justification);
+                if (justification.length === 0) {
+                    this.requestDetails().then(function(sourceInfo) {
+                        if (sourceInfo) {
+                            self.renderJustification([{ sourceInfo: sourceInfo }]);
+                            positionDialog();
+                        }
+                    })
+                }
             } else {
                 this.renderJustification(justification);
                 if (!justificationMetadata || !('justificationText' in justificationMetadata)) {
@@ -236,6 +251,16 @@ define([
 
             this.dialog.show();
             positionDialog();
+        };
+
+        this.requestDetails = function() {
+            var model = this.attr.data,
+                service = F.vertex.isEdge(model) ? 'edge' : 'vertex';
+
+            return this.dataRequest(service, 'details', model.id)
+                .then(function(result) {
+                    return result.sourceInfo;
+                });
         };
 
         this.renderJustification = function(justification) {

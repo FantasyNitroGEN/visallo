@@ -93,6 +93,10 @@ define([
             ));
         },
 
+        details: function(vertexId) {
+            return ajax('GET', '/vertex/details', { vertexId: vertexId });
+        },
+
         multiple: function(options) {
             return ajax('POST', '/vertex/multiple', options);
         },

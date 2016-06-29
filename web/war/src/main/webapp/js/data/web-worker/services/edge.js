@@ -62,6 +62,10 @@ define([
             })
         },
 
+        details: function(edgeId) {
+            return ajax('GET', '/edge/details', { edgeId: edgeId });
+        },
+
         history: function(edgeId) {
             return ajax('GET', '/edge/history', {
                 graphEdgeId: edgeId
