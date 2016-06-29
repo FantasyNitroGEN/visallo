@@ -26,6 +26,12 @@ define([], function() {
                     $(document).trigger('logout', { message: i18n('visallo.session.expired') });
                 }
             });
+            this.on('workspaceLoaded', function(event, data) {
+                var user = visalloData.currentUser;
+                user.currentWorkspaceId = data.workspaceId;
+                this.setPublicApi('currentUser', user);
+                this.store.update('currentUser', user);
+            })
         });
 
         this.around('dataRequestCompleted', function(dataRequestCompleted, request) {
@@ -33,6 +39,7 @@ define([], function() {
                 var user = request.result;
 
                 this.setPublicApi('currentUser', user, { onlyIfNull: true });
+                this.store.update('currentUser', user);
 
                 if (user.currentWorkspaceId) {
                     this.setPublicApi('currentWorkspaceId', user.currentWorkspaceId, { onlyIfNull: true });

@@ -50,7 +50,7 @@
             'flight/lib': 'util/flight/compat',
             'goog': '../libs/requirejs-plugins/src/goog',
             'gremlins': '../libs/gremlins.js/gremlins.min',
-            'gridstack': '../libs/gridstack/dist/gridstack.min',
+            'gridlist': '../libs/grid-list/src/gridList',
             'hbs': '../libs/require-handlebars-plugin/hbs',
             'handlebars': '../libs/require-handlebars-plugin/hbs/handlebars',
             'jstz': '../libs/jstimezonedetect/dist/jstz.min',

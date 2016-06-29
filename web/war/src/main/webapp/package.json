@@ -26,7 +26,7 @@
     "ejs": "2.3.4",
     "flightjs": "1.5.1",
     "gremlins.js": "0.1.0",
-    "gridstack": "0.2.3",
+    "grid-list": "^0.3.3",
     "jquery": "2.1.4",
     "jquery-scrollstop": "1.2.0",
     "jquery-ui-bundle": "1.11.4",

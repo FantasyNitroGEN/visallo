@@ -1,9 +1,12 @@
 
 define([
     'flight/lib/component',
+    'react',
+    'react-dom',
     'tpl!app',
     'menubar/menubar',
-    'dashboard/dashboard',
+    'jsx!dashboard/Dashboard',
+    'data/store',
     'search/search',
     'workspaces/workspaces',
     'workspaces/overlay',
@@ -23,9 +26,12 @@ define([
     'util/withDataRequest'
 ], function(
     defineComponent,
+    React,
+    ReactDom,
     appTemplate,
     Menubar,
     Dashboard,
+    store,
     Search,
     Workspaces,
     WorkspaceOverlay,
@@ -51,6 +57,38 @@ define([
         if (e.ctrlKey) {
             e.preventDefault();
             e.stopPropagation();
+        }
+    }
+
+    /**
+     * 2 Finger scrolling at the ends of the page causes forward back
+     * browser events in Chrome for Mac. Since the dashboard scrolls
+     * horizontally, this can cause unintended navigation events.
+     *
+     * https://github.com/micho/jQuery.preventMacBackScroll
+     */
+    function preventChromeHistory(e) {
+        var isMac = navigator.userAgent.match(/Macintosh/),
+            isChrome = navigator.userAgent.indexOf('Chrome') >= 0,
+            hasBackTriggeredByScroll = isMac && isChrome;
+
+        if (hasBackTriggeredByScroll) {
+            var preventLeft, preventUp;
+
+            // If none of the parents can be scrolled left when we try to scroll left
+            preventLeft = e.deltaX < 0 && $(e.target).parents().filter(function() {
+                return $(this).scrollLeft() > 0;
+            }).length === 0;
+
+            // If none of the parents can be scrolled up when we try to scroll up
+            preventUp = e.deltaY > 0 && !$(e.target).parents().filter(function() {
+                return $(this).scrollTop() > 0;
+            }).length === 0;
+
+            // Prevent futile scroll, which would trigger the Back/Next page event
+            if (preventLeft || preventUp) {
+                e.preventDefault();
+            }
         }
     }
 
@@ -83,7 +121,6 @@ define([
                 WorkspaceOverlay,
                 MouseOverlay,
                 Menubar,
-                Dashboard,
                 Search,
                 Workspaces,
                 Admin,
@@ -127,6 +164,7 @@ define([
 
             fixMultipleBootstrapModals();
             document.addEventListener('mousewheel', preventPinchToZoom, true);
+            document.addEventListener('mousewheel', preventChromeHistory, false);
             this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
 
             this.on(document, 'error', this.onError);
@@ -208,7 +246,6 @@ define([
             WorkspaceOverlay.attachTo(content.filter('.workspace-overlay'));
             MouseOverlay.attachTo(document);
             Menubar.attachTo(menubarPane.find('.content'));
-            Dashboard.attachTo(dashboardPane);
             Search.attachTo(searchPane.find('.content'));
             Workspaces.attachTo(workspacesPane.find('.content'));
             Admin.attachTo(adminPane.find('.content'));
@@ -220,8 +257,22 @@ define([
 
             this.$node.html(content);
 
-            $(document.body).toggleClass('animatelogin', !!this.attr.animateFromLogin);
+            this.on('didToggleDisplay', function(event, data) {
+                if (data.name === 'dashboard') {
+                    if (data.visible) {
+                        store.execNowAndOnUpdate(data.name, function(store) {
+                            ReactDom.render(React.createElement(Dashboard, { store: store }), dashboardPane[0]);
+                        })
+                    } else {
+                        if (ReactDom.unmountComponentAtNode(dashboardPane[0])) {
+                            store.removeCallback(data.name);
+                        }
+                    }
+                }
+            })
 
+
+            $(document.body).toggleClass('animatelogin', !!this.attr.animateFromLogin);
 
             this.triggerPaneResized();
             this.dataRequest('config', 'properties')

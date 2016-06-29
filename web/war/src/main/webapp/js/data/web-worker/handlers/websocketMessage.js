@@ -9,6 +9,23 @@ define([
             return ('graphVertexId' in data) ? 'vertex' : ('graphEdgeId' in data) ? 'edge' : null;
         },
         socketHandlers = {
+            dashboardItemChange: function(data) {
+                dispatchMain('rebroadcastEvent', {
+                    eventName: 'dashboardItemUpdated',
+                    data: {
+                        dashboardItem: Object.assign(data, { configuration: JSON.parse(data.configuration) })
+                    }
+                })
+            },
+            dashboardItemDeleted: function(data) {
+                dispatchMain('rebroadcastEvent', {
+                    eventName: 'dashboardItemUpdated',
+                    data: {
+                        dashboardItem: { dashboardItemId: data.dashboardItemId },
+                        deleted: true
+                    }
+                })
+            },
             workspaceChange: function(data, json) {
                 require(['../util/store'], function(store) {
                     store.workspaceWasChangedRemotely(data);

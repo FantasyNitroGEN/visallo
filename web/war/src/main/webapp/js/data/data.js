@@ -1,6 +1,7 @@
 
 define([
     'flight/lib/component',
+    './store',
     './withPublicApi',
     './withBrokenWorkerConsole',
     './withDataRequestHandler',
@@ -17,17 +18,23 @@ define([
     './withWorkspaceFiltering',
     './withWorkspaceVertexDrop'
 ], function(
-    defineComponent
+    defineComponent,
+    // for react components
+    store
     // mixins auto added in order (change index of slice)
 ) {
     'use strict';
 
     var PATH_TO_WORKER = 'jsc/data/web-worker/data-worker.js',
-        mixins = Array.prototype.slice.call(arguments, 1);
+        mixins = Array.prototype.slice.call(arguments, 2);
 
     return defineComponent.apply(null, [Data].concat(mixins));
 
     function Data() {
+
+        this.before('initialize', function() {
+            this.store = store;
+        })
 
         this.after('initialize', function() {
             var self = this;

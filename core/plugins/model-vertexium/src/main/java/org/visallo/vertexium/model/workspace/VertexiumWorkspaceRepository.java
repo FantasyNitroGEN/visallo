@@ -33,6 +33,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
+import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
@@ -52,6 +53,7 @@ import static org.visallo.core.util.StreamUtil.stream;
 public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexiumWorkspaceRepository.class);
     private AuthorizationRepository authorizationRepository;
+    private WorkQueueRepository workQueueRepository;
     private WorkspaceDiffHelper workspaceDiff;
     private final LockRepository lockRepository;
     private Cache<String, Boolean> usersWithReadAccessCache = CacheBuilder.newBuilder()
@@ -105,6 +107,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         this.authorizationRepository = authorizationRepository;
         this.workspaceDiff = workspaceDiff;
         this.lockRepository = lockRepository;
+        this.workQueueRepository = workQueueRepository;
 
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
         authorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
@@ -679,6 +682,10 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Authorizations authorizations = getUserRepository().getAuthorizations(user, VISIBILITY_STRING, workspaceId);
         getGraph().softDeleteVertex(dashboardItemId, authorizations);
         getGraph().flush();
+
+        Workspace workspace = findById(workspaceId, user);
+        ClientApiWorkspace workspaceClientApi = toClientApi(workspace, user, false, authorizations);
+        workQueueRepository.pushDashboardItemDelete(workspaceClientApi, dashboardItemId);
     }
 
     private DashboardItem dashboardItemVertexToDashboardItem(Vertex dashboardItemVertex) {
@@ -734,6 +741,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 visibility
         );
         Vertex dashboardItemVertex = dashboardItemVertexBuilder.save(authorizations);
+        dashboardItemId = dashboardItemVertex.getId();
 
         if (dashboardId != null) {
             Vertex dashboardVertex = getGraph().getVertex(dashboardId, authorizations);
@@ -748,9 +756,14 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     visibility,
                     authorizations
             );
+
         }
 
         getGraph().flush();
+
+        Workspace workspace = findById(workspaceId, user);
+        ClientApiWorkspace workspaceClientApi = toClientApi(workspace, user, false, authorizations);
+        workQueueRepository.pushDashboardItemChange(workspaceClientApi, dashboardItemId, configuration);
 
         return dashboardItemVertex.getId();
     }

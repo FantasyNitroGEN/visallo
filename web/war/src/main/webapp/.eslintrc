@@ -15,6 +15,7 @@ env:
     browser: true
     amd: true
     jquery: true
+    es6: true
 plugins:
     - react
 rules:

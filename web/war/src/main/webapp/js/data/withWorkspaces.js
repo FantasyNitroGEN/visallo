@@ -154,6 +154,7 @@ define(['util/undoManager'], function(UndoManager) {
             this.setPublicApi('currentWorkspaceName', message.workspace.title);
             this.setPublicApi('currentWorkspaceEditable', message.workspace.editable);
             this.setPublicApi('currentWorkspaceCommentable', message.workspace.commentable);
+            this.store.update('workspace', message.workspace);
             if (message.newVertices.length) {
                 this.trigger('loadEdges', {
                     workspaceId: message.workspace.workspaceId,
@@ -172,6 +173,7 @@ define(['util/undoManager'], function(UndoManager) {
             this.setPublicApi('currentWorkspaceName', workspace.title);
             this.setPublicApi('currentWorkspaceEditable', workspace.editable);
             this.setPublicApi('currentWorkspaceCommentable', workspace.commentable);
+            this.store.update('workspace', _.omit(workspace, 'data'));
             this.trigger('workspaceLoaded', workspace);
             this.trigger('selectObjects');
             this.fireApplicationReadyOnce();

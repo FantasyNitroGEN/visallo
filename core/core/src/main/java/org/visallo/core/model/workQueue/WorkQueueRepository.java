@@ -577,6 +577,29 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
+    public void pushDashboardItemDelete(ClientApiWorkspace workspace, String dashboardItemId) {
+        JSONObject json = new JSONObject();
+        json.put("type", "dashboardItemDeleted");
+        json.put("permissions", getPermissionsWithUsers(workspace, null));
+        JSONObject data = new JSONObject();
+        data.put("workspaceId", workspace.getWorkspaceId());
+        data.put("dashboardItemId", dashboardItemId);
+        json.put("data", data);
+        broadcastJson(json);
+    }
+
+    public void pushDashboardItemChange(ClientApiWorkspace workspace, String dashboardItemId, String configuration) {
+        JSONObject json = new JSONObject();
+        json.put("type", "dashboardItemChange");
+        json.put("permissions", getPermissionsWithUsers(workspace, null));
+        JSONObject data = new JSONObject();
+        data.put("workspaceId", workspace.getWorkspaceId());
+        data.put("dashboardItemId", dashboardItemId);
+        data.put("configuration", configuration);
+        json.put("data", data);
+        broadcastJson(json);
+    }
+
     public void pushUserCurrentWorkspaceChange(User user, String workspaceId) {
         broadcastUserWorkspaceChange(user, workspaceId);
     }

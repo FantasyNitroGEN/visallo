@@ -1,4 +1,4 @@
-define(['underscore'], function(_) {
+define(['underscore', 'data/store'], function(_, store) {
     'use strict';
 
     var extensions = {},
@@ -14,12 +14,17 @@ define(['underscore'], function(_) {
                 throw new Error('extension must be provided');
             }
         },
+        storeApi,
         triggerChange = function(extensionPoint) {
             if (typeof $ !== 'undefined' && typeof document !== 'undefined') {
-                $(document).trigger('extensionsChanged', {
-                    extensionPoint: extensionPoint
-                })
+                if (extensionPoint) {
+                    $(document).trigger('extensionsChanged', {
+                        extensionPoint: extensionPoint
+                    })
+                }
             }
+
+            store.update('extensions', storeApi);
         },
         shouldWarn = function(extensionPoint) {
             if (extensionPoint in alreadyWarnedAboutDocsByExtensionPoint) {
@@ -64,6 +69,7 @@ define(['underscore'], function(_) {
                 uuidToExtensionPoint = _.omit(uuidToExtensionPoint, uuids)
                 delete extensions[extensionPoint]
                 delete extensionDocumentation[extensionPoint]
+                triggerChange();
             },
             unregisterExtension: function(extensionUuid) {
                 if (!extensionUuid) {
@@ -153,6 +159,8 @@ define(['underscore'], function(_) {
                 return [];
             }
         };
+
+    storeApi = _.pick(api, 'documentExtensionPoint', 'extensionsForPoint');
 
     return api;
 })

@@ -281,6 +281,7 @@ define([], function() {
                                     previousSelectedObjects = selectedObjects;
 
                                     var transformedObjects = defaultNoObjectsOrData(selectedObjects);
+                                    self.store.update('selectedObjects', _.pick(transformedObjects, 'edgeIds', 'vertexIds'));
                                     self.setPublicApi('selectedObjects', transformedObjects);
 
                                     var postData = _.chain(selectedObjects)
