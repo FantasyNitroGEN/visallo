@@ -32,7 +32,7 @@ public class JettyWebServer extends WebServer {
         server = new org.eclipse.jetty.server.Server();
 
         // Setup JMX
-        MBeanContainer mbContainer=new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
+        MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
         server.addEventListener(mbContainer);
         server.addBean(mbContainer);
         server.addBean(Log.getLog());
@@ -57,9 +57,11 @@ public class JettyWebServer extends WebServer {
         HttpConfiguration https_config = new HttpConfiguration(http_config);
         https_config.addCustomizer(new SecureRequestCustomizer());
 
-        ServerConnector httpsConnector = new ServerConnector(server,
+        ServerConnector httpsConnector = new ServerConnector(
+                server,
                 new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                new HttpConnectionFactory(https_config));
+                new HttpConnectionFactory(https_config)
+        );
         httpsConnector.setPort(getHttpsPort());
 
         WebAppContext webAppContext = new WebAppContext();
@@ -76,11 +78,16 @@ public class JettyWebServer extends WebServer {
         server.setHandler(contexts);
 
         server.start();
+
+        // need set this after the web.xml is read and configured
+        webAppContext.getSessionHandler().getSessionManager().setMaxInactiveInterval(getSessionTimeout() * 60);
+
         afterServerStart();
 
         LOGGER.info(
                 "Session timeout is %d seconds",
-                webAppContext.getSessionHandler().getSessionManager().getMaxInactiveInterval());
+                webAppContext.getSessionHandler().getSessionManager().getMaxInactiveInterval()
+        );
 
         if (!dontJoin) {
             server.join();
