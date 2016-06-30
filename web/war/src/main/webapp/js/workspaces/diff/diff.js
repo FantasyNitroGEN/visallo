@@ -208,17 +208,19 @@ define([
                                     break;
 
                                 case 'PropertyDiffItem':
-
-                                    var ontologyProperty = self.ontologyProperties.byTitle[diff.name],
-                                        compoundProperty = self.ontologyProperties.byDependentToCompound[diff.name];
+                                    var ontologyProperty = self.ontologyProperties.byTitle[diff.name];
+                                    var compoundProperty = self.ontologyProperties.byDependentToCompound[diff.name];
+                                    var isDependent = !!diff.dependentName;
 
                                     if (ontologyProperty && ontologyProperty.userVisible) {
-                                        diff.id = elementId + diff.name + diff.key;
-                                        diff.publish = previousDiffsById[diff.id] && previousDiffsById[diff.id].publish;
-                                        diff.undo = previousDiffsById[diff.id] && previousDiffsById[diff.id].undo;
-                                        addDiffDependency(diff.elementId, diff);
+                                        if (!isDependent) {
+                                            diff.id = elementId + diff.name + diff.key;
+                                            diff.publish = previousDiffsById[diff.id] && previousDiffsById[diff.id].publish;
+                                            diff.undo = previousDiffsById[diff.id] && previousDiffsById[diff.id].undo;
+                                            addDiffDependency(diff.elementId, diff);
+                                            diff.className = F.className.to(diff.id);
+                                        }
 
-                                        diff.className = F.className.to(diff.id);
                                         if (compoundProperty &&
                                             F.vertex.hasProperty(outputItem.vertex, compoundProperty)) {
 
