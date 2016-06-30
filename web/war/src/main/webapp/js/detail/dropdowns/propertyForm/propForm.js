@@ -83,11 +83,7 @@ define([
             this.select('saveButtonSelector').attr('disabled', true);
             this.select('deleteButtonSelector').hide();
             this.select('saveButtonSelector').hide();
-            this.on('keyup paste', {
-                configurationSelector: function(event, data) {
-                    this.trigger(event.target, 'change');
-                }
-            });
+
             if (this.attr.property) {
                 this.trigger('propertyselected', {
                     disablePreviousValuePrompt: true,
@@ -475,13 +471,13 @@ define([
                     (this.visibilitySource && this.visibilitySource.valid) &&
                     (this.justification ? this.justification.valid : true);
                 var empty = _.reject(this.$node.find('.configuration input'), function(input) {
-                    return !!input.value;
+                    return !input.required || !!input.value;
                 }).length > 0;
 
-                this.valid = valid && !empty;
+                this.valid = valid && !empty && _.some(this.modified);
             }
 
-            if (this.valid && _.some(this.modified)) {
+            if (this.valid) {
                 this.select('saveButtonSelector').removeAttr('disabled');
             } else {
                 this.select('saveButtonSelector').attr('disabled', true);

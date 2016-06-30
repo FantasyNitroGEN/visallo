@@ -46,6 +46,7 @@ define([
                 });
             }
 
+            this.on('input', this.onInput);
             this.on('focusPropertyField', function() {
                 _.defer(function() {
                     self.select('inputSelector').eq(0).focus().select();
@@ -123,6 +124,10 @@ define([
             }
         });
 
+        this.onInput = function(event, data) {
+            this.fieldUpdated(this.getValue(), { fromEvent: 'input' });
+        };
+
         this.triggerFieldUpdated = function() {
             this.fieldUpdated(this.getValue());
         };
@@ -151,7 +156,9 @@ define([
                             metadata: _.isFunction(self.getMetadata) && self.getMetadata() || {},
                             options: options
                         });
-                        self.setValue(value);
+                        if (!options || options.fromEvent !== 'input') {
+                            self.setValue(value);
+                        }
                     }
                     inputs.removeClass('invalid');
                     self._previousValue = value;
