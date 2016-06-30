@@ -2,7 +2,7 @@
 define([
     'flight/lib/component',
     'react-dom',
-    'jsx!./DiffPanel',
+    './DiffPanel',
     'util/vertex/formatters',
     'util/withDataRequest'
 ], function(

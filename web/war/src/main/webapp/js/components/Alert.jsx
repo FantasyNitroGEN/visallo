@@ -1,6 +1,7 @@
 define([
     'react'
-], function (React) {
+], function(React) {
+    'use strict';
 
     const Alert = React.createClass({
         propTypes: {

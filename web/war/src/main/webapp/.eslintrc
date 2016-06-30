@@ -11,10 +11,14 @@ globals:
 ecmaFeatures:
     jsx: true
     blockBindings: true
+    destructuring: true
+    spread: true
+    arrowFunctions: true
 env:
     browser: true
     amd: true
     jquery: true
+    es6: true
 plugins:
     - react
 rules:

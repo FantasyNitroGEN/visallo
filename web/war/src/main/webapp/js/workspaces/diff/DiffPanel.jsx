@@ -4,6 +4,8 @@ define([
     'util/vertex/formatters',
     'util/privileges'
 ], function(React, classNames, F, Privileges) {
+    'use strict';
+
     var PropTypes = React.PropTypes;
 
     function formatVisibility(propertyOrProperties) {

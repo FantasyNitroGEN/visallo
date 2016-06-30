@@ -81,7 +81,7 @@ define([
                 return attacher()
                     .node(this.node)
                     .params(p)
-                    .path('jsx!../test/unit/spec/util/component/attacherReactParams')
+                    .path('../test/unit/spec/util/component/attacherReactParams')
                     .behavior({
                         old: function() {}
                     })
@@ -214,7 +214,7 @@ define([
             it('simple render', function() {
                 return attacher()
                     .node(this.node)
-                    .path('jsx!../test/unit/spec/util/component/attacherReactSimple')
+                    .path('../test/unit/spec/util/component/attacherReactSimple')
                     .attach()
                     .then(function(a) {
                         a._node.textContent.should.equal('ReactSimple')
@@ -224,7 +224,7 @@ define([
             it('accepts params', function() {
                 return attacher()
                     .node(this.node)
-                    .path('jsx!../test/unit/spec/util/component/attacherReactParams')
+                    .path('../test/unit/spec/util/component/attacherReactParams')
                     .params({
                         param: 'WithParams'
                     })
@@ -236,7 +236,7 @@ define([
             it('uses api', function() {
                 return attacher()
                     .node(this.node)
-                    .path('jsx!../test/unit/spec/util/component/attacherReactApi')
+                    .path('../test/unit/spec/util/component/attacherReactApi')
                     .attach()
                     .then(function(a) {
                         a._node.textContent.should.equal('1 cat');
@@ -246,7 +246,7 @@ define([
                 var called = calledDeferred();
                 return attacher()
                     .node(this.node)
-                    .path('jsx!../test/unit/spec/util/component/attacherReactBehavior')
+                    .path('../test/unit/spec/util/component/attacherReactBehavior')
                     .behavior({
                         customBehavior: function(param) {
                             param.should.equal('param1')
@@ -266,7 +266,7 @@ define([
                 return a
                     .node(this.node)
                     .params({ param: 'first' })
-                    .path('jsx!../test/unit/spec/util/component/attacherReactReattach')
+                    .path('../test/unit/spec/util/component/attacherReactReattach')
                     .behavior({
                         changeParam: function(newParam) {
                             a.params({ param: newParam }).attach().then(function(a) {

@@ -28,7 +28,6 @@
             'arbor': '../libs/cytoscape-arbor/arbor',
             'async': '../libs/requirejs-plugins/src/async',
             'atmosphere': '../libs/atmosphere.js/lib/atmosphere',
-            'babel': '../libs/requirejs-react-jsx/babel-5.8.34.min',
             'beautify': '../libs/js-beautify/js/lib/beautify',
             'bootstrap': '../libs/@visallo/bootstrap/docs/assets/js/bootstrap.min',
             'bootstrap-datepicker': '../libs/bootstrap-datepicker/js/bootstrap-datepicker',
@@ -54,7 +53,6 @@
             'hbs': '../libs/require-handlebars-plugin/hbs',
             'handlebars': '../libs/require-handlebars-plugin/hbs/handlebars',
             'jstz': '../libs/jstimezonedetect/dist/jstz.min',
-            'jsx': '../libs/requirejs-react-jsx/jsx',
             'jquery': '../libs/jquery/dist/jquery.min',
             'jquery-ui-bundle': '../libs/jquery-ui-bundle/jquery-ui.min',
             'jquery-scrollstop': '../libs/jquery-scrollstop/jquery.scrollstop',
@@ -106,12 +104,6 @@
             'jquery-scrollstop': { exports: 'jQuery', deps: ['jquery'] },
             'underscore': { exports: '_' },
             'videojs': { exports: 'videojs' }
-        },
-        config: {
-            babel: {
-                sourceMaps: 'inline',
-                fileExtension: '.jsx'
-            }
         },
         amdWrap: [
             'deep-freeze-strict/index.js'
