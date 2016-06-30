@@ -50,5 +50,13 @@ define([
             var name = this.attr.property.title;
             return _.isNumber(value) && !isNaN(value) && F.vertex.singlePropValid(value, name);
         };
+
+        this.getMetadata = function() {
+            var currentVal = this.getValue();
+            if (currentVal && !isNaN(currentVal)) {
+                return { 'http://visallo.org#inputPrecision': 0 };
+            }
+            return null;
+        };
     }
 });

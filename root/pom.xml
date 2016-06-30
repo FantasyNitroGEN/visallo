@@ -51,6 +51,7 @@
         <h2.version>1.4.191</h2.version>
         <ant.version>1.4.1</ant.version>
         <atmosphere.version>2.4.2</atmosphere.version>
+        <commons.math3.version>3.4.1</commons.math3.version>
         <commons.beanutils.version>1.9.1</commons.beanutils.version>
         <commons.cli.version>1.2</commons.cli.version>
         <jcommander.version>1.47</jcommander.version>
@@ -426,6 +427,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>${commons.compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>${commons.math3.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>

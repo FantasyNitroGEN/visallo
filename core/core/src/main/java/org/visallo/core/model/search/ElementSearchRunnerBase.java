@@ -1,5 +1,6 @@
 package org.visallo.core.model.search;
 
+import org.apache.commons.math3.util.Precision;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -19,6 +20,7 @@ import org.visallo.web.clientapi.model.PropertyType;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.*;
+import java.math.BigDecimal;
 
 public abstract class ElementSearchRunnerBase extends SearchRunner {
     private final Graph graph;
@@ -314,10 +316,13 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
 
         if (metadata != null && metadata.has("http://visallo.org#inputPrecision") && value0 instanceof Double) {
             double doubleParam = (double) value0;
-            double buffer = Math.pow(10, -(Math.abs(metadata.getInt("http://visallo.org#inputPrecision")) + 1)) * 5;
+            int inputPrecision = Math.max(metadata.getInt("http://visallo.org#inputPrecision"), 0);
+            double lowerBound = Precision.round(doubleParam, inputPrecision, BigDecimal.ROUND_DOWN);
+            double upperBound = Precision.equals(doubleParam, lowerBound, Precision.EPSILON) ? lowerBound + Math.pow(10, -inputPrecision) :
+                    Precision.round(doubleParam, inputPrecision, BigDecimal.ROUND_UP);
 
-            graphQuery.has(propertyName, Compare.GREATER_THAN, doubleParam - buffer);
-            graphQuery.has(propertyName, Compare.LESS_THAN, doubleParam + buffer);
+            graphQuery.has(propertyName, Compare.GREATER_THAN_EQUAL, (lowerBound - Precision.EPSILON));
+            graphQuery.has(propertyName, Compare.LESS_THAN, (upperBound + Precision.EPSILON));
         } else {
             graphQuery.has(propertyName, Compare.EQUAL, value0);
         }
