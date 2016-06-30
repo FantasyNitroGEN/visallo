@@ -2,6 +2,8 @@ package org.visallo.core.model.lock;
 
 import org.junit.After;
 import org.junit.Before;
+import org.visallo.core.util.ShutdownListener;
+import org.visallo.core.util.ShutdownService;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -13,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 public abstract class LockRepositoryTestBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LockRepositoryTestBase.class);
     protected LockRepository lockRepository;
+    protected ShutdownService shutdownService = new ShutdownService();
 
     protected abstract LockRepository createLockRepository();
 
@@ -23,7 +26,7 @@ public abstract class LockRepositoryTestBase {
 
     @After
     public void after() throws Exception {
-        lockRepository.shutdown();
+        shutdownService.shutdown();
     }
 
     protected Thread createLockExercisingThread(

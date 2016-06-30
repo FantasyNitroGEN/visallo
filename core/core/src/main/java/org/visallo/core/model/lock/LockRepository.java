@@ -51,6 +51,4 @@ public abstract class LockRepository {
     public abstract Lock createLock(String lockName);
 
     public abstract void leaderElection(String lockName, LeaderListener listener);
-
-    public abstract void shutdown();
 }
