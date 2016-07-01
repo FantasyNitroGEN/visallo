@@ -2,6 +2,7 @@ package org.visallo.core.model;
 
 import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.WorkerTuple;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -17,7 +18,10 @@ public abstract class WorkerBase {
 
     protected WorkerBase(WorkQueueRepository workQueueRepository, Configuration configuration) {
         this.workQueueRepository = workQueueRepository;
-        this.statusEnabled = configuration.getBoolean(Configuration.STATUS_ENABLED, Configuration.STATUS_ENABLED_DEFAULT);
+        this.statusEnabled = configuration.getBoolean(
+                Configuration.STATUS_ENABLED,
+                Configuration.STATUS_ENABLED_DEFAULT
+        );
     }
 
     public void run() throws Exception {
@@ -30,7 +34,12 @@ public abstract class WorkerBase {
             statusServer = createStatusServer();
         }
         while (shouldRun) {
-            WorkerTuple tuple = workerSpout.nextTuple();
+            WorkerTuple tuple;
+            try {
+                tuple = workerSpout.nextTuple();
+            } catch (Exception ex) {
+                throw new VisalloException("Failed to get next tuple", ex);
+            }
             if (tuple == null) {
                 Thread.sleep(100);
                 continue;
@@ -72,7 +81,7 @@ public abstract class WorkerBase {
         return workQueueRepository;
     }
 
-    public boolean shouldRun(){
+    public boolean shouldRun() {
         return shouldRun;
     }
 }

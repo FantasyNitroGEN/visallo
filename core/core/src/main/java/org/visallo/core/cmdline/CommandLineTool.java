@@ -17,6 +17,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ShutdownService;
 import org.visallo.core.util.VersionUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -36,6 +37,7 @@ public abstract class CommandLineTool {
     private OntologyRepository ontologyRepository;
     private VisibilityTranslator visibilityTranslator;
     private SimpleOrmSession simpleOrmSession;
+    private ShutdownService shutdownService;
 
     @Parameter(names = {"--help", "-h"}, description = "Print help", help = true)
     private boolean help;
@@ -105,22 +107,7 @@ public abstract class CommandLineTool {
     }
 
     protected void shutdown() {
-        if (this.lockRepository != null) {
-            LOGGER.debug("shutting down %s", this.lockRepository.getClass().getName());
-            this.lockRepository.shutdown();
-        }
-        if (graph != null) {
-            LOGGER.debug("shutting down %s", this.graph.getClass().getName());
-            this.graph.shutdown();
-        }
-        if (this.workQueueRepository != null) {
-            LOGGER.debug("shutting down %s", this.workQueueRepository.getClass().getName());
-            this.workQueueRepository.shutdown();
-        }
-        if (this.simpleOrmSession != null) {
-            LOGGER.debug("shutting down %s", this.simpleOrmSession.getClass().getName());
-            this.simpleOrmSession.close();
-        }
+        getShutdownService().shutdown();
     }
 
     protected abstract int run() throws Exception;
@@ -180,6 +167,11 @@ public abstract class CommandLineTool {
         this.simpleOrmSession = simpleOrmSession;
     }
 
+    @Inject
+    public void setShutdownService(ShutdownService shutdownService) {
+        this.shutdownService = shutdownService;
+    }
+
     public SimpleOrmSession getSimpleOrmSession() {
         return simpleOrmSession;
     }
@@ -202,6 +194,10 @@ public abstract class CommandLineTool {
 
     public VisibilityTranslator getVisibilityTranslator() {
         return visibilityTranslator;
+    }
+
+    public ShutdownService getShutdownService() {
+        return shutdownService;
     }
 
     @Inject

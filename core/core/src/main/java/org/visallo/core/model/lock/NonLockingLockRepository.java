@@ -1,10 +1,26 @@
 package org.visallo.core.model.lock;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
+import org.visallo.core.util.ShutdownListener;
+import org.visallo.core.util.ShutdownService;
+
 import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 
-public class NonLockingLockRepository extends LockRepository {
+public class NonLockingLockRepository extends LockRepository implements ShutdownListener {
     private WeakHashMap<Long, Thread> threads = new WeakHashMap<>();
+
+    // available for testing when you don't need perfect shutdown behavior
+    @VisibleForTesting
+    public NonLockingLockRepository() {
+
+    }
+
+    @Inject
+    public NonLockingLockRepository(ShutdownService shutdownService) {
+        shutdownService.register(this);
+    }
 
     @Override
     public Lock createLock(String lockName) {
