@@ -52,7 +52,10 @@ public class FormulaEvaluator {
         this.configuration = configuration;
         this.ontologyRepository = ontologyRepository;
 
-        executorService = Executors.newFixedThreadPool(configuration.getInt(CONFIGURATION_PARAMETER_MAX_THREADS, CONFIGURATION_DEFAULT_MAX_THREADS));
+        executorService = Executors.newFixedThreadPool(configuration.getInt(
+                CONFIGURATION_PARAMETER_MAX_THREADS,
+                CONFIGURATION_DEFAULT_MAX_THREADS
+        ));
     }
 
     public void close() {
@@ -81,8 +84,22 @@ public class FormulaEvaluator {
         return evaluateFormula("Property", element, propertyKey, propertyName, userContext, authorizations);
     }
 
-    private String evaluateFormula(String type, Element element, String propertyKey, String propertyName, UserContext userContext, Authorizations authorizations) {
-        FormulaEvaluatorCallable evaluationCallable = new FormulaEvaluatorCallable(type, element, propertyKey, propertyName, userContext, authorizations);
+    private String evaluateFormula(
+            String type,
+            Element element,
+            String propertyKey,
+            String propertyName,
+            UserContext userContext,
+            Authorizations authorizations
+    ) {
+        FormulaEvaluatorCallable evaluationCallable = new FormulaEvaluatorCallable(
+                type,
+                element,
+                propertyKey,
+                propertyName,
+                userContext,
+                authorizations
+        );
 
         try {
             return executorService.submit(evaluationCallable).get();
@@ -123,7 +140,7 @@ public class FormulaEvaluator {
             throw new VisalloException("Json resource not available", e);
         }
 
-        String[] names = new String[]{"print", "load", "consoleWarn", "consoleError", "readFile"};
+        String[] names = new String[]{"print", "load", "consoleWarn", "consoleError", "readFully"};
         browserSupport.defineFunctionProperties(names, scope.getClass(), ScriptableObject.DONTENUM);
 
         Scriptable argsObj = context.newArray(scope, new Object[]{});
@@ -155,16 +172,17 @@ public class FormulaEvaluator {
         return configuration.toJSON(locale).toString();
     }
 
-    private Object evaluateFile(ScriptableObject scope, String filename) {
-        InputStream is = FormulaEvaluator.class.getResourceAsStream(filename);
-        if (is != null) {
-            try {
-                return Context.getCurrentContext().evaluateString(scope, IOUtils.toString(is), filename, 0, null);
-            } catch (IOException e) {
-                LOGGER.error("File not readable %s", filename);
+    private void evaluateFile(ScriptableObject scope, String filename) {
+        LOGGER.debug("evaluating file: %s", filename);
+        try (InputStream is = FormulaEvaluator.class.getResourceAsStream(filename)) {
+            if (is == null) {
+                throw new VisalloException("File not found " + filename);
             }
-        } else LOGGER.error("File not found %s", filename);
-        return null;
+
+            Context.getCurrentContext().evaluateString(scope, IOUtils.toString(is), filename, 0, null);
+        } catch (IOException ex) {
+            throw new VisalloException("Could not read file: " + filename, ex);
+        }
     }
 
     protected String toJson(Element element, String workspaceId, Authorizations authorizations) {
@@ -204,7 +222,14 @@ public class FormulaEvaluator {
         private Element element;
         private Authorizations authorizations;
 
-        public FormulaEvaluatorCallable(String fieldName, Element element, String propertyKey, String propertyName, UserContext userContext, Authorizations authorizations) {
+        public FormulaEvaluatorCallable(
+                String fieldName,
+                Element element,
+                String propertyKey,
+                String propertyName,
+                UserContext userContext,
+                Authorizations authorizations
+        ) {
             this.fieldName = fieldName;
             this.element = element;
             this.propertyKey = propertyKey;
@@ -218,7 +243,12 @@ public class FormulaEvaluator {
             Scriptable scope = getScriptable(userContext);
             String json = toJson(element, userContext.getWorkspaceId(), authorizations);
             Function function = (Function) scope.get("evaluate" + fieldName + "FormulaJson", scope);
-            Object result = function.call(Context.getCurrentContext(), scope, scope, new Object[]{json, propertyKey, propertyName});
+            Object result = function.call(
+                    Context.getCurrentContext(),
+                    scope,
+                    scope,
+                    new Object[]{json, propertyKey, propertyName}
+            );
 
             return (String) Context.jsToJava(result, String.class);
         }
