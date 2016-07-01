@@ -26,7 +26,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.SetPropertyRouteHelper;
+import org.visallo.web.routes.SetPropertyBase;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
@@ -37,17 +37,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class VertexSetProperty implements ParameterizedHandler {
+public class VertexSetProperty extends SetPropertyBase implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSetProperty.class);
 
-    private final Graph graph;
     private final OntologyRepository ontologyRepository;
-    private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
     private final ACLProvider aclProvider;
-    private final SetPropertyRouteHelper routeHelper;
     private final boolean autoPublishComments;
 
     @Inject
@@ -59,16 +56,13 @@ public class VertexSetProperty implements ParameterizedHandler {
             final WorkQueueRepository workQueueRepository,
             final GraphRepository graphRepository,
             final ACLProvider aclProvider,
-            final SetPropertyRouteHelper routeHelper,
             final Configuration configuration) {
+        super(graph, visibilityTranslator);
         this.ontologyRepository = ontologyRepository;
-        this.graph = graph;
-        this.visibilityTranslator = visibilityTranslator;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
         this.aclProvider = aclProvider;
-        this.routeHelper = routeHelper;
         this.autoPublishComments = configuration.getBoolean(Configuration.COMMENTS_AUTO_PUBLISH,
                 Configuration.DEFAULT_COMMENTS_AUTO_PUBLISH);
     }
@@ -95,17 +89,17 @@ public class VertexSetProperty implements ParameterizedHandler {
             throw new VisalloException("Parameter: 'value' or 'value[]' is required in the request");
         }
 
-        routeHelper.checkVisibilityParameter(visibilitySource, authorizations, user, resourceBundle);
-        routeHelper.checkRoutePath("vertex", propertyName, request);
+        checkVisibilityParameter(visibilitySource, authorizations, user, resourceBundle);
+        checkRoutePath("vertex", propertyName, request);
 
-        boolean isComment = routeHelper.isCommentProperty(propertyName);
+        boolean isComment = isCommentProperty(propertyName);
         boolean autoPublish = isComment && autoPublishComments;
         if (autoPublish) {
             workspaceId = null;
         }
 
         if (propertyKey == null) {
-            propertyKey = routeHelper.createPropertyKey(propertyName, graph);
+            propertyKey = createPropertyKey(propertyName, graph);
         }
 
         Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(metadataString, visibilityTranslator.getDefaultVisibility());
@@ -178,7 +172,7 @@ public class VertexSetProperty implements ParameterizedHandler {
         }
 
         Object value;
-        if (routeHelper.isCommentProperty(propertyName)) {
+        if (isCommentProperty(propertyName)) {
             value = valueStr;
         } else {
             OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
