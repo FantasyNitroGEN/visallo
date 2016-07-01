@@ -286,10 +286,6 @@ define([
 
         unresolveDetectedObject: function(params) {
             return ajax('POST', '/vertex/unresolve-detected-object', params);
-        },
-
-        acl: function(vertexId) {
-            return ajax('GET', '/vertex/acl', { elementId: vertexId });
         }
     };
 

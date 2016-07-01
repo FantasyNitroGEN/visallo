@@ -34,20 +34,13 @@ define([
             if (config.property) {
 
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
-
-                config.isCommentCreator = config.isComment &&
-                    config.property.metadata &&
-                    config.property.metadata['http://visallo.org#modifiedBy'] === visalloData.currentUser.id;
-
                 config.canAdd = config.canEdit = config.canDelete = false;
 
-                if (config.isComment && Privileges.canCOMMENT && visalloData.currentWorkspaceCommentable) {
+                if (config.isComment && visalloData.currentWorkspaceCommentable) {
                     config.canAdd = config.property.addable !== false;
-                    if (config.isCommentCreator) {
-                        config.canEdit = config.property.updateable !== false;
-                        config.canDelete = config.property.deleteable !== false;
-                    }
-                } else if (!config.isComment && Privileges.canEDIT && visalloData.currentWorkspaceEditable) {
+                    config.canEdit = config.property.updateable !== false;
+                    config.canDelete = config.property.deleteable !== false;
+                } else if (!config.isComment && visalloData.currentWorkspaceEditable) {
                     config.canAdd = config.property.addable !== false;
                     config.canEdit = config.property.updateable !== false;
                     config.canDelete = config.property.deleteable !== false &&

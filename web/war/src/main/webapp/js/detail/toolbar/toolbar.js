@@ -82,17 +82,11 @@ define([
         this.after('initialize', function() {
             var self = this,
                 model = this.attr.model;
-            if (_.isArray(model)) {
-                self.initializeToolbar(model);
-            } else {
-                self.dataRequest(model.type, 'acl', model.id).done(function(acl) {
-                    self.initializeToolbar(model, acl);
-                });
-            }
+            self.initializeToolbar(model);
         });
 
-        this.initializeToolbar = function(model, acl) {
-            var config = this.calculateItemsForModel(model, acl),
+        this.initializeToolbar = function(model) {
+            var config = this.calculateItemsForModel(model),
                 toolbarItems = config.items,
                 objects = config.objects,
                 toolbarExtensions = _.sortBy(registry.extensionsForPoint('org.visallo.detail.toolbar'), 'title');
@@ -130,7 +124,7 @@ define([
             }
         };
 
-        this.calculateItemsForModel = function(model, acl) {
+        this.calculateItemsForModel = function(model) {
             var isArray = _.isArray(model),
                 vertices = isArray ? _.where(model, { type: 'vertex' }) : (model.type === 'vertex' ? [model] : []),
                 edges = isArray ? _.where(model, { type: 'edge' }) : (model.type === 'edge' ? [model] : []);
@@ -169,9 +163,9 @@ define([
                     {
                         title: i18n('detail.toolbar.add'),
                         submenu: _.compact([
-                            this.addPropertyToolbarItem(model, acl),
+                            this.addPropertyToolbarItem(model),
                             this.addImageToolbarItem(model),
-                            this.addCommentToolbarItem(model, acl)
+                            this.addCommentToolbarItem(model)
                         ])
                     },
                     {
@@ -298,8 +292,8 @@ define([
             }
         };
 
-        this.addPropertyToolbarItem = function(model, acl) {
-            var propertyAcls = _.reject(acl.propertyAcls, function(property) {
+        this.addPropertyToolbarItem = function(model) {
+            var propertyAcls = _.reject(model.acl.propertyAcls, function(property) {
                     return property.name === 'http://visallo.org/comment#entry';
                 }),
                 hasAddableProperties = _.where(propertyAcls, { addable: true }).length > 0,
@@ -319,8 +313,8 @@ define([
             }
         };
 
-        this.addCommentToolbarItem = function(model, acl) {
-            var hasAddableCommentProperty = _.where(acl.propertyAcls, { name: 'http://visallo.org/comment#entry', addable: true }).length > 0,
+        this.addCommentToolbarItem = function(model) {
+            var hasAddableCommentProperty = _.where(model.acl.propertyAcls, { name: 'http://visallo.org/comment#entry', addable: true }).length > 0,
                 disableAdd = (model.hasOwnProperty('updateable') && !model.updateable) || !hasAddableCommentProperty;
 
             if (!disableAdd) {

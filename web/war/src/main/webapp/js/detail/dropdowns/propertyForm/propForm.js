@@ -107,27 +107,21 @@ define([
 
         this.setupPropertySelectionField = function() {
             var self = this,
-                ontologyRequest,
-                aclRequest;
+                ontologyRequest;
 
             if (F.vertex.isEdge(this.attr.data)) {
                 ontologyRequest = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label);
-                aclRequest = this.dataRequest('edge', 'acl', this.attr.data.id);
             } else {
                 ontologyRequest = this.dataRequest('ontology', 'propertiesByConceptId',
                     F.vertex.prop(this.attr.data, 'conceptType'));
-                aclRequest = this.dataRequest('vertex', 'acl', this.attr.data.id);
             }
 
-            Promise.all([ontologyRequest, aclRequest]).done(function(results) {
-                var ontologyProperties = results[0],
-                    acl = results[1];
-
+            ontologyRequest.then(function(ontologyProperties) {
                 FieldSelection.attachTo(self.select('propertyListSelector'), {
                     properties: ontologyProperties.list,
                     focus: true,
                     placeholder: i18n('property.form.field.selection.placeholder'),
-                    unsupportedProperties: _.pluck(_.where(acl.propertyAcls, { addable: false }), 'name')
+                    unsupportedProperties: _.pluck(_.where(self.attr.data.acl.propertyAcls, { addable: false }), 'name')
                 });
                 self.manualOpen();
             });

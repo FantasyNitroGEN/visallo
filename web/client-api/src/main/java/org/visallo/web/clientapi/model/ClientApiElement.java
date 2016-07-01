@@ -24,6 +24,7 @@ public abstract class ClientApiElement implements ClientApiObject {
     private Integer commonCount;
     private Boolean deleteable;
     private Boolean updateable;
+    private ClientApiElementAcl acl;
 
     /**
      * search score
@@ -93,6 +94,14 @@ public abstract class ClientApiElement implements ClientApiObject {
 
     public void setUpdateable(Boolean updateable) {
         this.updateable = updateable;
+    }
+
+    public ClientApiElementAcl getAcl() {
+        return acl;
+    }
+
+    public void setAcl(ClientApiElementAcl acl) {
+        this.acl = acl;
     }
 
     @Override
