@@ -88,7 +88,11 @@ define([
         var isLegacyKeyInServerTimezone = !(/Z$/).test(p.key),
             date = null;
         if (isLegacyKeyInServerTimezone) {
-            date = F.date.utc(new Date(p.key + 'Z').getTime());
+            var time = new Date(p.key + 'Z').getTime();
+            if (isNaN(time)) {
+                return undefined;
+            }
+            date = F.date.utc(time);
         } else {
             date = F.date.local(p.key);
         }
@@ -96,6 +100,7 @@ define([
         if (millis && !isNaN(millis)) {
             return millis;
         }
+        return undefined;
     }
 
     function isEdited(created, modified) {
