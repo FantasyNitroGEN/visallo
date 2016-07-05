@@ -196,7 +196,8 @@ public class GraphRepository {
     ) {
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
 
-        Property oldProperty = getProperty(element, propertyKey, propertyName, oldVisibilitySource, workspaceId);
+        Visibility oldPropertyVisibility = getVisibilityWithWorkspace(oldVisibilitySource, workspaceId);
+        Property oldProperty = element.getProperty(propertyKey, propertyName, oldPropertyVisibility);
         boolean isUpdate = oldProperty != null;
 
         Metadata propertyMetadata = isUpdate ? oldProperty.getMetadata() : new Metadata();
