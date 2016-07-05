@@ -4,3 +4,7 @@
   font-weight: normal;
   fill: #555;
 }
+
+.legend-item.hidden, .legend-info.hidden {
+    display: none;
+}
