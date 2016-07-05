@@ -12,11 +12,13 @@ import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.inmemory.InMemoryGraphConfiguration;
 import org.vertexium.search.DefaultSearchIndex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -87,6 +89,9 @@ public class GraphRepositoryTest {
         p1 = v1.getProperty("k1", "p1", newVisibility);
         assertNotNull("could not find p1", p1);
         assertEquals(newVisibility, p1.getVisibility());
+        VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON_METADATA
+                .getMetadataValue(p1.getMetadata());
+        assertEquals("A", visibilityJson.getSource());
     }
 
     @Test

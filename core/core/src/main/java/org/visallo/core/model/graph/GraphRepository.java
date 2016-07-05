@@ -121,16 +121,18 @@ public class GraphRepository {
             User user,
             Authorizations authorizations
     ) {
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         Visibility oldVisibility = visibilityTranslator.toVisibility(oldVisibilitySource).getVisibility();
         Property property = element.getProperty(propertyKey, propertyName, oldVisibility);
         if (property == null) {
             throw new VisalloResourceNotFoundException("Could not find property " + propertyKey + ":" + propertyName + " on element " + element.getId());
         }
 
-        Visibility newVisibility = visibilityTranslator.toVisibility(newVisibilitySource).getVisibility();
+        VisibilityJson newVisibilityJson = new VisibilityJson(newVisibilitySource);
+        Visibility newVisibility = visibilityTranslator.toVisibility(newVisibilityJson).getVisibility();
 
         LOGGER.info(
-                "%s Altering property visibility %s [%s:%s] from %s to %s",
+                "%s Altering property visibility %s [%s:%s] from [%s] to [%s]",
                 user.getUserId(),
                 element.getId(),
                 propertyKey,
@@ -139,7 +141,9 @@ public class GraphRepository {
                 newVisibility.toString()
         );
 
-        ExistingElementMutation<T> m = element.<T>prepareMutation().alterPropertyVisibility(property, newVisibility);
+        ExistingElementMutation<T> m = element.<T>prepareMutation()
+                .alterPropertyVisibility(property, newVisibility);
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(m, property, newVisibilityJson, defaultVisibility);
         T newElement = m.save(authorizations);
 
         Property newProperty = newElement.getProperty(propertyKey, propertyName, newVisibility);
