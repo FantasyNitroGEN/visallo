@@ -67,6 +67,7 @@ define([
                     })
                     .value();
 
+            this.numBuckets = buckets.length;
             this.isHistogram = root.type === 'histogram';
             var reportAggregations = report.endpointParameters.aggregations.map(JSON.parse);
             this.field = reportAggregations[0].field;
@@ -87,6 +88,7 @@ define([
                     otherSlice.displayName = i18n('dashboard.report.other');
                 }));
             }
+            this.numLabels = sortedData.length;
 
             return sortedData;
         };
@@ -223,6 +225,37 @@ define([
                     return self.colors[isOtherCategory(d) ? self.OTHER_COLOR_INDEX : n];
                 });
 
+            var maxLabels = (Math.floor(height / self.LEGEND_LABEL_HEIGHT) - 1);
+            gLabels.classed('hidden', function(d, i) {
+                return i >= maxLabels;
+            });
+
+            if (this.numLabels > maxLabels) {
+                var legendInfoItem = gLegend.select('.legend-info');
+                var hiddenBuckets = this.numBuckets - maxLabels;
+
+                if (!legendInfoItem.empty()) {
+                    legendInfoItem.classed('hidden', false)
+                        .select('text').text(i18n('dashboard.report.pie.more', hiddenBuckets));
+                } else {
+                    gLegend.append('g')
+                       .classed({ 'legend-info': true, hidden: false })
+                       .attr('transform', function(d) {
+                           return labelTransform(d, maxLabels);
+                       })
+                       .style('opacity', 0)
+                       .append('text')
+                       .text(i18n('dashboard.report.pie.more', hiddenBuckets))
+                       .attr('x', self.LEGEND_COLOR_SWATCH_SIZE + self.LEGEND_SWATCH_TO_TEXT_MARGIN)
+                       .style('text-anchor', 'start');
+                }
+                gLegend.select('.legend-info').transition().duration(self.TRANSITION_DURATION)
+                    .style('opacity', 1)
+
+            } else {
+                gLegend.select('.legend-info').classed('hidden', true);
+            }
+
             var gLabelXOffset = 2 * radius + self.CHART_PADDING,
                 availableLegendSpace = width - self.CHART_PADDING - gLabelXOffset,
                 availableLegendTextWidth = availableLegendSpace - self.LEGEND_COLOR_SWATCH_SIZE - self.LEGEND_SWATCH_TO_TEXT_MARGIN;
@@ -232,7 +265,7 @@ define([
             } else {
                 gLegend.style('opacity', 1);
                 if (gLegend.node().getBBox().width > availableLegendSpace) {
-                    gLabels.selectAll('text').each(function(d) {
+                    gLegend.selectAll('text').each(function(d) {
                         var d3Self = d3.select(this),
                             text = d3.select(this).text();
                         while (this.getBBox().width > availableLegendTextWidth) {
