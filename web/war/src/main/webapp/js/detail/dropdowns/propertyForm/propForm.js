@@ -299,7 +299,7 @@ define([
             this.select('visibilitySelector').show();
             this.select('saveButtonSelector').show();
 
-            this.select('deleteButtonSelector')
+            var deleteButton = this.select('deleteButtonSelector')
                 .toggle(
                     !!isExistingProperty &&
                     propertyName !== 'http://visallo.org#visibilityJson'
@@ -312,6 +312,9 @@ define([
 
             this.dataRequest('ontology', 'properties').done(function(properties) {
                 var propertyDetails = properties.byTitle[propertyName];
+                if (!propertyDetails.deleteable) {
+                    deleteButton.hide();
+                }
                 self.currentPropertyDetails = propertyDetails;
                 if (propertyName === 'http://visallo.org#visibilityJson') {
                     require(['util/visibility/edit'], function(Visibility) {
