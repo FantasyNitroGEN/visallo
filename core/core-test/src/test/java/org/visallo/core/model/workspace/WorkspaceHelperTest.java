@@ -13,12 +13,16 @@ import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.InMemoryAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -29,9 +33,8 @@ public class WorkspaceHelperTest {
     private Visibility termMentionVisibility;
     private Authorizations authorizations;
     private WorkspaceHelper workspaceHelper;
-
-    @Mock
     private TermMentionRepository termMentionRepository;
+    private AuthorizationRepository authorizationsRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -45,17 +48,24 @@ public class WorkspaceHelperTest {
     @Mock
     private WorkspaceRepository workspaceRepository;
 
+    @Mock
+    private User user;
+
     @Before
     public void setUp() {
         graph = InMemoryGraph.create();
 
         visibility = new Visibility("");
         termMentionVisibility = new Visibility(TermMentionRepository.VISIBILITY_STRING);
-        authorizations = graph.createAuthorizations(TermMentionRepository.VISIBILITY_STRING);
+        authorizations = graph.createAuthorizations(TermMentionRepository.VISIBILITY_STRING, WORKSPACE_ID);
+        authorizationsRepository = new InMemoryAuthorizationRepository();
+        termMentionRepository = new TermMentionRepository(graph, authorizationsRepository);
 
         when(ontologyRepository.getRelationshipIRIByIntent(eq("entityHasImage"))).thenReturn("http://visallo.org/test#entityHasImage");
         when(ontologyRepository.getRelationshipIRIByIntent(eq("artifactContainsImageOfEntity"))).thenReturn("http://visallo.org/test#artifactContainsImageOfEntity");
         workspaceHelper = new WorkspaceHelper(termMentionRepository, userRepository, workQueueRepository, graph, ontologyRepository, workspaceRepository);
+
+        when (user.getUsername()).thenReturn("testUser");
     }
 
     @Test
@@ -72,10 +82,29 @@ public class WorkspaceHelperTest {
         VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, visibility, authorizations);
         graph.flush();
 
-        when(termMentionRepository.findOutVertex(v1tm1, authorizations)).thenReturn(v1);
-
         workspaceHelper.unresolveTerm(v1tm1, authorizations);
+        v1tm1 = graph.getVertex("v1tm1", authorizations);
+        assertNull(v1tm1);
+    }
 
-        verify(termMentionRepository).delete(eq(v1tm1), eq(authorizations));
+    @Test
+    public void testDeletePublicVertex () throws Exception {
+        Vertex doc = graph.addVertex("doc", visibility, authorizations);
+        Vertex v1 = graph.addVertex("v1", visibility, authorizations);
+        Vertex tm = graph.addVertex("tm", termMentionVisibility, authorizations);
+
+        VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID.setProperty(tm, "doc_to_v1", termMentionVisibility, authorizations);
+        graph.addEdge("doc_to_tm", doc, tm, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, termMentionVisibility, authorizations);
+        graph.addEdge("v1_to_tm", tm, v1, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, termMentionVisibility, authorizations);
+        Edge e = graph.addEdge("doc_to_v1", doc, v1, "link", visibility, authorizations);
+        VisibilityJson visibilityJson = new VisibilityJson();
+        VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, visibility, authorizations);
+        graph.flush();
+        workspaceHelper.deleteVertex(v1, WORKSPACE_ID, true, Priority.HIGH, authorizations, user);
+
+        v1 = graph.getVertex("v1", authorizations);
+        tm = graph.getVertex("tm", authorizations);
+        assertNull (v1);
+        assertNull (tm);
     }
 }

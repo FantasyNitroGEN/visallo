@@ -257,61 +257,62 @@ public class WorkspaceHelper {
         // make sure the entity is on the workspace so that it shows up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);
 
+        VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
+        visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
+
+        // because we store the current vertex image in a property we need to possibly find that property and change it
+        //  if we are deleting the current image.
+        LOGGER.debug("change entity image properties");
+        for (Edge edge : vertex.getEdges(Direction.BOTH, entityHasImageIri, authorizations)) {
+            if (edge.getVertexId(Direction.IN).equals(vertex.getId())) {
+                Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
+                Property entityHasImage = outVertex.getProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName());
+                outVertex.softDeleteProperty(entityHasImage.getKey(), entityHasImage.getName(), authorizations);
+                workQueueRepository.pushElementImageQueue(outVertex, entityHasImage, priority);
+                graph.softDeleteEdge(edge, authorizations);
+                workQueueRepository.pushEdgeDeletion(edge, beforeActionTimestamp, Priority.HIGH);
+            }
+        }
+
+        // because detected objects are currently stored as properties on the artifact that reference the entity
+        //   that they are resolved to we need to delete that property
+        LOGGER.debug("change artifact contains image of entity");
+        for (Edge edge : vertex.getEdges(Direction.BOTH, artifactContainsImageOfEntityIri, authorizations)) {
+            for (Property rowKeyProperty : vertex.getProperties(VisalloProperties.ROW_KEY.getPropertyName())) {
+                String multiValueKey = rowKeyProperty.getValue().toString();
+                if (edge.getVertexId(Direction.IN).equals(vertex.getId())) {
+                    Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
+                    // remove property
+                    VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
+                    graph.softDeleteEdge(edge, authorizations);
+                    workQueueRepository.pushEdgeDeletion(edge, beforeActionTimestamp, Priority.HIGH);
+                    workQueueRepository.pushGraphPropertyQueue(
+                            outVertex,
+                            multiValueKey,
+                            VisalloProperties.DETECTED_OBJECT.getPropertyName(),
+                            workspaceId,
+                            visibilityJson.getSource(),
+                            ElementOrPropertyStatus.DELETION,
+                            beforeActionTimestamp,
+                            priority
+                    );
+                }
+            }
+        }
+
+        // because we store term mentions with an added visibility we need to delete them with that added authorizations.
+        //  we also need to notify the front-end of changes as well as audit the changes
+        LOGGER.debug("unresolve terms");
+        for (Vertex termMention : termMentionRepository.findResolvedTo(vertex.getId(), authorizations)) {
+            unresolveTerm(termMention, authorizations);
+        }
+
         if (isPublicVertex) {
             Visibility workspaceVisibility = new Visibility(workspaceId);
-
             graph.markVertexHidden(vertex, workspaceVisibility, authorizations);
             graph.flush();
             workQueueRepository.pushVertexHidden(vertex, beforeActionTimestamp, Priority.HIGH);
         } else {
-            VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
-            visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
-
-            // because we store the current vertex image in a property we need to possibly find that property and change it
-            //  if we are deleting the current image.
-            LOGGER.debug("change entity image properties");
-            for (Edge edge : vertex.getEdges(Direction.BOTH, entityHasImageIri, authorizations)) {
-                if (edge.getVertexId(Direction.IN).equals(vertex.getId())) {
-                    Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
-                    Property entityHasImage = outVertex.getProperty(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName());
-                    outVertex.softDeleteProperty(entityHasImage.getKey(), entityHasImage.getName(), authorizations);
-                    workQueueRepository.pushElementImageQueue(outVertex, entityHasImage, priority);
-                }
-            }
-
-            // because detected objects are currently stored as properties on the artifact that reference the entity
-            //   that they are resolved to we need to delete that property
-            LOGGER.debug("change artifact contains image of entity");
-            for (Edge edge : vertex.getEdges(Direction.BOTH, artifactContainsImageOfEntityIri, authorizations)) {
-                for (Property rowKeyProperty : vertex.getProperties(VisalloProperties.ROW_KEY.getPropertyName())) {
-                    String multiValueKey = rowKeyProperty.getValue().toString();
-                    if (edge.getVertexId(Direction.IN).equals(vertex.getId())) {
-                        Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
-                        // remove property
-                        VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
-                        graph.softDeleteEdge(edge, authorizations);
-                        workQueueRepository.pushEdgeDeletion(edge, beforeActionTimestamp, Priority.HIGH);
-                        workQueueRepository.pushGraphPropertyQueue(
-                                outVertex,
-                                multiValueKey,
-                                VisalloProperties.DETECTED_OBJECT.getPropertyName(),
-                                workspaceId,
-                                visibilityJson.getSource(),
-                                ElementOrPropertyStatus.DELETION,
-                                beforeActionTimestamp,
-                                priority
-                        );
-                    }
-                }
-            }
-
-            // because we store term mentions with an added visibility we need to delete them with that added authorizations.
-            //  we also need to notify the front-end of changes as well as audit the changes
-            LOGGER.debug("unresolve terms");
-            for (Vertex termMention : termMentionRepository.findResolvedTo(vertex.getId(), authorizations)) {
-                unresolveTerm(termMention, authorizations);
-            }
-
             // because we store workspaces with an added visibility we need to delete them with that added authorizations.
             LOGGER.debug("soft delete edges");
             Authorizations systemAuthorization = userRepository.getAuthorizations(user, WorkspaceRepository.VISIBILITY_STRING, workspaceId);
@@ -366,25 +367,25 @@ public class WorkspaceHelper {
             Priority priority,
             Authorizations authorizations
     ) {
-            String multiValueKey = artifactDetectedObject.getMultivalueKey(DETECTED_OBJECT_MULTI_VALUE_KEY_PREFIX);
-            SandboxStatus vertexSandboxStatus = SandboxStatusUtil.getSandboxStatus(inVertex, workspaceId);
-            VisibilityJson visibilityJson;
-            if (vertexSandboxStatus == SandboxStatus.PUBLIC) {
-                visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(edge);
-                visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
-            } else {
-                visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(inVertex);
-                visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
-            }
-            VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
-            this.workQueueRepository.pushGraphPropertyQueue(
-                    outVertex,
-                    multiValueKey,
-                    VisalloProperties.DETECTED_OBJECT.getPropertyName(),
-                    workspaceId,
-                    visibilityJson.getSource(),
-                    priority
-            );
+        String multiValueKey = artifactDetectedObject.getMultivalueKey(DETECTED_OBJECT_MULTI_VALUE_KEY_PREFIX);
+        SandboxStatus vertexSandboxStatus = SandboxStatusUtil.getSandboxStatus(inVertex, workspaceId);
+        VisibilityJson visibilityJson;
+        if (vertexSandboxStatus == SandboxStatus.PUBLIC) {
+            visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(edge);
+            visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
+        } else {
+            visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(inVertex);
+            visibilityJson = VisibilityJson.removeFromWorkspace(visibilityJson, workspaceId);
+        }
+        VisalloProperties.DETECTED_OBJECT.removeProperty(outVertex, multiValueKey, authorizations);
+        this.workQueueRepository.pushGraphPropertyQueue(
+                outVertex,
+                multiValueKey,
+                VisalloProperties.DETECTED_OBJECT.getPropertyName(),
+                workspaceId,
+                visibilityJson.getSource(),
+                priority
+        );
     }
 
 }
