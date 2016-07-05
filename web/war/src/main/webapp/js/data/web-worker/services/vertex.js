@@ -247,6 +247,16 @@ define([
             });
         },
 
+        setPropertyVisibility: function(vertexId, property) {
+            return ajax('POST', '/vertex/property/visibility', {
+                graphVertexId: vertexId,
+                newVisibilitySource: property.visibilitySource,
+                oldVisibilitySource: property.oldVisibilitySource,
+                propertyKey: property.key,
+                propertyName: property.name
+            })
+        },
+
         setProperty: function(vertexId, property, optionalWorkspaceId) {
             var url = storeHelper.vertexPropertyUrl(property);
             return ajax('POST', url, _.tap({

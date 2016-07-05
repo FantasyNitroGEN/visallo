@@ -3,18 +3,22 @@ package org.visallo.web.routes;
 import com.v5analytics.webster.HandlerChain;
 import org.json.JSONArray;
 import org.mockito.Mock;
-import org.mockito.stubbing.Answer;
 import org.vertexium.Graph;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
+import org.visallo.core.config.VisalloResourceBundleManager;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
@@ -61,6 +65,16 @@ public abstract class RouteTestBase {
     @Mock
     protected WorkspaceHelper workspaceHelper;
 
+    @Mock
+    protected GraphRepository graphRepository;
+
+    @Mock
+    protected WorkQueueRepository workQueueRepository;
+
+    protected ResourceBundle resourceBundle;
+
+    protected VisibilityTranslator visibilityTranslator;
+
     protected Configuration configuration;
 
     protected Graph graph;
@@ -87,12 +101,21 @@ public abstract class RouteTestBase {
         ConfigurationLoader hashMapConfigurationLoader = new HashMapConfigurationLoader(config);
         configuration = new Configuration(hashMapConfigurationLoader, new HashMap<>());
 
-        graph = InMemoryGraph.create(getGraphConfiguration());
+        graph = createGraph();
+        visibilityTranslator = createVisibilityTranslator();
+        resourceBundle = createResourceBundle();
 
         Set<String> privileges = new HashSet<>();
         String[] authorizations = new String[0];
         String currentWorkspaceId = null;
-        nonProxiedUser = new InMemoryUser("jdoe", "Jane Doe", "jane.doe@email.com", privileges, authorizations, currentWorkspaceId);
+        nonProxiedUser = new InMemoryUser(
+                "jdoe",
+                "Jane Doe",
+                "jane.doe@email.com",
+                privileges,
+                authorizations,
+                currentWorkspaceId
+        );
         when(userRepository.findById(eq(USER_ID))).thenReturn(nonProxiedUser);
 
         sessionUser = new SessionUser(USER_ID);
@@ -109,16 +132,16 @@ public abstract class RouteTestBase {
         when(response.getWriter()).thenReturn(new PrintWriter(responseByteArrayOutputStream));
 
         when(request.getParameterNames()).thenAnswer(
-                (Answer<Enumeration<String>>) invocationOnMock -> Collections.enumeration(requestParameters.keySet())
+                invocationOnMock -> Collections.enumeration(requestParameters.keySet())
         );
         when(request.getParameterValues(any(String.class))).thenAnswer(
-                (Answer<String[]>) invocationOnMock -> {
+                invocationOnMock -> {
                     Object key = invocationOnMock.getArguments()[0];
                     return (String[]) requestParameters.get(key);
                 }
         );
         when(request.getParameter(any(String.class))).thenAnswer(
-                (Answer<String>) invocationOnMock -> {
+                invocationOnMock -> {
                     Object key = invocationOnMock.getArguments()[0];
                     String[] value = requestParameters.get(key);
                     if (value == null) {
@@ -133,8 +156,20 @@ public abstract class RouteTestBase {
         when(request.getParameterMap()).thenReturn(requestParameters);
 
         when(request.getAttributeNames()).thenAnswer(
-                (Answer<Enumeration<String>>) invocationOnMock -> Collections.enumeration(attributes.keySet())
+                invocationOnMock -> Collections.enumeration(attributes.keySet())
         );
+    }
+
+    protected ResourceBundle createResourceBundle() {
+        return new VisalloResourceBundleManager().getBundle();
+    }
+
+    protected InMemoryGraph createGraph() {
+        return InMemoryGraph.create(getGraphConfiguration());
+    }
+
+    protected DirectVisibilityTranslator createVisibilityTranslator() {
+        return new DirectVisibilityTranslator();
     }
 
     protected Map<String, Object> getGraphConfiguration() {

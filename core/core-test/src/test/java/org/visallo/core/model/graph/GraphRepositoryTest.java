@@ -11,20 +11,20 @@ import org.vertexium.id.QueueIdGenerator;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.inmemory.InMemoryGraphConfiguration;
 import org.vertexium.search.DefaultSearchIndex;
+import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.vertexium.util.IterableUtils.toList;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -47,12 +47,13 @@ public class GraphRepositoryTest {
     private TermMentionRepository termMentionRepository;
 
     private Authorizations defaultAuthorizations;
+    private DirectVisibilityTranslator visibilityTranslator;
 
     @Before
     public void setup() throws Exception {
-        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap<String, Object>());
+        InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap<>());
         QueueIdGenerator idGenerator = new QueueIdGenerator();
-        VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
+        visibilityTranslator = new DirectVisibilityTranslator();
         graph = InMemoryGraph.create(config, idGenerator, new DefaultSearchIndex(config));
         defaultAuthorizations = graph.createAuthorizations();
 
@@ -61,6 +62,62 @@ public class GraphRepositoryTest {
                 visibilityTranslator,
                 termMentionRepository
         );
+    }
+
+    @Test
+    public void testUpdatePropertyVisibilitySource() {
+        Authorizations authorizations = graph.createAuthorizations("A");
+        Visibility newVisibility = visibilityTranslator.toVisibility("A").getVisibility();
+
+        Vertex v1 = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
+                .addPropertyValue("k1", "p1", "value1", new Visibility(""))
+                .save(authorizations);
+
+        Property p1 = graphRepository.updatePropertyVisibilitySource(
+                v1,
+                "k1",
+                "p1",
+                "",
+                "A",
+                WORKSPACE_ID,
+                user1,
+                defaultAuthorizations
+        );
+        assertEquals(newVisibility, p1.getVisibility());
+        graph.flush();
+
+        v1 = graph.getVertex(ENTITY_1_VERTEX_ID, authorizations);
+        p1 = v1.getProperty("k1", "p1", newVisibility);
+        assertNotNull("could not find p1", p1);
+        assertEquals(newVisibility, p1.getVisibility());
+        VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON_METADATA
+                .getMetadataValue(p1.getMetadata());
+        assertEquals("A", visibilityJson.getSource());
+    }
+
+    @Test
+    public void testUpdatePropertyVisibilitySourceMissingProperty() {
+        Authorizations authorizations = graph.createAuthorizations("A");
+
+        Vertex v1 = graph.prepareVertex(ENTITY_1_VERTEX_ID, new VisalloVisibility().getVisibility())
+                .addPropertyValue("k1", "p1", "value1", new Visibility(""))
+                .save(authorizations);
+
+        try {
+            graphRepository.updatePropertyVisibilitySource(
+                    v1,
+                    "k1",
+                    "pNotFound",
+                    "",
+                    "A",
+                    WORKSPACE_ID,
+                    user1,
+                    defaultAuthorizations
+            );
+            fail("expected exception");
+        } catch (VisalloResourceNotFoundException ex) {
+            // OK
+        }
     }
 
     @Test
@@ -227,8 +284,10 @@ public class GraphRepositoryTest {
         setProperty(vertex, value, "", "", workspaceId, workspaceAuthorizations);
     }
 
-    private void setProperty(Vertex vertex, String value, String oldVisibility, String newVisibility,
-                             String workspaceId, Authorizations workspaceAuthorizations) {
+    private void setProperty(
+            Vertex vertex, String value, String oldVisibility, String newVisibility,
+            String workspaceId, Authorizations workspaceAuthorizations
+    ) {
         VisibilityAndElementMutation<Vertex> setPropertyResult = graphRepository.setProperty(
                 vertex,
                 "prop1",
