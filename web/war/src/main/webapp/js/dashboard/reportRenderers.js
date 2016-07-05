@@ -76,20 +76,6 @@ define([
     });
 
     registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
-        identifier: 'org-visallo-subway',
-        label: 'Subway',
-        supportsResponse: function(data) {
-            return data.type === 'TYPE_AGGREGATION' &&
-                _.size(data.root) === 1 &&
-                _.isFunction(data.root[0].displayName) &&
-                _.every(data.root[0].buckets, function(item) {
-                    return item.value && 'count' in item.value && !('nested' in item.value) && !('cell' in item.value)
-                });
-        },
-        componentPath: 'dashboard/reportRenderers/subway'
-    });
-
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
         identifier: 'org-visallo-text-overview',
         configurationPath: 'dashboard/configs/report/text-overview-config',
         supportsResponse: function(data) {
