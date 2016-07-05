@@ -79,6 +79,7 @@ public class GraphRepositoryTest {
                 "p1",
                 "",
                 "A",
+                WORKSPACE_ID,
                 user1,
                 defaultAuthorizations
         );
@@ -109,6 +110,7 @@ public class GraphRepositoryTest {
                     "pNotFound",
                     "",
                     "A",
+                    WORKSPACE_ID,
                     user1,
                     defaultAuthorizations
             );

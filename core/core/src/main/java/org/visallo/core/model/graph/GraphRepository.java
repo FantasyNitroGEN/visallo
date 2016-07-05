@@ -118,12 +118,12 @@ public class GraphRepository {
             String propertyName,
             String oldVisibilitySource,
             String newVisibilitySource,
+            String workspaceId,
             User user,
             Authorizations authorizations
     ) {
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
-        Visibility oldVisibility = visibilityTranslator.toVisibility(oldVisibilitySource).getVisibility();
-        Property property = element.getProperty(propertyKey, propertyName, oldVisibility);
+        Property property = getProperty(element, propertyKey, propertyName, oldVisibilitySource, workspaceId);
         if (property == null) {
             throw new VisalloResourceNotFoundException("Could not find property " + propertyKey + ":" + propertyName + " on element " + element.getId());
         }
@@ -137,7 +137,7 @@ public class GraphRepository {
                 element.getId(),
                 propertyKey,
                 propertyName,
-                oldVisibility.toString(),
+                oldVisibilitySource,
                 newVisibility.toString()
         );
 
@@ -153,6 +153,31 @@ public class GraphRepository {
         );
 
         return newProperty;
+    }
+
+    private Property getProperty(
+            Element element,
+            String propertyKey,
+            String propertyName,
+            String visibilitySource,
+            String workspaceId
+    ) {
+        Property property = element.getProperty(
+                propertyKey,
+                propertyName,
+                getVisibilityWithWorkspace(visibilitySource, workspaceId)
+        );
+
+        // could be a public property, let's try fetching it without workspace id
+        if (property == null) {
+            property = element.getProperty(
+                    propertyKey,
+                    propertyName,
+                    getVisibilityWithWorkspace(visibilitySource, null)
+            );
+        }
+
+        return property;
     }
 
     public <T extends Element> VisibilityAndElementMutation<T> setProperty(
@@ -171,15 +196,7 @@ public class GraphRepository {
     ) {
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
 
-        Visibility oldPropertyVisibility = null;
-        if (oldVisibilitySource != null) {
-            VisibilityJson oldVisibilityJson = new VisibilityJson();
-            oldVisibilityJson.setSource(oldVisibilitySource);
-            oldVisibilityJson.addWorkspace(workspaceId);
-            oldPropertyVisibility = visibilityTranslator.toVisibility(oldVisibilityJson).getVisibility();
-        }
-
-        Property oldProperty = element.getProperty(propertyKey, propertyName, oldPropertyVisibility);
+        Property oldProperty = getProperty(element, propertyKey, propertyName, oldVisibilitySource, workspaceId);
         boolean isUpdate = oldProperty != null;
 
         Metadata propertyMetadata = isUpdate ? oldProperty.getMetadata() : new Metadata();
@@ -251,6 +268,17 @@ public class GraphRepository {
         elementMutation.addPropertyValue(propertyKey, propertyName, value, propertyMetadata, propertyVisibility);
 
         return new VisibilityAndElementMutation<>(visalloVisibility, elementMutation);
+    }
+
+    private Visibility getVisibilityWithWorkspace(String visibilitySource, String workspaceId) {
+        Visibility visibility = null;
+        if (visibilitySource != null) {
+            VisibilityJson oldVisibilityJson = new VisibilityJson();
+            oldVisibilityJson.setSource(visibilitySource);
+            oldVisibilityJson.addWorkspace(workspaceId);
+            visibility = visibilityTranslator.toVisibility(oldVisibilityJson).getVisibility();
+        }
+        return visibility;
     }
 
     public Vertex addVertex(

@@ -80,6 +80,7 @@ public class EdgeSetPropertyVisibility implements ParameterizedHandler {
                 propertyName,
                 oldVisibilitySource,
                 newVisibilitySource,
+                workspaceId,
                 user,
                 authorizations
         );

@@ -49,6 +49,7 @@ public abstract class SetPropertyVisibilityTestBase extends RouteTestBase {
                 eq("p1"),
                 eq(""),
                 eq("A"),
+                eq(WORKSPACE_ID),
                 eq(user),
                 eq(authorizations)
         );

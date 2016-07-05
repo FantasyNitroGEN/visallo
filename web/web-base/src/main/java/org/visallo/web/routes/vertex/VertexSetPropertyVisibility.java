@@ -82,6 +82,7 @@ public class VertexSetPropertyVisibility implements ParameterizedHandler {
                 propertyName,
                 oldVisibilitySource,
                 newVisibilitySource,
+                workspaceId,
                 user,
                 authorizations
         );
