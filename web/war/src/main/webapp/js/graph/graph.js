@@ -1207,23 +1207,44 @@ define([
 
         this.onContextMenuSelect = function(select) {
             this.cytoscapeReady(function(cy) {
-                if (select === 'all') {
-                    cy.nodes().filter(':unselected').select();
-                } else if (select === 'none') {
-                    cy.nodes().filter(':selected').unselect();
-                } else if (select === 'invert') {
-                    var selected = cy.nodes().filter(':selected'),
-                        unselected = cy.nodes().filter(':unselected');
-                    selected.unselect();
-                    unselected.select();
-                } else {
-                    var selector = _.findWhere(
-                        registry.extensionsForPoint('org.visallo.graph.selection'),
-                        { identifier: select }
-                    );
-                    if (selector) {
-                        selector(cy);
-                    }
+                var nodes = cy.nodes();
+                var edges = cy.edges();
+                var selectedVertices = nodes.filter(':selected');
+                var unselectedVertices = nodes.filter(':unselected');
+                var selectedEdges = edges.filter(':selected');
+                var unselectedEdges = edges.filter(':unselected');
+
+                switch (select) {
+                    case 'all':
+                        unselectedEdges.select();
+                        unselectedVertices.select();
+                        break;
+                    case 'none':
+                        selectedVertices.unselect();
+                        selectedEdges.unselect();
+                        break;
+                    case 'invert':
+                        selectedVertices.unselect();
+                        selectedEdges.unselect();
+                        unselectedVertices.select();
+                        unselectedEdges.select();
+                        break;
+                    case 'vertices':
+                        selectedEdges.unselect();
+                        unselectedVertices.select();
+                        break;
+                    case 'edges':
+                        selectedVertices.unselect();
+                        unselectedEdges.select();
+                        break;
+                    default:
+                        var selector = _.findWhere(
+                            registry.extensionsForPoint('org.visallo.graph.selection'),
+                            { identifier: select }
+                        );
+                        if (selector) {
+                            selector(cy);
+                        }
                 }
             });
         };
