@@ -29,6 +29,16 @@ define([
             });
         },
 
+        setPropertyVisibility: function(edgeId, property) {
+            return ajax('POST', '/edge/property/visibility', {
+                graphEdgeId: edgeId,
+                newVisibilitySource: property.visibilitySource,
+                oldVisibilitySource: property.oldVisibilitySource,
+                propertyKey: property.key,
+                propertyName: property.name
+            })
+        },
+
         setProperty: function(edgeId, property, optionalWorkspaceId) {
             var url = storeHelper.edgePropertyUrl(property);
             return ajax('POST', url, _.tap({

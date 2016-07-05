@@ -5,6 +5,7 @@ define([
     'util/vertex/formatters',
     'util/withDataRequest',
     'util/privileges',
+    'util/visibility/view',
     'd3'
 ], function(
     defineComponent,
@@ -12,6 +13,7 @@ define([
     F,
     withDataRequest,
     Privileges,
+    VisibilityViewer,
     d3) {
     'use strict';
 
@@ -53,6 +55,10 @@ define([
                 config.canSearch = config.ontologyProperty &&
                     (config.ontologyProperty.searchable || isCompoundField) &&
                     !config.isFullscreen;
+
+                if (config.property.streamingPropertyValue) {
+                    config.canAdd = config.canDelete = config.canSearch = false;
+                }
             }
             config.hideDialog = true;
         });
@@ -135,6 +141,14 @@ define([
                         }
                         return true;
                     })
+                    .tap(function(metadata) {
+                        if (property.streamingPropertyValue) {
+                            var key = 'http://visallo.org#visibilityJson';
+                            metadata.push([key, property.metadata && property.metadata[key]]);
+                            displayNames[key] = i18n('visibility.label');
+                            displayTypes[key] = 'visibility';
+                        }
+                    })
                     .value(),
                 row = this.contentRoot.select('table')
                     .selectAll('tr')
@@ -174,6 +188,10 @@ define([
                                     })
                                     .finally(positionDialog);
                                 d3.select(this).text(i18n('popovers.property_info.loading'));
+                            } else if (typeName === 'visibility') {
+                                VisibilityViewer.attachTo(this, {
+                                    value: value && value.source
+                                });
                             } else {
                                 console.warn('No metadata type formatter: ' + typeName);
                                 d3.select(this).text(value);

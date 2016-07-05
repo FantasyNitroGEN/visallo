@@ -249,6 +249,9 @@ define([
                     vertexProperty.metadata['http://visallo.org#visibilityJson'],
                 sandboxStatus = vertexProperty && vertexProperty.sandboxStatus,
                 isExistingProperty = typeof vertexProperty !== 'undefined',
+                isEditingVisibility = propertyName === 'http://visallo.org#visibilityJson' || (
+                    vertexProperty && vertexProperty.streamingPropertyValue
+                ),
                 previousValues = disablePreviousValuePrompt !== true && F.vertex.props(this.attr.data, propertyName),
                 previousValuesUniquedByKey = previousValues && _.unique(previousValues, _.property('key')),
                 previousValuesUniquedByKeyUpdateable = _.where(previousValuesUniquedByKey, {updateable: true});
@@ -302,7 +305,7 @@ define([
             this.select('deleteButtonSelector')
                 .toggle(
                     !!isExistingProperty &&
-                    propertyName !== 'http://visallo.org#visibilityJson'
+                    !isEditingVisibility
                 );
 
             var button = this.select('saveButtonSelector')
@@ -314,20 +317,12 @@ define([
                 var propertyDetails = properties.byTitle[propertyName];
                 self.currentPropertyDetails = propertyDetails;
                 if (propertyName === 'http://visallo.org#visibilityJson') {
-                    require(['util/visibility/edit'], function(Visibility) {
-                        var val = vertexProperty && vertexProperty.value,
-                            source = (val && val.source) || (val && val.value && val.value.source);
-
-                        Visibility.attachTo(visibility, {
-                            value: source || ''
-                        });
-                        visibility.find('input').focus();
-                        self.settingVisibility = true;
-                        self.visibilitySource = { value: source, valid: true };
-
-                        self.checkValid();
-                        self.manualOpen();
-                    });
+                    var val = vertexProperty && vertexProperty.value,
+                        source = (val && val.source) || (val && val.value && val.value.source);
+                    self.editVisibility(visibility, source);
+                } else if (vertexProperty && vertexProperty.streamingPropertyValue && vertexProperty.metadata) {
+                    var visibilityMetadata = vertexProperty.metadata['http://visallo.org#visibilityJson'];
+                    self.editVisibility(visibility, visibilityMetadata.source);
                 } else if (propertyDetails) {
                     var isCompoundField = propertyDetails.dependentPropertyIris &&
                         propertyDetails.dependentPropertyIris.length,
@@ -405,6 +400,21 @@ define([
                 } else console.warn('Property ' + propertyName + ' not found in ontology');
             });
         };
+
+        this.editVisibility = function(visibility, source) {
+            var self = this;
+            require(['util/visibility/edit'], function(Visibility) {
+                Visibility.attachTo(visibility, {
+                    value: source || ''
+                });
+                visibility.find('input').focus();
+                self.settingVisibility = true;
+                self.visibilitySource = { value: source || '', valid: true };
+
+                self.checkValid();
+                self.manualOpen();
+            });
+        }
 
         this.onVisibilityChange = function(event, data) {
             var self = this;

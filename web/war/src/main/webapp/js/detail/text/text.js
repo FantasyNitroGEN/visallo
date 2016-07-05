@@ -7,6 +7,7 @@ define([
     'util/privileges',
     'util/jquery.withinScrollable',
     'util/withCollapsibleSections',
+    'util/popovers/propertyInfo/withPropertyInfo',
     'colorjs',
     'hbs!./transcriptEntries',
     'tpl!util/alert',
@@ -21,6 +22,7 @@ define([
     Privileges,
     jqueryWithinScrollable,
     withCollapsibleSections,
+    withPropertyInfo,
     colorjs,
     transcriptEntriesTemplate,
     alertTemplate,
@@ -51,7 +53,7 @@ define([
         return _.isFunction(e.shouldReplaceTextSectionForVertex) && _.isString(e.componentPath);
     })
 
-    return defineComponent(Text, withDataRequest, withCollapsibleSections);
+    return defineComponent(Text, withDataRequest, withCollapsibleSections, withPropertyInfo);
 
     function Text() {
 
@@ -103,6 +105,7 @@ define([
                 avLinkSelector: this.onAVLinkClick
             });
             this.on('focusOnSnippet', this.onFocusOnSnippet);
+            this.on('editProperty', this.onEditProperty);
             this.on('copy cut', {
                 textSelector: this.onCopyText
             });
@@ -117,6 +120,27 @@ define([
             this.applyHighlightStyle();
             this.updateEntityAndArtifactDraggables();
         });
+
+        this.onEditProperty = function(evt, data) {
+            var self = this,
+                root = $('<div class="underneath">'),
+                section = $(evt.target).closest('.text-section').find('.text'),
+                property = data && data.property;
+
+            evt.stopPropagation();
+
+            if (section.length) {
+                root.prependTo(section);
+            }
+
+            require(['detail/dropdowns/propertyForm/propForm'], function(PropertyForm) {
+                PropertyForm.teardownAll();
+                PropertyForm.attachTo(root, {
+                    data: self.model,
+                    property: property
+                });
+            });
+        };
 
         this.onFocusOnSnippet = function(event, data) {
             var self = this;
@@ -228,7 +252,8 @@ define([
 
             return this.dataRequest('ontology', 'properties')
                 .then(function(properties) {
-                    var scrollParent = this.$node.scrollParent(),
+                    var self = this,
+                        scrollParent = this.$node.scrollParent(),
                         scrollTop = scrollParent.scrollTop(),
                         expandedKey = this.$node.find('.text-section.expanded').data('key'),
                         expandedName = this.$node.find('.text-section.expanded').data('name'),
@@ -265,7 +290,7 @@ define([
                                     this.append('h1').attr('class', 'collapsible-header')
                                         .call(function() {
                                             this.append('strong');
-                                            this.append('span').attr('class', 'badge')
+                                            this.append('button').attr('class', 'info');
                                         });
                                     this.append('div').attr('class', 'text');
                                 });
@@ -283,6 +308,10 @@ define([
                             this.select('h1 strong').text(function(p) {
                                 var textDescription = 'http://visallo.org#textDescription';
                                 return p[textDescription] || p.metadata[textDescription] || p.key;
+                            });
+                            this.select('button.info').on('click', function(d) {
+                                d3.event.stopPropagation();
+                                self.showPropertyInfo(this, self.model, d);
                             });
 
                             this.exit().remove();
@@ -332,7 +361,7 @@ define([
                 expand = !options || options.expand !== false,
                 $section = this.$node.find('.ts-' + F.className.to(propertyKey + propertyName)),
                 isExpanded = $section.is('.expanded'),
-                $badge = $section.find('.badge'),
+                $info = $section.find('button.info'),
                 selection = getSelection(),
                 range = selection.rangeCount && selection.getRangeAt(0),
                 hasSelection = isExpanded && range && !range.collapsed,
@@ -345,7 +374,7 @@ define([
 
             if (expand) {
                 $section.closest('.texts').find('.loading').removeClass('loading');
-                $badge.addClass('loading');
+                $info.addClass('loading');
             }
 
             if (this.openTextRequest) {
@@ -398,7 +427,7 @@ define([
                 .then(function() {
                     if (expand) {
                         $section.addClass('expanded');
-                        $badge.removeClass('loading');
+                        $info.removeClass('loading');
 
                         self.updateEntityAndArtifactDraggablesNoDelay();
                         if (!options || options.scrollToSection !== false) {
