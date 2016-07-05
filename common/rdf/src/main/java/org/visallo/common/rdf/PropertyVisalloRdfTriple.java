@@ -55,7 +55,7 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
     protected String getPropertyRdfString() {
         String result = getPropertyName();
         if (!Strings.isNullOrEmpty(getPropertyKey())) {
-            result += String.format(":%s", getPropertyKey());
+            result += String.format(":%s", escape(getPropertyKey(), ':'));
         }
         if (!Strings.isNullOrEmpty(getPropertyVisibilitySource())) {
             result += String.format("[%s]", getPropertyVisibilitySource());
@@ -91,7 +91,10 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
             return getValueRdfStringWithType(val, VisalloRdfTriple.PROPERTY_TYPE_DATE_TIME);
         }
         if (getValue() instanceof DirectoryEntity) {
-            return getValueRdfStringWithType(((DirectoryEntity) getValue()).getId(), VisalloRdfTriple.PROPERTY_TYPE_DIRECTORY_ENTITY);
+            return getValueRdfStringWithType(
+                    ((DirectoryEntity) getValue()).getId(),
+                    VisalloRdfTriple.PROPERTY_TYPE_DIRECTORY_ENTITY
+            );
         }
         if (getValue() instanceof DateOnly) {
             return getValueRdfStringWithType(getValue(), VisalloRdfTriple.PROPERTY_TYPE_DATE);

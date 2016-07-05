@@ -23,6 +23,17 @@ public class SetPropertyVisalloRdfTripleTest extends VisalloRdfTripleTestBase {
     }
 
     @Test
+    public void testToStringVertexWithPropertyKeyThatHasAColon() {
+        SetPropertyVisalloRdfTriple triple = new SetPropertyVisalloRdfTriple(
+                ElementType.VERTEX,
+                "v1", "A",
+                "pkey:1", "http://visallo.org#pname", "B",
+                "value1"
+        );
+        assertEqualsVisalloRdfTriple("<v1[A]> <http://visallo.org#pname:pkey\\:1[B]> \"value1\"", triple);
+    }
+
+    @Test
     public void testToStringEdge() {
         SetPropertyVisalloRdfTriple triple = new SetPropertyVisalloRdfTriple(
                 ElementType.EDGE,

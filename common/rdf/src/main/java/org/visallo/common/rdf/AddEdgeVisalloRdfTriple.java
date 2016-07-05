@@ -47,7 +47,7 @@ public class AddEdgeVisalloRdfTriple extends VisalloRdfTriple {
     public String toString() {
         String label = getEdgeLabel();
         if (!Strings.isNullOrEmpty(getEdgeId())) {
-            label += ":" + getEdgeId();
+            label += ":" + escape(getEdgeId(), ':');
         }
         if (!Strings.isNullOrEmpty(getEdgeVisibilitySource())) {
             label += String.format("[%s]", getEdgeVisibilitySource());

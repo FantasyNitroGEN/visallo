@@ -34,9 +34,9 @@ public abstract class VisalloRdfTriple {
     public static final String PROPERTY_TYPE_INTEGER = "http://www.w3.org/2001/XMLSchema#integer";
     private static final Pattern ELEMENT_TYPE_PATTERN = Pattern.compile("(EDGE|VERTEX):(.*)");
     private static final Pattern VISIBILITY_PATTERN = Pattern.compile("(.*)\\[(.*)\\]");
-    private static final Pattern METADATA_PATTERN = Pattern.compile("(.*)@(.*)");
-    private static final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*):(.*)");
-    private static final Pattern EDGE_ID_PATTERN = Pattern.compile("(.*#.*):(.*)");
+    private static final Pattern METADATA_PATTERN = Pattern.compile("(.*)(?<!\\\\)@(.*)");
+    private static final Pattern PROPERTY_KEY_PATTERN = Pattern.compile("(.*#.*)(?<!\\\\):(.*)");
+    private static final Pattern EDGE_ID_PATTERN = Pattern.compile("(.*#.*)(?<!\\\\):(.*)");
 
     public static VisalloRdfTriple parse(
             RdfTriple rdfTriple,
@@ -128,7 +128,7 @@ public abstract class VisalloRdfTriple {
         Matcher metadataMatcher = METADATA_PATTERN.matcher(label);
         if (metadataMatcher.matches()) {
             label = metadataMatcher.group(1);
-            metadataKey = metadataMatcher.group(2);
+            metadataKey = unescape(metadataMatcher.group(2), '@');
         }
 
         // visibility
@@ -145,7 +145,7 @@ public abstract class VisalloRdfTriple {
         Matcher keyMatch = PROPERTY_KEY_PATTERN.matcher(label);
         if (keyMatch.matches()) {
             label = keyMatch.group(1);
-            propertyKey = keyMatch.group(2);
+            propertyKey = unescape(keyMatch.group(2), ':');
         }
 
         String propertyName = label;
@@ -188,6 +188,10 @@ public abstract class VisalloRdfTriple {
         }
     }
 
+    private static String unescape(String str, char characterToUnescape) {
+        return str.replace("\\" + characterToUnescape, Character.toString(characterToUnescape));
+    }
+
     private static VisalloRdfTriple parseAddEdgeTriple(
             String outVertexId,
             String label,
@@ -209,7 +213,7 @@ public abstract class VisalloRdfTriple {
         Matcher edgeIdMatcher = EDGE_ID_PATTERN.matcher(label);
         if (edgeIdMatcher.matches()) {
             label = edgeIdMatcher.group(1);
-            edgeId = edgeIdMatcher.group(2);
+            edgeId = unescape(edgeIdMatcher.group(2), ':');
         } else {
             edgeId = outVertexId + "_" + label + "_" + inVertexId;
         }
@@ -235,7 +239,11 @@ public abstract class VisalloRdfTriple {
         throw new VisalloException("Unhandled part type: " + third.getClass().getName());
     }
 
-    private static Object getPropertyValue(RdfTriple.LiteralPart propertyValuePart, File workingDir, TimeZone timeZone) {
+    private static Object getPropertyValue(
+            RdfTriple.LiteralPart propertyValuePart,
+            File workingDir,
+            TimeZone timeZone
+    ) {
         if (propertyValuePart.getType() == null) {
             return propertyValuePart.getString();
         }
@@ -330,6 +338,10 @@ public abstract class VisalloRdfTriple {
     private static Date parseDateTime(String dateTimeString, TimeZone timeZone) {
         VisalloDateTime visalloDateTime = VisalloDateTime.create(dateTimeString, timeZone);
         return visalloDateTime.toDateGMT();
+    }
+
+    protected String escape(String str, char characterToEscape) {
+        return str.replace(Character.toString(characterToEscape), "\\" + characterToEscape);
     }
 
     @Override
