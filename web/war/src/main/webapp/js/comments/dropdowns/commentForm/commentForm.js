@@ -85,7 +85,8 @@ define([
                     'http://visallo.org/comment#path': this.attr.path
                 },
                 visibilitySource: this.visibilitySource && this.visibilitySource.value || '',
-                sourceInfo: this.attr.sourceInfo
+                sourceInfo: this.attr.sourceInfo,
+                oldVisibilitySource: this.attr.comment.metadata['http://visallo.org#visibilityJson'].source
             })
                 .then(function() {
                     self.teardown();
