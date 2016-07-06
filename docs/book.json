@@ -1,7 +1,7 @@
 {
   "title": "Visallo Developer Guide",
   "description": "Developer guide to Visallo, an investigative case management platform to help analysts and investigators solve ambiguous problems.",
-  "gitbook": "2.x.x",
+  "gitbook": "3.x.x",
   "language": "en",
   "direction": "ltr",
   "styles": {
