@@ -277,9 +277,14 @@ define([
                             return ontologyProperty.displayType === 'longText';
                         });
 
-                    this.node.classList.add('org-visallo-texts');
-
                     d3.select(self.node)
+                        .selectAll('div.highlightWrap')
+                        .data([1])
+                        .call(function() {
+                            this.enter().append('div');
+                            var style = HIGHLIGHT_STYLES[self.getActiveStyle()];
+                            this.attr('class', 'highlightWrap highlight-' + style.selector);
+                        })
                         .selectAll('section.text-section')
                         .data(textProperties)
                         .call(function() {
@@ -934,13 +939,8 @@ define([
                 });
         };
 
-        this.removeHighlightClasses = function() {
-            var content = this.highlightNode();
-            content.removePrefixedClasses('highlight-');
-        };
-
         this.highlightNode = function() {
-            return this.$node;
+            return this.$node.children('.highlightWrap');
         };
 
         this.getActiveStyle = function() {
@@ -967,9 +967,6 @@ define([
 
         this.applyHighlightStyle = function() {
             var style = HIGHLIGHT_STYLES[this.getActiveStyle()];
-            this.removeHighlightClasses();
-            this.highlightNode().addClass('highlight-' + style.selector);
-
             if (!style.styleApplied) {
                 this.dataRequest('ontology', 'concepts').done(function(concepts) {
                     var styleFile = 'tpl!detail/text/highlight-styles/' + style.selector + '.css',

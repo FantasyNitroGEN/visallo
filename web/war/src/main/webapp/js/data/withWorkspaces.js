@@ -17,6 +17,7 @@ define(['util/undoManager'], function(UndoManager) {
             this.on('reloadWorkspace', this.onReloadWorkspace);
             this.on('updateWorkspace', this.onUpdateWorkspace);
             this.on('loadEdges', this.onLoadEdges);
+            this.on('textUpdated', this.onTextUpdated);
 
             this.on(window, 'keydown', function(event) {
                 var character = String.fromCharCode(event.which).toUpperCase();
@@ -68,6 +69,14 @@ define(['util/undoManager'], function(UndoManager) {
             if (lastReloadedState) {
                 this.workspaceLoaded(lastReloadedState);
                 this.edgesLoaded(lastReloadedState.edges);
+            }
+        };
+
+        this.onTextUpdated = function(event, data) {
+            var workspace = lastReloadedState && lastReloadedState.workspace,
+                workspaceVertices = workspace && workspace.vertices;
+            if (workspaceVertices && data.vertexId in workspaceVertices) {
+                this.trigger('loadEdges');
             }
         };
 
