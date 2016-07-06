@@ -100,7 +100,13 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
         }
 
         idGenerator.push(workspace3Id + "to" + user2.getUserId());
-        workspaceRepository.updateUserOnWorkspace(user2Workspaces.get(0), user1.getUserId(), WorkspaceAccess.READ, user2);
+        WorkspaceRepository.UpdateUserOnWorkspaceResult updateUserOnWorkspaceResult = workspaceRepository.updateUserOnWorkspace(
+                user2Workspaces.get(0),
+                user1.getUserId(),
+                WorkspaceAccess.READ,
+                user2
+        );
+        assertEquals(WorkspaceRepository.UpdateUserOnWorkspaceResult.ADD, updateUserOnWorkspaceResult);
         assertEquals(startingVertexCount + 3, count(graph.getVertices(allAuths))); // +3 = the workspace vertices
         assertEquals(startingEdgeCount + 4, count(graph.getEdges(allAuths))); // +4 = the edges between workspaces and users
         List<WorkspaceUser> usersWithAccess = workspaceRepository.findUsersWithAccess(user2Workspaces.get(0).getWorkspaceId(), user2);
@@ -136,7 +142,13 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
             assertEquals(user2Workspaces.get(0).getWorkspaceId(), ex.getResourceId());
         }
 
-        workspaceRepository.updateUserOnWorkspace(user2Workspaces.get(0), user1.getUserId(), WorkspaceAccess.WRITE, user2);
+        updateUserOnWorkspaceResult = workspaceRepository.updateUserOnWorkspace(
+                user2Workspaces.get(0),
+                user1.getUserId(),
+                WorkspaceAccess.WRITE,
+                user2
+        );
+        assertEquals(WorkspaceRepository.UpdateUserOnWorkspaceResult.UPDATE, updateUserOnWorkspaceResult);
         assertEquals(startingVertexCount + 3, count(graph.getVertices(allAuths))); // +3 = the workspace vertices
         assertEquals(startingEdgeCount + 4, count(graph.getEdges(allAuths))); // +4 = the edges between workspaces and users
 

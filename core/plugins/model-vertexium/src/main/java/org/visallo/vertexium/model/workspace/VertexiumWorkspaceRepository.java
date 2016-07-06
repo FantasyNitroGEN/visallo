@@ -964,7 +964,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
-    public void updateUserOnWorkspace(
+    public UpdateUserOnWorkspaceResult updateUserOnWorkspace(
             final Workspace workspace,
             final String userId,
             final WorkspaceAccess workspaceAccess,
@@ -978,7 +978,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             );
         }
 
-        lockRepository.lock(getLockName(workspace), () -> {
+        return lockRepository.lock(getLockName(workspace), () -> {
             Authorizations authorizations = getUserRepository().getAuthorizations(
                     user,
                     VISIBILITY_STRING,
@@ -1002,13 +1002,13 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 );
             }
 
+            UpdateUserOnWorkspaceResult result;
             List<Edge> existingEdges = stream(workspaceVertex.getEdges(
                     otherUserVertex,
                     Direction.OUT,
                     WORKSPACE_TO_USER_RELATIONSHIP_IRI,
                     authorizations
-            ))
-                    .collect(Collectors.toList());
+            )).collect(Collectors.toList());
             if (existingEdges.size() > 0) {
                 for (Edge existingEdge : existingEdges) {
                     WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.setProperty(
@@ -1018,8 +1018,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                             authorizations
                     );
                 }
+                result = UpdateUserOnWorkspaceResult.UPDATE;
             } else {
-
                 EdgeBuilder edgeBuilder = getGraph().prepareEdge(
                         workspaceVertex,
                         otherUserVertex,
@@ -1032,11 +1032,14 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                         VISIBILITY.getVisibility()
                 );
                 edgeBuilder.save(authorizations);
+                result = UpdateUserOnWorkspaceResult.ADD;
             }
 
             getGraph().flush();
 
             clearCache();
+
+            return result;
         });
     }
 

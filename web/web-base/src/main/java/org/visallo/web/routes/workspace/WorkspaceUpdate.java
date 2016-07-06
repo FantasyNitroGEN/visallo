@@ -20,12 +20,10 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.*;
-import org.visallo.web.clientapi.util.ObjectMapperFactory;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -49,7 +47,6 @@ public class WorkspaceUpdate implements ParameterizedHandler {
 
     @Handle
     public ClientApiSuccess handle(
-            HttpServletRequest request,
             @Required(name = "data") ClientApiWorkspaceUpdateData updateData,
             @ActiveWorkspaceId String workspaceId,
             @SourceGuid String sourceGuid,
@@ -70,12 +67,15 @@ public class WorkspaceUpdate implements ParameterizedHandler {
 
         deleteEntities(workspace, updateData.getEntityDeletes(), user);
 
-        String title = resourceBundle.getString("workspaces.notification.shared.title");
-        String message = resourceBundle.getString("workspaces.notification.shared.subtitle");
-        updateUsers(workspace, updateData.getUserUpdates(), user, title, message);
+        updateUsers(workspace, updateData.getUserUpdates(), resourceBundle, user);
 
         workspace = workspaceRepository.findById(workspaceId, user);
-        ClientApiWorkspace clientApiWorkspaceAfterUpdateButBeforeDelete = workspaceRepository.toClientApi(workspace, user, true, authorizations);
+        ClientApiWorkspace clientApiWorkspaceAfterUpdateButBeforeDelete = workspaceRepository.toClientApi(
+                workspace,
+                user,
+                true,
+                authorizations
+        );
         List<ClientApiWorkspace.User> previousUsers = clientApiWorkspaceAfterUpdateButBeforeDelete.getUsers();
         deleteUsers(workspace, updateData.getUserDeletes(), user);
 
@@ -99,17 +99,42 @@ public class WorkspaceUpdate implements ParameterizedHandler {
         }
     }
 
-    private void updateUsers(Workspace workspace, List<ClientApiWorkspaceUpdateData.UserUpdate> userUpdates, User authUser, String title, String subtitle) {
+    private void updateUsers(
+            Workspace workspace,
+            List<ClientApiWorkspaceUpdateData.UserUpdate> userUpdates,
+            ResourceBundle resourceBundle,
+            User authUser
+    ) {
         for (ClientApiWorkspaceUpdateData.UserUpdate update : userUpdates) {
             LOGGER.debug("user update (%s): %s", workspace.getWorkspaceId(), update.toString());
             String userId = update.getUserId();
             WorkspaceAccess workspaceAccess = update.getAccess();
-            workspaceRepository.updateUserOnWorkspace(workspace, userId, workspaceAccess, authUser);
+            WorkspaceRepository.UpdateUserOnWorkspaceResult updateUserOnWorkspaceResults
+                    = workspaceRepository.updateUserOnWorkspace(workspace, userId, workspaceAccess, authUser);
 
+            String title;
+            String subtitle;
+            switch (updateUserOnWorkspaceResults) {
+                case UPDATE:
+                    title = resourceBundle.getString("workspaces.notification.shareUpdated.title");
+                    subtitle = resourceBundle.getString("workspaces.notification.shareUpdated.subtitle");
+                    break;
+                default:
+                    title = resourceBundle.getString("workspaces.notification.shared.title");
+                    subtitle = resourceBundle.getString("workspaces.notification.shared.subtitle");
+            }
             String message = MessageFormat.format(subtitle, authUser.getDisplayName(), workspace.getDisplayTitle());
             JSONObject payload = new JSONObject();
             payload.put("workspaceId", workspace.getWorkspaceId());
-            userNotificationRepository.createNotification(userId, title, message, "switchWorkspace", payload, new ExpirationAge(7, ExpirationAgeUnit.DAY), authUser);
+            userNotificationRepository.createNotification(
+                    userId,
+                    title,
+                    message,
+                    "switchWorkspace",
+                    payload,
+                    new ExpirationAge(7, ExpirationAgeUnit.DAY),
+                    authUser
+            );
         }
     }
 
@@ -117,17 +142,24 @@ public class WorkspaceUpdate implements ParameterizedHandler {
         workspaceRepository.softDeleteEntitiesFromWorkspace(workspace, entityIdsToDelete, authUser);
     }
 
-    private void updateEntities(Workspace workspace, List<ClientApiWorkspaceUpdateData.EntityUpdate> entityUpdates, User authUser) {
-        List<WorkspaceRepository.Update> updates = Lists.transform(entityUpdates, new Function<ClientApiWorkspaceUpdateData.EntityUpdate, WorkspaceRepository.Update>() {
-            @Nullable
-            @Override
-            public WorkspaceRepository.Update apply(ClientApiWorkspaceUpdateData.EntityUpdate u) {
-                String vertexId = u.getVertexId();
-                GraphPosition graphPosition = u.getGraphPosition();
-                String graphLayoutJson = u.getGraphLayoutJson();
-                return new WorkspaceRepository.Update(vertexId, true, graphPosition, graphLayoutJson);
-            }
-        });
+    private void updateEntities(
+            Workspace workspace,
+            List<ClientApiWorkspaceUpdateData.EntityUpdate> entityUpdates,
+            User authUser
+    ) {
+        List<WorkspaceRepository.Update> updates = Lists.transform(
+                entityUpdates,
+                new Function<ClientApiWorkspaceUpdateData.EntityUpdate, WorkspaceRepository.Update>() {
+                    @Nullable
+                    @Override
+                    public WorkspaceRepository.Update apply(ClientApiWorkspaceUpdateData.EntityUpdate u) {
+                        String vertexId = u.getVertexId();
+                        GraphPosition graphPosition = u.getGraphPosition();
+                        String graphLayoutJson = u.getGraphLayoutJson();
+                        return new WorkspaceRepository.Update(vertexId, true, graphPosition, graphLayoutJson);
+                    }
+                }
+        );
         workspaceRepository.updateEntitiesOnWorkspace(workspace, updates, authUser);
     }
 }

@@ -164,12 +164,16 @@ public abstract class WorkspaceRepository {
 
     public abstract void deleteUserFromWorkspace(Workspace workspace, String userId, User user);
 
-    public abstract void updateUserOnWorkspace(
+    public abstract UpdateUserOnWorkspaceResult updateUserOnWorkspace(
             Workspace workspace,
             String userId,
             WorkspaceAccess workspaceAccess,
             User user
     );
+
+    public enum UpdateUserOnWorkspaceResult {
+        ADD, UPDATE
+    }
 
     public abstract ClientApiWorkspaceDiff getDiff(Workspace workspace, User user, Locale locale, String timeZone);
 
