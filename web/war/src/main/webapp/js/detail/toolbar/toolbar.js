@@ -324,11 +324,11 @@ define([
 
         this.deleteToolbarItem = function(model) {
             var disableDelete = model.hasOwnProperty('deleteable') && !model.deleteable;
-            
+
             if (!disableDelete) {
                 return _.extend(ToolbarComponent.ITEMS.DELETE_ITEM, {
                     title: model.type === 'vertex' ? i18n('detail.toolbar.delete.entity') : i18n('detail.toolbar.delete.edge'),
-                    subtitle: model.type === 'vertex' ? i18n('detail.toolbar.delete.entity.subtitle'): i18n('detail.toolbar.delete.edge.subtitle')
+                    subtitle: model.type === 'vertex' ? i18n('detail.toolbar.delete.entity.subtitle') : i18n('detail.toolbar.delete.edge.subtitle')
                 })
             }
         };
