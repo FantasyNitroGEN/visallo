@@ -103,6 +103,10 @@ function(jQuery,
         }
     });
 
+    function userHasValidPrivileges(me) {
+        return me.privileges && me.privileges.length > 0;
+    }
+
     /**
      * Switch between visallo and visallo-fullscreen-details based on url hash
      */
@@ -146,12 +150,15 @@ function(jQuery,
             .then(function() {
                 return withDataRequest.dataRequest('user', 'me')
             })
-            .then(function() {
+            .then(function(me) {
+                if (!userHasValidPrivileges(me)) {
+                    throw new Error('missing privileges')
+                }
                 attachApplication(false);
             })
             .catch(function() {
                 attachApplication(true, '', {});
-            })
+            });
 
         function attachApplication(loginRequired, message, options) {
             if (!event) {
@@ -216,7 +223,14 @@ function(jQuery,
             if (animate && (/^#?[a-z]+=/i).test(location.hash)) {
                 window.location.reload();
             } else {
-                withDataRequest.dataRequest('user', 'me').then(function() {
+                withDataRequest.dataRequest('user', 'me').then(function(me) {
+                    if (!userHasValidPrivileges(me)) {
+                        $('#login .authentication').html(
+                            '<span style="color: #D42B34;">' + i18n('visallo.login.missingPrivileges')
+                            + '<p/><a class="logout" href="">' + i18n('visallo.login.logout') + '</a>'
+                            + '</span>');
+                        return;
+                    }
 
                     require([
                         'moment',

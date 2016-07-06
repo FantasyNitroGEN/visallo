@@ -1,6 +1,8 @@
 package org.visallo.core.security;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,13 +16,11 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.PropertyMetadata;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.ClientApiElementAcl;
-import org.visallo.web.clientapi.model.ClientApiObject;
-import org.visallo.web.clientapi.model.ClientApiPropertyAcl;
-import org.visallo.web.clientapi.model.VisibilityJson;
+import org.visallo.core.util.ClientApiConverter;
+import org.visallo.web.clientapi.model.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,7 +40,9 @@ public class ACLProviderTest {
     private static final Visibility VISIBILITY = Visibility.EMPTY;
     private static final VisibilityJson VISIBILITY_JSON = new VisibilityJson();
 
+    @Mock private Graph graph;
     @Mock private OntologyRepository ontologyRepository;
+    @Mock private UserRepository userRepository;
     @Mock private OntologyProperty ontologyProperty1;
     @Mock private OntologyProperty ontologyProperty2;
     @Mock private OntologyProperty ontologyProperty3;
@@ -58,27 +60,29 @@ public class ACLProviderTest {
     @Mock private Property user1CommentProperty;
     @Mock private User user1;
     @Mock private User user2;
+    @Mock private User userWithCommentEditAny;
+    @Mock private User userWithCommentDeleteAny;
 
     private ACLProvider aclProvider;
 
     @SuppressWarnings("unchecked")
     @Before
     public void before() {
-        // mock ACLProvider abstract methods, but call implemented methods
-        aclProvider = mock(ACLProvider.class);
-        when(aclProvider.elementACL(any(Element.class), any(User.class), any(OntologyRepository.class)))
-                .thenCallRealMethod();
-        when(aclProvider.appendACL(any(ClientApiObject.class), any(User.class))).thenCallRealMethod();
-        when(aclProvider.isAuthor(any(Element.class), anyString(), anyString(), any(User.class))).thenCallRealMethod();
-        when(aclProvider.isComment(anyString())).thenCallRealMethod();
-        doCallRealMethod().when(aclProvider).appendACL(any(Collection.class), any(User.class));
-        doCallRealMethod().when(aclProvider)
-                          .checkCanAddOrUpdateProperty(any(Element.class), anyString(), anyString(), any(User.class));
-        doCallRealMethod().when(aclProvider)
-                          .checkCanDeleteProperty(any(Element.class), anyString(), anyString(), any(User.class));
+        aclProvider = spy(new MockAclProvider(graph, userRepository, ontologyRepository));
 
         when(user1.getUserId()).thenReturn("USER_1");
+        when(user1.getPrivileges()).thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT));
+
         when(user2.getUserId()).thenReturn("USER_2");
+        when(user2.getPrivileges()).thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT));
+
+        when(userWithCommentEditAny.getUserId()).thenReturn("USER_WITH_COMMENT_EDIT_ANY");
+        when(userWithCommentEditAny.getPrivileges())
+                .thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT_EDIT_ANY));
+
+        when(userWithCommentDeleteAny.getUserId()).thenReturn("USER_WITH_COMMENT_DELETE_ANY");
+        when(userWithCommentDeleteAny.getPrivileges())
+                .thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT_DELETE_ANY));
 
         when(ontologyRepository.getConceptByIRI("vertex")).thenReturn(vertexConcept);
         when(ontologyRepository.getConceptByIRI("parent")).thenReturn(parentConcept);
@@ -99,17 +103,27 @@ public class ACLProviderTest {
         when(ontologyProperty3.getTitle()).thenReturn("prop3");
         when(ontologyProperty4.getTitle()).thenReturn("prop4");
 
+        List<Property> allProperties = ImmutableList.of(
+                elementProperty1, elementProperty2a, elementProperty2b, elementProperty3);
+
+        when(vertex.getId()).thenReturn("VERTEX_1");
         when(vertex.getPropertyValue(VisalloProperties.CONCEPT_TYPE.getPropertyName())).thenReturn("vertex");
         when(vertex.getProperties("prop1")).thenReturn(ImmutableList.of(elementProperty1));
         when(vertex.getProperties("prop2")).thenReturn(ImmutableList.of(elementProperty2a, elementProperty2b));
         when(vertex.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
         when(vertex.getProperties("prop4")).thenReturn(Collections.emptyList());
+        when(vertex.getProperties()).thenReturn(Lists.newArrayList(allProperties));
 
+        when(edge.getId()).thenReturn("EDGE_1");
         when(edge.getLabel()).thenReturn("edge");
         when(edge.getProperties("prop1")).thenReturn(ImmutableList.of(elementProperty1));
         when(edge.getProperties("prop2")).thenReturn(ImmutableList.of(elementProperty2a, elementProperty2b));
         when(edge.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
         when(edge.getProperties("prop4")).thenReturn(Collections.emptyList());
+        when(edge.getProperties()).thenReturn(Lists.newArrayList(allProperties));
+
+        when(graph.getVertex(eq("VERTEX_1"), any(Authorizations.class))).thenReturn(vertex);
+        when(graph.getEdge(eq("EDGE_1"), any(Authorizations.class))).thenReturn(edge);
 
         when(elementProperty1.getName()).thenReturn("prop1");
         when(elementProperty1.getKey()).thenReturn("keyA");
@@ -122,16 +136,20 @@ public class ACLProviderTest {
 
         when(elementProperty3.getName()).thenReturn("prop3");
         when(elementProperty3.getKey()).thenReturn("keyA");
+
+        for (Property property : allProperties) {
+            when(property.getMetadata()).thenReturn(new Metadata());
+        }
     }
 
     @Test
-    public void vertexAclShouldPopulateClientApiElementAcl() {
-        elementAclShouldPopulateClientApiElementAcl(vertex);
+    public void appendAclOnVertexShouldPopulateClientApiElementAcl() {
+        appendAclShouldPopulateClientApiElementAcl(vertex);
     }
 
     @Test
-    public void edgeAclShouldPopulateClientApiElementAcl() {
-        elementAclShouldPopulateClientApiElementAcl(edge);
+    public void appendAclOnEdgeShouldPopulateClientApiElementAcl() {
+        appendAclShouldPopulateClientApiElementAcl(edge);
     }
 
     @Test
@@ -177,6 +195,14 @@ public class ACLProviderTest {
     }
 
     @Test
+    public void checkCanAddOrUpdatePropertyShouldNotThrowWhenPrivilegedUserUpdatesAnotherUsersComment() {
+        setupForCommentPropertyTests();
+
+        aclProvider.checkCanAddOrUpdateProperty(
+                vertex, COMMENT_PROP_KEY, COMMENT.getPropertyName(), userWithCommentEditAny);
+    }
+
+    @Test
     public void checkCanDeletePropertyShouldNotThrowWhenUserDeletesOwnComment() {
         setupForCommentPropertyTests();
 
@@ -190,6 +216,14 @@ public class ACLProviderTest {
         aclProvider.checkCanDeleteProperty(vertex, COMMENT_PROP_KEY, COMMENT.getPropertyName(), user2);
     }
 
+    @Test
+    public void checkCanDeletePropertyShouldNotThrowWhenPrivilegedUserDeletesAnotherUsersComment() {
+        setupForCommentPropertyTests();
+
+        aclProvider.checkCanDeleteProperty(
+                vertex, COMMENT_PROP_KEY, COMMENT.getPropertyName(), userWithCommentDeleteAny);
+    }
+
     private void setupForCommentPropertyTests() {
         // user1 and user2 can both add/update/delete the comment property
 
@@ -197,15 +231,14 @@ public class ACLProviderTest {
         when(user1CommentProperty.getMetadata()).thenReturn(user1CommentMetadata);
         when(vertex.getProperty(COMMENT_PROP_KEY, COMMENT.getPropertyName())).thenReturn(user1CommentProperty);
 
-        when(aclProvider.canUpdateElement(vertex, user1)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user1)).thenReturn(true);
-        when(aclProvider.canAddProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user1)).thenReturn(true);
-
-        when(aclProvider.canUpdateElement(vertex, user2)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user2)).thenReturn(true);
-        when(aclProvider.canAddProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user2)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(vertex, COMMENT_PROP_KEY, COMMENT_PROP_NAME, user2)).thenReturn(true);
+        when(aclProvider.canUpdateElement(eq(vertex), any(User.class)))
+                .thenReturn(true);
+        when(aclProvider.canUpdateProperty(eq(vertex), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
+                .thenReturn(true);
+        when(aclProvider.canAddProperty(eq(vertex), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
+                .thenReturn(true);
+        when(aclProvider.canDeleteProperty(eq(vertex), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
+                .thenReturn(true);
     }
 
     private void setupForRegularPropertyTests() {
@@ -226,7 +259,7 @@ public class ACLProviderTest {
         when(aclProvider.canDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
     }
 
-    private void elementAclShouldPopulateClientApiElementAcl(Element element) {
+    private void appendAclShouldPopulateClientApiElementAcl(Element element) {
         when(aclProvider.canUpdateElement(element, user1)).thenReturn(true);
         when(aclProvider.canDeleteElement(element, user1)).thenReturn(true);
 
@@ -250,7 +283,16 @@ public class ACLProviderTest {
         when(aclProvider.canUpdateProperty(element, null, "prop4", user1)).thenReturn(true);
         when(aclProvider.canDeleteProperty(element, null, "prop4", user1)).thenReturn(true);
 
-        ClientApiElementAcl elementAcl = aclProvider.elementACL(element, user1, ontologyRepository);
+        ClientApiElement apiElement = null;
+        if (element instanceof Vertex) {
+            apiElement = ClientApiConverter.toClientApiVertex((Vertex) element, null, null);
+        } else if (element instanceof Edge) {
+            apiElement = ClientApiConverter.toClientApiEdge((Edge) element, null);
+        }
+
+        apiElement = (ClientApiElement) aclProvider.appendACL(apiElement, user1);
+
+        ClientApiElementAcl elementAcl = apiElement.getAcl();
 
         assertThat(elementAcl.isAddable(), equalTo(true));
         assertThat(elementAcl.isUpdateable(), equalTo(true));
@@ -304,5 +346,37 @@ public class ACLProviderTest {
         List<ClientApiPropertyAcl> matches = findMultiplePropertyAcls(propertyAcls, propertyName);
         assertThat(matches.size(), equalTo(1));
         return matches.get(0);
+    }
+
+    private static class MockAclProvider extends ACLProvider {
+
+        protected MockAclProvider(Graph graph, UserRepository userRepository, OntologyRepository ontologyRepository) {
+            super(graph, userRepository, ontologyRepository);
+        }
+
+        @Override
+        public boolean canDeleteElement(Element element, User user) {
+            return false;
+        }
+
+        @Override
+        public boolean canDeleteProperty(Element element, String propertyKey, String propertyName, User user) {
+            return false;
+        }
+
+        @Override
+        public boolean canUpdateElement(Element element, User user) {
+            return false;
+        }
+
+        @Override
+        public boolean canUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
+            return false;
+        }
+
+        @Override
+        public boolean canAddProperty(Element element, String propertyKey, String propertyName, User user) {
+            return false;
+        }
     }
 }

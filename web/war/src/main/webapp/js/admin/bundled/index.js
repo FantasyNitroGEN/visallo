@@ -13,7 +13,7 @@ define([
     });
 
     registry.registerExtension(adminExtensionPoint, {
-        componentPath: 'jsx!admin/bundled/pluginList/PluginList',
+        componentPath: 'admin/bundled/pluginList/PluginList',
         section: 'Plugin',
         name: 'List',
         subtitle: 'Loaded plugins'

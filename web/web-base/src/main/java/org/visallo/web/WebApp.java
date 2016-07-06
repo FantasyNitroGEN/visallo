@@ -17,6 +17,7 @@ import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.parameterProviders.*;
 import org.visallo.web.parameterValueConverters.JSONObjectParameterValueConverter;
 import org.visallo.web.routes.notification.SystemNotificationSeverityValueConverter;
+import org.visallo.web.util.js.SourceMapType;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -188,6 +189,32 @@ public class WebApp extends App {
      */
     public void registerJavaScript(String scriptResourceName) {
         registerJavaScript(scriptResourceName, true);
+    }
+
+    /**
+     * Register a JSX react component.
+     *
+     * Converts .jsx files to .js files using babel.
+     *
+     * Source maps are always created, but placed inline in
+     * pluginDevMode and externally linked when not.
+     *
+     * @param scriptResourceName
+     */
+    public void registerJavaScriptComponent(String scriptResourceName) {
+        if (scriptResourceName.endsWith("jsx")) {
+            String resourcePath = "/" + ("jsc" + scriptResourceName).replaceAll("^/", "");
+            String toResourcePath = resourcePath.replaceAll("jsx$", "js");
+            SourceMapType map = pluginDevMode ? SourceMapType.INLINE : SourceMapType.EXTERNAL;
+            JsxResourceHandler handler = new JsxResourceHandler(scriptResourceName, resourcePath, toResourcePath, map);
+            get(toResourcePath, handler);
+            if (map == SourceMapType.EXTERNAL) {
+                get(toResourcePath + ".map", handler);
+                get(toResourcePath + ".src", handler);
+            }
+        } else {
+            throw new VisalloException("JavaScript components must be .jsx");
+        }
     }
 
     /**

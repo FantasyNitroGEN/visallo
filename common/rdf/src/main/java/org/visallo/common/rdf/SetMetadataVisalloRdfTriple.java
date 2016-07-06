@@ -41,11 +41,17 @@ public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
 
     @Override
     public String toString() {
-        return String.format("<%s> <%s%s> %s", getElementRdfString(), getPropertyRdfString(), getMetadataRdfString(), getValueRdfString());
+        return String.format(
+                "<%s> <%s%s> %s",
+                getElementRdfString(),
+                getPropertyRdfString(),
+                getMetadataRdfString(),
+                getValueRdfString()
+        );
     }
 
     protected String getMetadataRdfString() {
-        String result = String.format("@%s", getMetadataName());
+        String result = String.format("@%s", escape(getMetadataName(), '@'));
         if (!Strings.isNullOrEmpty(getMetadataVisibilitySource())) {
             result += String.format("[%s]", getMetadataVisibilitySource());
         }

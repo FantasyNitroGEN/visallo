@@ -2,10 +2,10 @@ package org.visallo.core.model.user;
 
 import org.visallo.core.user.User;
 
-public class AuthorizationContext {
+public abstract class AuthorizationContext {
     private final User existingUser;
 
-    public AuthorizationContext(User existingUser) {
+    protected AuthorizationContext(User existingUser) {
         this.existingUser = existingUser;
     }
 

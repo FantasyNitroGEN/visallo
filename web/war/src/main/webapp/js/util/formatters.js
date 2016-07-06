@@ -165,7 +165,7 @@ define([
                     return '0s';
                 } else {
                     if (_.isNumber(value)) {
-                        value = Math.round(value);
+                        value = Math.floor(value);
                     }
                     return new Duration(value + 's').toString().replace(/(ms|[wdhms])/g, '$1 ').trim()
                 }

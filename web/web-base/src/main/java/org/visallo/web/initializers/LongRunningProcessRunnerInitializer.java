@@ -4,15 +4,13 @@ import com.google.inject.Inject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRunner;
-import org.visallo.core.util.StoppableRunnable;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.core.util.*;
 
 import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapInitializer {
+public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapInitializer implements ShutdownListener {
     private static final String CONFIG_THREAD_COUNT = LongRunningProcessRunnerInitializer.class.getName() + ".threadCount";
     private static final int DEFAULT_THREAD_COUNT = 1;
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessRunnerInitializer.class);
@@ -21,8 +19,9 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
     private final List<StoppableRunnable> stoppables = new ArrayList<>();
 
     @Inject
-    public LongRunningProcessRunnerInitializer(Configuration config) {
+    public LongRunningProcessRunnerInitializer(Configuration config, ShutdownService shutdownService) {
         this.config = config;
+        shutdownService.register(this);
     }
 
     @Override
@@ -69,7 +68,7 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         stoppables.forEach(StoppableRunnable::stop);
     }
 }

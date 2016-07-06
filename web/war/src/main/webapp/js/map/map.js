@@ -529,16 +529,6 @@ define([
             });
         };
 
-        this.onContextMenuRemoveItem = function() {
-            var menu = this.select('contextMenuVertexSelector'),
-                feature = menu.data('feature'),
-                vertices = (feature.cluster || [feature]).map(function(f) {
-                    return f.data.vertex;
-                });
-
-            this.trigger('deleteVertices', { vertices: vertices });
-        };
-
         this.onSearchResultsWithinRadius = function() {
             var self = this;
 

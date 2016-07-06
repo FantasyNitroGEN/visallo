@@ -96,7 +96,20 @@ module.exports = function(config) {
 
             // Continuous Integration mode
             // if true, it capture browsers, run tests and exit
-            singleRun: false
+            singleRun: false,
+
+            preprocessors: {
+                'js/**/*.jsx': ['babel'],
+                'test/**/*.jsx': ['babel']
+            },
+            babelPreprocessor: {
+                options: {
+                    sourceMap: true
+                },
+                filename: function(file) {
+                    return file.originalPath.replace(/\.jsx$/, '.js');
+                }
+            }
         },
         coverageType = 'html',
         coverage = process.argv.filter(function(a, index) {
@@ -110,10 +123,8 @@ module.exports = function(config) {
         }).length;
 
     if (coverage) {
-        karmaConfig.preprocessors = {
-            'js/*.js,!js/require.config.js': 'coverage',
-            'js/**/*.js': 'coverage'
-        };
+        karmaConfig.preprocessors['js/*.js,!js/require.config.js'] = 'coverage';
+        karmaConfig.preprocessors['js/**/*.js'] = 'coverage';
         karmaConfig.reporters.push('coverage');
         karmaConfig.coverageReporter = {
             type: coverageType,

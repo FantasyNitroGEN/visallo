@@ -62,13 +62,13 @@ public class VertexSetVisibility implements ParameterizedHandler {
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
-        // add the vertex to the workspace so that the changes show up in the diff panel
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
-
         Vertex graphVertex = graph.getVertex(graphVertexId, authorizations);
         if (graphVertex == null) {
             throw new VisalloResourceNotFoundException("Could not find vertex: " + graphVertexId);
         }
+
+        // add the vertex to the workspace so that the changes show up in the diff panel
+        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
 
         LOGGER.info("changing vertex (%s) visibility source to %s", graphVertex.getId(), visibilitySource);
 

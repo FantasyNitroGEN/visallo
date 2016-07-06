@@ -93,6 +93,10 @@ define([
             ));
         },
 
+        details: function(vertexId) {
+            return ajax('GET', '/vertex/details', { vertexId: vertexId });
+        },
+
         multiple: function(options) {
             return ajax('POST', '/vertex/multiple', options);
         },
@@ -243,6 +247,16 @@ define([
             });
         },
 
+        setPropertyVisibility: function(vertexId, property) {
+            return ajax('POST', '/vertex/property/visibility', {
+                graphVertexId: vertexId,
+                newVisibilitySource: property.visibilitySource,
+                oldVisibilitySource: property.oldVisibilitySource,
+                propertyKey: property.key,
+                propertyName: property.name
+            })
+        },
+
         setProperty: function(vertexId, property, optionalWorkspaceId) {
             var url = storeHelper.vertexPropertyUrl(property);
             return ajax('POST', url, _.tap({
@@ -282,10 +296,6 @@ define([
 
         unresolveDetectedObject: function(params) {
             return ajax('POST', '/vertex/unresolve-detected-object', params);
-        },
-
-        acl: function(vertexId) {
-            return ajax('GET', '/vertex/acl', { elementId: vertexId });
         }
     };
 

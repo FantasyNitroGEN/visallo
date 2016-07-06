@@ -7,7 +7,9 @@ import java.util.*;
 
 public final class Privilege {
     public static final String READ = "READ";
-    public static final String COMMENT = "COMMENT";
+    public static final String COMMENT = "COMMENT"; // add comments and edit/delete own comments
+    public static final String COMMENT_EDIT_ANY = "COMMENT_EDIT_ANY"; // edit other users' comments
+    public static final String COMMENT_DELETE_ANY = "COMMENT_DELETE_ANY"; // delete other users' comments
     public static final String EDIT = "EDIT";
     public static final String PUBLISH = "PUBLISH";
     public static final String ADMIN = "ADMIN";
@@ -20,6 +22,8 @@ public final class Privilege {
         List<String> allBuiltIn = new ArrayList<String>();
         allBuiltIn.add(READ);
         allBuiltIn.add(COMMENT);
+        allBuiltIn.add(COMMENT_EDIT_ANY);
+        allBuiltIn.add(COMMENT_DELETE_ANY);
         allBuiltIn.add(EDIT);
         allBuiltIn.add(PUBLISH);
         allBuiltIn.add(ADMIN);

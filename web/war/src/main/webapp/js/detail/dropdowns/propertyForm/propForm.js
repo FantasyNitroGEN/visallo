@@ -83,11 +83,7 @@ define([
             this.select('saveButtonSelector').attr('disabled', true);
             this.select('deleteButtonSelector').hide();
             this.select('saveButtonSelector').hide();
-            this.on('keyup paste', {
-                configurationSelector: function(event, data) {
-                    this.trigger(event.target, 'change');
-                }
-            });
+
             if (this.attr.property) {
                 this.trigger('propertyselected', {
                     disablePreviousValuePrompt: true,
@@ -111,27 +107,21 @@ define([
 
         this.setupPropertySelectionField = function() {
             var self = this,
-                ontologyRequest,
-                aclRequest;
+                ontologyRequest;
 
             if (F.vertex.isEdge(this.attr.data)) {
                 ontologyRequest = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label);
-                aclRequest = this.dataRequest('edge', 'acl', this.attr.data.id);
             } else {
                 ontologyRequest = this.dataRequest('ontology', 'propertiesByConceptId',
                     F.vertex.prop(this.attr.data, 'conceptType'));
-                aclRequest = this.dataRequest('vertex', 'acl', this.attr.data.id);
             }
 
-            Promise.all([ontologyRequest, aclRequest]).done(function(results) {
-                var ontologyProperties = results[0],
-                    acl = results[1];
-
+            ontologyRequest.then(function(ontologyProperties) {
                 FieldSelection.attachTo(self.select('propertyListSelector'), {
                     properties: ontologyProperties.list,
                     focus: true,
                     placeholder: i18n('property.form.field.selection.placeholder'),
-                    unsupportedProperties: _.pluck(_.where(acl.propertyAcls, { addable: false }), 'name')
+                    unsupportedProperties: _.pluck(_.where(self.attr.data.acl.propertyAcls, { addable: false }), 'name')
                 });
                 self.manualOpen();
             });
@@ -259,6 +249,9 @@ define([
                     vertexProperty.metadata['http://visallo.org#visibilityJson'],
                 sandboxStatus = vertexProperty && vertexProperty.sandboxStatus,
                 isExistingProperty = typeof vertexProperty !== 'undefined',
+                isEditingVisibility = propertyName === 'http://visallo.org#visibilityJson' || (
+                    vertexProperty && vertexProperty.streamingPropertyValue
+                ),
                 previousValues = disablePreviousValuePrompt !== true && F.vertex.props(this.attr.data, propertyName),
                 previousValuesUniquedByKey = previousValues && _.unique(previousValues, _.property('key')),
                 previousValuesUniquedByKeyUpdateable = _.where(previousValuesUniquedByKey, {updateable: true});
@@ -309,10 +302,10 @@ define([
             this.select('visibilitySelector').show();
             this.select('saveButtonSelector').show();
 
-            this.select('deleteButtonSelector')
+            var deleteButton = this.select('deleteButtonSelector')
                 .toggle(
                     !!isExistingProperty &&
-                    propertyName !== 'http://visallo.org#visibilityJson'
+                    !isEditingVisibility
                 );
 
             var button = this.select('saveButtonSelector')
@@ -322,22 +315,17 @@ define([
 
             this.dataRequest('ontology', 'properties').done(function(properties) {
                 var propertyDetails = properties.byTitle[propertyName];
+                if (!propertyDetails.deleteable) {
+                    deleteButton.hide();
+                }
                 self.currentPropertyDetails = propertyDetails;
                 if (propertyName === 'http://visallo.org#visibilityJson') {
-                    require(['util/visibility/edit'], function(Visibility) {
-                        var val = vertexProperty && vertexProperty.value,
-                            source = (val && val.source) || (val && val.value && val.value.source);
-
-                        Visibility.attachTo(visibility, {
-                            value: source || ''
-                        });
-                        visibility.find('input').focus();
-                        self.settingVisibility = true;
-                        self.visibilitySource = { value: source, valid: true };
-
-                        self.checkValid();
-                        self.manualOpen();
-                    });
+                    var val = vertexProperty && vertexProperty.value,
+                        source = (val && val.source) || (val && val.value && val.value.source);
+                    self.editVisibility(visibility, source);
+                } else if (vertexProperty && vertexProperty.streamingPropertyValue && vertexProperty.metadata) {
+                    var visibilityMetadata = vertexProperty.metadata['http://visallo.org#visibilityJson'];
+                    self.editVisibility(visibility, visibilityMetadata.source);
                 } else if (propertyDetails) {
                     var isCompoundField = propertyDetails.dependentPropertyIris &&
                         propertyDetails.dependentPropertyIris.length,
@@ -416,6 +404,21 @@ define([
             });
         };
 
+        this.editVisibility = function(visibility, source) {
+            var self = this;
+            require(['util/visibility/edit'], function(Visibility) {
+                Visibility.attachTo(visibility, {
+                    value: source || ''
+                });
+                visibility.find('input').focus();
+                self.settingVisibility = true;
+                self.visibilitySource = { value: source || '', valid: true };
+
+                self.checkValid();
+                self.manualOpen();
+            });
+        }
+
         this.onVisibilityChange = function(event, data) {
             var self = this;
 
@@ -475,13 +478,13 @@ define([
                     (this.visibilitySource && this.visibilitySource.valid) &&
                     (this.justification ? this.justification.valid : true);
                 var empty = _.reject(this.$node.find('.configuration input'), function(input) {
-                    return !!input.value;
+                    return !input.required || !!input.value;
                 }).length > 0;
 
-                this.valid = valid && !empty;
+                this.valid = valid && !empty && _.some(this.modified);
             }
 
-            if (this.valid && _.some(this.modified)) {
+            if (this.valid) {
                 this.select('saveButtonSelector').removeAttr('disabled');
             } else {
                 this.select('saveButtonSelector').attr('disabled', true);

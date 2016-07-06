@@ -727,11 +727,12 @@ public class TermMentionRepository {
         if (termMention == null) {
             return null;
         }
+        Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
         ClientApiSourceInfo result = new ClientApiSourceInfo();
         result.vertexId = single(termMention.getVertexIds(
                 Direction.IN,
                 VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION,
-                authorizations
+                authorizationsWithTermMention
         ));
         result.textPropertyKey = VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyValue(termMention);
         result.textPropertyName = VisalloProperties.TERM_MENTION_PROPERTY_NAME.getPropertyValue(termMention);

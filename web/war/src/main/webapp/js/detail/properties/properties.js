@@ -93,18 +93,7 @@ define([
                 displayProperties = _.chain(properties)
                     .filter(function(property) {
                         if (isJustification(property)) {
-                            $.extend(property, {
-                                hideInfo: true,
-                                hideVisibility: true,
-                                displayName: i18n('justification.field.label'),
-                                justificationData: {
-                                    justificationMetadata: property.name === 'http://visallo.org#justification' ?
-                                        property.value : null,
-                                    sourceMetadata: property.name === '_sourceMetadata' ?
-                                        property.value : null
-                                }
-                            });
-                            return true;
+                            return false;
                         }
 
                         if (isVisibility(property)) {
@@ -316,30 +305,33 @@ define([
         };
 
         this.onAddProperty = function(event, data) {
-            var self = this;
-            var vertexId = data.vertexId || this.data.id;
+            var self = this,
+                vertexId = data.vertexId || this.data.id,
+                service = data.isEdge ? 'edge' : 'vertex';
 
             if (data.property.name === 'http://visallo.org#visibilityJson') {
                 var visibilitySource = data.property.visibilitySource || '';
-                if (data.isEdge) {
-                    this.dataRequest('edge', 'setVisibility', vertexId, visibilitySource)
-                        .then(this.closePropertyForm.bind(this, data.node))
-                        .catch(function(error) { self.requestFailure.call(self, error, data.node) })
-                } else {
-                    this.dataRequest('vertex', 'setVisibility', vertexId, visibilitySource)
-                        .then(this.closePropertyForm.bind(this, data.node))
-                        .catch(function(error) { self.requestFailure.call(self, error, data.node) });
-                }
+                this.dataRequest(service, 'setVisibility', vertexId, visibilitySource)
+                    .then(this.closePropertyForm.bind(this, data.node))
+                    .catch(function(error) { self.requestFailure.call(self, error, data.node) })
+            } else if (this.isStreamingPropertyVisibilityUpdate(data)) {
+                this.dataRequest(service, 'setPropertyVisibility', vertexId, data.property)
+                    .then(this.closePropertyForm.bind(this, data.node))
+                    .catch(function(error) { self.requestFailure.call(self, error, data.node) });
             } else {
-                this.dataRequest(
-                    data.isEdge ? 'edge' : 'vertex',
-                    'setProperty',
-                    vertexId,
-                    data.property)
+                this.dataRequest(service, 'setProperty', vertexId, data.property)
                     .then(this.closePropertyForm.bind(this, data.node))
                     .catch(function(error) { self.requestFailure.call(self, error, data.node) });
             }
 
+        };
+
+        this.isStreamingPropertyVisibilityUpdate = function(data) {
+            if (!_.isUndefined(data.property.key)) {
+                var prop = _.first(F.vertex.props(this.data, data.property.name, data.property.key));
+                return prop && prop.streamingPropertyValue;
+            }
+            return false;
         };
 
         this.closePropertyForm = function(node) {

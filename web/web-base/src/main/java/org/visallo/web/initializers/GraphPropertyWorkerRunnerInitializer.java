@@ -6,15 +6,13 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.StoppableRunnable;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.core.util.*;
 
 import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapInitializer {
+public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapInitializer implements ShutdownListener {
     private static final String CONFIG_THREAD_COUNT = GraphPropertyWorkerRunnerInitializer.class.getName() + ".threadCount";
     private static final int DEFAULT_THREAD_COUNT = 1;
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyWorkerRunnerInitializer.class);
@@ -26,10 +24,12 @@ public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapIn
     @Inject
     public GraphPropertyWorkerRunnerInitializer(
             Configuration config,
-            UserRepository userRepository
+            UserRepository userRepository,
+            ShutdownService shutdownService
     ) {
         this.config = config;
         this.userRepository = userRepository;
+        shutdownService.register(this);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapIn
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         stoppables.forEach(StoppableRunnable::stop);
     }
 }

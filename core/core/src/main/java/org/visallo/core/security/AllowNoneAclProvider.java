@@ -1,11 +1,19 @@
 package org.visallo.core.security;
 
+import com.google.inject.Inject;
 import org.vertexium.Element;
+import org.vertexium.Graph;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.ClientApiElement;
-import org.visallo.web.clientapi.model.ClientApiProperty;
 
 public class AllowNoneAclProvider extends ACLProvider {
+
+    @Inject
+    public AllowNoneAclProvider(Graph graph, UserRepository userRepository, OntologyRepository ontologyRepository) {
+        super(graph, userRepository, ontologyRepository);
+    }
+
     @Override
     public boolean canDeleteElement(Element element, User user) {
         return false;
@@ -28,31 +36,6 @@ public class AllowNoneAclProvider extends ACLProvider {
 
     @Override
     public boolean canAddProperty(Element element, String propertyKey, String propertyName, User user) {
-        return false;
-    }
-
-    @Override
-    public boolean canDeleteElement(ClientApiElement element, User user) {
-        return false;
-    }
-
-    @Override
-    public boolean canDeleteProperty(ClientApiElement element, ClientApiProperty p, User user) {
-        return false;
-    }
-
-    @Override
-    public boolean canUpdateElement(ClientApiElement element, User user) {
-        return false;
-    }
-
-    @Override
-    public boolean canUpdateProperty(ClientApiElement element, ClientApiProperty p, User user) {
-        return false;
-    }
-
-    @Override
-    public boolean canAddProperty(ClientApiElement element, ClientApiProperty p, User user) {
         return false;
     }
 }

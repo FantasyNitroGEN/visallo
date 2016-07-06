@@ -37,7 +37,7 @@ public class DefaultAuthorizationMapperTest {
         HashSet<String> expected = Sets.newHashSet("userRepositoryPrivilege1", "userRepositoryPrivilege2");
         when(userRepository.getDefaultPrivileges()).thenReturn(expected);
 
-        AuthorizationContext authorizationContext = new AuthorizationContext(null);
+        AuthorizationContext authorizationContext = new TestAuthorizationContext(null);
         Set<String> privileges = defaultAuthorizationMapper.getPrivileges(authorizationContext);
         assertEquals(expected, privileges);
     }
@@ -47,7 +47,7 @@ public class DefaultAuthorizationMapperTest {
         HashSet<String> expected = Sets.newHashSet("userPrivilege1", "userPrivilege2");
         when(user.getPrivileges()).thenReturn(expected);
 
-        AuthorizationContext authorizationContext = new AuthorizationContext(user);
+        AuthorizationContext authorizationContext = new TestAuthorizationContext(user);
         Set<String> privileges = defaultAuthorizationMapper.getPrivileges(authorizationContext);
         assertEquals(expected, privileges);
     }
@@ -57,7 +57,7 @@ public class DefaultAuthorizationMapperTest {
         HashSet<String> expected = Sets.newHashSet("userRepositoryAuthorization1", "userRepositoryAuthorization2");
         when(userRepository.getDefaultAuthorizations()).thenReturn(expected);
 
-        AuthorizationContext authorizationContext = new AuthorizationContext(null);
+        AuthorizationContext authorizationContext = new TestAuthorizationContext(null);
         Set<String> privileges = defaultAuthorizationMapper.getAuthorizations(authorizationContext);
         assertEquals(expected, privileges);
     }
@@ -68,8 +68,14 @@ public class DefaultAuthorizationMapperTest {
         Authorizations authorizations = new InMemoryAuthorizations(authorizationsArray);
         when(userRepository.getAuthorizations(eq(user))).thenReturn(authorizations);
 
-        AuthorizationContext authorizationContext = new AuthorizationContext(user);
+        AuthorizationContext authorizationContext = new TestAuthorizationContext(user);
         Set<String> privileges = defaultAuthorizationMapper.getAuthorizations(authorizationContext);
         assertEquals(Sets.newHashSet(authorizationsArray), privileges);
+    }
+
+    public static class TestAuthorizationContext extends AuthorizationContext {
+        public TestAuthorizationContext(User existingUser) {
+            super(existingUser);
+        }
     }
 }

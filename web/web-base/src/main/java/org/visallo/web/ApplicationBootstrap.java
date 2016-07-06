@@ -1,14 +1,12 @@
 package org.visallo.web;
 
 import com.google.inject.Injector;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.atmosphere.cache.UUIDBroadcasterCache;
 import org.atmosphere.cpr.AtmosphereHandler;
 import org.atmosphere.cpr.AtmosphereInterceptor;
 import org.atmosphere.cpr.AtmosphereServlet;
 import org.atmosphere.cpr.SessionSupport;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
-import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.config.Configuration;
@@ -16,7 +14,6 @@ import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.model.graph.GraphRepository;
-import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -25,14 +22,13 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.ServiceLoaderUtil;
+import org.visallo.core.util.ShutdownService;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.initializers.ApplicationBootstrapInitializer;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.*;
 
 public class ApplicationBootstrap implements ServletContextListener {
@@ -60,7 +56,10 @@ public class ApplicationBootstrap implements ServletContextListener {
             }
             VisalloLoggerFactory.setProcessType("web");
 
-            config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), getInitParametersAsMap(context));
+            config = ConfigurationLoader.load(
+                    context.getInitParameter(APP_CONFIG_LOADER),
+                    getInitParametersAsMap(context)
+            );
             config.setDefaults(WebConfiguration.DEFAULTS);
             LOGGER = VisalloLoggerFactory.getLogger(ApplicationBootstrap.class);
             LOGGER.info("Running application with configuration:\n%s", config);
@@ -102,59 +101,9 @@ public class ApplicationBootstrap implements ServletContextListener {
         if (isStopped) {
             return;
         }
-
         isStopped = true;
 
-        safeLogInfo("BEGIN: Servlet context destroyed...");
-
-        safeLogInfo("Shutdown: LockRepository");
-        InjectHelper.getInstance(LockRepository.class).shutdown();
-
-        safeLogInfo("Shutdown: SimpleOrmSession");
-        InjectHelper.getInstance(SimpleOrmSession.class).close();
-
-        safeLogInfo("Shutdown: Graph");
-        InjectHelper.getInstance(Graph.class).shutdown();
-
-        // shutdown bootstrap instances first as they depend on of infrastructure services
-        for (ApplicationBootstrapInitializer initializer : applicationBootstrapInitializers) {
-            try {
-                safeLogInfo("Calling close on initializer: " + initializer.getClass().getName());
-                initializer.close();
-            } catch (Exception e) {
-                safeLogInfo("Unable to close initializer: " + initializer.getClass().getName() + ". "
-                        + e.getClass().getName() + ". " + e.getMessage());
-                LOGGER.error("", e);
-            }
-        }
-
-        // get a list of classes which implement closeable interface and call close
-        Collection<Closeable> closeables = InjectHelper.getInjectedServices(Closeable.class, config);
-        for (Closeable c : closeables) {
-            try {
-                safeLogInfo("Calling close on: " + c.getClass().getName());
-                c.close();
-            } catch (IOException e) {
-                safeLogInfo("Unable to close: " + c.getClass().getName() + ". " + e.getClass().getName() + ". "
-                        + e.getMessage());
-            }
-        }
-
-        safeLogInfo("Shutdown: InjectHelper");
-        InjectHelper.shutdown();
-
-        safeLogInfo("Shutdown: VisalloBootstrap");
-        VisalloBootstrap.shutdown();
-
-        safeLogInfo("END: Servlet context destroyed...");
-    }
-
-    private void safeLogInfo(String message) {
-        if (LOGGER != null) {
-            LOGGER.info("%s", message);
-        } else {
-            System.out.println(message);
-        }
+        InjectHelper.getInstance(ShutdownService.class).shutdown();
     }
 
     private void setupInjector(ServletContext context, Configuration config) {
@@ -195,7 +144,8 @@ public class ApplicationBootstrap implements ServletContextListener {
         if (shouldAddGzipFilter(context, config)) {
             addGzipFilter(context);
         }
-        LOGGER.info("JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
+        LOGGER.info(
+                "JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
     }
 
     private void addAtmosphereServlet(ServletContext context, Configuration config) {
@@ -251,7 +201,10 @@ public class ApplicationBootstrap implements ServletContextListener {
 
     private void addGzipFilter(ServletContext context) {
         FilterRegistration.Dynamic filter = context.addFilter(GZIP_FILTER_NAME, ApplicationGzipFilter.class);
-        filter.setInitParameter("mimeTypes", "application/json,text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml");
+        filter.setInitParameter(
+                "mimeTypes",
+                "application/json,text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml"
+        );
         filter.setAsyncSupported(true);
         String[] mappings = new String[]{"/*"};
         for (String mapping : mappings) {

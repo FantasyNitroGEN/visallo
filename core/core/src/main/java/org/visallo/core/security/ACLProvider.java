@@ -1,24 +1,31 @@
 package org.visallo.core.security;
 
-import org.vertexium.Edge;
-import org.vertexium.Element;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
+import com.google.inject.Inject;
+import org.vertexium.*;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.*;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class ACLProvider {
+    protected final Graph graph;
+    protected final UserRepository userRepository;
+    protected final OntologyRepository ontologyRepository;
+
+    @Inject
+    protected ACLProvider(Graph graph, UserRepository userRepository, OntologyRepository ontologyRepository) {
+        this.graph = graph;
+        this.userRepository = userRepository;
+        this.ontologyRepository = ontologyRepository;
+    }
+
     public abstract boolean canDeleteElement(Element element, User user);
 
     public abstract boolean canDeleteProperty(Element element, String propertyKey, String propertyName, User user);
@@ -29,26 +36,12 @@ public abstract class ACLProvider {
 
     public abstract boolean canAddProperty(Element element, String propertyKey, String propertyName, User user);
 
-    public abstract boolean canDeleteElement(ClientApiElement element, User user);
-
-    public abstract boolean canDeleteProperty(ClientApiElement element, ClientApiProperty p, User user);
-
-    public abstract boolean canUpdateElement(ClientApiElement element, User user);
-
-    public abstract boolean canUpdateProperty(ClientApiElement element, ClientApiProperty p, User user);
-
-    public abstract boolean canAddProperty(ClientApiElement element, ClientApiProperty p, User user);
-
-    public void checkCanAddOrUpdateProperty(Element element, String propertyKey, String propertyName, User user)
+    public final void checkCanAddOrUpdateProperty(Element element, String propertyKey, String propertyName, User user)
             throws VisalloAccessDeniedException {
         boolean isUpdate = element.getProperty(propertyKey, propertyName) != null;
         boolean canAddOrUpdate = isUpdate
-                ? canUpdateProperty(element, propertyKey, propertyName, user)
-                : canAddProperty(element, propertyKey, propertyName, user);
-
-        if (canAddOrUpdate && isUpdate && isComment(propertyName)) {
-            canAddOrUpdate = isAuthor(element, propertyKey, propertyName, user);
-        }
+                ? internalCanUpdateProperty(element, propertyKey, propertyName, user)
+                : internalCanAddProperty(element, propertyKey, propertyName, user);
 
         if (!canAddOrUpdate) {
             throw new VisalloAccessDeniedException(
@@ -56,13 +49,9 @@ public abstract class ACLProvider {
         }
     }
 
-    public void checkCanDeleteProperty(Element element, String propertyKey, String propertyName, User user)
+    public final void checkCanDeleteProperty(Element element, String propertyKey, String propertyName, User user)
             throws VisalloAccessDeniedException {
-        boolean canDelete = canDeleteProperty(element, propertyKey, propertyName, user);
-
-        if (canDelete && isComment(propertyName)) {
-            canDelete = isAuthor(element, propertyKey, propertyName, user);
-        }
+        boolean canDelete = internalCanDeleteProperty(element, propertyKey, propertyName, user);
 
         if (!canDelete) {
             throw new VisalloAccessDeniedException(
@@ -70,11 +59,11 @@ public abstract class ACLProvider {
         }
     }
 
-    public ClientApiElementAcl elementACL(Element element, User user, OntologyRepository ontologyRepository) {
+    public final ClientApiElementAcl elementACL(Element element, User user, OntologyRepository ontologyRepository) {
         ClientApiElementAcl elementAcl = new ClientApiElementAcl();
         elementAcl.setAddable(true);
-        elementAcl.setUpdateable(canUpdateElement(element, user));
-        elementAcl.setDeleteable(canDeleteElement(element, user));
+        elementAcl.setUpdateable(internalCanUpdateElement(element, user));
+        elementAcl.setDeleteable(internalCanDeleteElement(element, user));
 
         List<ClientApiPropertyAcl> propertyAcls = elementAcl.getPropertyAcls();
         if (element instanceof Vertex) {
@@ -97,7 +86,7 @@ public abstract class ACLProvider {
         return elementAcl;
     }
 
-    public ClientApiObject appendACL(ClientApiObject clientApiObject, User user) {
+    public final ClientApiObject appendACL(ClientApiObject clientApiObject, User user) {
         if (clientApiObject instanceof ClientApiElement) {
             ClientApiElement apiElement = (ClientApiElement) clientApiObject;
             appendACL(apiElement, user);
@@ -119,34 +108,48 @@ public abstract class ACLProvider {
         return clientApiObject;
     }
 
-    public void appendACL(Collection<? extends ClientApiObject> clientApiObject, User user) {
+    public Set<String> getAllPrivileges() {
+        return Privilege.getAllBuiltIn();
+    }
+
+    protected final boolean isComment(String propertyName) {
+        return VisalloProperties.COMMENT.isSameName(propertyName);
+    }
+
+    protected final boolean isAuthor(Element element, String propertyKey, String propertyName, User user) {
+        Property property = element.getProperty(propertyKey, propertyName);
+        if (property != null) {
+            String authorUserId = VisalloProperties.MODIFIED_BY_METADATA.getMetadataValue(property.getMetadata());
+            return user.getUserId().equals(authorUserId);
+        } else {
+            return false;
+        }
+    }
+
+    protected final boolean hasPrivilege(User user, String privilege) {
+        return user.getPrivileges().contains(privilege);
+    }
+
+    private void appendACL(Collection<? extends ClientApiObject> clientApiObject, User user) {
         for (ClientApiObject apiObject : clientApiObject) {
             appendACL(apiObject, user);
         }
     }
 
-    public Set<String> getAllPrivileges() {
-        return Privilege.getAllBuiltIn();
-    }
+    private void appendACL(ClientApiElement apiElement, User user) {
+        Element element = findElement(apiElement);
 
-    protected boolean isComment(String propertyName) {
-        return VisalloProperties.COMMENT.isSameName(propertyName);
-    }
-
-    protected boolean isAuthor(Element element, String propertyKey, String propertyName, User user) {
-        Property property = element.getProperty(propertyKey, propertyName);
-        String authorUserId = VisalloProperties.MODIFIED_BY_METADATA.getMetadataValue(property.getMetadata());
-        return user.getUserId().equals(authorUserId);
-    }
-
-    protected void appendACL(ClientApiElement apiElement, User user) {
-        for (ClientApiProperty property : apiElement.getProperties()) {
-            property.setUpdateable(canUpdateProperty(apiElement, property, user));
-            property.setDeleteable(canDeleteProperty(apiElement, property, user));
-            property.setAddable(canAddProperty(apiElement, property, user));
+        for (ClientApiProperty apiProperty : apiElement.getProperties()) {
+            String key = apiProperty.getKey();
+            String name = apiProperty.getName();
+            apiProperty.setUpdateable(internalCanUpdateProperty(element, key, name, user));
+            apiProperty.setDeleteable(internalCanDeleteProperty(element, key, name, user));
+            apiProperty.setAddable(internalCanAddProperty(element, key, name, user));
         }
-        apiElement.setUpdateable(canUpdateElement(apiElement, user));
-        apiElement.setDeleteable(canDeleteElement(apiElement, user));
+        apiElement.setUpdateable(internalCanUpdateElement(element, user));
+        apiElement.setDeleteable(internalCanDeleteElement(element, user));
+
+        apiElement.setAcl(elementACL(element, user, ontologyRepository));
 
         if (apiElement instanceof ClientApiEdgeWithVertexData) {
             appendACL(((ClientApiEdgeWithVertexData) apiElement).getSource(), user);
@@ -154,7 +157,7 @@ public abstract class ACLProvider {
         }
     }
 
-    protected void appendACL(ClientApiVertexEdges edges, User user) {
+    private void appendACL(ClientApiVertexEdges edges, User user) {
         for (ClientApiVertexEdges.Edge vertexEdge : edges.getRelationships()) {
             appendACL(vertexEdge.getRelationship(), user);
             appendACL(vertexEdge.getVertex(), user);
@@ -194,9 +197,56 @@ public abstract class ACLProvider {
         ClientApiPropertyAcl propertyAcl = new ClientApiPropertyAcl();
         propertyAcl.setKey(key);
         propertyAcl.setName(name);
-        propertyAcl.setAddable(canAddProperty(element, key, name, user));
-        propertyAcl.setUpdateable(canUpdateProperty(element, key, name, user));
-        propertyAcl.setDeleteable(canDeleteProperty(element, key, name, user));
+        propertyAcl.setAddable(internalCanAddProperty(element, key, name, user));
+        propertyAcl.setUpdateable(internalCanUpdateProperty(element, key, name, user));
+        propertyAcl.setDeleteable(internalCanDeleteProperty(element, key, name, user));
         return propertyAcl;
+    }
+
+    private Element findElement(ClientApiElement apiElement) {
+        Authorizations authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
+        if (apiElement instanceof ClientApiVertex) {
+            return graph.getVertex(apiElement.getId(), authorizations);
+        } else if (apiElement instanceof ClientApiEdge) {
+            return graph.getEdge(apiElement.getId(), authorizations);
+        } else {
+            throw new VisalloException("unexpected ClientApiElement type " + apiElement.getClass().getName());
+        }
+    }
+
+    private boolean internalCanDeleteElement(Element element, User user) {
+        return hasPrivilege(user, Privilege.EDIT) && canDeleteElement(element, user);
+    }
+
+    private boolean internalCanDeleteProperty(Element element, String propertyKey, String propertyName, User user) {
+        boolean canDelete = hasPrivilege(user, Privilege.EDIT) &&
+                canDeleteProperty(element, propertyKey, propertyName, user);
+        if (canDelete && isComment(propertyName)) {
+            canDelete = hasPrivilege(user, Privilege.COMMENT_DELETE_ANY) ||
+                    (hasPrivilege(user, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
+        }
+        return canDelete;
+    }
+
+    private boolean internalCanUpdateElement(Element element, User user) {
+        return hasPrivilege(user, Privilege.EDIT) && canUpdateElement(element, user);
+    }
+
+    private boolean internalCanUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
+        boolean canUpdate = hasPrivilege(user, Privilege.EDIT) &&
+                canUpdateProperty(element, propertyKey, propertyName, user);
+        if (canUpdate && isComment(propertyName)) {
+            canUpdate = hasPrivilege(user, Privilege.COMMENT_EDIT_ANY) ||
+                    (hasPrivilege(user, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
+        }
+        return canUpdate;
+    }
+
+    private boolean internalCanAddProperty(Element element, String propertyKey, String propertyName, User user) {
+        boolean canAdd = hasPrivilege(user, Privilege.EDIT) && canAddProperty(element, propertyKey, propertyName, user);
+        if (canAdd && isComment(propertyName)) {
+            canAdd = hasPrivilege(user, Privilege.COMMENT);
+        }
+        return canAdd;
     }
 }

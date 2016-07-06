@@ -29,6 +29,16 @@ define([
             });
         },
 
+        setPropertyVisibility: function(edgeId, property) {
+            return ajax('POST', '/edge/property/visibility', {
+                graphEdgeId: edgeId,
+                newVisibilitySource: property.visibilitySource,
+                oldVisibilitySource: property.oldVisibilitySource,
+                propertyKey: property.key,
+                propertyName: property.name
+            })
+        },
+
         setProperty: function(edgeId, property, optionalWorkspaceId) {
             var url = storeHelper.edgePropertyUrl(property);
             return ajax('POST', url, _.tap({
@@ -60,6 +70,10 @@ define([
                 propertyName: property.name,
                 propertyKey: property.key
             })
+        },
+
+        details: function(edgeId) {
+            return ajax('GET', '/edge/details', { edgeId: edgeId });
         },
 
         history: function(edgeId) {
@@ -97,10 +111,6 @@ define([
                 graphEdgeId: edgeId,
                 visibilitySource: visibilitySource
             });
-        },
-
-        acl: function(edgeId) {
-            return ajax('GET', '/edge/acl', { elementId: edgeId });
         }
     };
 

@@ -7,12 +7,10 @@ import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -23,6 +21,7 @@ import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.BadRequestException;
+import org.visallo.web.routes.SetPropertyBase;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
@@ -32,12 +31,10 @@ import org.visallo.web.parameterProviders.JustificationText;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ResourceBundle;
 
-public class EdgeSetProperty implements ParameterizedHandler {
+public class EdgeSetProperty extends SetPropertyBase implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EdgeSetProperty.class);
 
-    private final Graph graph;
     private final OntologyRepository ontologyRepository;
-    private VisibilityTranslator visibilityTranslator;
     private final WorkQueueRepository workQueueRepository;
     private final WorkspaceRepository workspaceRepository;
     private final GraphRepository graphRepository;
@@ -55,9 +52,8 @@ public class EdgeSetProperty implements ParameterizedHandler {
             final ACLProvider aclProvider,
             final Configuration configuration
     ) {
+        super(graph, visibilityTranslator);
         this.ontologyRepository = ontologyRepository;
-        this.graph = graph;
-        this.visibilityTranslator = visibilityTranslator;
         this.workQueueRepository = workQueueRepository;
         this.workspaceRepository = workspaceRepository;
         this.graphRepository = graphRepository;
@@ -82,33 +78,24 @@ public class EdgeSetProperty implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
-            LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
-        }
+        checkVisibilityParameter(visibilitySource, authorizations, user, resourceBundle);
+        checkRoutePath("edge", propertyName, request);
 
-        boolean isComment = VisalloProperties.COMMENT.isSameName(propertyName);
-
-        if (isComment && request.getPathInfo().equals("/edge/property")) {
-            throw new VisalloException("Use /edge/comment to save comment properties");
-        } else if (!isComment && request.getPathInfo().equals("/edge/comment")) {
-            throw new VisalloException("Use /edge/property to save non-comment properties");
-        }
-
+        boolean isComment = isCommentProperty(propertyName);
         boolean autoPublish = isComment && autoPublishComments;
         if (autoPublish) {
             workspaceId = null;
         }
 
-        OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
+        if (propertyKey == null) {
+            propertyKey = createPropertyKey(propertyName, graph);
+        }
 
         Edge edge = graph.getEdge(edgeId, authorizations);
 
-        if (propertyKey == null) {
-            propertyKey = graph.getIdGenerator().nextId();
-        }
-
         aclProvider.checkCanAddOrUpdateProperty(edge, propertyKey, propertyName, user);
+
+        OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
 
         Object value;
         try {

@@ -9,6 +9,7 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.closurecompiler.com.google.javascript.jscomp.*;
 import org.visallo.web.closurecompiler.com.google.javascript.jscomp.Compiler;
+import org.visallo.web.util.js.CachedCompilation;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -165,51 +166,6 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
             }
         }
         return cachedCompilation;
-    }
-
-    private static class CachedCompilation {
-        private String sourceMap;
-        private String input;
-        private String output;
-        private Long lastModified;
-
-        public String getSourceMap() {
-            return sourceMap;
-        }
-
-        public void setSourceMap(String sourceMap) {
-            this.sourceMap = sourceMap;
-        }
-
-        public String getInput() {
-            return input;
-        }
-
-        public void setInput(String input) {
-            this.input = input;
-        }
-
-        public String getOutput() {
-            return output;
-        }
-
-        public void setOutput(String output) {
-            this.output = output;
-        }
-
-        public Long getLastModified() {
-            return lastModified;
-        }
-
-        public void setLastModified(Long lastModified) {
-            this.lastModified = lastModified;
-        }
-
-        public boolean isNecessary(long lastModified) {
-            return getLastModified() == null ||
-                    getLastModified() != lastModified ||
-                    getOutput() == null;
-        }
     }
 
     private static class JavascriptResourceHandlerErrorManager extends BasicErrorManager {

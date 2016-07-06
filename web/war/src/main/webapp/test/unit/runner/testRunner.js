@@ -1,5 +1,6 @@
 /*globals chai:true, assert:true, expect: true, i18n: true */
-var tests = Object.keys(window.__karma__.files).filter(function(file) {
+(function(global) {
+var tests = Object.keys(global.__karma__.files).filter(function(file) {
     return (/^\/base\/test\/unit\/spec\/.*\.js$/).test(file);
 });
 
@@ -42,7 +43,7 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
         ],
 
         callback: function(_chai) {
-            chai = _chai
+            global.chai = _chai
             if (typeof Function.prototype.bind !== 'function') {
                 /*eslint no-extend-native:0 */
                 Function.prototype.bind = function() {
@@ -65,7 +66,7 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
                 }
             });
 
-            window.visalloData = {
+            global.visalloData = {
                 currentWorkspaceId: 'w1'
             };
 
@@ -116,9 +117,9 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
                 // Run tests after loading
                 if (tests.length) {
                     require(tests, function() {
-                        window.__karma__.start();
+                        global.__karma__.start();
                     });
-                } else window.__karma__.start();
+                } else global.__karma__.start();
             });
 
         }
@@ -127,6 +128,7 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
     requireConfig.deps = requireConfig.deps.concat(cfg.deps);
     delete requireConfig.urlArgs;
 
-    window.require = requirejs;
+    global.require = requirejs;
     requirejs.config(requireConfig);
 });
+})(this);

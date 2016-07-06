@@ -92,14 +92,6 @@ figure img { float: left; margin-right: 0.5em; }
 </figure>
 
 <figure>
-    <img src="renderer-subway.png" width="200">
-    <figcaption>
-        <code>org-visallo-subway</code>
-        <p>Subway diagram, useful for workflow process counts.
-    </figcaption>
-</figure>
-
-<figure>
     <img src="renderer-text-overview.png" width="200">
     <figcaption>
         <code>org-visallo-text-overview</code>

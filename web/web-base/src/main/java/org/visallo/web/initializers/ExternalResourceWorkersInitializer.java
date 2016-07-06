@@ -6,14 +6,14 @@ import org.visallo.core.externalResource.ExternalResourceRunner;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.status.StatusRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ShutdownListener;
+import org.visallo.core.util.ShutdownService;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import javax.servlet.ServletContext;
-import java.io.IOException;
-import java.util.Collection;
 
-public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInitializer {
+public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInitializer implements ShutdownListener {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ExternalResourceWorkersInitializer.class);
     private final Configuration config;
     private final UserRepository userRepository;
@@ -24,11 +24,13 @@ public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInit
     public ExternalResourceWorkersInitializer(
             Configuration config,
             UserRepository userRepository,
-            StatusRepository statusRepository
+            StatusRepository statusRepository,
+            ShutdownService shutdownService
     ) {
         this.config = config;
         this.userRepository = userRepository;
         this.statusRepository = statusRepository;
+        shutdownService.register(this);
     }
 
     @Override
@@ -41,7 +43,7 @@ public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInit
     }
 
     @Override
-    public void close() throws IOException {
+    public void shutdown() {
         if (resourceRunner != null) {
             resourceRunner.shutdown();
         }

@@ -52,12 +52,22 @@ public abstract class WorkQueueRepository {
         pushGraphPropertyQueue(element, property.getKey(), property.getName(), priority);
     }
 
-    public void pushGraphPropertyQueue(final Element element, final Property property, ElementOrPropertyStatus status, Long beforeActionTimestamp, Priority priority) {
+    public void pushGraphPropertyQueue(
+            final Element element,
+            final Property property,
+            ElementOrPropertyStatus status,
+            Long beforeActionTimestamp,
+            Priority priority
+    ) {
         checkNotNull(property, "property cannot be null");
         pushGraphPropertyQueue(element, property.getKey(), property.getName(), status, beforeActionTimestamp, priority);
     }
 
-    public void pushGraphVisalloPropertyQueue(final Element element, final Iterable<VisalloPropertyUpdate> properties, Priority priority) {
+    public void pushGraphVisalloPropertyQueue(
+            final Element element,
+            final Iterable<VisalloPropertyUpdate> properties,
+            Priority priority
+    ) {
         pushGraphVisalloPropertyQueue(element, properties, null, null, priority);
     }
 
@@ -87,30 +97,79 @@ public abstract class WorkQueueRepository {
         }
     }
 
-    public void pushGraphPropertyQueue(final Element element, final Property property, String workspaceId, String visibilitySource, Priority priority) {
-        pushGraphPropertyQueue(element, property.getKey(), property.getName(), workspaceId, visibilitySource, ElementOrPropertyStatus.UPDATE, null, priority);
+    public void pushGraphPropertyQueue(
+            final Element element,
+            final Property property,
+            String workspaceId,
+            String visibilitySource,
+            Priority priority
+    ) {
+        pushGraphPropertyQueue(
+                element,
+                property.getKey(),
+                property.getName(),
+                workspaceId,
+                visibilitySource,
+                ElementOrPropertyStatus.UPDATE,
+                null,
+                priority
+        );
     }
 
-    public void pushGraphPropertyQueue(final Element element, final Property property, String workspaceId, String visibilitySource, Priority priority, FlushFlag flushFlag) {
-        pushGraphPropertyQueue(element, property.getKey(), property.getName(), workspaceId, visibilitySource, priority, ElementOrPropertyStatus.UPDATE, null, flushFlag);
+    public void pushGraphPropertyQueue(
+            final Element element,
+            final Property property,
+            String workspaceId,
+            String visibilitySource,
+            Priority priority,
+            FlushFlag flushFlag
+    ) {
+        pushGraphPropertyQueue(
+                element,
+                property.getKey(),
+                property.getName(),
+                workspaceId,
+                visibilitySource,
+                priority,
+                ElementOrPropertyStatus.UPDATE,
+                null,
+                flushFlag
+        );
     }
 
-    public void pushGraphPropertyQueue(final Element element,
-                                       final Property property,
-                                       String workspaceId,
-                                       String visibilitySource,
-                                       Priority priority,
-                                       ElementOrPropertyStatus status,
-                                       Long beforeActionTimestamp,
-                                       FlushFlag flushFlag) {
-        pushGraphPropertyQueue(element, property.getKey(), property.getName(), workspaceId, visibilitySource, priority, status, beforeActionTimestamp, flushFlag);
+    public void pushGraphPropertyQueue(
+            final Element element,
+            final Property property,
+            String workspaceId,
+            String visibilitySource,
+            Priority priority,
+            ElementOrPropertyStatus status,
+            Long beforeActionTimestamp,
+            FlushFlag flushFlag
+    ) {
+        pushGraphPropertyQueue(
+                element,
+                property.getKey(),
+                property.getName(),
+                workspaceId,
+                visibilitySource,
+                priority,
+                status,
+                beforeActionTimestamp,
+                flushFlag
+        );
     }
 
     public void pushElementImageQueue(final Element element, final Property property, Priority priority) {
         pushElementImageQueue(element, property.getKey(), property.getName(), priority);
     }
 
-    public void pushElementImageQueue(final Element element, String propertyKey, final String propertyName, Priority priority) {
+    public void pushElementImageQueue(
+            final Element element,
+            String propertyKey,
+            final String propertyName,
+            Priority priority
+    ) {
         getGraph().flush();
         checkNotNull(element);
         JSONObject data = new JSONObject();
@@ -132,7 +191,8 @@ public abstract class WorkQueueRepository {
             final Element element,
             String propertyKey,
             final String propertyName,
-            Priority priority) {
+            Priority priority
+    ) {
         pushGraphPropertyQueue(element, propertyKey, propertyName, ElementOrPropertyStatus.UPDATE, null, priority);
     }
 
@@ -141,7 +201,8 @@ public abstract class WorkQueueRepository {
             String propertyKey,
             final String propertyName,
             Long beforeActionTimestamp,
-            Priority priority) {
+            Priority priority
+    ) {
         pushGraphPropertyQueue(
                 element, propertyKey, propertyName, ElementOrPropertyStatus.UPDATE, beforeActionTimestamp, priority);
     }
@@ -152,7 +213,8 @@ public abstract class WorkQueueRepository {
             final String propertyName,
             ElementOrPropertyStatus status,
             Long beforeActionTimestamp,
-            Priority priority) {
+            Priority priority
+    ) {
         pushGraphPropertyQueue(
                 element,
                 propertyKey,
@@ -173,7 +235,17 @@ public abstract class WorkQueueRepository {
             String visibilitySource,
             Priority priority
     ) {
-        pushGraphPropertyQueue(element, propertyKey, propertyName, workspaceId, visibilitySource, priority, ElementOrPropertyStatus.UPDATE, null, FlushFlag.DEFAULT);
+        pushGraphPropertyQueue(
+                element,
+                propertyKey,
+                propertyName,
+                workspaceId,
+                visibilitySource,
+                priority,
+                ElementOrPropertyStatus.UPDATE,
+                null,
+                FlushFlag.DEFAULT
+        );
     }
 
     public void pushGraphPropertyQueue(
@@ -200,15 +272,17 @@ public abstract class WorkQueueRepository {
     }
 
 
-    public void pushMultipleGraphPropertyQueue(final Iterable<? extends Element> elements,
-                                               String propertyKey,
-                                               final String propertyName,
-                                               String workspaceId,
-                                               String visibilitySource,
-                                               Priority priority,
-                                               ElementOrPropertyStatus status,
-                                               Long beforeActionTimestamp,
-                                               FlushFlag flushFlag) {
+    public void pushMultipleGraphPropertyQueue(
+            final Iterable<? extends Element> elements,
+            String propertyKey,
+            final String propertyName,
+            String workspaceId,
+            String visibilitySource,
+            Priority priority,
+            ElementOrPropertyStatus status,
+            Long beforeActionTimestamp,
+            FlushFlag flushFlag
+    ) {
 
         checkNotNull(elements);
         if (!elements.iterator().hasNext()) {
@@ -217,7 +291,14 @@ public abstract class WorkQueueRepository {
 
         getGraph().flush();
 
-        JSONObject data = createPropertySpecificJSON(propertyKey, propertyName, workspaceId, visibilitySource, status, beforeActionTimestamp);
+        JSONObject data = createPropertySpecificJSON(
+                propertyKey,
+                propertyName,
+                workspaceId,
+                visibilitySource,
+                status,
+                beforeActionTimestamp
+        );
         JSONArray vertices = new JSONArray();
         JSONArray edges = new JSONArray();
 
@@ -262,7 +343,14 @@ public abstract class WorkQueueRepository {
         getGraph().flush();
         checkNotNull(element);
 
-        JSONObject data = createPropertySpecificJSON(propertyKey, propertyName, workspaceId, visibilitySource, status, beforeDeleteTimestamp);
+        JSONObject data = createPropertySpecificJSON(
+                propertyKey,
+                propertyName,
+                workspaceId,
+                visibilitySource,
+                status,
+                beforeDeleteTimestamp
+        );
 
         if (element instanceof Vertex) {
             data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, element.getId());
@@ -299,7 +387,8 @@ public abstract class WorkQueueRepository {
             String workspaceId,
             String visibilitySource,
             ElementOrPropertyStatus status,
-            Long beforeActionTimestamp) {
+            Long beforeActionTimestamp
+    ) {
         JSONObject data = new JSONObject();
 
         if (workspaceId != null && !workspaceId.equals("")) {
@@ -360,7 +449,13 @@ public abstract class WorkQueueRepository {
         pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
     }
 
-    protected boolean shouldBroadcastGraphPropertyChange(Element element, String propertyKey, String propertyName, String workspaceId, Priority priority) {
+    protected boolean shouldBroadcastGraphPropertyChange(
+            Element element,
+            String propertyKey,
+            String propertyName,
+            String workspaceId,
+            Priority priority
+    ) {
         return shouldBroadcast(priority);
     }
 
@@ -444,7 +539,17 @@ public abstract class WorkQueueRepository {
     }
 
     public void pushElements(Iterable<? extends Element> elements, Priority priority) {
-        pushMultipleGraphPropertyQueue(elements, null, null, null, null, priority, ElementOrPropertyStatus.UPDATE, null, FlushFlag.DEFAULT);
+        pushMultipleGraphPropertyQueue(
+                elements,
+                null,
+                null,
+                null,
+                null,
+                priority,
+                ElementOrPropertyStatus.UPDATE,
+                null,
+                FlushFlag.DEFAULT
+        );
     }
 
     public void pushElement(Element element) {
@@ -466,7 +571,13 @@ public abstract class WorkQueueRepository {
         pushGraphPropertyQueue(vertex, null, null, ElementOrPropertyStatus.DELETION, beforeDeletionTimestamp, priority);
     }
 
-    public void pushPublishedPropertyDeletion(Element element, String key, String name, long beforeDeletionTimestamp, Priority priority) {
+    public void pushPublishedPropertyDeletion(
+            Element element,
+            String key,
+            String name,
+            long beforeDeletionTimestamp,
+            Priority priority
+    ) {
         broadcastPublishPropertyDelete(element, key, name);
         pushGraphPropertyQueue(element, key, name, ElementOrPropertyStatus.DELETION, beforeDeletionTimestamp, priority);
     }
@@ -476,7 +587,13 @@ public abstract class WorkQueueRepository {
         pushGraphPropertyQueue(element, key, name, ElementOrPropertyStatus.UNHIDDEN, null, priority);
     }
 
-    public void pushUndoSandboxProperty(Element element, String key, String name, long beforeDeletionTimestamp, Priority priority) {
+    public void pushUndoSandboxProperty(
+            Element element,
+            String key,
+            String name,
+            long beforeDeletionTimestamp,
+            Priority priority
+    ) {
         broadcastUndoPropertyDelete(element, key, name);
         pushGraphPropertyQueue(element, key, name, ElementOrPropertyStatus.DELETION, beforeDeletionTimestamp, priority);
     }
@@ -604,7 +721,12 @@ public abstract class WorkQueueRepository {
         broadcastUserWorkspaceChange(user, workspaceId);
     }
 
-    public void pushWorkspaceChange(ClientApiWorkspace workspace, List<ClientApiWorkspace.User> previousUsers, String changedByUserId, String changedBySourceGuid) {
+    public void pushWorkspaceChange(
+            ClientApiWorkspace workspace,
+            List<ClientApiWorkspace.User> previousUsers,
+            String changedByUserId,
+            String changedBySourceGuid
+    ) {
         broadcastWorkspace(workspace, previousUsers, changedByUserId, changedBySourceGuid);
     }
 
@@ -617,7 +739,12 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
-    protected void broadcastWorkspace(ClientApiWorkspace workspace, List<ClientApiWorkspace.User> previousUsers, String changedByUserId, String changedBySourceGuid) {
+    protected void broadcastWorkspace(
+            ClientApiWorkspace workspace,
+            List<ClientApiWorkspace.User> previousUsers,
+            String changedByUserId,
+            String changedBySourceGuid
+    ) {
         JSONObject json = new JSONObject();
         json.put("type", "workspaceChange");
         json.put("modifiedBy", changedByUserId);
@@ -647,7 +774,10 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
-    private JSONObject getPermissionsWithUsers(ClientApiWorkspace workspace, List<ClientApiWorkspace.User> previousUsers) {
+    private JSONObject getPermissionsWithUsers(
+            ClientApiWorkspace workspace,
+            List<ClientApiWorkspace.User> previousUsers
+    ) {
         JSONObject permissions = new JSONObject();
         JSONArray users = new JSONArray();
         if (previousUsers != null) {
@@ -721,7 +851,12 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
-    protected void broadcastPropertyChange(Element element, String propertyKey, String propertyName, String workspaceId) {
+    protected void broadcastPropertyChange(
+            Element element,
+            String propertyKey,
+            String propertyName,
+            String workspaceId
+    ) {
         try {
             JSONObject json;
             if (element instanceof Vertex) {
@@ -760,7 +895,12 @@ public abstract class WorkQueueRepository {
         return json;
     }
 
-    protected JSONObject getBroadcastPropertyChangeJson(Vertex graphVertex, String propertyKey, String propertyName, String workspaceId) {
+    protected JSONObject getBroadcastPropertyChangeJson(
+            Vertex graphVertex,
+            String propertyKey,
+            String propertyName,
+            String workspaceId
+    ) {
         // TODO: only broadcast to workspace users if sandboxStatus is PRIVATE
         JSONObject json = new JSONObject();
         json.put("type", "propertyChange");
@@ -774,7 +914,12 @@ public abstract class WorkQueueRepository {
         return json;
     }
 
-    protected JSONObject getBroadcastPropertyChangeJson(Edge edge, String propertyKey, String propertyName, String workspaceId) {
+    protected JSONObject getBroadcastPropertyChangeJson(
+            Edge edge,
+            String propertyKey,
+            String propertyName,
+            String workspaceId
+    ) {
         // TODO: only broadcast to workspace users if sandboxStatus is PRIVATE
         JSONObject json = new JSONObject();
         json.put("type", "propertyChange");
@@ -788,7 +933,12 @@ public abstract class WorkQueueRepository {
         return json;
     }
 
-    public abstract void pushOnQueue(String queueName, @Deprecated FlushFlag flushFlag, JSONObject json, Priority priority);
+    public abstract void pushOnQueue(
+            String queueName,
+            @Deprecated FlushFlag flushFlag,
+            JSONObject json,
+            Priority priority
+    );
 
     public void init(Map map) {
 
@@ -829,10 +979,6 @@ public abstract class WorkQueueRepository {
     public abstract void subscribeToBroadcastMessages(BroadcastConsumer broadcastConsumer);
 
     public abstract WorkerSpout createWorkerSpout(String queueName);
-
-    public void shutdown() {
-
-    }
 
     public void broadcastPublishVertexDelete(Vertex vertex) {
         broadcastPublish(vertex, PublishType.DELETE);
@@ -902,7 +1048,12 @@ public abstract class WorkQueueRepository {
         }
     }
 
-    protected JSONObject getBroadcastPublishJson(Vertex graphVertex, String propertyKey, String propertyName, PublishType publishType) {
+    protected JSONObject getBroadcastPublishJson(
+            Vertex graphVertex,
+            String propertyKey,
+            String propertyName,
+            PublishType publishType
+    ) {
         JSONObject json = new JSONObject();
         json.put("type", "publish");
 
@@ -919,7 +1070,12 @@ public abstract class WorkQueueRepository {
         return json;
     }
 
-    protected JSONObject getBroadcastPublishJson(Edge edge, String propertyKey, String propertyName, PublishType publishType) {
+    protected JSONObject getBroadcastPublishJson(
+            Edge edge,
+            String propertyKey,
+            String propertyName,
+            PublishType publishType
+    ) {
         JSONObject json = new JSONObject();
         json.put("type", "publish");
 
