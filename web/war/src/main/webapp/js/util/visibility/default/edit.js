@@ -35,10 +35,18 @@ define([
 
         this.onChange = function(event, data) {
             var value = $.trim(this.select('fieldSelector').val());
+            var valid = this.checkValid(value);
             this.trigger('visibilitychange', {
                 value: value,
-                valid: true
+                valid: valid
             });
+        };
+
+        this.checkValid = function(value) {
+            var visibilities = value.replace(/\(|\)/g, '').split(/\&|\|/g);
+            var authorizations = visalloData.currentUser.authorizations;
+
+            return !value.length || !_.difference(visibilities, authorizations).length;
         };
     }
 });

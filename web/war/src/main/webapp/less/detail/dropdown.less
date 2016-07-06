@@ -202,6 +202,18 @@
       padding-bottom: 6px;
     }
   }
+
+  .visibility input {
+    &.invalid {
+      color: #b94a48;
+      border-color: #ee5f5b;
+      &:focus {
+        border-color: darken(#ee5f5b, 10%);
+        @shadow: 0 0 6px lighten(#ee5f5b, 20%);
+        .box-shadow(@shadow);
+      }
+    }
+  }
   
   .justification {
     clear: both;

@@ -67,7 +67,10 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
             });
 
             global.visalloData = {
-                currentWorkspaceId: 'w1'
+                currentWorkspaceId: 'w1',
+                currentUser: {
+                    authorizations: ['a','b']
+                }
             };
 
             _.templateSettings.escape = /\{([\s\S]+?)\}/g;
