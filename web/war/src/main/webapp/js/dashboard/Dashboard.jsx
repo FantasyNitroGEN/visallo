@@ -2,9 +2,9 @@ define([
     'react',
     'react-dom',
     'util/withDataRequest',
-    'jsx!./DashboardHeader',
-    'jsx!./DashboardContent',
-    'jsx!./Loading.jsx'
+    './DashboardHeader',
+    './DashboardContent',
+    './Loading'
 ], function(React, ReactDom, {dataRequest}, DashboardHeader, DashboardContent, Loading) {
     'use strict';
 

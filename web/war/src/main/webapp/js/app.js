@@ -5,7 +5,7 @@ define([
     'react-dom',
     'tpl!app',
     'menubar/menubar',
-    'jsx!dashboard/Dashboard',
+    'dashboard/Dashboard',
     'data/store',
     'search/search',
     'workspaces/workspaces',

@@ -1,7 +1,7 @@
 define([
     'react',
     'gridlist',
-    'jsx!./DashboardCard'
+    './DashboardCard'
 ], function(
     React,
     GridList,
