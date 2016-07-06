@@ -327,8 +327,11 @@ define([
         };
 
         this.isStreamingPropertyVisibilityUpdate = function(data) {
-            var prop = _.first(F.vertex.props(this.data, data.property.name, data.property.key));
-            return prop && prop.streamingPropertyValue;
+            if (!_.isUndefined(data.property.key)) {
+                var prop = _.first(F.vertex.props(this.data, data.property.name, data.property.key));
+                return prop && prop.streamingPropertyValue;
+            }
+            return false;
         };
 
         this.closePropertyForm = function(node) {
