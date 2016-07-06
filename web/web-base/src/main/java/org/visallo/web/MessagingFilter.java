@@ -55,7 +55,10 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
                 case TYPE_SET_ACTIVE_WORKSPACE:
                     return false;
                 case TYPE_SESSION_EXPIRATION:
-                    return session == null;
+                    if (session == null) {
+                        return true;
+                    }
+                    break;
             }
         }
 
@@ -118,11 +121,7 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
         JSONArray users = permissionsJson.optJSONArray("users");
         if (users != null) {
             String currentUserId = CurrentUser.getUserId(session);
-            if (currentUserId == null) {
-                return true;
-            }
-
-            if (!JSONUtil.isInArray(users, currentUserId)) {
+            if (currentUserId != null && !JSONUtil.isInArray(users, currentUserId)) {
                 return true;
             }
         }

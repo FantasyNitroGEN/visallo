@@ -33,7 +33,12 @@ public class CurrentUser {
             LOGGER.debug("session is null");
             return null;
         }
-        return (SessionUser) session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME);
+        try {
+            return (SessionUser) session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME);
+        } catch (IllegalStateException e) {
+            LOGGER.debug("Session has expired. Cannot read attributes.");
+            return null;
+        }
     }
 
     private static String getSessionUserName(HttpSession session) {

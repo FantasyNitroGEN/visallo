@@ -62,8 +62,24 @@ public class MessagingFilterTest {
     }
 
     @Test
-    public void testShouldNotSendMessageSessionNotNullAndSessionExpiration() {
-        JSONObject message = new JSONObject();
+    public void testShouldSendMessageSessionNotNullAndSessionExpirationAndSessionIdPermissions() {
+        when(sessionUser.getUserId()).thenReturn("user123");
+        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
+        when(session.getId()).thenReturn("session123");
+
+        JSONObject message = new JSONObject("{ permissions: { sessionIds: ['session123'] } }");
+        message.put("type", MessagingFilter.TYPE_SESSION_EXPIRATION);
+
+        assertTrue(messagingFilter.shouldSendMessage(message, session));
+    }
+
+    @Test
+    public void testShouldNotSendMessageSessionNotNullAndSessionExpirationAndSessionIdPermission() {
+        when(sessionUser.getUserId()).thenReturn("user123");
+        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
+        when(session.getId()).thenReturn("session123");
+
+        JSONObject message = new JSONObject("{ permissions: { sessionIds: ['session456'] } }");
         message.put("type", MessagingFilter.TYPE_SESSION_EXPIRATION);
 
         assertFalse(messagingFilter.shouldSendMessage(message, session));
