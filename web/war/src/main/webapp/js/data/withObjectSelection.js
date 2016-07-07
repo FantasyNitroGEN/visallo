@@ -507,8 +507,8 @@ define([], function() {
                         var removedEdgeIds = [];
 
                         _.each(edgesById, function(edge) {
-                            var hasOutVertex = vertexIds.includes(edge.outVertexId);
-                            var hasInVertex = vertexIds.includes(edge.inVertexId);
+                            var hasOutVertex = _.contains(vertexIds, edge.outVertexId);
+                            var hasInVertex = _.contains(vertexIds, edge.inVertexId);
 
                             if (!hasOutVertex || !hasInVertex) {
                                 removedEdgeIds.push(edge.id);
