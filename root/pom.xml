@@ -752,6 +752,24 @@
         </dependencies>
     </dependencyManagement>
 
+    <profiles>
+        <profile>
+            <id>visallo-release</id>
+            <distributionManagement>
+                <repository>
+                    <id>enterprise-plugins</id>
+                    <name>enterprise-plugins</name>
+                    <url>${visallo.nexus.enterprise-plugins}</url>
+                </repository>
+                <snapshotRepository>
+                    <id>enterprise-plugins-snapshots</id>
+                    <name>enterprise-plugins-snapshots</name>
+                    <url>${visallo.nexus.enterprise-plugins-snapshots}</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
     <build>
         <pluginManagement>
             <plugins>
