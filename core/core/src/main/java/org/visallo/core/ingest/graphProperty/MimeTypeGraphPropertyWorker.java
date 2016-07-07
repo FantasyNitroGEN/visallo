@@ -11,7 +11,6 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -72,11 +71,7 @@ public abstract class MimeTypeGraphPropertyWorker extends GraphPropertyWorker {
         }
 
         ExistingElementMutation<Vertex> m = ((Vertex) data.getElement()).prepareMutation();
-        Metadata mimeTypeMetadata = data.createPropertyMetadata();
-        VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(data.getElement());
-        if (visibilityJson != null) {
-            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(mimeTypeMetadata, visibilityJson, getVisibilityTranslator().getDefaultVisibility());
-        }
+        Metadata mimeTypeMetadata = data.createPropertyMetadata(getUser());
         VisalloProperties.MIME_TYPE.addPropertyValue(m, getMultiKey(data.getProperty()), mimeType, mimeTypeMetadata, data.getVisibility());
         m.setPropertyMetadata(data.getProperty(), VisalloProperties.MIME_TYPE.getPropertyName(), mimeType, getVisibilityTranslator().getDefaultVisibility());
         m.save(getAuthorizations());
