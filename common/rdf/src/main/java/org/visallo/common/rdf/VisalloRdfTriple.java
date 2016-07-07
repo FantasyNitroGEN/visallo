@@ -5,6 +5,7 @@ import org.vertexium.ElementType;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.util.VisalloDate;
 import org.visallo.core.util.VisalloDateTime;
 
@@ -64,7 +65,7 @@ public abstract class VisalloRdfTriple {
             elementVisibilitySource = defaultVisibilitySource;
         }
 
-        if (label.equals(LABEL_CONCEPT_TYPE)) {
+        if (label.equals(LABEL_CONCEPT_TYPE) || label.equals(VisalloProperties.CONCEPT_TYPE.getPropertyName())) {
             return parseConceptTypeTriple(elementId, elementVisibilitySource, third);
         }
 
