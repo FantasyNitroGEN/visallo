@@ -73,21 +73,28 @@ define([
         };
 
         this.onSave = function(event) {
-            var self = this;
+            var self = this,
+                comment = this.attr.comment,
+                metadata = comment && comment.metadata,
+                visibilityJson = metadata && metadata['http://visallo.org#visibilityJson'],
+                params = {
+                    name: 'http://visallo.org/comment#entry',
+                    key: comment && comment.key,
+                    value: this.getValue(),
+                    metadata: this.attr.path && {
+                        'http://visallo.org/comment#path': this.attr.path
+                    },
+                    visibilitySource: this.visibilitySource && this.visibilitySource.value || '',
+                    sourceInfo: this.attr.sourceInfo
+                };
+
+            if (visibilityJson) {
+                params.oldVisibilitySource = visibilityJson.source;
+            }
 
             this.buttonLoading();
 
-            this.dataRequest(this.attr.type, 'setProperty', this.attr.data.id, {
-                name: 'http://visallo.org/comment#entry',
-                key: this.attr.comment && this.attr.comment.key,
-                value: this.getValue(),
-                metadata: this.attr.path && {
-                    'http://visallo.org/comment#path': this.attr.path
-                },
-                visibilitySource: this.visibilitySource && this.visibilitySource.value || '',
-                sourceInfo: this.attr.sourceInfo,
-                oldVisibilitySource: this.attr.comment.metadata['http://visallo.org#visibilityJson'].source
-            })
+            this.dataRequest(this.attr.type, 'setProperty', this.attr.data.id, params)
                 .then(function() {
                     self.teardown();
                 })
