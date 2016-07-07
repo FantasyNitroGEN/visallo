@@ -99,23 +99,24 @@ public class ResolveTermEntity implements ParameterizedHandler {
         final Vertex artifactVertex = graph.getVertex(artifactId, authorizations);
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
         Metadata metadata = new Metadata();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
         Vertex vertex;
         if (resolvedVertexId != null) {
             vertex = graph.getVertex(id, authorizations);
         } else {
             ElementMutation<Vertex> vertexMutation = graph.prepareVertex(id, visalloVisibility.getVisibility());
-            VisalloProperties.CONCEPT_TYPE.setProperty(vertexMutation, conceptId, metadata, visalloVisibility.getVisibility());
+            VisalloProperties.CONCEPT_TYPE.setProperty(vertexMutation, conceptId, defaultVisibility);
+            VisalloProperties.VISIBILITY_JSON.setProperty(vertexMutation, visibilityJson, defaultVisibility);
+            VisalloProperties.MODIFIED_BY.setProperty(vertexMutation, user.getUserId(), defaultVisibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(vertexMutation, new Date(), defaultVisibility);
             VisalloProperties.TITLE.addPropertyValue(vertexMutation, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
-            VisalloProperties.MODIFIED_BY.setProperty(vertexMutation, user.getUserId(), visalloVisibility.getVisibility());
-            VisalloProperties.MODIFIED_DATE.setProperty(vertexMutation, new Date(), visalloVisibility.getVisibility());
 
             if (justificationText != null) {
                 PropertyJustificationMetadata propertyJustificationMetadata = new PropertyJustificationMetadata(justificationText);
                 VisalloProperties.JUSTIFICATION.setProperty(vertexMutation, propertyJustificationMetadata, visalloVisibility.getVisibility());
             }
 
-            VisalloProperties.VISIBILITY_JSON.setProperty(vertexMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
             vertex = vertexMutation.save(authorizations);
 
             this.graph.flush();
@@ -124,9 +125,9 @@ public class ResolveTermEntity implements ParameterizedHandler {
         }
 
         EdgeBuilder edgeBuilder = graph.prepareEdge(artifactVertex, vertex, this.artifactHasEntityIri, visalloVisibility.getVisibility());
-        VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), visalloVisibility.getVisibility());
-        VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, new Date(), visalloVisibility.getVisibility());
-        VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, metadata, visalloVisibility.getVisibility());
+        VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), defaultVisibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, new Date(), defaultVisibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, defaultVisibility);
         Edge edge = edgeBuilder.save(authorizations);
 
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);

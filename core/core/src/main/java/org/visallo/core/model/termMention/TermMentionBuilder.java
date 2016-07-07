@@ -202,6 +202,7 @@ public class TermMentionBuilder {
 
         Date now = new Date();
         String vertexId = createVertexId();
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         Visibility visibility = VisalloVisibility.and(visibilityTranslator.toVisibility(this.visibilityJson).getVisibility(), TermMentionRepository.VISIBILITY_STRING);
         VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, visibility);
         VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(vertexBuilder, this.visibilityJson, visibility);
@@ -229,15 +230,15 @@ public class TermMentionBuilder {
         String hasTermMentionId = vertexId + "_hasTermMention";
         EdgeBuilder termMentionEdgeBuilder = graph.prepareEdge(hasTermMentionId, this.outVertex, termMentionVertex, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility);
         VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(termMentionEdgeBuilder, this.visibilityJson, visibility);
-        VisalloProperties.MODIFIED_BY.setProperty(termMentionEdgeBuilder, user.getUserId(), visibility);
-        VisalloProperties.MODIFIED_DATE.setProperty(termMentionEdgeBuilder, now, visibility);
+        VisalloProperties.MODIFIED_BY.setProperty(termMentionEdgeBuilder, user.getUserId(), defaultVisibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(termMentionEdgeBuilder, now, defaultVisibility);
         termMentionEdgeBuilder.save(authorizations);
         if (this.resolvedToVertexId != null) {
             String resolvedToId = vertexId + "_resolvedTo";
             EdgeMutation resolvedToEdgeBuilder = graph.prepareEdge(resolvedToId, termMentionVertex.getId(), resolvedToVertexId, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, visibility);
             VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(resolvedToEdgeBuilder, this.visibilityJson, visibility);
-            VisalloProperties.MODIFIED_BY.setProperty(resolvedToEdgeBuilder, user.getUserId(), visibility);
-            VisalloProperties.MODIFIED_DATE.setProperty(resolvedToEdgeBuilder, now, visibility);
+            VisalloProperties.MODIFIED_BY.setProperty(resolvedToEdgeBuilder, user.getUserId(), defaultVisibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(resolvedToEdgeBuilder, now, defaultVisibility);
             resolvedToEdgeBuilder.save(authorizations);
         }
 

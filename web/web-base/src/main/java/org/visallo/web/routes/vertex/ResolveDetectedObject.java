@@ -29,6 +29,7 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
 
+import java.util.Date;
 import java.util.ResourceBundle;
 
 public class ResolveDetectedObject implements ParameterizedHandler {
@@ -103,13 +104,17 @@ public class ResolveDetectedObject implements ParameterizedHandler {
         ElementMutation<Vertex> resolvedVertexMutation;
 
         Metadata metadata = new Metadata();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
 
         Vertex resolvedVertex;
         if (graphVertexId == null || graphVertexId.equals("")) {
             resolvedVertexMutation = graph.prepareVertex(visalloVisibility.getVisibility());
 
-            VisalloProperties.CONCEPT_TYPE.setProperty(resolvedVertexMutation, concept.getIRI(), metadata, visalloVisibility.getVisibility());
+            VisalloProperties.CONCEPT_TYPE.setProperty(resolvedVertexMutation, concept.getIRI(), defaultVisibility);
+            VisalloProperties.VISIBILITY_JSON.setProperty(resolvedVertexMutation, visibilityJson, defaultVisibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(resolvedVertexMutation, new Date(), defaultVisibility);
+            VisalloProperties.MODIFIED_BY.setProperty(resolvedVertexMutation, user.getUserId(), defaultVisibility);
             VisalloProperties.TITLE.addPropertyValue(resolvedVertexMutation, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
 
             resolvedVertex = resolvedVertexMutation.save(authorizations);
@@ -121,7 +126,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
 
             resolvedVertex = resolvedVertexMutation.save(authorizations);
 
-            VisalloProperties.VISIBILITY_JSON.setProperty(resolvedVertexMutation, visibilityJson, metadata, visalloVisibility.getVisibility());
+            VisalloProperties.VISIBILITY_JSON.setProperty(resolvedVertexMutation, visibilityJson, defaultVisibility);
 
             graph.flush();
 
@@ -132,7 +137,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
         }
 
         Edge edge = graph.addEdge(artifactVertex, resolvedVertex, artifactContainsImageOfEntityIri, visalloVisibility.getVisibility(), authorizations);
-        VisalloProperties.VISIBILITY_JSON.setProperty(edge, visibilityJson, metadata, visalloVisibility.getVisibility(), authorizations);
+        VisalloProperties.VISIBILITY_JSON.setProperty(edge, visibilityJson, defaultVisibility, authorizations);
 
         ArtifactDetectedObject artifactDetectedObject = new ArtifactDetectedObject(
                 x1,

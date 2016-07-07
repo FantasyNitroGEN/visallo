@@ -298,25 +298,13 @@ public class GraphRepository {
                 workspaceId
         );
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
-
         VertexBuilder vertexBuilder;
         if (vertexId != null) {
             vertexBuilder = graph.prepareVertex(vertexId, visalloVisibility.getVisibility());
         } else {
             vertexBuilder = graph.prepareVertex(visalloVisibility.getVisibility());
         }
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visalloVisibility.getVisibility());
-        Metadata conceptTypeMetadata = new Metadata();
-        Visibility metadataVisibility = visibilityTranslator.getDefaultVisibility();
-        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(conceptTypeMetadata, new Date(), metadataVisibility);
-        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(conceptTypeMetadata, user.getUserId(), metadataVisibility);
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(conceptTypeMetadata, visibilityJson, metadataVisibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(
-                vertexBuilder,
-                conceptType,
-                conceptTypeMetadata,
-                visalloVisibility.getVisibility()
-        );
+        updateElementMetadataProperties(vertexBuilder, conceptType, visibilityJson, user);
 
         boolean justificationAdded = addJustification(
                 vertexBuilder,
@@ -375,7 +363,6 @@ public class GraphRepository {
             User user,
             Authorizations authorizations
     ) {
-        Date now = new Date();
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(
                 null,
                 visibilitySource,
@@ -394,14 +381,7 @@ public class GraphRepository {
                     visalloVisibility.getVisibility()
             );
         }
-        VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visalloVisibility.getVisibility());
-        VisalloProperties.CONCEPT_TYPE.setProperty(
-                edgeBuilder,
-                OntologyRepository.TYPE_RELATIONSHIP,
-                visalloVisibility.getVisibility()
-        );
-        VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, now, visalloVisibility.getVisibility());
-        VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), visalloVisibility.getVisibility());
+        updateElementMetadataProperties(edgeBuilder, OntologyRepository.TYPE_RELATIONSHIP, visibilityJson, user);
 
         boolean justificationAdded = addJustification(
                 edgeBuilder,
@@ -438,6 +418,29 @@ public class GraphRepository {
         }
 
         return edge;
+    }
+
+    private void updateElementMetadataProperties(
+            ElementBuilder elementBuilder,
+            String conceptType,
+            VisibilityJson visibilityJson,
+            User user
+    ) {
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+        Date now = new Date();
+
+        VisalloProperties.CONCEPT_TYPE.setProperty(
+                elementBuilder,
+                conceptType,
+                defaultVisibility
+        );
+        VisalloProperties.VISIBILITY_JSON.setProperty(
+                elementBuilder,
+                visibilityJson,
+                defaultVisibility
+        );
+        VisalloProperties.MODIFIED_DATE.setProperty(elementBuilder, now, defaultVisibility);
+        VisalloProperties.MODIFIED_BY.setProperty(elementBuilder, user.getUserId(), defaultVisibility);
     }
 
     private boolean addJustification(

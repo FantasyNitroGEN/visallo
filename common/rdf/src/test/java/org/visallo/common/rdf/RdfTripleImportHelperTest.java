@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 import static org.vertexium.util.IterableUtils.toList;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -52,6 +53,8 @@ public class RdfTripleImportHelperTest {
         authorizations = graph.createAuthorizations("A");
         timeZone = TimeZone.getDefault();
         visibilityTranslator = new DirectVisibilityTranslator();
+
+        when(user.getUserId()).thenReturn("user1");
 
         rdfTripleImportHelper = new RdfTripleImportHelper(graph, visibilityTranslator, workQueueRepository);
         defaultVisibilitySource = "";

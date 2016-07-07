@@ -620,7 +620,8 @@ public abstract class WorkspaceRepository {
         for (Property property : vertex.getProperties()) {
             OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName());
             checkNotNull(ontologyProperty, "Could not find ontology property " + property.getName());
-            if (!ontologyProperty.getUserVisible() && !property.getName().equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
+            boolean userVisible = ontologyProperty.getUserVisible();
+            if (shouldAutoPublishElementProperty(property, userVisible)) {
                 publishNewProperty(vertexElementMutation, property, workspaceId);
             }
         }
@@ -632,13 +633,10 @@ public abstract class WorkspaceRepository {
                 visibilityTranslator.getDefaultVisibility()
         );
 
-        // we need to alter the visibility of the json property, otherwise we'll have two json properties, one with the old visibility and one with the new.
-        VisalloProperties.VISIBILITY_JSON.alterVisibility(vertexElementMutation, visalloVisibility.getVisibility());
         VisalloProperties.VISIBILITY_JSON.setProperty(
                 vertexElementMutation,
                 visibilityJson,
-                metadata,
-                visalloVisibility.getVisibility()
+                visibilityTranslator.getDefaultVisibility()
         );
         vertexElementMutation.save(authWithVideoFrame);
 
@@ -783,11 +781,11 @@ public abstract class WorkspaceRepository {
     private boolean publishNewProperty(ExistingElementMutation elementMutation, Property property, String workspaceId) {
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata());
         if (visibilityJson == null) {
-            LOGGER.debug("skipping property %s. no visibility json property", property.toString());
+            LOGGER.warn("skipping property %s. no visibility json property", property.toString());
             return false;
         }
         if (!visibilityJson.getWorkspaces().contains(workspaceId)) {
-            LOGGER.debug(
+            LOGGER.warn(
                     "skipping property %s. doesn't have workspace in json or is not hidden from this workspace.",
                     property.toString()
             );
@@ -842,7 +840,7 @@ public abstract class WorkspaceRepository {
         }
 
         if (edge.getLabel().equals(entityHasImageIri)) {
-            publishGlyphIconProperty(edge, workspaceId, authorizations);
+            publishGlyphIconProperties(edge, workspaceId, authorizations);
         }
 
         edge.softDeleteProperty(
@@ -867,7 +865,7 @@ public abstract class WorkspaceRepository {
                 );
                 userVisible = ontologyProperty.getUserVisible();
             }
-            if (!userVisible && !property.getName().equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
+            if (shouldAutoPublishElementProperty(property, userVisible)) {
                 publishNewProperty(edgeExistingElementMutation, property, workspaceId);
             }
         }
@@ -881,8 +879,7 @@ public abstract class WorkspaceRepository {
         VisalloProperties.VISIBILITY_JSON.setProperty(
                 edgeExistingElementMutation,
                 visibilityJson,
-                metadata,
-                visalloVisibility.getVisibility()
+                visibilityTranslator.getDefaultVisibility()
         );
         edge = edgeExistingElementMutation.save(authorizations);
 
@@ -898,7 +895,38 @@ public abstract class WorkspaceRepository {
         workQueueRepository.broadcastPublishEdge(edge);
     }
 
-    private void publishGlyphIconProperty(Edge hasImageEdge, String workspaceId, Authorizations authorizations) {
+    private boolean shouldAutoPublishElementProperty(Property property, boolean userVisible) {
+        if (userVisible) {
+            return false;
+        }
+
+        String propertyName = property.getName();
+        if (propertyName.equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
+            return false;
+        }
+
+        if (propertyName.equals(VisalloProperties.CONCEPT_TYPE.getPropertyName())
+                || propertyName.equals(VisalloProperties.MODIFIED_BY.getPropertyName())
+                || propertyName.equals(VisalloProperties.MODIFIED_DATE.getPropertyName())
+                || propertyName.equals(VisalloProperties.VISIBILITY_JSON.getPropertyName())) {
+            VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata());
+            if (visibilityJson != null) {
+                LOGGER.warn("Property %s should not have visibility JSON metadata set", property.toString());
+                return true;
+            }
+
+            if (!property.getVisibility().equals(visibilityTranslator.getDefaultVisibility())) {
+                LOGGER.warn("Property %s should have default visibility", property.toString());
+                return true;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private void publishGlyphIconProperties(Edge hasImageEdge, String workspaceId, Authorizations authorizations) {
         Vertex entityVertex = hasImageEdge.getVertex(Direction.OUT, authorizations);
         checkNotNull(entityVertex, "Could not find has image source vertex " + hasImageEdge.getVertexId(Direction.OUT));
         ExistingElementMutation elementMutation = entityVertex.prepareMutation();

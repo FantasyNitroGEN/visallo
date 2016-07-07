@@ -41,7 +41,7 @@ public class PhoneNumberGraphPropertyWorkerTest extends GraphPropertyWorkerTestS
         VertexBuilder vertexBuilder = graph.prepareVertex("v1", visibility);
         StreamingPropertyValue textPropertyValue = new StreamingPropertyValue(in, String.class);
         VisalloProperties.TEXT.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, textPropertyValue, visibility);
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visibilityTranslator.getDefaultVisibility());
         Vertex vertex = vertexBuilder.save(authorizations);
 
         Property property = vertex.getProperty(VisalloProperties.TEXT.getPropertyName());
@@ -78,7 +78,7 @@ public class PhoneNumberGraphPropertyWorkerTest extends GraphPropertyWorkerTestS
         VertexBuilder vertexBuilder = graph.prepareVertex("v1", visibility);
         StreamingPropertyValue textPropertyValue = new StreamingPropertyValue(in, String.class);
         VisalloProperties.TEXT.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, textPropertyValue, visibility);
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visibilityTranslator.getDefaultVisibility());
         Vertex vertex = vertexBuilder.save(authorizations);
 
         Property property = vertex.getProperty(VisalloProperties.TEXT.getPropertyName());

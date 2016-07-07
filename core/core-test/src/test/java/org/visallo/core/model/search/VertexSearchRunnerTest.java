@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.ElementBuilder;
 import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.visallo.core.model.properties.VisalloProperties;
 
 import java.util.HashMap;
@@ -36,9 +37,9 @@ public class VertexSearchRunnerTest extends SearchRunnerTestBase {
         ElementBuilder<Vertex> v1Mutation = graph.prepareVertex("v1", visibility);
         ElementBuilder<Vertex> v2Mutation = graph.prepareVertex("v2", visibility);
         ElementBuilder<Vertex> v3Mutation = graph.prepareVertex("v3", visibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(v1Mutation, "testConcept", visibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(v2Mutation, "testConcept", visibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(v3Mutation, "testConcept", visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(v1Mutation, "testConcept", new Visibility(""));
+        VisalloProperties.CONCEPT_TYPE.setProperty(v2Mutation, "testConcept", new Visibility(""));
+        VisalloProperties.CONCEPT_TYPE.setProperty(v3Mutation, "testConcept", new Visibility(""));
         Vertex v1 = v1Mutation.save(authorizations);
         Vertex v2 = v2Mutation.save(authorizations);
         Vertex v3 = v3Mutation.save(authorizations);
