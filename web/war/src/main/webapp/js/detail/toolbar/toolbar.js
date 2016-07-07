@@ -217,10 +217,11 @@ define([
         };
 
         this.hideMenu = function() {
-            var node = this.$node.addClass('hideSubmenus');
-            _.delay(function() {
-                node.removeClass('hideSubmenus');
-            }, 500);
+            var node = this.$node.addClass('hideSubmenus'),
+                remove = _.once(function() {
+                    node.removeClass('hideSubmenus');
+                });
+            $(window).one('mousemove click', remove);
         };
 
         this.selectionHistory = function() {
