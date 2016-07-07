@@ -79,7 +79,7 @@ public class WorkspaceHelperTest {
         Edge e = graph.addEdge("v1_to_v2", v1, v2, "link", visibility, authorizations);
         VisibilityJson visibilityJson = new VisibilityJson();
         visibilityJson.addWorkspace(WORKSPACE_ID);
-        VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, visibility, authorizations);
+        VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, new Visibility(""), authorizations);
         graph.flush();
 
         workspaceHelper.unresolveTerm(v1tm1, authorizations);
@@ -98,7 +98,7 @@ public class WorkspaceHelperTest {
         graph.addEdge("v1_to_tm", tm, v1, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, termMentionVisibility, authorizations);
         Edge e = graph.addEdge("doc_to_v1", doc, v1, "link", visibility, authorizations);
         VisibilityJson visibilityJson = new VisibilityJson();
-        VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, visibility, authorizations);
+        VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, new Visibility(""), authorizations);
         graph.flush();
         workspaceHelper.deleteVertex(v1, WORKSPACE_ID, true, Priority.HIGH, authorizations, user);
 
