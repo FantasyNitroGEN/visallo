@@ -2,7 +2,8 @@
 describeComponent('util/visibility/default/edit', function(VisibilityEditor) {
 
     var VALUE = 'A value',
-        NEW_VALUE = 'a NEW value';
+        NEW_VALUE = 'a NEW value',
+        BAD_VALUE = 'bad value';
 
     beforeEach(function() {
         setupComponent(this, { value: VALUE })
@@ -20,7 +21,6 @@ describeComponent('util/visibility/default/edit', function(VisibilityEditor) {
     it('Should fire change events when field changes', function(done) {
         this.$node.on('visibilitychange', function(event, data) {
             data.should.have.property('value').equal(NEW_VALUE)
-            data.should.have.property('valid').equal(true)
 
             done();
         })
@@ -40,6 +40,15 @@ describeComponent('util/visibility/default/edit', function(VisibilityEditor) {
     it('Should accept no value', function() {
         setupComponent(this, {})
         expect(this.$node.find('input').val()).to.equal('');
+    })
+
+    it('Should invalidate bad authorizations', function(done) {
+        this.$node.on('visibilitychange', function(event, data) {
+            data.should.have.property('valid').equal(false);
+
+            done();
+        })
+        this.$node.find('input').val(' \n    ' + BAD_VALUE + '   \n \n').change();
     })
 
 })

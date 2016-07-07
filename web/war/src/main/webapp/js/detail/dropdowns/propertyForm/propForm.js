@@ -422,6 +422,7 @@ define([
         this.onVisibilityChange = function(event, data) {
             var self = this;
 
+            this.select('visibilityInputSelector').toggleClass('invalid', !data.valid);
             this.visibilitySource = data;
             this.modified.visibility = this.currentProperty.metadata ? visibilityModified() : !!this.visibilitySource.value;
             this.checkValid();
