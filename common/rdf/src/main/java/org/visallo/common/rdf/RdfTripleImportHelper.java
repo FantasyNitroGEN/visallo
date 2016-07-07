@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RdfTripleImportHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfTripleImportHelper.class);
+    private static final String MULTIVALUE_KEY = RdfTripleImportHelper.class.getName();
     private final Graph graph;
     private final VisibilityTranslator visibilityTranslator;
     private WorkQueueRepository workQueueRepository;
@@ -284,21 +285,16 @@ public class RdfTripleImportHelper {
             Authorizations authorizations
     ) {
         Date now = new Date();
-        Metadata metadata = new Metadata();
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
-        if (sourceFileName != null) {
-            VisalloProperties.SOURCE_FILE_NAME_METADATA.setMetadata(metadata, sourceFileName, defaultVisibility);
-        }
         VisibilityJson visibilityJson = new VisibilityJson(triple.getElementVisibilitySource());
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
-        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, defaultVisibility);
-        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), defaultVisibility);
-        VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, defaultVisibility);
 
         Visibility elementVisibility = getVisibility(triple.getElementVisibilitySource());
         VertexBuilder m = graph.prepareVertex(triple.getElementId(), elementVisibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), metadata, elementVisibility);
-        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, metadata, elementVisibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), defaultVisibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
+        VisalloProperties.MODIFIED_BY.setProperty(m, user.getUserId(), defaultVisibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(m, now, defaultVisibility);
+        VisalloProperties.SOURCE.addPropertyValue(m, MULTIVALUE_KEY, sourceFileName, elementVisibility);
         Vertex vertex = m.save(authorizations);
         elements.add(vertex);
     }

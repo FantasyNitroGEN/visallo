@@ -90,7 +90,7 @@ public class RdfXmlImportHelper {
             workspaceId = data.getWorkspaceId();
         }
         if (rdfConceptTypeIri != null && data != null) {
-            VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), rdfConceptTypeIri, data.createPropertyMetadata(), visibility, authorizations);
+            VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), rdfConceptTypeIri, visibilityTranslator.getDefaultVisibility(), authorizations);
         }
 
         Model model = ModelFactory.createDefaultModel();
@@ -141,11 +141,7 @@ public class RdfXmlImportHelper {
             if (obj instanceof Resource) {
                 if (isConceptTypeResource(statement)) {
                     String value = statement.getResource().toString();
-                    Metadata metadata = null;
-                    if (data != null) {
-                        metadata = data.createPropertyMetadata();
-                    }
-                    VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, value, metadata, visibility);
+                    VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, value, visibilityTranslator.getDefaultVisibility());
                 }
             } else if (obj instanceof Literal) {
                 LOGGER.info("set property on %s to %s", subject.toString(), statement.toString());

@@ -17,7 +17,6 @@ import java.util.TimeZone;
 public class RdfImportHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfImportHelper.class);
     private final Graph graph;
-    private final UserRepository userRepository;
     private final RdfXmlImportHelper rdfXmlImportHelper;
     private final RdfTripleImportHelper rdfTripleImportHelper;
 
@@ -30,12 +29,10 @@ public class RdfImportHelper {
     @Inject
     public RdfImportHelper(
             Graph graph,
-            UserRepository userRepository,
             RdfXmlImportHelper rdfXmlImportHelper,
             RdfTripleImportHelper rdfTripleImportHelper
     ) {
         this.graph = graph;
-        this.userRepository = userRepository;
         this.rdfXmlImportHelper = rdfXmlImportHelper;
         this.rdfTripleImportHelper = rdfTripleImportHelper;
     }

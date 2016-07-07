@@ -1,7 +1,9 @@
 package org.visallo.mimeTypeOntologyMapper;
 
 import org.vertexium.Element;
+import org.vertexium.Metadata;
 import org.vertexium.Property;
+import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
@@ -10,6 +12,7 @@ import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -103,12 +106,15 @@ public class MimeTypeOntologyMapperGraphPropertyWorker extends GraphPropertyWork
         }
 
         LOGGER.debug("assigning concept type %s to vertex %s", concept.getIRI(), data.getElement().getId());
-        VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), concept.getIRI(), data.createPropertyMetadata(), data.getVisibility(), getAuthorizations());
+
+        List<VisalloPropertyUpdate> changedProperties = new ArrayList<>();
+        ExistingElementMutation<Element> m = data.getElement().prepareMutation();
+        VisalloProperties.CONCEPT_TYPE.updateProperty(changedProperties, data.getElement(), m, concept.getIRI(), (Metadata) null, getVisibilityTranslator().getDefaultVisibility());
+        m.save(getAuthorizations());
         getGraph().flush();
-        getWorkQueueRepository().pushGraphPropertyQueue(
+        getWorkQueueRepository().pushGraphVisalloPropertyQueue(
                 data.getElement(),
-                null,
-                VisalloProperties.CONCEPT_TYPE.getPropertyName(),
+                changedProperties,
                 data.getWorkspaceId(),
                 data.getVisibilitySource(),
                 data.getPriority()

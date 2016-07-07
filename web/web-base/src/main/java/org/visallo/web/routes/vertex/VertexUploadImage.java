@@ -104,7 +104,7 @@ public class VertexUploadImage implements ParameterizedHandler {
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
 
         String title = imageTitle(entityVertex);
-        ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, visibility);
+        ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, user, visibility);
         Vertex artifactVertex = artifactVertexBuilder.save(authorizations);
         this.graph.flush();
 
@@ -115,9 +115,10 @@ public class VertexUploadImage implements ParameterizedHandler {
         List<Edge> existingEdges = toList(entityVertex.getEdges(artifactVertex, Direction.BOTH, entityHasImageIri, authorizations));
         if (existingEdges.size() == 0) {
             EdgeBuilder edgeBuilder = graph.prepareEdge(entityVertex, artifactVertex, entityHasImageIri, visibility);
-            VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, visibility);
-            VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, new Date(), visibility);
-            VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), visibility);
+            Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+            VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, visibilityJson, defaultVisibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(edgeBuilder, new Date(), defaultVisibility);
+            VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, user.getUserId(), defaultVisibility);
             edgeBuilder.save(authorizations);
         }
 
@@ -174,8 +175,10 @@ public class VertexUploadImage implements ParameterizedHandler {
             String title,
             VisibilityJson visibilityJson,
             Metadata metadata,
+            User user,
             Visibility visibility
     ) throws IOException {
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         final InputStream fileInputStream = file.getInputStream();
         final byte[] rawContent = IOUtils.toByteArray(fileInputStream);
         LOGGER.debug("Uploaded file raw content byte length: %d", rawContent.length);
@@ -191,12 +194,13 @@ public class VertexUploadImage implements ParameterizedHandler {
 
         ElementBuilder<Vertex> vertexBuilder = graph.prepareVertex(visibility);
         // Note that VisalloProperties.MIME_TYPE is expected to be set by a GraphPropertyWorker.
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptIri, defaultVisibility);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, defaultVisibility);
+        VisalloProperties.MODIFIED_BY.setProperty(vertexBuilder, user.getUserId(), defaultVisibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(vertexBuilder, new Date(), defaultVisibility);
         VisalloProperties.TITLE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, title, metadata, visibility);
-        VisalloProperties.MODIFIED_DATE.setProperty(vertexBuilder, new Date(), metadata, visibility);
         VisalloProperties.FILE_NAME.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, fileName, metadata, visibility);
         VisalloProperties.RAW.setProperty(vertexBuilder, rawValue, metadata, visibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, conceptIri, metadata, visibility);
         VisalloProperties.SOURCE.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, SOURCE_UPLOAD, metadata, visibility);
         VisalloProperties.PROCESS.addPropertyValue(vertexBuilder, MULTI_VALUE_KEY, PROCESS, metadata, visibility);
 

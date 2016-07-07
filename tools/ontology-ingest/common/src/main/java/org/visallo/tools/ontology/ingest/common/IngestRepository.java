@@ -93,7 +93,7 @@ public class IngestRepository {
     private Vertex save(IngestOptions ingestOptions, ConceptBuilder conceptBuilder) {
         Visibility conceptVisibility = getVisibility(ingestOptions, conceptBuilder.getVisibility());
         VertexBuilder vertexBuilder = graph.prepareVertex(conceptBuilder.getId(), getTimestamp(ingestOptions, conceptBuilder.getTimestamp()), conceptVisibility);
-        vertexBuilder.setProperty(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptBuilder.getIri(), conceptVisibility);
+        vertexBuilder.setProperty(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptBuilder.getIri(), visibilityTranslator.getDefaultVisibility());
 
         addProperties(ingestOptions, vertexBuilder, conceptBuilder);
 

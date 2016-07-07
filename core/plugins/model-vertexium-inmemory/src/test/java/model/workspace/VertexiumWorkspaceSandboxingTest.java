@@ -514,7 +514,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 .addPropertyValue("k1", "p1", "v1", propertyMetadata, initialVisibility)
                 .addPropertyValue("k2", "p2", "v2", propertyMetadata, initialVisibility);
         VisalloProperties.VISIBILITY_JSON.setProperty(
-                vertexBuilder, initialVisibilityJson, propertyMetadata, initialVisibility);
+                vertexBuilder, initialVisibilityJson, propertyMetadata, new Visibility(""));
         Vertex v1 = vertexBuilder.save(workspaceAuthorizations);
         graph.flush();
 
@@ -532,7 +532,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 .addPropertyValue("k3", "p1", "v1", propertyMetadata, initialVisibility)
                 .addPropertyValue("k4", "p2", "v2", propertyMetadata, initialVisibility);
         VisalloProperties.VISIBILITY_JSON.setProperty(
-                vertexBuilder, initialVisibilityJson, propertyMetadata, initialVisibility);
+                vertexBuilder, initialVisibilityJson, propertyMetadata, new Visibility(""));
         vertexBuilder.save(workspaceAuthorizations);
         graph.flush();
 
@@ -666,7 +666,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         Vertex v1 = graph.prepareVertex("v1", initialVisibility).save(workspaceAuthorizations);
         Vertex v2 = graph.prepareVertex("v2", initialVisibility).save(workspaceAuthorizations);
         EdgeBuilder edgeBuilder = graph.prepareEdge("edge1", v1, v2, "label1", initialWorkspaceViz);
-        VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, initialVisibilityJson, initialWorkspaceViz);
+        VisalloProperties.VISIBILITY_JSON.setProperty(edgeBuilder, initialVisibilityJson, new Visibility(""));
         VisalloProperties.MODIFIED_BY.setProperty(edgeBuilder, "testUser", initialWorkspaceViz);
         Edge edge = edgeBuilder.save(workspaceAuthorizations);
         graph.flush();
@@ -685,7 +685,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         when(ontologyRepository.getPropertyByIRI(VisalloProperties.TITLE.getPropertyName())).thenReturn(titleOntologyProp);
 
         VertexBuilder vertexBuilder = graph.prepareVertex(initialWorkspaceViz);
-        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, initialVisibilityJson, initialWorkspaceViz);
+        VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, initialVisibilityJson, new Visibility(""));
 
         // Note that GraphRepository does not create new Metadata for each property. Doing that here is needed due
         // to the use of InMemoryGraph.
@@ -693,7 +693,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, initialVisibilityJson,
                 DEFAULT_VISIBILITY);
         VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, VERTEX_CONCEPT_TYPE, propertyMetadata,
-                initialWorkspaceViz);
+                new Visibility(""));
 
         propertyMetadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(propertyMetadata, initialVisibilityJson,
