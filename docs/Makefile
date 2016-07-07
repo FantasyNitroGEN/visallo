@@ -1,11 +1,9 @@
-.PHONY: serve build check install clean clone push link-check
+.PHONY: serve build check install javadoc clean clone push link-check
 
-serve: install
-	@mvn javadoc:aggregate -f ./../pom.xml
-	@cp -r ../target/site/apidocs ./java
+serve: install javadoc
 	@./node_modules/.bin/gitbook serve
 
-build: install
+build: install javadoc
 	@./node_modules/.bin/gitbook build
 
 check: build
@@ -15,8 +13,14 @@ install:
 	@npm install
 	@./node_modules/.bin/gitbook install .
 
+javadoc:
+	@mvn javadoc:aggregate -f ./../pom.xml
+	@mkdir -p ./java
+	@cp -R ../target/site/apidocs/ ./java
+
 clean:
 	@rm -rf _book
+	@rm -rf java
 	@rm -rf node_modules
 
 clone:
