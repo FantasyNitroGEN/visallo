@@ -168,11 +168,11 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
 
         String author = extractTextField(metadata, authorKeys);
         if (authorPropertyIri != null && author != null && author.length() > 0) {
-            m.addPropertyValue(propertyKey, authorPropertyIri, author, data.createPropertyMetadata(), data.getVisibility());
+            m.addPropertyValue(propertyKey, authorPropertyIri, author, data.createPropertyMetadata(getUser()), data.getVisibility());
         }
 
         String customImageMetadata = extractTextField(metadata, customFlickrMetadataKeys);
-        org.vertexium.Metadata textMetadata = data.createPropertyMetadata();
+        org.vertexium.Metadata textMetadata = data.createPropertyMetadata(getUser());
         Visibility defaultVisibility = getVisibilityTranslator().getDefaultVisibility();
         VisalloProperties.MIME_TYPE_METADATA.setMetadata(textMetadata, "text/plain", defaultVisibility);
         if (!Strings.isNullOrEmpty(textExtractMapping.getTextDescription())) {
@@ -198,9 +198,9 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
 
                 // TODO set("retrievalTime", Long.parseLong(customImageMetadataJson.get("atc:retrieval-timestamp").toString()));
 
-                org.vertexium.Metadata titleMetadata = data.createPropertyMetadata();
-                VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
                 if (titlePropertyIri != null) {
+                    org.vertexium.Metadata titleMetadata = data.createPropertyMetadata(getUser());
+                    VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
                     m.addPropertyValue(propertyKey, titlePropertyIri, customImageMetadataJson.get("title").toString(), titleMetadata, data.getVisibility());
                 }
             } catch (JSONException e) {
@@ -213,9 +213,9 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             VisalloProperties.MODIFIED_DATE.setProperty(m, extractDate(metadata), defaultVisibility);
             String title = extractTextField(metadata, subjectKeys);
             if (title != null && title.length() > 0) {
-                org.vertexium.Metadata titleMetadata = data.createPropertyMetadata();
-                VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
                 if (titlePropertyIri != null) {
+                    org.vertexium.Metadata titleMetadata = data.createPropertyMetadata(getUser());
+                    VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
                     m.addPropertyValue(propertyKey, titlePropertyIri, title, titleMetadata, data.getVisibility());
                 }
             }
@@ -225,7 +225,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             if (pageCountProperty != null) {
                 String numberOfPages = extractTextField(metadata, numberOfPagesKeys);
                 if (numberOfPages != null) {
-                    org.vertexium.Metadata numberOfPagesMetadata = data.createPropertyMetadata();
+                    org.vertexium.Metadata numberOfPagesMetadata = data.createPropertyMetadata(getUser());
                     VisalloProperties.CONFIDENCE_METADATA.setMetadata(numberOfPagesMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
                     pageCountProperty.addPropertyValue(m, propertyKey, Long.valueOf(numberOfPages), numberOfPagesMetadata, data.getVisibility());
                 }
