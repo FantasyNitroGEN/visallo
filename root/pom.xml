@@ -147,6 +147,7 @@
         <plugin.taglist.version>2.4</plugin.taglist.version>
         <plugin.template.resgen.version>0.11</plugin.template.resgen.version>
         <plugin.frontend>0.0.28</plugin.frontend>
+        <maven.plugin.gpg.version>1.6</maven.plugin.gpg.version>
 
         <!-- Node Properties -->
         <node.version>v6.2.0</node.version>
@@ -767,6 +768,34 @@
                     <url>${visallo.nexus.enterprise-plugins-snapshots}</url>
                 </snapshotRepository>
             </distributionManagement>
+        </profile>
+        <profile>
+            <id>release-tasks</id>
+            <activation>
+                <!-- mvn release:perform sets this to true -->
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven.plugin.gpg.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
