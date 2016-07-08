@@ -12,7 +12,7 @@
     <artifactId>visallo-root</artifactId>
     <packaging>pom</packaging>
     <name>Visallo: Root</name>
-    <version>2.0.0-RC1</version>
+    <version>2.0.0-RC2-SNAPSHOT</version>
 
     <inceptionYear>2013</inceptionYear>
     <organization>
@@ -35,7 +35,7 @@
     </scm>
 
     <properties>
-        <v5.visallo.version>2.0.0-RC1</v5.visallo.version>
+        <v5.visallo.version>2.0.0-RC2-SNAPSHOT</v5.visallo.version>
 
         <!-- General -->
         <classpath.filename>${project.build.directory}/.classpath.${user.name}</classpath.filename>
