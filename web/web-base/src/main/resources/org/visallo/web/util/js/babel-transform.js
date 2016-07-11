@@ -14,7 +14,7 @@
         var result = Babel.transform(input, {
           "sourceMap": sourceMapType,
           "presets": ["es2015"],
-          "plugins": ["transform-react-jsx", "transform-react-display-name"]
+          "plugins": ["transform-react-jsx", "transform-react-display-name", "transform-object-rest-spread"]
         });
 
         if (result) {
