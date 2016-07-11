@@ -1,4 +1,4 @@
-define(['underscore', 'data/store'], function(_, store) {
+define(['underscore'], function(_) {
     'use strict';
 
     var extensions = {},
@@ -14,7 +14,6 @@ define(['underscore', 'data/store'], function(_, store) {
                 throw new Error('extension must be provided');
             }
         },
-        storeApi,
         triggerChange = function(extensionPoint) {
             if (typeof $ !== 'undefined' && typeof document !== 'undefined') {
                 if (extensionPoint) {
@@ -24,7 +23,6 @@ define(['underscore', 'data/store'], function(_, store) {
                 }
             }
 
-            store.update('extensions', storeApi);
         },
         shouldWarn = function(extensionPoint) {
             if (extensionPoint in alreadyWarnedAboutDocsByExtensionPoint) {
@@ -160,7 +158,6 @@ define(['underscore', 'data/store'], function(_, store) {
             }
         };
 
-    storeApi = _.pick(api, 'documentExtensionPoint', 'extensionsForPoint');
 
     return api;
 })

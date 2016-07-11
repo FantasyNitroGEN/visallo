@@ -66,6 +66,10 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
                 }
             });
 
+            // es features not supported by phantomjs
+            if (!_.isFunction(Object.assign)) Object.assign = _.extend;
+            if (!_.isFunction(Object.keys)) Object.keys = _.keys;
+
             global.visalloData = {
                 currentWorkspaceId: 'w1'
             };

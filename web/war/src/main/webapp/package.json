@@ -87,6 +87,9 @@
     "phantomjs": "1.9.19",
     "react-tools": "^0.13.3"
   },
+  "optionalDependencies": {
+    "karma-osx-reporter": "latest"
+  },
   "scripts": {
     "test": "karma start --single-run",
     "postinstall": "node_modules/.bin/grunt deps"

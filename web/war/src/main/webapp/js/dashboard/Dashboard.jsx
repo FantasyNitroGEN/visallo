@@ -28,6 +28,7 @@ define([
             this.unload();
         },
         componentDidMount() {
+            this.store.addStoreListeners('workspace')
             this.load(this.props.store);
         },
         componentWillReceiveProps(props) {
