@@ -91,7 +91,7 @@ define([
                 if ($section.hasClass('expanded') || !$section.find('.text').is(':empty')) {
                     fn.apply(this, args);
                 } else {
-                    this.openText(key, propertyName);
+                    return this.openText(key, propertyName);
                 }
             });
 
@@ -124,16 +124,21 @@ define([
         this.onEditProperty = function(evt, data) {
             var self = this,
                 root = $('<div class="underneath">'),
-                section = $(evt.target).closest('.text-section').find('.text'),
+                section = $(evt.target).closest('.text-section'),
+                text = section.find('.text'),
                 property = data && data.property;
 
             evt.stopPropagation();
 
-            if (section.length) {
-                root.prependTo(section);
-            }
+            Promise.all([
+                Promise.require('detail/dropdowns/propertyForm/propForm'),
+                // Wait for expansion
+                section.hasClass('expanded') ? Promise.resolve() : self.onToggleCollapsibleSection(evt)
+            ]).spread(function(PropertyForm) {
+                if (text.length) {
+                    root.prependTo(text);
+                }
 
-            require(['detail/dropdowns/propertyForm/propForm'], function(PropertyForm) {
                 PropertyForm.teardownAll();
                 PropertyForm.attachTo(root, {
                     data: self.model,
