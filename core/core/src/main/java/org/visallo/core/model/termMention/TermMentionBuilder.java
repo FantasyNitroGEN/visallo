@@ -1,5 +1,7 @@
 package org.visallo.core.model.termMention;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import org.vertexium.*;
 import org.vertexium.mutation.EdgeMutation;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -247,6 +249,12 @@ public class TermMentionBuilder {
 
     private String createVertexId() {
         String id = TERM_MENTION_VERTEX_ID_PREFIX + this.outVertex.getId();
+        if (this.visibilityJson == null) {
+            LOGGER.warn ("Visibility Json should not be null");
+        } else if (this.visibilityJson.getSource() != null && this.visibilityJson.getSource().length() > 0) {
+            String hash = Hashing.sha1().hashString(this.visibilityJson.getSource(), Charsets.UTF_8).toString();
+            id += "-" + hash;
+        }
         if (this.propertyName != null) {
             id += "-" + this.propertyName;
         }
