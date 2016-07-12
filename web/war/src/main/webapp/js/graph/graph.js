@@ -1936,11 +1936,10 @@ define([
 
             this.cytoscapeReady()
                 .then(function(cy) {
-                    var offset = self.$node.offset(),
-                        r = cy.renderer(),
+                    var r = cy.renderer(),
                         pos = r.projectIntoViewport(
-                            data.pageX,// - offset.left,
-                            data.pageY// - offset.top
+                            data.pageX,
+                            data.pageY
                         ),
                         near = r.findNearestElement(pos[0], pos[1], true);
 

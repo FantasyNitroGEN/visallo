@@ -286,9 +286,6 @@ define([
 
         render: function() {
             const { diffs } = this.props;
-            const flatDiffs = diffs.reduce((flat, diff) => {
-                return [...flat, diff, ...diff.properties];
-            }, []);
 
             return (
                 <div className="diffs-list">

@@ -23,7 +23,7 @@ define([
             } else {
                 return NaN;
             }
-        } catch (e) {
+        } catch(e) {
             return NaN;
         }
     }
