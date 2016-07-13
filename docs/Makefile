@@ -24,10 +24,11 @@ clean:
 	@rm -rf node_modules
 
 clone:
-	@rm -rf _book
-	@git clone git@github.com:v5analytics/docs.visallo.org _book && rm -rf _book/*
+	@rm -rf docs.visallo.org
+	@git clone -n git@github.com:v5analytics/docs.visallo.org
 
-push: clone build
+push: build clone
+	@mv docs.visallo.org/.git _book
 	@read -p "Enter commit message: " message && \
 		pushd _book && \
 		git add -A . && \
