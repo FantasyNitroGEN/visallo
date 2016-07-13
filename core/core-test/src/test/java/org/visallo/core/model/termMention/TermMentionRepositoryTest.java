@@ -51,7 +51,7 @@ public class TermMentionRepositoryTest {
         Edge e = graph.addEdge("v1_to_v2", v1, v2, "link", visibility, authorizations);
         VisibilityJson visibilityJson = new VisibilityJson();
         visibilityJson.addWorkspace(WORKSPACE_ID);
-        VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, visibility, authorizations);
+        VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, new Visibility(""), authorizations);
         graph.flush();
 
         termMentionRepository.delete(v1tm1, authorizations);

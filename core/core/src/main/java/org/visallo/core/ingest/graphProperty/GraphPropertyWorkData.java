@@ -4,9 +4,11 @@ import org.vertexium.*;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.File;
+import java.util.Date;
 
 public class GraphPropertyWorkData {
     private final VisibilityTranslator visibilityTranslator;
@@ -112,12 +114,15 @@ public class GraphPropertyWorkData {
         return getVisibilitySourceJson();
     }
 
-    public Metadata createPropertyMetadata() {
+    public Metadata createPropertyMetadata(User user) {
         Metadata metadata = new Metadata();
         VisibilityJson visibilityJson = getVisibilityJson();
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         if (visibilityJson != null) {
-            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
+            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
         }
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), defaultVisibility);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), defaultVisibility);
         return metadata;
     }
 

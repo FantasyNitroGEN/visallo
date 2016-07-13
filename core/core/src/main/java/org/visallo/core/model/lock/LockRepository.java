@@ -12,12 +12,9 @@ public abstract class LockRepository {
     protected final Map<String, Object> synchronizationObjects = new HashMap<>();
 
     public void lock(String lockName, final Runnable runnable) {
-        lock(lockName, new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                runnable.run();
-                return null;
-            }
+        lock(lockName, () -> {
+            runnable.run();
+            return null;
         });
     }
 

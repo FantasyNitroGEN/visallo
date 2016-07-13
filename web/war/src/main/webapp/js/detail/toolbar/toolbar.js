@@ -217,10 +217,11 @@ define([
         };
 
         this.hideMenu = function() {
-            var node = this.$node.addClass('hideSubmenus');
-            _.delay(function() {
-                node.removeClass('hideSubmenus');
-            }, 500);
+            var node = this.$node.addClass('hideSubmenus'),
+                remove = _.once(function() {
+                    node.removeClass('hideSubmenus');
+                });
+            $(window).one('mousemove click', remove);
         };
 
         this.selectionHistory = function() {
@@ -327,8 +328,8 @@ define([
 
             if (!disableDelete) {
                 return _.extend(ToolbarComponent.ITEMS.DELETE_ITEM, {
-                    title: i18n('detail.toolbar.delete.entity'),
-                    subtitle: i18n('detail.toolbar.delete.entity.subtitle')
+                    title: model.type === 'vertex' ? i18n('detail.toolbar.delete.entity') : i18n('detail.toolbar.delete.edge'),
+                    subtitle: model.type === 'vertex' ? i18n('detail.toolbar.delete.entity.subtitle') : i18n('detail.toolbar.delete.edge.subtitle')
                 })
             }
         };

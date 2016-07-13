@@ -265,7 +265,7 @@ define([
             } else {
                 gLegend.style('opacity', 1);
                 if (gLegend.node().getBBox().width > availableLegendSpace) {
-                    gLegend.selectAll('text').each(function(d) {
+                    gLegend.selectAll('g:not(.hidden) > text').each(function(d) {
                         var d3Self = d3.select(this),
                             text = d3.select(this).text();
                         while (this.getBBox().width > availableLegendTextWidth) {

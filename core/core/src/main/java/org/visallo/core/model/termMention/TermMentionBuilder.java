@@ -1,5 +1,7 @@
 package org.visallo.core.model.termMention;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import org.vertexium.*;
 import org.vertexium.mutation.EdgeMutation;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -202,6 +204,7 @@ public class TermMentionBuilder {
 
         Date now = new Date();
         String vertexId = createVertexId();
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         Visibility visibility = VisalloVisibility.and(visibilityTranslator.toVisibility(this.visibilityJson).getVisibility(), TermMentionRepository.VISIBILITY_STRING);
         VertexBuilder vertexBuilder = graph.prepareVertex(vertexId, visibility);
         VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(vertexBuilder, this.visibilityJson, visibility);
@@ -229,15 +232,15 @@ public class TermMentionBuilder {
         String hasTermMentionId = vertexId + "_hasTermMention";
         EdgeBuilder termMentionEdgeBuilder = graph.prepareEdge(hasTermMentionId, this.outVertex, termMentionVertex, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility);
         VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(termMentionEdgeBuilder, this.visibilityJson, visibility);
-        VisalloProperties.MODIFIED_BY.setProperty(termMentionEdgeBuilder, user.getUserId(), visibility);
-        VisalloProperties.MODIFIED_DATE.setProperty(termMentionEdgeBuilder, now, visibility);
+        VisalloProperties.MODIFIED_BY.setProperty(termMentionEdgeBuilder, user.getUserId(), defaultVisibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(termMentionEdgeBuilder, now, defaultVisibility);
         termMentionEdgeBuilder.save(authorizations);
         if (this.resolvedToVertexId != null) {
             String resolvedToId = vertexId + "_resolvedTo";
             EdgeMutation resolvedToEdgeBuilder = graph.prepareEdge(resolvedToId, termMentionVertex.getId(), resolvedToVertexId, VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO, visibility);
             VisalloProperties.TERM_MENTION_VISIBILITY_JSON.setProperty(resolvedToEdgeBuilder, this.visibilityJson, visibility);
-            VisalloProperties.MODIFIED_BY.setProperty(resolvedToEdgeBuilder, user.getUserId(), visibility);
-            VisalloProperties.MODIFIED_DATE.setProperty(resolvedToEdgeBuilder, now, visibility);
+            VisalloProperties.MODIFIED_BY.setProperty(resolvedToEdgeBuilder, user.getUserId(), defaultVisibility);
+            VisalloProperties.MODIFIED_DATE.setProperty(resolvedToEdgeBuilder, now, defaultVisibility);
             resolvedToEdgeBuilder.save(authorizations);
         }
 
@@ -246,6 +249,12 @@ public class TermMentionBuilder {
 
     private String createVertexId() {
         String id = TERM_MENTION_VERTEX_ID_PREFIX + this.outVertex.getId();
+        if (this.visibilityJson == null) {
+            LOGGER.warn ("Visibility Json should not be null");
+        } else if (this.visibilityJson.getSource() != null && this.visibilityJson.getSource().length() > 0) {
+            String hash = Hashing.sha1().hashString(this.visibilityJson.getSource(), Charsets.UTF_8).toString();
+            id += "-" + hash;
+        }
         if (this.propertyName != null) {
             id += "-" + this.propertyName;
         }

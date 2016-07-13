@@ -54,6 +54,14 @@ public class PropertyMetadata {
         return metadata;
     }
 
+    public User getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
     public void add(String key, Object value, Visibility visibility) {
         additionalMetadataItems.add(new AdditionalMetadataItem(key, value, visibility));
     }

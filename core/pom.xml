@@ -15,7 +15,6 @@
     <modules>
         <module>core</module>
         <module>core-test</module>
-        <module>messages</module>
         <module>plugins</module>
     </modules>
 </project>

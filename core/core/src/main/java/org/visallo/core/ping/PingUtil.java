@@ -17,6 +17,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 
 import java.net.InetAddress;
@@ -28,12 +29,19 @@ public class PingUtil {
     public static final String VISIBILITY_STRING = "ping";
     public static final Visibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING).getVisibility();
     private final User systemUser;
+    private final AuthorizationRepository authorizationRepository;
+    private final UserRepository userRepository;
+    private final VisibilityTranslator visibilityTranslator;
 
     @Inject
     public PingUtil(
             AuthorizationRepository authorizationRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            VisibilityTranslator visibilityTranslator
     ) {
+        this.authorizationRepository = authorizationRepository;
+        this.userRepository = userRepository;
+        this.visibilityTranslator = visibilityTranslator;
         authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
         this.systemUser = userRepository.getSystemUser();
     }
@@ -60,7 +68,7 @@ public class PingUtil {
         Date createDate = new Date();
         String vertexId = PingOntology.getVertexId(createDate);
         ElementMutation<Vertex> mutation = graph.prepareVertex(vertexId, VISIBILITY);
-        VisalloProperties.CONCEPT_TYPE.setProperty(mutation, PingOntology.IRI_CONCEPT_PING, VISIBILITY);
+        VisalloProperties.CONCEPT_TYPE.setProperty(mutation, PingOntology.IRI_CONCEPT_PING, visibilityTranslator.getDefaultVisibility());
         PingOntology.CREATE_DATE.setProperty(mutation, createDate, VISIBILITY);
         PingOntology.CREATE_REMOTE_ADDR.setProperty(mutation, remoteAddr, VISIBILITY);
         PingOntology.SEARCH_TIME_MS.setProperty(mutation, searchTime, VISIBILITY);

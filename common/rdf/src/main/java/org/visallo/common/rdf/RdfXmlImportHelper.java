@@ -90,7 +90,7 @@ public class RdfXmlImportHelper {
             workspaceId = data.getWorkspaceId();
         }
         if (rdfConceptTypeIri != null && data != null) {
-            VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), rdfConceptTypeIri, data.createPropertyMetadata(), visibility, authorizations);
+            VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), rdfConceptTypeIri, visibilityTranslator.getDefaultVisibility(), authorizations);
         }
 
         Model model = ModelFactory.createDefaultModel();
@@ -141,15 +141,11 @@ public class RdfXmlImportHelper {
             if (obj instanceof Resource) {
                 if (isConceptTypeResource(statement)) {
                     String value = statement.getResource().toString();
-                    Metadata metadata = null;
-                    if (data != null) {
-                        metadata = data.createPropertyMetadata();
-                    }
-                    VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, value, metadata, visibility);
+                    VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, value, visibilityTranslator.getDefaultVisibility());
                 }
             } else if (obj instanceof Literal) {
                 LOGGER.info("set property on %s to %s", subject.toString(), statement.toString());
-                importLiteral(vertexBuilder, statement, baseDir, data, visibility);
+                importLiteral(vertexBuilder, statement, baseDir, data, visibility, user);
             } else {
                 throw new VisalloException("Unhandled object type: " + obj.getClass().getName());
             }
@@ -185,7 +181,7 @@ public class RdfXmlImportHelper {
         return label.equals(RDF_TYPE_URI);
     }
 
-    private void importLiteral(VertexBuilder v, Statement statement, File baseDir, GraphPropertyWorkData data, Visibility visibility) {
+    private void importLiteral(VertexBuilder v, Statement statement, File baseDir, GraphPropertyWorkData data, Visibility visibility, User user) {
         String propertyName = statement.getPredicate().toString();
 
         RDFDatatype datatype = statement.getLiteral().getDatatype();
@@ -205,7 +201,7 @@ public class RdfXmlImportHelper {
 
         Metadata metadata = null;
         if (data != null) {
-            metadata = data.createPropertyMetadata();
+            metadata = data.createPropertyMetadata(user);
         }
         v.addPropertyValue(MULTI_VALUE_KEY, propertyName, value, metadata, visibility);
     }

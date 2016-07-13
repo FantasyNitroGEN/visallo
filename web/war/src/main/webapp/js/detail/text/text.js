@@ -91,7 +91,7 @@ define([
                 if ($section.hasClass('expanded') || !$section.find('.text').is(':empty')) {
                     fn.apply(this, args);
                 } else {
-                    this.openText(key, propertyName);
+                    return this.openText(key, propertyName);
                 }
             });
 
@@ -124,16 +124,21 @@ define([
         this.onEditProperty = function(evt, data) {
             var self = this,
                 root = $('<div class="underneath">'),
-                section = $(evt.target).closest('.text-section').find('.text'),
+                section = $(evt.target).closest('.text-section'),
+                text = section.find('.text'),
                 property = data && data.property;
 
             evt.stopPropagation();
 
-            if (section.length) {
-                root.prependTo(section);
-            }
+            Promise.all([
+                Promise.require('detail/dropdowns/propertyForm/propForm'),
+                // Wait for expansion
+                section.hasClass('expanded') ? Promise.resolve() : self.onToggleCollapsibleSection(evt)
+            ]).spread(function(PropertyForm) {
+                if (text.length) {
+                    root.prependTo(text);
+                }
 
-            require(['detail/dropdowns/propertyForm/propForm'], function(PropertyForm) {
                 PropertyForm.teardownAll();
                 PropertyForm.attachTo(root, {
                     data: self.model,
@@ -277,9 +282,14 @@ define([
                             return ontologyProperty.displayType === 'longText';
                         });
 
-                    this.node.classList.add('org-visallo-texts');
-
                     d3.select(self.node)
+                        .selectAll('div.highlightWrap')
+                        .data([1])
+                        .call(function() {
+                            this.enter().append('div');
+                            var style = HIGHLIGHT_STYLES[self.getActiveStyle()];
+                            this.attr('class', 'highlightWrap highlight-' + style.selector);
+                        })
                         .selectAll('section.text-section')
                         .data(textProperties)
                         .call(function() {
@@ -934,13 +944,8 @@ define([
                 });
         };
 
-        this.removeHighlightClasses = function() {
-            var content = this.highlightNode();
-            content.removePrefixedClasses('highlight-');
-        };
-
         this.highlightNode = function() {
-            return this.$node;
+            return this.$node.children('.highlightWrap');
         };
 
         this.getActiveStyle = function() {
@@ -967,9 +972,6 @@ define([
 
         this.applyHighlightStyle = function() {
             var style = HIGHLIGHT_STYLES[this.getActiveStyle()];
-            this.removeHighlightClasses();
-            this.highlightNode().addClass('highlight-' + style.selector);
-
             if (!style.styleApplied) {
                 this.dataRequest('ontology', 'concepts').done(function(concepts) {
                     var styleFile = 'tpl!detail/text/highlight-styles/' + style.selector + '.css',
