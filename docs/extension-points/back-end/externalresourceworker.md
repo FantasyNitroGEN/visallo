@@ -6,9 +6,9 @@ Visallo can ingest any kind of data but sometimes that ingestion process is not 
 
 Consider the following example:
 
-You want to ingest all of the data from a specific rest end point into Visallo, but you are rate-limited by those api calls.  It is possible to write a command line tool to handle the data import, but you want a managed solution that works while Visallo is running and can be monitored from the Visallo UI.
+You want to ingest all of the data from a specific rest end point into Visallo, but you are rate-limited by those API calls.  It is possible to write a command line tool to handle the data import, but you want a managed solution that works while Visallo is running and can be monitored from the Visallo UI.
 
-In that instance, you may want to consider an external resource worker.  It can automatically hit the api end-point, run as fast as the rate limit is, and then pause execution as is needed.
+In that instance, you may want to consider an external resource worker.  It can automatically hit the API end-point, run as fast as the rate limit is, and then pause execution as is needed.
 
 ## Development
 
@@ -16,7 +16,7 @@ There are only two methods that you must implement when creating an [external re
 
 ## Deployment
 
-External resource workers are run inside of the web server when it is brought online.  They are injected through the service loader and then their lifecycle is started when their start method is called.  To ensure that an ExternalResourceWorker is loaded on the classpath, it must be on the classpath and be referenced in a file org.visallo.core.externalResource.ExternalResourceWorker in the META-INF/services folder in the jar. 
+External resource workers are run inside the webserver when it is brought online.  They are injected through the service loader and then their lifecycle is started when their start method is called.  To ensure that an ExternalResourceWorker is loaded on the classpath, it must be on the classpath and be referenced in a file org.visallo.core.externalResource.ExternalResourceWorker in the META-INF/services folder in the jar. 
 
 If you do not want to run ExternalResourceWorkers inside of the server, add the following to your configuration.
 

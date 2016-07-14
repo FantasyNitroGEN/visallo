@@ -1,6 +1,6 @@
 ## Graph Decorations
 
-Graph Decorations are additional detail to display around a vertex when displayed in a graph. These decorations are implemented as [cytoscape.js](http://js.cytoscape.org) nodes inside of compound nodes. That allows them to be styled just like vertices using [`org.visallo.graph.style`](../graphStyle) extensions.
+Graph decorations are additional detail to display around a vertex when displayed in a graph. These decorations are implemented as [cytoscape.js](http://js.cytoscape.org) nodes inside of compound nodes. That allows them to be styled just like vertices using [`org.visallo.graph.style`](../graphStyle) extensions.
 
 ### Configuration Options
 
@@ -21,8 +21,8 @@ Graph Decorations are additional detail to display around a vertex when displaye
 
     Class names to add to cytoscape node. This is most used with an [`org.visallo.graph.style`](../graphStyle) extension.
 
-    * `String`: Whitespace-separated string of class names
-    * `Array`: Array of strings of class names
+    * `String`: Whitespace-separated string of class names.
+    * `Array`: Array of strings of class names.
     * `Function`: Function that returns an array or string of classes.
         Arguments:
         * `vertex`: The vertex object that this decoration is applied to.
@@ -31,7 +31,7 @@ Graph Decorations are additional detail to display around a vertex when displaye
 
     Provides the `data` object for cytoscape decoration node. The `label` key is by default the text string, but can be changed using custom classes/stylesheets.
 
-    * `Object`: The data object
+    * `Object`: The data object.
     * `Function`: Passed a `vertex` object as first argument. Can return either a `data` object or a `Promise`
 
     _**Note:** This will be called for every vertex change event (`verticesUpdated`). Cache the result if possible._
@@ -79,17 +79,17 @@ The figure below shows the available positions. The alignment locations are auto
 
 Annotated positions and `alignment` configuration value:
 
-1. Top Left `{ h: 'left', v: 'top' }`
-1. Top Center `{ h: 'center', v: 'top' }`
-1. Top Right `{ h: 'right', v: 'top' }`
-1. Center Left `{ h: 'left', v: 'center' }`
-1. Center Center `{ h: 'center', v: 'center' }`
-1. Center Right `{ h: 'right', v: 'center' }`
-1. Bottom Left `{ h: 'left', v: 'bottom' }`
-1. Bottom Center `{ h: 'center', v: 'bottom' }`
-1. Bottom Right `{ h: 'right', v: 'bottom' }`
+1. Top left `{ h: 'left', v: 'top' }`
+1. Top center `{ h: 'center', v: 'top' }`
+1. Top right `{ h: 'right', v: 'top' }`
+1. Center left `{ h: 'left', v: 'center' }`
+1. Center center `{ h: 'center', v: 'center' }`
+1. Center right `{ h: 'right', v: 'center' }`
+1. Bottom left `{ h: 'left', v: 'bottom' }`
+1. Bottom center `{ h: 'center', v: 'bottom' }`
+1. Bottom right `{ h: 'right', v: 'bottom' }`
 
-_**Note:** There is no collision detection on decorations with equal alignments_
+_**Note:** There is no collision detection on decorations with equal alignments_.
 
 ### Example
 

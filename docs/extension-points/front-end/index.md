@@ -1,7 +1,7 @@
 
 # Front-End Customization
 
-Custom JavaScript and CSS can be added to the webapp using a [webapp plugin](../back-end/webplugins.md).  
+Custom JavaScript and CSS can be added to the web app using a [webapp plugin](../back-end/webplugins.md).  
 
 ```js
 app.registerJavaScript("plugin.js");

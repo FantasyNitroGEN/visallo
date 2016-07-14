@@ -16,6 +16,6 @@ registry.registerExtension('org.visallo.websocket.message', {
 * `handler` `[Function]` The function to invoke when messages arrive.
 
     * Parameters:
-        * `data`: `[Object]` The data in message
+        * `data`: `[Object]` The data in message.
     
 

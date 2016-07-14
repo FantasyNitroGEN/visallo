@@ -13,7 +13,7 @@ The `children` defined in a layout component can be references (`ref`) to other 
 
     * `Object` 
 
-        *Only one of these allowed: conceptIri, edgeLabel, displayType, type*
+        *Only one of these allowed: conceptIri, edgeLabel, displayType, type*.
 
         * `conceptIri`: `[String]` Implies vertices, only those whose concept (or ancestor) matches this Iri.
         * `edgeLabel`: `[String]` Implies edges, only those whose edgeLabel matches this Iri.
@@ -23,7 +23,7 @@ The `children` defined in a layout component can be references (`ref`) to other 
             Constraints control the layout selection for views that are width, and/or height constrained. The detail pane is set to be width constrained, whereas the full screen view has no constraints.
         * `contexts`: `[String]` For named templates. `popup` is defined by default for graph previews.
 
-    * `Function` Set a function to determine the layout container for a specific model. If it returns true it will take precedence over any other applyTo specification. The function parameters are `model`, the current model in tree, and `match` which contains `constraints`, or `context` or both.
+    * `Function` Set a function to determine the layout container for a specific model. If it returns true, it will take precedence over any other applyTo specification. The function parameters are `model`, the current model in tree, and `match` which contains `constraints`, or `context` or both.
 
     ```js
     function(model, match) {
@@ -35,12 +35,12 @@ The `children` defined in a layout component can be references (`ref`) to other 
 * `identifier` _(required)_ `[string]` Identifier of this component for use in other components in package syntax. Also transforms into css class – replacing package periods with dashes.
 * `layout` _(optional)_ `[Object]`
     * `type` _(required)_ `[String]` Which layout type to render `children`. 
-    * `options` _(optional)_ `[Object]` Layout-specific options
+    * `options` _(optional)_ `[Object]` Layout-specific options.
 * `componentPath` _(optional)_ `[String]` Additional FlightJS component to attach to this node for behavior.
-* `className` _(optional)_ `[String]` Additional classname to add to DOM
+* `className` _(optional)_ `[String]` Additional classname to add to DOM.
 * _Exactly one of the following is required: `render`, `collectionItem` or `children` (i.e., you cannot supply both render and collectionItem)._
     * `render` _(required*)_ `[Function]` Function that renders the content, is passed the `model`, and `match` configuration.
-    * `collectionItem` _(required*)_ `[Object]` Reference to layout component to render for each item in model (requires model to be array.)
+    * `collectionItem` _(required*)_ `[Object]` Reference to layout component to render for each item in model (requires model to be array).
     * `children` _(required*)_ `[Array]`
         * `style` _(optional)_ `[Object]` CSS attributes to set on DOM.
         * `modelAttribute` _(optional)_ `[String]` Use this attribute name instead of `model` when attaching FlightJS component.
@@ -48,13 +48,13 @@ The `children` defined in a layout component can be references (`ref`) to other 
         * `model` _(optional)_ `[Function|Object]` Change the model passed to this child, either a function or object.
         
         	* `Function`: Transforms the state of the model at this level in the tree to the child. Return either the transformed model or a `Promise`.
-        	* `Object`: Static object to pass as the model
+        	* `Object`: Static object to pass as the model.
         	
         * _Exactly one of the following is required: `ref`, or `componentPath`._
 
-            * `ref` _(required*)_ `[String]` Reference to identifier of layout component to render
+            * `ref` _(required*)_ `[String]` Reference to identifier of layout component to render.
                 - or -
-            * `componentPath` _(required*)_ `[String]` RequireJS path to FlightJS component to render
+            * `componentPath` _(required*)_ `[String]` RequireJS path to FlightJS component to render.
 
 ### Example
 
@@ -164,17 +164,17 @@ This is the flow that the layout engine takes when passed a model and match cons
 1. A `model` object is requested to render using optional `constraints` and `context`.
 2. The layout engine finds matching components using:
     1. Find all possible components with `org.visallo.layout.root` identifier. That match optionally specified `context` and `constraints`.
-    2. Call `applyTo` functions (if available)
+    2. Call `applyTo` functions (if available).
     3. If no matches, displayType is used to match components with `applyTo: { displayType: '[a display type]'}`.
-    4. If no matches, Concept/Edge Types are used to match components with `applyTo` having keys of `conceptIri|edgeLabel` set to iri.
-    5. If no matches, Check concept/edge ancestors for `applyTo` match
-    6. If no matches, Check type for `applyTo` match
-    7. If no matches, Check components with no defined `applyTo`
-    8. If no matches, throw error
-3. Initialize all children
-4. Initialize new `Layout Type` according to `layout.type` and `layout.options` configuration
-5. Render children using layout
-    1. If child includes `ref`, Recursively repeat `2` using this identifier (as opposed to root.)
+    4. If no matches, concept/edge types are used to match components with `applyTo` having keys of `conceptIri|edgeLabel` set to iri.
+    5. If no matches, check concept/edge ancestors for `applyTo` match.
+    6. If no matches, check type for `applyTo` match.
+    7. If no matches, check components with no defined `applyTo`.
+    8. If no matches, throw error.
+3. Initialize all children.
+4. Initialize new `Layout Type` according to `layout.type` and `layout.options` configuration.
+5. Render children using layout.
+    1. If child includes `ref`, Recursively repeat `2` using this identifier (as opposed to root).
     2. If child includes `layout` and `children`, Recursively repeat `3` using this configuration.
     3. If child includes `componentPath`, require and attach it to the node.
 

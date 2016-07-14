@@ -92,7 +92,7 @@ Metadata Types: `timezone`, `datetime`, `user`, `sandboxStatus`, `percent`
 
 To add a new type:
 
-1. Create a web plugin
+1. Create a web plugin.
 2. Extend the formatter with custom type(s). For example, pluralize and translate. 
 
 ```js

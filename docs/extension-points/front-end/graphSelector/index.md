@@ -1,7 +1,7 @@
 Graph Selector Plugin
 =====================
 
-Plugin to add custom node selection menu items. Graph provides Select All, None, and Invert by default.
+Plugin to add custom node selection menu items. Graph provides select all, none, and invert by default.
 
 To register a selector:
 
@@ -24,9 +24,9 @@ require(['configuration/plugins/registry'], function(registry) {
 });
 ```
 
-Optional configuration
+Optional configuration:
 
-`visibility`: (String) Specifies when selector should display. One of: always, selected, none-selected
+`visibility`: (String) Specifies when selector should display. One of: always, selected, none-selected.
 
 Remember to add a i18n value in a MessageBundle.properties. This will be displayed in the graph context menu.
 
