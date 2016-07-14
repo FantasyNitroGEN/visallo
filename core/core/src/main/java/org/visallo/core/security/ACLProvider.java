@@ -11,8 +11,13 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class ACLProvider {
     protected final Graph graph;
@@ -60,6 +65,7 @@ public abstract class ACLProvider {
     }
 
     public final ClientApiElementAcl elementACL(Element element, User user, OntologyRepository ontologyRepository) {
+        checkNotNull(element, "element is required");
         ClientApiElementAcl elementAcl = new ClientApiElementAcl();
         elementAcl.setAddable(true);
         elementAcl.setUpdateable(internalCanUpdateElement(element, user));
@@ -70,6 +76,7 @@ public abstract class ACLProvider {
             String iri = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element);
             while (iri != null) {
                 Concept concept = ontologyRepository.getConceptByIRI(iri);
+                checkNotNull(concept, "Could not find concept with iri: " + iri);
                 populatePropertyAcls(concept, element, user, propertyAcls);
                 iri = concept.getParentConceptIRI();
             }
@@ -77,6 +84,7 @@ public abstract class ACLProvider {
             String iri = ((Edge) element).getLabel();
             while (iri != null) {
                 Relationship relationship = ontologyRepository.getRelationshipByIRI(iri);
+                checkNotNull(relationship, "Could not find relationship with iri: " + iri);
                 populatePropertyAcls(relationship, element, user, propertyAcls);
                 iri = relationship.getParentIRI();
             }
@@ -204,14 +212,18 @@ public abstract class ACLProvider {
     }
 
     private Element findElement(ClientApiElement apiElement) {
+        Element element;
         Authorizations authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
         if (apiElement instanceof ClientApiVertex) {
-            return graph.getVertex(apiElement.getId(), authorizations);
+            element = graph.getVertex(apiElement.getId(), authorizations);
+            checkNotNull(element, "could not find vertex with id: " + apiElement.getId());
         } else if (apiElement instanceof ClientApiEdge) {
-            return graph.getEdge(apiElement.getId(), authorizations);
+            element = graph.getEdge(apiElement.getId(), authorizations);
+            checkNotNull(element, "could not find edge with id: " + apiElement.getId());
         } else {
             throw new VisalloException("unexpected ClientApiElement type " + apiElement.getClass().getName());
         }
+        return element;
     }
 
     private boolean internalCanDeleteElement(Element element, User user) {
