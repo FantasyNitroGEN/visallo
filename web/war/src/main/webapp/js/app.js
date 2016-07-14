@@ -920,7 +920,11 @@ define([
 
     function fixMultipleBootstrapModals() {
         $(document).on('show.bs.modal', '.modal', function() {
-            var zIndex = 1040 + (10 * $('.modal:visible').length);
+            var zIndex = 10 + _.max(
+                _.map($('.modal'), function(modal) {
+                    return parseInt($(modal).css('z-index'), 10);
+                })
+            );
             $(this).css('z-index', zIndex);
             setTimeout(function() {
                 $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
