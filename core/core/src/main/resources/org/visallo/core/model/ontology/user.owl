@@ -237,6 +237,8 @@
     <!-- http://visallo.org/user#user -->
 
     <owl:Class rdf:about="http://visallo.org/user#user">
+        <rdfs:label xml:lang="en">User</rdfs:label>
+        <visallo:titleFormula>&apos;User: &apos; + prop(&apos;http://visallo.org/user#username&apos;)</visallo:titleFormula>
         <visallo:userVisible>false</visallo:userVisible>
     </owl:Class>
 </rdf:RDF>
