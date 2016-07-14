@@ -24,6 +24,7 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
@@ -36,7 +37,6 @@ public class RdfTripleImportHelperTest {
     private Authorizations authorizations;
     private TimeZone timeZone;
     private File workingDir;
-    private VisibilityTranslator visibilityTranslator;
 
     @Mock
     private WorkQueueRepository workQueueRepository;
@@ -45,6 +45,7 @@ public class RdfTripleImportHelperTest {
     private User user;
     private String defaultVisibilitySource;
     private String sourceFileName;
+    private Function<String, VisibilityJson> visibilitySourceToVisibilityJson;
 
     @Before
     public void setUp() {
@@ -52,7 +53,13 @@ public class RdfTripleImportHelperTest {
         workingDir = new File(".");
         authorizations = graph.createAuthorizations("A");
         timeZone = TimeZone.getDefault();
-        visibilityTranslator = new DirectVisibilityTranslator();
+        visibilitySourceToVisibilityJson = visibilitySource -> new VisibilityJson(visibilitySource);
+        VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator() {
+            @Override
+            protected VisibilityJson visibilitySourceToVisibilityJson(String visibilitySource) {
+                return RdfTripleImportHelperTest.this.visibilitySourceToVisibilityJson.apply(visibilitySource);
+            }
+        };
 
         when(user.getUserId()).thenReturn("user1");
 
@@ -93,6 +100,23 @@ public class RdfTripleImportHelperTest {
         assertEquals("http://visallo.org/test#type1", VisalloProperties.CONCEPT_TYPE.getPropertyValue(v1));
         assertEquals(new VisibilityJson("A"), VisalloProperties.VISIBILITY_JSON.getPropertyValue(v1));
         assertNotNull(v1);
+    }
+
+    @Test
+    public void testImportVertexWithRawVisibility() {
+        visibilitySourceToVisibilityJson = visibilitySource -> new VisibilityJson("bad" + visibilitySource);
+        String line = "<rawVisibilityVertex[!A]> <" + VisalloRdfTriple.LABEL_CONCEPT_TYPE + "> <http://visallo.org/test#type1>";
+        importRdfLine(line);
+        graph.flush();
+
+        Vertex v = graph.getVertex("rawVisibilityVertex", authorizations);
+        assertEquals(
+                new VisalloVisibility("A").getVisibility().getVisibilityString(),
+                v.getVisibility().getVisibilityString()
+        );
+        assertEquals("http://visallo.org/test#type1", VisalloProperties.CONCEPT_TYPE.getPropertyValue(v));
+        assertEquals(null, VisalloProperties.VISIBILITY_JSON.getPropertyValue(v));
+        assertNotNull(v);
     }
 
     @Test
@@ -281,6 +305,27 @@ public class RdfTripleImportHelperTest {
         );
         assertEquals(
                 new VisibilityJson("A"),
+                VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata())
+        );
+    }
+
+    @Test
+    public void testImportPropertyRawVisibility() {
+        visibilitySourceToVisibilityJson = visibilitySource -> new VisibilityJson("bad" + visibilitySource);
+        String line = "<v1> <http://visallo.org/test#prop1[!A]> \"hello world\"";
+        importRdfLine(line);
+        graph.flush();
+
+        Vertex v1 = graph.getVertex("v1", authorizations);
+        Property property = v1.getProperty("http://visallo.org/test#prop1");
+        assertNotNull("Could not find property", property);
+        assertEquals("hello world", property.getValue());
+        assertEquals(
+                new VisalloVisibility("A").getVisibility().getVisibilityString(),
+                property.getVisibility().getVisibilityString()
+        );
+        assertEquals(
+                null,
                 VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property.getMetadata())
         );
     }

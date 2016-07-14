@@ -1,7 +1,7 @@
 package org.visallo.core.security;
 
-import org.visallo.web.clientapi.model.VisibilityJson;
 import org.vertexium.Visibility;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,11 @@ public class DirectVisibilityTranslator extends VisibilityTranslator {
 
     @Override
     public VisalloVisibility toVisibility(String visibilitySource) {
-        return new VisalloVisibility(toVisibilityNoSuperUser(new VisibilityJson(visibilitySource)));
+        return toVisibility(visibilitySourceToVisibilityJson(visibilitySource));
+    }
+
+    protected VisibilityJson visibilitySourceToVisibilityJson(String visibilitySource) {
+        return new VisibilityJson(visibilitySource);
     }
 
     @Override

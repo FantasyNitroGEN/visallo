@@ -9,6 +9,7 @@ import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -95,6 +96,7 @@ public class RdfTripleImportHelper {
             User user,
             Authorizations authorizations
     ) throws IOException {
+        long startTime = System.currentTimeMillis();
         Set<Element> elements = new HashSet<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         int lineNum = 1;
@@ -119,6 +121,9 @@ public class RdfTripleImportHelper {
         graph.flush();
         LOGGER.info("pushing %d elements from RDF import on to work queue", elements.size());
         workQueueRepository.pushElements(elements, priority);
+
+        long endTime = System.currentTimeMillis();
+        LOGGER.debug("RDF %s imported in %dms", sourceFileName, endTime - startTime);
     }
 
     public void importRdfLine(
@@ -224,7 +229,9 @@ public class RdfTripleImportHelper {
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, now, defaultVisibility);
         VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), defaultVisibility);
         VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, GraphRepository.SET_PROPERTY_CONFIDENCE, defaultVisibility);
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, new VisibilityJson(triple.getPropertyVisibilitySource()), defaultVisibility);
+        if (!isLiteralVisibilityString(triple.getPropertyVisibilitySource())) {
+            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, new VisibilityJson(triple.getPropertyVisibilitySource()), defaultVisibility);
+        }
 
         // metadata property
         if (triple instanceof SetMetadataVisalloRdfTriple) {
@@ -286,12 +293,14 @@ public class RdfTripleImportHelper {
     ) {
         Date now = new Date();
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
-        VisibilityJson visibilityJson = new VisibilityJson(triple.getElementVisibilitySource());
 
         Visibility elementVisibility = getVisibility(triple.getElementVisibilitySource());
         VertexBuilder m = graph.prepareVertex(triple.getElementId(), elementVisibility);
         VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), defaultVisibility);
-        VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
+        if (!isLiteralVisibilityString(triple.getElementVisibilitySource())) {
+            VisibilityJson visibilityJson = new VisibilityJson(triple.getElementVisibilitySource());
+            VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
+        }
         VisalloProperties.MODIFIED_BY.setProperty(m, user.getUserId(), defaultVisibility);
         VisalloProperties.MODIFIED_DATE.setProperty(m, now, defaultVisibility);
         VisalloProperties.SOURCE.addPropertyValue(m, MULTIVALUE_KEY, sourceFileName, elementVisibility);
@@ -304,8 +313,16 @@ public class RdfTripleImportHelper {
         if (visibility != null) {
             return visibility;
         }
-        visibility = visibilityTranslator.toVisibility(visibilityString).getVisibility();
+        if (isLiteralVisibilityString(visibilityString)) {
+            visibility = new VisalloVisibility(visibilityString.substring(1)).getVisibility();
+        } else {
+            visibility = visibilityTranslator.toVisibility(visibilityString).getVisibility();
+        }
         visibilityCache.put(visibilityString, visibility);
         return visibility;
+    }
+
+    private boolean isLiteralVisibilityString(String visibilitySource) {
+        return visibilitySource != null && visibilitySource.startsWith("!");
     }
 }
