@@ -108,6 +108,7 @@
         <javax.mail.version>1.4.5</javax.mail.version>
         <uadetector.resources.version>2014.06</uadetector.resources.version>
         <mysql.version>5.1.38</mysql.version>
+        <apache.poi.version>3.11</apache.poi.version>
 
         <!-- Test Dependency Versions -->
         <junit.version>4.11</junit.version>
