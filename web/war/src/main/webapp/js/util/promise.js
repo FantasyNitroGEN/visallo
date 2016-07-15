@@ -51,6 +51,7 @@
         global.Promise = Promise;
         return Promise;
 
+        /*eslint no-extend-native:off */
         function addProgress() {
             if (typeof Promise.prototype.progress !== 'function') {
                 Promise.prototype.progress = function(progress) {

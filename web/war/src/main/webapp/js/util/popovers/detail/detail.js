@@ -21,6 +21,10 @@ define([
             zoomWithGraph: true
         });
 
+        this.before('teardown', function() {
+            this.trigger('closePreviewVertex', { vertexId: this.attr.vertexId })
+        });
+
         this.after('teardown', function() {
             this.$node.remove();
         })

@@ -1,11 +1,9 @@
-.PHONY: serve build check install clean clone push link-check
+.PHONY: serve build check install javadoc clean clone push link-check
 
-serve: install
-	@mvn javadoc:aggregate -f ./../pom.xml
-	@cp -r ../target/site/apidocs ./java
+serve: install javadoc
 	@./node_modules/.bin/gitbook serve
 
-build: install
+build: install javadoc
 	@./node_modules/.bin/gitbook build
 
 check: build
@@ -15,15 +13,22 @@ install:
 	@npm install
 	@./node_modules/.bin/gitbook install .
 
+javadoc:
+	@mvn javadoc:aggregate -f ./../pom.xml
+	@mkdir -p ./java
+	@cp -R ../target/site/apidocs/ ./java
+
 clean:
 	@rm -rf _book
+	@rm -rf java
 	@rm -rf node_modules
 
 clone:
-	@rm -rf _book
-	@git clone git@github.com:v5analytics/docs.visallo.org _book && rm -rf _book/*
+	@rm -rf docs.visallo.org
+	@git clone -n git@github.com:v5analytics/docs.visallo.org
 
-push: clone build
+push: build clone
+	@mv docs.visallo.org/.git _book
 	@read -p "Enter commit message: " message && \
 		pushd _book && \
 		git add -A . && \

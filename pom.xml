@@ -4,18 +4,14 @@
     <parent>
         <groupId>org.visallo</groupId>
         <artifactId>visallo-root</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>2.1-SNAPSHOT</version>
         <relativePath>./root</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>visallo</artifactId>
     <packaging>pom</packaging>
     <name>Visallo</name>
-    <version>1.1-SNAPSHOT</version>
-
-    <properties>
-        <maven.plugin.gpg.version>1.6</maven.plugin.gpg.version>
-    </properties>
+    <version>2.1-SNAPSHOT</version>
 
     <scm>
         <url>https://github.com/v5analytics/visallo</url>
@@ -135,35 +131,6 @@
                                 <configuration>
                                     <executable>bin/testCoverage.sh</executable>
                                 </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>release-tasks</id>
-            <activation>
-                <!-- mvn release:perform sets this to true -->
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven.plugin.gpg.version}</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
                             </execution>
                         </executions>
                     </plugin>

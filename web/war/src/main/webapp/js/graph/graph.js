@@ -1936,11 +1936,10 @@ define([
 
             this.cytoscapeReady()
                 .then(function(cy) {
-                    var offset = self.$node.offset(),
-                        r = cy.renderer(),
+                    var r = cy.renderer(),
                         pos = r.projectIntoViewport(
-                            data.pageX,// - offset.left,
-                            data.pageY// - offset.top
+                            data.pageX,
+                            data.pageY
                         ),
                         near = r.findNearestElement(pos[0], pos[1], true);
 
@@ -2015,9 +2014,11 @@ define([
                 })
                 .then(function(cyElements) {
                     if (cyElements && cyElements.length) {
-                        if (cyElements.length > MAX_POPUP_DETAIL_PANES_AT_ONCE) {
-                            cyElements = cyElements.slice(0, MAX_POPUP_DETAIL_PANES_AT_ONCE)
-                            self.trigger('displayInformation', { message: i18n('popovers.preview_vertex.too_many', MAX_POPUP_DETAIL_PANES_AT_ONCE) })
+                        var activePopups = self.select('detailPanePopovers');
+                        var popupsAvailable = MAX_POPUP_DETAIL_PANES_AT_ONCE - activePopups.length;
+                        if (cyElements.length > popupsAvailable) {
+                            cyElements = cyElements.slice(0, popupsAvailable);
+                            self.trigger('displayInformation', { message: i18n('popovers.preview_vertex.too_many', MAX_POPUP_DETAIL_PANES_AT_ONCE) });
                         }
                         require(['util/popovers/detail/detail'], function(DetailPopover) {
                             cy.startBatch();
@@ -2047,7 +2048,7 @@ define([
                                 cyElement.data('$detailpopover', null)
                             });
                             cy.endBatch();
-                        })
+                        });
                         self.select('detailPanePopovers')
                             .teardownAllComponents()
                             .remove();
@@ -2057,6 +2058,17 @@ define([
 
         this.onPreviewVertex = function(e, data) {
             this.previewVertex({ eventData: data });
+        };
+
+        this.onClosePreviewVertex = function(e, data) {
+            var self = this;
+
+            this.cytoscapeReady().then(function(cy) {
+                var cyId = toCyId(data.vertexId);
+                var cyElement = cy.getElementById(cyId);
+
+                cyElement.data('$detailpopover', null);
+            });
         };
 
         this.onCreateVertex = function(e, data) {
@@ -2207,6 +2219,7 @@ define([
             this.on(document, 'edgesDeleted', this.onEdgesDeleted);
             this.on(document, 'edgesUpdated', this.onEdgesUpdated);
             this.on(document, 'didToggleDisplay', this.onDidToggleDisplay);
+            this.on(document, 'closePreviewVertex', this.onClosePreviewVertex);
 
             this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
             this.on('unregisterForPositionChanges', this.onUnregisterForPositionChanges);
