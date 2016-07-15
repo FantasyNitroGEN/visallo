@@ -8,7 +8,7 @@
 
 Visallo is designed to be a single page application, but requests must be made back to the server to retrieve information, process data, and manage many other back end services.  Since Visallo was designed to be extensible with many different types of plugins, web plugins fit naturally into Visallo's architecture.  
 
-Web plugins are deployed alongside Visallo inside of the webserver and are used to both add custom functionality and override existing components.
+Web plugins are deployed alongside Visallo inside of the web server and are used to both add custom functionality and override existing components.
 
 ## Development
 

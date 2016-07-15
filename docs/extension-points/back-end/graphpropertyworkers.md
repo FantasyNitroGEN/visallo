@@ -55,7 +55,7 @@ public class PersonFraudScoreGPW extends GraphPropertyWorker {
 
 ## Deployment
 
-Graph Property Workers are deployed inside of the webserver by default.  Having the Graph Property Workers inside of the webserver works well for development and installations that do not need to scale up further than their webserver.  On large installations, that may take too many resources from the webserver so it may be required to move the Graph Property Workers out of the webserver.  When each Graph Property Worker starts up, they are all started inside of their own threads and a GraphPropertyRunner coordinates each of them together.  It is possible to run more than one set of Graph Property Workers in the server which can be valuable if you are running on multi-core hardware.  To add more Graph Property Worker threads, ensure that the following is in your configuration:
+Graph Property Workers are deployed inside of the web server by default.  Having the Graph Property Workers inside of the web server works well for development and installations that do not need to scale up further than their web server.  On large installations, that may take too many resources from the web server so it may be required to move the Graph Property Workers out of the web server.  When each Graph Property Worker starts up, they are all started inside of their own threads and a GraphPropertyRunner coordinates each of them together.  It is possible to run more than one set of Graph Property Workers in the server which can be valuable if you are running on multi-core hardware.  To add more Graph Property Worker threads, ensure that the following is in your configuration:
 
 ```bash
 #Set number of graph property worker threads to 4

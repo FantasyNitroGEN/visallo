@@ -16,7 +16,7 @@ There are only two methods that you must implement when creating an [external re
 
 ## Deployment
 
-External resource workers are run inside the webserver when it is brought online.  They are injected through the service loader and then their lifecycle is started when their start method is called.  To ensure that an ExternalResourceWorker is loaded on the classpath, it must be on the classpath and be referenced in a file org.visallo.core.externalResource.ExternalResourceWorker in the META-INF/services folder in the jar. 
+External resource workers are run inside the web server when it is brought online.  They are injected through the service loader and then their lifecycle is started when their start method is called.  To ensure that an ExternalResourceWorker is loaded on the classpath, it must be on the classpath and be referenced in a file org.visallo.core.externalResource.ExternalResourceWorker in the META-INF/services folder in the jar. 
 
 If you do not want to run ExternalResourceWorkers inside of the server, add the following to your configuration.
 

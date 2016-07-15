@@ -22,7 +22,7 @@ This method handles the message that the isHandled method above returned true fo
 
 ## Deployment
 
-Long Running Processes are deployed inside of the webserver by default.  Running the Long Running Processes in the webserver is good enough for a typical installation, but the requirements are going to vary widely depending on things like:
+Long Running Processes are deployed inside of the web server by default.  Running the Long Running Processes in the web server is good enough for a typical installation, but the requirements are going to vary widely depending on things like:
 
 * Your data size, 
 * How resource-intensive your long running processes are on the server,
