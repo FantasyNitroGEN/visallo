@@ -1,7 +1,10 @@
 package org.visallo.common.rdf;
 
 import com.google.common.base.Strings;
+import org.vertexium.Authorizations;
+import org.vertexium.Element;
 import org.vertexium.ElementType;
+import org.vertexium.mutation.ExistingElementMutation;
 
 public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
     private final String metadataName;
@@ -77,5 +80,27 @@ public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
         }
 
         return super.equals(o);
+    }
+
+    @Override
+    public ImportContext updateImportContext(
+            ImportContext ctx,
+            RdfTripleImportHelper rdfTripleImportHelper,
+            Authorizations authorizations
+    ) {
+        // Currently Vertexium only supports updating metadata on ExistingElementMutation if that ever
+        //  changes this logic can be removed, updateImportContext can be renamed createImportContext
+        //  and ImportContext can be removed from the parameter list
+        if (!(ctx instanceof ExistingElementMutation)) {
+            if (ctx != null) {
+                ctx.save(authorizations);
+            }
+
+            Element element = getExistingElement(rdfTripleImportHelper.getGraph(), this, authorizations);
+            ExistingElementMutation<Element> m = element.prepareMutation();
+            return new ImportContext(getElementId(), m);
+        }
+
+        return super.updateImportContext(ctx, rdfTripleImportHelper, authorizations);
     }
 }

@@ -1,6 +1,7 @@
 package org.visallo.common.rdf;
 
 import org.apache.commons.lang.StringUtils;
+import org.vertexium.Authorizations;
 import org.vertexium.ElementType;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
@@ -359,4 +360,12 @@ public abstract class VisalloRdfTriple {
 
         return true;
     }
+
+    public abstract String getElementId();
+
+    public abstract ImportContext updateImportContext(
+            ImportContext ctx,
+            RdfTripleImportHelper rdfTripleImportHelper,
+            Authorizations authorizations
+    );
 }

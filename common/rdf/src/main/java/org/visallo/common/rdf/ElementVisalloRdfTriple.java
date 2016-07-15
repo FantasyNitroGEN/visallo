@@ -22,6 +22,7 @@ public abstract class ElementVisalloRdfTriple extends VisalloRdfTriple {
         return elementType;
     }
 
+    @Override
     public String getElementId() {
         return elementId;
     }

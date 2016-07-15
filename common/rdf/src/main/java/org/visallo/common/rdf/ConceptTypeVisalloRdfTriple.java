@@ -1,6 +1,9 @@
 package org.visallo.common.rdf;
 
+import org.vertexium.Authorizations;
 import org.vertexium.ElementType;
+import org.vertexium.VertexBuilder;
+import org.vertexium.Visibility;
 
 public class ConceptTypeVisalloRdfTriple extends ElementVisalloRdfTriple {
     private final String conceptType;
@@ -39,5 +42,16 @@ public class ConceptTypeVisalloRdfTriple extends ElementVisalloRdfTriple {
         }
 
         return super.equals(o);
+    }
+
+    @Override
+    public ImportContext updateImportContext(
+            ImportContext ctx,
+            RdfTripleImportHelper rdfTripleImportHelper,
+            Authorizations authorizations
+    ) {
+        Visibility elementVisibility = rdfTripleImportHelper.getVisibility(getElementVisibilitySource());
+        VertexBuilder m = rdfTripleImportHelper.getGraph().prepareVertex(getElementId(), elementVisibility);
+        return new ImportContext(getElementId(), m);
     }
 }
