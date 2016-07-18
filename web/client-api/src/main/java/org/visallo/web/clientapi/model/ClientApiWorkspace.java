@@ -93,8 +93,6 @@ public class ClientApiWorkspace implements ClientApiObject {
                 ", isSharedToUser=" + isSharedToUser +
                 ", isEditable=" + isEditable +
                 ", active=" + active +
-                ", users=" + StringUtils.join(users) +
-                ", vertices=" + StringUtils.join(vertices) +
                 '}';
     }
 
