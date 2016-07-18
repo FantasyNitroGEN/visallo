@@ -223,7 +223,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         VisalloProperties.CONCEPT_TYPE.setProperty(
                 workspaceVertexBuilder,
                 WORKSPACE_CONCEPT_IRI,
-                VISIBILITY.getVisibility()
+                getVisibilityTranslator().getDefaultVisibility()
         );
         WorkspaceProperties.TITLE.setProperty(workspaceVertexBuilder, title, VISIBILITY.getVisibility());
         Vertex workspaceVertex = workspaceVertexBuilder.save(authorizations);
@@ -722,6 +722,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Authorizations authorizations = getUserRepository().getAuthorizations(user, VISIBILITY_STRING, workspaceId);
         Visibility visibility = VISIBILITY.getVisibility();
         VertexBuilder dashboardItemVertexBuilder = getGraph().prepareVertex(dashboardItemId, visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(
+                dashboardItemVertexBuilder,
+                WorkspaceProperties.DASHBOARD_ITEM_CONCEPT_IRI,
+                getVisibilityTranslator().getDefaultVisibility()
+        );
         WorkspaceProperties.DASHBOARD_ITEM_EXTENSION_ID.setProperty(
                 dashboardItemVertexBuilder,
                 extensionId == null ? "" : extensionId,
@@ -791,6 +796,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Authorizations authorizations = getUserRepository().getAuthorizations(user, VISIBILITY_STRING, workspaceId);
         Visibility visibility = VISIBILITY.getVisibility();
         VertexBuilder dashboardVertexBuilder = getGraph().prepareVertex(dashboardId, visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(
+                dashboardVertexBuilder,
+                WorkspaceProperties.DASHBOARD_CONCEPT_IRI,
+                getVisibilityTranslator().getDefaultVisibility()
+        );
         WorkspaceProperties.TITLE.setProperty(dashboardVertexBuilder, title == null ? "" : title, visibility);
         Vertex dashboardVertex = dashboardVertexBuilder.save(authorizations);
 

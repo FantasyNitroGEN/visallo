@@ -20,6 +20,9 @@ You can supply visibility to a vertex by appending `[visibility string]`.
 
 This will create a vertex with the visibility `SECRET`.
 
+If the visibility string starts with a `!` the visibility string will not be transformed using the visibility translator
+and instead be used directly.
+
 ### Multi-value key
 
 You can supply multi-value keys by appending `:key` to a property name.
