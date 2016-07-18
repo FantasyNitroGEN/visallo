@@ -89,9 +89,9 @@
     <!-- http://visallo.org/workspace#configuration -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#configuration">
+        <visallo:userVisible>false</visallo:userVisible>
         <rdfs:domain rdf:resource="http://visallo.org/workspace#dashboardItem"/>
         <rdfs:range rdf:resource="&xsd;string"/>
-        <visallo:userVisible>false</visallo:userVisible>
     </owl:DatatypeProperty>
     
 
@@ -99,9 +99,9 @@
     <!-- http://visallo.org/workspace#extensionId -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#extensionId">
+        <visallo:userVisible>false</visallo:userVisible>
         <rdfs:domain rdf:resource="http://visallo.org/workspace#dashboardItem"/>
         <rdfs:range rdf:resource="&xsd;string"/>
-        <visallo:userVisible>false</visallo:userVisible>
     </owl:DatatypeProperty>
     
 
@@ -194,6 +194,7 @@
     <owl:Class rdf:about="http://visallo.org/workspace#dashboard">
         <rdfs:label xml:lang="en">Dashboard</rdfs:label>
         <visallo:userVisible>false</visallo:userVisible>
+        <visallo:titleFormula>&apos;Dashboard: &apos; + prop(&apos;http://visallo.org/workspace#workspace/title&apos;)</visallo:titleFormula>
     </owl:Class>
     
 
@@ -202,6 +203,7 @@
 
     <owl:Class rdf:about="http://visallo.org/workspace#dashboardItem">
         <rdfs:label xml:lang="en">Dashboard Item</rdfs:label>
+        <visallo:titleFormula>&apos;Dashboard Item: &apos; + prop(&apos;http://visallo.org/workspace#extensionId&apos;)</visallo:titleFormula>
         <visallo:userVisible>false</visallo:userVisible>
     </owl:Class>
     
@@ -210,6 +212,8 @@
     <!-- http://visallo.org/workspace#workspace -->
 
     <owl:Class rdf:about="http://visallo.org/workspace#workspace">
+        <rdfs:label xml:lang="en">Workspace</rdfs:label>
+        <visallo:titleFormula>&apos;Workspace: &apos; + prop(&apos;http://visallo.org/workspace#workspace/title&apos;)</visallo:titleFormula>
         <visallo:userVisible>false</visallo:userVisible>
     </owl:Class>
 </rdf:RDF>

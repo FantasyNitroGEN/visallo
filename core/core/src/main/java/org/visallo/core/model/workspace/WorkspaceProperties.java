@@ -6,6 +6,8 @@ import org.visallo.core.model.properties.types.StringSingleValueVisalloProperty;
 
 public class WorkspaceProperties {
     public static final String WORKSPACE_CONCEPT_IRI = "http://visallo.org/workspace#workspace";
+    public static final String DASHBOARD_CONCEPT_IRI = "http://visallo.org/workspace#dashboard";
+    public static final String DASHBOARD_ITEM_CONCEPT_IRI = "http://visallo.org/workspace#dashboardItem";
     public static final String WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace#toEntity";
     public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = "http://visallo.org/workspace#toUser";
     public static final String WORKSPACE_TO_DASHBOARD_RELATIONSHIP_IRI = "http://visallo.org/workspace#toDashboard";
