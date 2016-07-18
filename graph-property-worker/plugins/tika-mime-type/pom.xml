@@ -13,10 +13,6 @@
     <artifactId>visallo-gpw-tika-mime-type</artifactId>
     <name>Visallo: GraphPropertyWorker: Plugin: Tika Mime Type Mapper</name>
 
-    <properties>
-        <tika.version>1.7</tika.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.tika</groupId>
