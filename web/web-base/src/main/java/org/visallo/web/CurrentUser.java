@@ -13,6 +13,7 @@ public class CurrentUser {
     public static final String STRING_ATTRIBUTE_NAME = "username";
     private static final String MDC_USER_ID = "userId";
     private static final String MDC_USER_NAME = "userName";
+    private static final String MDC_CLIENT_IP_ADDRESS = "clientIpAddress";
 
     public static void set(HttpServletRequest request, String userId, String userName) {
         request.getSession().setAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME, new SessionUser(userId));
@@ -61,6 +62,7 @@ public class CurrentUser {
     public static void clearUserFromLogMappedDiagnosticContexts() {
         MDC.remove(MDC_USER_ID);
         MDC.remove(MDC_USER_NAME);
+        MDC.remove(MDC_CLIENT_IP_ADDRESS);
     }
 
     public static void setUserInLogMappedDiagnosticContexts(HttpServletRequest request) {
@@ -72,5 +74,29 @@ public class CurrentUser {
         if (userName != null) {
             MDC.put(MDC_USER_NAME, userName);
         }
+
+        MDC.put(MDC_CLIENT_IP_ADDRESS, getClientIpAddr(request));
+    }
+
+    // code adapted from: http://stackoverflow.com/a/15323776/39431
+    public static String getClientIpAddr(HttpServletRequest request) {
+        String ip;
+        ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
     }
 }
