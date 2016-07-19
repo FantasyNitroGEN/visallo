@@ -8,7 +8,7 @@ This guide is intended for those who wish to:
 
 In order to work with Visallo as a developer, it's recommended that:
 
-* You know Java, since the entire backend is written in Java.
+* You know Java, since the entire back end is written in Java.
 * You know JavaScript, as the UI is very JavaScript heavy.
 
 If that sounds like you, then please keep in mind the following conventions you'll encounter while reading this guide.
