@@ -2,7 +2,7 @@
 
 ## Introduction
 
-If you went through the [last tutorial](./helloworldgpw.md), you already have your own customized graph property worker that will change the titles of every new entity on the graph to "Hello World".  Continuing with the hello world theme, we want to make sure that we can communicate between both our front end and our backend.  To discover how to add an item to the menu bar of the details pane, we recommend taking a look at the web plugin example that is already loaded in your ```web``` folder.  For this tutorial, we will be adding an item to the right-click context menu so that we can send information about the vertex back to the server.
+If you went through the [last tutorial](./helloworldgpw.md), you already have your own customized graph property worker that will change the titles of every new entity on the graph to "Hello World".  Continuing with the hello world theme, we want to make sure that we can communicate between both our front end and our back end.  To discover how to add an item to the menu bar of the details pane, we recommend taking a look at the web plugin example that is already loaded in your ```web``` folder.  For this tutorial, we will be adding an item to the right-click context menu so that we can send information about the vertex back to the server.
 
 ## Scaffolding the project
 
@@ -108,7 +108,7 @@ Go to the root of your project and run ```mvn clean package && ./run.sh``` again
 
 Congratulations!  We now have a front-end-only web plugin which is pretty good.  But what we really want to do is be able to communicate from the front-end to the back-end and do something with a repsonse on the front-end.  In our next steps we will create and use a web-worker to send an ajax request back to the server, do something with it, and receive some data on the front end.
 
-###  Communicate to the backend through a web worker
+###  Communicate to the back end through a web worker
 
 To start, let's create an endpoint that we can have the ajax request hit.  For right now, we are just going to ```System.out.println``` the information that we get receive from the front end.
 

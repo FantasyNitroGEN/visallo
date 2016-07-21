@@ -1,6 +1,6 @@
 # Activity Plugin
 
-Plugin to configure the user interface for activity items
+Plugin to configure the user interface for activity items.
 
 To register an activity item:
 
@@ -33,8 +33,8 @@ require(['configuration/plugins/registry'], function(registry) {
     activity.tasks.type.saveWorkspace=Save Workspace
     ```
 
-* `kind`: (String) Kind of activity. Currently allows `eventWatcher`, `longRunningProcess`
-* `titleRenderer`: (function) Responsible for rendering the rows title. (Can be async)
+* `kind`: (String) Kind of activity. Currently allows `eventWatcher`, `longRunningProcess`.
+* `titleRenderer`: (function) Responsible for rendering the rows title. (Can be async).
 
     ```js
     function myRenderer(el, task) {
@@ -42,8 +42,8 @@ require(['configuration/plugins/registry'], function(registry) {
     }
     ```
         
-* `autoDismiss`: (boolean) True to auto remove row on complete
-* `allowCancel`: (boolean) True to show cancel button (default false for eventWatcher, true for longRunningProcess)
+* `autoDismiss`: (boolean) True to auto remove row on complete.
+* `allowCancel`: (boolean) True to show cancel button (default false for eventWatcher, true for longRunningProcess).
 
 
 # Activity Kind Specific Properties
@@ -58,7 +58,7 @@ require(['configuration/plugins/registry'], function(registry) {
 1. `longRunningProcess`
 
     Optional properties:
-    * `finishedComponentPath`: (String) Path to flight component for finished button
+    * `finishedComponentPath`: (String) Path to flight component for finished button.
 
 
 

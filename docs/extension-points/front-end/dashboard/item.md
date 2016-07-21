@@ -8,10 +8,10 @@ The `org.visallo.web.dashboard.item` extension allows custom content to be rende
 * `title` _(required)_ `[String]` Title of card to display when users are choosing items.
 * `description` _(required)_ `[String]` Description of card to display under title when users are choosing items.
 * One of the following is required: `componentPath`, or `report`.
-    * `componentPath` _(required)_ `[String]` Path to FlightJS component to render
-    * `report` _(required)_ `[Object]` Specify an aggregation report 
-* `configurationPath` _(optional)_ `[String]` Add custom configuration to the configure screen for this item
-* `grid` _(optional)_ `[Object]` Default sizing of item in grid
+    * `componentPath` _(required)_ `[String]` Path to FlightJS component to render.
+    * `report` _(required)_ `[Object]` Specify an aggregation report. 
+* `configurationPath` _(optional)_ `[String]` Add custom configuration to the configure screen for this item.
+* `grid` _(optional)_ `[Object]` Default sizing of item in grid.
     * `width` _(optional)_ `[Number]` Width in grid cells `1-12`
     * `height` _(optional)_ `[Number]` Height in grid rows `> 0`
 * `options` _(optional)_ `[Object]`
@@ -48,8 +48,8 @@ An item can be a report if either: the extension defines the `report`, or a comp
 
 * `defaultRenderer` _(optional)_ `[String]` The identifier of a report renderer to use as default when adding this item.
 * `endpoint` _(required)_ `[String]` The endpoint path to access the data. See [`Router`](https://github.com/v5analytics/visallo/blob/master/web/web-base/src/main/java/org/visallo/web/Router.java) for all available endpoints.
-* `endpointParameters` _(optional)_ `[Object]` Parameters to pass to endpoint
-* `mapping` _(optional)_ `[Object]` Custom configuration for mapping results
+* `endpointParameters` _(optional)_ `[Object]` Parameters to pass to endpoint.
+* `mapping` _(optional)_ `[Object]` Custom configuration for mapping results.
     * `transformerModulePath` _(optional)_ `[String]` RequireJS path to function that can transform the endpoint results to something a reportRenderer can handle. Only necessary if aggregations or search aren't used.
 * `clickHandlerModulePath` _(optional)_ `[String]` RequireJS path to a function that handles click events. Called with arguments: `target`, `object.`
 
@@ -84,22 +84,22 @@ registry.registerExtension('org.visallo.web.dashboard.item', {
 
 ##### Search Edgepoints
 
-* `vertex/search`: Only return vertices
-* `edge/search`: Only return edges
-* `element/search`: Search both vertices and edges
+* `vertex/search`: Only return vertices.
+* `edge/search`: Only return edges.
+* `element/search`: Search both vertices and edges.
 
 ##### Search Edgepoint Parameters
 
 * `q` _(required)_ `[String]` Search query, or asterisk.
 * `size` _(optional)_ `[Number]` Number of results to limit to, use `0` if using aggregations.
-* `offset` _(optional)_ `[Number]` Index of results to start
-* `filter` _(required)_ `[Array]` List of filter properties
-    * `propertyName` _(required)_ `[String]` Iri of property name to filter
+* `offset` _(optional)_ `[Number]` Index of results to start.
+* `filter` _(required)_ `[Array]` List of filter properties.
+    * `propertyName` _(required)_ `[String]` Iri of property name to filter.
     * `predicate` _(required)_ `[String]` Type of filter operation `has`, `hasNot`, `equal`, `contains`, `range`, `<`, `>`
-    * `values` _(optional)_ `[Array]` Value(s) to apply to predicate 
+    * `values` _(optional)_ `[Array]` Value(s) to apply to predicate.
 * `aggregations` _(optional)_ `[Array]` List of aggregations to apply, each item is json string.
     * `type` _(required)_ `[String]` Type of aggregation: `term`, `geohash`, `histogram`
-        * `term` Group by value of `field` and return counts
+        * `term` Group by value of `field` and return counts.
         * `geohash` Group by value of `field` with geohash [`precision` _(required)_](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-geohashgrid-aggregation.html) and return counts.
         * `histogram` Group range (specified by [`interval` _(required)_](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-histogram-aggregation.html)) of values and their counts.
         * `statistics` Statistics for property: [`min`, `max`, `count`, `average`, `sum`](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-stats-aggregation.html).

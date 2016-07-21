@@ -17,9 +17,9 @@ require(['configuration/plugins/registry'], function(registry) {
 
 # Properties
 
-* `section`: _(required)_ `[String]` Existing or new section to place this item
-* `name`: _(required)_ `[String]` Name of the admin tool, to be displayed under the section
-* `subtitle`: _(optional)_ `[String]` Text to describe admin tool
+* `section`: _(required)_ `[String]` Existing or new section to place this item.
+* `name`: _(required)_ `[String]` Name of the admin tool, to be displayed under the section.
+* `subtitle`: _(optional)_ `[String]` Text to describe admin tool.
 * Exactly one of: `componentPath` or `Component`, or `url` _(required)_
 
     * `componentPath`: `[String]` requirejs or react component path

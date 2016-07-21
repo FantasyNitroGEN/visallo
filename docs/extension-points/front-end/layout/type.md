@@ -4,7 +4,7 @@
 
 ### flex
 
-Uses flexbox model to layout children vertically or horizontally
+Uses flexbox model to layout children vertically or horizontally.
 
 ## Custom layout types
 

@@ -2,7 +2,7 @@
 User Account Plugin
 =====================
 
-Plugin to configure the new pages for user account dialog
+Plugin to configure the new pages for user account dialog.
 
 To register a page:
 

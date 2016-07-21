@@ -11,7 +11,7 @@ There are several built-in renderers defined in [`reportRenderers.js`](https://g
 * `identifier` _(required)_ `[String]` Unique identifier for this type of renderer. Can be referenced by dashboard report item using `defaultRenderer: [id]` in report configuration.
 * `supportsResponse` _(required)_ `[Function]` Return `true` if this renderer can handle the `data` argument passed to it.
 * `label` _(required)_ `[String]` Shown in the configuration interface (shown above) in _Visualization_ section.
-* `componentPath` _(required)_ `[String]` RequireJS path to renderer component
+* `componentPath` _(required)_ `[String]` RequireJS path to renderer component.
 * `configurationPath` _(optional)_ `[String]` RequireJS path to extra configuration.
 
 
@@ -21,7 +21,7 @@ The custom report renderer can mixin [`dashboard/reportRenderers/withReportRende
 * Automatically requesting data using endpoint configuration
 * Handling refresh and reflow events
 * Basic click handling if aggregations found
-* Error Handling
+* Error handling
 
 #### Component Attributes
 
@@ -30,9 +30,9 @@ The custom report renderer can mixin [`dashboard/reportRenderers/withReportRende
     
 #### `withReportRenderer` Mixin
 
-If the renderer uses the mixin, the only function required is `render`. Optionally a `processData` function can be defined to transform the raw server results. It's better to process the data in `processData` function instead of `render` because it will run once on `refreshData` events, instead of on every `reflow` event.
+If the renderer uses the mixin, the only function required is `render`. Optionally, a `processData` function can be defined to transform the raw server results. It's better to process the data in `processData` function instead of `render` because it will run once on `refreshData` events, instead of on every `reflow` event.
 
-The render function is called with 4 parameters
+The render function is called with four parameters
 
     render(d3, svgNode, data, d3tip);
 
@@ -71,7 +71,7 @@ figure img { float: left; margin-right: 0.5em; }
     <img src="renderer-bar-h.png" width="200">
     <figcaption>
         <code>org-visallo-bar-horizontal</code>
-        <p>Horizontal bar chart, also supports stacked bars if 2 aggregations provided.
+        <p>Horizontal bar chart, also supports stacked bars if two aggregations provided.
     </figcaption>
 </figure>
 
@@ -79,7 +79,7 @@ figure img { float: left; margin-right: 0.5em; }
     <img src="renderer-bar-v.png" width="200">
     <figcaption>
         <code>org-visallo-bar-vertical</code>
-        <p>Vertical bar chart, also supports stacked bars if 2 aggregations provided.
+        <p>Vertical bar chart, also supports stacked bars if two aggregations provided.
     </figcaption>
 </figure>
 
@@ -87,7 +87,7 @@ figure img { float: left; margin-right: 0.5em; }
     <img src="renderer-pie.png" width="200">
     <figcaption>
         <code>org-visallo-pie</code>
-        <p>A classic pie chart
+        <p>A classic pie chart.
     </figcaption>
 </figure>
 

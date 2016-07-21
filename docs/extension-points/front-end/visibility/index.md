@@ -2,7 +2,7 @@
 
 Plugin to configure the user interface for displaying and editing visibility authorization strings.
 
-The visibility component requires two flightjs components registered for viewing and editing:
+The visibility component requires two FlightJS components registered for viewing and editing:
 
 ```js
 registry.registerExtension('org.visallo.visibility', {
@@ -19,7 +19,7 @@ Describes the form for editing visibility values.
 
 Accessible in plugin as `this.attr`
 
-* `value`: Previous value to populate
+* `value`: Previous value to populate.
 
 ### Events
 
@@ -27,7 +27,7 @@ Visibility plugins event contract.
 
 #### Must Respond to:
 
-* `visibilityclear`: Clears the current value
+* `visibilityclear`: Clears the current value.
 
 ```js
 this.on('visibilityclear', function() {
@@ -53,5 +53,5 @@ Describes the display of visibility values.
 
 ### Attributes
 
-* `value`: Current visibility value
-* `property`: Current property
+* `value`: Current visibility value.
+* `property`: Current property.

@@ -8,7 +8,7 @@ Search toolbar items display below the search query input field. They have acces
 
 * `tooltip` _(required)_ `[String]`
 
-    What to display in `title` attribute
+    What to display in `title` attribute.
     
 * `icon` _(required)_ `[String]` 
 
@@ -25,9 +25,9 @@ Search toolbar items display below the search query input field. They have acces
             Attributes available for component:
 
             * `model` `[Object]`:
-                * `search` `[Object]`: The current search with same keys listed in `canHandle`
-                * `extension` `[Object]`: The extension that registered this toolbar item
-                * `element` `[Element]`: DOM element of the search container
+                * `search` `[Object]`: The current search with same keys listed in `canHandle`.
+                * `extension` `[Object]`: The extension that registered this toolbar item.
+                * `element` `[Element]`: DOM element of the search container.
 
     * `type: 'event'`
 
@@ -52,7 +52,7 @@ Search toolbar items display below the search query input field. They have acces
 
     Function will be called after icon ImageElement is created.
 
-    * `Element`: The image DOM element
+    * `Element`: The image DOM element.
 
 * `onClick` _(optional)_ `[Function]`
 
