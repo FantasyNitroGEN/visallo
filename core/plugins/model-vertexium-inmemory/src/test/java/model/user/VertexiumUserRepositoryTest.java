@@ -1,6 +1,5 @@
 package model.user;
 
-import com.google.common.collect.Sets;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,10 +17,7 @@ import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.InMemoryAuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.user.UserSessionCounterRepository;
+import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.vertexium.model.user.VertexiumUser;
@@ -41,7 +37,7 @@ public class VertexiumUserRepositoryTest {
     @Mock
     private Concept userConcept;
 
-    private AuthorizationRepository authorizationRepository;
+    private GraphAuthorizationRepository graphAuthorizationRepository;
     private VertexiumUserRepository vertexiumUserRepository;
 
     @Mock
@@ -58,31 +54,44 @@ public class VertexiumUserRepositoryTest {
 
     private LockRepository lockRepository = new NonLockingLockRepository();
 
+    @Mock
+    private AuthorizationRepository authorizationRepository;
+
+    @Mock
+    private PrivilegeRepository privilegeRepository;
+
     @Before
     public void setup() {
         InMemoryGraphConfiguration config = new InMemoryGraphConfiguration(new HashMap());
-        authorizationRepository = new InMemoryAuthorizationRepository();
-        authorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING.toString());
-        when(ontologyRepository.getOrCreateConcept((Concept) isNull(), eq(UserRepository.USER_CONCEPT_IRI), anyString(), (java.io.File) anyObject(), anyBoolean())).thenReturn(userConcept);
+        graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
+        graphAuthorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING.toString());
+        when(ontologyRepository.getOrCreateConcept(
+                (Concept) isNull(),
+                eq(UserRepository.USER_CONCEPT_IRI),
+                anyString(),
+                anyObject(),
+                anyBoolean()
+        )).thenReturn(userConcept);
         when(userConcept.getIRI()).thenReturn(UserRepository.USER_CONCEPT_IRI);
 
         Configuration visalloConfiguration = new HashMapConfigurationLoader(new HashMap()).createConfiguration();
         vertexiumUserRepository = new VertexiumUserRepository(
                 visalloConfiguration,
                 simpleOrmSession,
-                authorizationRepository,
+                graphAuthorizationRepository,
                 InMemoryGraph.create(config, new UUIDIdGenerator(config), new DefaultSearchIndex(config)),
                 ontologyRepository,
                 userSessionCounterRepository,
                 workQueueRepository,
-                userNotificationRepository,
-                lockRepository
+                lockRepository,
+                authorizationRepository,
+                privilegeRepository
         );
     }
 
     @Test
     public void testFindOrAddUser() {
-        vertexiumUserRepository.findOrAddUser("12345", "testUser", null, "testPassword", Sets.newHashSet(), Sets.newHashSet("auth1", "auth2"));
+        vertexiumUserRepository.findOrAddUser("12345", "testUser", null, "testPassword");
 
         VertexiumUser vertexiumUser = (VertexiumUser) vertexiumUserRepository.findByUsername("12345");
         assertEquals("testUser", vertexiumUser.getDisplayName());

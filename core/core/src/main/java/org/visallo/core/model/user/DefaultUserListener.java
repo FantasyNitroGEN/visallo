@@ -32,7 +32,7 @@ public class DefaultUserListener implements UserListener {
     }
 
     @Override
-    public void userLogin(User user, String remoteAddr) {
+    public void userLogin(User user, AuthorizationContext authorizationContext) {
 
     }
 

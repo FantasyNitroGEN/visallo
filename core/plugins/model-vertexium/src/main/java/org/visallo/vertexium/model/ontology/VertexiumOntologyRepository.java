@@ -22,7 +22,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.TimingCallable;
 import org.visallo.core.util.VisalloLogger;
@@ -64,13 +64,13 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     public VertexiumOntologyRepository(
             final Graph graph,
             final Configuration config,
-            final AuthorizationRepository authorizationRepository,
+            final GraphAuthorizationRepository graphAuthorizationRepository,
             final LockRepository lockRepository
     ) throws Exception {
         super(config, lockRepository);
         this.graph = graph;
 
-        authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
+        graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
 
         defineRequiredProperties(graph);
 

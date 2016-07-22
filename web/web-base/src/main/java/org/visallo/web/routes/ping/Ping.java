@@ -8,6 +8,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -27,13 +28,14 @@ public class Ping implements ParameterizedHandler {
             Graph graph,
             WorkQueueRepository workQueueRepository,
             LongRunningProcessRepository longRunningProcessRepository,
-            PingUtil pingUtil
+            PingUtil pingUtil,
+            AuthorizationRepository authorizationRepository
     ) {
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.longRunningProcessRepository = longRunningProcessRepository;
         this.pingUtil = pingUtil;
-        this.authorizations = userRepository.getAuthorizations(userRepository.getSystemUser());
+        this.authorizations = authorizationRepository.getGraphAuthorizations(userRepository.getSystemUser());
     }
 
     @Handle

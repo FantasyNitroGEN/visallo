@@ -3,22 +3,24 @@ package org.visallo.core.externalResource;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.inject.Inject;
+import org.json.JSONObject;
+import org.vertexium.Authorizations;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.WorkerTuple;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.MetricEntry;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.json.JSONObject;
-import org.vertexium.Authorizations;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 public abstract class QueueExternalResourceWorker extends ExternalResourceWorker {
     public static final String QUEUE_NAME_PREFIX = "externalResource-";
+    private final AuthorizationRepository authorizationRepository;
     private WorkQueueRepository workQueueRepository;
     private UserRepository userRepository;
     private volatile boolean shouldRun;
@@ -26,6 +28,10 @@ public abstract class QueueExternalResourceWorker extends ExternalResourceWorker
     private Counter totalProcessedCounter;
     private Counter totalErrorCounter;
     private Collection<MetricEntry> metrics;
+
+    protected QueueExternalResourceWorker(AuthorizationRepository authorizationRepository) {
+        this.authorizationRepository = authorizationRepository;
+    }
 
     @Override
     protected void prepare(@SuppressWarnings("UnusedParameters") User user) {
@@ -45,7 +51,7 @@ public abstract class QueueExternalResourceWorker extends ExternalResourceWorker
     protected void run() throws Exception {
         VisalloLogger logger = VisalloLoggerFactory.getLogger(this.getClass());
 
-        Authorizations authorizations = getUserRepository().getAuthorizations(getUserRepository().getSystemUser());
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(getUserRepository().getSystemUser());
 
         WorkerSpout workerSpout = this.workQueueRepository.createWorkerSpout(getQueueName());
         workerSpout.open();

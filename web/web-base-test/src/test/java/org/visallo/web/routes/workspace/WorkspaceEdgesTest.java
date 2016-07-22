@@ -43,8 +43,6 @@ public class WorkspaceEdgesTest extends RouteTestBase {
         Visibility visibility = new Visibility("");
         authorizations = graph.createAuthorizations("");
 
-        when(userRepository.getAuthorizations(eq(user), eq(WORKSPACE_ID))).thenReturn(authorizations);
-
         workspaceVertex = graph.addVertex(WORKSPACE_ID, workspaceVisibility, workspaceAuthorizations);
         Vertex v1 = graph.addVertex("v1", visibility, authorizations);
         Vertex v2 = graph.addVertex("v2", visibility, authorizations);

@@ -45,15 +45,17 @@ public class VertexNew implements ParameterizedHandler {
     private final WorkQueueRepository workQueueRepository;
     private final OntologyRepository ontologyRepository;
     private final GraphRepository graphRepository;
+    private final WorkspaceHelper workspaceHelper;
 
     @Inject
     public VertexNew(
-            final Graph graph,
-            final VisibilityTranslator visibilityTranslator,
-            final WorkspaceRepository workspaceRepository,
-            final WorkQueueRepository workQueueRepository,
-            final OntologyRepository ontologyRepository,
-            final GraphRepository graphRepository
+            Graph graph,
+            VisibilityTranslator visibilityTranslator,
+            WorkspaceRepository workspaceRepository,
+            WorkQueueRepository workQueueRepository,
+            OntologyRepository ontologyRepository,
+            GraphRepository graphRepository,
+            WorkspaceHelper workspaceHelper
     ) {
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
@@ -61,6 +63,7 @@ public class VertexNew implements ParameterizedHandler {
         this.workQueueRepository = workQueueRepository;
         this.ontologyRepository = ontologyRepository;
         this.graphRepository = graphRepository;
+        this.workspaceHelper = workspaceHelper;
     }
 
     @Handle
@@ -77,12 +80,15 @@ public class VertexNew implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
+        if (!graph.isVisibilityValid(
+                visibilityTranslator.toVisibility(visibilitySource).getVisibility(),
+                authorizations
+        )) {
             LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
             throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
         }
 
-        workspaceId = WorkspaceHelper.getWorkspaceIdOrNullIfPublish(workspaceId, shouldPublish, user);
+        workspaceId = workspaceHelper.getWorkspaceIdOrNullIfPublish(workspaceId, shouldPublish, user);
 
         Vertex vertex = graphRepository.addVertex(
                 vertexId,
@@ -102,7 +108,10 @@ public class VertexNew implements ParameterizedHandler {
                 OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.propertyName);
                 checkNotNull(ontologyProperty, "Could not find ontology property '" + property.propertyName + "'");
                 Object value = ontologyProperty.convertString(property.value);
-                Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(property.metadataString, this.visibilityTranslator.getDefaultVisibility());
+                Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(
+                        property.metadataString,
+                        this.visibilityTranslator.getDefaultVisibility()
+                );
                 VisibilityAndElementMutation<Vertex> setPropertyResult = graphRepository.setProperty(
                         vertex,
                         property.propertyName,

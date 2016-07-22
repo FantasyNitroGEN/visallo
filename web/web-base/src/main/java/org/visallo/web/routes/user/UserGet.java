@@ -6,6 +6,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -15,14 +16,17 @@ import org.visallo.web.clientapi.model.ClientApiUser;
 public class UserGet implements ParameterizedHandler {
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final AuthorizationRepository authorizationRepository;
 
     @Inject
     public UserGet(
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository
+            UserRepository userRepository,
+            WorkspaceRepository workspaceRepository,
+            AuthorizationRepository authorizationRepository
     ) {
         this.userRepository = userRepository;
         this.workspaceRepository = workspaceRepository;
+        this.authorizationRepository = authorizationRepository;
     }
 
     @Handle
@@ -34,7 +38,7 @@ public class UserGet implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("user not found");
         }
 
-        Authorizations authorizations = userRepository.getAuthorizations(user);
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(user);
 
         ClientApiUser clientApiUser = userRepository.toClientApiPrivate(user);
 

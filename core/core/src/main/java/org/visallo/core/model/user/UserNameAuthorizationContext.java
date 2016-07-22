@@ -5,8 +5,8 @@ import org.visallo.core.user.User;
 public class UserNameAuthorizationContext extends AuthorizationContext {
     private final String username;
 
-    public UserNameAuthorizationContext(User existingUser, String username) {
-        super(existingUser);
+    public UserNameAuthorizationContext(String username, String remoteAddr) {
+        super(remoteAddr);
         this.username = username;
     }
 

@@ -9,6 +9,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloAccessDeniedException;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
@@ -25,16 +26,19 @@ public class VertexMultiple implements ParameterizedHandler {
     private final Graph graph;
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final AuthorizationRepository authorizationRepository;
 
     @Inject
     public VertexMultiple(
-            final Graph graph,
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository
+            Graph graph,
+            UserRepository userRepository,
+            WorkspaceRepository workspaceRepository,
+            AuthorizationRepository authorizationRepository
     ) {
         this.graph = graph;
         this.userRepository = userRepository;
         this.workspaceRepository = workspaceRepository;
+        this.authorizationRepository = authorizationRepository;
     }
 
     @Handle
@@ -48,23 +52,40 @@ public class VertexMultiple implements ParameterizedHandler {
         HashSet<String> vertexStringIds = new HashSet<>(Arrays.asList(vertexIdsParam));
         GetAuthorizationsResult getAuthorizationsResult = getAuthorizations(request, fallbackToPublic, user);
 
-        Iterable<Vertex> graphVertices = graph.getVertices(vertexStringIds, ClientApiConverter.SEARCH_FETCH_HINTS, getAuthorizationsResult.authorizations);
+        Iterable<Vertex> graphVertices = graph.getVertices(
+                vertexStringIds,
+                ClientApiConverter.SEARCH_FETCH_HINTS,
+                getAuthorizationsResult.authorizations
+        );
         ClientApiVertexMultipleResponse result = new ClientApiVertexMultipleResponse();
         result.setRequiredFallback(getAuthorizationsResult.requiredFallback);
         for (Vertex v : graphVertices) {
-            result.getVertices().add(ClientApiConverter.toClientApiVertex(v, workspaceId, getAuthorizationsResult.authorizations));
+            result.getVertices().add(ClientApiConverter.toClientApiVertex(
+                    v,
+                    workspaceId,
+                    getAuthorizationsResult.authorizations
+            ));
         }
         return result;
     }
 
-    protected GetAuthorizationsResult getAuthorizations(HttpServletRequest request, boolean fallbackToPublic, User user) {
+    protected GetAuthorizationsResult getAuthorizations(
+            HttpServletRequest request,
+            boolean fallbackToPublic,
+            User user
+    ) {
         GetAuthorizationsResult result = new GetAuthorizationsResult();
         result.requiredFallback = false;
         try {
-            result.authorizations = AuthorizationsParameterProviderFactory.getAuthorizations(request, userRepository, workspaceRepository);
+            result.authorizations = AuthorizationsParameterProviderFactory.getAuthorizations(
+                    request,
+                    userRepository,
+                    authorizationRepository,
+                    workspaceRepository
+            );
         } catch (VisalloAccessDeniedException ex) {
             if (fallbackToPublic) {
-                result.authorizations = userRepository.getAuthorizations(user);
+                result.authorizations = authorizationRepository.getGraphAuthorizations(user);
                 result.requiredFallback = true;
             } else {
                 throw ex;

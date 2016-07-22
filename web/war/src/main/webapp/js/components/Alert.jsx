@@ -17,9 +17,7 @@ define([
 
         renderMessage() {
             var info;
-            if (_.isArray(this.props.error)) {
-                info = this.props.error;
-            } else if (this.props.error.statusText) {
+            if (this.props.error.statusText) {
                 info = this.props.error.statusText;
             } else {
                 info = i18n('admin.plugin.error');

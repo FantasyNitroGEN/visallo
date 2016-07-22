@@ -74,7 +74,11 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         return getParameterValues(request, parameterName, true);
     }
 
-    public static EnumSet<FetchHint> getOptionalParameterFetchHints(HttpServletRequest request, String parameterName, EnumSet<FetchHint> defaultFetchHints) {
+    public static EnumSet<FetchHint> getOptionalParameterFetchHints(
+            HttpServletRequest request,
+            String parameterName,
+            EnumSet<FetchHint> defaultFetchHints
+    ) {
         String val = getOptionalParameter(request, parameterName);
         if (val == null) {
             return defaultFetchHints;
@@ -87,7 +91,11 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         }));
     }
 
-    public static Integer getOptionalParameterInt(final HttpServletRequest request, final String parameterName, Integer defaultValue) {
+    public static Integer getOptionalParameterInt(
+            final HttpServletRequest request,
+            final String parameterName,
+            Integer defaultValue
+    ) {
         String val = getOptionalParameter(request, parameterName);
         if (val == null || val.length() == 0) {
             return defaultValue;
@@ -95,12 +103,19 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         return Integer.parseInt(val);
     }
 
-    public static String[] getOptionalParameterAsStringArray(final HttpServletRequest request, final String parameterName) {
+    public static String[] getOptionalParameterAsStringArray(
+            final HttpServletRequest request,
+            final String parameterName
+    ) {
         Preconditions.checkNotNull(request, "The provided request was invalid");
         return getParameterValues(request, parameterName, true);
     }
 
-    public static Float getOptionalParameterFloat(final HttpServletRequest request, final String parameterName, Float defaultValue) {
+    public static Float getOptionalParameterFloat(
+            final HttpServletRequest request,
+            final String parameterName,
+            Float defaultValue
+    ) {
         String val = getOptionalParameter(request, parameterName);
         if (val == null || val.length() == 0) {
             return defaultValue;
@@ -108,7 +123,11 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         return Float.parseFloat(val);
     }
 
-    public static Double getOptionalParameterDouble(final HttpServletRequest request, final String parameterName, Double defaultValue) {
+    public static Double getOptionalParameterDouble(
+            final HttpServletRequest request,
+            final String parameterName,
+            Double defaultValue
+    ) {
         String val = getOptionalParameter(request, parameterName);
         if (val == null || val.length() == 0) {
             return defaultValue;
@@ -116,7 +135,11 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         return Double.parseDouble(val);
     }
 
-    protected static String[] getParameterValues(final HttpServletRequest request, final String parameterName, final boolean optional) {
+    protected static String[] getParameterValues(
+            final HttpServletRequest request,
+            final String parameterName,
+            final boolean optional
+    ) {
         String[] paramValues = request.getParameterValues(parameterName);
 
         if (paramValues == null) {
@@ -149,7 +172,11 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         return result;
     }
 
-    protected static String getParameter(final HttpServletRequest request, final String parameterName, final boolean optional) {
+    protected static String getParameter(
+            final HttpServletRequest request,
+            final String parameterName,
+            final boolean optional
+    ) {
         String paramValue = request.getParameter(parameterName);
         if (paramValue == null) {
             Object paramValueObject = request.getAttribute(parameterName);
@@ -158,7 +185,10 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             }
             if (paramValue == null) {
                 if (!optional) {
-                    throw new VisalloException(String.format("Parameter: '%s' is required in the request", parameterName));
+                    throw new VisalloException(String.format(
+                            "Parameter: '%s' is required in the request",
+                            parameterName
+                    ));
                 }
                 return null;
             }
@@ -170,7 +200,10 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         return getUser(request, getUserRepository());
     }
 
-    public static User getUser(HttpServletRequest request, UserRepository userRepository) {
+    public static User getUser(
+            HttpServletRequest request,
+            UserRepository userRepository
+    ) {
         ProxyUser user = (ProxyUser) request.getAttribute("user");
         if (user != null) {
             return user;
@@ -202,7 +235,10 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             if (timeZone == null || timeZone.trim().length() == 0) {
                 timeZone = getOptionalParameter(request, TIME_ZONE_PARAMETER_NAME);
                 if (timeZone == null || timeZone.trim().length() == 0) {
-                    timeZone = this.configuration.get(Configuration.DEFAULT_TIME_ZONE, TimeZone.getDefault().getDisplayName());
+                    timeZone = this.configuration.get(
+                            Configuration.DEFAULT_TIME_ZONE,
+                            TimeZone.getDefault().getDisplayName()
+                    );
                 }
             }
         }

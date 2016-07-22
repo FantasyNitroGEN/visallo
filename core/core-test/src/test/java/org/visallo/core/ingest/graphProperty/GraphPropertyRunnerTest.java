@@ -7,9 +7,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.StatusRepository;
@@ -25,6 +29,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class GraphPropertyRunnerTest {
     private static final Object MESSAGE_ID = "messageId";
     private static final String VERTEX_ID = "vertexID";
@@ -34,20 +39,37 @@ public class GraphPropertyRunnerTest {
     private static final String PROP_KEY = "propKey";
     private static final String PROP_VALUE = "propValue";
 
-    private GraphPropertyRunner _testSubject;
-    private Graph _graph;
+    private GraphPropertyRunner testSubject;
+    private Graph graph;
+
+    @Mock
+    private WorkQueueRepository workQueueRepository;
+
+    @Mock
+    private StatusRepository statusRepository;
+
+    @Mock
+    private Configuration configuration;
+
+    @Mock
+    private AuthorizationRepository authorizationRepository;
 
     @Before
     public void before() {
-        _testSubject = new GraphPropertyRunner(mock(WorkQueueRepository.class), mock(StatusRepository.class), mock(Configuration.class));
-        _graph = mock(Graph.class);
-        _testSubject.setGraph(_graph);
+        testSubject = new GraphPropertyRunner(
+                workQueueRepository,
+                statusRepository,
+                configuration,
+                authorizationRepository
+        );
+        graph = mock(Graph.class);
+        testSubject.setGraph(graph);
     }
 
     @Test(expected = VisalloException.class)
     public void testUnknownProcessingMessageThrowsException() throws Exception {
         JSONObject obj = createTestJSONGPWMessage();
-        _testSubject.process(MESSAGE_ID, obj);
+        testSubject.process(MESSAGE_ID, obj);
     }
 
     @Test
@@ -169,9 +191,9 @@ public class GraphPropertyRunnerTest {
     private void runTests(GraphPropertyWorker worker, JSONObject message) throws Exception {
         GraphPropertyThreadedWrapper graphPropertyThreadedWrapper = startInThread(worker);
 
-        _testSubject.addGraphPropertyThreadedWrappers(graphPropertyThreadedWrapper);
+        testSubject.addGraphPropertyThreadedWrappers(graphPropertyThreadedWrapper);
 
-        _testSubject.process(MESSAGE_ID, message);
+        testSubject.process(MESSAGE_ID, message);
 
         stopInThread(graphPropertyThreadedWrapper);
     }
@@ -278,11 +300,11 @@ public class GraphPropertyRunnerTest {
     }
 
     private void registerVertexWithGraph(String id, Vertex v) {
-        when(_graph.getVertex(eq(id), any(Authorizations.class))).thenReturn(v);
+        when(graph.getVertex(eq(id), any(Authorizations.class))).thenReturn(v);
     }
 
     private void registerEdgeWithGraph(String edgeId, Edge e) {
-        when(_graph.getEdge(eq(edgeId), any(Authorizations.class))).thenReturn(e);
+        when(graph.getEdge(eq(edgeId), any(Authorizations.class))).thenReturn(e);
     }
 
     private static JSONObject createMultiEdgeIdJSONGPWMessage(String... edgeIds) {
@@ -290,7 +312,13 @@ public class GraphPropertyRunnerTest {
     }
 
     private static JSONObject createMultiVertexPropertyMessage(String[] vertexIds, Property property) {
-        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_VERTEX_ID, createStringJSONArray(vertexIds)).put(GraphPropertyMessage.PROPERTY_KEY, property.getKey()).put(GraphPropertyMessage.PROPERTY_NAME, property.getName());
+        return createTestJSONGPWMessage().put(
+                GraphPropertyMessage.GRAPH_VERTEX_ID,
+                createStringJSONArray(vertexIds)
+        ).put(GraphPropertyMessage.PROPERTY_KEY, property.getKey()).put(
+                GraphPropertyMessage.PROPERTY_NAME,
+                property.getName()
+        );
     }
 
     private static JSONObject createMultiVertexIdJSONGPWMessage(String... vertexIds) {
@@ -298,7 +326,10 @@ public class GraphPropertyRunnerTest {
     }
 
     private static JSONObject createVertexPropertyGPWMessage(String vertexId, String propertyName, String propertyKey) {
-        return createVertexIdJSONGPWMessage(vertexId).put(GraphPropertyMessage.PROPERTY_KEY, propertyKey).put(GraphPropertyMessage.PROPERTY_NAME, propertyName);
+        return createVertexIdJSONGPWMessage(vertexId).put(GraphPropertyMessage.PROPERTY_KEY, propertyKey).put(
+                GraphPropertyMessage.PROPERTY_NAME,
+                propertyName
+        );
     }
 
     private static JSONObject createEdgeIdJSONGPWMessage(String edgeId, String propertyName, String propertyKey) {
@@ -314,7 +345,10 @@ public class GraphPropertyRunnerTest {
     }
 
     private static JSONObject createTestJSONGPWMessage() {
-        return new JSONObject().put(GraphPropertyMessage.PRIORITY, "1").put(GraphPropertyMessage.VISIBILITY_SOURCE, "").put(GraphPropertyMessage.WORKSPACE_ID, "wsId");
+        return new JSONObject().put(GraphPropertyMessage.PRIORITY, "1").put(
+                GraphPropertyMessage.VISIBILITY_SOURCE,
+                ""
+        ).put(GraphPropertyMessage.WORKSPACE_ID, "wsId");
     }
 
     private static JSONArray createStringJSONArray(String... strs) {

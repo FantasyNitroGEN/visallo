@@ -12,7 +12,7 @@ import org.vertexium.query.*;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -29,21 +29,17 @@ public class PingUtil {
     public static final String VISIBILITY_STRING = "ping";
     public static final Visibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING).getVisibility();
     private final User systemUser;
-    private final AuthorizationRepository authorizationRepository;
-    private final UserRepository userRepository;
     private final VisibilityTranslator visibilityTranslator;
 
     @Inject
     public PingUtil(
-            AuthorizationRepository authorizationRepository,
+            GraphAuthorizationRepository graphAuthorizationRepository,
             UserRepository userRepository,
             VisibilityTranslator visibilityTranslator
     ) {
-        this.authorizationRepository = authorizationRepository;
-        this.userRepository = userRepository;
-        this.visibilityTranslator = visibilityTranslator;
-        authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
+        graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
         this.systemUser = userRepository.getSystemUser();
+        this.visibilityTranslator = visibilityTranslator;
     }
 
     public String search(Graph graph, Authorizations authorizations) {

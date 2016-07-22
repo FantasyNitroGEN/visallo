@@ -1,6 +1,5 @@
 package org.visallo.vertexium.model.user;
 
-import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -22,9 +21,6 @@ public class VertexiumUserTest {
     @Mock
     private Vertex userVertex;
 
-    @Mock
-    private SimpleOrmContext simpleOrmContext;
-
     @Test
     public void testGetCustomPropertiesFilterBuiltInProperties() {
         List<Property> properties = new ArrayList<>();
@@ -41,7 +37,7 @@ public class VertexiumUserTest {
 
         when(userVertex.getProperties()).thenReturn(properties);
 
-        VertexiumUser user = new VertexiumUser(userVertex, simpleOrmContext);
+        VertexiumUser user = new VertexiumUser(userVertex);
         Map<String, Object> customProperties = user.getCustomProperties();
         assertFalse(customProperties.containsKey(UserVisalloProperties.PASSWORD_HASH.getPropertyName()));
         assertTrue(customProperties.containsKey("otherProp"));

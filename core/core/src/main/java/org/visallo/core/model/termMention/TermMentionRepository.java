@@ -7,7 +7,7 @@ import org.vertexium.util.FilterIterable;
 import org.vertexium.util.JoinIterable;
 import org.visallo.core.model.PropertyJustificationMetadata;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
@@ -29,9 +29,9 @@ public class TermMentionRepository {
     private final Graph graph;
 
     @Inject
-    public TermMentionRepository(Graph graph, AuthorizationRepository authorizationRepository) {
+    public TermMentionRepository(Graph graph, GraphAuthorizationRepository graphAuthorizationRepository) {
         this.graph = graph;
-        authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
+        graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
     }
 
     public Iterable<Vertex> findByOutVertexAndProperty(

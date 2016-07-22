@@ -1,7 +1,6 @@
 package org.visallo.core.security;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +15,8 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.PropertyMetadata;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -40,49 +41,83 @@ public class ACLProviderTest {
     private static final Visibility VISIBILITY = Visibility.EMPTY;
     private static final VisibilityJson VISIBILITY_JSON = new VisibilityJson();
 
-    @Mock private Graph graph;
-    @Mock private OntologyRepository ontologyRepository;
-    @Mock private UserRepository userRepository;
-    @Mock private OntologyProperty ontologyProperty1;
-    @Mock private OntologyProperty ontologyProperty2;
-    @Mock private OntologyProperty ontologyProperty3;
-    @Mock private OntologyProperty ontologyProperty4;
-    @Mock private Concept vertexConcept;
-    @Mock private Concept parentConcept;
-    @Mock private Vertex vertex;
-    @Mock private Edge edge;
-    @Mock private Relationship edgeRelationship;
-    @Mock private Property elementProperty1;
-    @Mock private Property elementProperty2a;
-    @Mock private Property elementProperty2b;
-    @Mock private Property elementProperty3;
-    @Mock private Property user1RegularProperty;
-    @Mock private Property user1CommentProperty;
-    @Mock private User user1;
-    @Mock private User user2;
-    @Mock private User userWithCommentEditAny;
-    @Mock private User userWithCommentDeleteAny;
+    @Mock
+    private Graph graph;
+    @Mock
+    private OntologyRepository ontologyRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private OntologyProperty ontologyProperty1;
+    @Mock
+    private OntologyProperty ontologyProperty2;
+    @Mock
+    private OntologyProperty ontologyProperty3;
+    @Mock
+    private OntologyProperty ontologyProperty4;
+    @Mock
+    private Concept vertexConcept;
+    @Mock
+    private Concept parentConcept;
+    @Mock
+    private Vertex vertex;
+    @Mock
+    private Edge edge;
+    @Mock
+    private Relationship edgeRelationship;
+    @Mock
+    private Property elementProperty1;
+    @Mock
+    private Property elementProperty2a;
+    @Mock
+    private Property elementProperty2b;
+    @Mock
+    private Property elementProperty3;
+    @Mock
+    private Property user1RegularProperty;
+    @Mock
+    private Property user1CommentProperty;
+    @Mock
+    private User user1;
+    @Mock
+    private User user2;
+    @Mock
+    private User userWithCommentEditAny;
+    @Mock
+    private User userWithCommentDeleteAny;
+    @Mock
+    private PrivilegeRepository privilegeRepository;
+    @Mock
+    private AuthorizationRepository authorizationRepository;
 
     private ACLProvider aclProvider;
 
     @SuppressWarnings("unchecked")
     @Before
     public void before() {
-        aclProvider = spy(new MockAclProvider(graph, userRepository, ontologyRepository));
+        aclProvider = spy(new MockAclProvider(
+                graph,
+                userRepository,
+                ontologyRepository,
+                privilegeRepository,
+                authorizationRepository
+        ));
 
         when(user1.getUserId()).thenReturn("USER_1");
-        when(user1.getPrivileges()).thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT));
+        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.EDIT))).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.COMMENT))).thenReturn(true);
 
         when(user2.getUserId()).thenReturn("USER_2");
-        when(user2.getPrivileges()).thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT));
+        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.EDIT))).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.COMMENT))).thenReturn(true);
 
         when(userWithCommentEditAny.getUserId()).thenReturn("USER_WITH_COMMENT_EDIT_ANY");
-        when(userWithCommentEditAny.getPrivileges())
-                .thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT_EDIT_ANY));
+        when(privilegeRepository.hasPrivilege(eq(userWithCommentEditAny), eq(Privilege.EDIT))).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(eq(userWithCommentEditAny), eq(Privilege.COMMENT_EDIT_ANY))).thenReturn(true);
 
         when(userWithCommentDeleteAny.getUserId()).thenReturn("USER_WITH_COMMENT_DELETE_ANY");
-        when(userWithCommentDeleteAny.getPrivileges())
-                .thenReturn(ImmutableSet.of(Privilege.EDIT, Privilege.COMMENT_DELETE_ANY));
+        when(privilegeRepository.hasPrivilege(eq(userWithCommentDeleteAny), eq(Privilege.EDIT))).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(eq(userWithCommentDeleteAny), eq(Privilege.COMMENT_DELETE_ANY))).thenReturn(true);
 
         when(ontologyRepository.getConceptByIRI("vertex")).thenReturn(vertexConcept);
         when(ontologyRepository.getConceptByIRI("parent")).thenReturn(parentConcept);
@@ -338,7 +373,8 @@ public class ACLProviderTest {
     }
 
     private List<ClientApiPropertyAcl> findMultiplePropertyAcls(
-            List<ClientApiPropertyAcl> propertyAcls, String propertyName) {
+            List<ClientApiPropertyAcl> propertyAcls, String propertyName
+    ) {
         return propertyAcls.stream().filter(pa -> pa.getName().equals(propertyName)).collect(Collectors.toList());
     }
 
@@ -350,8 +386,14 @@ public class ACLProviderTest {
 
     private static class MockAclProvider extends ACLProvider {
 
-        protected MockAclProvider(Graph graph, UserRepository userRepository, OntologyRepository ontologyRepository) {
-            super(graph, userRepository, ontologyRepository);
+        protected MockAclProvider(
+                Graph graph,
+                UserRepository userRepository,
+                OntologyRepository ontologyRepository,
+                PrivilegeRepository privilegeRepository,
+                AuthorizationRepository authorizationRepository
+        ) {
+            super(graph, userRepository, ontologyRepository, privilegeRepository, authorizationRepository);
         }
 
         @Override

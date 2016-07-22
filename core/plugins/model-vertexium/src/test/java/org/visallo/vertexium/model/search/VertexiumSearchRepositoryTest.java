@@ -15,6 +15,8 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.search.SearchProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
+import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiSearch;
@@ -39,7 +41,7 @@ public class VertexiumSearchRepositoryTest {
     private UserRepository userRepository;
 
     @Mock
-    private AuthorizationRepository authorizationRepository;
+    private GraphAuthorizationRepository graphAuthorizationRepository;
 
     @Mock
     private Configuration configuration;
@@ -53,13 +55,29 @@ public class VertexiumSearchRepositoryTest {
     @Mock
     private User systemUser;
 
+    @Mock
+    private AuthorizationRepository authorizationRepository;
+
+    @Mock
+    private PrivilegeRepository privilegeRepository;
+
     @Before
     public void setUp() {
         InjectHelper.setInjector(injector);
 
         graph = InMemoryGraph.create();
-        authorizations = graph.createAuthorizations(VertexiumSearchRepository.VISIBILITY_STRING, UserRepository.VISIBILITY_STRING);
-        searchRepository = new VertexiumSearchRepository(graph, userRepository, configuration, authorizationRepository);
+        authorizations = graph.createAuthorizations(
+                VertexiumSearchRepository.VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+        searchRepository = new VertexiumSearchRepository(
+                graph,
+                userRepository,
+                configuration,
+                graphAuthorizationRepository,
+                authorizationRepository,
+                privilegeRepository
+        );
 
         userId = "USER123";
         when(user.getUserId()).thenReturn(userId);
@@ -67,9 +85,16 @@ public class VertexiumSearchRepositoryTest {
         graph.flush();
 
         when(userRepository.getSystemUser()).thenReturn(systemUser);
-        when(userRepository.getAuthorizations(eq(systemUser), eq(VertexiumSearchRepository.VISIBILITY_STRING))).thenReturn(authorizations);
+        when(authorizationRepository.getGraphAuthorizations(
+                eq(systemUser),
+                eq(VertexiumSearchRepository.VISIBILITY_STRING)
+        )).thenReturn(authorizations);
 
-        when(userRepository.getAuthorizations(eq(user), eq(VertexiumSearchRepository.VISIBILITY_STRING), eq(UserRepository.VISIBILITY_STRING))).thenReturn(authorizations);
+        when(authorizationRepository.getGraphAuthorizations(
+                eq(user),
+                eq(VertexiumSearchRepository.VISIBILITY_STRING),
+                eq(UserRepository.VISIBILITY_STRING)
+        )).thenReturn(authorizations);
     }
 
     @Test
@@ -84,13 +109,23 @@ public class VertexiumSearchRepositoryTest {
         assertEquals(id, foundId);
 
         Vertex userVertex = graph.getVertex(userId, authorizations);
-        List<Edge> hasSavedSearchEdges = toList(userVertex.getEdges(Direction.OUT, SearchProperties.HAS_SAVED_SEARCH, authorizations));
+        List<Edge> hasSavedSearchEdges = toList(userVertex.getEdges(
+                Direction.OUT,
+                SearchProperties.HAS_SAVED_SEARCH,
+                authorizations
+        ));
         assertEquals(1, hasSavedSearchEdges.size());
         Vertex savedSearchVertex = hasSavedSearchEdges.get(0).getOtherVertex(userId, authorizations);
-        assertEquals(SearchProperties.CONCEPT_TYPE_SAVED_SEARCH, VisalloProperties.CONCEPT_TYPE.getPropertyValue(savedSearchVertex, null));
+        assertEquals(
+                SearchProperties.CONCEPT_TYPE_SAVED_SEARCH,
+                VisalloProperties.CONCEPT_TYPE.getPropertyValue(savedSearchVertex, null)
+        );
         assertEquals(name, SearchProperties.NAME.getPropertyValue(savedSearchVertex, null));
         assertEquals(url, SearchProperties.URL.getPropertyValue(savedSearchVertex, null));
-        assertEquals(searchParameters.toString(), SearchProperties.PARAMETERS.getPropertyValueRequired(savedSearchVertex).toString());
+        assertEquals(
+                searchParameters.toString(),
+                SearchProperties.PARAMETERS.getPropertyValueRequired(savedSearchVertex).toString()
+        );
     }
 
     @Test

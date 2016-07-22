@@ -6,7 +6,10 @@ import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class InMemoryUser implements User {
     private final String userId;
@@ -14,8 +17,6 @@ public class InMemoryUser implements User {
     private final String displayName;
     private final String emailAddress;
     private final Date createDate;
-    private Set<String> privileges;
-    private final List<String> authorizations;
     private final String currentWorkspaceId;
     private JSONObject preferences;
     private Date currentLoginDate;
@@ -31,8 +32,6 @@ public class InMemoryUser implements User {
             String userName,
             String displayName,
             String emailAddress,
-            Set<String> privileges,
-            String[] authorizations,
             String currentWorkspaceId
     ) {
         this.userId = UUID.randomUUID().toString();
@@ -40,9 +39,6 @@ public class InMemoryUser implements User {
         this.displayName = displayName;
         this.emailAddress = emailAddress;
         this.createDate = new Date();
-        this.privileges = privileges;
-        this.authorizations = new ArrayList<>();
-        Collections.addAll(this.authorizations, authorizations);
         this.currentWorkspaceId = currentWorkspaceId;
         this.preferences = new JSONObject();
     }
@@ -110,28 +106,6 @@ public class InMemoryUser implements User {
     @Override
     public String getCurrentWorkspaceId() {
         return this.currentWorkspaceId;
-    }
-
-    public Set<String> getPrivileges() {
-        return this.privileges;
-    }
-
-    public String[] getAuthorizations() {
-        return authorizations.toArray(new String[this.authorizations.size()]);
-    }
-
-    public void addAuthorization(String authorization) {
-        if (!authorizations.contains(authorization)) {
-            authorizations.add(authorization);
-        }
-    }
-
-    public void removeAuthorization(String authorization) {
-        authorizations.remove(authorization);
-    }
-
-    public void setPrivileges(Set<String> privileges) {
-        this.privileges = privileges;
     }
 
     @Override

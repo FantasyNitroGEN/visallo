@@ -8,7 +8,6 @@ import org.visallo.web.clientapi.model.UserType;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class SystemUser implements User {
     private static final long serialVersionUID = 1L;
@@ -86,11 +85,6 @@ public class SystemUser implements User {
     @Override
     public JSONObject getUiPreferences() {
         return new JSONObject();
-    }
-
-    @Override
-    public Set<String> getPrivileges() {
-        return null;
     }
 
     @Override

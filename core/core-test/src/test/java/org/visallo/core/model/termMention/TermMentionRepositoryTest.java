@@ -8,7 +8,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class TermMentionRepositoryTest {
     private TermMentionRepository termMentionRepository;
 
     @Mock
-    private AuthorizationRepository authorizationRepository;
+    private GraphAuthorizationRepository graphAuthorizationRepository;
 
     @Before
     public void setUp() {
@@ -37,7 +37,7 @@ public class TermMentionRepositoryTest {
         termMentionVisibility = new Visibility(TermMentionRepository.VISIBILITY_STRING);
         authorizations = graph.createAuthorizations(TermMentionRepository.VISIBILITY_STRING);
 
-        termMentionRepository = new TermMentionRepository(graph, authorizationRepository);
+        termMentionRepository = new TermMentionRepository(graph, graphAuthorizationRepository);
     }
 
     @Test

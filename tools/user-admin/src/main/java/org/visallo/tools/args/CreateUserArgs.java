@@ -14,10 +14,4 @@ public class CreateUserArgs extends Args {
 
     @Parameter(names = {"--email"}, arity = 1, description = "E-mail address to set")
     public String email;
-
-    @Parameter(names = {"--authorizations", "-a"}, arity = 1, description = "Comma separated list of authorizations to set, or none")
-    public String authorizations;
-
-    @Parameter(names = {"--privileges", "-p"}, arity = 1, description = "Comma separated list of privileges to set, one or more of: READ, COMMENT, EDIT, PUBLISH, ADMIN or NONE")
-    public String privileges;
 }

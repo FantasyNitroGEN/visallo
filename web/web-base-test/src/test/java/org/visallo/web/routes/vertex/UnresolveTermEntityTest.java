@@ -51,7 +51,6 @@ public class UnresolveTermEntityTest extends RouteTestBase {
         VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, new Visibility(""), authorizations);
         graph.flush();
 
-        when(userRepository.getAuthorizations(eq(user), eq(WORKSPACE_ID))).thenReturn(authorizations);
         when(termMentionRepository.findById(eq("v1tm1"), eq(authorizations))).thenReturn(v1tm1);
 
         unresolveTermEntity.handle("v1tm1", WORKSPACE_ID, authorizations);

@@ -1,13 +1,11 @@
 package org.visallo.vertexium.model.user;
 
 import com.google.common.collect.ImmutableMap;
-import com.v5analytics.simpleorm.SimpleOrmContext;
 import org.json.JSONObject;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.visallo.core.model.user.UserVisalloProperties;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
@@ -15,19 +13,13 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class VertexiumUser implements User, Serializable {
     private static final long serialVersionUID = 6688073934273514248L;
-    private String userId;
-    private Map<String, Object> properties = new HashMap<>();
+    private final String userId;
+    private final Map<String, Object> properties = new HashMap<>();
 
-    // required for Serializable
-    protected VertexiumUser() {
-
-    }
-
-    public VertexiumUser(Vertex userVertex, SimpleOrmContext simpleOrmContext) {
+    public VertexiumUser(Vertex userVertex) {
         this.userId = userVertex.getId();
         for (Property property : userVertex.getProperties()) {
             this.properties.put(property.getName(), property.getValue());
@@ -99,11 +91,6 @@ public class VertexiumUser implements User, Serializable {
     }
 
     @Override
-    public Set<String> getPrivileges() {
-        return Privilege.stringToPrivileges(UserVisalloProperties.PRIVILEGES.getPropertyValue(properties));
-    }
-
-    @Override
     public String getCurrentWorkspaceId() {
         return UserVisalloProperties.CURRENT_WORKSPACE.getPropertyValue(properties);
     }
@@ -150,6 +137,6 @@ public class VertexiumUser implements User, Serializable {
 
     @Override
     public String toString() {
-        return "VertexiumUser{userId='" + getUserId() + "', displayName='" + getDisplayName() + "', privileges=" + getPrivileges() + "}";
+        return "VertexiumUser{userId='" + getUserId() + "', displayName='" + getDisplayName() + "}";
     }
 }

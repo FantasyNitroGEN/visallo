@@ -15,10 +15,12 @@
 
     <modules>
         <module>admin-import-rdf</module>
+        <module>admin-user-property-auth</module>
+        <module>admin-user-property-privileges</module>
+        <module>admin-user-tools</module>
         <module>auth-username-only</module>
         <module>auth-username-password</module>
         <module>change-email</module>
         <module>change-password</module>
-        <module>admin-user-tools</module>
     </modules>
 </project>

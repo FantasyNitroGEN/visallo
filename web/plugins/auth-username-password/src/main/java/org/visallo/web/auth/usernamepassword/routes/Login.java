@@ -6,8 +6,6 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.model.user.AuthorizationContext;
-import org.visallo.core.model.user.AuthorizationMapper;
 import org.visallo.core.model.user.UserNameAuthorizationContext;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
@@ -15,17 +13,13 @@ import org.visallo.web.AuthenticationHandler;
 import org.visallo.web.CurrentUser;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Set;
 
 public class Login implements ParameterizedHandler {
-
     private final UserRepository userRepository;
-    private final AuthorizationMapper authorizationMapper;
 
     @Inject
-    public Login(UserRepository userRepository, AuthorizationMapper authorizationMapper) {
+    public Login(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.authorizationMapper = authorizationMapper;
     }
 
     @Handle
@@ -39,13 +33,11 @@ public class Login implements ParameterizedHandler {
 
         User user = userRepository.findByUsername(username);
         if (user != null && userRepository.isPasswordValid(user, password)) {
-            AuthorizationContext authorizationContext = new UserNameAuthorizationContext(user, username);
-            Set<String> privileges = authorizationMapper.getPrivileges(authorizationContext);
-            Set<String> authorizations = authorizationMapper.getAuthorizations(authorizationContext);
-            userRepository.setPrivileges(user, privileges, userRepository.getSystemUser());
-            userRepository.setAuthorizations(user, authorizations, userRepository.getSystemUser());
-
-            userRepository.recordLogin(user, AuthenticationHandler.getRemoteAddr(request));
+            UserNameAuthorizationContext authorizationContext = new UserNameAuthorizationContext(
+                    username,
+                    AuthenticationHandler.getRemoteAddr(request)
+            );
+            userRepository.updateUser(user, authorizationContext);
             CurrentUser.set(request, user.getUserId(), user.getUsername());
             JSONObject json = new JSONObject();
             json.put("status", "OK");

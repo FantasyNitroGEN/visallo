@@ -3,18 +3,14 @@ package org.visallo.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Strings;
-import com.google.inject.Inject;
 import org.apache.commons.lang.StringUtils;
-import org.vertexium.Authorizations;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserVisalloProperties;
-import org.visallo.core.security.ACLProvider;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.tools.args.*;
-import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.UserStatus;
 
 import java.text.SimpleDateFormat;
@@ -26,7 +22,6 @@ import static org.vertexium.util.IterableUtils.toList;
 @Parameters(commandDescription = "User administration")
 public class UserAdmin extends CommandLineTool {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserAdmin.class, "cli-userAdmin");
-    private ACLProvider aclProvider;
     private Args args;
     private UserAdminAction userAdminAction;
 
@@ -60,12 +55,6 @@ public class UserAdmin extends CommandLineTool {
                 break;
             case CMD_ACTION_DELETE:
                 this.args = new DeleteUserArgs();
-                break;
-            case CMD_ACTION_SET_PRIVILEGES:
-                this.args = new SetPrivilegesArgs();
-                break;
-            case CMD_ACTION_SET_AUTHORIZATIONS:
-                this.args = new SetAuthorizationsArgs();
                 break;
             case CMD_ACTION_SET_DISPLAYNAME_EMAIL:
                 this.args = new SetDisplayNameEmailArgs();
@@ -101,10 +90,6 @@ public class UserAdmin extends CommandLineTool {
                     return updatePassword((UpdatePasswordArgs) this.args);
                 case CMD_ACTION_DELETE:
                     return delete((DeleteUserArgs) this.args);
-                case CMD_ACTION_SET_PRIVILEGES:
-                    return setPrivileges((SetPrivilegesArgs) this.args);
-                case CMD_ACTION_SET_AUTHORIZATIONS:
-                    return setAuthorizations((SetAuthorizationsArgs) args);
                 case CMD_ACTION_SET_DISPLAYNAME_EMAIL:
                     return setDisplayNameAndOrEmail((SetDisplayNameEmailArgs) this.args);
                 case CMD_ACTION_EXPORT_PASSWORDS:
@@ -123,7 +108,11 @@ public class UserAdmin extends CommandLineTool {
                 .collect(Collectors.toList());
 
         if (!sortedUsers.isEmpty()) {
-            int maxUsernameWidth = sortedUsers.stream().map(User::getUsername).map(String::length).max(Integer::compareTo).get();
+            int maxUsernameWidth = sortedUsers.stream()
+                    .map(User::getUsername)
+                    .map(String::length)
+                    .max(Integer::compareTo)
+                    .orElseGet(() -> 0);
             String format = String.format("%%%ds %%s%%n", -1 * maxUsernameWidth);
             for (User user : sortedUsers) {
                 String passwordSalt = Base64.getEncoder().encodeToString((byte[]) user.getProperty(UserVisalloProperties.PASSWORD_SALT.getPropertyName()));
@@ -142,24 +131,11 @@ public class UserAdmin extends CommandLineTool {
     }
 
     private int create(CreateUserArgs args) {
-        Set<String> authorizations = new HashSet<>();
-        if (args.authorizations != null && args.authorizations.length() > 0) {
-            authorizations.addAll(Arrays.asList(StringUtils.split(args.authorizations, ',')));
-        }
-        Set<String> privileges;
-        if (args.privileges == null) {
-            privileges = getUserRepository().getDefaultPrivileges();
-        } else {
-            privileges = Privilege.stringToPrivileges(args.privileges);
-        }
-
         getUserRepository().findOrAddUser(
                 args.userName,
                 args.userName,
                 null,
-                args.password,
-                privileges,
-                authorizations
+                args.password
         );
 
         User user = getUserRepository().findByUsername(args.userName);
@@ -185,9 +161,7 @@ public class UserAdmin extends CommandLineTool {
         if (args.asTable) {
             printUsers(sortedUsers);
         } else {
-            for (User user : sortedUsers) {
-                printUser(user);
-            }
+            sortedUsers.forEach(this::printUser);
         }
         return 0;
     }
@@ -224,31 +198,6 @@ public class UserAdmin extends CommandLineTool {
         User user = findUser(args);
         getUserRepository().delete(user);
         System.out.println("Deleted user " + user.getUserId());
-        return 0;
-    }
-
-    private int setPrivileges(SetPrivilegesArgs args) {
-        Set<String> privileges = Privilege.stringToPrivileges(args.privileges);
-
-        User user = findUser(args);
-
-        System.out.println("Assigning privileges " + privileges + " to user " + user.getUserId());
-        getUserRepository().setPrivileges(user, privileges, getUserRepository().getSystemUser());
-        user = getUserRepository().findById(user.getUserId());
-
-        printUser(user);
-        return 0;
-    }
-
-    private int setAuthorizations(SetAuthorizationsArgs args) {
-        Set<String> authorizations = new HashSet<>();
-        if (args.authorizations != null && args.authorizations.length() > 0) {
-            authorizations.addAll(Arrays.asList(StringUtils.split(args.authorizations, ',')));
-        }
-
-        User user = findUser(args);
-        getUserRepository().setAuthorizations(user, authorizations, getUserRepository().getSystemUser());
-        printUser(user);
         return 0;
     }
 
@@ -297,9 +246,6 @@ public class UserAdmin extends CommandLineTool {
         System.out.println("       Previous Login Date: " + valueOrBlank(user.getPreviousLoginDate()));
         System.out.println("Previous Login Remote Addr: " + valueOrBlank(user.getPreviousLoginRemoteAddr()));
         System.out.println("               Login Count: " + user.getLoginCount());
-        System.out.println("                Privileges: " + privilegesAsString(user.getPrivileges()));
-        System.out.println("            Authorizations: "
-                                   + authorizationsAsString(getUserRepository().getAuthorizations(user)));
         System.out.println("");
     }
 
@@ -311,7 +257,6 @@ public class UserAdmin extends CommandLineTool {
             int maxEmailAddressWidth = 1;
             int maxDisplayNameWidth = 1;
             int maxLoginCountWidth = 1;
-            int maxPrivilegesWidth = privilegesAsString(aclProvider.getAllPrivileges()).length();
             for (User user : users) {
                 maxCreateDateWidth = maxWidth(user.getCreateDate(), maxCreateDateWidth);
                 maxIdWidth = maxWidth(user.getUserId(), maxIdWidth);
@@ -321,14 +266,13 @@ public class UserAdmin extends CommandLineTool {
                 maxLoginCountWidth = maxWidth(Integer.toString(user.getLoginCount()), maxLoginCountWidth);
             }
             String format = String.format(
-                    "%%%ds %%%ds %%%ds %%%ds %%%ds %%%dd %%%ds%%n",
+                    "%%%ds %%%ds %%%ds %%%ds %%%ds %%%dd %%n",
                     -1 * maxCreateDateWidth,
                     -1 * maxIdWidth,
                     -1 * maxUsernameWidth,
                     -1 * maxEmailAddressWidth,
                     -1 * maxDisplayNameWidth,
-                    maxLoginCountWidth,
-                    -1 * maxPrivilegesWidth
+                    maxLoginCountWidth
             );
             for (User user : users) {
                 System.out.printf(
@@ -338,28 +282,11 @@ public class UserAdmin extends CommandLineTool {
                         user.getUsername(),
                         valueOrBlank(user.getEmailAddress()),
                         user.getDisplayName(),
-                        user.getLoginCount(),
-                        privilegesAsString(user.getPrivileges())
+                        user.getLoginCount()
                 );
             }
         } else {
             System.out.println("No users");
-        }
-    }
-
-    private String privilegesAsString(Set<String> privileges) {
-        SortedSet<String> sortedPrivileges = new TreeSet<>(privileges);
-        sortedPrivileges.addAll(privileges);
-        return Privilege.toString(sortedPrivileges);
-    }
-
-    private String authorizationsAsString(Authorizations authorizations) {
-        List<String> list = Arrays.asList(authorizations.getAuthorizations());
-        if (list.size() > 0) {
-            Collections.sort(list);
-            return "[" + StringUtils.join(list, ',') + "]";
-        } else {
-            return "";
         }
     }
 
@@ -399,10 +326,5 @@ public class UserAdmin extends CommandLineTool {
             allUsers.addAll(userPage);
         }
         return allUsers;
-    }
-
-    @Inject
-    public void setAclProvider(ACLProvider aclProvider) {
-        this.aclProvider = aclProvider;
     }
 }

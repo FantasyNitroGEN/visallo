@@ -7,7 +7,6 @@ import org.visallo.web.clientapi.model.UserType;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This class is used to store the userId only in a web session. If we were to store the entire
@@ -15,6 +14,7 @@ import java.util.Set;
  * was refreshed.
  */
 public class ProxyUser implements User {
+    private static final long serialVersionUID = -7652656758524792116L;
     private final String userId;
     private final UserRepository userRepository;
     private User proxiedUser;
@@ -149,15 +149,6 @@ public class ProxyUser implements User {
             return null;
         }
         return proxiedUser.getUiPreferences();
-    }
-
-    @Override
-    public Set<String> getPrivileges() {
-        ensureUser();
-        if (proxiedUser == null) {
-            return null;
-        }
-        return proxiedUser.getPrivileges();
     }
 
     @Override

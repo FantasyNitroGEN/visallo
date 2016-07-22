@@ -8,6 +8,7 @@ import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.SystemUser;
@@ -22,18 +23,22 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     private final WorkQueueRepository workQueueRepository;
     private final UserRepository userRepository;
     private final Graph graph;
+    private final AuthorizationRepository authorizationRepository;
 
     @Inject
     public VertexiumLongRunningProcessRepository(
-            AuthorizationRepository authorizationRepository,
+            GraphAuthorizationRepository graphAuthorizationRepository,
             UserRepository userRepository,
             WorkQueueRepository workQueueRepository,
-            Graph graph) {
+            Graph graph,
+            AuthorizationRepository authorizationRepository
+    ) {
         this.userRepository = userRepository;
         this.workQueueRepository = workQueueRepository;
         this.graph = graph;
+        this.authorizationRepository = authorizationRepository;
 
-        authorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
+        graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
     }
 
     @Override
@@ -50,14 +55,28 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         Visibility visibility = getVisibility();
 
         VertexBuilder vertexBuilder = this.graph.prepareVertex(visibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(vertexBuilder, LongRunningProcessProperties.LONG_RUNNING_PROCESS_CONCEPT_IRI, visibility);
+        VisalloProperties.CONCEPT_TYPE.setProperty(
+                vertexBuilder,
+                LongRunningProcessProperties.LONG_RUNNING_PROCESS_CONCEPT_IRI,
+                visibility
+        );
         longRunningProcessQueueItem.put("enqueueTime", System.currentTimeMillis());
         longRunningProcessQueueItem.put("userId", user.getUserId());
-        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(vertexBuilder, longRunningProcessQueueItem, visibility);
+        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
+                vertexBuilder,
+                longRunningProcessQueueItem,
+                visibility
+        );
         Vertex longRunningProcessVertex = vertexBuilder.save(authorizations);
 
         if (userVertex != null) {
-            this.graph.addEdge(userVertex, longRunningProcessVertex, LongRunningProcessProperties.LONG_RUNNING_PROCESS_TO_USER_EDGE_IRI, visibility, authorizations);
+            this.graph.addEdge(
+                    userVertex,
+                    longRunningProcessVertex,
+                    LongRunningProcessProperties.LONG_RUNNING_PROCESS_TO_USER_EDGE_IRI,
+                    visibility,
+                    authorizations
+            );
         }
 
         this.graph.flush();
@@ -70,7 +89,11 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
 
     public Authorizations getAuthorizations(User user) {
         Authorizations authorizations;
-        authorizations = userRepository.getAuthorizations(user, VISIBILITY_STRING, UserRepository.VISIBILITY_STRING);
+        authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
         return authorizations;
     }
 
@@ -95,7 +118,12 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         Authorizations authorizations = getAuthorizations(userRepository.getSystemUser());
         Vertex vertex = this.graph.getVertex(longRunningProcessGraphVertexId, authorizations);
         checkNotNull(vertex, "Could not find long running process vertex: " + longRunningProcessGraphVertexId);
-        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(vertex, longRunningProcessQueueItem, getVisibility(), authorizations);
+        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
+                vertex,
+                longRunningProcessQueueItem,
+                getVisibility(),
+                authorizations
+        );
         this.graph.flush();
     }
 
@@ -104,11 +132,16 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         Authorizations authorizations = getAuthorizations(user);
         Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
         checkNotNull(userVertex, "Could not find user with id: " + user.getUserId());
-        Iterable<Vertex> longRunningProcessVertices = userVertex.getVertices(Direction.OUT, LongRunningProcessProperties.LONG_RUNNING_PROCESS_TO_USER_EDGE_IRI, authorizations);
+        Iterable<Vertex> longRunningProcessVertices = userVertex.getVertices(
+                Direction.OUT,
+                LongRunningProcessProperties.LONG_RUNNING_PROCESS_TO_USER_EDGE_IRI,
+                authorizations
+        );
         return toList(new ConvertingIterable<Vertex, JSONObject>(longRunningProcessVertices) {
             @Override
             protected JSONObject convert(Vertex longRunningProcessVertex) {
-                JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(longRunningProcessVertex);
+                JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(
+                        longRunningProcessVertex);
                 json.put("id", longRunningProcessVertex.getId());
                 return json;
             }
@@ -133,7 +166,12 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
         json.put("canceled", true);
         json.put("id", longRunningProcessId);
-        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(vertex, json, getVisibility(), getAuthorizations(user));
+        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
+                vertex,
+                json,
+                getVisibility(),
+                getAuthorizations(user)
+        );
         this.graph.flush();
 
         workQueueRepository.broadcastLongRunningProcessChange(json);
@@ -149,7 +187,12 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         json.put("progress", progressPercent);
         json.put("progressMessage", message);
         json.put("id", longRunningProcessGraphVertexId);
-        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(vertex, json, getVisibility(), authorizations);
+        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
+                vertex,
+                json,
+                getVisibility(),
+                authorizations
+        );
         this.graph.flush();
 
         workQueueRepository.broadcastLongRunningProcessChange(json);

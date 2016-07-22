@@ -20,16 +20,15 @@ public class AdminUserToolsWebAppPlugin implements WebAppPlugin {
 
         app.registerJavaScript("/org/visallo/web/adminUserTools/plugin.js");
 
-        app.registerJavaScript("/org/visallo/web/adminUserTools/user-plugin.js", false);
-        app.registerJavaScriptTemplate("/org/visallo/web/adminUserTools/templates/user.hbs");
-        app.registerJavaScriptTemplate("/org/visallo/web/adminUserTools/templates/user-details.hbs");
+        app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/UserAdminPlugin.jsx");
+        app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/WorkspaceList.jsx");
+        app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/LoadUser.jsx");
+        app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/UserTypeaheadInput.jsx");
+        app.registerCss("/org/visallo/web/adminUserTools/userAdmin.css");
 
         app.registerResourceBundle("/org/visallo/web/adminUserTools/messages.properties");
 
-        app.post("/user/auth/add", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserAddAuthorization.class);
-        app.post("/user/auth/remove", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserRemoveAuthorization.class);
         app.post("/user/delete", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserDelete.class);
-        app.post("/user/privileges/update", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, UserUpdatePrivileges.class);
         app.post("/workspace/shareWithMe", authenticationHandlerClass, csrfHandlerClass, AdminPrivilegeFilter.class, WorkspaceShareWithMe.class);
     }
 }

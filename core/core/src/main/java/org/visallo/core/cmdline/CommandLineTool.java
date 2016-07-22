@@ -13,6 +13,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
@@ -29,6 +30,7 @@ public abstract class CommandLineTool {
     private Configuration configuration;
     private boolean willExit = false;
     private UserRepository userRepository;
+    private AuthorizationRepository authorizationRepository;
     private Authorizations authorizations;
     private LockRepository lockRepository;
     private User user;
@@ -128,7 +130,7 @@ public abstract class CommandLineTool {
 
     protected Authorizations getAuthorizations() {
         if (this.authorizations == null) {
-            this.authorizations = this.userRepository.getAuthorizations(getUser());
+            this.authorizations = getAuthorizationRepository().getGraphAuthorizations(getUser());
         }
         return this.authorizations;
     }
@@ -145,6 +147,11 @@ public abstract class CommandLineTool {
     @Inject
     public final void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    @Inject
+    public void setAuthorizationRepository(AuthorizationRepository authorizationRepository) {
+        this.authorizationRepository = authorizationRepository;
     }
 
     @Inject
@@ -186,6 +193,10 @@ public abstract class CommandLineTool {
 
     public UserRepository getUserRepository() {
         return userRepository;
+    }
+
+    public AuthorizationRepository getAuthorizationRepository() {
+        return authorizationRepository;
     }
 
     public OntologyRepository getOntologyRepository() {
