@@ -20,7 +20,8 @@ define([
 
         this.defaultAttrs({
             inputSelector: 'textarea',
-            primarySelector: '.btn-primary'
+            primarySelector: '.btn-primary',
+            visibilityInputSelector: '.visibility input'
         });
 
         this.before('initialize', function(n, c) {
@@ -110,12 +111,15 @@ define([
 
         this.checkValid = function() {
             var val = this.getValue();
+            var visibilityValid = this.visibilitySource && this.visibilitySource.valid;
 
-            if (val.length && this.visibilitySource && this.visibilitySource.valid) {
+            if (val.length && visibilityValid) {
                 this.select('primarySelector').removeAttr('disabled');
             } else {
                 this.select('primarySelector').attr('disabled', true);
             }
+
+            this.select('visibilityInputSelector').toggleClass('invalid', !visibilityValid)
         }
     }
 });
