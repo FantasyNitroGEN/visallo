@@ -164,7 +164,7 @@ define([
                 mentionStart: mentionStart,
                 mentionEnd: mentionEnd,
                 artifactId: this.attr.artifactId,
-                visibilitySource: this.visibilitySource || ''
+                visibilitySource: this.visibilitySource ? this.visibilitySource.value : ''
             };
 
             if (this.currentGraphVertexId) {
@@ -246,7 +246,7 @@ define([
                     y1: parseFloat(this.attr.dataInfo.y1),
                     x2: parseFloat(this.attr.dataInfo.x2),
                     y2: parseFloat(this.attr.dataInfo.y2),
-                    visibilitySource: this.visibilitySource || ''
+                    visibilitySource: this.visibilitySource ? this.visibilitySource.value : ''
                 };
 
             if (this.justification && this.justification.justificationText) {
@@ -298,8 +298,8 @@ define([
         };
 
         this.onVisibilityChange = function(event, data) {
-            this.visibilitySource = data.value;
-            // TODO: inspect valid
+            this.visibilitySource = data;
+            this.checkValid();
         };
 
         this.onJustificationChange = function(event, data) {
@@ -309,8 +309,11 @@ define([
 
         this.checkValid = function() {
             var button = this.select('actionButtonSelector');
+            var visibilityValid = this.visibilitySource && this.visibilitySource.valid;
+
             if (!this.unresolve) {
-                if (this.justification && this.justification.valid && this.selectedConceptId) {
+                this.select('visibilitySelector').find('input').toggleClass('invalid', !visibilityValid);
+                if (this.justification && this.justification.valid && this.selectedConceptId && visibilityValid) {
                     button.removeAttr('disabled');
                 } else {
                     button.attr('disabled', true);
