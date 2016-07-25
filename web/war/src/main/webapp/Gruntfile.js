@@ -69,43 +69,38 @@ module.exports = function(grunt) {
         },
 
         babel: {
-            'jsx-development': {
-                options: {
-                    sourceMap: 'inline'
-                },
-                files: [{ expand: true, cwd: 'js', src: ['**/*.jsx'], dest: 'jsc', ext: '.js' }]
-            },
-            'jsx-production': {
+            js: {
                 options: {
                     sourceMap: true
                 },
-                files: [{ expand: true, cwd: 'js', src: ['**/*.jsx'], dest: 'jsc', ext: '.js' }]
+                files: [
+                    { expand: true, cwd: 'js', src: ['**/*.js'], dest: 'jsc' },
+                    { expand: true, cwd: 'js', src: ['**/*.jsx'], dest: 'jsc', ext: '.js' }
+                ]
             }
         },
 
-        requirejs: {
-            options: {
-                mainConfigFile: 'js/require.config.js',
-                dir: 'jsc',
-                baseUrl: 'js',
-                fileExclusionRegExp: /(^\.|\.jsx$)/,
-                preserveLicenseComments: false,
-                removeCombined: false
-            },
-            development: {
+        uglify: {
+            js: {
                 options: {
-                    logLevel: 2,
-                    optimize: 'none',
-                    keepBuildDir: true
-                }
-            },
-            production: {
-                options: {
-                    logLevel: 0,
-                    optimize: 'uglify2',
-                    generateSourceMaps: true
-                }
+                    sourceMapIn: function(filename) {
+                        return filename + '.map'
+                    },
+                    sourceMap: true,
+                    sourceMapIncludeSources: true
+                },
+                files: [
+                    { expand: true, cwd: 'jsc', src: ['**/*.js'], dest: 'jsc/' },
+                ]
             }
+        },
+
+        copy: {
+            templates: {
+                files: [
+                    {expand: true, cwd: 'js/', src: ['**/*.hbs', '**/*.ejs', '**/*.css'], dest: 'jsc'}
+                ],
+            },
         },
 
         amdwrap: {
@@ -173,12 +168,13 @@ module.exports = function(grunt) {
                     'js/**/*.js',
                     'js/**/*.jsx',
                     'js/**/*.less',
+                    'js/**/*.css',
                     'js/**/*.ejs',
                     'js/**/*.hbs',
                     'js/**/*.vsh',
                     'js/**/*.fsh'
                 ],
-                tasks: ['babel:jsx-development', 'requirejs:development', 'notify:js'],
+                tasks: ['babel:js', 'copy:templates', 'notify:js'],
                 options: {
                     livereload: {
                         port: 35729,
@@ -240,12 +236,19 @@ module.exports = function(grunt) {
       });
 
 
-      // Speed up lint by only checking changed files
+      // Speed up lint/babel by only checking changed files
       // ensure we still ignore files though
       var initialEslintSrc = grunt.config('eslint.development.src');
+      var initialBabelFiles = grunt.config('babel.js.files');
       grunt.event.on('watch', function(action, filepath) {
           var matchingEslint = grunt.file.match(initialEslintSrc, filepath);
           grunt.config('eslint.development.src', matchingEslint);
+
+          grunt.config('babel.js.files', initialBabelFiles.map(function(f) {
+              var filePathRelativeToCwd = filepath.replace(/^js\//, '')
+              var matchingBabelFiles = grunt.file.match(f, f.src, filePathRelativeToCwd);
+              return Object.assign({}, f, { src: matchingBabelFiles })
+          }));
       });
 
       grunt.registerTask('deps', 'Install Webapp Dependencies',
@@ -260,9 +263,9 @@ module.exports = function(grunt) {
          ['deps', 'test:style', 'karma:ci']);
 
       grunt.registerTask('development', 'Build js/less for development',
-         ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:jsx-development', 'requirejs:development']);
+         ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates']);
       grunt.registerTask('production', 'Build js/less for production',
-         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:jsx-production', 'requirejs:production']);
+         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates']);
 
       grunt.registerTask('default', ['development', 'watch']);
 };
