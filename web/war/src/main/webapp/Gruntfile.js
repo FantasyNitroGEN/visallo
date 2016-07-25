@@ -265,7 +265,7 @@ module.exports = function(grunt) {
       grunt.registerTask('development', 'Build js/less for development',
          ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates']);
       grunt.registerTask('production', 'Build js/less for production',
-         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates']);
+         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'uglify:js']);
 
       grunt.registerTask('default', ['development', 'watch']);
 };
