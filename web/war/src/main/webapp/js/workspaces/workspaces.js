@@ -233,9 +233,7 @@ define([
         this.switchActive = function(workspaceId) {
             this.workspaceId = workspaceId;
 
-            var self = this,
-                found = false,
-                $row = this.findWorkspaceRow(workspaceId);
+            var $row = this.findWorkspaceRow(workspaceId);
 
             this.select('workspaceListItemSelector')
                 .not($row.addClass('active'))
@@ -247,14 +245,12 @@ define([
         };
 
         this.update = function(workspaces) {
-            workspaces = _.filter(workspaces, function(w) {
-                return 'createdBy' in w;
-            })
             var self = this,
                 MINE = 'mine',
                 SHARED = 'shared',
                 userIds = _.chain(workspaces)
                     .pluck('createdBy')
+                    .filter(function(e) { return e; }) // filter null or undefined
                     .unique()
                     .value(),
                 workspacesGrouped = _.chain(workspaces)

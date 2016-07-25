@@ -3,10 +3,6 @@ define(['../services/workspace'], function(Workspace) {
 
     return function(message) {
         Workspace.get(message.workspaceId)
-            .then(function(workspace) {
-                if (!('createdBy' in workspace)) throw new Error();
-                return workspace;
-            })
             .catch(function(xhr) {
                 if (xhr && xhr.status === 500) {
                     throw new Error(xhr);

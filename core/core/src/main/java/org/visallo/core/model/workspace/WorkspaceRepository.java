@@ -271,7 +271,9 @@ public abstract class WorkspaceRepository {
             workspaceClientApi.setTitle(workspace.getDisplayTitle());
 
             String creatorUserId = getCreatorUserId(workspace.getWorkspaceId(), user);
-            if (creatorUserId != null) {
+            if (creatorUserId == null) {
+                workspaceClientApi.setSharedToUser(true);
+            } else {
                 workspaceClientApi.setCreatedBy(creatorUserId);
                 workspaceClientApi.setSharedToUser(!creatorUserId.equals(user.getUserId()));
             }
