@@ -40,7 +40,8 @@ define([], function() {
         });
 
         this.setupWithTemplate = function(tpl) {
-            var self = this;
+            var self = this,
+                closestModal;
 
             if (this.attr.overlay) {
                 $(document.body).append('<div class="popover-bg-overlay">')
@@ -54,8 +55,9 @@ define([], function() {
                 .html(tpl(this.attr))
                 .appendTo(document.body);
 
-            if (this.$node.closest('.modal').length) {
-                this.dialog.css('zIndex', 1050);
+            closestModal = this.$node.closest('.modal');
+            if (closestModal.length) {
+                this.dialog.css('z-index', parseInt(closestModal.css('z-index'), 10) + 10);
             }
 
             this.popover = this.dialog.find('.popover');
