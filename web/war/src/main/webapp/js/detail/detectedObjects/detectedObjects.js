@@ -208,12 +208,12 @@ define([
                     .data(detectedObjects, detectedObjectKey)
                     .call(function() {
                         this.enter()
-                            .append('span')
+                            .append('div')
                             .attr('class', 'detected-object-tag')
                             .attr('data-vertex-id', function(detectedObject) {
                                 return detectedObject.value.resolvedVertexId;
                             })
-                            .append('a');
+                            .append('div');
 
                         this
                             .sort(function(a, b) {
@@ -234,7 +234,7 @@ define([
                                     return 'none';
                                 }
                             })
-                            .select('a')
+                            .select('div')
                                 .attr('data-vertex-id', function(detectedObject) {
                                     return detectedObject.value.resolvedVertexId;
                                 })

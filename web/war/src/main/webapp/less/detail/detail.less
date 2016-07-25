@@ -161,7 +161,7 @@
     }
     .label.detected-object-tag.loading {
         background: #efefef;
-        a {
+        div {
             background: inherit;
             color: black;
         }
@@ -177,10 +177,16 @@
   }
 
   .detected-object-tag {
-    a {      
+    display: inline-block;
+    max-width: 200px;
+    div {
+      display: block;
       font-size: 80%;
       padding: 0.3em 0.7em;
-      margin: 1em 0.25em 0 0.25em;
+      margin: 0.25em 0.25em 0 0.25em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .label-info {
       color: #777;
@@ -190,7 +196,8 @@
       
       &.resolved {
         color: #555;
-        font-weight: bold;        
+        font-weight: bold;
+        cursor: pointer;
       }
     }    
   }
