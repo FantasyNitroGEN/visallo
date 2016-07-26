@@ -3,7 +3,8 @@ define([
     'configuration/plugins/registry',
     'hbs!./template',
     'util/component/attacher',
-    'tpl!util/alert'
+    'tpl!util/alert',
+    './bundled/index'
 ], function(
     defineComponent,
     registry,
