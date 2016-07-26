@@ -35,6 +35,7 @@ define([
             justificationSelector: '.justification',
             conceptSelector: '.concept-container',
             singleSelector: '.single',
+            singleVisibilitySelector: '.single .visibility',
             individualVisibilitySelector: '.individual-visibility'
         });
 
@@ -184,10 +185,12 @@ define([
             var $checkbox = $(e.target),
                 checked = $checkbox.is(':checked');
 
+            this.popover.find(this.attr.singleSelector).toggle(checked);
             this.popover.toggleClass('collapseVisibility', checked);
             this.popover.find(this.attr.individualVisibilitySelector).toggle(!checked);
             this.popover.find('.errors').empty();
             _.delay(this.positionDialog.bind(this), 50);
+            this.checkValid();
         };
 
         this.onConceptChange = function(event, data) {
@@ -226,6 +229,7 @@ define([
         };
 
         this.checkValid = function() {
+            var self = this;
             var collapsed = this.isVisibilityCollapsed(),
                 isValid = collapsed ?
                     (this.visibilitySource && this.visibilitySource.valid &&
@@ -234,6 +238,17 @@ define([
                     ) :
                     _.every(this.visibilitySources, _.property('valid'));
 
+            if (collapsed) {
+                this.popover.find(this.attr.singleVisibilitySelector).find('input').toggleClass('invalid', !isValid);
+            } else {
+                this.popover.find(this.attr.individualVisibilitySelector).find('.visibility').each(function() {
+                    var $visibility = $(this);
+                    var fileIndex = $visibility.data('fileIndex')
+                    var visibilityValid = self.visibilitySources[fileIndex].valid;
+
+                    $visibility.find('input').toggleClass('invalid', !visibilityValid);
+                });
+            }
             if (isValid && this.attr.files.length === 0 && !this.concept) {
                 isValid = false;
             }
