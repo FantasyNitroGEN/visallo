@@ -95,7 +95,7 @@ public class ACLProviderTest {
     @SuppressWarnings("unchecked")
     @Before
     public void before() {
-        aclProvider = spy(new MockAclProvider(
+        aclProvider = spy(new AllowNoneAclProvider(
                 graph,
                 userRepository,
                 ontologyRepository,
@@ -260,7 +260,12 @@ public class ACLProviderTest {
     }
 
     private void setupForCommentPropertyTests() {
-        // user1 and user2 can both add/update/delete the comment property
+        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.EDIT))).thenReturn(false);
+        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.EDIT))).thenReturn(false);
+        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.COMMENT))).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.COMMENT))).thenReturn(true);
+
+        // user1 and user2 can both add/update/delete the comment property, but not other properties
 
         Metadata user1CommentMetadata = new PropertyMetadata(user1, VISIBILITY_JSON, VISIBILITY).createMetadata();
         when(user1CommentProperty.getMetadata()).thenReturn(user1CommentMetadata);
@@ -277,6 +282,11 @@ public class ACLProviderTest {
     }
 
     private void setupForRegularPropertyTests() {
+        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.EDIT))).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.EDIT))).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.COMMENT))).thenReturn(false);
+        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.COMMENT))).thenReturn(false);
+
         // only user1 can add/update/delete the regular property
 
         Metadata user1PropertyMetadata = new PropertyMetadata(user1, VISIBILITY_JSON, VISIBILITY).createMetadata();
@@ -382,43 +392,5 @@ public class ACLProviderTest {
         List<ClientApiPropertyAcl> matches = findMultiplePropertyAcls(propertyAcls, propertyName);
         assertThat(matches.size(), equalTo(1));
         return matches.get(0);
-    }
-
-    private static class MockAclProvider extends ACLProvider {
-
-        protected MockAclProvider(
-                Graph graph,
-                UserRepository userRepository,
-                OntologyRepository ontologyRepository,
-                PrivilegeRepository privilegeRepository,
-                AuthorizationRepository authorizationRepository
-        ) {
-            super(graph, userRepository, ontologyRepository, privilegeRepository, authorizationRepository);
-        }
-
-        @Override
-        public boolean canDeleteElement(Element element, User user) {
-            return false;
-        }
-
-        @Override
-        public boolean canDeleteProperty(Element element, String propertyKey, String propertyName, User user) {
-            return false;
-        }
-
-        @Override
-        public boolean canUpdateElement(Element element, User user) {
-            return false;
-        }
-
-        @Override
-        public boolean canUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
-            return false;
-        }
-
-        @Override
-        public boolean canAddProperty(Element element, String propertyKey, String propertyName, User user) {
-            return false;
-        }
     }
 }

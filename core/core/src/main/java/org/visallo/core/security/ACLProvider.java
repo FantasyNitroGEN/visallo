@@ -238,8 +238,13 @@ public abstract class ACLProvider {
         return hasPrivilege(user, Privilege.EDIT) && canDeleteElement(element, user);
     }
 
+    private boolean internalCanUpdateElement(Element element, User user) {
+        return hasPrivilege(user, Privilege.EDIT) && canUpdateElement(element, user);
+    }
+
     private boolean internalCanDeleteProperty(Element element, String propertyKey, String propertyName, User user) {
-        boolean canDelete = hasPrivilege(user, Privilege.EDIT) &&
+        boolean canDelete =
+                hasEditOrCommentPrivilege(propertyName, user) &&
                 canDeleteProperty(element, propertyKey, propertyName, user);
         if (canDelete && isComment(propertyName)) {
             canDelete = hasPrivilege(user, Privilege.COMMENT_DELETE_ANY) ||
@@ -248,12 +253,9 @@ public abstract class ACLProvider {
         return canDelete;
     }
 
-    private boolean internalCanUpdateElement(Element element, User user) {
-        return hasPrivilege(user, Privilege.EDIT) && canUpdateElement(element, user);
-    }
-
     private boolean internalCanUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
-        boolean canUpdate = hasPrivilege(user, Privilege.EDIT) &&
+        boolean canUpdate =
+                hasEditOrCommentPrivilege(propertyName, user) &&
                 canUpdateProperty(element, propertyKey, propertyName, user);
         if (canUpdate && isComment(propertyName)) {
             canUpdate = hasPrivilege(user, Privilege.COMMENT_EDIT_ANY) ||
@@ -263,10 +265,16 @@ public abstract class ACLProvider {
     }
 
     private boolean internalCanAddProperty(Element element, String propertyKey, String propertyName, User user) {
-        boolean canAdd = hasPrivilege(user, Privilege.EDIT) && canAddProperty(element, propertyKey, propertyName, user);
+        boolean canAdd =
+                hasEditOrCommentPrivilege(propertyName, user) &&
+                canAddProperty(element, propertyKey, propertyName, user);
         if (canAdd && isComment(propertyName)) {
             canAdd = hasPrivilege(user, Privilege.COMMENT);
         }
         return canAdd;
+    }
+
+    private boolean hasEditOrCommentPrivilege(String propertyName, User user) {
+        return hasPrivilege(user, Privilege.EDIT) || (isComment(propertyName) && hasPrivilege(user, Privilege.COMMENT));
     }
 }
