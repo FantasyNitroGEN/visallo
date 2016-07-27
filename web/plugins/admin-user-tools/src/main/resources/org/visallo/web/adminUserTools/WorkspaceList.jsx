@@ -74,7 +74,7 @@ define([
 
         render() {
             return (
-                <div>
+                <div className="workspace-list">
                     <div className="nav-header">{i18n('admin.user.editor.workspaces.header')}</div>
                     <Alert error={this.state.error} onDismiss={this.handleAlertDismiss}/>
                     <ul>
