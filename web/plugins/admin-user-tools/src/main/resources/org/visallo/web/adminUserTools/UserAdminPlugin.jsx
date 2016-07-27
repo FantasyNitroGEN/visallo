@@ -45,7 +45,8 @@ define([
         handleUserLoaded(user) {
             this.setState({
                 user: user,
-                reloadUser: false
+                reloadUser: false,
+                disableDelete: user.id === visalloData.currentUser.id
             });
         },
 
@@ -53,6 +54,17 @@ define([
             this.setState({
                 reloadUser: true
             });
+        },
+
+        handleUserDeleted() {
+            var self = this;
+            this.dataRequest('admin', 'userDelete', this.state.user.userName)
+                .then(function() {
+                    self.setState({
+                        user: null,
+                        reloadUser: false
+                    });
+                });
         },
 
         render() {
@@ -96,6 +108,15 @@ define([
                                 <WorkspaceList user={this.state.user}
                                                onWorkspaceChanged={this.handleWorkspaceChanged}
                                 />
+                            </div>
+                            <div>
+                                <button
+                                    className="btn btn-danger"
+                                    disabled={this.state.disableDelete}
+                                    onClick={this.handleUserDeleted}
+                                >
+                                    {i18n('admin.user.editor.deleteUser')}
+                                </button>
                             </div>
                         </div>
                     ) : null }
