@@ -15,6 +15,7 @@ define([
     'map/map',
     'help/help',
     'configuration/plugins/registry',
+    'util/component/attacher',
     'util/mouseOverlay',
     'util/withFileDrop',
     'util/vertex/menu',
@@ -37,6 +38,7 @@ define([
     Map,
     Help,
     registry,
+    attacher,
     MouseOverlay,
     withFileDrop,
     VertexMenu,
@@ -586,10 +588,17 @@ define([
                     }
 
                     require([data.action.componentPath], function(Component) {
-                        Component.attachTo(data.action.type === 'pane' ? pane.find('.content') : pane, {
-                            graphPadding: self.currentGraphPadding
-                        });
-                        deferred.resolve();
+                        var node = data.action.type === 'pane' ? pane.find('.content') : pane;
+                        var options = { graphPadding: self.currentGraphPadding };
+
+                        attacher()
+                            .node(node)
+                            .component(Component)
+                            .path(data.action.componentPath)
+                            .attach(options)
+                            .then(function() {
+                                deferred.resolve();
+                            });
                     });
                 }
             } else if (pane.length === 0) {
