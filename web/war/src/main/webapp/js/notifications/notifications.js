@@ -12,7 +12,7 @@ define([
     function Notifications() {
 
         this.attributes({
-            allowDismiss: true,
+            allowSystemDismiss: true,
             animated: true,
             emptyMessage: true,
             showInformational: true,
@@ -140,7 +140,10 @@ define([
                         var autoDismiss = self.autoDismissSeconds[updated.type];
                         if (autoDismiss > 0) {
                             _.delay(function() {
-                                self.dismissNotification(updated);
+                                self.dismissNotification(updated, {
+                                    markRead: false,
+                                    userDismissed: true
+                                });
                             }, autoDismiss * 1000);
                         }
                     }
@@ -162,7 +165,9 @@ define([
         this.dismissNotification = function(notification, options) {
             var self = this,
                 immediate = options && options.immediate,
-                animate = options && options.animate;
+                animate = options && options.animate,
+                markRead = options && !_.isUndefined(options.markRead) ? options.markRead : true,
+                userDismissed = options && !_.isUndefined(options.userDismissed) ? options.userDismissed : false;
 
             this.stack = _.reject(this.stack, function(n) {
                 if (n.collapsedIds) {
@@ -170,19 +175,26 @@ define([
                 }
                 return n.id === notification.id;
             });
-            if (notification.type === 'user') {
-                if (notification.collapsedIds) {
-                    notification.collapsedIds.forEach(function(nId) {
-                        self.markRead.push(nId);
-                    })
+
+            if (markRead) {
+                if (notification.type === 'user') {
+                    if (notification.collapsedIds) {
+                        notification.collapsedIds.forEach(function(nId) {
+                            self.markRead.push(nId);
+                        })
+                    } else {
+                        this.markRead.push(notification.id);
+                    }
+                    this.sendMarkRead();
+                } else if (notification.hash) {
+                    this.setUserDismissed(notification.id, notification.hash);
                 } else {
-                    this.markRead.push(notification.id);
+                    console.warn('Notification missing hash', notification);
                 }
-                this.sendMarkRead();
-            } else if (notification.hash) {
+            }
+
+            if (userDismissed && notification.type === 'user' && notification.hash) {
                 this.setUserDismissed(notification.id, notification.hash);
-            } else {
-                console.warn('Notification missing hash', notification);
             }
 
             if (immediate) {
@@ -216,7 +228,7 @@ define([
         };
 
         this.canDismissNotification = function(notification) {
-            return this.attr.allowDismiss !== false || notification.type !== 'system';
+            return this.attr.allowSystemDismiss !== false || notification.type !== 'system';
         };
 
         this.update = function(forceAnimation) {
@@ -251,11 +263,14 @@ define([
                                 });
                             }
                         }
-                        if (self.canDismissNotification(clicked)) {
-                            self.dismissNotification(clicked, {
-                                immediate: true,
-                                animate: true
-                            });
+
+                        if (clickedButton) {
+                            if (self.canDismissNotification(clicked)) {
+                                self.dismissNotification(clicked, {
+                                    immediate: true,
+                                    animate: true
+                                });
+                            }
                         }
                     });
                     this.classed('critical', function(n) {
@@ -275,9 +290,13 @@ define([
                     });
                     this.select('h1').text(function(n) {
                         return n.title
+                    }).style('cursor', function(n) {
+                        return n.actionPayload ? 'pointer' : 'default';
                     });
                     this.select('h2').text(function(n) {
                         return n.message
+                    }).style('cursor', function(n) {
+                        return n.actionPayload ? 'pointer' : 'default';
                     });
 
                     if (forceAnimation || self.attr.animated !== false) {
