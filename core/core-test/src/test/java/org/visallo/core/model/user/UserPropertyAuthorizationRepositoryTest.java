@@ -45,6 +45,9 @@ public class UserPropertyAuthorizationRepositoryTest {
     @Mock
     private WorkQueueRepository workQueueRepository;
 
+    @Mock
+    private GraphAuthorizationRepository graphAuthorizationRepository;
+
     @Before
     public void before() {
         Map config = new HashMap();
@@ -59,7 +62,8 @@ public class UserPropertyAuthorizationRepositoryTest {
                 ontologyRepository,
                 configuration,
                 userNotificationRepository,
-                workQueueRepository
+                workQueueRepository,
+                graphAuthorizationRepository
         );
     }
 

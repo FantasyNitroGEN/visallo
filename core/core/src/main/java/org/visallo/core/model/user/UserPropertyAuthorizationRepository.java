@@ -39,6 +39,7 @@ public class UserPropertyAuthorizationRepository extends AuthorizationRepository
     private final UserNotificationRepository userNotificationRepository;
     private final WorkQueueRepository workQueueRepository;
     private Collection<UserListener> userListeners;
+    private GraphAuthorizationRepository authorizationRepository;
 
     private static class Settings {
         @Configurable()
@@ -51,17 +52,22 @@ public class UserPropertyAuthorizationRepository extends AuthorizationRepository
             OntologyRepository ontologyRepository,
             Configuration configuration,
             UserNotificationRepository userNotificationRepository,
-            WorkQueueRepository workQueueRepository
+            WorkQueueRepository workQueueRepository,
+            GraphAuthorizationRepository authorizationRepository
     ) {
         super(graph);
         this.configuration = configuration;
         this.userNotificationRepository = userNotificationRepository;
         this.workQueueRepository = workQueueRepository;
+        this.authorizationRepository = authorizationRepository;
         defineAuthorizationsProperty(ontologyRepository);
 
         Settings settings = new Settings();
         configuration.setConfigurables(settings, CONFIGURATION_PREFIX);
         this.defaultAuthorizations = parseAuthorizations(settings.defaultAuthorizations);
+        if (settings.defaultAuthorizations.length() > 0) {
+            authorizationRepository.addAuthorizationToGraph(settings.defaultAuthorizations.split(","));
+        }
     }
 
     private void defineAuthorizationsProperty(OntologyRepository ontologyRepository) {
@@ -113,6 +119,7 @@ public class UserPropertyAuthorizationRepository extends AuthorizationRepository
                     authUser.getUsername()
             );
             auths.add(auth);
+            authorizationRepository.addAuthorizationToGraph(auth);
             getUserRepository().setPropertyOnUser(user, AUTHORIZATIONS_PROPERTY_IRI, Joiner.on(SEPARATOR).join(auths));
             sendNotificationToUserAboutAddAuthorization(user, auth, authUser);
             fireUserAddAuthorizationEvent(user, auth);
