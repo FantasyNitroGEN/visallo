@@ -248,6 +248,9 @@ define([
             if (data.name === 'search' && this.$node.closest('.visible').length === 0) {
                 this.$node.find('.advanced-search-type-results').hide();
             }
+            if (this.searchType && this.searchType === SEARCH_TYPES[0]) {
+                this.select('hitsSelector').empty();
+            }
         };
 
         this.onSearchTypeLoaded = function() {
