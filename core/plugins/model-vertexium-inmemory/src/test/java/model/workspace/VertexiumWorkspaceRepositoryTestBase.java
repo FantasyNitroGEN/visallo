@@ -109,12 +109,13 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
         Configuration visalloConfiguration = new HashMapConfigurationLoader(configMap).createConfiguration();
         LockRepository lockRepository = new NonLockingLockRepository();
 
-        authorizationRepository = new UserPropertyAuthorizationRepository(
+        authorizationRepository =new UserPropertyAuthorizationRepository(
                 graph,
                 ontologyRepository,
                 visalloConfiguration,
                 userNotificationRepository,
-                workQueueRepository
+                workQueueRepository,
+                graphAuthorizationRepository
         ) {
             @Override
             protected UserRepository getUserRepository() {
