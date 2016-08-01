@@ -1,8 +1,10 @@
-package org.visallo.tools;
+package org.visallo.core.model.user.cli;
 
-import org.visallo.tools.args.FindUserArgs;
+import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.cli.args.FindUserArgs;
 
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends VisalloException {
+    private static final long serialVersionUID = 6098547135173316004L;
     private final FindUserArgs findUserArgs;
 
     public UserNotFoundException(FindUserArgs findUserArgs) {

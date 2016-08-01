@@ -22,6 +22,5 @@
         <module>owl</module>
         <module>rdf-import</module>
         <module>reindex</module>
-        <module>user-admin</module>
     </modules>
 </project>

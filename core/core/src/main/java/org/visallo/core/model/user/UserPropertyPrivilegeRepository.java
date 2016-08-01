@@ -1,6 +1,7 @@
 package org.visallo.core.model.user;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.json.JSONObject;
@@ -14,6 +15,8 @@ import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyPropertyDefinition;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.user.cli.PrivilegeRepositoryCliService;
+import org.visallo.core.model.user.cli.PrivilegeRepositoryWithCliSupport;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
@@ -24,11 +27,11 @@ import org.visallo.web.clientapi.model.PropertyType;
 
 import java.util.*;
 
-public class UserPropertyPrivilegeRepository extends PrivilegeRepositoryBase {
+public class UserPropertyPrivilegeRepository extends PrivilegeRepositoryBase implements PrivilegeRepositoryWithCliSupport {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserPropertyPrivilegeRepository.class);
     public static final String PRIVILEGES_PROPERTY_IRI = "http://visallo.org/user#privileges";
     public static final String CONFIGURATION_PREFIX = UserPropertyPrivilegeRepository.class.getName();
-    private final Set<String> defaultPrivileges;
+    private final ImmutableSet<String> defaultPrivileges;
     private final Configuration configuration;
     private final UserNotificationRepository userNotificationRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -54,7 +57,7 @@ public class UserPropertyPrivilegeRepository extends PrivilegeRepositoryBase {
 
         Settings settings = new Settings();
         configuration.setConfigurables(settings, CONFIGURATION_PREFIX);
-        this.defaultPrivileges = Privilege.stringToPrivileges(settings.defaultPrivileges);
+        this.defaultPrivileges = ImmutableSet.copyOf(Privilege.stringToPrivileges(settings.defaultPrivileges));
     }
 
     private void definePrivilegesProperty(OntologyRepository ontologyRepository) {
@@ -131,5 +134,14 @@ public class UserPropertyPrivilegeRepository extends PrivilegeRepositoryBase {
             userListeners = InjectHelper.getInjectedServices(UserListener.class, configuration);
         }
         return userListeners;
+    }
+
+    @Override
+    public PrivilegeRepositoryCliService getCliService() {
+        return new UserPropertyPrivilegeRepositoryCliService(this);
+    }
+
+    public ImmutableSet<String> getDefaultPrivileges() {
+        return defaultPrivileges;
     }
 }
