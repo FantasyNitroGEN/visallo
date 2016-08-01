@@ -1,5 +1,6 @@
 package org.visallo.common.rdf;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
@@ -18,8 +19,6 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.*;
 import java.util.*;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RdfTripleImportHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfTripleImportHelper.class);
@@ -101,10 +100,11 @@ public class RdfTripleImportHelper {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         int lineNum = 1;
         String line;
+        ImportContext ctx = null;
         while ((line = reader.readLine()) != null) {
             LOGGER.debug("Importing RDF triple on line: %d", lineNum);
             try {
-                importRdfLine(elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
+                ctx = importRdfLine(ctx, elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
             } catch (Exception e) {
                 String errMsg = String.format("Error importing RDF triple on line: %d. %s", lineNum, e.getMessage());
                 if (failOnFirstError) {
@@ -117,6 +117,9 @@ public class RdfTripleImportHelper {
 
             ++lineNum;
         }
+        if (ctx != null) {
+            elements.add(ctx.save(authorizations));
+        }
 
         graph.flush();
         LOGGER.info("pushing %d elements from RDF import on to work queue", elements.size());
@@ -126,7 +129,9 @@ public class RdfTripleImportHelper {
         LOGGER.debug("RDF %s imported in %dms", sourceFileName, endTime - startTime);
     }
 
-    public void importRdfLine(
+    @VisibleForTesting
+    ImportContext importRdfLine(
+            ImportContext ctx,
             Set<Element> elements,
             String sourceFileName,
             String line,
@@ -137,17 +142,15 @@ public class RdfTripleImportHelper {
             Authorizations authorizations
     ) {
         if (line.length() == 0 || line.charAt(0) == '#') {
-            return;
+            return ctx;
         }
         RdfTriple rdfTriple = RdfTripleParser.parseLine(line);
-        if (importRdfTriple(elements, rdfTriple, sourceFileName, workingDir, timeZone, defaultVisibilitySource, user, authorizations)) {
-            return;
-        }
 
-        throw new VisalloException("Unhandled combination of RDF triples");
+        return importRdfTriple(ctx, elements, rdfTriple, sourceFileName, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
     }
 
-    public boolean importRdfTriple(
+    private ImportContext importRdfTriple(
+            ImportContext ctx,
             Set<Element> elements,
             RdfTriple rdfTriple,
             String sourceFileName,
@@ -158,10 +161,10 @@ public class RdfTripleImportHelper {
             Authorizations authorizations
     ) {
         if (!(rdfTriple.getFirst() instanceof RdfTriple.UriPart)) {
-            return true;
+            throw new VisalloException("Unhandled combination of RDF triples. First triple expected to be a URI, but was " + rdfTriple.getFirst().getClass().getName());
         }
         if (!(rdfTriple.getSecond() instanceof RdfTriple.UriPart)) {
-            return true;
+            throw new VisalloException("Unhandled combination of RDF triples. Second triple expected to be a URI, but was " + rdfTriple.getFirst().getClass().getName());
         }
 
         VisalloRdfTriple triple = VisalloRdfTriple.parse(
@@ -171,53 +174,41 @@ public class RdfTripleImportHelper {
                 timeZone
         );
         if (triple == null) {
-            return false;
+            throw new VisalloException("Unhandled combination of RDF triples");
+        }
+
+        if (ctx == null || ctx.isNewElement(triple)) {
+            if (ctx != null) {
+                elements.add(ctx.save(authorizations));
+            }
+            ctx = triple.updateImportContext(ctx, this, authorizations);
         }
 
         if (triple instanceof ConceptTypeVisalloRdfTriple) {
-            setConceptType(elements, sourceFileName, (ConceptTypeVisalloRdfTriple) triple, user, authorizations);
-            return true;
+            setConceptType(ctx, sourceFileName, (ConceptTypeVisalloRdfTriple) triple, user);
+            return ctx;
         }
 
         if (triple instanceof PropertyVisalloRdfTriple) {
-            setProperty(
-                    elements,
-                    sourceFileName,
-                    (PropertyVisalloRdfTriple) triple,
-                    user,
-                    authorizations
-            );
-            return true;
+            setProperty(ctx, sourceFileName, (PropertyVisalloRdfTriple) triple, user);
+            return ctx;
         }
 
         if (triple instanceof AddEdgeVisalloRdfTriple) {
-            addEdge(elements, (AddEdgeVisalloRdfTriple) triple, authorizations);
-            return true;
+            // handled by ImportContext
+            return ctx;
         }
 
         throw new VisalloException("Unexpected triple type: " + triple.getClass().getName());
     }
 
-    private void addEdge(Set<Element> elements, AddEdgeVisalloRdfTriple triple, Authorizations authorizations) {
-        Edge edge = graph.addEdge(
-                triple.getEdgeId(),
-                triple.getOutVertexId(),
-                triple.getInVertexId(),
-                triple.getEdgeLabel(),
-                getVisibility(triple.getEdgeVisibilitySource()),
-                authorizations
-        );
-        elements.add(edge);
-    }
-
     private void setProperty(
-            Set<Element> elements,
+            ImportContext ctx,
             String sourceFileName,
             PropertyVisalloRdfTriple triple,
-            User user,
-            Authorizations authorizations
+            User user
     ) {
-        ElementMutation m;
+        ElementMutation m = ctx.getElementMutation();
 
         // metadata
         Date now = new Date();
@@ -237,8 +228,6 @@ public class RdfTripleImportHelper {
         if (triple instanceof SetMetadataVisalloRdfTriple) {
             SetMetadataVisalloRdfTriple setMetadataVisalloRdfTriple = (SetMetadataVisalloRdfTriple) triple;
 
-            Element elem = getExistingElement(triple, authorizations);
-            m = elem.prepareMutation();
             ((ExistingElementMutation) m).setPropertyMetadata(
                     triple.getPropertyKey(),
                     triple.getPropertyName(),
@@ -247,7 +236,6 @@ public class RdfTripleImportHelper {
                     getVisibility(setMetadataVisalloRdfTriple.getMetadataVisibilitySource())
             );
         } else {
-            m = getMutationForUpdate(triple, authorizations);
             m.addPropertyValue(
                     triple.getPropertyKey(),
                     triple.getPropertyName(),
@@ -256,46 +244,19 @@ public class RdfTripleImportHelper {
                     getVisibility(triple.getPropertyVisibilitySource())
             );
         }
-
-        Element element = m.save(authorizations);
-        elements.add(element);
-    }
-
-    private ElementMutation getMutationForUpdate(PropertyVisalloRdfTriple triple, Authorizations authorizations) {
-        if (triple.getElementType() == ElementType.VERTEX) {
-            return graph.prepareVertex(triple.getElementId(), getVisibility(triple.getElementVisibilitySource()));
-        } else {
-            Edge element = (Edge) getExistingElement(triple, authorizations);
-            return element.prepareMutation();
-        }
-    }
-
-    private Element getExistingElement(PropertyVisalloRdfTriple triple, Authorizations authorizations) {
-        Element elem = triple.getElementType() == ElementType.VERTEX
-                ? graph.getVertex(triple.getElementId(), authorizations)
-                : graph.getEdge(triple.getElementId(), authorizations);
-        if (elem == null) {
-            graph.flush();
-            elem = triple.getElementType() == ElementType.VERTEX
-                    ? graph.getVertex(triple.getElementId(), authorizations)
-                    : graph.getEdge(triple.getElementId(), authorizations);
-        }
-        checkNotNull(elem, "Could not find element with id " + triple.getElementId());
-        return elem;
     }
 
     private void setConceptType(
-            Set<Element> elements,
+            ImportContext ctx,
             String sourceFileName,
             ConceptTypeVisalloRdfTriple triple,
-            User user,
-            Authorizations authorizations
+            User user
     ) {
         Date now = new Date();
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
 
         Visibility elementVisibility = getVisibility(triple.getElementVisibilitySource());
-        VertexBuilder m = graph.prepareVertex(triple.getElementId(), elementVisibility);
+        ElementMutation m = ctx.getElementMutation();
         VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), defaultVisibility);
         if (!isLiteralVisibilityString(triple.getElementVisibilitySource())) {
             VisibilityJson visibilityJson = new VisibilityJson(triple.getElementVisibilitySource());
@@ -304,11 +265,9 @@ public class RdfTripleImportHelper {
         VisalloProperties.MODIFIED_BY.setProperty(m, user.getUserId(), defaultVisibility);
         VisalloProperties.MODIFIED_DATE.setProperty(m, now, defaultVisibility);
         VisalloProperties.SOURCE.addPropertyValue(m, MULTIVALUE_KEY, sourceFileName, elementVisibility);
-        Vertex vertex = m.save(authorizations);
-        elements.add(vertex);
     }
 
-    private Visibility getVisibility(String visibilityString) {
+    Visibility getVisibility(String visibilityString) {
         Visibility visibility = visibilityCache.get(visibilityString);
         if (visibility != null) {
             return visibility;
@@ -324,5 +283,9 @@ public class RdfTripleImportHelper {
 
     private boolean isLiteralVisibilityString(String visibilitySource) {
         return visibilitySource != null && visibilitySource.startsWith("!");
+    }
+
+    Graph getGraph() {
+        return graph;
     }
 }

@@ -1,6 +1,8 @@
 package org.visallo.common.rdf;
 
 import com.google.common.base.Strings;
+import org.vertexium.Authorizations;
+import org.vertexium.mutation.ElementMutation;
 
 public class AddEdgeVisalloRdfTriple extends VisalloRdfTriple {
     private final String edgeId;
@@ -25,6 +27,11 @@ public class AddEdgeVisalloRdfTriple extends VisalloRdfTriple {
 
     public String getEdgeId() {
         return edgeId;
+    }
+
+    @Override
+    public String getElementId() {
+        return getEdgeId();
     }
 
     public String getEdgeLabel() {
@@ -83,6 +90,22 @@ public class AddEdgeVisalloRdfTriple extends VisalloRdfTriple {
         }
 
         return super.equals(that);
+    }
+
+    @Override
+    public ImportContext updateImportContext(
+            ImportContext ctx,
+            RdfTripleImportHelper rdfTripleImportHelper,
+            Authorizations authorizations
+    ) {
+        ElementMutation m = rdfTripleImportHelper.getGraph().prepareEdge(
+                getEdgeId(),
+                getOutVertexId(),
+                getInVertexId(),
+                getEdgeLabel(),
+                rdfTripleImportHelper.getVisibility(getEdgeVisibilitySource())
+        );
+        return new ImportContext(getEdgeId(), m);
     }
 
     @Override

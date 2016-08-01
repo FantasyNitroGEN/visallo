@@ -1,8 +1,8 @@
 package org.visallo.common.rdf;
 
 import com.google.common.base.Strings;
-import org.vertexium.DateOnly;
-import org.vertexium.ElementType;
+import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.web.clientapi.model.DirectoryEntity;
@@ -13,6 +13,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
     private final String propertyKey;
@@ -131,5 +133,45 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
         }
 
         return super.equals(that);
+    }
+
+    @Override
+    public ImportContext updateImportContext(
+            ImportContext ctx,
+            RdfTripleImportHelper rdfTripleImportHelper,
+            Authorizations authorizations
+    ) {
+        ElementMutation m = getMutationForUpdate(rdfTripleImportHelper, authorizations);
+        return new ImportContext(getElementId(), m);
+    }
+
+    protected ElementMutation getMutationForUpdate(
+            RdfTripleImportHelper rdfTripleImportHelper,
+            Authorizations authorizations
+    ) {
+        Graph graph = rdfTripleImportHelper.getGraph();
+        if (getElementType() == ElementType.VERTEX) {
+            return graph.prepareVertex(
+                    getElementId(),
+                    rdfTripleImportHelper.getVisibility(getElementVisibilitySource())
+            );
+        } else {
+            Element element = getExistingElement(graph, this, authorizations);
+            return element.prepareMutation();
+        }
+    }
+
+    protected Element getExistingElement(Graph graph, PropertyVisalloRdfTriple triple, Authorizations authorizations) {
+        Element elem = triple.getElementType() == ElementType.VERTEX
+                ? graph.getVertex(triple.getElementId(), authorizations)
+                : graph.getEdge(triple.getElementId(), authorizations);
+        if (elem == null) {
+            graph.flush();
+            elem = triple.getElementType() == ElementType.VERTEX
+                    ? graph.getVertex(triple.getElementId(), authorizations)
+                    : graph.getEdge(triple.getElementId(), authorizations);
+        }
+        checkNotNull(elem, "Could not find element with id " + triple.getElementId());
+        return elem;
     }
 }

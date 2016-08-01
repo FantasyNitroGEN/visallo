@@ -464,7 +464,8 @@ public class RdfTripleImportHelperTest {
 
     private void importRdfLine(String line) {
         Set<Element> elements = new HashSet<>();
-        rdfTripleImportHelper.importRdfLine(
+        ImportContext ctx = rdfTripleImportHelper.importRdfLine(
+                null,
                 elements,
                 sourceFileName,
                 line,
@@ -474,5 +475,6 @@ public class RdfTripleImportHelperTest {
                 user,
                 authorizations
         );
+        ctx.save(authorizations);
     }
 }
