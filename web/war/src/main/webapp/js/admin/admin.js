@@ -3,14 +3,12 @@ define([
     'configuration/plugins/registry',
     'hbs!./template',
     'util/component/attacher',
-    'tpl!util/alert',
     './bundled/index'
 ], function(
     defineComponent,
     registry,
     template,
-    attacher,
-    alertTemplate) {
+    attacher) {
     'use strict';
 
     registry.documentExtensionPoint('org.visallo.admin',
@@ -22,10 +20,32 @@ define([
         'http://docs.visallo.org/extension-points/front-end/admin'
     );
 
-    return defineComponent(AdminList);
+    var adminList = defineComponent(AdminList);
+
+    adminList.getExtensions = function() {
+        var userPrivileges = visalloData.currentUser.privileges;
+        return registry.extensionsForPoint('org.visallo.admin')
+            .filter(function(extension) {
+                if (_.isFunction(extension.requiredPrivilege)) {
+                    if (!extension.requiredPrivilege(userPrivileges)) {
+                        return false;
+                    }
+                } else if (!extension.requiredPrivilege) {
+                    if (userPrivileges.indexOf('ADMIN') < 0) {
+                        return false;
+                    }
+                } else {
+                    if (userPrivileges.indexOf(extension.requiredPrivilege) < 0) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+    };
+
+    return adminList;
 
     function AdminList() {
-
         this.defaultAttrs({
             listSelector: '.admin-list',
             pluginItemSelector: '.admin-list > li a',
@@ -48,7 +68,7 @@ define([
                 this.$node.find('.admin-list .active').removeClass('active');
                 this.loadingAdminExtension.cancel();
                 var form = this.select('formSelector').hide().find('.content').removePrefixedClasses('admin_less_cls')
-                attacher().node(form).teardown()
+                attacher().node(form).teardown();
                 form.empty();
             }
         };
@@ -73,14 +93,14 @@ define([
                 form = container.find('.content');
 
             if ($adminListItem.hasClass('active')) {
-                attacher().node(form).teardown()
+                attacher().node(form).teardown();
                 $adminListItem.removeClass('active');
                 self.select('formSelector').hide();
                 self.trigger(container, 'paneResized');
                 return;
             }
             this.loadingAdminExtension.cancel();
-            $adminListItem.addClass('active').siblings('.active').removeClass('active loading').end()
+            $adminListItem.addClass('active').siblings('.active').removeClass('active loading').end();
 
             container.resizable({
                 handles: 'e',
@@ -89,13 +109,13 @@ define([
                 resize: function() {
                     self.trigger(document, 'paneResized');
                 }
-            })
-            var extension = _.find(registry.extensionsForPoint('org.visallo.admin'), function(e) {
+            });
+            var extension = _.find(adminList.getExtensions(), function(e) {
                     return e.name.toLowerCase() === data.name &&
                         e.section.toLowerCase() === data.section;
                 });
 
-            form.removePrefixedClasses('admin_less_cls')
+            form.removePrefixedClasses('admin_less_cls');
 
             if (extension) {
                 if (extension.url) {
@@ -115,11 +135,11 @@ define([
                         .attach({ teardown: true, empty: true })
                         .then(function() {
                             self.trigger(container.show(), 'paneResized');
-                        })
+                        });
 
                     promise.finally(function() {
                         $adminListItem.removeClass('loading');
-                    })
+                    });
                     this.loadingAdminExtension = promise;
                 }
             } else {
@@ -129,7 +149,7 @@ define([
 
         this.update = function() {
             var self = this,
-                extensions = registry.extensionsForPoint('org.visallo.admin');
+                extensions = adminList.getExtensions();
 
             require(['d3'], function(d3) {
                 d3.select(self.select('listSelector').get(0))
@@ -179,7 +199,7 @@ define([
                                 .call(function() {
                                     this.append('div')
                                         .attr('class', 'nav-list-title')
-                                        .text(component.name)
+                                        .text(component.name);
 
                                     this.append('div')
                                         .attr('class', 'nav-list-subtitle')
@@ -188,15 +208,7 @@ define([
                                 });
                         });
                     });
-
-                if (extensions.length === 0) {
-                    self.$node.prepend(alertTemplate({
-                        warning: i18n('admin.plugins.none_available')
-                    }));
-                } else {
-                    self.$node.children('.alert').remove();
-                }
             });
-        }
+        };
     }
 });

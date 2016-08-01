@@ -3,8 +3,9 @@ define([
     'flight/lib/component',
     'configuration/plugins/registry',
     './activity/activity',
-    'tpl!./menubar'
-], function(defineComponent, registry, Activity, template) {
+    'tpl!./menubar',
+    'admin/admin'
+], function(defineComponent, registry, Activity, template, AdminList) {
     'use strict';
 
     // Add class name of <li> buttons here
@@ -134,9 +135,8 @@ define([
 
         this.after('initialize', function() {
             var self = this;
-
             this.$node.html(template({
-                isAdmin: visalloData.currentUser.privilegesHelper.ADMIN
+                isAdmin: AdminList.getExtensions().length > 0
             }));
             this.extensions = extensions;
 
@@ -196,7 +196,7 @@ define([
                         if (_.contains(vals, e1.identifier)) return 1;
                         if (_.contains(vals, e2.identifier)) return -1;
                         return 0;
-                    })
+                    });
 
             _.each(sorted, function(item) {
                 var cls = item.identifier,
@@ -235,7 +235,7 @@ define([
 
                 newItem.insertBefore(container.find('.divider:last-child'));
             })
-        }
+        };
 
         this.onGraphPaddingUpdated = function(event, data) {
             var len = this.$node.find('a').length,
