@@ -1,0 +1,11 @@
+.workspace-list .nav-list-title {
+  display: block;
+}
+
+.workspace-list .nav-list-subtitle {
+  color: #adadad;
+}
+
+.workspace-list .inner-list .nav-list-subtitle {
+  color: #adadad;
+}

@@ -12,3 +12,9 @@
     display: inline;
     margin-right: -10px;
 }
+
+.user-admin .alert.alert-error button.close {
+    display: inline;
+    width: auto;
+    margin: 0;
+}

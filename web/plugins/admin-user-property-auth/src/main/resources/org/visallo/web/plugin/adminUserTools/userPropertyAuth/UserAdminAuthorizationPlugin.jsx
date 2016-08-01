@@ -118,6 +118,7 @@ define([
                                onChange={this.handleAddAuthorizationInputChange}
                                disabled={this.state.saveInProgress}/>
                         <button
+                            className="btn"
                             disabled={this.state.saveInProgress}>
                             {i18n('admin.user.editor.userAdminAuthorization.addAuthorization')}
                         </button>
