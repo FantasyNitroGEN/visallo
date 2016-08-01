@@ -969,12 +969,6 @@ public abstract class WorkspaceRepository {
                 .filter(vertex -> vertex != null)
                 .collect(Collectors.toList());
         Iterable<String> edgeIds = getGraph().findRelatedEdgeIdsForVertices(vertices, authorizations);
-        edgeIds = getGraph().filterEdgeIdsByAuthorization(
-                edgeIds,
-                workspace.getWorkspaceId(),
-                ElementFilter.ALL,
-                authorizations
-        );
 
         return getGraph().getEdges(
                 edgeIds,
