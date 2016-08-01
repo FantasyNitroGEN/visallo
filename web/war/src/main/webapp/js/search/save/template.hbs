@@ -13,7 +13,9 @@
       {{#each list}}
         <li><a><h1>{{name}}</h1></a>
             <span class="badge">{{scope}}</span>
-            <button class="btn btn-mini btn-danger" {{#unless canDelete}} disabled{{/unless}}>{{ i18n 'search.savedsearches.button.delete' }}</button>
+            {{#if canDelete}}
+              <button class="btn btn-mini btn-danger">{{ i18n 'search.savedsearches.button.delete' }}</button>
+            {{/if}}
         </li>
       {{else}}
       <li class="empty">{{ i18n 'search.savedsearches.none' }}</li>
@@ -21,4 +23,3 @@
     </ul>
   </div>
 </div>
-

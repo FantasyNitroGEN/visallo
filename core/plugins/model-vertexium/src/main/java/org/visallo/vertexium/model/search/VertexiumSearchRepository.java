@@ -93,7 +93,7 @@ public class VertexiumSearchRepository extends SearchRepository {
             JSONObject searchParameters,
             User user
     ) {
-        if (!privilegeRepository.hasPrivilege(user, Privilege.ADMIN)) {
+        if (!privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)) {
             throw new VisalloAccessDeniedException("User does not have access to save global searches", user, id);
         }
 
@@ -256,7 +256,7 @@ public class VertexiumSearchRepository extends SearchRepository {
             return true;
         }
 
-        if (privilegeRepository.hasPrivilege(user, Privilege.ADMIN)) {
+        if (privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)) {
             vertexIds = getGlobalSavedSearchesRootVertex().getVertexIds(
                     Direction.OUT,
                     SearchProperties.HAS_SAVED_SEARCH,

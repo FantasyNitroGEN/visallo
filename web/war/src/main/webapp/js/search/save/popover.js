@@ -45,11 +45,12 @@ define([
             globalSearchSelector: '.form .global-search',
             globalInputSelector: '.form .global-search input',
             deleteSelector: 'ul .btn-danger'
-        })
+        });
 
         this.before('initialize', function(node, config) {
+            var hasSearchSaveGlobalPrivilege = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
             config.template = '/search/save/template';
-            config.canSaveGlobal = Privileges.canADMIN;
+            config.canSaveGlobal = hasSearchSaveGlobalPrivilege;
             config.maxHeight = $(window).height() / 2;
             config.name = config.update && config.update.name || '';
             config.updatingGlobal = config.update && config.update.scope === SCOPES.GLOBAL;
@@ -59,25 +60,25 @@ define([
                 var isGlobal = item.scope === SCOPES.GLOBAL,
                     canDelete = true;
                 if (isGlobal) {
-                    canDelete = Privileges.canADMIN;
+                    canDelete = hasSearchSaveGlobalPrivilege;
                 }
                 return _.extend({}, item, {
                     isGlobal: isGlobal,
                     canDelete: canDelete
                 })
-            })
+            });
 
             this.after('setupWithTemplate', function() {
                 this.on(this.popover, 'click', {
                     listSelector: this.onClick,
                     saveSelector: this.onSave,
                     deleteSelector: this.onDelete
-                })
+                });
 
                 this.on(this.popover, 'keyup change', {
                     nameInputSelector: this.onChange,
                     globalInputSelector: this.onChange
-                })
+                });
 
                 this.validate();
                 this.positionDialog();
