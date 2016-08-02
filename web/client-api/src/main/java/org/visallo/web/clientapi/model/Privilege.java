@@ -10,6 +10,7 @@ public final class Privilege {
     public static final String COMMENT = "COMMENT"; // add comments and edit/delete own comments
     public static final String COMMENT_EDIT_ANY = "COMMENT_EDIT_ANY"; // edit other users' comments
     public static final String COMMENT_DELETE_ANY = "COMMENT_DELETE_ANY"; // delete other users' comments
+    public static final String SEARCH_SAVE_GLOBAL = "SEARCH_SAVE_GLOBAL";
     public static final String EDIT = "EDIT";
     public static final String PUBLISH = "PUBLISH";
     public static final String ADMIN = "ADMIN";
