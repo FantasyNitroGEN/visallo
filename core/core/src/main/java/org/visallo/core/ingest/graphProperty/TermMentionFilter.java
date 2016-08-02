@@ -1,16 +1,18 @@
 package org.visallo.core.ingest.graphProperty;
 
 import com.google.inject.Inject;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.security.VisibilityTranslator;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.security.VisibilityTranslator;
 
 public abstract class TermMentionFilter {
     private Configuration configuration;
     private Graph graph;
     private VisibilityTranslator visibilityTranslator;
+    private GraphRepository graphRepository;
 
     public void prepare(TermMentionFilterPrepareData termMentionFilterPrepareData) throws Exception {
     }
@@ -28,6 +30,15 @@ public abstract class TermMentionFilter {
 
     protected final Graph getGraph() {
         return graph;
+    }
+
+    @Inject
+    public final void setGraphRepository(GraphRepository graphRepository) {
+        this.graphRepository = graphRepository;
+    }
+
+    public GraphRepository getGraphRepository() {
+        return graphRepository;
     }
 
     @Inject
