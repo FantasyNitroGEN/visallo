@@ -3,7 +3,7 @@ package org.visallo.tools;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.inject.Inject;
-import org.vertexium.GraphBaseWithSearchIndex;
+import org.vertexium.GraphWithSearchIndex;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.model.graph.GraphReindexService;
 
@@ -29,8 +29,8 @@ public class Reindex extends CommandLineTool {
 
     @Override
     protected int run() throws Exception {
-        if (!(getGraph() instanceof GraphBaseWithSearchIndex)) {
-            System.err.println("Graph must extend " + GraphBaseWithSearchIndex.class.getName() + " to support reindexing");
+        if (!(getGraph() instanceof GraphWithSearchIndex)) {
+            System.err.println("Graph must extend " + GraphWithSearchIndex.class.getName() + " to support reindexing");
             return -1;
         }
 

@@ -1,13 +1,13 @@
 package org.visallo.reindex;
 
+import org.vertexium.Element;
+import org.vertexium.GraphWithSearchIndex;
+import org.vertexium.Property;
+import org.vertexium.search.SearchIndex;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
-import org.vertexium.Element;
-import org.vertexium.GraphBaseWithSearchIndex;
-import org.vertexium.Property;
-import org.vertexium.search.SearchIndex;
 
 import java.io.InputStream;
 
@@ -16,8 +16,8 @@ import java.io.InputStream;
 public class ReIndexGraphPropertyWorker extends GraphPropertyWorker {
     @Override
     public void execute(InputStream in, GraphPropertyWorkData data) throws Exception {
-        if (getGraph() instanceof GraphBaseWithSearchIndex) {
-            SearchIndex searchIndex = ((GraphBaseWithSearchIndex) getGraph()).getSearchIndex();
+        if (getGraph() instanceof GraphWithSearchIndex) {
+            SearchIndex searchIndex = ((GraphWithSearchIndex) getGraph()).getSearchIndex();
             searchIndex.addElement(getGraph(), data.getElement(), data.getElement().getAuthorizations());
         }
     }

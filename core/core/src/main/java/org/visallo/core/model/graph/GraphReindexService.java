@@ -11,14 +11,14 @@ import java.util.List;
 
 public class GraphReindexService {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphReindexService.class);
-    private final GraphBaseWithSearchIndex graph;
+    private final GraphWithSearchIndex graph;
 
     @Inject
     public GraphReindexService(Graph graph) {
-        if (!(graph instanceof GraphBaseWithSearchIndex)) {
-            throw new VisalloException("Reindex plugin cannot be enabled when the graph does not implement " + GraphBaseWithSearchIndex.class.getName());
+        if (!(graph instanceof GraphWithSearchIndex)) {
+            throw new VisalloException("Reindex plugin cannot be enabled when the graph does not implement " + GraphWithSearchIndex.class.getName());
         }
-        this.graph = (GraphBaseWithSearchIndex) graph;
+        this.graph = (GraphWithSearchIndex) graph;
     }
 
     public void reindexVertices(int batchSize, Authorizations authorizations) {
