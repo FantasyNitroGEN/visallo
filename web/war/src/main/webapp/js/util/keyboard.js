@@ -22,6 +22,7 @@ define([
         this.after('initialize', function() {
             this.shortcutsByScope = {};
             this.shortcuts = {};
+            this.shortcutsEnabled = true;
             this.focusElementStack = [];
 
             window.visalloKeyboard = {};
@@ -43,9 +44,19 @@ define([
 
             this.on(document, 'requestKeyboardShortcuts', this.onRequestKeyboardShortcuts);
             this.on(document, 'registerKeyboardShortcuts', this.onRegisterKeyboardShortcuts);
+            this.on(document, 'toggleAllShortcuts', function(event, data) {
+                this.shortcutsEnabled = (data && !_.isUndefined(data.enable)) ? data.enable : !this.shortcutsEnabled;
+            });
+            this.on(document, 'toggleShortcutsByScope', this.onToggleShortcutsByScope);
+            this.on(document, 'toggleKeyboardShortcut', this.onToggleKeyboardShortcut);
 
             this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
             document.addEventListener('mousedown', this.onDocumentMouseDown, true);
+
+            this.on(document, 'fullscreenchange MSFullscreenChange webkitfullscreenchange mozfullscreenchange', function(e) {
+                var fullscreenElement = document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+                this.shortcutsEnabled = !fullscreenElement;
+            });
         });
 
         this.onDocumentMouseDown = function(event) {
@@ -80,7 +91,7 @@ define([
             require(['util/formatters'], function(F) {
                 scopes.forEach(function(scope) {
                     Object.keys(data.shortcuts).forEach(function(key) {
-                        var shortcut = $.extend({}, data.shortcuts[key], F.object.shortcut(key));
+                        var shortcut = $.extend({}, data.shortcuts[key], F.object.shortcut(key), { enabled: true });
 
                         if (!shortcutsByScope[scope]) shortcutsByScope[scope] = {};
                         shortcuts[shortcut.forEventLookup] = shortcutsByScope[scope][shortcut.normalized] = shortcut;
@@ -153,7 +164,7 @@ define([
 
             this.lastEventParts = null;
 
-            if (shortcut) {
+            if (shortcut && shortcut.enabled && this.shortcutsEnabled) {
                 var f = this.fireEventUp;
                 if (shortcut.preventDefault !== false) {
                     e.preventDefault();
@@ -229,6 +240,47 @@ define([
             data.pageX = this.mousePageX;
             data.pageY = this.mousePageY;
             this.trigger(te, name, data);
-        }
+        };
+
+        this.onToggleShortcutsByScope = function(event, data) {
+            var self = this;
+
+            Object.keys(data).forEach(function(s) {
+                var scope = self.shortcutsByScope[s];
+
+                if (scope) {
+                    Object.keys(scope).forEach(function(shortcut) {
+                        scope[shortcut].enabled = data[s];
+                    });
+                } else {
+                    console.warn('Could not toggle shortcuts. Scope \'' + s + '\' not found');
+                }
+            });
+        };
+
+        this.onToggleKeyboardShortcut = function(event, data) {
+            var self = this;
+            var shortcut = data.shortcut.toUpperCase();
+
+            if (data.scopes) {
+                data.scopes.forEach(function(scope) {
+                    var registeredShortcut = self.shortcutsByScope[scope][shortcut];
+                    if (registeredShortcut) {
+                        registeredShortcut.enabled = !_.isUndefined(data.enabled) ? data.enabled : !registeredShortcut.enabled;
+                    }
+                });
+            } else {
+                if (this.shortcuts[shortcut]) {
+                    this.shortcuts[shortcut].enabled = !_.isUndefined(data.enabled) ? data.enabled : !this.shortcuts[shortcut].enabled;
+                }
+
+                Object.keys(this.shortcutsByScope).forEach(function(scope) {
+                    var scopedShortcut = self.shortcutsByScope[scope][shortcut];
+                    if (scopedShortcut) {
+                        scopedShortcut.enabled = !_.isUndefined(data.enabled) ? data.enabled : !scopedShortcut.enabled;
+                    }
+                });
+            }
+        };
     }
 });
