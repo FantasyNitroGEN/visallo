@@ -297,6 +297,18 @@ public class GraphRepository {
                 visibilitySource,
                 workspaceId
         );
+        return addVertex(vertexId, conceptType, visibilityJson, justificationText, sourceInfo, user, authorizations);
+    }
+
+    public Vertex addVertex(
+            String vertexId,
+            String conceptType,
+            VisibilityJson visibilityJson,
+            String justificationText,
+            ClientApiSourceInfo sourceInfo,
+            User user,
+            Authorizations authorizations
+    ) {
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
         VertexBuilder vertexBuilder;
         if (vertexId != null) {
@@ -368,6 +380,20 @@ public class GraphRepository {
                 visibilitySource,
                 workspaceId
         );
+        return addEdge(edgeId, outVertex, inVertex, predicateLabel, justificationText, sourceInfo, visibilityJson, user, authorizations);
+    }
+
+    public Edge addEdge(
+            String edgeId,
+            Vertex outVertex,
+            Vertex inVertex,
+            String predicateLabel,
+            String justificationText,
+            ClientApiSourceInfo sourceInfo,
+            VisibilityJson visibilityJson,
+            User user,
+            Authorizations authorizations
+    ) {
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
         ElementBuilder<Edge> edgeBuilder;
         if (edgeId == null) {
