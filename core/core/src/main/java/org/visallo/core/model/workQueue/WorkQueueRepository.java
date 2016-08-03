@@ -29,7 +29,9 @@ import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -735,14 +737,15 @@ public abstract class WorkQueueRepository {
 
             JSONObject data = new JSONObject(ClientApiConverter.clientApiToString(workspace));
 
-            List<ClientApiWorkspace.Vertex> filteredVertices = workspace.getVertices().stream().filter(vertex -> {
-                        Iterable<String> filtered = graph.filterVertexIdsByAuthorization(Arrays.asList(vertex.getVertexId()),
-                                workspace.getWorkspaceId(),
-                                ElementFilter.ALL,
-                                authorizations);
-
-                        return filtered.iterator().hasNext();
-                    }).collect(Collectors.toList());
+            List<String> vertexIds = workspace.getVertices().stream()
+                    .map(vertex -> vertex.getVertexId())
+                    .collect(Collectors.toList());
+            Iterable<String> visibleVertexIds = graph.filterVertexIdsByAuthorization(vertexIds, workspace.getWorkspaceId(), ElementFilter.ALL, authorizations);
+            Map<String, ClientApiWorkspace.Vertex> workspaceVerticesByVertexId = workspace.getVertices().stream()
+                    .collect(Collectors.toMap(ClientApiWorkspace.Vertex::getVertexId, Function.identity()));
+            List<ClientApiWorkspace.Vertex> filteredVertices = StreamSupport.stream(visibleVertexIds.spliterator(), false)
+                    .map(s -> workspaceVerticesByVertexId.get(s))
+                    .collect(Collectors.toList());
 
             data.put("vertices", new JSONArray(ClientApiConverter.clientApiToString(filteredVertices)));
             json.put("data", data);
