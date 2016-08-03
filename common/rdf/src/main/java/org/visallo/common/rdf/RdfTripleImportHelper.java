@@ -102,7 +102,8 @@ public class RdfTripleImportHelper {
         String line;
         ImportContext ctx = null;
         while ((line = reader.readLine()) != null) {
-            LOGGER.debug("Importing RDF triple on line: %d", lineNum);
+            long rate = lineNum / Math.max(1, (System.currentTimeMillis() - startTime) / 1000);
+            LOGGER.debug("Importing RDF triple on line: %d. Rate: %d / sec", lineNum, rate);
             try {
                 ctx = importRdfLine(ctx, elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
             } catch (Exception e) {
