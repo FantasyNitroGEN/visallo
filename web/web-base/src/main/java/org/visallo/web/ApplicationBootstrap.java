@@ -56,11 +56,9 @@ public class ApplicationBootstrap implements ServletContextListener {
             }
             VisalloLoggerFactory.setProcessType("web");
 
-            config = ConfigurationLoader.load(
-                    context.getInitParameter(APP_CONFIG_LOADER),
-                    getInitParametersAsMap(context)
-            );
-            config.setDefaults(WebConfiguration.DEFAULTS);
+            Map<String, String> initParameters = new HashMap<>(getInitParametersAsMap(context));
+            initParameters.putAll(WebConfiguration.DEFAULTS);
+            config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), initParameters);
             LOGGER = VisalloLoggerFactory.getLogger(ApplicationBootstrap.class);
             LOGGER.info("Running application with configuration:\n%s", config);
 

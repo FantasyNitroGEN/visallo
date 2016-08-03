@@ -129,14 +129,6 @@ public class Configuration {
         }
     }
 
-    public void setDefaults(final Map<String, String> defaults) {
-        for (Map.Entry entry : defaults.entrySet()) {
-            if (entry.getValue() != null && config.get(entry.getKey().toString()) == null) {
-                set(entry.getKey().toString(), entry.getValue());
-            }
-        }
-    }
-
     public String get(String propertyKey, String defaultValue) {
         return config.containsKey(propertyKey) ? config.get(propertyKey) : defaultValue;
     }
