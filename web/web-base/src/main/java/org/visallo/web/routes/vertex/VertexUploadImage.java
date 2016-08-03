@@ -126,6 +126,8 @@ public class VertexUploadImage implements ParameterizedHandler {
         this.workspaceRepository.updateEntityOnWorkspace(workspace, entityVertex.getId(), null, null, user);
 
         graph.flush();
+
+        workQueueRepository.pushElement(artifactVertex, Priority.HIGH);
         workQueueRepository.pushGraphPropertyQueue(
                 artifactVertex,
                 null,
