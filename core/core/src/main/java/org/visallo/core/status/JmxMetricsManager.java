@@ -18,37 +18,27 @@ public class JmxMetricsManager implements MetricsManager {
         JMX_REPORTER.start();
     }
 
-    /**
-     * Get the next ID.
-     *
-     * @return the next ID
-     */
     private static int nextId() {
         return ID.getAndIncrement();
     }
 
     @Override
-    public MetricRegistry getRegistry() {
-        return REGISTRY;
-    }
-
-    @Override
-    public String getNamePrefix(final Object obj) {
+    public String getNamePrefix(Object obj) {
         return String.format("%s.%d.", obj.getClass().getName(), JmxMetricsManager.nextId());
     }
 
     @Override
-    public String getNamePrefix(final Object obj, final String qualifier) {
-        return String.format("%s.%s-%d.", obj.getClass().getName(), qualifier, JmxMetricsManager.nextId());
+    public Counter counter(String name) {
+        return REGISTRY.counter(name);
     }
 
     @Override
-    public Counter counter(final String name) {
-        return getRegistry().counter(name);
+    public Timer timer(String name) {
+        return REGISTRY.timer(name);
     }
 
     @Override
-    public Timer timer(final String name) {
-        return getRegistry().timer(name);
+    public void removeMetric(String metricName) {
+        REGISTRY.remove(metricName);
     }
 }

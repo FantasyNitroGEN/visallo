@@ -16,6 +16,7 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.status.MetricsManager;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloDate;
 import org.visallo.core.util.VisalloDateTime;
@@ -27,6 +28,8 @@ import java.util.*;
 import java.util.function.Function;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -37,15 +40,18 @@ public class RdfTripleImportHelperTest {
     private Authorizations authorizations;
     private TimeZone timeZone;
     private File workingDir;
+    private String defaultVisibilitySource;
+    private String sourceFileName;
+    private Function<String, VisibilityJson> visibilitySourceToVisibilityJson;
 
     @Mock
     private WorkQueueRepository workQueueRepository;
 
     @Mock
     private User user;
-    private String defaultVisibilitySource;
-    private String sourceFileName;
-    private Function<String, VisibilityJson> visibilitySourceToVisibilityJson;
+
+    @Mock
+    private MetricsManager metricsManager;
 
     @Before
     public void setUp() {
@@ -63,7 +69,9 @@ public class RdfTripleImportHelperTest {
 
         when(user.getUserId()).thenReturn("user1");
 
-        rdfTripleImportHelper = new RdfTripleImportHelper(graph, visibilityTranslator, workQueueRepository);
+        when(metricsManager.timer(anyString())).thenReturn(mock(com.codahale.metrics.Timer.class));
+
+        rdfTripleImportHelper = new RdfTripleImportHelper(graph, visibilityTranslator, workQueueRepository, metricsManager);
         defaultVisibilitySource = "";
         sourceFileName = "test.nt";
         graph.addVertex("v1", new Visibility(""), authorizations);

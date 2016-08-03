@@ -1,5 +1,6 @@
 package org.visallo.common.rdf;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import org.vertexium.*;
@@ -12,6 +13,7 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.status.MetricsManager;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -26,6 +28,7 @@ public class RdfTripleImportHelper {
     private final Graph graph;
     private final VisibilityTranslator visibilityTranslator;
     private WorkQueueRepository workQueueRepository;
+    private final MetricsManager metricsManager;
     private static final Map<String, Visibility> visibilityCache = new HashMap<>();
 
     public void setFailOnFirstError(boolean failOnFirstError) {
@@ -38,11 +41,13 @@ public class RdfTripleImportHelper {
     public RdfTripleImportHelper(
             Graph graph,
             VisibilityTranslator visibilityTranslator,
-            WorkQueueRepository workQueueRepository
+            WorkQueueRepository workQueueRepository,
+            MetricsManager metricsManager
     ) {
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
         this.workQueueRepository = workQueueRepository;
+        this.metricsManager = metricsManager;
     }
 
     @Deprecated
@@ -101,25 +106,30 @@ public class RdfTripleImportHelper {
         int lineNum = 1;
         String line;
         ImportContext ctx = null;
-        while ((line = reader.readLine()) != null) {
-            long rate = lineNum / Math.max(1, (System.currentTimeMillis() - startTime) / 1000);
-            LOGGER.debug("Importing RDF triple on line: %d. Rate: %d / sec", lineNum, rate);
-            try {
-                ctx = importRdfLine(ctx, elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
-            } catch (Exception e) {
-                String errMsg = String.format("Error importing RDF triple on line: %d. %s", lineNum, e.getMessage());
-                if (failOnFirstError) {
-                    throw new VisalloException(errMsg);
-                } else {
-                    // log the error and continue processing
-                    LOGGER.error(errMsg, e);
+        String timerMetricName = metricsManager.getNamePrefix(this);
+        Timer timer = metricsManager.timer(timerMetricName);
+        try {
+            while ((line = reader.readLine()) != null) {
+                LOGGER.debug("Importing RDF triple on line: %d. Rate: %.2f / sec", lineNum, timer.getMeanRate());
+                try (Timer.Context timerContext = timer.time()) {
+                    ctx = importRdfLine(ctx, elements, sourceFileName, line, workingDir, timeZone, defaultVisibilitySource, user, authorizations);
+                } catch (Exception e) {
+                    String errMsg = String.format("Error importing RDF triple on line: %d. %s", lineNum, e.getMessage());
+                    if (failOnFirstError) {
+                        throw new VisalloException(errMsg);
+                    } else {
+                        // log the error and continue processing
+                        LOGGER.error(errMsg, e);
+                    }
                 }
-            }
 
-            ++lineNum;
-        }
-        if (ctx != null) {
-            elements.add(ctx.save(authorizations));
+                ++lineNum;
+            }
+            if (ctx != null) {
+                elements.add(ctx.save(authorizations));
+            }
+        } finally {
+            metricsManager.removeMetric(timerMetricName);
         }
 
         graph.flush();
