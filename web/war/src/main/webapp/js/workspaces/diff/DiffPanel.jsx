@@ -152,7 +152,7 @@ define([
                 backgroundImage: conceptImage || vertex ? `url(${conceptImage || F.vertex.image(vertex, null, 80)})` : ''
             };
             const selectedConceptImageStyle = {
-                backgroundImage: selectedConceptImage || vertex ? `url${selectedConceptImage || F.vertex.selectedImage(vertex, null, 80)})` : ''
+                backgroundImage: selectedConceptImage || vertex ? `url(${selectedConceptImage || F.vertex.selectedImage(vertex, null, 80)})` : ''
             };
 
             return (
