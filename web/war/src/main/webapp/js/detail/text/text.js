@@ -55,6 +55,22 @@ define([
 
     return defineComponent(Text, withDataRequest, withCollapsibleSections, withPropertyInfo);
 
+    function descriptionProperty(p) {
+        var textDescription = 'http://visallo.org#textDescription';
+        return p[textDescription] || p.metadata[textDescription] || p.key || p.name;
+    }
+
+    function textPropertySort(p) {
+        if (p.key === '') {
+            return '1' + descriptionProperty(p);
+        }
+        return '0' + descriptionProperty(p);
+    }
+
+    function textPropertyId(p) {
+        return p.name + (p.key || '')
+    }
+
     function Text() {
 
         this.attributes({
@@ -291,7 +307,7 @@ define([
                             this.attr('class', 'highlightWrap highlight-' + style.selector);
                         })
                         .selectAll('section.text-section')
-                        .data(textProperties)
+                        .data(_.sortBy(textProperties, textPropertySort), textPropertyId)
                         .call(function() {
                             this.enter()
                                 .append('section')
@@ -305,6 +321,8 @@ define([
                                     this.append('div').attr('class', 'text');
                                 });
 
+                            this.order();
+
                             this.attr('data-key', function(p) {
                                     return p.key;
                                 })
@@ -315,10 +333,7 @@ define([
                                     var p = d3.select(this).datum();
                                     $(this).removePrefixedClasses('ts-').addClass('ts-' + F.className.to(p.key + p.name));
                                 });
-                            this.select('h1 strong').text(function(p) {
-                                var textDescription = 'http://visallo.org#textDescription';
-                                return p[textDescription] || p.metadata[textDescription] || p.key;
-                            });
+                            this.select('h1 strong').text(descriptionProperty);
                             this.select('button.info').on('click', function(d) {
                                 d3.event.stopPropagation();
                                 self.showPropertyInfo(this, self.model, d);
@@ -382,13 +397,14 @@ define([
                 return Promise.resolve();
             }
 
-            if (expand) {
-                $section.closest('.texts').find('.loading').removeClass('loading');
+            $section.closest('.texts').find('.loading').removeClass('loading');
+            if (expand && !isExpanded) {
                 $info.addClass('loading');
             }
 
             if (this.openTextRequest) {
                 this.openTextRequest.cancel();
+                this.openTextRequest = null;
             }
 
             var extensions = _.filter(registry.extensionsForPoint('org.visallo.detail.text'), function(e) {
@@ -435,14 +451,16 @@ define([
 
             return textPromise
                 .then(function() {
+                    $info.removeClass('loading');
                     if (expand) {
                         $section.addClass('expanded');
-                        $info.removeClass('loading');
 
                         self.updateEntityAndArtifactDraggablesNoDelay();
                         if (!options || options.scrollToSection !== false) {
                             self.scrollToRevealSection($section);
                         }
+                    } else {
+                        $section.removeClass('expanded');
                     }
                 })
         };
