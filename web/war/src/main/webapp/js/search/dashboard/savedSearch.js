@@ -35,19 +35,19 @@ define([
         });
 
         this.loadItems = function() {
-            var self = this;
+            var self = this,
+                config = this.attr.item.configuration,
+                limitResults = config.searchParameters && _.isNumber(config.searchParameters.size);
+
             this.$node.text(i18n('dashboard.savedsearches.loading'));
-            this.dataRequest('search', 'run',
-                this.attr.item.configuration.searchId,
-                this.attr.item.configuration.searchParameters
-                )
+            this.dataRequest('search', 'run', config.searchId, config.searchParameters)
                 .then(function(results) {
                     if (results.elements.length) {
                         require(['util/' + results.elements[0].type + '/list'], function(List) {
                             List.attachTo($('<div>').appendTo(self.$node.empty().css('overflow', 'auto')), {
                                 edges: results.elements,
                                 vertices: results.elements,
-                                infiniteScrolling: (results.elements.length < results.totalHits),
+                                infiniteScrolling: !limitResults && (results.elements.length < results.totalHits),
                                 nextOffset: results.nextOffset
                             })
                         })
