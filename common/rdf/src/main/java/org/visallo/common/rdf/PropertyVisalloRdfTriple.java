@@ -5,6 +5,8 @@ import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.DirectoryEntity;
 
 import javax.xml.bind.DatatypeConverter;
@@ -17,6 +19,7 @@ import java.util.TimeZone;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
+    private final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(PropertyVisalloRdfTriple.class);
     private final String propertyKey;
     private final String propertyName;
     private final String propertyVisibilitySource;
@@ -101,7 +104,8 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
         if (getValue() instanceof DateOnly) {
             return getValueRdfStringWithType(getValue(), VisalloRdfTriple.PROPERTY_TYPE_DATE);
         }
-        throw new VisalloException("Unhandled value type \"" + getValue().getClass().getName() + "\" to convert to RDF string");
+        LOGGER.warn ("\"Unhandled value type " + getValue().getClass().getName() + " to convert to RDF string\"");
+        return null;
     }
 
     private static String getValueRdfStringWithType(Object value, String typeUri) {

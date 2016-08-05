@@ -44,13 +44,14 @@ public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
 
     @Override
     public String toString() {
-        return String.format(
-                "<%s> <%s%s> %s",
+        String warning = "\"Unhandled value type " + getValue().getClass().getName() + " to convert to RDF string\"";
+        String value = getValueRdfString();
+        return String.format("%s<%s> <%s%s> %s",
+                value == null ? "# " : "",
                 getElementRdfString(),
                 getPropertyRdfString(),
                 getMetadataRdfString(),
-                getValueRdfString()
-        );
+                value == null ? warning : value);
     }
 
     protected String getMetadataRdfString() {
