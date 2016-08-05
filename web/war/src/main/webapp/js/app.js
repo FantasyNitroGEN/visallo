@@ -512,7 +512,7 @@ define([
                 showLoginComponent = function() {
                     self.trigger('didLogout');
 
-                    $('.dialog-popover').remove();
+                    $('.dialog-popover, .modal, .modal-backdrop, .popover').remove();
 
                     require(['login'], function(Login) {
                         $(document.body)
