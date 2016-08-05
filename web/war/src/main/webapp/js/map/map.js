@@ -26,6 +26,8 @@ define([
 
     var MODE_NORMAL = 0,
         OpenLayers,
+        FEATURE_HEIGHT = 40,
+        FEATURE_CLUSTER_HEIGHT = 24,
         MODE_REGION_SELECTION_MODE_POINT = 1,
         MODE_REGION_SELECTION_MODE_RADIUS = 2,
         MODE_REGION_SELECTION_MODE_LOADING = 3;
@@ -78,6 +80,8 @@ define([
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
             this.on(document, 'searchResultsWithinRadius', this.onSearchResultsWithinRadius);
+            this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
+            this.on('unregisterForPositionChanges', this.onUnregisterForPositionChanges);
 
             this.padding = {l: 0, r: 0, b: 0, t: 0};
 
@@ -93,6 +97,92 @@ define([
             this.attachToZoomPanControls();
 
         });
+
+        this.onRegisterForPositionChanges = function(event, data) {
+            var self = this,
+                anchorTo = data && data.anchorTo;
+
+            if (!anchorTo || !anchorTo.vertexId) {
+                return console.error('Registering for position events requires a vertexId');
+            }
+
+            this.mapReady(function(map) {
+                if (!self.viewportPositionChanges) {
+                    self.viewportPositionChanges = [];
+                    self.onViewportChangesForPositionChangesBound = self.onViewportChangesForPositionChanges.bind(self);
+                    map.events.register('move', map, self.onViewportChangesForPositionChangesBound);
+                }
+
+                self.viewportPositionChanges.push({
+                    el: event.target,
+                    fn: function(el) {
+                        var vertexId = anchorTo.vertexId,
+                            feature = _.find(map.featuresLayer.features, function(f) {
+                                return f.cluster ?
+                                    _.find(f.cluster, function(f) {
+                                        return f.data.vertex.id === vertexId
+                                    }) :
+                                    f.data.vertex.id === vertexId;
+                            }),
+                            offset = self.$node.offset(),
+                            lonLat = feature.cluster ?
+                                feature.geometry.bounds.centerLonLat :
+                                new ol.LonLat(feature.geometry.x, feature.geometry.y),
+                            position = map.getPixelFromLonLat(lonLat),
+                            height = feature.cluster ? FEATURE_CLUSTER_HEIGHT : FEATURE_HEIGHT,
+                            eventData = {
+                                anchor: anchorTo,
+                                position: {
+                                    x: position.x + offset.left,
+                                    y: position.y + offset.top
+                                },
+                                positionIf: {
+                                    above: {
+                                        x: position.x + offset.left,
+                                        y: position.y + offset.top - (feature.cluster ? height / 2 : height)
+                                    },
+                                    below: {
+                                        x: position.x + offset.left,
+                                        y: position.y + offset.top + (feature.cluster ? height / 2 : 0)
+                                    }
+                                }
+                            };
+
+                        this.trigger(el, 'positionChanged', eventData);
+                    }
+                });
+                self.onViewportChangesForPositionChanges();
+            })
+        };
+
+        this.onViewportChangesForPositionChanges = function() {
+            var self = this;
+
+            if (this.viewportPositionChanges) {
+                this.viewportPositionChanges.forEach(function(vpc) {
+                    vpc.fn.call(self, vpc.el);
+                })
+            }
+        };
+
+        this.onUnregisterForPositionChanges = function(event, data) {
+            if (this.viewportPositionChanges) {
+                var index = _.findIndex(this.viewportPositionChanges, function(vpc) {
+                    return vpc.el === event.target;
+                })
+                if (index >= 0) {
+                    this.viewportPositionChanges.splice(index, 1);
+                }
+                if (this.viewportPositionChanges.length === 0) {
+                    this.viewportPositionChanges = null;
+                }
+
+                this.mapReady(function(map) {
+                    map.events.unregister('move', map, self.onViewportChangesForPositionChangesBound);
+                    self.onViewportChangesForPositionChangesBound = null;
+                })
+            }
+        };
 
         this.attachToZoomPanControls = function() {
             Controls.attachTo(this.select('controlsSelector'));
@@ -576,6 +666,7 @@ define([
 
             switch (self.mode) {
                 case MODE_NORMAL:
+                    $('.dialog-popover').remove();
                     self.trigger('selectObjects');
                     map.featuresLayer.events.triggerEvent('featureunselected');
                     break;
