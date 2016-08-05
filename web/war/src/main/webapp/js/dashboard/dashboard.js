@@ -742,14 +742,21 @@ define([
                             element: _.isElement(el) ? el : el.get(0)
                         });
                 }),
-                $toolbar = $(el).find('.card-toolbar');
+                $toolbar = $(el).find('.card-toolbar'),
+                $configureLi = $toolbar.find('.configure').closest('li'),
+                $extensionRows = $.map(validExtensions, function(e) {
+                    return $('<li>')
+                        .addClass('card-toolbar-item')
+                        .attr('data-identifier', e.identifier)
+                        .append($('<button>').attr('title', e.tooltip).css('background-image', 'url(' + e.icon + ')'))
+                });
+
             $toolbar.find('.card-toolbar-item').remove();
-            $toolbar.find('.configure').closest('li').before($.map(validExtensions, function(e) {
-                return $('<li>')
-                    .addClass('card-toolbar-item')
-                    .attr('data-identifier', e.identifier)
-                    .append($('<button>').attr('title', e.tooltip).css('background-image', 'url(' + e.icon + ')'))
-            }));
+            if ($configureLi.length) {
+                $configureLi.before($extensionRows);
+            } else {
+                $toolbar.prepend($extensionRows);
+            }
         };
 
         this.loadDashboards = function(workspace) {
