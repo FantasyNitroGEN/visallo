@@ -1,5 +1,6 @@
 package org.visallo.core.model.workQueue;
 
+import com.drew.lang.Iterables;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -735,14 +736,16 @@ public abstract class WorkQueueRepository {
 
             JSONObject data = new JSONObject(ClientApiConverter.clientApiToString(workspace));
 
-            List<ClientApiWorkspace.Vertex> filteredVertices = workspace.getVertices().stream().filter(vertex -> {
-                        Iterable<String> filtered = graph.filterVertexIdsByAuthorization(Arrays.asList(vertex.getVertexId()),
-                                workspace.getWorkspaceId(),
-                                ElementFilter.ALL,
-                                authorizations);
+            List<String> vertexIds = workspace.getVertices().stream()
+                    .map(vertex -> vertex.getVertexId())
+                    .collect(Collectors.toList());
 
-                        return filtered.iterator().hasNext();
-                    }).collect(Collectors.toList());
+            List<String> visibleVertexIds = Iterables.toList(graph.filterVertexIdsByAuthorization(vertexIds, workspace.getWorkspaceId(), ElementFilter.ALL, authorizations));
+
+            List<ClientApiWorkspace.Vertex> filteredVertices = workspace.getVertices()
+                    .stream()
+                    .filter(vertex -> visibleVertexIds.contains(vertex.getVertexId()))
+                    .collect(Collectors.toList());
 
             data.put("vertices", new JSONArray(ClientApiConverter.clientApiToString(filteredVertices)));
             json.put("data", data);
