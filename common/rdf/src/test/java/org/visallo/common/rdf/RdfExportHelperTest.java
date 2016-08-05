@@ -1,11 +1,15 @@
 package org.visallo.common.rdf;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
+import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.web.clientapi.model.VisibilityJson;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -22,12 +26,16 @@ public class RdfExportHelperTest {
     }
 
     @Test
-    public void testExportVertex() {
+    public void testExportVertex() throws IOException {
+        String warning = "\"Unhandled value type org.vertexium.inmemory.InMemoryStreamingPropertyValue to convert to RDF string\"";
+        StreamingPropertyValue raw = new StreamingPropertyValue(IOUtils.toInputStream("abc", "UTF-8"), byte[].class);
+        raw.searchIndex(false);
         VertexBuilder v1Builder = graph.prepareVertex("v1", new Visibility(""));
         VisalloProperties.VISIBILITY_JSON.setProperty(v1Builder, new VisibilityJson(""), new Visibility(""));
         VisalloProperties.CONCEPT_TYPE.setProperty(v1Builder, "http://visallo.org#person", new Visibility(""));
         Metadata metadata = new Metadata();
         metadata.add("meta1", "meta1Value", new Visibility(""));
+        VisalloProperties.RAW.setProperty(v1Builder, raw, metadata, new Visibility(""));
         v1Builder.addPropertyValue("k1", "http://visallo.org#firstName", "Joe", metadata, new Visibility(""));
         v1Builder.save(authorizations);
         graph.flush();
@@ -39,6 +47,7 @@ public class RdfExportHelperTest {
                 "<v1> <http://visallo.org#conceptType> \"http://visallo.org#person\"\n" +
                 "<v1> <http://visallo.org#firstName:k1> \"Joe\"\n" +
                 "<v1> <http://visallo.org#firstName:k1@meta1> \"meta1Value\"\n" +
+                "# <v1> <http://visallo.org#raw> " + warning + "\n" +
                 "<v1> <http://visallo.org#visibilityJson> \"{\\\"source\\\":\\\"\\\"}\"\n";
         assertEquals(expected, rdf);
     }

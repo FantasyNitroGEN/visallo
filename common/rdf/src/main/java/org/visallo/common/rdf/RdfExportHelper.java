@@ -65,18 +65,20 @@ public class RdfExportHelper {
     }
 
     private void writePropertyRdfTriples(Element element, Property property, OutputStream out) throws IOException {
-        write(new SetPropertyVisalloRdfTriple(
+        SetPropertyVisalloRdfTriple setPropertyVisalloRdfTriple = new SetPropertyVisalloRdfTriple(
                 element instanceof Vertex ? ElementType.VERTEX : ElementType.EDGE,
                 element.getId(),
                 getVisibilitySource(element),
                 property.getKey(),
                 property.getName(),
                 getVisibilitySource(property),
-                property.getValue()
-        ), out);
+                property.getValue());
+        write(setPropertyVisalloRdfTriple, out);
 
-        for (Metadata.Entry entry : property.getMetadata().entrySet()) {
-            writeMetadataEntryRdfTriple(element, property, entry, out);
+        if (setPropertyVisalloRdfTriple.getValueRdfString() != null) {
+            for (Metadata.Entry entry : property.getMetadata().entrySet()) {
+                writeMetadataEntryRdfTriple(element, property, entry, out);
+            }
         }
     }
 
