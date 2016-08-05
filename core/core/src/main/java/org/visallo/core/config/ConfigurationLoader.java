@@ -16,7 +16,6 @@ import java.util.Map;
 
 public abstract class ConfigurationLoader {
     public static final String ENV_CONFIGURATION_LOADER = "VISALLO_CONFIGURATION_LOADER";
-    protected static ConfigurationLoader configurationLoader;
     private static Configuration configuration;
     private final Map initParameters;
     private JSONObject configurationInfo = new JSONObject();
@@ -26,7 +25,7 @@ public abstract class ConfigurationLoader {
     }
 
     public static void configureLog4j() {
-        ConfigurationLoader configurationLoader = getOrCreateConfigurationLoader();
+        ConfigurationLoader configurationLoader = createConfigurationLoader();
         configurationLoader.doConfigureLog4j();
     }
 
@@ -71,7 +70,7 @@ public abstract class ConfigurationLoader {
     }
 
     public static Configuration load(Class configLoader, Map initParameters) {
-        ConfigurationLoader configurationLoader = getOrCreateConfigurationLoader(configLoader, initParameters);
+        ConfigurationLoader configurationLoader = createConfigurationLoader(configLoader, initParameters);
         if (configuration == null) {
             configuration = configurationLoader.createConfiguration();
         }
@@ -91,15 +90,11 @@ public abstract class ConfigurationLoader {
         }
     }
 
-    private static ConfigurationLoader getOrCreateConfigurationLoader() {
-        return getOrCreateConfigurationLoader(null, null);
+    private static ConfigurationLoader createConfigurationLoader() {
+        return createConfigurationLoader(null, null);
     }
 
-    private static ConfigurationLoader getOrCreateConfigurationLoader(Class configLoaderClass, Map initParameters) {
-        if (configurationLoader != null) {
-            return configurationLoader;
-        }
-
+    private static ConfigurationLoader createConfigurationLoader(Class configLoaderClass, Map initParameters) {
         if (configLoaderClass == null) {
             configLoaderClass = getConfigurationLoaderClass();
         }
@@ -109,11 +104,10 @@ public abstract class ConfigurationLoader {
 
         try {
             @SuppressWarnings("unchecked") Constructor constructor = configLoaderClass.getConstructor(Map.class);
-            configurationLoader = (ConfigurationLoader) constructor.newInstance(initParameters);
+            return (ConfigurationLoader) constructor.newInstance(initParameters);
         } catch (Exception e) {
             throw new VisalloException("Could not load configuration class: " + configLoaderClass.getName(), e);
         }
-        return configurationLoader;
     }
 
     public abstract Configuration createConfiguration();

@@ -63,7 +63,7 @@ public class FileConfigurationLoader extends ConfigurationLoader {
     }
 
     private Map<String, String> getDefaultProperties() {
-        Map<String, String> defaultProperties = new HashMap<>();
+        Map<String, String> defaultProperties = new HashMap<>(getInitParameters());
 
         List<File> configDirs = getVisalloDirectoriesFromMostPriority("config");
         if (configDirs.size() > 0) {
