@@ -75,7 +75,20 @@ public abstract class ConfigurationLoader {
         if (configuration == null) {
             configuration = configurationLoader.createConfiguration();
         }
+
+        // This load method overload is at the bottom of the call hierarchy and is the only place guaranteed
+        // to get called while loading configuration. It is also early enough in the startup process (ie before
+        // SSL connection to databases or data stores are made) to set system properties and have them take effect.
+        setSystemProperties(configuration);
+
         return configuration;
+    }
+
+    private static void setSystemProperties(Configuration configuration) {
+        Map<String, String> systemProperties = configuration.getSubset("systemProperty");
+        for (Map.Entry<String, String> systemProperty : systemProperties.entrySet()) {
+            System.setProperty(systemProperty.getKey(), systemProperty.getValue());
+        }
     }
 
     private static ConfigurationLoader getOrCreateConfigurationLoader() {
