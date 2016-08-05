@@ -166,6 +166,8 @@ define([
         };
 
         this.onUnregisterForPositionChanges = function(event, data) {
+            var self = this;
+
             if (this.viewportPositionChanges) {
                 var index = _.findIndex(this.viewportPositionChanges, function(vpc) {
                     return vpc.el === event.target;
