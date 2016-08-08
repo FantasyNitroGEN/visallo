@@ -73,7 +73,6 @@ define([
                 report = this.attr.report;
 
             this.isHistogram = root.type === 'histogram';
-            this.defsIdIncrement = 0;
 
             var buckets = _.sortBy(root.buckets, function(d) {
                     if ('count' in d.value) {
@@ -308,15 +307,24 @@ define([
                                         });
 
                                     if (self.isHorizontal) {
-                                        var clipPathId = 'clip-path-' + (self.defsIdIncrement++),
-                                            clipPathId2 = 'clip-path2-' + (self.defsIdIncrement++);
+                                        var genClipPath = function(rowPart) {
+                                                return function(d, col, row) {
+                                                    return 'clip-path-' + row + '-' + rowPart;
+                                                }
+                                            },
+                                            genClipPathRef = function(rowPart) {
+                                                return _.compose(function(pathId) {
+                                                    return 'url(#' + pathId + ')';
+                                                }, genClipPath(rowPart))
+                                            }
+
                                         this.append('defs')
                                             .call(function() {
                                                 this.append('clipPath')
-                                                    .attr('id', clipPathId)
+                                                    .attr('id', genClipPath(0))
                                                     .append('rect').attr('class', 'clipRect')
                                                 this.append('clipPath')
-                                                    .attr('id', clipPathId2)
+                                                    .attr('id', genClipPath(1))
                                                     .append('rect').attr('class', 'clipRect2')
                                             })
 
@@ -326,12 +334,12 @@ define([
                                                     .attr('class', 'text-1')
                                                     .attr('x', 5)
                                                     .style({ fill: 'white', opacity: 1 })
-                                                    .attr('clip-path', 'url(#' + clipPathId + ')')
+                                                    .attr('clip-path', genClipPathRef(0))
                                                 this.append('text')
                                                     .attr('class', 'text-2')
                                                     .attr('x', 5)
                                                     .style({ fill: self.colors[0], opacity: 1 })
-                                                    .attr('clip-path', 'url(#' + clipPathId2 + ')')
+                                                    .attr('clip-path', genClipPathRef(1))
                                             })
                                             .transition()
                                             .delay(self.TRANSITION_DURATION - self.TRANSITION_DURATION / 4)
