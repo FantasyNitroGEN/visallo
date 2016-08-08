@@ -39,13 +39,13 @@ define([
                 config.canAdd = config.canEdit = config.canDelete = false;
 
                 if (config.isComment && visalloData.currentWorkspaceCommentable) {
-                    config.canAdd = config.property.addable !== false;
-                    config.canEdit = config.property.updateable !== false;
-                    config.canDelete = config.property.deleteable !== false;
+                    config.canAdd = config.property.addable ? config.property.addable !== false : config.ontologyProperty.addable !== false;
+                    config.canEdit = config.property.updateable ? config.property.updateable !== false : config.ontologyProperty.updateable !== false;
+                    config.canDelete = config.property.deleteable ? config.property.deleteable !== false : config.ontologyProperty.deleteable !== false;
                 } else if (!config.isComment && visalloData.currentWorkspaceEditable) {
-                    config.canAdd = config.property.addable !== false;
-                    config.canEdit = config.property.updateable !== false;
-                    config.canDelete = config.property.deleteable !== false &&
+                    config.canAdd = config.property.addable ? config.property.addable !== false : config.ontologyProperty.addable !== false;
+                    config.canEdit = config.property.updateable ? config.property.updateable !== false : config.ontologyProperty.updateable !== false;
+                    config.canDelete = config.property.deleteable ? config.property.deleteable !== false : config.ontologyProperty.deleteable !== false &&
                         config.property.name !== 'http://visallo.org#visibilityJson';
                 }
 
