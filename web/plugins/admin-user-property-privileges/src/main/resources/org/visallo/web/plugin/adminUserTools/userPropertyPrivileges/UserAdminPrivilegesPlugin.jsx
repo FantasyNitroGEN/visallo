@@ -21,7 +21,7 @@ define([
 
         getInitialState() {
             const privileges = configProperties.privileges.reduce((obj, p)=> {
-                obj[p] = this.props.user.privileges.includes(p);
+                obj[p] = _.contains(this.props.user.privileges, p);
                 return obj;
             }, {});
 
