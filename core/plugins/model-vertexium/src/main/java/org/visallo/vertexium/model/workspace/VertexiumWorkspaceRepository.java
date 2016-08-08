@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -161,7 +162,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workspaceId
         );
         workspaceVertex = getGraph().getVertex(workspaceId, authorizations);
-        userWorkspaceVertexCache.put(cacheKey, workspaceVertex);
+        if (workspaceVertex != null) {
+            userWorkspaceVertexCache.put(cacheKey, workspaceVertex);
+        }
         return workspaceVertex;
     }
 
@@ -332,29 +335,33 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workspaceId
         );
         Vertex workspaceVertex = getVertex(workspaceId, user);
-        Iterable<Edge> userEdges = workspaceVertex.getEdges(
-                Direction.BOTH,
-                WORKSPACE_TO_USER_RELATIONSHIP_IRI,
-                authorizations
-        );
-        usersWithAccess = stream(userEdges)
-                .map((edge) -> {
-                    String userId = edge.getOtherVertexId(workspaceId);
+        if (workspaceVertex == null) {
+            return Lists.newArrayList();
+        } else {
+            Iterable<Edge> userEdges = workspaceVertex.getEdges(
+                    Direction.BOTH,
+                    WORKSPACE_TO_USER_RELATIONSHIP_IRI,
+                    authorizations
+            );
+            usersWithAccess = stream(userEdges)
+                    .map((edge) -> {
+                        String userId = edge.getOtherVertexId(workspaceId);
 
-                    String accessString = WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.getPropertyValue(edge);
-                    WorkspaceAccess workspaceAccess = WorkspaceAccess.NONE;
-                    if (accessString != null && accessString.length() > 0) {
-                        workspaceAccess = WorkspaceAccess.valueOf(accessString);
-                    }
+                        String accessString = WorkspaceProperties.WORKSPACE_TO_USER_ACCESS.getPropertyValue(edge);
+                        WorkspaceAccess workspaceAccess = WorkspaceAccess.NONE;
+                        if (accessString != null && accessString.length() > 0) {
+                            workspaceAccess = WorkspaceAccess.valueOf(accessString);
+                        }
 
-                    boolean isCreator = WorkspaceProperties.WORKSPACE_TO_USER_IS_CREATOR.getPropertyValue(edge, false);
+                        boolean isCreator = WorkspaceProperties.WORKSPACE_TO_USER_IS_CREATOR.getPropertyValue(edge, false);
 
-                    return new WorkspaceUser(userId, workspaceAccess, isCreator);
-                })
-                .collect(Collectors.toList());
-        this.usersWithAccessCache.put(cacheKey, usersWithAccess);
-        LOGGER.debug("END findUsersWithAccess query");
-        return usersWithAccess;
+                        return new WorkspaceUser(userId, workspaceAccess, isCreator);
+                    })
+                    .collect(Collectors.toList());
+            this.usersWithAccessCache.put(cacheKey, usersWithAccess);
+            LOGGER.debug("END findUsersWithAccess query");
+            return usersWithAccess;
+        }
     }
 
     @Override
