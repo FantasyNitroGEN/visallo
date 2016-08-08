@@ -31,21 +31,33 @@ define([
         });
 
         this.before('initialize', function(node, config) {
+             var findPropertyAcl = function(propertiesAcl, propName) {
+                var prop = _.filter(propertiesAcl, function (p){
+                    return p.name === propName;
+                });
+                if (prop.length !== 1) {
+                    throw new Error('more than one property with the same name defined');
+                }
+                return prop[0];
+            };
+
             config.template = 'propertyInfo/template';
             config.isFullscreen = visalloData.isFullscreen;
             if (config.property) {
 
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
                 config.canAdd = config.canEdit = config.canDelete = false;
+                var allAclProperties = config.data.acl.propertyAcls;
+                var propertyAcl = findPropertyAcl(allAclProperties, config.property.name);
 
                 if (config.isComment && visalloData.currentWorkspaceCommentable) {
-                    config.canAdd = config.property.addable ? config.property.addable !== false : config.ontologyProperty.addable !== false;
-                    config.canEdit = config.property.updateable ? config.property.updateable !== false : config.ontologyProperty.updateable !== false;
-                    config.canDelete = config.property.deleteable ? config.property.deleteable !== false : config.ontologyProperty.deleteable !== false;
+                    config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
+                    config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
+                    config.canDelete = config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false;
                 } else if (!config.isComment && visalloData.currentWorkspaceEditable) {
-                    config.canAdd = config.property.addable ? config.property.addable !== false : config.ontologyProperty.addable !== false;
-                    config.canEdit = config.property.updateable ? config.property.updateable !== false : config.ontologyProperty.updateable !== false;
-                    config.canDelete = config.property.deleteable ? config.property.deleteable !== false : config.ontologyProperty.deleteable !== false &&
+                    config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
+                    config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
+                    config.canDelete = config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false &&
                         config.property.name !== 'http://visallo.org#visibilityJson';
                 }
 
