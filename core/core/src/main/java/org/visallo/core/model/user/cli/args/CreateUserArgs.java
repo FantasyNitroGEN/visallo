@@ -1,6 +1,10 @@
-package org.visallo.tools.args;
+package org.visallo.core.model.user.cli.args;
 
+import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CreateUserArgs extends Args {
     @Parameter(names = {"--username", "-u"}, required = true, arity = 1, description = "The username of the user to view or edit")
@@ -14,4 +18,10 @@ public class CreateUserArgs extends Args {
 
     @Parameter(names = {"--email"}, arity = 1, description = "E-mail address to set")
     public String email;
+
+    @DynamicParameter(names = "-A", description = "Additional arguments for the authorization repository")
+    public Map<String, String> authorizationRepositoryArguments = new HashMap<>();
+
+    @DynamicParameter(names = "-P", description = "Additional arguments for the privilege repository")
+    public Map<String, String> privilegeRepositoryArguments = new HashMap<>();
 }

@@ -59,4 +59,13 @@ public abstract class PrivilegeRepositoryBase implements PrivilegeRepository {
         }
         return privileges;
     }
+
+    protected Privilege findPrivilegeByName(String privilegeName) {
+        for (Privilege p : getAllPrivileges()) {
+            if (p.getName().equals(privilegeName)) {
+                return p;
+            }
+        }
+        return null;
+    }
 }

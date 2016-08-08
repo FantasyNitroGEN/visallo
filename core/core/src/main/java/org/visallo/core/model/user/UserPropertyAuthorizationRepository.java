@@ -1,6 +1,7 @@
 package org.visallo.core.model.user;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -16,6 +17,8 @@ import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyPropertyDefinition;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.user.cli.AuthorizationRepositoryCliService;
+import org.visallo.core.model.user.cli.AuthorizationRepositoryWithCliSupport;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.SystemUser;
@@ -29,12 +32,12 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class UserPropertyAuthorizationRepository extends AuthorizationRepositoryBase {
+public class UserPropertyAuthorizationRepository extends AuthorizationRepositoryBase implements AuthorizationRepositoryWithCliSupport {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserPropertyAuthorizationRepository.class);
     public static final String AUTHORIZATIONS_PROPERTY_IRI = "http://visallo.org/user#authorizations";
     public static final String CONFIGURATION_PREFIX = UserPropertyAuthorizationRepository.class.getName();
     private static final String SEPARATOR = ",";
-    private final Set<String> defaultAuthorizations;
+    private final ImmutableSet<String> defaultAuthorizations;
     private final Configuration configuration;
     private final UserNotificationRepository userNotificationRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -84,13 +87,13 @@ public class UserPropertyAuthorizationRepository extends AuthorizationRepository
         ontologyRepository.getOrCreateProperty(propertyDefinition);
     }
 
-    private Set<String> parseAuthorizations(String authorizations) {
+    private ImmutableSet<String> parseAuthorizations(String authorizations) {
         checkNotNull(authorizations, "authorizations cannot be null");
         List<String> auths = Lists.newArrayList(authorizations.split(SEPARATOR)).stream()
                 .map(String::trim)
                 .filter(a -> a.length() > 0)
                 .collect(Collectors.toList());
-        return Sets.newHashSet(auths);
+        return ImmutableSet.copyOf(auths);
     }
 
     @Override
@@ -106,7 +109,7 @@ public class UserPropertyAuthorizationRepository extends AuthorizationRepository
         if (authorizations == null) {
             return new HashSet<>(defaultAuthorizations);
         }
-        return parseAuthorizations(authorizations);
+        return Sets.newHashSet(parseAuthorizations(authorizations));
     }
 
     public void addAuthorization(User user, String auth, User authUser) {
@@ -137,6 +140,36 @@ public class UserPropertyAuthorizationRepository extends AuthorizationRepository
             );
             auths.remove(auth);
             getUserRepository().setPropertyOnUser(user, AUTHORIZATIONS_PROPERTY_IRI, Joiner.on(SEPARATOR).join(auths));
+            sendNotificationToUserAboutRemoveAuthorization(user, auth, authUser);
+            fireUserRemoveAuthorizationEvent(user, auth);
+        }
+    }
+
+    public void setAuthorizations(User user, Set<String> newAuthorizations, User authUser) {
+        String[] newAuthorizationsArray = newAuthorizations.toArray(new String[newAuthorizations.size()]);
+        authorizationRepository.addAuthorizationToGraph(newAuthorizationsArray);
+        String newAuthorizationsString = Joiner.on(SEPARATOR).join(newAuthorizations);
+
+        LOGGER.info(
+                "Setting authorizations '%s' to user '%s' by '%s'",
+                newAuthorizationsString,
+                user.getUsername(),
+                authUser.getUsername()
+        );
+
+        Set<String> currentAuthorizations = getAuthorizations(user);
+        getUserRepository().setPropertyOnUser(user, AUTHORIZATIONS_PROPERTY_IRI, newAuthorizationsString);
+
+        Set<String> addedAuthorizations = new HashSet<>(newAuthorizations);
+        addedAuthorizations.removeAll(currentAuthorizations);
+        for (String auth : addedAuthorizations) {
+            sendNotificationToUserAboutAddAuthorization(user, auth, authUser);
+            fireUserAddAuthorizationEvent(user, auth);
+        }
+
+        Set<String> removedAuthorizations = new HashSet<>(currentAuthorizations);
+        removedAuthorizations.removeAll(newAuthorizations);
+        for (String auth : removedAuthorizations) {
             sendNotificationToUserAboutRemoveAuthorization(user, auth, authUser);
             fireUserRemoveAuthorizationEvent(user, auth);
         }
@@ -195,5 +228,14 @@ public class UserPropertyAuthorizationRepository extends AuthorizationRepository
             userListeners = InjectHelper.getInjectedServices(UserListener.class, configuration);
         }
         return userListeners;
+    }
+
+    @Override
+    public AuthorizationRepositoryCliService getCliService() {
+        return new UserPropertyAuthorizationRepositoryCliService(this);
+    }
+
+    public ImmutableSet<String> getDefaultAuthorizations() {
+        return defaultAuthorizations;
     }
 }

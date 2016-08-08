@@ -1,16 +1,16 @@
-package org.visallo.tools;
+package org.visallo.core.model.user.cli;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import org.apache.commons.lang.StringUtils;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserVisalloProperties;
+import org.visallo.core.model.user.cli.args.*;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.tools.args.*;
 import org.visallo.web.clientapi.model.UserStatus;
 
 import java.text.SimpleDateFormat;
@@ -22,8 +22,18 @@ import static org.vertexium.util.IterableUtils.toList;
 @Parameters(commandDescription = "User administration")
 public class UserAdmin extends CommandLineTool {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserAdmin.class, "cli-userAdmin");
+    public static final String ACTION_CREATE = "create";
+    public static final String ACTION_LIST = "list";
+    public static final String ACTION_ACTIVE = "active";
+    public static final String ACTION_EXPORT_PASSWORDS = "export-passwords";
+    public static final String ACTION_UPDATE_PASSWORD = "update-password";
+    public static final String ACTION_DELETE = "delete";
+    public static final String ACTION_SET_DISPLAYNAME_AND_OR_EMAIL = "set-displayname-and-or-email";
     private Args args;
-    private UserAdminAction userAdminAction;
+    private List<String> actions = new ArrayList<>();
+    private String userAdminAction;
+    private Collection<String> authorizationRepositoryActions;
+    private Collection<String> privilegeRepositoryActions;
 
     public static void main(String[] args) throws Exception {
         CommandLineTool.main(new UserAdmin(), args);
@@ -31,40 +41,37 @@ public class UserAdmin extends CommandLineTool {
 
     @Override
     protected JCommander parseArguments(String[] args) {
-        try {
-            userAdminAction = UserAdminAction.parse(args[0]);
-            if (userAdminAction == null) {
-                throw new VisalloException("Could not parse UserAdminAction");
-            }
-        } catch (Exception ex) {
-            System.err.println("Action must be one of: " + StringUtils.join(UserAdminAction.getActions(), " | "));
+        actions.add(ACTION_CREATE);
+        actions.add(ACTION_LIST);
+        actions.add(ACTION_ACTIVE);
+        actions.add(ACTION_EXPORT_PASSWORDS);
+        actions.add(ACTION_UPDATE_PASSWORD);
+        actions.add(ACTION_DELETE);
+        actions.add(ACTION_SET_DISPLAYNAME_AND_OR_EMAIL);
+
+        // need to initialize framework early to get repositories
+        initializeFramework();
+
+        if (getAuthorizationRepositoryCliService() != null) {
+            authorizationRepositoryActions = getAuthorizationRepositoryCliService().getActions(this);
+            actions.addAll(authorizationRepositoryActions);
+        }
+        if (getPrivilegeRepositoryCliService() != null) {
+            privilegeRepositoryActions = getPrivilegeRepositoryCliService().getActions(this);
+            actions.addAll(privilegeRepositoryActions);
+        }
+
+        if (args.length == 0 || !actions.contains(args[0])) {
+            System.err.println("Action must be one of: " + Joiner.on(" | ").join(actions));
             return null;
         }
-        switch (userAdminAction) {
-            case CMD_ACTION_CREATE:
-                this.args = new CreateUserArgs();
-                break;
-            case CMD_ACTION_LIST:
-                this.args = new ListUsersArgs();
-                break;
-            case CMD_ACTION_ACTIVE:
-                this.args = new ListActiveUsersArgs();
-                break;
-            case CMD_ACTION_UPDATE_PASSWORD:
-                this.args = new UpdatePasswordArgs();
-                break;
-            case CMD_ACTION_DELETE:
-                this.args = new DeleteUserArgs();
-                break;
-            case CMD_ACTION_SET_DISPLAYNAME_EMAIL:
-                this.args = new SetDisplayNameEmailArgs();
-                break;
-            case CMD_ACTION_EXPORT_PASSWORDS:
-                this.args = new ExportPasswordsArgs();
-                break;
-            default:
-                throw new VisalloException("Unhandled userAdminAction: " + userAdminAction);
+        userAdminAction = args[0];
+        if (userAdminAction == null) {
+            throw new VisalloException("Could not parse UserAdminAction");
         }
+
+        this.args = getArgumentsObject();
+
         JCommander j = new JCommander(this.args, Arrays.copyOfRange(args, 1, args.length));
         if (this.args.help) {
             this.printHelp(j);
@@ -72,7 +79,54 @@ public class UserAdmin extends CommandLineTool {
         } else {
             this.args.validate(j);
         }
+        if (getAuthorizationRepositoryCliService() != null) {
+            getAuthorizationRepositoryCliService().validateArguments(this, userAdminAction, this.args);
+        }
+        if (getPrivilegeRepository() instanceof PrivilegeRepositoryWithCliSupport) {
+            getPrivilegeRepositoryCliService().validateArguments(this, userAdminAction, this.args);
+        }
         return j;
+    }
+
+    @Override
+    protected void printHelp(JCommander j) {
+        super.printHelp(j);
+        if (getAuthorizationRepositoryCliService() != null) {
+            getAuthorizationRepositoryCliService().printHelp(this, userAdminAction);
+        }
+        if (getPrivilegeRepository() instanceof PrivilegeRepositoryWithCliSupport) {
+            getPrivilegeRepositoryCliService().printHelp(this, userAdminAction);
+        }
+    }
+
+    private Args getArgumentsObject() {
+        switch (userAdminAction) {
+            case ACTION_CREATE:
+                return new CreateUserArgs();
+            case ACTION_LIST:
+                return new ListUsersArgs();
+            case ACTION_ACTIVE:
+                return new ListActiveUsersArgs();
+            case ACTION_EXPORT_PASSWORDS:
+                return new ExportPasswordsArgs();
+            case ACTION_UPDATE_PASSWORD:
+                return new UpdatePasswordArgs();
+            case ACTION_DELETE:
+                return new DeleteUserArgs();
+            case ACTION_SET_DISPLAYNAME_AND_OR_EMAIL:
+                return new SetDisplayNameEmailArgs();
+            default:
+                if (getAuthorizationRepositoryCliService() != null
+                        && authorizationRepositoryActions.contains(userAdminAction)) {
+                    return getAuthorizationRepositoryCliService().createArguments(this, userAdminAction);
+                }
+                if (getPrivilegeRepositoryCliService() != null
+                        && privilegeRepositoryActions.contains(userAdminAction)) {
+                    return getPrivilegeRepositoryCliService().createArguments(this, userAdminAction);
+                }
+                break;
+        }
+        throw new VisalloException("Unhandled userAdminAction: " + userAdminAction);
     }
 
     @Override
@@ -80,20 +134,30 @@ public class UserAdmin extends CommandLineTool {
         LOGGER.info("running %s", userAdminAction);
         try {
             switch (userAdminAction) {
-                case CMD_ACTION_CREATE:
+                case ACTION_CREATE:
                     return create((CreateUserArgs) this.args);
-                case CMD_ACTION_LIST:
+                case ACTION_LIST:
                     return list((ListUsersArgs) this.args);
-                case CMD_ACTION_ACTIVE:
+                case ACTION_ACTIVE:
                     return active((ListActiveUsersArgs) this.args);
-                case CMD_ACTION_UPDATE_PASSWORD:
-                    return updatePassword((UpdatePasswordArgs) this.args);
-                case CMD_ACTION_DELETE:
-                    return delete((DeleteUserArgs) this.args);
-                case CMD_ACTION_SET_DISPLAYNAME_EMAIL:
-                    return setDisplayNameAndOrEmail((SetDisplayNameEmailArgs) this.args);
-                case CMD_ACTION_EXPORT_PASSWORDS:
+                case ACTION_EXPORT_PASSWORDS:
                     return exportPasswords((ExportPasswordsArgs) this.args);
+                case ACTION_UPDATE_PASSWORD:
+                    return updatePassword((UpdatePasswordArgs) this.args);
+                case ACTION_DELETE:
+                    return delete((DeleteUserArgs) this.args);
+                case ACTION_SET_DISPLAYNAME_AND_OR_EMAIL:
+                    return setDisplayNameAndOrEmail((SetDisplayNameEmailArgs) this.args);
+                default:
+                    if (getAuthorizationRepositoryCliService() != null
+                            && authorizationRepositoryActions.contains(userAdminAction)) {
+                        return getAuthorizationRepositoryCliService().run(this, userAdminAction, this.args, getUser());
+                    }
+                    if (getPrivilegeRepositoryCliService() != null
+                            && privilegeRepositoryActions.contains(userAdminAction)) {
+                        return getPrivilegeRepositoryCliService().run(this, userAdminAction, this.args, getUser());
+                    }
+                    break;
             }
         } catch (UserNotFoundException ex) {
             System.err.println(ex.getMessage());
@@ -145,6 +209,13 @@ public class UserAdmin extends CommandLineTool {
         }
         if (args.email != null) {
             getUserRepository().setEmailAddress(user, args.email);
+        }
+
+        if (getAuthorizationRepositoryCliService() != null) {
+            getAuthorizationRepositoryCliService().onCreateUser(this, args, user, getUser());
+        }
+        if (getPrivilegeRepositoryCliService() != null) {
+            getPrivilegeRepositoryCliService().onCreateUser(this, args, user, getUser());
         }
 
         printUser(getUserRepository().findById(user.getUserId()));
@@ -220,7 +291,7 @@ public class UserAdmin extends CommandLineTool {
         return 0;
     }
 
-    private User findUser(FindUserArgs findUserArgs) {
+    public User findUser(FindUserArgs findUserArgs) {
         User user = null;
         if (findUserArgs.userName != null) {
             user = getUserRepository().findByUsername(findUserArgs.userName);
@@ -235,17 +306,24 @@ public class UserAdmin extends CommandLineTool {
         return user;
     }
 
-    private void printUser(User user) {
-        System.out.println("                        ID: " + user.getUserId());
-        System.out.println("                  Username: " + user.getUsername());
-        System.out.println("            E-Mail Address: " + valueOrBlank(user.getEmailAddress()));
-        System.out.println("              Display Name: " + user.getDisplayName());
-        System.out.println("               Create Date: " + valueOrBlank(user.getCreateDate()));
-        System.out.println("        Current Login Date: " + valueOrBlank(user.getCurrentLoginDate()));
-        System.out.println(" Current Login Remote Addr: " + valueOrBlank(user.getCurrentLoginRemoteAddr()));
-        System.out.println("       Previous Login Date: " + valueOrBlank(user.getPreviousLoginDate()));
-        System.out.println("Previous Login Remote Addr: " + valueOrBlank(user.getPreviousLoginRemoteAddr()));
-        System.out.println("               Login Count: " + user.getLoginCount());
+    public void printUser(User user) {
+        String formatString = "%30s: %s";
+        System.out.println(String.format(formatString, "ID", user.getUserId()));
+        System.out.println(String.format(formatString, "Username", user.getUsername()));
+        System.out.println(String.format(formatString, "E-Mail Address", valueOrBlank(user.getEmailAddress())));
+        System.out.println(String.format(formatString, "Display Name", user.getDisplayName()));
+        System.out.println(String.format(formatString, "Create Date", valueOrBlank(user.getCreateDate())));
+        System.out.println(String.format(formatString, "Current Login Date", valueOrBlank(user.getCurrentLoginDate())));
+        System.out.println(String.format(formatString, "Current Login Remote Addr", valueOrBlank(user.getCurrentLoginRemoteAddr())));
+        System.out.println(String.format(formatString, "Previous Login Date", valueOrBlank(user.getPreviousLoginDate())));
+        System.out.println(String.format(formatString, "Previous Login Remote Addr", valueOrBlank(user.getPreviousLoginRemoteAddr())));
+        System.out.println(String.format(formatString, "Login Count", user.getLoginCount()));
+        if (getAuthorizationRepositoryCliService() != null) {
+            getAuthorizationRepositoryCliService().onPrintUser(this, this.args, formatString, user);
+        }
+        if (getPrivilegeRepositoryCliService() != null) {
+            getPrivilegeRepositoryCliService().onPrintUser(this, this.args, formatString, user);
+        }
         System.out.println("");
     }
 
@@ -326,5 +404,19 @@ public class UserAdmin extends CommandLineTool {
             allUsers.addAll(userPage);
         }
         return allUsers;
+    }
+
+    private PrivilegeRepositoryCliService getPrivilegeRepositoryCliService() {
+        if (getPrivilegeRepository() instanceof PrivilegeRepositoryWithCliSupport) {
+            return ((PrivilegeRepositoryWithCliSupport) getPrivilegeRepository()).getCliService();
+        }
+        return null;
+    }
+
+    private AuthorizationRepositoryCliService getAuthorizationRepositoryCliService() {
+        if (getAuthorizationRepository() instanceof AuthorizationRepositoryWithCliSupport) {
+            return ((AuthorizationRepositoryWithCliSupport) getAuthorizationRepository()).getCliService();
+        }
+        return null;
     }
 }

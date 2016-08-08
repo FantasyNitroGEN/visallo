@@ -29,8 +29,11 @@ public final class Privilege {
         return Collections.unmodifiableSet(set);
     }
 
-    private static List<String> sortPrivileges(Collection<String> privileges) {
-        List<String> sortedPrivileges = new ArrayList<String>(privileges);
+    private static List<String> sortPrivileges(Iterable<String> privileges) {
+        List<String> sortedPrivileges = new ArrayList<String>();
+        for (String privilege : privileges) {
+            sortedPrivileges.add(privilege);
+        }
         Collections.sort(sortedPrivileges);
         return sortedPrivileges;
     }
@@ -59,8 +62,16 @@ public final class Privilege {
         return privileges;
     }
 
-    public static String toString(Collection<String> privileges) {
+    public static String toString(Iterable<String> privileges) {
         return StringUtils.join(sortPrivileges(privileges));
+    }
+
+    public static String toStringPrivileges(Iterable<Privilege> privileges) {
+        Collection<String> privilegeStrings = new ArrayList<String>();
+        for (Privilege privilege : privileges) {
+            privilegeStrings.add(privilege.getName());
+        }
+        return toString(privilegeStrings);
     }
 
     public static boolean hasAll(Set<String> userPrivileges, Set<String> requiredPrivileges) {
@@ -70,6 +81,11 @@ public final class Privilege {
             }
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 
     public String getName() {

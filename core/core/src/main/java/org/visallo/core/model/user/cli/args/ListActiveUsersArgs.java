@@ -1,4 +1,4 @@
-package org.visallo.tools.args;
+package org.visallo.core.model.user.cli.args;
 
 import com.beust.jcommander.Parameter;
 
