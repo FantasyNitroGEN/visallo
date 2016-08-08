@@ -57,7 +57,7 @@ public class RdfTripleParser {
                 i++;
                 continue;
             }
-            if (line.charAt(i) == '"') {
+            if (line.charAt(i) == '"' && line.lastIndexOf('"') == i) {
                 stringEnd = i;
                 i++;
                 break;
