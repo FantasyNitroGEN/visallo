@@ -39,7 +39,7 @@ public class RdfExportHelperTest {
                 "<v1> <http://visallo.org#conceptType> \"http://visallo.org#person\"\n" +
                 "<v1> <http://visallo.org#firstName:k1> \"Joe\"\n" +
                 "<v1> <http://visallo.org#firstName:k1@meta1> \"meta1Value\"\n" +
-                "<v1> <http://visallo.org#visibilityJson> \"{\"source\":\"\"}\"\n";
+                "<v1> <http://visallo.org#visibilityJson> \"{\\\"source\\\":\\\"\\\"}\"\n";
         assertEquals(expected, rdf);
     }
 
@@ -63,7 +63,7 @@ public class RdfExportHelperTest {
                 "<EDGE:e1> <http://visallo.org#conceptType> \"http://visallo.org#person\"\n" +
                 "<EDGE:e1> <http://visallo.org#firstName:k1> \"Joe\"\n" +
                 "<EDGE:e1> <http://visallo.org#firstName:k1@meta1> \"meta1Value\"\n" +
-                "<EDGE:e1> <http://visallo.org#visibilityJson> \"{\"source\":\"\"}\"\n";
+                "<EDGE:e1> <http://visallo.org#visibilityJson> \"{\\\"source\\\":\\\"\\\"}\"\n";
         assertEquals(expected, rdf);
     }
 }
