@@ -21,9 +21,11 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -84,10 +86,11 @@ public class RdfXmlImportHelper {
             Authorizations authorizations
     ) {
         Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
-
+        VisibilityJson visibilityJson = new VisibilityJson(visibilitySource);
         String workspaceId = null;
         if (data != null) {
             workspaceId = data.getWorkspaceId();
+            visibilityJson.addWorkspace(workspaceId);
         }
         if (rdfConceptTypeIri != null && data != null) {
             VisalloProperties.CONCEPT_TYPE.setProperty(data.getElement(), rdfConceptTypeIri, visibilityTranslator.getDefaultVisibility(), authorizations);
@@ -97,7 +100,7 @@ public class RdfXmlImportHelper {
         model.read(in, null);
 
         Results results = new Results();
-        importRdfModel(results, model, baseDir, data, visibility, user, authorizations);
+        importRdfModel(results, model, baseDir, data, visibilityJson, visibility, user, authorizations);
 
         graph.flush();
 
@@ -118,21 +121,25 @@ public class RdfXmlImportHelper {
         }
     }
 
-    private void importRdfModel(Results results, Model model, File baseDir, GraphPropertyWorkData data, Visibility visibility, User user, Authorizations authorizations) {
+    private void importRdfModel(Results results, Model model, File baseDir, GraphPropertyWorkData data, VisibilityJson visibilityJson, Visibility visibility, User user, Authorizations authorizations) {
         ResIterator subjects = model.listSubjects();
         while (subjects.hasNext()) {
             Resource subject = subjects.next();
-            importSubject(results, graph, subject, baseDir, data, visibility, user, authorizations);
+            importSubject(results, graph, subject, baseDir, data, visibilityJson, visibility, user, authorizations);
         }
     }
 
-    private void importSubject(Results results, Graph graph, Resource subject, File baseDir, GraphPropertyWorkData data, Visibility visibility, User user, Authorizations authorizations) {
+    private void importSubject(Results results, Graph graph, Resource subject, File baseDir, GraphPropertyWorkData data, VisibilityJson visibilityJson, Visibility visibility, User user, Authorizations authorizations) {
         LOGGER.info("importSubject: %s", subject.toString());
         String graphVertexId = getGraphVertexId(subject);
         VertexBuilder vertexBuilder = graph.prepareVertex(graphVertexId, visibility);
         if (data != null) {
             data.setVisibilityJsonOnElement(vertexBuilder);
+        } else {
+            VisalloProperties.VISIBILITY_JSON.setProperty(vertexBuilder, visibilityJson, visibility);
         }
+        VisalloProperties.MODIFIED_DATE.setProperty(vertexBuilder, new Date(), visibility);
+        VisalloProperties.MODIFIED_BY.setProperty(vertexBuilder, user.getUserId(), visibility);
 
         StmtIterator statements = subject.listProperties();
         while (statements.hasNext()) {
@@ -145,7 +152,7 @@ public class RdfXmlImportHelper {
                 }
             } else if (obj instanceof Literal) {
                 LOGGER.info("set property on %s to %s", subject.toString(), statement.toString());
-                importLiteral(vertexBuilder, statement, baseDir, data, visibility, user);
+                importLiteral(vertexBuilder, statement, baseDir, data, visibilityJson, visibility, user);
             } else {
                 throw new VisalloException("Unhandled object type: " + obj.getClass().getName());
             }
@@ -171,7 +178,7 @@ public class RdfXmlImportHelper {
                 if (isConceptTypeResource(statement)) {
                     continue;
                 }
-                importResource(results, graph, v, statement, data, visibility, user, authorizations);
+                importResource(results, graph, v, statement, data, visibilityJson, visibility, user, authorizations);
             }
         }
     }
@@ -181,7 +188,7 @@ public class RdfXmlImportHelper {
         return label.equals(RDF_TYPE_URI);
     }
 
-    private void importLiteral(VertexBuilder v, Statement statement, File baseDir, GraphPropertyWorkData data, Visibility visibility, User user) {
+    private void importLiteral(VertexBuilder v, Statement statement, File baseDir, GraphPropertyWorkData data, VisibilityJson visibilityJson, Visibility visibility, User user) {
         String propertyName = statement.getPredicate().toString();
 
         RDFDatatype datatype = statement.getLiteral().getDatatype();
@@ -199,9 +206,13 @@ public class RdfXmlImportHelper {
             value = literalValue;
         }
 
-        Metadata metadata = null;
+        Metadata metadata = new Metadata();
         if (data != null) {
             metadata = data.createPropertyMetadata(user);
+        } else {
+            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibility);
+            VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
+            VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), visibility);
         }
         v.addPropertyValue(MULTI_VALUE_KEY, propertyName, value, metadata, visibility);
     }
@@ -239,6 +250,7 @@ public class RdfXmlImportHelper {
             Vertex outVertex,
             Statement statement,
             GraphPropertyWorkData data,
+            VisibilityJson visibilityJson,
             Visibility visibility,
             User user,
             Authorizations authorizations
@@ -259,7 +271,11 @@ public class RdfXmlImportHelper {
         EdgeBuilder e = graph.prepareEdge(edgeId, outVertex, inVertex, label, visibility);
         if (data != null) {
             data.setVisibilityJsonOnElement(e);
+        } else {
+            VisalloProperties.VISIBILITY_JSON.setProperty(e, visibilityJson, visibility);
         }
+        VisalloProperties.MODIFIED_BY.setProperty(e, user.getUserId(), visibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(e, new Date(), visibility);
         results.addEdge(e.save(authorizations));
         LOGGER.info("importResource: %s = %s", label, vertexId);
     }
