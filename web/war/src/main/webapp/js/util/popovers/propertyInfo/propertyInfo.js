@@ -32,7 +32,7 @@ define([
 
         this.before('initialize', function(node, config) {
              var findPropertyAcl = function(propertiesAcl, propName) {
-                var prop = _.filter(propertiesAcl, function (p){
+                var prop = _.filter(propertiesAcl, function (p) {
                     return p.name === propName;
                 });
                 if (prop.length !== 1) {
@@ -47,8 +47,8 @@ define([
 
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
                 config.canAdd = config.canEdit = config.canDelete = false;
-                var allAclProperties = config.data.acl.propertyAcls;
-                var propertyAcl = findPropertyAcl(allAclProperties, config.property.name);
+                var allPropertyAcls = config.data.acl.propertyAcls;
+                var propertyAcl = findPropertyAcl(allPropertyAcls, config.property.name);
 
                 if (config.isComment && visalloData.currentWorkspaceCommentable) {
                     config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
