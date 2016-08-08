@@ -93,7 +93,7 @@ public class AddEdgeVisalloRdfTriple extends VisalloRdfTriple {
     }
 
     @Override
-    public ImportContext updateImportContext(
+    public ImportContext createImportContext(
             ImportContext ctx,
             RdfTripleImportHelper rdfTripleImportHelper,
             Authorizations authorizations

@@ -136,7 +136,7 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
     }
 
     @Override
-    public ImportContext updateImportContext(
+    public ImportContext createImportContext(
             ImportContext ctx,
             RdfTripleImportHelper rdfTripleImportHelper,
             Authorizations authorizations
