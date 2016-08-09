@@ -25,6 +25,12 @@ public class SetPropertyVisalloRdfTriple extends PropertyVisalloRdfTriple {
 
     @Override
     public String toString() {
-        return String.format("<%s> <%s> %s", getElementRdfString(), getPropertyRdfString(), getValueRdfString());
+        String warning = "\"Unhandled value type " + getValue().getClass().getName() + " to convert to RDF string\"";
+        String value = getValueRdfString();
+        return String.format("%s<%s> <%s> %s",
+                value == null ? "# " : "",
+                getElementRdfString(),
+                getPropertyRdfString(),
+                value == null ? warning : value);
     }
 }
