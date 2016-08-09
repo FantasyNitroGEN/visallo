@@ -371,6 +371,13 @@
     }
   }
 
+  @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    /* Force scrollbar in IE to stop right aligned values from flashing on resize/scroll */
+    .org-visallo-layout-elements-body {
+      overflow-y: scroll !important;
+    }
+  }
+
   .multiple {
     svg, .svg-container {
 
