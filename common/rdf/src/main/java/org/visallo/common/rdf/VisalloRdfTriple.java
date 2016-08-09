@@ -363,9 +363,17 @@ public abstract class VisalloRdfTriple {
 
     public abstract String getElementId();
 
-    public abstract ImportContext updateImportContext(
+    public abstract ImportContext createImportContext(
             ImportContext ctx,
             RdfTripleImportHelper rdfTripleImportHelper,
             Authorizations authorizations
     );
+
+    public ImportContext updateImportContext(
+            ImportContext ctx,
+            RdfTripleImportHelper rdfTripleImportHelper,
+            Authorizations authorizations
+    ) {
+        return ctx;
+    }
 }

@@ -2,6 +2,7 @@ package org.visallo.common.rdf;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -172,6 +173,8 @@ public class RdfTripleImportHelperTest {
         importRdfLine("<v1> <http://visallo.org/test#prop1@metadata\\@1> \"metadata value 1\"");
         importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2> \"metadata value 2\"");
         importRdfLine("<v1> <http://visallo.org/test#prop1@metadata2[S]> \"metadata value 2 S\"");
+        importRdfLine("<v1> <http://visallo.org/test#prop1@metadatajson> \"{\\\"source\\\":\\\"metadata value json source\\\"}\"");
+
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
@@ -180,6 +183,8 @@ public class RdfTripleImportHelperTest {
         assertEquals("metadata value 1", prop1.getMetadata().getValue("metadata@1"));
         assertEquals("metadata value 2", prop1.getMetadata().getValue("metadata2", new Visibility("")));
         assertEquals("metadata value 2 S", prop1.getMetadata().getValue("metadata2", new Visibility("((S))|visallo")));
+        JSONObject obj = new JSONObject(prop1.getMetadata().getValue("metadatajson").toString());
+        assertEquals("metadata value json source", obj.getString("source"));
     }
 
     @Test

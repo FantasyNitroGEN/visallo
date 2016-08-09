@@ -45,7 +45,7 @@ public class ConceptTypeVisalloRdfTriple extends ElementVisalloRdfTriple {
     }
 
     @Override
-    public ImportContext updateImportContext(
+    public ImportContext createImportContext(
             ImportContext ctx,
             RdfTripleImportHelper rdfTripleImportHelper,
             Authorizations authorizations

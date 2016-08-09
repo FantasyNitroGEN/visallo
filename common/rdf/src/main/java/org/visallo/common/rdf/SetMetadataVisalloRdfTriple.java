@@ -89,12 +89,10 @@ public class SetMetadataVisalloRdfTriple extends PropertyVisalloRdfTriple {
             Authorizations authorizations
     ) {
         // Currently Vertexium only supports updating metadata on ExistingElementMutation if that ever
-        //  changes this logic can be removed, updateImportContext can be renamed createImportContext
+        //  changes this logic can be removed, createImportContext can be renamed createImportContext
         //  and ImportContext can be removed from the parameter list
-        if (!(ctx instanceof ExistingElementMutation)) {
-            if (ctx != null) {
-                ctx.save(authorizations);
-            }
+        if (!(ctx.getElementMutation() instanceof ExistingElementMutation)) {
+            ctx.save(authorizations);
 
             Element element = getExistingElement(rdfTripleImportHelper.getGraph(), this, authorizations);
             ExistingElementMutation<Element> m = element.prepareMutation();

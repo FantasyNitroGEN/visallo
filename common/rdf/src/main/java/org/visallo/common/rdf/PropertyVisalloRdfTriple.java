@@ -70,7 +70,7 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
             throw new VisalloException("Unexpected null value");
         }
         if (getValue() instanceof String) {
-            return String.format("\"%s\"", getValue());
+            return String.format("\"%s\"", escape(getValue().toString(), '"'));
         }
         if (getValue() instanceof Integer) {
             return getValueRdfStringWithType(getValue(), VisalloRdfTriple.PROPERTY_TYPE_INT);
@@ -136,7 +136,7 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
     }
 
     @Override
-    public ImportContext updateImportContext(
+    public ImportContext createImportContext(
             ImportContext ctx,
             RdfTripleImportHelper rdfTripleImportHelper,
             Authorizations authorizations

@@ -192,8 +192,9 @@ public class RdfTripleImportHelper {
             if (ctx != null) {
                 elements.add(ctx.save(authorizations));
             }
-            ctx = triple.updateImportContext(ctx, this, authorizations);
+            ctx = triple.createImportContext(ctx, this, authorizations);
         }
+        ctx = triple.updateImportContext(ctx, this, authorizations);
 
         if (triple instanceof ConceptTypeVisalloRdfTriple) {
             setConceptType(ctx, sourceFileName, (ConceptTypeVisalloRdfTriple) triple, user);
