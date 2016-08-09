@@ -1,5 +1,6 @@
 package org.visallo.vertexium.model.search;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import org.json.JSONObject;
@@ -66,6 +67,20 @@ public class VertexiumSearchRepository extends SearchRepository {
                 UserRepository.VISIBILITY_STRING
         );
 
+        if (graph.doesVertexExist(id, authorizations)) {
+            // switching from global to private
+            if (isSearchGlobal(id, authorizations)) {
+                if (privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)) {
+                    deleteSearch(id, user);
+                } else {
+                    throw new VisalloAccessDeniedException(
+                            "User does not have the privilege to change a global search", user, id);
+                }
+            } else if (!isSearchPrivateToUser(id, user, authorizations)) {
+                throw new VisalloAccessDeniedException("User does not own this this search", user, id);
+            }
+        }
+
         Vertex searchVertex = saveSearchVertex(id, name, url, searchParameters, authorizations);
 
         Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
@@ -94,7 +109,8 @@ public class VertexiumSearchRepository extends SearchRepository {
             User user
     ) {
         if (!privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)) {
-            throw new VisalloAccessDeniedException("User does not have access to save global searches", user, id);
+            throw new VisalloAccessDeniedException(
+                    "User does not have the privilege to save a global search", user, id);
         }
 
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
@@ -103,9 +119,16 @@ public class VertexiumSearchRepository extends SearchRepository {
                 UserRepository.VISIBILITY_STRING
         );
 
+        // switching from private to global
+        if (isSearchPrivateToUser(id, user, authorizations)) {
+            deleteSearch(id, user);
+        }
+
         Vertex searchVertex = saveSearchVertex(id, name, url, searchParameters, authorizations);
 
-        String edgeId = GLOBAL_SAVED_SEARCHES_ROOT_VERTEX_ID + "_" + SearchProperties.HAS_SAVED_SEARCH + "_" + searchVertex.getId();
+        String edgeId = String.format(
+                "%s_%s_%s",
+                GLOBAL_SAVED_SEARCHES_ROOT_VERTEX_ID, SearchProperties.HAS_SAVED_SEARCH, searchVertex.getId());
         graph.addEdge(
                 edgeId,
                 getGlobalSavedSearchesRootVertex(),
@@ -226,25 +249,45 @@ public class VertexiumSearchRepository extends SearchRepository {
     }
 
     @Override
-    public void deleteSearch(final String savedSearchId, User user) {
+    public void deleteSearch(final String id, User user) {
         checkNotNull(user, "User is required");
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
                 user,
                 VISIBILITY_STRING,
                 UserRepository.VISIBILITY_STRING
         );
-        Vertex searchVertex = graph.getVertex(savedSearchId, authorizations);
-        checkNotNull(searchVertex, "Could not find search with id " + savedSearchId);
+        Vertex searchVertex = graph.getVertex(id, authorizations);
+        checkNotNull(searchVertex, "Could not find search with id " + id);
 
-        if (!doesUserHaveAccess(savedSearchId, user, authorizations)) {
-            throw new VertexiumException("User " + user.getUserId() + " does not have access to " + savedSearchId);
+        if (isSearchGlobal(id, authorizations)) {
+            if (!privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)) {
+                throw new VisalloAccessDeniedException(
+                        "User does not have the privilege to delete a global search", user, id);
+            }
+        }
+        else if (!isSearchPrivateToUser(id, user, authorizations)) {
+            throw new VisalloAccessDeniedException("User does not own this this search", user, id);
         }
 
         graph.deleteVertex(searchVertex, authorizations);
         graph.flush();
     }
 
-    private boolean doesUserHaveAccess(String savedSearchId, User user, Authorizations authorizations) {
+    @VisibleForTesting
+    boolean isSearchGlobal(String id, Authorizations authorizations) {
+        if (!graph.doesVertexExist(id, authorizations)) {
+            return false;
+        }
+        Iterable<String> vertexIds = getGlobalSavedSearchesRootVertex().getVertexIds(
+                Direction.OUT,
+                SearchProperties.HAS_SAVED_SEARCH,
+                authorizations
+        );
+        return stream(vertexIds).anyMatch(vertexId -> vertexId.equals(id));
+    }
+
+    @VisibleForTesting
+    boolean isSearchPrivateToUser(String id, User user, Authorizations authorizations) {
         Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
         checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
         Iterable<String> vertexIds = userVertex.getVertexIds(
@@ -252,21 +295,6 @@ public class VertexiumSearchRepository extends SearchRepository {
                 SearchProperties.HAS_SAVED_SEARCH,
                 authorizations
         );
-        if (stream(vertexIds).anyMatch(vertexId -> vertexId.equals(savedSearchId))) {
-            return true;
-        }
-
-        if (privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)) {
-            vertexIds = getGlobalSavedSearchesRootVertex().getVertexIds(
-                    Direction.OUT,
-                    SearchProperties.HAS_SAVED_SEARCH,
-                    authorizations
-            );
-            if (stream(vertexIds).anyMatch(vertexId -> vertexId.equals(savedSearchId))) {
-                return true;
-            }
-        }
-
-        return false;
+        return stream(vertexIds).anyMatch(vertexId -> vertexId.equals(id));
     }
 }

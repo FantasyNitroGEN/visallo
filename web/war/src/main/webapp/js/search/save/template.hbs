@@ -2,11 +2,16 @@
   <div class="arrow"></div>
   <div class="popover-content" style="max-height:{{maxHeight}}px">
     <div class="form">
-      <div class="form-item">
-        <input placeholder="Name" class="name" value="{{ name }}" type="text"><button class="btn btn-mini" type="button">{{ text }}</button>
-      </div>
-      {{#if canSaveGlobal }}
-        <label style="display: none" class="global-search" title="{{ i18n 'search.savedsearches.global.tooltip' }}"><input type="checkbox" {{#if updatingGlobal}}checked{{/if}} />{{ i18n 'search.savedsearches.global' }}</label>
+      {{#if canAddOrUpdate}}
+        <div class="form-item">
+          <input placeholder="Name" class="name" value="{{name}}" type="text">
+          <button class="btn btn-mini" type="button">{{text}}</button>
+        </div>
+      {{/if}}
+      {{#if canSaveGlobal}}
+        <label style="display: none" class="global-search" title="{{i18n 'search.savedsearches.global.tooltip'}}">
+          <input type="checkbox" {{#if updatingGlobal}}checked{{/if}} />{{i18n 'search.savedsearches.global'}}
+        </label>
       {{/if}}
     </div>
     <ul class="nav nav-list">
@@ -14,11 +19,11 @@
         <li><a><h1>{{name}}</h1></a>
             <span class="badge">{{scope}}</span>
             {{#if canDelete}}
-              <button class="btn btn-mini btn-danger">{{ i18n 'search.savedsearches.button.delete' }}</button>
+              <button class="btn btn-mini btn-danger">{{i18n 'search.savedsearches.button.delete'}}</button>
             {{/if}}
         </li>
       {{else}}
-      <li class="empty">{{ i18n 'search.savedsearches.none' }}</li>
+      <li class="empty">{{i18n 'search.savedsearches.none'}}</li>
       {{/each}}
     </ul>
   </div>

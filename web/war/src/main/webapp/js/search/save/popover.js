@@ -2,13 +2,11 @@
 define([
     'flight/lib/component',
     'util/popovers/withPopover',
-    'util/withDataRequest',
-    'util/privileges'
+    'util/withDataRequest'
 ], function(
     defineComponent,
     withPopover,
-    withDataRequest,
-    Privileges) {
+    withDataRequest) {
     'use strict';
 
     var SCOPES = {
@@ -48,19 +46,20 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-            var hasSearchSaveGlobalPrivilege = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
             config.template = '/search/save/template';
-            config.canSaveGlobal = hasSearchSaveGlobalPrivilege;
+            config.canSaveGlobal = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
             config.maxHeight = $(window).height() / 2;
             config.name = config.update && config.update.name || '';
             config.updatingGlobal = config.update && config.update.scope === SCOPES.GLOBAL;
             config.text = i18n('search.savedsearches.button.' + (config.update ? 'update' : 'create'));
             config.teardownOnTap = true;
+            config.canAddOrUpdate = _.isUndefined(config.update) || !config.updatingGlobal ||
+                (config.updatingGlobal && config.canSaveGlobal);
             config.list = config.list.map(function(item) {
                 var isGlobal = item.scope === SCOPES.GLOBAL,
                     canDelete = true;
                 if (isGlobal) {
-                    canDelete = hasSearchSaveGlobalPrivilege;
+                    canDelete = config.canSaveGlobal;
                 }
                 return _.extend({}, item, {
                     isGlobal: isGlobal,
