@@ -15,7 +15,19 @@ public final class Privilege {
     public static final String PUBLISH = "PUBLISH";
     public static final String ADMIN = "ADMIN";
 
-    public static final Set<String> NONE = Collections.emptySet();
+    static {
+        // NOTE: Keep allNames in sync with the above public static strings.
+        final String[] allNames = new String[] {
+                READ, COMMENT, COMMENT_EDIT_ANY, COMMENT_DELETE_ANY, SEARCH_SAVE_GLOBAL, EDIT, PUBLISH, ADMIN
+        };
+        Set<Privilege> allPrivileges = new HashSet<Privilege>(allNames.length);
+        for (String name : allNames) {
+            allPrivileges.add(new Privilege(name));
+        }
+        ALL_BUILT_IN = Collections.unmodifiableSet(allPrivileges);
+    }
+
+    public static final Set<Privilege> ALL_BUILT_IN;
 
     private final String name;
 
@@ -48,7 +60,7 @@ public final class Privilege {
 
     public static Set<String> stringToPrivileges(String privilegesString) {
         if (privilegesString == null || privilegesString.equalsIgnoreCase("NONE")) {
-            return NONE;
+            return Collections.emptySet();
         }
 
         String[] privilegesStringParts = privilegesString.split(",");
