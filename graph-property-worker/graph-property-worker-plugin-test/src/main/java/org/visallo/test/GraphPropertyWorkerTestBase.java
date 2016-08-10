@@ -30,7 +30,6 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
 import org.visallo.vertexium.model.user.InMemoryUser;
-import org.visallo.web.clientapi.model.Privilege;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -144,6 +143,10 @@ public abstract class GraphPropertyWorkerTestBase {
 
     protected Authorizations getGraphAuthorizations(String... authorizations) {
         return getGraph().createAuthorizations(authorizations);
+    }
+
+    protected void setOntologyRepository (OntologyRepository ontologyRepository) {
+        this.ontologyRepository = ontologyRepository;
     }
 
     protected byte[] getResourceAsByteArray(Class sourceClass, String resourceName) {
