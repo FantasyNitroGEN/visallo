@@ -52,8 +52,25 @@ define([
 
             this.renderHistograms(this.attr.model, { duration: 0 });
 
+            var previousSize = -1;
+            this.debouncedRender = _.debounce(function(event, data) {
+                self.renderHistograms(self.attr.model, { duration: 0 });
+            }, 500);
+
+            $(document).off('.elementHistograms');
+            this.on(document, 'graphPaddingUpdated.elementHistograms', function(event, data) {
+                if (data.padding.r > 0 && (previousSize < 0 || data.padding.r !== previousSize)) {
+                    previousSize = data.padding.r;
+                    this.debouncedRender();
+                }
+                if (data.padding.r === 0) {
+                    $(document).off('.elementHistograms');
+                }
+            })
+
             this.on('updateModel', function(event, data) {
-                self.renderHistograms(data.model);
+                this.attr.model = data.model;
+                this.renderHistograms(data.model);
             })
         });
 
@@ -421,7 +438,6 @@ define([
                                             .attr('mask', _.compose(toUrlId, append('_1'), maskId));
                                         this.select('use.on-number-bar-text')
                                             .attr('xlink:href', _.compose(toRefId, textNumberId))
-                                            .attr('mask', _.compose(toUrlId, append('_0'), maskId));
                                         this.select('use.off-number-bar-text')
                                             .attr('xlink:href', _.compose(toRefId, textNumberId))
                                             .attr('mask', _.compose(toUrlId, append('_1'), maskId));
@@ -633,13 +649,16 @@ define([
             barRect = this.parentNode.nextSibling,
             barWidthVal = barRect.width.baseVal,
             barWidth = barWidthVal.value,
-            remainingBarWidth = barWidth - textWidth - tX - PADDING;
+            remainingBarWidth = barWidth - textWidth - tX - PADDING,
+            mask0 = this.parentNode.querySelector('defs mask:first-child');
 
-        if (remainingBarWidth <= textNumberWidth) {
+        if (remainingBarWidth <= textNumberWidth && barWidthVal.valueAsString !== '100%') {
+            if (mask0) mask0.setAttribute('width', '100%');
             this.setAttribute('x', Math.max(barWidth, tX + textWidth) + PADDING);
             this.setAttribute('text-anchor', 'start');
             this.setAttribute('dx', 0);
         } else {
+            if (mask0) mask0.setAttribute('width', (1 - (textNumberWidth + PADDING * 2) / barWidth) * 100 + '%');
             this.setAttribute('x', barWidthVal.valueAsString);
             this.setAttribute('dx', -PADDING);
             this.setAttribute('text-anchor', 'end');
