@@ -35,17 +35,11 @@ public class WorkspaceList implements ParameterizedHandler {
             @ActiveWorkspaceId(required = false) String workspaceId,
             User user
     ) throws Exception {
-        Authorizations authorizations = null;
-        try {
-            if (workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user)) {
-                authorizations = authorizationRepository.getGraphAuthorizations(user, workspaceId);
-            }
-        }
-        catch(SecurityVertexiumException e){
-            //do nothing
-        }
+        Authorizations authorizations;
 
-        if(authorizations == null) {
+        if (hasAccess(workspaceId, user)) {
+            authorizations = authorizationRepository.getGraphAuthorizations(user, workspaceId);
+        } else {
             authorizations = authorizationRepository.getGraphAuthorizations(user);
         }
 
@@ -69,5 +63,13 @@ public class WorkspaceList implements ParameterizedHandler {
             }
         }
         return results;
+    }
+
+    private boolean hasAccess(String workspaceId, User user) {
+        try {
+            return workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user);
+        } catch (SecurityVertexiumException e) {
+            return false;
+        }
     }
 }
