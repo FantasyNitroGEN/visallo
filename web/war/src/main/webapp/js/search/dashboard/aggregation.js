@@ -44,7 +44,8 @@ define([
             { value: 8, label: '  25 x 25 meters (small)' }
         ],
         defaultInterval = 20,
-        idIncrement = 1;
+        idIncrement = 1,
+        _mapzenPromise;
 
     return defineComponent(Aggregation, withDataRequest);
 
@@ -87,29 +88,30 @@ define([
             this.on('propertyselected', this.onPropertySelected);
             this.on('filterProperties', this.onFilterProperties);
 
-            d3.json('mapzen/osm/all/0/0/0.json', function(error, json) {
-                if (error) {
-                    var index = AGGREGATIONS.findIndex(function(a) {
-                        return a.value === 'geohash';
-                    });
-                    AGGREGATIONS.splice(index, 1);
-                }
-
-                self.aggregations = (self.attr.aggregations || []).map(function addId(a) {
-                    if (!a.id) a.id = idIncrement++;
-                    if (_.isArray(a.nested)) {
-                        a.nested = a.nested.map(addId);
+            this.mapzenSupported()
+                .then(function(mapzen) {
+                    if (!mapzen) {
+                        var index = AGGREGATIONS.findIndex(function(a) {
+                            return a.value === 'geohash';
+                        });
+                        AGGREGATIONS.splice(index, 1);
                     }
-                    return a;
-                });
-                self.currentAggregation = null;
-                self.updateAggregations(null, true);
 
-                self.$node.html(template({
-                    aggregations: AGGREGATIONS,
-                    precisions: PRECISIONS,
-                    intervalUnits: INTERVAL_UNITS
-                }));
+                    self.aggregations = (self.attr.aggregations || []).map(function addId(a) {
+                        if (!a.id) a.id = idIncrement++;
+                        if (_.isArray(a.nested)) {
+                            a.nested = a.nested.map(addId);
+                        }
+                        return a;
+                    });
+                    self.currentAggregation = null;
+                    self.updateAggregations(null, true);
+
+                    self.$node.html(template({
+                        aggregations: AGGREGATIONS,
+                        precisions: PRECISIONS,
+                        intervalUnits: INTERVAL_UNITS
+                    }));
             });
         });
 
@@ -476,5 +478,15 @@ define([
             return _.isFunction(aggregation.filter) ? aggregation.filter(filteredProperties) : filteredProperties;
         };
 
+        this.mapzenSupported = function() {
+            if (!_mapzenPromise) {
+                _mapzenPromise = new Promise(function(f) {
+                    d3.json('mapzen/osm/all/0/0/0.json', function(error, json) {
+                        f(!error);
+                    });
+                });
+            }
+            return _mapzenPromise;
+        };
     }
 });
