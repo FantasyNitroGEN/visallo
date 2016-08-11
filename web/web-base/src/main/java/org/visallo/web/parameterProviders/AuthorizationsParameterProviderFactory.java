@@ -59,7 +59,7 @@ public class AuthorizationsParameterProviderFactory extends ParameterProviderFac
                             workspaceId
                     );
                 }
-            } catch (RuntimeException e) {
+            } catch (SecurityVertexiumException e) {
                 throw new VisalloAccessDeniedException(
                         "Error getting access to requested workspace: " + workspaceId,
                         user,
