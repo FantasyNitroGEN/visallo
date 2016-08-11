@@ -1,10 +1,12 @@
 define([
     'flight/lib/component',
+    'd3',
     'util/withDataRequest',
     'util/requirejs/promise!util/service/ontologyPromise',
     'hbs!./aggregationTpl'
 ], function(
     defineComponent,
+    d3,
     withDataRequest,
     ontology,
     template) {
@@ -12,8 +14,16 @@ define([
 
     var AGGREGATIONS = [
             { value: 'term', name: 'Counts' },
-            { value: 'histogram', name: 'Histogram' },
-            { value: 'geohash', name: 'Geo-coordinate Cluster' },
+            { value: 'histogram', name: 'Histogram', filter: function(properties) {
+                return _.filter(properties, function(p) {
+                    return p.dataType.toLowerCase() === 'date';
+                });
+            }},
+            { value: 'geohash', name: 'Geo-coordinate Cluster', filter: function(properties) {
+                return _.filter(properties, function(p) {
+                    return p.dataType.toLowerCase() === 'geolocation';
+                });
+            }},
             { value: 'statistics', name: 'Statistics' }
         ],
         INTERVAL_UNITS = [
@@ -59,16 +69,6 @@ define([
         this.after('initialize', function() {
             var self = this;
 
-            this.aggregations = (this.attr.aggregations || []).map(function addId(a) {
-                if (!a.id) a.id = idIncrement++;
-                if (_.isArray(a.nested)) {
-                    a.nested = a.nested.map(addId);
-                }
-                return a;
-            });
-            this.currentAggregation = null;
-            this.updateAggregations(null, true);
-
             this.on('change', {
                 aggregationSelector: this.onChangeAggregation,
                 inputsSelector: this.onChangeInputs,
@@ -87,11 +87,30 @@ define([
             this.on('propertyselected', this.onPropertySelected);
             this.on('filterProperties', this.onFilterProperties);
 
-            this.$node.html(template({
-                aggregations: AGGREGATIONS,
-                precisions: PRECISIONS,
-                intervalUnits: INTERVAL_UNITS
-            }));
+            d3.json('mapzen/osm/all/0/0/0.json', function(error, json) {
+                if (error) {
+                    var index = AGGREGATIONS.findIndex(function(a) {
+                        return a.value === 'geohash';
+                    });
+                    AGGREGATIONS.splice(index, 1);
+                }
+
+                self.aggregations = (self.attr.aggregations || []).map(function addId(a) {
+                    if (!a.id) a.id = idIncrement++;
+                    if (_.isArray(a.nested)) {
+                        a.nested = a.nested.map(addId);
+                    }
+                    return a;
+                });
+                self.currentAggregation = null;
+                self.updateAggregations(null, true);
+
+                self.$node.html(template({
+                    aggregations: AGGREGATIONS,
+                    precisions: PRECISIONS,
+                    intervalUnits: INTERVAL_UNITS
+                }));
+            });
         });
 
         this.onChangeInputs = function(event, data) {
@@ -340,7 +359,8 @@ define([
         this.updateAggregationDependents = function(type) {
             var section = this.$node.find('.' + type).show(),
                 others = section.siblings('div').hide(),
-                aggregation = this.currentAggregation;
+                aggregation = this.currentAggregation,
+                placeholder;
 
             this.currentAggregation.type = type;
 
@@ -349,7 +369,9 @@ define([
                     if (!aggregation.precision) {
                         aggregation.precision = '5';
                     }
+
                     section.find('.precision').val(aggregation.precision);
+                    placeholder = i18n('dashboard.search.aggregation.geohash.property.placeholder');
                     break;
 
                 case 'histogram':
@@ -380,7 +402,7 @@ define([
                         section.find('.interval_value').val(Math.round(interval / intervalUnit.value));
                         section.find('.interval_units').val(intervalUnit.value);
                     }
-
+                    placeholder = i18n('dashboard.search.aggregation.histogram.property.placeholder');
                     break;
 
                 case 'term':
@@ -396,8 +418,8 @@ define([
             this.select('aggregationSelector').val(type);
             this.attachPropertySelection(section.find('.property-select'), {
                 selected: aggregation && aggregation.field,
-                placeholder: 'Property to Count'
-            })
+                placeholder: placeholder || i18n('dashboard.savedsearches.aggregation.property.placeholder')
+            });
         };
 
         this.onFilterProperties = function(event, data) {
@@ -423,22 +445,35 @@ define([
                 this.dataRequest('ontology', 'properties'),
                 Promise.require('util/ontology/propertySelect')
             ]).spread(function(properties, FieldSelection) {
+                var propertiesToFilter = self.filteredProperties || properties.list;
+
                 node.teardownComponent(FieldSelection);
+
                 FieldSelection.attachTo(node, {
                     selectedProperty: options.selected && properties.byTitle[options.selected] || null,
-                    properties: _.reject(self.filteredProperties || properties.list, function(p) {
-                        var isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible,
-                            isPropString = p.dataType === 'string';
-                        if (isPropString) {
-                            var isSearchable = p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false;
-                            return !isSearchable || !isUserVisible;
-                        }
-                        return !isUserVisible;
-                    }),
+                    properties: self.filterProperties(propertiesToFilter),
                     showAdminProperties: true,
                     placeholder: options.placeholder || ''
                 });
             });
+        };
+
+        this.filterProperties = function(properties) {
+            var self = this;
+            var aggregation = _.find(AGGREGATIONS, function(a) {
+                return a.value === self.currentAggregation.type;
+            });
+            var filteredProperties = _.reject(properties, function(p) {
+                var isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible,
+                    isPropString = p.dataType === 'string';
+                if (isPropString) {
+                    var isSearchable = p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false;
+                    return !isSearchable || !isUserVisible;
+                }
+                return !isUserVisible;
+            });
+
+            return _.isFunction(aggregation.filter) ? aggregation.filter(filteredProperties) : filteredProperties;
         };
 
     }
