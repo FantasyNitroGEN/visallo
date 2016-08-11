@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.vertexium.Authorizations;
+import org.vertexium.SecurityVertexiumException;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
@@ -35,7 +36,8 @@ public class WorkspaceList implements ParameterizedHandler {
             User user
     ) throws Exception {
         Authorizations authorizations;
-        if (workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user)) {
+
+        if (hasAccess(workspaceId, user)) {
             authorizations = authorizationRepository.getGraphAuthorizations(user, workspaceId);
         } else {
             authorizations = authorizationRepository.getGraphAuthorizations(user);
@@ -61,5 +63,13 @@ public class WorkspaceList implements ParameterizedHandler {
             }
         }
         return results;
+    }
+
+    private boolean hasAccess(String workspaceId, User user) {
+        try {
+            return workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user);
+        } catch (SecurityVertexiumException e) {
+            return false;
+        }
     }
 }
