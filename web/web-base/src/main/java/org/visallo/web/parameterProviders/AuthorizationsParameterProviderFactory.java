@@ -47,10 +47,11 @@ public class AuthorizationsParameterProviderFactory extends ParameterProviderFac
             AuthorizationRepository authorizationRepository,
             WorkspaceRepository workspaceRepository
     ) {
-        try {
-            String workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
-            User user = VisalloBaseParameterProvider.getUser(request, userRepository);
-            if (workspaceId != null) {
+
+        String workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
+        User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+        if (workspaceId != null) {
+            try {
                 if (!workspaceRepository.hasReadPermissions(workspaceId, user)) {
                     throw new VisalloAccessDeniedException(
                             "You do not have access to workspace: " + workspaceId,
@@ -58,14 +59,18 @@ public class AuthorizationsParameterProviderFactory extends ParameterProviderFac
                             workspaceId
                     );
                 }
-                return authorizationRepository.getGraphAuthorizations(user, workspaceId);
+            } catch (RuntimeException e) {
+                throw new VisalloAccessDeniedException(
+                        "Error getting access to requested workspace: " + workspaceId,
+                        user,
+                        workspaceId
+                );
             }
 
-            return authorizationRepository.getGraphAuthorizations(user);
+            return authorizationRepository.getGraphAuthorizations(user, workspaceId);
         }
-        catch(SecurityVertexiumException e){
-            throw new VisalloAccessDeniedException(ExceptionUtils.getStackTrace(e), null, null);
-        }
+
+        return authorizationRepository.getGraphAuthorizations(user);
     }
 
     @Override
