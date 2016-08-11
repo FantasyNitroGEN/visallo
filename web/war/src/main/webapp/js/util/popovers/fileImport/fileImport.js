@@ -91,15 +91,6 @@ define([
                     importFileSelector: this.onFileChange
                 })
 
-                this.on(this.popover, 'keyup', {
-                    visibilityInputSelector: function(e) {
-                        if ($(e.target).closest('.single').length &&
-                            e.which === $.ui.keyCode.ENTER) {
-                            this.onImport();
-                        }
-                    }
-                })
-
                 this.setFiles(this.attr.files);
                 this.checkValid();
             })
