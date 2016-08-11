@@ -31,14 +31,16 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-             var findPropertyAcl = function(propertiesAcl, propName) {
-                var prop = _.filter(propertiesAcl, function (p) {
-                    return p.name === propName;
-                });
-                if (prop.length !== 1) {
-                    throw new Error('more than one property with the same name defined');
+            var findPropertyAcl = function(propertiesAcl, propName, propKey) {
+                var props = _.where(propertiesAcl, { name: propName, key: propKey });
+                if (props.length === 0) {
+                    console.error(propName, propKey)
+                    throw new Error('no ACL property defined');
+                } else if (props.length !== 1) {
+                    console.error(propName, propKey, props)
+                    throw new Error('more than one ACL property with the same name defined');
                 }
-                return prop[0];
+                return props[0];
             };
 
             config.template = 'propertyInfo/template';
@@ -48,7 +50,7 @@ define([
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
                 config.canAdd = config.canEdit = config.canDelete = false;
                 var allPropertyAcls = config.data.acl.propertyAcls;
-                var propertyAcl = findPropertyAcl(allPropertyAcls, config.property.name);
+                var propertyAcl = findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
 
                 if (config.isComment && visalloData.currentWorkspaceCommentable) {
                     config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
