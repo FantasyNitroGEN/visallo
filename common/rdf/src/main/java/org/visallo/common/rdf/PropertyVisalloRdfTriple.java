@@ -1,8 +1,11 @@
 package org.visallo.common.rdf;
 
 import com.google.common.base.Strings;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
+import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
@@ -10,6 +13,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.DirectoryEntity;
 
 import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
@@ -104,7 +108,19 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
         if (getValue() instanceof DateOnly) {
             return getValueRdfStringWithType(getValue(), VisalloRdfTriple.PROPERTY_TYPE_DATE);
         }
-        LOGGER.warn ("\"Unhandled value type " + getValue().getClass().getName() + " to convert to RDF string\"");
+        if (getValue() instanceof StreamingPropertyValue) {
+            StreamingPropertyValue value = (StreamingPropertyValue) getValue();
+            //do we want to limit this in some way?  Could possibly run the server out of memory
+            byte[] b = new byte[(int) value.getLength()];
+            try {
+                IOUtils.readFully(value.getInputStream(), b);
+                return getValueRdfStringWithType(new String(Base64.encodeBase64(b)), VisalloRdfTriple.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE_BASE64);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        LOGGER.warn("\"Unhandled value type " + getValue().getClass().getName() + " to convert to RDF string\"");
         return null;
     }
 

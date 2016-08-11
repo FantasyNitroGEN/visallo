@@ -27,7 +27,6 @@ public class RdfExportHelperTest {
 
     @Test
     public void testExportVertex() throws IOException {
-        String warning = "\"Unhandled value type org.vertexium.inmemory.InMemoryStreamingPropertyValue to convert to RDF string\"";
         StreamingPropertyValue raw = new StreamingPropertyValue(IOUtils.toInputStream("abc", "UTF-8"), byte[].class);
         raw.searchIndex(false);
         VertexBuilder v1Builder = graph.prepareVertex("v1", new Visibility(""));
@@ -47,7 +46,8 @@ public class RdfExportHelperTest {
                 "<v1> <http://visallo.org#conceptType> \"http://visallo.org#person\"\n" +
                 "<v1> <http://visallo.org#firstName:k1> \"Joe\"\n" +
                 "<v1> <http://visallo.org#firstName:k1@meta1> \"meta1Value\"\n" +
-                "# <v1> <http://visallo.org#raw> " + warning + "\n" +
+                "<v1> <http://visallo.org#raw> \"YWJj\"^^<http://visallo.org#streamingPropertyValueInlineBase64>\n" +
+                "<v1> <http://visallo.org#raw@meta1> \"meta1Value\"\n" +
                 "<v1> <http://visallo.org#visibilityJson> \"{\\\"source\\\":\\\"\\\"}\"\n";
         assertEquals(expected, rdf);
     }

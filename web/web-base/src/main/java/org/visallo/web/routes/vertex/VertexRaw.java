@@ -158,7 +158,7 @@ public class VertexRaw implements ParameterizedHandler {
     }
 
     private String getMimeType(Vertex artifactVertex) {
-        String mimeType = VisalloProperties.MIME_TYPE.getOnlyPropertyValue(artifactVertex);
+        String mimeType = VisalloProperties.MIME_TYPE.getFirstPropertyValue(artifactVertex);
         if (mimeType == null || mimeType.isEmpty()) {
             mimeType = "application/octet-stream";
         }

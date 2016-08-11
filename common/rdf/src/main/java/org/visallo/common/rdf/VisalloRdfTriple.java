@@ -1,5 +1,6 @@
 package org.visallo.common.rdf;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.vertexium.Authorizations;
 import org.vertexium.ElementType;
@@ -24,6 +25,7 @@ public abstract class VisalloRdfTriple {
     public static final String PROPERTY_TYPE_DIRECTORY_ENTITY = "http://visallo.org#directory/entity";
     public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE = "http://visallo.org#streamingPropertyValue";
     public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE = "http://visallo.org#streamingPropertyValueInline";
+    public static final String PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE_BASE64 = "http://visallo.org#streamingPropertyValueInlineBase64";
     public static final String PROPERTY_TYPE_DATE = "http://www.w3.org/2001/XMLSchema#date";
     public static final String PROPERTY_TYPE_DATE_TIME = "http://www.w3.org/2001/XMLSchema#dateTime";
     public static final String PROPERTY_TYPE_YEAR = "http://www.w3.org/2001/XMLSchema#gYear";
@@ -305,6 +307,13 @@ public abstract class VisalloRdfTriple {
                 spv.store(true);
                 spv.searchIndex(false);
                 return spv;
+            case PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE_BASE64:
+                byte[] bytes = propertyValuePart.getString().getBytes();
+                StreamingPropertyValue spv1 = new StreamingPropertyValue(new ByteArrayInputStream(Base64.decodeBase64(bytes)), byte[].class);
+                spv1.store(true);
+                spv1.searchIndex(false);
+                return spv1;
+
             default:
                 throw new VisalloException("Unhandled property type: " + propertyValuePart.getType().getUri() + " (value: " + propertyValuePart.getString() + ")");
         }
