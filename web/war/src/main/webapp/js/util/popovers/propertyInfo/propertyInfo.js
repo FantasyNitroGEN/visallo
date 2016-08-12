@@ -34,9 +34,14 @@ define([
             var findPropertyAcl = function(propertiesAcl, propName, propKey) {
                 var props = _.where(propertiesAcl, { name: propName, key: propKey });
                 if (props.length === 0) {
-                    console.error(propName, propKey)
-                    throw new Error('no ACL property defined');
-                } else if (props.length !== 1) {
+                    var propsByName = _.where(propertiesAcl, { name: propName });
+                    if (propsByName.length === 0) {
+                        console.error(propName, propKey)
+                        throw new Error('no ACL property defined');
+                    }
+                    props = propsByName;
+                }
+                if (props.length !== 1) {
                     console.error(propName, propKey, props)
                     throw new Error('more than one ACL property with the same name defined');
                 }
