@@ -150,7 +150,6 @@ public class FormulaEvaluator {
 
         loadJavaScript(scope);
 
-        scope.sealObject();
         return scope;
     }
 
