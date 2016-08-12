@@ -3,6 +3,7 @@
 ==================
 
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
+  * Allow ACLProvider to continue even if a concept or relationship cannot be found
 
 #v2.1.1
 ==================
