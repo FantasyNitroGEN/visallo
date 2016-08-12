@@ -120,6 +120,8 @@ public class FormulaEvaluator {
         if (scope == null) {
             scope = setupContext(getOntologyJson(), getConfigurationJson(userContext.locale), userContext.timeZone);
             scopes.put(mapKey, scope);
+        } else {
+            scope.put("ONTOLOGY_JSON", scope, Context.toObject(getOntologyJson(), scope));
         }
         return scope;
     }
