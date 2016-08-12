@@ -192,14 +192,26 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 VISIBILITY_STRING,
                 workspaceId
         );
-        Vertex workspaceVertex = getGraph().getVertex(
-                workspaceId,
-                includeHidden ? FetchHint.ALL_INCLUDING_HIDDEN : FetchHint.ALL,
-                authorizations
-        );
+
+        Vertex workspaceVertex;
+        try {
+            workspaceVertex = getGraph().getVertex(
+                    workspaceId,
+                    includeHidden ? FetchHint.ALL_INCLUDING_HIDDEN : FetchHint.ALL,
+                    authorizations
+            );
+        } catch (SecurityVertexiumException e) {
+            throw new VisalloAccessDeniedException(
+                    "user " + user.getUserId() + " does not have read access to workspace " + workspaceId,
+                    user,
+                    workspaceId
+            );
+        }
+
         if (workspaceVertex == null) {
             return null;
         }
+
         if (!hasReadPermissions(workspaceId, user)) {
             throw new VisalloAccessDeniedException(
                     "user " + user.getUserId() + " does not have read access to workspace " + workspaceId,
