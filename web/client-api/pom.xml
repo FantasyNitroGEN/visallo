@@ -15,7 +15,7 @@
     -->
     <artifactId>visallo-client-api</artifactId>
     <groupId>org.visallo</groupId>
-    <version>2.1.0-RC2-SNAPSHOT</version>
+    <version>2.1.0</version>
     <packaging>jar</packaging>
     <name>Visallo: Web: Client API</name>
 
