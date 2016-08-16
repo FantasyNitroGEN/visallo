@@ -190,7 +190,8 @@ define([
                         shouldDisable = _.isFunction(item.shouldDisable) ? item.shouldDisable(
                             currentSelection,
                             self.attr.vertexId,
-                            self.attr.element) : false;
+                            self.attr.element,
+                            vertex) : false;
 
                     return shouldDisable;
                 },

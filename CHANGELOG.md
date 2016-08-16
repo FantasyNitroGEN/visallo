@@ -1,6 +1,7 @@
 #v2.1.1
 ==================
 
+  * Pass vertex to shouldDisable handler for vertex context menu extensions
   * Improvement: Show only available properties to filter/sort on by match type in search panel and also for selected relationship type
   
 #v2.1
