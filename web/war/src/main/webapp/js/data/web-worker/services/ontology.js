@@ -68,6 +68,25 @@ define([
                     });
             }),
 
+            propertiesByDomainType: memoize(function(type) {
+                return getOntology()
+                    .then(function(ontology) {
+                        var items = (type === 'concept' || type === 'vertex') ? ontology.concepts : ontology.relationships;
+
+                        return _.chain(items)
+                            .pluck('properties')
+                            .compact()
+                            .flatten()
+                            .uniq()
+                            .map(function(propertyName) {
+                                return ontology.properties.find(function(property) {
+                                    return property.title === propertyName;
+                                });
+                            })
+                            .value();
+                    });
+            }),
+
             propertiesByRelationship: memoize(function(relationshipId) {
                 return api.ontology()
                     .then(function(ontology) {
