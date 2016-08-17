@@ -9,7 +9,7 @@ describeComponent('search/search', function() {
                 require(['util/requirejs/promise!util/service/ontologyPromise'], function(o) {
                     $(document).trigger('dataRequestCompleted', {
                         requestId: data.requestId,
-                        result: data.method in o ? o[data.method] : o,
+                        result: data.method in o ? o[data.method] : [],
                         success: true
                     });
                 })
