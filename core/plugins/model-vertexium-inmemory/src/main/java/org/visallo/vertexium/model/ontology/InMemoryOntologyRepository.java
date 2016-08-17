@@ -112,7 +112,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     protected void storeOntologyFile(InputStream inputStream, IRI documentIRI) {
         try {
             byte[] inFileData = IOUtils.toByteArray(inputStream);
-            fileCache.add(new OwlData(documentIRI.toString(), inFileData));
+            synchronized (fileCache) {
+                fileCache.add(new OwlData(documentIRI.toString(), inFileData));
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -120,12 +122,14 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public boolean isOntologyDefined(String iri) {
-        for (OwlData owlData : fileCache) {
-            if (owlData.iri.equals(iri)) {
-                return true;
+        synchronized (fileCache) {
+            for (OwlData owlData : fileCache) {
+                if (owlData.iri.equals(iri)) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
 
     @Override
@@ -141,7 +145,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             IRI excludedIRI
     ) throws Exception {
         List<OWLOntology> loadedOntologies = new ArrayList<>();
-        for (OwlData owlData : fileCache) {
+        List<OwlData> fileCacheCopy;
+        synchronized (fileCache) {
+            fileCacheCopy = ImmutableList.copyOf(fileCache);
+        }
+        for (OwlData owlData : fileCacheCopy) {
             IRI visalloBaseOntologyIRI = IRI.create(owlData.iri);
             if (excludedIRI != null && excludedIRI.equals(visalloBaseOntologyIRI)) {
                 continue;
