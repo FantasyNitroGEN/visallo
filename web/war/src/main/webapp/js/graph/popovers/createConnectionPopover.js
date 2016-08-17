@@ -25,7 +25,7 @@ define([
 
         this.defaultAttrs({
             connectButtonSelector: '.connect-dialog .btn-primary',
-            invertButtonSelector: '.connect-dialog .btn-link'
+            invertButtonSelector: '.connect-dialog button.invert-connection'
         });
 
         this.before('initialize', function(node, config) {
