@@ -7,6 +7,7 @@
 #v2.1.1
 ==================
   * Pass vertex to shouldDisable handler for vertex context menu extensions
+  * Improvement: Only show available properties that are sortable in search pane sort filter.
 
 #v2.1
 ==================
