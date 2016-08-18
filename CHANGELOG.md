@@ -2,7 +2,8 @@
 ==================
 
   * Improvement: Show only available properties to filter/sort on by match type in search panel and also for selected relationship type
-  
+  * Improvement: Only show available properties that are sortable in search pane sort filter.
+
 #v2.1
 ==================
 

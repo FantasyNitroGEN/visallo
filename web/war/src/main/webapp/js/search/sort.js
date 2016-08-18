@@ -51,7 +51,9 @@ define([
             if (!data || _.isEmpty(data.properties)) {
                 this.filteredProperties = null;
             } else {
-                this.filteredProperties = data.properties;
+                this.filteredProperties = _.reject(data.properties, function(p) {
+                    return p.sortable === false;
+                });
             }
 
             this.$node.find('.property-select').trigger(event.type, {
@@ -91,7 +93,7 @@ define([
             node.teardownComponent(FieldSelection);
             FieldSelection.attachTo(node, {
                 properties: _.reject(this.filteredProperties || ontologyPromise.properties.list, function(p) {
-                    return p.searchable === false;
+                    return p.searchable === false || p.sortable === false;
                 }),
                 onlySearchable: true,
                 placeholder: 'Add Sort...'
