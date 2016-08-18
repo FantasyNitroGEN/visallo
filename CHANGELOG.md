@@ -2,6 +2,8 @@
 #v2.2.0
 ==================
 
+  * Refactor web visibility validation to VisibilityValidator class
+
 #v2.1
 ==================
 
