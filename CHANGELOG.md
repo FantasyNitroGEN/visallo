@@ -4,6 +4,10 @@
 
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
 
+#v2.1.1
+==================
+  * Pass vertex to shouldDisable handler for vertex context menu extensions
+
 #v2.1
 ==================
 
