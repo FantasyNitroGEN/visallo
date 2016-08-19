@@ -1,6 +1,7 @@
 
 #v2.2.0
 ==================
+  * Include babel polyfill https://babeljs.io/docs/usage/polyfill/
 
 #v2.1
 ==================
