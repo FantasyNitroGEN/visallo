@@ -2,6 +2,8 @@
 #v2.2.0
 ==================
 
+  * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
+
 #v2.1
 ==================
 
