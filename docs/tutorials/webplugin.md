@@ -52,15 +52,15 @@ To start, we need to create the files that will be served by Visallo and then te
 
 ```javascript
 require([
-    'configuration/plugins/registry'
+    'public/v1/api'
 ], function (
-    registry
+    api
 ) {
     'use strict';
 
     //register the extension to the registry.  Visallo will query the registry to know what plugins to run.
     //This code will create a new menu in the context menu and, when clicked, will launch the 'doAction' event through the dom thanks to flight.
-    registry.registerExtension('org.visallo.vertex.menu', {
+    api.registry.registerExtension('org.visallo.vertex.menu', {
         label: 'Do Action',
         event: 'doAction'
     });
@@ -147,8 +147,9 @@ Unfortunately we aren't done here.  We need to write the web worker that will ac
 
 ```javascript
 define('data/web-worker/services/selectedvertex', [
-    'data/web-worker/util/ajax'
-], function(ajax) {
+    'public/api/workerApi'
+], function(workerApi) {
+    var ajax = workerApi.ajax;
     'use strict';
     return {
         selected: function(vertexId) {
@@ -164,25 +165,28 @@ Only one more thing to do, let the javascript use the web worker to make the cal
 
 ```javascript 
 require([
-    'configuration/plugins/registry'
+    'public/v1/api'
 ], function (
-    registry
+    api
 ) {
     'use strict';
 
-    registry.registerExtension('org.visallo.vertex.menu', {
+    api.registry.registerExtension('org.visallo.vertex.menu', {
         label: 'Do Action',
         event: 'doAction'
     });
 
     $(document).on('doAction', function(e, data) {
         //require the data object necessary to do the ajax request
-        require(['util/withDataRequest'], function(withDataRequest) {
+        api.connect().then(function(connectApi) {
+
             //do the ajax request.  Notice how 'selectedvertex' is defined at the top of the web worker and 'selected' is the method name in the web worker
-            withDataRequest.responseRequest('selectedvertex', 'selected', response.vertexId).then(function (response) {
-                //just console.log the result
-                console.log("got response back from the server!", response);
-            });
+            connectApi
+                .dataRequest('selectedvertex', 'selected', data.vertexId)
+                .then(function(response) {
+                    //just console.log the result
+                    console.log("got response back from the server!", response);
+                });
         });
     });
 });
