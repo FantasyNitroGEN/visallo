@@ -3,6 +3,7 @@
 ==================
 
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
+  * When providing Authorization or User parameters, provide null if not found
 
 #v2.1.1
 ==================
