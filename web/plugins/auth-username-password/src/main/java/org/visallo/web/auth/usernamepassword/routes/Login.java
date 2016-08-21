@@ -9,8 +9,8 @@ import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.UserNameAuthorizationContext;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.AuthenticationHandler;
 import org.visallo.web.CurrentUser;
+import org.visallo.web.util.RemoteAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,7 +35,7 @@ public class Login implements ParameterizedHandler {
         if (user != null && userRepository.isPasswordValid(user, password)) {
             UserNameAuthorizationContext authorizationContext = new UserNameAuthorizationContext(
                     username,
-                    AuthenticationHandler.getRemoteAddr(request)
+                    RemoteAddressUtil.getClientIpAddr(request)
             );
             userRepository.updateUser(user, authorizationContext);
             CurrentUser.set(request, user.getUserId(), user.getUsername());

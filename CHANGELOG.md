@@ -4,6 +4,7 @@
 
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
   * Allow ACLProvider to continue even if a concept or relationship cannot be found
+  * Web: Merge logic to get client IP address from CurrentUser and AuthenticationHander
 
 #v2.1.1
 ==================
