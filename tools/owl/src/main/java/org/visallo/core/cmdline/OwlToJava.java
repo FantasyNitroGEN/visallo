@@ -7,8 +7,8 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.EntitySearcher;
 import org.visallo.core.cmdline.converters.IRIConverter;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.OntologyRepositoryBase;
 import org.visallo.core.model.properties.types.*;
+import org.visallo.core.util.OWLOntologyUtil;
 
 import java.util.Map;
 import java.util.SortedMap;
@@ -89,25 +89,25 @@ public class OwlToJava extends CommandLineTool {
 
     private void exportObjectProperty(SortedMap<String, String> sortedValues, SortedMap<String, String> sortedIntents, OWLOntology o, OWLObjectProperty objectProperty) {
         String iri = objectProperty.getIRI().toString();
-        String label = OntologyRepositoryBase.getLabel(o, objectProperty);
+        String label = OWLOntologyUtil.getLabel(o, objectProperty);
         String javaConst = toJavaConst(label);
 
-        addIntents(sortedIntents, OntologyRepositoryBase.getIntents(o, objectProperty));
+        addIntents(sortedIntents, OWLOntologyUtil.getIntents(o, objectProperty));
 
         sortedValues.put(javaConst, String.format("    public static final String EDGE_LABEL_%s = \"%s\";", javaConst, iri));
     }
 
     private void exportClass(SortedMap<String, String> sortedValues, SortedMap<String, String> sortedIntents, OWLOntology o, OWLClass owlClass) {
         String iri = owlClass.getIRI().toString();
-        String label = OntologyRepositoryBase.getLabel(o, owlClass);
+        String label = OWLOntologyUtil.getLabel(o, owlClass);
         String javaConst = toJavaConst(label);
 
-        addIntents(sortedIntents, OntologyRepositoryBase.getIntents(o, owlClass));
+        addIntents(sortedIntents, OWLOntologyUtil.getIntents(o, owlClass));
 
         sortedValues.put(javaConst, String.format("    public static final String CONCEPT_TYPE_%s = \"%s\";", javaConst, iri));
     }
 
-    private void exportDataProperty(SortedMap<String, String> sortedValues, SortedMap<String, String> sortedIntents, IRI documentIri, OWLOntology o, OWLDataProperty dataProperty) {
+    void exportDataProperty(SortedMap<String, String> sortedValues, SortedMap<String, String> sortedIntents, IRI documentIri, OWLOntology o, OWLDataProperty dataProperty) {
         String iri = dataProperty.getIRI().toString();
         String iriPartAfterHash = getIriPartAfterHash(iri);
         String javaConstName = toJavaConst(iriPartAfterHash);
@@ -115,10 +115,10 @@ public class OwlToJava extends CommandLineTool {
             String lastIriPart = getLastIriPart(iri);
             javaConstName = toJavaConst(lastIriPart) + "_" + javaConstName;
         }
-        OWLDatatype range = (OWLDatatype) toList(EntitySearcher.getRanges(dataProperty, o)).get(0);
+        OWLDatatype range = getDataPropertyRange(o, dataProperty);
         String rangeIri = range.getIRI().toString();
 
-        addIntents(sortedIntents, OntologyRepositoryBase.getIntents(o, dataProperty));
+        addIntents(sortedIntents, OWLOntologyUtil.getIntents(o, dataProperty));
 
         String type;
         if ("http://www.w3.org/2001/XMLSchema#double".equals(rangeIri)
@@ -133,7 +133,12 @@ public class OwlToJava extends CommandLineTool {
         } else if ("http://visallo.org#geolocation".equals(rangeIri)) {
             type = GeoPointVisalloProperty.class.getSimpleName();
         } else if ("http://www.w3.org/2001/XMLSchema#string".equals(rangeIri)) {
-            type = StringVisalloProperty.class.getSimpleName();
+            String displayType = getDataPropertyDisplayType(o, dataProperty);
+            if ("longText".equalsIgnoreCase(displayType)) {
+                type = StreamingVisalloProperty.class.getSimpleName();
+            } else {
+                type = StringVisalloProperty.class.getSimpleName();
+            }
         } else if ("http://www.w3.org/2001/XMLSchema#boolean".equals(rangeIri)) {
             type = BooleanVisalloProperty.class.getSimpleName();
         } else if ("http://visallo.org#currency".equals(rangeIri)) {
@@ -142,11 +147,23 @@ public class OwlToJava extends CommandLineTool {
             type = DateVisalloProperty.class.getSimpleName();
         } else if ("http://www.w3.org/2001/XMLSchema#date".equals(rangeIri)) {
             type = DateVisalloProperty.class.getSimpleName();
+        } else if ("http://visallo.org#directory/entity".equals(rangeIri)) {
+            type = DirectoryEntityVisalloProperty.class.getSimpleName();
+        } else if ("http://www.w3.org/2001/XMLSchema#hexBinary".equals(rangeIri)) {
+            type = StreamingVisalloProperty.class.getSimpleName();
         } else {
             throw new VisalloException("Could not map range type " + rangeIri);
         }
 
         sortedValues.put(javaConstName, String.format("    public static final %s %s = new %s(\"%s\");", type, javaConstName, type, iri));
+    }
+
+    protected String getDataPropertyDisplayType(OWLOntology o, OWLDataProperty dataProperty) {
+        return OWLOntologyUtil.getDisplayType(o, dataProperty);
+    }
+
+    protected OWLDatatype getDataPropertyRange(OWLOntology o, OWLDataProperty dataProperty) {
+        return (OWLDatatype) toList(EntitySearcher.getRanges(dataProperty, o)).get(0);
     }
 
     private String getIriPartAfterHash(String iri) {
