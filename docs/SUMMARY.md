@@ -29,6 +29,7 @@
         * [Dashboard Layout](extension-points/front-end/dashboard/layout.md)
         * [Dashboard Report](extension-points/front-end/dashboard/report.md)
         * [Dashboard Toolbar](extension-points/front-end/dashboard/toolbar.md)
+        * [Detail Text](extension-points/front-end/detailText/index.md)
         * [Detail Toolbar](extension-points/front-end/detailToolbar/index.md)
         * [Graph Decorations](extension-points/front-end/graphDecorations/index.md)
         * [Graph Edge Class](extension-points/front-end/graphEdge/class.md)

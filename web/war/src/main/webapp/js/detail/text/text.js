@@ -408,7 +408,7 @@ define([
             }
 
             var extensions = _.filter(registry.extensionsForPoint('org.visallo.detail.text'), function(e) {
-                    return e.shouldReplaceTextSectionForVertex(self.model);
+                    return e.shouldReplaceTextSectionForVertex(self.model, propertyName, propertyKey);
                 }),
                 textPromise;
 
