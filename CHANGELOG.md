@@ -4,6 +4,7 @@
   * Pass vertex to shouldDisable handler for vertex context menu extensions
   * Improvement: Show only available properties to filter/sort on by match type in search panel and also for selected relationship type
   * Improvement: Only show available properties that are sortable in search pane sort filter.
+  * Fix: Preview edge arrow not inverting after inverting the edge creation dialogue
 
 #v2.1
 ==================
