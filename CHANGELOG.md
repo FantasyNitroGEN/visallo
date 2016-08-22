@@ -2,7 +2,6 @@
 #v2.2.0
 ==================
   * Include babel polyfill https://babeljs.io/docs/usage/polyfill/
-
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
   * Allow ACLProvider to continue even if a concept or relationship cannot be found
 
@@ -10,6 +9,7 @@
 ==================
   * Pass vertex to shouldDisable handler for vertex context menu extensions
   * Improvement: Only show available properties that are sortable in search pane sort filter.
+  * Fix: Preview edge arrow not inverting after inverting the edge creation dialogue
 
 #v2.1
 ==================
