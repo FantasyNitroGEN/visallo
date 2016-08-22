@@ -162,12 +162,13 @@ define([
                             return d[0];
                         })
                         .each(function(d) {
-                            const [sorted, toSort] = _.partition(d[1], ({ options }) => options && Number.isInteger(options.sortHint));
-                            d[1] = _.sortBy(toSort, 'name');
-                            sorted.forEach(ext => {
-                                const { sortHint } = ext.options;
-                                d[1].splice(sortHint, 0, ext);
-                            });
+                            d[1] = _.chain(d[1])
+                                .sortBy('name')
+                                .sortBy(function sortHint({ options }) {
+                                    return options && Number.isInteger(options.sortHint) ?
+                                        options.sortHint : Number.MAX_VALUE;
+                                })
+                                .value();
                         })
                         .flatten()
                         .value()
