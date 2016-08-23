@@ -26,11 +26,12 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.routes.SetPropertyBase;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
+import org.visallo.web.routes.SetPropertyBase;
+import org.visallo.web.util.VisibilityValidator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -56,15 +57,18 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             final WorkQueueRepository workQueueRepository,
             final GraphRepository graphRepository,
             final ACLProvider aclProvider,
-            final Configuration configuration) {
+            final Configuration configuration
+    ) {
         super(graph, visibilityTranslator);
         this.ontologyRepository = ontologyRepository;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
         this.aclProvider = aclProvider;
-        this.autoPublishComments = configuration.getBoolean(Configuration.COMMENTS_AUTO_PUBLISH,
-                Configuration.DEFAULT_COMMENTS_AUTO_PUBLISH);
+        this.autoPublishComments = configuration.getBoolean(
+                Configuration.COMMENTS_AUTO_PUBLISH,
+                Configuration.DEFAULT_COMMENTS_AUTO_PUBLISH
+        );
     }
 
     @Handle
@@ -89,7 +93,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             throw new VisalloException("Parameter: 'value' or 'value[]' is required in the request");
         }
 
-        checkVisibilityParameter(visibilitySource, authorizations, user, resourceBundle);
+        VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, visibilitySource, user, authorizations);
         checkRoutePath("vertex", propertyName, request);
 
         boolean isComment = isCommentProperty(propertyName);

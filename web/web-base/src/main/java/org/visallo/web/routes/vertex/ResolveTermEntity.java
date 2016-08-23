@@ -21,13 +21,13 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BadRequestException;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
+import org.visallo.web.util.VisibilityValidator;
 
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -86,11 +86,7 @@ public class ResolveTermEntity implements ParameterizedHandler {
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
 
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspaceId);
-        VisalloVisibility visibility = this.visibilityTranslator.toVisibility(visibilityJson);
-        if (!graph.isVisibilityValid(visibility.getVisibility(), authorizations)) {
-            LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
-        }
+        VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, visibilityJson, user, authorizations);
 
         String id = resolvedVertexId == null ? graph.getIdGenerator().nextId() : resolvedVertexId;
 

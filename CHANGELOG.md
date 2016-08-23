@@ -11,6 +11,8 @@
   * Improvement: Only show available properties that are sortable in search pane sort filter.
   * Fix: Preview edge arrow not inverting after inverting the edge creation dialogue
 
+  * Refactor web visibility validation to VisibilityValidator class
+
 #v2.1
 ==================
 

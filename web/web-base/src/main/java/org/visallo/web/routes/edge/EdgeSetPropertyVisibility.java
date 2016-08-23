@@ -15,10 +15,10 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BadRequestException;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
 
@@ -62,13 +62,7 @@ public class EdgeSetPropertyVisibility implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Could not find edge: " + graphEdgeId, graphEdgeId);
         }
 
-        if (!graph.isVisibilityValid(
-                visibilityTranslator.toVisibility(newVisibilitySource).getVisibility(),
-                authorizations
-        )) {
-            LOGGER.warn("%s is not a valid visibility for %s user", newVisibilitySource, user.getDisplayName());
-            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
-        }
+        VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, newVisibilitySource, user, authorizations);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
         workspaceRepository.updateEntityOnWorkspace(workspaceId, edge.getVertexId(Direction.IN), null, null, user);

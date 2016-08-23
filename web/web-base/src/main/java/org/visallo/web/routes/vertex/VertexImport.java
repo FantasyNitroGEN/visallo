@@ -15,6 +15,7 @@ import org.json.JSONException;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.FileImport;
 import org.visallo.core.model.workQueue.Priority;
@@ -172,10 +173,8 @@ public class VertexImport implements ParameterizedHandler {
                 addPropertiesToFilesList(files, propertiesIndex.getAndIncrement(), properties);
             } else if (part.getName().equals("visibilitySource")) {
                 String visibilitySource = IOUtils.toString(part.getInputStream(), "UTF8");
-                if (!graph.isVisibilityValid(
-                        visibilityTranslator.toVisibility(visibilitySource).getVisibility(),
-                        authorizations
-                )) {
+                Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
+                if (!graph.isVisibilityValid(visibility, authorizations)) {
                     invalidVisibilities.add(visibilitySource);
                 }
                 addVisibilityToFilesList(files, visibilitySourceIndex.getAndIncrement(), visibilitySource);
