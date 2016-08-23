@@ -10,7 +10,7 @@ The console will show a warning if multiple extensions are found for a given ver
 
 * `shouldReplaceTextSectionForVertex` _(required)_ `[Function]`
 
-    Set a function to determine the if this extension should replace a particular text section for a vertex. Return `true` to replace the text section content with the component referenced by `componentPath`.
+    Set a function to determine if this extension should replace a particular text section for a vertex. Return `true` to replace the text section content with the component referenced by `componentPath`.
     
     Called with 3 arguments:
 
