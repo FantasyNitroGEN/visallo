@@ -229,12 +229,21 @@ define([
             this.dataRequest('config', 'properties')
                 .done(function(properties) {
                     var name = dashboardPane.data(DATA_MENUBAR_NAME),
-                        defaultKey = 'menubar.default.selected';
+                        defaultKey = 'menubar.default.selected',
+                        urlSpecifiedTools = self.attr.openMenubarTools;
 
+                    if (urlSpecifiedTools) {
+                        urlSpecifiedTools.forEach(function(name) {
+                            self.trigger(document, 'menubarToggleDisplay', { name: name });
+                        })
+                    }
+                    
                     if (properties[defaultKey]) {
                         name = properties[defaultKey];
                     }
-                    self.trigger(document, 'menubarToggleDisplay', { name: name });
+                    if (!urlSpecifiedTools) {
+                        self.trigger(document, 'menubarToggleDisplay', { name: name });
+                    }
 
                     if (self.attr.animateFromLogin) {
                         $(document.body).on(TRANSITION_END, function(e) {

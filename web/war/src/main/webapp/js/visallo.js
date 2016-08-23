@@ -298,6 +298,9 @@ function(jQuery,
                                         if (toOpen && toOpen.type === 'ADMIN' && toOpen.section && toOpen.name) {
                                             appOptions.openAdminTool = _.pick(toOpen, 'section', 'name');
                                         }
+                                        if (toOpen && toOpen.type === 'TOOLS' && !_.isEmpty(toOpen.tools)) {
+                                            appOptions.openMenubarTools = toOpen.tools;
+                                        }
                                         if (animate) {
                                             $('#login .authentication button.loading').removeClass('loading');
                                             appOptions.animateFromLogin = true;
