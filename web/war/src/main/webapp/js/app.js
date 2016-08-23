@@ -237,7 +237,6 @@ define([
                             self.trigger(document, 'menubarToggleDisplay', { name: name });
                         })
                     }
-                    
                     if (properties[defaultKey]) {
                         name = properties[defaultKey];
                     }
