@@ -16,6 +16,9 @@ module.exports = function(config) {
             // list of files / patterns to load in the browser
             files: [
 
+                // Babel polyfill
+                'libs/babel-polyfill/dist/polyfill.min.js',
+
                 // Source
                 {pattern: 'js/**/*.js', included: false},
 
@@ -99,6 +102,7 @@ module.exports = function(config) {
             singleRun: false,
 
             preprocessors: {
+                'js/**/*.js': ['babel'],
                 'js/**/*.jsx': ['babel'],
                 'test/**/*.jsx': ['babel']
             },
