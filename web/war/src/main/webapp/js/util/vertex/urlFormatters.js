@@ -6,6 +6,7 @@ define([], function() {
             FULLSCREEN: 'v',
             ADD: 'add',
             ADMIN: 'admin',
+            REDIRECT: 'redirect',
             TOOLS: 'tools'
         },
         V = {
@@ -35,7 +36,7 @@ define([], function() {
 
             parametersInUrl: function(url) {
                 var type = _.invert(URL_TYPES),
-                    match = url.match(/#(v|add|admin|tools)=(.+?)(?:&w=(.*))?$/);
+                    match = url.match(/#(v|add|admin|redirect|tools)=(.+?)(?:&w=(.*))?$/);
 
                 if (match && match.length === 4) {
                     if (match[1] === URL_TYPES.ADMIN) {
@@ -50,6 +51,15 @@ define([], function() {
                         }, function(v) {
                             return decodeURIComponent(v).replace(/\+/g, ' ');
                         }), { type: type[match[1]] });
+                    }
+
+                    if (match[1] === URL_TYPES.REDIRECT) {
+                        var tools = _.unique(match[2].trim().split(','));
+
+                        return {
+                            type: type[match[1]],
+                            redirectUrl: match[2]
+                        }
                     }
 
                     if (match[1] === URL_TYPES.TOOLS) {
