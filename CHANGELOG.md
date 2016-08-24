@@ -9,6 +9,7 @@
   * Fix: Preview edge arrow not inverting after inverting the edge creation dialogue
   * Fix: Only first-listed activty actions plugin getting required.
   * Fix: Find Path activity actions not updating correctly when multiple present between same source and destination vertices.
+  * Fix: admin pane did not update authorizations when switching between users
   
 #v2.1
 ==================
