@@ -5,14 +5,15 @@
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
   * Allow ACLProvider to continue even if a concept or relationship cannot be found
   * Allow admin extensions to request a sort within a section
+  * Refactor web visibility validation to VisibilityValidator class
 
 #v2.1.1
 ==================
   * Pass vertex to shouldDisable handler for vertex context menu extensions
   * Improvement: Only show available properties that are sortable in search pane sort filter.
   * Fix: Preview edge arrow not inverting after inverting the edge creation dialogue
-
-  * Refactor web visibility validation to VisibilityValidator class
+  * Fix: Only first-listed activty actions plugin getting required.
+  * Fix: Find Path activity actions not updating correctly when multiple present between same source and destination vertices.
 
 #v2.1
 ==================
