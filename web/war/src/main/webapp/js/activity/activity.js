@@ -323,7 +323,11 @@ define([
                 .compact()
                 .value();
 
-            return Promise.require.apply(Promise, uniqueTypes)
+            var promises = _.map(uniqueTypes, function(type) {
+                return Promise.require(type);
+            });
+
+            return Promise.all(promises)
                 .then(function(deps) {
                     self.updateWithDependencies.apply(self, [data, uniqueTypes].concat(deps))
                 })
