@@ -16,7 +16,7 @@ define([
             { value: 'term', name: 'Counts' },
             { value: 'histogram', name: 'Histogram', filter: function(properties) {
                 return _.filter(properties, function(p) {
-                    return p.dataType.toLowerCase() === 'date';
+                    return p.dataType.toLowerCase() !== 'string';
                 });
             }},
             { value: 'geohash', name: 'Geo-coordinate Cluster', filter: function(properties) {
@@ -400,7 +400,6 @@ define([
                         section.find('.interval_value').val(Math.round(interval / intervalUnit.value));
                         section.find('.interval_units').val(intervalUnit.value);
                     }
-                    placeholder = i18n('dashboard.search.aggregation.histogram.property.placeholder');
                     break;
 
                 case 'term':
