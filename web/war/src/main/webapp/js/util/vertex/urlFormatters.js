@@ -54,8 +54,6 @@ define([], function() {
                     }
 
                     if (match[1] === URL_TYPES.REDIRECT) {
-                        var tools = _.unique(match[2].trim().split(','));
-
                         return {
                             type: type[match[1]],
                             redirectUrl: match[2]
