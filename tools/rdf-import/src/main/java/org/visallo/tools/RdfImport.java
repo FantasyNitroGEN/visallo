@@ -41,8 +41,11 @@ public class RdfImport extends CommandLineTool {
     @Parameter(names = {"--timezone"}, arity = 1, description = "The Java timezone id")
     private String timeZoneId = "GMT";
 
-    @Parameter(names = {"--failOnError"}, arity = 1, description = "If true, import process fails on first error")
+    @Parameter(names = {"--failOnFirstError"}, description = "Abort import if an error occurs")
     private boolean failOnFirstError = false;
+
+    @Parameter(names = {"--disableWorkQueues"}, description = "Disable pushing elements on the broadcast and/or GPW queues")
+    private boolean disableWorkQueues = false;
 
     public static void main(String[] args) throws Exception {
         CommandLineTool.main(new RdfImport(), args);
@@ -51,6 +54,7 @@ public class RdfImport extends CommandLineTool {
     @Override
     protected int run() throws Exception {
         rdfImportHelper.setFailOnFirstError(failOnFirstError);
+        rdfImportHelper.setDisableWorkQueues(disableWorkQueues);
         TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
         importInFiles(inFiles, timeZone);
         importInDirs(inDirs, pattern, timeZone);

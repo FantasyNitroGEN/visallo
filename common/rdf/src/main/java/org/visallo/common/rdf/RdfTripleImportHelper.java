@@ -30,12 +30,16 @@ public class RdfTripleImportHelper {
     private WorkQueueRepository workQueueRepository;
     private final MetricsManager metricsManager;
     private static final Map<String, Visibility> visibilityCache = new HashMap<>();
+    private boolean failOnFirstError = false;
+    private boolean disableWorkQueues;
 
     public void setFailOnFirstError(boolean failOnFirstError) {
         this.failOnFirstError = failOnFirstError;
     }
 
-    private boolean failOnFirstError = false;
+    public void setDisableWorkQueues(boolean disableWorkQueues) {
+        this.disableWorkQueues = disableWorkQueues;
+    }
 
     @Inject
     public RdfTripleImportHelper(
@@ -133,8 +137,11 @@ public class RdfTripleImportHelper {
         }
 
         graph.flush();
-        LOGGER.info("pushing %d elements from RDF import on to work queue", elements.size());
-        workQueueRepository.pushElements(elements, priority);
+
+        if (!disableWorkQueues) {
+            LOGGER.info("pushing %d elements from RDF import on to work queue", elements.size());
+            workQueueRepository.pushElements(elements, priority);
+        }
 
         long endTime = System.currentTimeMillis();
         LOGGER.debug("RDF %s imported in %dms", sourceFileName, endTime - startTime);
