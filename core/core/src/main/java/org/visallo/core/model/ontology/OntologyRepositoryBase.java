@@ -597,10 +597,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             List<Concept> domainConcepts = new ArrayList<>();
             for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(dataTypeProperty, o)) {
                 OWLClass domainClass = domainClassExpr.asOWLClass();
-                String domainClassUri = domainClass.getIRI().toString();
-                Concept domainConcept = getConceptByIRI(domainClassUri);
+                String domainClassIri = domainClass.getIRI().toString();
+                Concept domainConcept = getConceptByIRI(domainClassIri);
                 if (domainConcept == null) {
-                    LOGGER.error("Could not find class with uri: %s", domainClassUri);
+                    LOGGER.error("Could not find class with IRI \"%s\" for data type property \"%s\"", domainClassIri, dataTypeProperty.getIRI());
                 } else {
                     LOGGER.info("Adding data property " + propertyIRI + " to class " + domainConcept.getIRI());
                     domainConcepts.add(domainConcept);
@@ -609,10 +609,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
             List<Relationship> domainRelationships = new ArrayList<>();
             for (OWLAnnotation domainAnnotation : getObjectPropertyDomains(o, dataTypeProperty)) {
-                String domainClassUri = removeExtraQuotes(domainAnnotation.getValue().toString());
-                Relationship domainRelationship = getRelationshipByIRI(domainClassUri);
+                String domainClassIri = removeExtraQuotes(domainAnnotation.getValue().toString());
+                Relationship domainRelationship = getRelationshipByIRI(domainClassIri);
                 if (domainRelationship == null) {
-                    LOGGER.error("Could not find relationship with uri: %s", domainClassUri);
+                    LOGGER.error("Could not find relationship with IRI \"%s\" for data type property \"%s\"", domainClassIri, dataTypeProperty.getIRI());
                 } else {
                     LOGGER.info("Adding data property " + propertyIRI + " to relationship " + domainRelationship.getIRI());
                     domainRelationships.add(domainRelationship);
@@ -833,10 +833,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         List<Concept> ranges = new ArrayList<>();
         for (OWLClassExpression rangeClassExpr : EntitySearcher.getRanges(objectProperty, o)) {
             OWLClass rangeClass = rangeClassExpr.asOWLClass();
-            String rangeClassUri = rangeClass.getIRI().toString();
-            Concept ontologyClass = getConceptByIRI(rangeClassUri);
+            String rangeClassIri = rangeClass.getIRI().toString();
+            Concept ontologyClass = getConceptByIRI(rangeClassIri);
             if (ontologyClass == null) {
-                LOGGER.error("Could not find class with uri: %s", rangeClassUri);
+                LOGGER.error("Could not find class with IRI \"%s\" for object property \"%s\"", rangeClassIri, objectProperty.getIRI());
             } else {
                 ranges.add(ontologyClass);
             }
@@ -848,10 +848,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         List<Concept> domains = new ArrayList<>();
         for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(objectProperty, o)) {
             OWLClass rangeClass = domainClassExpr.asOWLClass();
-            String rangeClassUri = rangeClass.getIRI().toString();
-            Concept ontologyClass = getConceptByIRI(rangeClassUri);
+            String rangeClassIri = rangeClass.getIRI().toString();
+            Concept ontologyClass = getConceptByIRI(rangeClassIri);
             if (ontologyClass == null) {
-                LOGGER.error("Could not find class with uri: %s", rangeClassUri);
+                LOGGER.error("Could not find class with IRI \"%s\" for object property \"%s\"", rangeClassIri, objectProperty.getIRI());
             } else {
                 domains.add(ontologyClass);
             }
@@ -1457,26 +1457,17 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @SuppressWarnings("unchecked")
     public ClientApiOntology getClientApiObject() {
         Object[] results = ExecutorServiceUtil.runAllAndWait(
-                new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        Iterable<Concept> concepts = getConceptsWithProperties();
-                        return Concept.toClientApiConcepts(concepts);
-                    }
+                () -> {
+                    Iterable<Concept> concepts = getConceptsWithProperties();
+                    return Concept.toClientApiConcepts(concepts);
                 },
-                new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        Iterable<OntologyProperty> properties = getProperties();
-                        return OntologyProperty.toClientApiProperties(properties);
-                    }
+                () -> {
+                    Iterable<OntologyProperty> properties = getProperties();
+                    return OntologyProperty.toClientApiProperties(properties);
                 },
-                new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        Iterable<Relationship> relationships = getRelationships();
-                        return Relationship.toClientApiRelationships(relationships);
-                    }
+                () -> {
+                    Iterable<Relationship> relationships = getRelationships();
+                    return Relationship.toClientApiRelationships(relationships);
                 }
         );
 
