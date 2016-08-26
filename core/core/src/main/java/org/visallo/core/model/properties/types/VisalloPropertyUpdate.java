@@ -27,4 +27,40 @@ public class VisalloPropertyUpdate {
     public String getPropertyName() {
         return getProperty().getPropertyName();
     }
+
+    @Override
+    public String toString() {
+        return "VisalloPropertyUpdate{" +
+                "property=" + property.getPropertyName() +
+                ", propertyKey='" + propertyKey + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        VisalloPropertyUpdate that = (VisalloPropertyUpdate) o;
+
+        if (!property.equals(that.property)) {
+            return false;
+        }
+        if (!propertyKey.equals(that.propertyKey)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = property.hashCode();
+        result = 31 * result + propertyKey.hashCode();
+        return result;
+    }
 }

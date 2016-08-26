@@ -8,6 +8,8 @@ import org.visallo.web.clientapi.model.UserType;
 import java.util.Date;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * This class is used to store the userId only in a web session. If we were to store the entire
  * user object in the session, any changes to the user would not be reflected unless the user object
@@ -20,6 +22,8 @@ public class ProxyUser implements User {
     private User proxiedUser;
 
     public ProxyUser(String userId, UserRepository userRepository) {
+        checkNotNull(userId, "userId cannot be null");
+        checkNotNull(userRepository, "userRepository cannot be null");
         this.userId = userId;
         this.userRepository = userRepository;
     }

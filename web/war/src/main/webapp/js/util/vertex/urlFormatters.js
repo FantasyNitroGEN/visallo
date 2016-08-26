@@ -5,7 +5,8 @@ define([], function() {
     var URL_TYPES = {
             FULLSCREEN: 'v',
             ADD: 'add',
-            ADMIN: 'admin'
+            ADMIN: 'admin',
+            REDIRECT: 'redirect'
         },
         V = {
             url: function(vertices, workspaceId) {
@@ -34,7 +35,7 @@ define([], function() {
 
             parametersInUrl: function(url) {
                 var type = _.invert(URL_TYPES),
-                    match = url.match(/#(v|add|admin)=(.+?)(?:&w=(.*))?$/);
+                    match = url.match(/#(v|add|admin|redirect)=(.+?)(?:&w=(.*))?$/);
 
                 if (match && match.length === 4) {
                     if (match[1] === URL_TYPES.ADMIN) {
@@ -49,6 +50,13 @@ define([], function() {
                         }, function(v) {
                             return decodeURIComponent(v).replace(/\+/g, ' ');
                         }), { type: type[match[1]] });
+                    }
+
+                    if (match[1] === URL_TYPES.REDIRECT) {
+                        return {
+                            type: type[match[1]],
+                            redirectUrl: match[2]
+                        }
                     }
 
                     var objects = _.map(match[2].split(','), function(v) {

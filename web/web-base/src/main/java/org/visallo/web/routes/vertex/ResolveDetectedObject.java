@@ -22,12 +22,12 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BadRequestException;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
+import org.visallo.web.util.VisibilityValidator;
 
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -91,10 +91,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
 
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
 
-        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
-            LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
-        }
+        VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, visibilitySource, user, authorizations);
 
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspaceId);
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
@@ -148,7 +145,8 @@ public class ResolveDetectedObject implements ParameterizedHandler {
                 "user",
                 edge.getId(),
                 resolvedVertex.getId(),
-                originalPropertyKey);
+                originalPropertyKey
+        );
         String propertyKey = artifactDetectedObject.getMultivalueKey(MULTI_VALUE_KEY_PREFIX);
         VisalloProperties.DETECTED_OBJECT.addPropertyValue(artifactVertex, propertyKey, artifactDetectedObject, visalloVisibility.getVisibility(), authorizations);
 

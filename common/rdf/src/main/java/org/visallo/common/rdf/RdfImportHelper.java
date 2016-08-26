@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.hp.hpl.jena.shared.JenaException;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -19,12 +18,16 @@ public class RdfImportHelper {
     private final Graph graph;
     private final RdfXmlImportHelper rdfXmlImportHelper;
     private final RdfTripleImportHelper rdfTripleImportHelper;
+    private boolean failOnFirstError = false;
+    private boolean disableWorkQueues = false;
 
     public void setFailOnFirstError(boolean failOnFirstError) {
         this.failOnFirstError = failOnFirstError;
     }
 
-    private boolean failOnFirstError = false;
+    public void setDisableWorkQueues(boolean disableWorkQueues) {
+        this.disableWorkQueues = disableWorkQueues;
+    }
 
     @Inject
     public RdfImportHelper(
@@ -49,6 +52,8 @@ public class RdfImportHelper {
 
         LOGGER.info("Importing file: %s", inputFile.getAbsolutePath());
         rdfTripleImportHelper.setFailOnFirstError(failOnFirstError);
+        rdfTripleImportHelper.setDisableWorkQueues(disableWorkQueues);
+        rdfXmlImportHelper.setDisableWorkQueues(disableWorkQueues);
         if (inputFile.getName().endsWith(".nt")) {
             importFileRdfTriple(inputFile, timeZone, priority, visibilitySource, user, authorizations);
         } else {

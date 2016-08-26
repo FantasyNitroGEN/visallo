@@ -5,7 +5,10 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.Graph;
+import org.vertexium.Vertex;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -15,11 +18,11 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JsonSerializer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BadRequestException;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
+import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
 
@@ -61,10 +64,7 @@ public class EdgeCreate implements ParameterizedHandler {
         Vertex inVertex = graph.getVertex(inVertexId, authorizations);
         Vertex outVertex = graph.getVertex(outVertexId, authorizations);
 
-        if (!graph.isVisibilityValid(visibilityTranslator.toVisibility(visibilitySource).getVisibility(), authorizations)) {
-            LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
-        }
+        VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, visibilitySource, user, authorizations);
 
         Edge edge = graphRepository.addEdge(
                 edgeId,
