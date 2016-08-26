@@ -3,6 +3,7 @@
 ==================
   * Include babel polyfill https://babeljs.io/docs/usage/polyfill/
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
+  * When providing Authorization or User parameters, provide null if not found
   * Provide a way to redirect the user after authenticating
   * Allow ACLProvider to continue even if a concept or relationship cannot be found
   * Allow admin extensions to request a sort within a section
