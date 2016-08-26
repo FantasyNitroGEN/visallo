@@ -28,7 +28,6 @@ define([
         this.after('initialize', function() {
             var self = this;
 
-            this.updatePropertiesSource();
             this.on('filterProperties', this.onFilterProperties);
 
             if (this.attr.selectedProperty) {
@@ -76,66 +75,36 @@ define([
                         minLength: 0,
                         items: this.attr.maxItems,
                         source: function() {
-                            return _.chain(self.propertiesForSource)
-                                    .filter(function(p) {
-                                        var visible = p.userVisible !== false;
+                            var sourceProperties = self.filterSourceProperties(self.propertiesForSource);
 
-                                        if (self.attr.showAdminProperties) {
-                                            return true;
-                                        }
+                            return _.chain(sourceProperties)
+                                .map(mapProperty)
+                                .sortBy(sortByPropertyGroupAndDisplayName)
+                                .value();
 
-                                        if (self.attr.unsupportedProperties &&
-                                            ~self.attr.unsupportedProperties.indexOf(p.title)) {
-                                            return false;
-                                        }
+                            function mapProperty(p) {
+                                var name = displayName(p),
+                                    duplicates = self.groupedByDisplay[name].length > 1;
 
-                                        if (~HIDE_PROPERTIES.indexOf(p.title)) {
-                                            return false;
-                                        }
+                                self.queryPropertyMap[p.title] = p;
 
-                                        if (self.attr.onlySearchable !== true &&
-                                            self.attr.rollupCompound !== false &&
-                                            ~self.dependentPropertyIris.indexOf(p.title)) {
-                                            return false;
-                                        }
+                                return JSON.stringify({
+                                    displayName: name,
+                                    title: p.title,
+                                    propertyGroup: p.propertyGroup,
+                                    duplicates: duplicates
+                                });
+                            }
 
-                                        if (self.attr.rollupCompound === false &&
-                                           p.dependentPropertyIris) {
-                                            return false;
-                                        }
+                            function sortByPropertyGroupAndDisplayName(itemJson) {
+                                var item = JSON.parse(itemJson),
+                                    lower = item.displayName.toLowerCase();
 
-                                        if (self.attr.onlySearchable) {
-                                            if (p.title === 'http://visallo.org#text') {
-                                                return true;
-                                            }
-                                            return visible && p.searchable !== false;
-                                        }
-
-                                        return visible;
-                                    })
-                                    .map(function(p) {
-                                        var name = displayName(p),
-                                            duplicates = self.groupedByDisplay[name].length > 1;
-
-                                        self.queryPropertyMap[p.title] = p;
-
-                                        return JSON.stringify({
-                                            displayName: name,
-                                            title: p.title,
-                                            propertyGroup: p.propertyGroup,
-                                            duplicates: duplicates
-                                        });
-                                    })
-                                    .sortBy(function(itemJson) {
-                                        var item = JSON.parse(itemJson),
-                                            lower = item.displayName.toLowerCase();
-
-                                        if (item.propertyGroup) {
-                                            return '1' + item.propertyGroup + lower;
-                                        }
-                                        return '0' + lower;
-                                    })
-                                    .value()
+                                if (item.propertyGroup) {
+                                    return '1' + item.propertyGroup + lower;
+                                }
+                                return '0' + lower;
+                            }
                         },
                         matcher: function(itemJson) {
                             if (this.query === ' ') return -1;
@@ -237,6 +206,8 @@ define([
                     prev.addClass('active')
                 };
             }
+
+            this.updatePropertiesSource();
         });
 
         this.onFilterProperties = function(event, data) {
@@ -265,7 +236,55 @@ define([
                 .compact()
                 .flatten()
                 .value();
-        }
+
+            var hasProperties = this.filterSourceProperties(this.propertiesForSource).length > 0;
+            var placeholderMessage = hasProperties ? 'field.selection.placeholder' : 'field.selection.no_valid';
+
+            this.select('findPropertySelection')
+                .attr('placeholder', i18n(placeholderMessage))
+                .attr('disabled', !hasProperties);
+        };
+
+        this.filterSourceProperties = function(properties) {
+            var self = this;
+
+            return properties.filter(function(p) {
+                    var visible = p.userVisible !== false;
+
+                    if (self.attr.showAdminProperties) {
+                        return true;
+                    }
+
+                    if (self.attr.unsupportedProperties &&
+                        ~self.attr.unsupportedProperties.indexOf(p.title)) {
+                        return false;
+                    }
+
+                    if (~HIDE_PROPERTIES.indexOf(p.title)) {
+                        return false;
+                    }
+
+                    if (self.attr.onlySearchable !== true &&
+                        self.attr.rollupCompound !== false &&
+                        ~self.dependentPropertyIris.indexOf(p.title)) {
+                        return false;
+                    }
+
+                    if (self.attr.rollupCompound === false &&
+                       p.dependentPropertyIris) {
+                        return false;
+                    }
+
+                    if (self.attr.onlySearchable) {
+                        if (p.title === 'http://visallo.org#text') {
+                            return true;
+                        }
+                        return visible && p.searchable !== false;
+                    }
+
+                    return visible;
+                });
+        };
     }
 
     function displayName(p) {

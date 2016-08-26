@@ -642,7 +642,7 @@ define([
             var self = this,
                 $li = $('<li>').data('filterId', this.filterId++),
                 attributes = filter ? {
-                    property: this.propertiesByDomainType.find(function(property) {
+                    property: this.propertiesByDomainType[this.matchType].find(function(property) {
                         return property.title === filter.propertyId;
                     }),
                     predicate: filter.predicate,
