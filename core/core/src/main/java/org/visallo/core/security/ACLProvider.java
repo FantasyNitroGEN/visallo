@@ -11,6 +11,8 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
 
 import java.util.Collection;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class ACLProvider {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ACLProvider.class);
     protected final Graph graph;
     protected final UserRepository userRepository;
     protected final OntologyRepository ontologyRepository;
@@ -88,7 +91,10 @@ public abstract class ACLProvider {
             String iri = VisalloProperties.CONCEPT_TYPE.getPropertyValue(element);
             while (iri != null) {
                 Concept concept = ontologyRepository.getConceptByIRI(iri);
-                checkNotNull(concept, "Could not find concept with iri: " + iri);
+                if (concept == null) {
+                    LOGGER.warn("Could not find concept: %s", iri);
+                    break;
+                }
                 populatePropertyAcls(concept, element, user, propertyAcls);
                 iri = concept.getParentConceptIRI();
             }
@@ -96,7 +102,10 @@ public abstract class ACLProvider {
             String iri = ((Edge) element).getLabel();
             while (iri != null) {
                 Relationship relationship = ontologyRepository.getRelationshipByIRI(iri);
-                checkNotNull(relationship, "Could not find relationship with iri: " + iri);
+                if (relationship == null) {
+                    LOGGER.warn("Could not find relationship: %s", iri);
+                    break;
+                }
                 populatePropertyAcls(relationship, element, user, propertyAcls);
                 iri = relationship.getParentIRI();
             }
@@ -243,9 +252,8 @@ public abstract class ACLProvider {
     }
 
     private boolean internalCanDeleteProperty(Element element, String propertyKey, String propertyName, User user) {
-        boolean canDelete =
-                hasEditOrCommentPrivilege(propertyName, user) &&
-                canDeleteProperty(element, propertyKey, propertyName, user);
+        boolean canDelete = hasEditOrCommentPrivilege(propertyName, user)
+                && canDeleteProperty(element, propertyKey, propertyName, user);
         if (canDelete && isComment(propertyName)) {
             canDelete = hasPrivilege(user, Privilege.COMMENT_DELETE_ANY) ||
                     (hasPrivilege(user, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
@@ -254,9 +262,8 @@ public abstract class ACLProvider {
     }
 
     private boolean internalCanUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
-        boolean canUpdate =
-                hasEditOrCommentPrivilege(propertyName, user) &&
-                canUpdateProperty(element, propertyKey, propertyName, user);
+        boolean canUpdate = hasEditOrCommentPrivilege(propertyName, user)
+                && canUpdateProperty(element, propertyKey, propertyName, user);
         if (canUpdate && isComment(propertyName)) {
             canUpdate = hasPrivilege(user, Privilege.COMMENT_EDIT_ANY) ||
                     (hasPrivilege(user, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
@@ -265,9 +272,8 @@ public abstract class ACLProvider {
     }
 
     private boolean internalCanAddProperty(Element element, String propertyKey, String propertyName, User user) {
-        boolean canAdd =
-                hasEditOrCommentPrivilege(propertyName, user) &&
-                canAddProperty(element, propertyKey, propertyName, user);
+        boolean canAdd = hasEditOrCommentPrivilege(propertyName, user)
+                && canAddProperty(element, propertyKey, propertyName, user);
         if (canAdd && isComment(propertyName)) {
             canAdd = hasPrivilege(user, Privilege.COMMENT);
         }

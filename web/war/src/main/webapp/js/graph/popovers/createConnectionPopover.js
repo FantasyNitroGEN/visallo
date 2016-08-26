@@ -150,6 +150,8 @@ define([
                     self.onViewportChanges();
                 }
             });
+
+            this.trigger(document, 'invertVertexConnection');
         };
 
         this.onCreateConnection = function(e) {

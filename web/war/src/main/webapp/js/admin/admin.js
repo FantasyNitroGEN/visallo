@@ -162,7 +162,13 @@ define([
                             return d[0];
                         })
                         .each(function(d) {
-                            d[1] = _.sortBy(d[1], 'name');
+                            d[1] = _.chain(d[1])
+                                .sortBy('name')
+                                .sortBy(function sortHint({ options }) {
+                                    return options && Number.isInteger(options.sortHint) ?
+                                        options.sortHint : Number.MAX_VALUE;
+                                })
+                                .value();
                         })
                         .flatten()
                         .value()

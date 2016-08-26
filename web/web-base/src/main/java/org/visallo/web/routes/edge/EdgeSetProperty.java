@@ -27,6 +27,7 @@ import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
+import org.visallo.web.util.VisibilityValidator;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ResourceBundle;
@@ -78,7 +79,7 @@ public class EdgeSetProperty extends SetPropertyBase implements ParameterizedHan
             User user,
             Authorizations authorizations
     ) throws Exception {
-        checkVisibilityParameter(visibilitySource, authorizations, user, resourceBundle);
+        VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, visibilitySource, user, authorizations);
         checkRoutePath("edge", propertyName, request);
 
         boolean isComment = isCommentProperty(propertyName);

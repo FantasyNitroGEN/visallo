@@ -1,14 +1,24 @@
 
 #v2.2.0
 ==================
-
+  * Include babel polyfill https://babeljs.io/docs/usage/polyfill/
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
   * When providing Authorization or User parameters, provide null if not found
+  * Provide a way to redirect the user after authenticating
+  * Allow ACLProvider to continue even if a concept or relationship cannot be found
+  * Allow admin extensions to request a sort within a section
+  * Refactor web visibility validation to VisibilityValidator class
 
 #v2.1.1
 ==================
   * Pass vertex to shouldDisable handler for vertex context menu extensions
+  * Documentation: Add `org.visallo.detail.text` extension documentation
   * Improvement: Only show available properties that are sortable in search pane sort filter.
+  * Improvement: Text section extension `shouldReplaceTextSectionForVertex` function is now given propertyName and propertyKey
+  * Fix: Preview edge arrow not inverting after inverting the edge creation dialogue
+  * Fix: Only first-listed activty actions plugin getting required.
+  * Fix: Find Path activity actions not updating correctly when multiple present between same source and destination vertices.
+  * Fix admin pane did not update authorizations when switching between users
 
 #v2.1
 ==================

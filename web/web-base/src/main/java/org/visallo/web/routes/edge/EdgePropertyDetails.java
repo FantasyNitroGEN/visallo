@@ -15,9 +15,9 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.BadRequestException;
 import org.visallo.web.clientapi.model.ClientApiEdgePropertyDetails;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
 
@@ -48,11 +48,14 @@ public class EdgePropertyDetails implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        Visibility visibility = visibilityTranslator.toVisibility(visibilitySource).getVisibility();
-        if (!graph.isVisibilityValid(visibility, authorizations)) {
-            LOGGER.warn("%s is not a valid visibility for %s user", visibilitySource, user.getDisplayName());
-            throw new BadRequestException("visibilitySource", resourceBundle.getString("visibility.invalid"));
-        }
+        Visibility visibility = VisibilityValidator.validate(
+                graph,
+                visibilityTranslator,
+                resourceBundle,
+                visibilitySource,
+                user,
+                authorizations
+        );
 
         Edge edge = this.graph.getEdge(edgeId, authorizations);
         if (edge == null) {
