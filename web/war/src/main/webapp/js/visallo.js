@@ -305,6 +305,9 @@ function(jQuery,
                                             window.location.href = toOpen.redirectUrl;
                                             return;
                                         }
+                                        if (toOpen && toOpen.type === 'TOOLS' && !_.isEmpty(toOpen.tools)) {
+                                            appOptions.openMenubarTools = toOpen.tools;
+                                        }
                                         if (animate) {
                                             $('#login .authentication button.loading').removeClass('loading');
                                             appOptions.animateFromLogin = true;
