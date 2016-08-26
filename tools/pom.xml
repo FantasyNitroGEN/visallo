@@ -17,7 +17,6 @@
 	<modules>
         <module>cli</module>
         <module>import</module>
-        <module>format</module>
         <module>ontology-ingest</module>
         <module>owl</module>
         <module>rdf-import</module>
