@@ -6,6 +6,7 @@
   * When providing Authorization or User parameters, provide null if not found
   * Provide a way to redirect the user after authenticating
   * Allow ACLProvider to continue even if a concept or relationship cannot be found
+  * Web: Merge logic to get client IP address from CurrentUser and AuthenticationHander
   * Allow admin extensions to request a sort within a section
   * Refactor web visibility validation to VisibilityValidator class
 
