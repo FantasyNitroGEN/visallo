@@ -1,6 +1,5 @@
 package org.visallo.core.model.workQueue;
 
-import com.drew.lang.Iterables;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -21,6 +20,8 @@ import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdateRemove;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.status.model.Status;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -30,7 +31,6 @@ import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -724,31 +724,24 @@ public abstract class WorkQueueRepository {
     ) {
         UserRepository userRepository = InjectHelper.getInstance(UserRepository.class);
         AuthorizationRepository authorizationRepository = InjectHelper.getInstance(AuthorizationRepository.class);
+        WorkspaceRepository workspaceRepository = InjectHelper.getInstance(WorkspaceRepository.class);
+        User changedByUser = userRepository.findById(changedByUserId);
+        Workspace ws = workspaceRepository.findById(workspace.getWorkspaceId(), changedByUser);
 
         previousUsers.forEach(workspaceUser -> {
-            User user = userRepository.findById(workspaceUser.getUserId());
+            boolean isChangingUser = workspaceUser.getUserId().equals(changedByUserId);
+
+            User user = isChangingUser ? changedByUser : userRepository.findById(workspaceUser.getUserId());
             Authorizations authorizations = authorizationRepository.getGraphAuthorizations(user, workspace.getWorkspaceId());
+
+            // No need to regenerate client api if changing user
+            ClientApiWorkspace userWorkspace = isChangingUser ? workspace : workspaceRepository.toClientApi(ws, user, true, authorizations);
 
             JSONObject json = new JSONObject();
             json.put("type", "workspaceChange");
             json.put("modifiedBy", changedByUserId);
             json.put("permissions", getPermissionsWithUsers(null, Arrays.asList(workspaceUser)));
-
-            JSONObject data = new JSONObject(ClientApiConverter.clientApiToString(workspace));
-
-            List<String> vertexIds = workspace.getVertices().stream()
-                    .map(vertex -> vertex.getVertexId())
-                    .collect(Collectors.toList());
-
-            List<String> visibleVertexIds = Iterables.toList(graph.filterVertexIdsByAuthorization(vertexIds, workspace.getWorkspaceId(), ElementFilter.ALL, authorizations));
-
-            List<ClientApiWorkspace.Vertex> filteredVertices = workspace.getVertices()
-                    .stream()
-                    .filter(vertex -> visibleVertexIds.contains(vertex.getVertexId()))
-                    .collect(Collectors.toList());
-
-            data.put("vertices", new JSONArray(ClientApiConverter.clientApiToString(filteredVertices)));
-            json.put("data", data);
+            json.put("data", new JSONObject(ClientApiConverter.clientApiToString(userWorkspace)));
             json.putOpt("sourceGuid", changedBySourceGuid);
             broadcastJson(json);
         });
