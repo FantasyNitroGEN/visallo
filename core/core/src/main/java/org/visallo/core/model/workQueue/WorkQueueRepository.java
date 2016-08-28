@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.externalResource.ExternalResourceWorker;
 import org.visallo.core.externalResource.QueueExternalResourceWorker;
@@ -735,15 +736,18 @@ public abstract class WorkQueueRepository {
             Authorizations authorizations = authorizationRepository.getGraphAuthorizations(user, workspace.getWorkspaceId());
 
             // No need to regenerate client api if changing user
-            ClientApiWorkspace userWorkspace = isChangingUser ? workspace : workspaceRepository.toClientApi(ws, user, true, authorizations);
-
-            JSONObject json = new JSONObject();
-            json.put("type", "workspaceChange");
-            json.put("modifiedBy", changedByUserId);
-            json.put("permissions", getPermissionsWithUsers(null, Arrays.asList(workspaceUser)));
-            json.put("data", new JSONObject(ClientApiConverter.clientApiToString(userWorkspace)));
-            json.putOpt("sourceGuid", changedBySourceGuid);
-            broadcastJson(json);
+            try {
+                ClientApiWorkspace userWorkspace = isChangingUser ? workspace : workspaceRepository.toClientApi(ws, user, true, authorizations);
+                JSONObject json = new JSONObject();
+                json.put("type", "workspaceChange");
+                json.put("modifiedBy", changedByUserId);
+                json.put("permissions", getPermissionsWithUsers(null, Arrays.asList(workspaceUser)));
+                json.put("data", new JSONObject(ClientApiConverter.clientApiToString(userWorkspace)));
+                json.putOpt("sourceGuid", changedBySourceGuid);
+                broadcastJson(json);
+            } catch (VisalloAccessDeniedException e) {
+                /* Ignore push message if lost access */
+            }
         });
     }
 
