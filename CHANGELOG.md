@@ -9,6 +9,7 @@
   * Web: Merge logic to get client IP address from CurrentUser and AuthenticationHander
   * Allow admin extensions to request a sort within a section
   * Refactor web visibility validation to VisibilityValidator class
+  * OwlToJava: Support StreamingPropertyValue and DirectoryEntity types
 
 #v2.1.1
 ==================
