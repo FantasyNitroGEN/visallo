@@ -304,6 +304,20 @@ public class ACLProviderTest {
         when(aclProvider.canDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
     }
 
+    @Test
+    public void appendACLShouldNotFailIfElementCannotBeFound() {
+        ClientApiVertex apiElement = new ClientApiVertex();
+        apiElement.setId("notFoundId");
+
+        aclProvider.appendACL(apiElement, user1);
+
+        assertThat(apiElement.getUpdateable(), equalTo(false));
+        assertThat(apiElement.getDeleteable(), equalTo(false));
+        assertThat(apiElement.getAcl().isAddable(), equalTo(false));
+        assertThat(apiElement.getAcl().isUpdateable(), equalTo(false));
+        assertThat(apiElement.getAcl().isDeleteable(), equalTo(false));
+    }
+
     private void appendAclShouldPopulateClientApiElementAcl(Element element) {
         when(aclProvider.canUpdateElement(element, user1)).thenReturn(true);
         when(aclProvider.canDeleteElement(element, user1)).thenReturn(true);
