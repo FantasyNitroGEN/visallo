@@ -12,16 +12,48 @@
 
 #v2.1.1
 ==================
-  * Pass vertex to shouldDisable handler for vertex context menu extensions
-  * Documentation: Add `org.visallo.detail.text` extension documentation
-  * Improvement: Only show available properties that are sortable in search pane sort filter.
-  * Improvement: Text section extension `shouldReplaceTextSectionForVertex` function is now given propertyName and propertyKey
-  * Fix: Preview edge arrow not inverting after inverting the edge creation dialogue
-  * Fix: Only first-listed activty actions plugin getting required.
-  * Fix: Find Path activity actions not updating correctly when multiple present between same source and destination vertices.
-  * Fix admin pane did not update authorizations when switching between users
 
-#v2.1
+## Changed
+
+* Only show available properties that are sortable (specified in
+  ontology) in search pane sort inv.
+* Pass vertex to `shouldDisable` handler for `org.visallo.vertex.menu`
+  extensions
+* The `org.visallo.detail.text` front-end extension function
+  `shouldReplaceTextSectionForVertex` is now passed property name and
+key
+
+## Fixed
+
+* Activity pane now shows correctly when multiple activity extensions
+  are registered.
+* Admin user editor now correctly resets authorization list when
+  switching between users
+* _Find Path_ actions in activity pane update correctly when multiple
+  rows have the same source and destination vertices.
+* No longer offer string properties as available properties to aggregate
+  on in histograms (only dates and numbers are supported)
+* Property select field not disabling properly when there are no
+  available properties.
+* Vertexium user property map not being updated through Proxy User
+* When creating a connection in the graph, the preview edge arrow
+  displays correctly after inverting direction
+* Workspace sharing between users with published entities might
+  disappear for some users on update.
+
+## Documentation
+
+* Add `shouldDisable` example to
+  [`org.visallo.vertex.menu`](http://docs.visallo.org/extension-points/front-end/vertexMenu/)
+* Extension documentation for
+  [`org.visallo.detail.text`](http://docs.visallo.org/extension-points/front-end/detailText/)
+* Update web app plugin tutorial to use public API and fix errors
+
+## Removed
+
+* FormatVisallo CLI tool
+ 
+#v2.1.0
 ==================
 
   * Always update ontology in evaluator context
