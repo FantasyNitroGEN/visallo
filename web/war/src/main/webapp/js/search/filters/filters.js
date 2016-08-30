@@ -435,7 +435,7 @@ define([
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
                             var ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
-                                return property.title = filter.propertyId;
+                                return property.title === filter.propertyId;
                             });
 
                             if (ontologyProperty && ontologyProperty.dependentPropertyIris) {
