@@ -5,28 +5,24 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.json.JSONObject;
-import org.visallo.core.exception.VisalloException;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserPropertyAuthorizationRepository;
+import org.visallo.core.model.user.UpdatableAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 
 public class UserRemoveAuthorization implements ParameterizedHandler {
     private final UserRepository userRepository;
-    private final UserPropertyAuthorizationRepository authorizationRepository;
+    private final AuthorizationRepository authorizationRepository;
 
     @Inject
     public UserRemoveAuthorization(
             UserRepository userRepository,
             AuthorizationRepository authorizationRepository
     ) {
-        if (!(authorizationRepository instanceof UserPropertyAuthorizationRepository)) {
-            throw new VisalloException(UserPropertyAuthorizationRepository.class.getName() + " required");
-        }
-
         this.userRepository = userRepository;
-        this.authorizationRepository = (UserPropertyAuthorizationRepository) authorizationRepository;
+        this.authorizationRepository = authorizationRepository;
     }
 
     @Handle
@@ -39,7 +35,12 @@ public class UserRemoveAuthorization implements ParameterizedHandler {
         if (user == null) {
             throw new VisalloResourceNotFoundException("Could not find user: " + userName);
         }
-        authorizationRepository.removeAuthorization(user, auth, authUser);
+
+        if (!(authorizationRepository instanceof UpdatableAuthorizationRepository)) {
+            throw new VisalloAccessDeniedException("Authorization repository does not support updating", authUser, userName);
+        }
+
+        ((UpdatableAuthorizationRepository) authorizationRepository).removeAuthorization(user, auth, authUser);
         return userRepository.toJsonWithAuths(user);
     }
 }
