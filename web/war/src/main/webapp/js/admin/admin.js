@@ -55,7 +55,7 @@ define([
         this.after('initialize', function() {
             this.loadingAdminExtension = Promise.resolve();
             this.on(document, 'showAdminPlugin', this.onShowAdminPlugin);
-            this.on(document, 'menubarToggleDisplay', this.onToggleDisplay);
+            this.on(document, 'didToggleDisplay', this.didToggleDisplay);
             this.on('click', {
                 pluginItemSelector: this.onClickPluginItem
             });
@@ -63,8 +63,8 @@ define([
             this.update();
         });
 
-        this.onToggleDisplay = function(event, data) {
-            if (data.name === 'admin' && this.$node.closest('.visible').length === 0) {
+        this.didToggleDisplay = function(event, data) {
+            if (data.name === 'admin' && !data.visible) {
                 this.$node.find('.admin-list .active').removeClass('active');
                 this.loadingAdminExtension.cancel();
                 var form = this.select('formSelector').hide().find('.content').removePrefixedClasses('admin_less_cls')
