@@ -434,7 +434,7 @@ define([
                     matchType: this.matchType,
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
-                            var ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
+                            var ontologyProperty = _.find(self.propertiesByDomainType[self.matchType], function(property) {
                                 return property.title === filter.propertyId;
                             });
 
@@ -642,7 +642,7 @@ define([
             var self = this,
                 $li = $('<li>').data('filterId', this.filterId++),
                 attributes = filter ? {
-                    property: this.propertiesByDomainType[this.matchType].find(function(property) {
+                    property: _.find(this.propertiesByDomainType[this.matchType], function(property) {
                         return property.title === filter.propertyId;
                     }),
                     predicate: filter.predicate,
