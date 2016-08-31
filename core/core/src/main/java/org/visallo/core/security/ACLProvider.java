@@ -79,7 +79,7 @@ public abstract class ACLProvider {
         }
     }
 
-    public final ClientApiElementAcl elementACL(Element element, User user, OntologyRepository ontologyRepository) {
+    public final ClientApiElementAcl elementACL(Element element, User user) {
         checkNotNull(element, "element is required");
         ClientApiElementAcl elementAcl = new ClientApiElementAcl();
         elementAcl.setAddable(true);
@@ -163,6 +163,16 @@ public abstract class ACLProvider {
 
     private void appendACL(ClientApiElement apiElement, User user) {
         Element element = findElement(apiElement);
+        if (element == null) {
+            apiElement.setUpdateable(false);
+            apiElement.setDeleteable(false);
+            ClientApiElementAcl elementAcl = new ClientApiElementAcl();
+            elementAcl.setAddable(false);
+            elementAcl.setUpdateable(false);
+            elementAcl.setDeleteable(false);
+            apiElement.setAcl(elementAcl);
+            return;
+        }
 
         for (ClientApiProperty apiProperty : apiElement.getProperties()) {
             String key = apiProperty.getKey();
@@ -174,7 +184,7 @@ public abstract class ACLProvider {
         apiElement.setUpdateable(internalCanUpdateElement(element, user));
         apiElement.setDeleteable(internalCanDeleteElement(element, user));
 
-        apiElement.setAcl(elementACL(element, user, ontologyRepository));
+        apiElement.setAcl(elementACL(element, user));
 
         if (apiElement instanceof ClientApiEdgeWithVertexData) {
             appendACL(((ClientApiEdgeWithVertexData) apiElement).getSource(), user);
@@ -233,10 +243,8 @@ public abstract class ACLProvider {
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(userRepository.getSystemUser());
         if (apiElement instanceof ClientApiVertex) {
             element = graph.getVertex(apiElement.getId(), authorizations);
-            checkNotNull(element, "could not find vertex with id: " + apiElement.getId());
         } else if (apiElement instanceof ClientApiEdge) {
             element = graph.getEdge(apiElement.getId(), authorizations);
-            checkNotNull(element, "could not find edge with id: " + apiElement.getId());
         } else {
             throw new VisalloException("unexpected ClientApiElement type " + apiElement.getClass().getName());
         }
