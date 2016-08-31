@@ -5,7 +5,7 @@
     <parent>
         <artifactId>visallo-tools-group</artifactId>
         <groupId>org.visallo</groupId>
-        <version>2.2-SNAPSHOT</version>
+        <version>3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
