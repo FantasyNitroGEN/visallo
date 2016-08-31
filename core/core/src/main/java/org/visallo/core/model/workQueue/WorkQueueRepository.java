@@ -38,14 +38,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class WorkQueueRepository {
     protected static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkQueueRepository.class);
     private final Configuration configuration;
+    private final UserRepository userRepository;
+    private final AuthorizationRepository authorizationRepository;
+    private final WorkspaceRepository workspaceRepository;
     private final WorkQueueNames workQueueNames;
     private final Graph graph;
     private GraphPropertyRunner graphPropertyRunner;
 
-    protected WorkQueueRepository(Graph graph, WorkQueueNames workQueueNames, Configuration configuration) {
+    protected WorkQueueRepository(
+            Graph graph,
+            WorkQueueNames workQueueNames,
+            Configuration configuration,
+            UserRepository userRepository,
+            AuthorizationRepository authorizationRepository,
+            WorkspaceRepository workspaceRepository
+    ) {
         this.graph = graph;
         this.workQueueNames = workQueueNames;
         this.configuration = configuration;
+        this.userRepository = userRepository;
+        this.authorizationRepository = authorizationRepository;
+        this.workspaceRepository = workspaceRepository;
     }
 
     public void pushGraphPropertyQueue(final Element element, final Property property, Priority priority) {
@@ -723,9 +736,6 @@ public abstract class WorkQueueRepository {
             String changedByUserId,
             String changedBySourceGuid
     ) {
-        UserRepository userRepository = InjectHelper.getInstance(UserRepository.class);
-        AuthorizationRepository authorizationRepository = InjectHelper.getInstance(AuthorizationRepository.class);
-        WorkspaceRepository workspaceRepository = InjectHelper.getInstance(WorkspaceRepository.class);
         User changedByUser = userRepository.findById(changedByUserId);
         Workspace ws = workspaceRepository.findById(workspace.getWorkspaceId(), changedByUser);
 

@@ -22,8 +22,11 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.graphProperty.*;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
@@ -50,6 +53,15 @@ public abstract class GraphPropertyWorkerTestBase {
 
     @Mock
     protected OntologyRepository ontologyRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private AuthorizationRepository authorizationRepository;
+
+    @Mock
+    private WorkspaceRepository workspaceRepository;
 
     protected GraphPropertyWorkerTestBase() {
 
@@ -242,7 +254,14 @@ public abstract class GraphPropertyWorkerTestBase {
 
     protected WorkQueueRepository getWorkQueueRepository() {
         if (workQueueRepository == null) {
-            workQueueRepository = new InMemoryWorkQueueRepository(getGraph(), workQueueNames, getConfiguration());
+            workQueueRepository = new InMemoryWorkQueueRepository(
+                    getGraph(),
+                    workQueueNames,
+                    getConfiguration(),
+                    userRepository,
+                    authorizationRepository,
+                    workspaceRepository
+            );
         }
         return workQueueRepository;
     }
