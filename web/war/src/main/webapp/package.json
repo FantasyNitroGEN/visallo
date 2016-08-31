@@ -1,6 +1,5 @@
 {
   "name": "visallo",
-  "version": "0.1.0",
   "description": "open source big data integration, analytics, and visualization",
   "repository": "git://github.com/v5analytics/visallo",
   "dependencies": {
