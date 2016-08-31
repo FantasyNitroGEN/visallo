@@ -79,7 +79,7 @@ define([
                             .flatten()
                             .uniq()
                             .map(function(propertyName) {
-                                return _.find(ontology.properties, function(property) {
+                                return ontology.properties.find(function(property) {
                                     return property.title === propertyName;
                                 });
                             })
