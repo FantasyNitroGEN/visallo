@@ -363,10 +363,11 @@ define([
                         })
                         .map(function(d) {
                             nestedCount += d.value.count;
-                            return _.extend({}, d, {
+                            var bucket = _.extend({}, d, {
                                 y0: y0,
                                 y1: y0 += d.value.count || 0
-                            })
+                            });
+                            return bucket;
                         })
                         .tap(function(buckets) {
                             if (self.isNested) {
