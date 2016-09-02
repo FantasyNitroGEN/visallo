@@ -1,3 +1,14 @@
+
+#v2.1.2
+==================
+
+## Fixed
+
+* Issue where search property filters did not show up in IE.
+* Search filters had a bug due to using a single equals rather than
+  comparing with triple equals.
+
+
 #v2.1.1
 ==================
 
