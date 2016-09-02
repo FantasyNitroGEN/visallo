@@ -1,5 +1,5 @@
 
-#v2.2.0
+v2.2.0
 ==================
   * Include babel polyfill https://babeljs.io/docs/usage/polyfill/
   * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
@@ -11,7 +11,16 @@
   * Refactor web visibility validation to VisibilityValidator class
   * OwlToJava: Support StreamingPropertyValue and DirectoryEntity types
 
-#v2.1.1
+v2.1.2
+==================
+
+## Fixed
+
+* Issue where search property filters did not show up in IE.
+* Search filters had a bug due to using a single equals rather than
+  comparing with triple equals.
+
+v2.1.1
 ==================
 
 ## Changed
@@ -54,7 +63,7 @@ key
 
 * FormatVisallo CLI tool
  
-#v2.1.0
+v2.1.0
 ==================
 
   * Always update ontology in evaluator context
