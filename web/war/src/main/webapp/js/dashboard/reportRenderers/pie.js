@@ -268,7 +268,7 @@ define([
                     gLegend.selectAll('g:not(.hidden) > text').each(function(d) {
                         var d3Self = d3.select(this),
                             text = d3.select(this).text();
-                        while (this.getBBox().width > availableLegendTextWidth) {
+                        while (text.length > 0 && this.getBBox().width > availableLegendTextWidth) {
                             text = text.substring(0, text.length - 1);
                             d3Self.text(text + '...');
                         }
