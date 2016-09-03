@@ -8,8 +8,11 @@ import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.WorkerTuple;
 import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.status.model.QueueStatus;
 import org.visallo.core.status.model.Status;
 
@@ -20,8 +23,15 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
     private List<BroadcastConsumer> broadcastConsumers = new ArrayList<>();
 
     @Inject
-    public InMemoryWorkQueueRepository(Graph graph, WorkQueueNames workQueueNames, Configuration configuration) {
-        super(graph, workQueueNames, configuration);
+    public InMemoryWorkQueueRepository(
+            Graph graph,
+            WorkQueueNames workQueueNames,
+            Configuration configuration,
+            UserRepository userRepository,
+            AuthorizationRepository authorizationRepository,
+            WorkspaceRepository workspaceRepository
+    ) {
+        super(graph, workQueueNames, configuration, userRepository, authorizationRepository, workspaceRepository);
     }
 
     @Override
