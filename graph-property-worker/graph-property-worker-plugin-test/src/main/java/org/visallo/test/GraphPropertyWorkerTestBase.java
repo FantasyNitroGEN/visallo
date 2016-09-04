@@ -38,7 +38,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class GraphPropertyWorkerTestBase {
     private InMemoryGraph graph;
@@ -157,7 +160,7 @@ public abstract class GraphPropertyWorkerTestBase {
         return getGraph().createAuthorizations(authorizations);
     }
 
-    protected void setOntologyRepository (OntologyRepository ontologyRepository) {
+    protected void setOntologyRepository(OntologyRepository ontologyRepository) {
         this.ontologyRepository = ontologyRepository;
     }
 
@@ -208,7 +211,8 @@ public abstract class GraphPropertyWorkerTestBase {
             InputStream in,
             String workspaceId,
             ElementOrPropertyStatus status,
-            String visibilitySource) {
+            String visibilitySource
+    ) {
         try {
             gpw.setConfiguration(getConfiguration());
             gpw.setGraph(getGraph());
@@ -257,11 +261,11 @@ public abstract class GraphPropertyWorkerTestBase {
             workQueueRepository = new InMemoryWorkQueueRepository(
                     getGraph(),
                     workQueueNames,
-                    getConfiguration(),
-                    userRepository,
-                    authorizationRepository,
-                    workspaceRepository
+                    getConfiguration()
             );
+            workQueueRepository.setUserRepository(userRepository);
+            workQueueRepository.setAuthorizationRepository(authorizationRepository);
+            workQueueRepository.setWorkspaceRepository(workspaceRepository);
         }
         return workQueueRepository;
     }

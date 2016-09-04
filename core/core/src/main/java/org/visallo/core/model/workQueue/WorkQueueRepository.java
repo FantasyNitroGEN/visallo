@@ -38,27 +38,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class WorkQueueRepository {
     protected static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkQueueRepository.class);
     private final Configuration configuration;
-    private final UserRepository userRepository;
-    private final AuthorizationRepository authorizationRepository;
-    private final WorkspaceRepository workspaceRepository;
     private final WorkQueueNames workQueueNames;
     private final Graph graph;
     private GraphPropertyRunner graphPropertyRunner;
+    private AuthorizationRepository authorizationRepository;
+    private WorkspaceRepository workspaceRepository;
+    private UserRepository userRepository;
 
     protected WorkQueueRepository(
             Graph graph,
             WorkQueueNames workQueueNames,
-            Configuration configuration,
-            UserRepository userRepository,
-            AuthorizationRepository authorizationRepository,
-            WorkspaceRepository workspaceRepository
+            Configuration configuration
     ) {
         this.graph = graph;
         this.workQueueNames = workQueueNames;
         this.configuration = configuration;
-        this.userRepository = userRepository;
-        this.authorizationRepository = authorizationRepository;
-        this.workspaceRepository = workspaceRepository;
     }
 
     public void pushGraphPropertyQueue(final Element element, final Property property, Priority priority) {
@@ -736,18 +730,18 @@ public abstract class WorkQueueRepository {
             String changedByUserId,
             String changedBySourceGuid
     ) {
-        User changedByUser = userRepository.findById(changedByUserId);
-        Workspace ws = workspaceRepository.findById(workspace.getWorkspaceId(), changedByUser);
+        User changedByUser = getUserRepository().findById(changedByUserId);
+        Workspace ws = getWorkspaceRepository().findById(workspace.getWorkspaceId(), changedByUser);
 
         previousUsers.forEach(workspaceUser -> {
             boolean isChangingUser = workspaceUser.getUserId().equals(changedByUserId);
 
-            User user = isChangingUser ? changedByUser : userRepository.findById(workspaceUser.getUserId());
-            Authorizations authorizations = authorizationRepository.getGraphAuthorizations(user, workspace.getWorkspaceId());
+            User user = isChangingUser ? changedByUser : getUserRepository().findById(workspaceUser.getUserId());
+            Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(user, workspace.getWorkspaceId());
 
             // No need to regenerate client api if changing user
             try {
-                ClientApiWorkspace userWorkspace = isChangingUser ? workspace : workspaceRepository.toClientApi(ws, user, true, authorizations);
+                ClientApiWorkspace userWorkspace = isChangingUser ? workspace : getWorkspaceRepository().toClientApi(ws, user, true, authorizations);
                 JSONObject json = new JSONObject();
                 json.put("type", "workspaceChange");
                 json.put("modifiedBy", changedByUserId);
@@ -1134,5 +1128,38 @@ public abstract class WorkQueueRepository {
 
     protected Configuration getConfiguration() {
         return configuration;
+    }
+
+    protected AuthorizationRepository getAuthorizationRepository() {
+        if (authorizationRepository == null) {
+            authorizationRepository = InjectHelper.getInstance(AuthorizationRepository.class);
+        }
+        return authorizationRepository;
+    }
+
+    public void setAuthorizationRepository(AuthorizationRepository authorizationRepository) {
+        this.authorizationRepository = authorizationRepository;
+    }
+
+    protected WorkspaceRepository getWorkspaceRepository() {
+        if (workspaceRepository == null) {
+            workspaceRepository = InjectHelper.getInstance(WorkspaceRepository.class);
+        }
+        return workspaceRepository;
+    }
+
+    public void setWorkspaceRepository(WorkspaceRepository workspaceRepository) {
+        this.workspaceRepository = workspaceRepository;
+    }
+
+    protected UserRepository getUserRepository() {
+        if (userRepository == null) {
+            userRepository = InjectHelper.getInstance(UserRepository.class);
+        }
+        return userRepository;
+    }
+
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 }

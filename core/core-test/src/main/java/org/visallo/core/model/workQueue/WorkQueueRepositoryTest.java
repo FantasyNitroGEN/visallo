@@ -140,7 +140,10 @@ public class WorkQueueRepositoryTest {
                 AuthorizationRepository authorizationRepository,
                 WorkspaceRepository workspaceRepository
         ) {
-            super(graph, workQueueNames, configuration, userRepository, authorizationRepository, workspaceRepository);
+            super(graph, workQueueNames, configuration);
+            setUserRepository(userRepository);
+            setAuthorizationRepository(authorizationRepository);
+            setWorkspaceRepository(workspaceRepository);
         }
 
         @Override
