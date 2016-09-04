@@ -12,12 +12,17 @@ import org.visallo.core.util.VisalloLoggerFactory;
 
 public abstract class WorkerBase {
     private final boolean statusEnabled;
+    private final boolean exitOnNextTupleFailure;
     private WorkQueueRepository workQueueRepository;
     private volatile boolean shouldRun;
     private StatusServer statusServer = null;
 
     protected WorkerBase(WorkQueueRepository workQueueRepository, Configuration configuration) {
         this.workQueueRepository = workQueueRepository;
+        this.exitOnNextTupleFailure = configuration.getBoolean(
+                this.getClass().getName() + ".exitOnNextTupleFailure",
+                true
+        );
         this.statusEnabled = configuration.getBoolean(
                 Configuration.STATUS_ENABLED,
                 Configuration.STATUS_ENABLED_DEFAULT
@@ -37,8 +42,11 @@ public abstract class WorkerBase {
             WorkerTuple tuple;
             try {
                 tuple = workerSpout.nextTuple();
+            } catch (InterruptedException ex) {
+                throw ex;
             } catch (Exception ex) {
-                throw new VisalloException("Failed to get next tuple", ex);
+                handleNextTupleException(logger, ex);
+                continue;
             }
             if (tuple == null) {
                 Thread.sleep(100);
@@ -55,6 +63,15 @@ public abstract class WorkerBase {
                 logger.error("Could not process tuple: %s", tuple, ex);
                 workerSpout.fail(tuple.getMessageId());
             }
+        }
+    }
+
+    protected void handleNextTupleException(VisalloLogger logger, Exception ex) throws InterruptedException {
+        if (exitOnNextTupleFailure) {
+            throw new VisalloException("Failed to get next tuple", ex);
+        } else {
+            logger.error("Failed to get next tuple", ex);
+            Thread.sleep(10 * 1000);
         }
     }
 
