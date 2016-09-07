@@ -4,4 +4,4 @@ Setting up a Visallo development environment is very similar across Mac OS X, Wi
 
 ## Browser Support
 
-Please note that the Visallo UI is only developed and tested under Google Chrome and Firefox 38 or later. It may or may not work under other versions or different web browsers.
+Please note that the Visallo UI is primarily developed and tested under Google Chrome, Firefox 38 or later, and IE 11. It may or may not work under other versions or different web browsers.
