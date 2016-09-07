@@ -722,7 +722,7 @@ define([
 
                         if (visibility) {
                             dataType = 'visibility';
-                        } else if (property.hideVisibility !== true) {
+                        } else if (config['showVisibilityInDetailsPane'] !== 'false' && property.hideVisibility !== true) {
                             F.vertex.properties.visibility(
                                 visibilitySpan,
                                 { value: property.metadata && property.metadata[VISIBILITY_NAME] },

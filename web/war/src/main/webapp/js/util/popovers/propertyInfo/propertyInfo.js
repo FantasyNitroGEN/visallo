@@ -209,7 +209,8 @@ define([
                                 d3.select(this).text(i18n('popovers.property_info.loading'));
                             } else if (typeName === 'visibility') {
                                 VisibilityViewer.attachTo(this, {
-                                    value: value && value.source
+                                    value: value && value.source,
+                                    property: property
                                 });
                             } else {
                                 console.warn('No metadata type formatter: ' + typeName);
