@@ -159,7 +159,7 @@ define([
                 ][Math.round(inRange / 45) % 8]) + ' ' + FORMATTERS.number.pretty(inRange) + '°';
             },
             duration: function(value) {
-                if (!$.trim(value).length) {
+                if (!_.isNumber(value) && !$.trim(value).length) {
                     return '';
                 } else if (value === 0) {
                     return '0s';
