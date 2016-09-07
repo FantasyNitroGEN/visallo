@@ -132,6 +132,8 @@ public abstract class ACLProvider {
         } else if (clientApiObject instanceof ClientApiVertexEdges) {
             ClientApiVertexEdges vertexEdges = (ClientApiVertexEdges) clientApiObject;
             appendACL(vertexEdges, user);
+        } else if (clientApiObject instanceof ClientApiElementFindRelatedResponse) {
+            appendACL(((ClientApiElementFindRelatedResponse) clientApiObject).getElements(), user);
         }
 
         return clientApiObject;
