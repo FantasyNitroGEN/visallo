@@ -187,11 +187,6 @@ define(['require', 'underscore'], function(require, _) {
                         };
                         compareFunction = function(values, actual) {
                             var km = haversineDistanceBetween(values[0], values[1], actual.latitude, actual.longitude);
-                            //var from = new OpenLayers.Geometry.Point(values[1], values[0]),
-                                //to = new OpenLayers.Geometry.Point(actual.longitude, actual.latitude),
-                                //line = new OpenLayers.Geometry.LineString([from, to]),
-                                //km = line.getGeodesicLength(new OpenLayers.Projection('EPSG:4326')) / 1000;
-
                             return km <= values[2];
                         };
                         break;

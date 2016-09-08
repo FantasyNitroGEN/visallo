@@ -113,10 +113,8 @@ public class WebConfiguration {
                 PROPERTY_METADATA_STATUS.getDataType(),
                 PROPERTY_METADATA_CONFIDENCE.getDataType()));
 
-        DEFAULTS.put(MAP_PROVIDER, MapProvider.GOOGLE.toString());
-        DEFAULTS.put(MAP_PROVIDER_OSM_URL, "https://a.tile.openstreetmap.org/${z}/${x}/${y}.png," +
-                "https://b.tile.openstreetmap.org/${z}/${x}/${y}.png," +
-                "https://c.tile.openstreetmap.org/${z}/${x}/${y}.png");
+        DEFAULTS.put(MAP_PROVIDER, MapProvider.OSM.toString());
+        DEFAULTS.put(MAP_PROVIDER_OSM_URL, "https://{a-c}.tile.openstreetmap.org/${z}/${x}/${y}.png");
     }
 
     public static class PropertyMetadata {
@@ -152,6 +150,10 @@ public class WebConfiguration {
     }
 
     public enum MapProvider {
+        /**
+         * @deprecated Google is not officially supported by OpenLayers, OpenStreetMap will be used.
+         */
+        @Deprecated
         GOOGLE("google"),
         OSM("osm"),
         ARCGIS93REST("ArcGIS93Rest");

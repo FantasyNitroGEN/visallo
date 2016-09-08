@@ -125,12 +125,16 @@ define([
                        self.trigger(document, 'changeView', {
                            view: 'map'
                        });
-                       self.trigger(document, 'searchResultsWithinRadius');
-
-                       $(document).on('regionSaved', function(event, data) {
-                           self.setValue(data);
-                           self.triggerFieldUpdated();
+                       self.trigger(document, 'searchResultsWithinRadius', {
+                           currentValue: self.getValue()
                        });
+
+                       $(document)
+                           .off('regionSaved')
+                           .on('regionSaved', function(event, data) {
+                               self.setValue(data);
+                               self.triggerFieldUpdated();
+                           });
                     });
                 });
             })
