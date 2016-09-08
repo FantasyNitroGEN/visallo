@@ -40,7 +40,7 @@ define([
         });
 
         this.popoverInitialize = function() {
-            this.visibilitySource = { value: '', valid: true };
+            this.visibilitySource = null;
             this.on('visibilitychange', this.onVisibilityChange);
             this.on('justificationchange', this.onJustificationChange);
 
