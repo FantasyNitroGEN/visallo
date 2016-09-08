@@ -6,6 +6,7 @@ import org.vertexium.Visibility;
 import org.vertexium.mutation.ExistingElementMutation;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class MetadataVisalloProperty<TRaw, TGraph> {
@@ -51,6 +52,11 @@ public abstract class MetadataVisalloProperty<TRaw, TGraph> {
             return defaultValue;
         }
         return unwrap(metadata.getValue(getMetadataKey()));
+    }
+
+    public TRaw getMetadataValue(Map<String, Object> metadata) {
+        //noinspection unchecked
+        return (TRaw) metadata.get(getMetadataKey());
     }
 
     public void setMetadata(Metadata metadata, TRaw value, Visibility visibility) {
