@@ -5,6 +5,7 @@ import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.GraphPosition;
 
 import java.io.Serializable;
 import java.util.List;
@@ -61,6 +62,13 @@ public class WorkspaceEntity implements Serializable {
 
     public Vertex getVertex() {
         return vertex;
+    }
+
+    public GraphPosition getGraphPosition() {
+        if (getGraphPositionX() == null || getGraphPositionY() == null) {
+            return null;
+        }
+        return new GraphPosition(getGraphPositionX(), getGraphPositionY());
     }
 
     public static Iterable<Vertex> toVertices(final Iterable<WorkspaceEntity> workspaceEntities, final Graph graph, final Authorizations authorizations) {
