@@ -108,4 +108,24 @@ public abstract class ClientApiElement implements ClientApiObject {
     public String toString() {
         return ClientApiConverter.clientApiToString(this);
     }
+
+    public ClientApiProperty getProperty(String propertyKey, String propertyName) {
+        for (ClientApiProperty property : getProperties()) {
+            if (property.getKey().equals(propertyKey)
+                    && property.getName().equals(propertyName)) {
+                return property;
+            }
+        }
+        return null;
+    }
+
+    public Iterable<ClientApiProperty> getProperties(String name) {
+        List<ClientApiProperty> results = new ArrayList<ClientApiProperty>();
+        for (ClientApiProperty property : getProperties()) {
+            if (property.getName().equals(name)) {
+                results.add(property);
+            }
+        }
+        return results;
+    }
 }

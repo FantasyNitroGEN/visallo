@@ -5,6 +5,8 @@ import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -78,6 +80,19 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
     public final TRaw getPropertyValue(Map<String, Object> map) {
         Object value = map != null ? map.get(getPropertyName()) : null;
         return value != null ? getRawConverter().apply(value) : null;
+    }
+
+    public TRaw getPropertyValue(ClientApiElement clientApiElement) {
+        return getPropertyValue(clientApiElement, null);
+    }
+
+    public TRaw getPropertyValue(ClientApiElement clientApiElement, TRaw defaultValue) {
+        ClientApiProperty property = clientApiElement.getProperty(ElementMutation.DEFAULT_KEY, getPropertyName());
+        if (property == null) {
+            return defaultValue;
+        }
+        //noinspection unchecked
+        return (TRaw) property.getValue();
     }
 
     public boolean hasProperty(Element element) {
