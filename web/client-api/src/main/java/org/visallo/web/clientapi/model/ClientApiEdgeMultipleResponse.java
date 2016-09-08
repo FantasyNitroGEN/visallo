@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiEdgeMultipleResponse implements ClientApiObject {
-    private List<ClientApiEdgeWithVertexData> edges = new ArrayList<ClientApiEdgeWithVertexData>();
+    private List<ClientApiEdge> edges = new ArrayList<ClientApiEdge>();
 
-    public List<ClientApiEdgeWithVertexData> getEdges() {
+    public List<ClientApiEdge> getEdges() {
         return edges;
     }
 
