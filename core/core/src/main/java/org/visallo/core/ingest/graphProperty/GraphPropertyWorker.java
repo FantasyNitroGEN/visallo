@@ -226,7 +226,7 @@ public abstract class GraphPropertyWorker {
             return;
         }
         graph.flush();
-        getWorkspaceRepository().updateEntityOnWorkspace(data.getWorkspaceId(), vertex.getId(), false, null, getUser());
+        getWorkspaceRepository().updateEntityOnWorkspace(data.getWorkspaceId(), vertex.getId(), getUser());
     }
 
     protected void pushChangedPropertiesOnWorkQueue(GraphPropertyWorkData data, List<VisalloPropertyUpdate> changedProperties) {

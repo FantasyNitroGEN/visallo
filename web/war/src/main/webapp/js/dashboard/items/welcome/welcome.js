@@ -18,21 +18,19 @@ define([
                 activity: 'hbs!dashboard/items/welcome/activity',
                 admin: 'hbs!dashboard/items/welcome/admin',
                 dashboard: 'hbs!dashboard/items/welcome/dashboard',
-                graph: 'hbs!dashboard/items/welcome/graph',
                 logout: 'hbs!dashboard/items/welcome/logout',
+                products: 'hbs!dashboard/items/welcome/products',
                 search: 'hbs!dashboard/items/welcome/search',
-                workspaces: 'hbs!dashboard/items/welcome/workspaces',
-                map: 'hbs!dashboard/items/welcome/map'
+                workspaces: 'hbs!dashboard/items/welcome/workspaces'
             },
             icons = {
                 activity: 'img/glyphicons/white/glyphicons_023_cogwheels@2x.png',
                 admin: 'img/glyphicons/white/glyphicons_439_wrench@2x.png',
                 dashboard: 'img/visallo-icon@2x.png',
-                graph: 'img/glyphicons/white/glyphicons_326_share@2x.png',
                 logout: 'img/glyphicons/white/glyphicons_387_log_out@2x.png',
+                products: 'img/glyphicons/white/glyphicons_330_blog@2x.png',
                 search: 'img/glyphicons/white/glyphicons_027_search@2x.png',
-                workspaces: 'img/glyphicons/white/glyphicons_153_more_windows@2x.png',
-                map: 'img/glyphicons/white/glyphicons_242_google_maps@2x.png'
+                workspaces: 'img/glyphicons/white/glyphicons_153_more_windows@2x.png'
             },
             menubarExtensions = registry.extensionsForPoint('org.visallo.menubar');
 

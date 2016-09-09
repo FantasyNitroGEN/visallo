@@ -1,0 +1,138 @@
+width: 180px;
+
+.products-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  .products-list { flex: 0 0 auto; }
+  .products-list-items { flex: 1 1 auto; overflow: auto; }
+}
+.products-list {
+  margin-top: 0.5em;
+  .toolbar {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 0.5em;
+  }
+  .new {
+    flex: 0 0 auto;
+  }
+  .search {
+    flex: 1 1 auto;
+  }
+}
+
+.products-list-items {
+  .message {
+    margin: 1em;
+    font-style: italic;
+    color: #999;
+  }
+  .products-list-item {
+    display: flex;
+    overflow: hidden;
+    flex-direction: row;
+    align-items: stretch;
+    position: relative;
+    padding: 5px 1em;
+    padding-left: 1.2em;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #eee;
+    }
+    &.active {
+      background: @blue-color;
+      color: white;
+      .content h2 {
+        color: white;
+      }
+      .buttons .cancel {
+        color: white;
+        text-shadow: none;
+      }
+    }
+    .content {
+      flex: 1 1 auto;
+      order: 1;
+      padding: 0.5em 0;
+
+      h1, h2 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 100%;
+        margin: 0;
+        padding: 0;
+        line-height: 1.4em;
+        font-weight: normal;
+      }
+      h2 {
+        font-size: 85%;
+        font-style: italic;
+        color: #777;
+      }
+    }
+    .preview, .no-preview {
+      order: 2;
+      flex: 0 0 auto;
+      width: 75px;
+      border-radius: 3px;
+      margin-left: 5px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-color: #eee;
+    }
+
+    .buttons {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      top: 50%;
+      right: 0;
+      transition: transform ease-out 0.1s;
+      transform: translate(100%, -50%);
+      .btn {
+        display: block;
+        &:first-child {
+          margin-bottom: 1px;
+        }
+      }
+    }
+    &:hover .buttons {
+      transition: transform ease-out 0.1s 0.2s;
+      transform: translate(-16px, -50%);
+    }
+    &.editing {
+      flex-direction: column;
+      input {
+        margin-bottom: 0;
+      }
+      .preview {
+        display: none;
+      }
+      h2 {
+        display: none;
+      }
+      .buttons {
+        position: static;
+        flex: 0 0 auto;
+        flex-direction: row;
+        justify-content: flex-end;
+        order: 3;
+        transition: none;
+        transform: none;
+        margin-bottom: 0.5em;
+        .btn:first-child {
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+}
+

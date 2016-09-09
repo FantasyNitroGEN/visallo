@@ -132,9 +132,11 @@ define([
             this.on('configurationChanged', this.onConfigurationChanged);
             this.on('addItem', this.onAddItem);
             this.on('drag dragcreate dragstart dropcreate drop dropover dropout resizecreate resizestart resizestop', function(event) {
-                event.stopPropagation();
-                if (event.type === 'resizestart' || event.type === 'dragstart') {
-                    self.removeAddItem();
+                if ($(event.target).is('.grid-stack-item')) {
+                    event.stopPropagation();
+                    if (event.type === 'resizestart' || event.type === 'dragstart') {
+                        self.removeAddItem();
+                    }
                 }
             });
             this.on(document, 'windowResize', this.onWindowResize);

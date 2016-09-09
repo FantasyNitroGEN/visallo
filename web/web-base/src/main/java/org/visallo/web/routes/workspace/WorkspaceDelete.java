@@ -41,7 +41,7 @@ public class WorkspaceDelete implements ParameterizedHandler {
         if (workspace == null) {
             throw new VisalloResourceNotFoundException("Could not find workspace: " + workspaceId);
         }
-        ClientApiWorkspace clientApiWorkspaceBeforeDeletion = workspaceRepository.toClientApi(workspace, user, false, authorizations);
+        ClientApiWorkspace clientApiWorkspaceBeforeDeletion = workspaceRepository.toClientApi(workspace, user, authorizations);
         workspaceRepository.delete(workspace, user);
         workQueueRepository.pushWorkspaceDelete(clientApiWorkspaceBeforeDeletion);
 

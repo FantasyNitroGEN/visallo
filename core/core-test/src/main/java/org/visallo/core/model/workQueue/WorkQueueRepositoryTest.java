@@ -113,7 +113,7 @@ public class WorkQueueRepositoryTest {
         when(workspaceRepository.findById(eq("ws1"), eq(mockUser2))).thenReturn(workspace);
         when(userRepository.findById(eq("mockUser1"))).thenReturn(mockUser1);
         when(authorizationRepository.getGraphAuthorizations(eq(mockUser1), eq("ws1"))).thenReturn(mockUser1Auths);
-        when(workspaceRepository.toClientApi(eq(workspace), eq(mockUser1), eq(true), any())).thenReturn(clientApiWorkspace);
+        when(workspaceRepository.toClientApi(eq(workspace), eq(mockUser1), any())).thenReturn(clientApiWorkspace);
 
         workQueueRepository.pushWorkspaceChange(clientApiWorkspace, previousUsers, changedByUserId, changedBySourceGuid);
 

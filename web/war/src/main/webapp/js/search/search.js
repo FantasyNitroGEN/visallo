@@ -22,7 +22,7 @@ define([
     SearchToolbarExtensionPopover) {
     'use strict';
 
-    var SEARCH_TYPES = ['Visallo', 'Workspace'];
+    var SEARCH_TYPES = ['Visallo'];
 
     registry.documentExtensionPoint('org.visallo.search.toolbar',
         'Add toolbar icons under search query box',

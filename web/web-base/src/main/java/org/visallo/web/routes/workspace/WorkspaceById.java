@@ -39,7 +39,7 @@ public class WorkspaceById implements ParameterizedHandler {
                 throw new VisalloResourceNotFoundException("Could not find workspace: " + workspaceId);
             } else {
                 LOGGER.debug("Successfully found workspace");
-                return workspaceRepository.toClientApi(workspace, user, true, authorizations);
+                return workspaceRepository.toClientApi(workspace, user, authorizations);
             }
         } catch (SecurityVertexiumException ex) {
             throw new VisalloAccessDeniedException("Could not get workspace " + workspaceId, user, workspaceId);

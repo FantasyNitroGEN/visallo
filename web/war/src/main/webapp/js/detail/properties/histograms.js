@@ -647,8 +647,11 @@ define([
             textWidth = getWidthOfNodeByClass('on-bar-text'),
             textNumberWidth = getWidthOfNodeByClass('on-number-bar-text'),
             barRect = this.parentNode.nextSibling,
-            barWidthVal = barRect.width.baseVal,
-            barWidth = barWidthVal.value,
+            barWidthVal = barRect.width.baseVal;
+
+        if (barWidthVal.valueAsString && barWidthVal.valueAsString.indexOf('%') > 0) return;
+
+        var barWidth = barWidthVal.value,
             remainingBarWidth = barWidth - textWidth - tX - PADDING,
             mask0 = this.parentNode.querySelector('defs mask:first-child');
 

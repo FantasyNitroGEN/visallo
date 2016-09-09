@@ -36,13 +36,13 @@ define([
                 return false;
             };
             this.node.ondragenter = function(e) {
-                $(this).addClass('file-hover'); return false;
+                e.preventDefault();
+                return false;
             };
             this.node.ondragleave = function(e) {
                 if (!Privileges.canEDIT) {
                     self.trigger('hideInformation');
                 }
-                $(this).removeClass('file-hover');
                 return false;
             };
             this.node.ondrop = function(e) {
@@ -74,6 +74,11 @@ define([
                                     })
                                 })) :
                                 Promise.resolve();
+
+                        if (VISALLO_MIMETYPES._DataTransferHasVisallo(dt)) {
+                            dt.dropEffect = 'none';
+                            return
+                        }
 
                         folderCheck
                             .then(function() {

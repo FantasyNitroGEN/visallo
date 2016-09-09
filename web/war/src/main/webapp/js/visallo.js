@@ -45,6 +45,24 @@ function(jQuery,
         );
     window.TRANSITION_END = 'transitionend webkitTransitionEnd MSTransitionEnd oTransitionEnd otransitionend';
     window.ANIMATION_END = 'animationend webkitAnimationEnd MSAnimationEnd oAnimationEnd oanimationend';
+    window.VISALLO_MIMETYPES = _.mapObject({
+        _PREFIX: 'application/x-visallo.',
+        _FORMAT: '+json',
+        _DataTransferHasVisallo: (dataTransfer, specificType) => {
+            return _.any(dataTransfer.types, (type) => {
+                if (specificType) return type === specificType
+                return type.indexOf(VISALLO_MIMETYPES._PREFIX) === 0;
+            })
+        },
+
+        ELEMENTS: 'elements',
+        RESOLVED_INFO: 'resolvedInfo'
+    }, (str, key, obj) => {
+        if (key.substring(0, 1) !== '_') {
+            return obj._PREFIX + str + obj._FORMAT;
+        }
+        return str;
+    })
 
     var progress = 0,
         progressBar = null,
@@ -150,20 +168,18 @@ function(jQuery,
 
         previousUrl = newUrl;
         Promise.all(visalloPluginResources.beforeAuth.map(Promise.require))
-            .then(function() {
-                return withDataRequest.dataRequest('user', 'me')
-            })
+            .then(loadUser)
             .then(function(me) {
                 if (!userHasValidPrivileges(me)) {
                     throw new Error('missing privileges')
                 }
-                attachApplication(false);
+                attachApplication(false, null, null, me);
             })
             .catch(function() {
                 attachApplication(true, '', {});
             });
 
-        function attachApplication(loginRequired, message, options) {
+        function attachApplication(loginRequired, message, options, user) {
             if (!event) {
                 $('html')
                     .toggleClass('fullscreenApp', mainApp)
@@ -180,16 +196,18 @@ function(jQuery,
                 updateVisalloLoadingProgress('userinterface');
 
                 $(document).one('loginSuccess', function() {
-                    Promise.all(visalloPluginResources.afterAuth.map(Promise.require))
-                        .catch(function(error) {
-                            $('#login').trigger('showErrorMessage', {
-                                message: i18n('visallo.loading.progress.pluginerror')
+                    loadUser().then(user => {
+                        Promise.all(visalloPluginResources.afterAuth.map(Promise.require))
+                            .catch(function(error) {
+                                $('#login').trigger('showErrorMessage', {
+                                    message: i18n('visallo.loading.progress.pluginerror')
+                                })
+                                throw error;
                             })
-                            throw error;
-                        })
-                        .then(function() {
-                            loginSuccess(true);
-                        })
+                            .then(function() {
+                                loginSuccess({ animate: true, user });
+                            })
+                    })
                 });
 
                 require(['login'], function(Login) {
@@ -217,16 +235,20 @@ function(jQuery,
                     })
                     .then(function() {
                         updateVisalloLoadingProgress('userinterface');
-                        loginSuccess(false);
+                        loginSuccess({ user });
                     })
             }
         }
 
-        function loginSuccess(animate) {
+        function loadUser() {
+            return withDataRequest.dataRequest('user', 'me')
+        }
+
+        function loginSuccess({ animate = false, user }) {
             if (animate && (/^#?[a-z]+=/i).test(location.hash)) {
                 window.location.reload();
             } else {
-                withDataRequest.dataRequest('user', 'me').then(function(me) {
+                Promise.resolve(user || loadUser()).then(function(me) {
                     if (!userHasValidPrivileges(me)) {
                         $('#login .authentication').html(
                             '<span style="color: #D42B34;">' + i18n('visallo.login.missingPrivileges')

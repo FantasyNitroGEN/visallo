@@ -49,13 +49,16 @@ define(['configuration/plugins/registry', 'util/promise'], function(registry) {
 
     return {
         attachComponent: function(type, node, attrs) {
+            var promise;
             if (components[type]) {
                 internalAttach(components[type], node, attrs);
+                promise = Promise.resolve();
             } else {
-                promises[type].then(function(C) {
+                promise = promises[type].then(function(C) {
                     internalAttach(C, node, attrs);
                 });
             }
+            return promise;
         }
     };
 });

@@ -16,14 +16,6 @@ module.exports = function(grunt) {
             libs: ['libs']
         },
 
-        exec: {
-            buildPathFinding: {
-                command: 'npm install -q && node node_modules/gulp/bin/gulp.js compile',
-                stdout: false,
-                cwd: 'node_modules/pathfinding'
-            }
-        },
-
         less: {
             options: {
                 paths: ['less'],
@@ -252,7 +244,7 @@ module.exports = function(grunt) {
       });
 
       grunt.registerTask('deps', 'Install Webapp Dependencies',
-         ['clean:libs', 'exec', 'copy-frontend', 'amdwrap']);
+         ['clean:libs', 'copy-frontend', 'amdwrap']);
 
       grunt.registerTask('test:unit', 'Run JavaScript Unit Tests',
          ['karma:unit']);

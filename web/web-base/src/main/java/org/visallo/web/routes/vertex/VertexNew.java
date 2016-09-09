@@ -136,7 +136,7 @@ public class VertexNew implements ParameterizedHandler {
 
         if (workspaceId != null) {
             Workspace workspace = workspaceRepository.findById(workspaceId, user);
-            workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), true, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), user);
             workQueueRepository.pushUserCurrentWorkspaceChange(user, workspaceId);
             this.graph.flush();
         }

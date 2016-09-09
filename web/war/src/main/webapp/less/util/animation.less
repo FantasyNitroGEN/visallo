@@ -72,6 +72,34 @@
   .animation-fill-mode(both);
 }
 
+.hint-drop-keyframe() {
+    20% {
+      opacity: 0.9;
+      .scale(1.1);
+    }
+    50% {
+      opacity: 0.5;
+      .scale(1.0);
+    }
+    70% {
+      opacity: 0.9;
+      .scale(1.05);
+    }
+}
+
+@-webkit-keyframes hint-drop {.hint-drop-keyframe;}
+@-moz-keyframes hint-drop {.hint-drop-keyframe;}
+@-ms-keyframes hint-drop {.hint-drop-keyframe;}
+@-o-keyframes hint-drop {.hint-drop-keyframe;}
+@keyframes hint-drop {.hint-drop-keyframe;}
+
+.hint-drop(@duration:1s) {
+  .animation-duration(@duration);
+  .animation-iteration-count(1);
+  .animation-name(hint-drop);
+  .animation-fill-mode(both);
+}
+
 .fade-keyframe() {
     0%, 20%, 100% {background:inherit;}
     10%, 30%, 70% {background:fadeout(@blue-color, 80%);}
@@ -144,5 +172,9 @@
 
 .pop-dramatic {
   .pop-large(1s);
+}
+
+.hint-drop-normal {
+  .hint-drop(1s);
 }
 

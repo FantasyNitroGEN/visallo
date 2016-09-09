@@ -3,7 +3,15 @@
 define(['util/promise'], function(Promise) {
     'use strict';
 
+    RequestFailed.prototype = Object.create(Error.prototype);
+
     return ajax;
+
+    function RequestFailed({json, status = '', statusText = ''}) {
+        this.json = json;
+        this.status = status;
+        this.statusText = statusText;
+    }
 
     function paramPair(key, value) {
         return key + '=' + encodeURIComponent(value);
@@ -95,7 +103,7 @@ define(['util/promise'], function(Promise) {
                                 }
                                 fulfill(json);
                             } catch(e) {
-                                reject(e && e.message);
+                                reject(e);
                             }
                         } else {
                             fulfill(text)
@@ -104,14 +112,12 @@ define(['util/promise'], function(Promise) {
                         if (r.responseText && (/^\s*{/).test(r.responseText)) {
                             try {
                                 var errorJson = JSON.parse(r.responseText);
-                                reject(errorJson);
+                                reject(new RequestFailed({ json: errorJson }));
                                 return;
                             } catch(e) { /*eslint no-empty:0 */ }
                         }
-                        reject({
-                            status: r.status,
-                            statusText: r.statusText
-                        });
+                        const { status, statusText } = r;
+                        reject(new RequestFailed({ status, statusText }))
                     }
                 };
                 r.onerror = function() {

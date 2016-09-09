@@ -38,7 +38,7 @@ define([
                     } else {
                         var delay = 1000;
                         _.delay(function() {
-                            reject(new Error('Element not rendered after ' + delay + 'ms'));
+                            throw new Error('Element not rendered after ' + delay + 'ms');
                         }, delay);
                         self.on('listRendered', function() {
                             tries = 0;
@@ -80,7 +80,6 @@ define([
                 .catch(function() {
                     $list.css({ height: originalHeight, visibility: 'visible' })
                 })
-                .done();
         });
 
         this.onObjectsSelected = function(event, data) {

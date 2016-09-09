@@ -15,21 +15,8 @@ define([
             var self = this;
             this.on('applicationReady currentUserVisalloDataUpdated', function() {
                 this.trigger('registerKeyboardShortcuts', {
-                    scope: ['graph.help.scope', 'map.help.scope'].map(i18n),
+                    scope: ['search.help.scope'].map(i18n),
                     shortcuts: {
-                        'meta-a': { fire: 'selectAll', desc: i18n('visallo.help.select_all') },
-                        'meta-e': { fire: 'selectConnected', desc: i18n('visallo.help.select_connected') },
-                        'delete': {
-                            fire: 'deleteSelected',
-                            desc: i18n('visallo.help.delete')
-                        }
-                    }
-                });
-
-                this.trigger('registerKeyboardShortcuts', {
-                    scope: ['graph.help.scope', 'map.help.scope', 'search.help.scope'].map(i18n),
-                    shortcuts: {
-                        'alt-r': { fire: 'addRelatedItems', desc: i18n('visallo.help.add_related') },
                         'alt-t': { fire: 'searchTitle', desc: i18n('visallo.help.search_title') },
                         'alt-s': { fire: 'searchRelated', desc: i18n('visallo.help.search_related') }
                     }

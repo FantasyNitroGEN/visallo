@@ -4,7 +4,6 @@ define([], function() {
 
     var URL_TYPES = {
             FULLSCREEN: 'v',
-            ADD: 'add',
             ADMIN: 'admin',
             REDIRECT: 'redirect',
             TOOLS: 'tools'
@@ -36,7 +35,7 @@ define([], function() {
 
             parametersInUrl: function(url) {
                 var type = _.invert(URL_TYPES),
-                    match = url.match(/#(v|add|admin|redirect|tools)=(.+?)(?:&w=(.*))?$/);
+                    match = url.match(/#(v|admin|redirect|tools)=(.+?)(?:&w=(.*))?$/);
 
                 if (match && match.length === 4) {
                     if (match[1] === URL_TYPES.ADMIN) {

@@ -1,4 +1,3 @@
-
 define([
     '../util/ajax',
     './storeHelper'
@@ -61,6 +60,9 @@ define([
                 .then(function(query) {
                     return ajax('POST', query.url, query.parameters);
                 })
+                .tap(function({ elements }) {
+                    storeHelper.putSearchResults(elements)
+                })
         },
 
         'geo-search': function(lat, lon, radius) {
@@ -97,9 +99,7 @@ define([
             return ajax('GET', '/vertex/details', { vertexId: vertexId });
         },
 
-        multiple: function(options) {
-            return ajax('POST', '/vertex/multiple', options);
-        },
+        multiple: storeHelper.createStoreAccessorOrDownloader('vertex'),
 
         properties: function(vertexId) {
             return ajax('GET', '/vertex/properties', {
@@ -112,7 +112,7 @@ define([
                 vertexId: vertexId,
                 propertyName: name,
                 propertyKey: key,
-                visibilitySource: visibility
+                visibilitySource: visibility || ''
             });
         },
 
@@ -175,14 +175,9 @@ define([
             });
         },
 
-        store: storeHelper.createStoreAccessorOrDownloader(
-            'vertex', 'vertexIds', 'vertices',
-            function(toRequest) {
-                return api.multiple({
-                    vertexIds: toRequest
-                });
-            }
-        ),
+        store: function(options) {
+            return api.multiple(options);
+        },
 
         uploadImage: function(vertexId, file) {
             return ajax('POST', '/vertex/upload-image?' +
@@ -199,7 +194,7 @@ define([
                 } else if (justification.sourceInfo) {
                     data.sourceInfo = JSON.stringify(justification.sourceInfo);
                 }
-            }));
+            })).tap(storeHelper.updateElement);
         },
 
         importFiles: function(files, conceptValue, visibilitySource) {
@@ -244,7 +239,7 @@ define([
             return ajax('POST', '/vertex/visibility', {
                 graphVertexId: vertexId,
                 visibilitySource: visibilitySource
-            });
+            }).tap(storeHelper.updateElement);
         },
 
         setPropertyVisibility: function(vertexId, property) {
@@ -279,7 +274,7 @@ define([
                 if (optionalWorkspaceId) {
                     params.workspaceId = optionalWorkspaceId;
                 }
-            }));
+            })).tap(storeHelper.updateElement);
         },
 
         resolveTerm: function(params) {

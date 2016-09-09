@@ -1,7 +1,5 @@
 package org.visallo.web.routes.workspace;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
@@ -18,12 +16,12 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.VisalloResponse;
-import org.visallo.web.clientapi.model.*;
+import org.visallo.web.clientapi.model.ClientApiWorkspace;
+import org.visallo.web.clientapi.model.ClientApiWorkspaceUpdateData;
+import org.visallo.web.clientapi.model.WorkspaceAccess;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 
-import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -46,7 +44,7 @@ public class WorkspaceUpdate implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiSuccess handle(
+    public ClientApiWorkspace handle(
             @Required(name = "data") ClientApiWorkspaceUpdateData updateData,
             @ActiveWorkspaceId String workspaceId,
             @SourceGuid String sourceGuid,
@@ -63,9 +61,6 @@ public class WorkspaceUpdate implements ParameterizedHandler {
             setTitle(workspace, updateData.getTitle(), user);
         }
 
-        updateEntities(workspace, updateData.getEntityUpdates(), user);
-
-        deleteEntities(workspace, updateData.getEntityDeletes(), user);
 
         updateUsers(workspace, updateData.getUserUpdates(), resourceBundle, user);
 
@@ -73,17 +68,16 @@ public class WorkspaceUpdate implements ParameterizedHandler {
         ClientApiWorkspace clientApiWorkspaceAfterUpdateButBeforeDelete = workspaceRepository.toClientApi(
                 workspace,
                 user,
-                true,
                 authorizations
         );
         List<ClientApiWorkspace.User> previousUsers = clientApiWorkspaceAfterUpdateButBeforeDelete.getUsers();
         deleteUsers(workspace, updateData.getUserDeletes(), user);
 
-        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true, authorizations);
+        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, authorizations);
 
         workQueueRepository.pushWorkspaceChange(clientApiWorkspace, previousUsers, user.getUserId(), sourceGuid);
 
-        return VisalloResponse.SUCCESS;
+        return workspaceRepository.toClientApi(workspace, user, authorizations);
     }
 
     private void setTitle(Workspace workspace, String title, User authUser) {
@@ -138,28 +132,4 @@ public class WorkspaceUpdate implements ParameterizedHandler {
         }
     }
 
-    private void deleteEntities(Workspace workspace, List<String> entityIdsToDelete, User authUser) {
-        workspaceRepository.softDeleteEntitiesFromWorkspace(workspace, entityIdsToDelete, authUser);
-    }
-
-    private void updateEntities(
-            Workspace workspace,
-            List<ClientApiWorkspaceUpdateData.EntityUpdate> entityUpdates,
-            User authUser
-    ) {
-        List<WorkspaceRepository.Update> updates = Lists.transform(
-                entityUpdates,
-                new Function<ClientApiWorkspaceUpdateData.EntityUpdate, WorkspaceRepository.Update>() {
-                    @Nullable
-                    @Override
-                    public WorkspaceRepository.Update apply(ClientApiWorkspaceUpdateData.EntityUpdate u) {
-                        String vertexId = u.getVertexId();
-                        GraphPosition graphPosition = u.getGraphPosition();
-                        String graphLayoutJson = u.getGraphLayoutJson();
-                        return new WorkspaceRepository.Update(vertexId, true, graphPosition, graphLayoutJson);
-                    }
-                }
-        );
-        workspaceRepository.updateEntitiesOnWorkspace(workspace, updates, authUser);
-    }
 }

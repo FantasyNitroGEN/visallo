@@ -16,43 +16,8 @@ define([
             createItems = function() {
                 return [
                     {
-                        cls: 'requires-EDIT',
-                        label: i18n('vertex.contextmenu.connect'),
-                        shortcut: 'CTRL+drag',
-                        event: 'startVertexConnection',
-                        selection: 1,
-                        args: {
-                            connectionType: 'CreateConnection'
-                        },
-                        shouldDisable: function(selection, vertexId, target) {
-                            return $(target).closest('.graph-pane').length === 0;
-                        }
-                    },
-
-                    {
-                        label: i18n('vertex.contextmenu.find_path'),
-                        shortcut: 'CTRL+drag',
-                        event: 'startVertexConnection',
-                        selection: 1,
-                        args: {
-                            connectionType: 'FindPath'
-                        },
-                        shouldDisable: function(selection, vertexId, target) {
-                            return $(target).closest('.graph-pane').length === 0;
-                        }
-                    },
-
-                    {
                         label: i18n('vertex.contextmenu.open'),
                         submenu: [
-                            {
-                                label: i18n('vertex.contextmenu.open.preview'),
-                                subtitle: i18n('vertex.contextmenu.open.preview.subtitle'),
-                                event: 'previewVertex',
-                                shouldDisable: function(selection, vertexId, target) {
-                                    return $(target).closest('.graph-pane').length === 0;
-                                }
-                            },
                             {
                                 label: i18n('vertex.contextmenu.open.fullscreen'),
                                 subtitle: i18n('vertex.contextmenu.open.fullscreen.subtitle'),
@@ -60,9 +25,6 @@ define([
                             }
                         ]
                     },
-
-                    DIVIDER,
-
                     {
                         label: i18n('vertex.contextmenu.search'),
                         submenu: [
@@ -78,15 +40,6 @@ define([
                                 }
                             }
                         ]
-                    },
-
-                    {
-                        label: i18n('vertex.contextmenu.add_related'),
-                        event: 'addRelatedItems',
-                        shortcut: 'alt+r',
-                        shouldDisable: function(selection, vertexId, target) {
-                            return !visalloData.currentWorkspaceEditable || $(target).closest('.graph-pane').length === 0;
-                        }
                     },
 
                     DIVIDER,
@@ -111,7 +64,6 @@ define([
 
         this.after('teardown', function() {
             this.$menu.remove();
-            $('.draggable-wrapper').remove();
             $(document).off('.vertexMenu');
         });
 
@@ -175,12 +127,7 @@ define([
 
         this.setupMenu = function(vertex) {
             var self = this,
-                title = F.string.truncate(F.vertex.title(vertex), 3),
-                wrapper = $('.draggable-wrapper');
-
-            if (wrapper.length === 0) {
-                wrapper = $('<div class="draggable-wrapper"/>').appendTo(document.body);
-            }
+                title = F.string.truncate(F.vertex.title(vertex), 3);
 
             this.$node.append(template({
                 items: this.appendMenuExtensions(vertex, createItems()),

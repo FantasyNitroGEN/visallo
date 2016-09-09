@@ -1,15 +1,18 @@
 package model.workspace;
 
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Metadata;
+import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.*;
-import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
+import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.model.workspace.WorkspaceUser;
 import org.visallo.web.clientapi.model.*;
 
 import java.util.ArrayList;
@@ -197,102 +200,6 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
                 startingEdgeCount + 2,
                 count(graph.getEdges(allAuths))
         ); // +2 = the edges between workspaces and users
-    }
-
-    @Test
-    public void testEntities() {
-        Authorizations allAuths = graph.createAuthorizations(WorkspaceRepository.VISIBILITY_STRING);
-        int startingVertexCount = count(graph.getVertices(allAuths));
-        int startingEdgeCount = count(graph.getEdges(allAuths));
-
-        String workspaceId = "testWorkspaceId";
-        idGenerator.push(workspaceId);
-        idGenerator.push(workspaceId + "_to_" + user1.getUserId());
-
-        Workspace workspace = workspaceRepository.add("workspace1", user1);
-        assertEquals(startingVertexCount + 1, count(graph.getVertices(allAuths))); // +1 = the workspace vertex
-        assertEquals(
-                startingEdgeCount + 1,
-                count(graph.getEdges(allAuths))
-        ); // +1 = the edges between workspaces and users
-
-        try {
-            workspaceRepository.updateEntityOnWorkspace(workspace, entity1Vertex.getId(), true, GRAPH_POSITION, user2);
-            fail("user2 should not have write access to workspace");
-        } catch (VisalloAccessDeniedException ex) {
-            assertEquals(user2, ex.getUser());
-            assertEquals(workspace.getWorkspaceId(), ex.getResourceId());
-        }
-
-        idGenerator.push(workspaceId + "_to_" + entity1Vertex.getId());
-        workspaceRepository.updateEntityOnWorkspace(
-                workspace,
-                entity1Vertex.getId(),
-                true,
-                new GraphPosition(100, 200),
-                user1
-        );
-        assertEquals(startingVertexCount + 1, count(graph.getVertices(allAuths))); // +1 = the workspace vertex
-        assertEquals(
-                startingEdgeCount + 2,
-                count(graph.getEdges(allAuths))
-        ); // +2 = the edges between workspaces, users, and entities
-
-        workspaceRepository.updateEntityOnWorkspace(
-                workspace,
-                entity1Vertex.getId(),
-                true,
-                new GraphPosition(200, 300),
-                user1
-        );
-        assertEquals(startingVertexCount + 1, count(graph.getVertices(allAuths))); // +1 = the workspace vertex
-        assertEquals(
-                startingEdgeCount + 2,
-                count(graph.getEdges(allAuths))
-        ); // +2 = the edges between workspaces, users, and entities
-
-        List<WorkspaceEntity> entities = workspaceRepository.findEntities(workspace, user1);
-        assertEquals(1, entities.size());
-        assertEquals(entity1Vertex.getId(), entities.get(0).getEntityVertexId());
-        assertEquals(200, entities.get(0).getGraphPositionX().intValue());
-        assertEquals(300, entities.get(0).getGraphPositionY().intValue());
-
-        try {
-            workspaceRepository.findEntities(workspace, user2);
-            fail("user2 should not have read access to workspace");
-        } catch (VisalloAccessDeniedException ex) {
-            assertEquals(user2, ex.getUser());
-            assertEquals(workspace.getWorkspaceId(), ex.getResourceId());
-        }
-
-        try {
-            workspaceRepository.softDeleteEntitiesFromWorkspace(
-                    workspace,
-                    Lists.newArrayList(entity1Vertex.getId()),
-                    user2
-            );
-            fail("user2 should not have write access to workspace");
-        } catch (VisalloAccessDeniedException ex) {
-            assertEquals(user2, ex.getUser());
-            assertEquals(workspace.getWorkspaceId(), ex.getResourceId());
-        }
-
-        workspaceRepository.softDeleteEntitiesFromWorkspace(
-                workspace,
-                Lists.newArrayList(entity1Vertex.getId()),
-                user1
-        );
-        assertEquals(startingVertexCount + 1, count(graph.getVertices(allAuths))); // +1 = the workspace vertex
-        List<Edge> edgesAfterDelete = toList(graph.getEdges(allAuths));
-        assertEquals(startingEdgeCount + 2, count(edgesAfterDelete)); // +1 = the edges between workspaces, users
-        boolean foundRemovedEdge = false;
-        for (Edge edge : edgesAfterDelete) {
-            if (edge.getLabel().equals(VertexiumWorkspaceRepository.WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI)) {
-                assertEquals(false, WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.getPropertyValue(edge));
-                foundRemovedEdge = true;
-            }
-        }
-        assertTrue(foundRemovedEdge);
     }
 
     @Test

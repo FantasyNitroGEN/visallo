@@ -61,6 +61,16 @@
             <artifactId>visallo-web-admin-import-rdf</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-product-graph</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-product-map</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Graph Property Workers -->
         <dependency>

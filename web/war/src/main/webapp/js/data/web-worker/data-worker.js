@@ -14,6 +14,7 @@ var BASE_URL = '../../..',
     needsInitialSetup = true,
     publicData = {};
 
+var timer;
 onmessage = function(event) {
     if (needsInitialSetup) {
         needsInitialSetup = false;
@@ -23,10 +24,8 @@ onmessage = function(event) {
 
     require([
         'underscore',
-        'util/promise',
-        'data/web-worker/util/store'
-    ], function(_, Promise, store) {
-        self.store = store;
+        'util/promise'
+    ], function(_, Promise) {
         onMessageHandler(event);
     })
 };
@@ -36,6 +35,19 @@ function setupAll(data) {
     setupWebsocket(data);
     setupRequireJs(data);
     documentExtensionPoints();
+    setupRedux(data);
+}
+
+function setupRedux(data) {
+    require(['data/web-worker/store'], function(store) {
+        try {
+            var state = store.getStore().getState()
+            dispatchMain('reduxStoreInit', { state });
+        } catch(e) {
+            console.error(e)
+            throw e;
+        }
+    });
 }
 
 function setupConsole() {
@@ -232,19 +244,4 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
             xmlHttpRequest.setRequestHeader('graphTraceEnable', 'true');
         }
     }
-}
-
-function ajaxPostfilter(xmlHttpRequest, jsonResponse, request) {
-    if (!jsonResponse) {
-        return;
-    }
-
-    var params = request.parameters,
-        workspaceId = params && params.workspaceId;
-
-    if (!workspaceId) {
-        workspaceId = publicData.currentWorkspaceId;
-    }
-
-    store.checkAjaxForPossibleCaching(xmlHttpRequest, jsonResponse, workspaceId, request);
 }

@@ -7,9 +7,8 @@
   top: @padding;
   margin-right: @padding;
   opacity: 0.9;
-  //.transition(opacity 0.2s ease-in-out);
-  //&:hover { .opacity(100); }
-  z-index: @graph-zIndex + 1;
+  .transition(transform 0.1s ease-out);
+  z-index: @graph-zIndex;
 
   @bg: #929292;
   @active-bg: #575757;
@@ -53,6 +52,7 @@
   .panner, button {
       transition: background-color ease-in-out 0.1s;
   }
+  .panner.active,
   .panner:hover {
       background-color: @active-bg;
   }
