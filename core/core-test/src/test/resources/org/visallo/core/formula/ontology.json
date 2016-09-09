@@ -784,7 +784,8 @@
          "displayName":"Duration",
          "userVisible":true,
          "searchable":true,
-         "dataType":"double"
+         "dataType":"double",
+         "displayType":"duration"
       },
       {
          "title":"http://visallo.org/dev#eyecolor",

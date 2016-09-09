@@ -274,7 +274,9 @@ public abstract class UserRepository {
                 break;
             }
             for (User user : users) {
-                if (lowerCaseQuery == null || user.getDisplayName().toLowerCase().contains(lowerCaseQuery)) {
+                if (lowerCaseQuery == null
+                        || user.getDisplayName().toLowerCase().contains(lowerCaseQuery)
+                        || user.getUsername().toLowerCase().contains(lowerCaseQuery)) {
                     foundUsers.add(user);
                 }
             }

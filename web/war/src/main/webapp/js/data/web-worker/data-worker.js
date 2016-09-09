@@ -7,6 +7,8 @@
 /*global importScripts:false*/
 
 /*eslint strict:0*/
+this.importScripts('../../../libs/babel-polyfill/dist/polyfill.min.js');
+
 var BASE_URL = '../../..',
     self = this,
     needsInitialSetup = true,

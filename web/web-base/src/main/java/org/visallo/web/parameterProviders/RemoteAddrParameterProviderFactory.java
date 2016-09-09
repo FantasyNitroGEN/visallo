@@ -6,7 +6,7 @@ import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.web.AuthenticationHandler;
+import org.visallo.web.util.RemoteAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,7 +23,7 @@ public class RemoteAddrParameterProviderFactory extends ParameterProviderFactory
         parameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-                return AuthenticationHandler.getRemoteAddr(request);
+                return RemoteAddressUtil.getClientIpAddr(request);
             }
         };
     }

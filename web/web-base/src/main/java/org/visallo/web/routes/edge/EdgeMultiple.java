@@ -4,21 +4,25 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.FetchHint;
+import org.vertexium.Graph;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import org.visallo.core.util.VertexiumUtil;
+import org.visallo.web.clientapi.model.ClientApiEdge;
 import org.visallo.web.clientapi.model.ClientApiEdgeMultipleResponse;
-import org.visallo.web.clientapi.model.ClientApiEdgeWithVertexData;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.AuthorizationsParameterProviderFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 import static org.vertexium.util.IterableUtils.toIterable;
 import static org.vertexium.util.IterableUtils.toList;
@@ -60,6 +64,7 @@ public class EdgeMultiple implements ParameterizedHandler {
     /**
      * This is overridable so web plugins can modify the resulting set of edges.
      */
+    @SuppressWarnings("UnusedParameters")
     protected ClientApiEdgeMultipleResponse getEdges(
             HttpServletRequest request,
             String workspaceId,
@@ -68,19 +73,9 @@ public class EdgeMultiple implements ParameterizedHandler {
     ) {
         List<Edge> graphEdges = toList(graph.getEdges(edgeIds, FetchHint.ALL, authorizations));
         ClientApiEdgeMultipleResponse edgeResult = new ClientApiEdgeMultipleResponse();
-        Set<String> vertexIds = VertexiumUtil.getAllVertexIdsOnEdges(graphEdges);
-        Map<String, Vertex> vertices = VertexiumUtil.verticesToMapById(graph.getVertices(vertexIds, authorizations));
         for (Edge e : graphEdges) {
-            Vertex source = vertices.get(e.getVertexId(Direction.OUT));
-            Vertex destination = vertices.get(e.getVertexId(Direction.IN));
-            ClientApiEdgeWithVertexData clientApiEdgeWithVertexData = ClientApiConverter.toClientApiEdgeWithVertexData(
-                    e,
-                    source,
-                    destination,
-                    workspaceId,
-                    authorizations
-            );
-            edgeResult.getEdges().add(clientApiEdgeWithVertexData);
+            ClientApiEdge clientApiEdge = ClientApiConverter.toClientApiEdge(e, workspaceId);
+            edgeResult.getEdges().add(clientApiEdge);
         }
         return edgeResult;
     }

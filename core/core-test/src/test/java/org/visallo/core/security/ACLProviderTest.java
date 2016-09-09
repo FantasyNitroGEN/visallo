@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -15,7 +16,6 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.PropertyMetadata;
-import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
@@ -66,6 +66,8 @@ public class ACLProviderTest {
     @Mock
     private Relationship edgeRelationship;
     @Mock
+    private Property elementConceptTypeProperty;
+    @Mock
     private Property elementProperty1;
     @Mock
     private Property elementProperty2a;
@@ -87,8 +89,6 @@ public class ACLProviderTest {
     private User userWithCommentDeleteAny;
     @Mock
     private PrivilegeRepository privilegeRepository;
-    @Mock
-    private AuthorizationRepository authorizationRepository;
 
     private ACLProvider aclProvider;
 
@@ -99,8 +99,7 @@ public class ACLProviderTest {
                 graph,
                 userRepository,
                 ontologyRepository,
-                privilegeRepository,
-                authorizationRepository
+                privilegeRepository
         ));
 
         when(user1.getUserId()).thenReturn("USER_1");
@@ -139,7 +138,8 @@ public class ACLProviderTest {
         when(ontologyProperty4.getTitle()).thenReturn("prop4");
 
         List<Property> allProperties = ImmutableList.of(
-                elementProperty1, elementProperty2a, elementProperty2b, elementProperty3);
+                elementConceptTypeProperty, elementProperty1, elementProperty2a, elementProperty2b, elementProperty3
+        );
 
         when(vertex.getId()).thenReturn("VERTEX_1");
         when(vertex.getPropertyValue(VisalloProperties.CONCEPT_TYPE.getPropertyName())).thenReturn("vertex");
@@ -159,6 +159,10 @@ public class ACLProviderTest {
 
         when(graph.getVertex(eq("VERTEX_1"), any(Authorizations.class))).thenReturn(vertex);
         when(graph.getEdge(eq("EDGE_1"), any(Authorizations.class))).thenReturn(edge);
+
+        when(elementConceptTypeProperty.getName()).thenReturn(VisalloProperties.CONCEPT_TYPE.getPropertyName());
+        when(elementConceptTypeProperty.getKey()).thenReturn(ElementMutation.DEFAULT_KEY);
+        when(elementConceptTypeProperty.getValue()).thenReturn("vertex");
 
         when(elementProperty1.getName()).thenReturn("prop1");
         when(elementProperty1.getKey()).thenReturn("keyA");
@@ -304,36 +308,50 @@ public class ACLProviderTest {
         when(aclProvider.canDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
     }
 
+    @Test
+    public void appendACLShouldNotFailIfElementCannotBeFound() {
+        ClientApiVertex apiElement = new ClientApiVertex();
+        apiElement.setId("notFoundId");
+
+        aclProvider.appendACL(apiElement, user1);
+
+        assertThat(apiElement.getUpdateable(), equalTo(false));
+        assertThat(apiElement.getDeleteable(), equalTo(false));
+        assertThat(apiElement.getAcl().isAddable(), equalTo(true));
+        assertThat(apiElement.getAcl().isUpdateable(), equalTo(false));
+        assertThat(apiElement.getAcl().isDeleteable(), equalTo(false));
+    }
+
     private void appendAclShouldPopulateClientApiElementAcl(Element element) {
-        when(aclProvider.canUpdateElement(element, user1)).thenReturn(true);
-        when(aclProvider.canDeleteElement(element, user1)).thenReturn(true);
-
-        when(aclProvider.canAddProperty(element, "keyA", "prop1", user1)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(element, "keyA", "prop1", user1)).thenReturn(false);
-        when(aclProvider.canDeleteProperty(element, "keyA", "prop1", user1)).thenReturn(true);
-
-        when(aclProvider.canAddProperty(element, "keyA", "prop2", user1)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(element, "keyA", "prop2", user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(element, "keyA", "prop2", user1)).thenReturn(false);
-
-        when(aclProvider.canAddProperty(element, "keyB", "prop2", user1)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(element, "keyB", "prop2", user1)).thenReturn(false);
-        when(aclProvider.canDeleteProperty(element, "keyB", "prop2", user1)).thenReturn(true);
-
-        when(aclProvider.canAddProperty(element, "keyA", "prop3", user1)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(element, "keyA", "prop3", user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(element, "keyA", "prop3", user1)).thenReturn(false);
-
-        when(aclProvider.canAddProperty(element, null, "prop4", user1)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(element, null, "prop4", user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(element, null, "prop4", user1)).thenReturn(true);
-
         ClientApiElement apiElement = null;
         if (element instanceof Vertex) {
             apiElement = ClientApiConverter.toClientApiVertex((Vertex) element, null, null);
         } else if (element instanceof Edge) {
             apiElement = ClientApiConverter.toClientApiEdge((Edge) element, null);
         }
+
+        when(aclProvider.canUpdateElement(apiElement, user1)).thenReturn(true);
+        when(aclProvider.canDeleteElement(apiElement, user1)).thenReturn(true);
+
+        when(aclProvider.canAddProperty(apiElement, "keyA", "prop1", user1)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(apiElement, "keyA", "prop1", user1)).thenReturn(false);
+        when(aclProvider.canDeleteProperty(apiElement, "keyA", "prop1", user1)).thenReturn(true);
+
+        when(aclProvider.canAddProperty(apiElement, "keyA", "prop2", user1)).thenReturn(false);
+        when(aclProvider.canUpdateProperty(apiElement, "keyA", "prop2", user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(apiElement, "keyA", "prop2", user1)).thenReturn(false);
+
+        when(aclProvider.canAddProperty(apiElement, "keyB", "prop2", user1)).thenReturn(true);
+        when(aclProvider.canUpdateProperty(apiElement, "keyB", "prop2", user1)).thenReturn(false);
+        when(aclProvider.canDeleteProperty(apiElement, "keyB", "prop2", user1)).thenReturn(true);
+
+        when(aclProvider.canAddProperty(apiElement, "keyA", "prop3", user1)).thenReturn(false);
+        when(aclProvider.canUpdateProperty(apiElement, "keyA", "prop3", user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(apiElement, "keyA", "prop3", user1)).thenReturn(false);
+
+        when(aclProvider.canAddProperty(apiElement, null, "prop4", user1)).thenReturn(false);
+        when(aclProvider.canUpdateProperty(apiElement, null, "prop4", user1)).thenReturn(true);
+        when(aclProvider.canDeleteProperty(apiElement, null, "prop4", user1)).thenReturn(true);
 
         apiElement = (ClientApiElement) aclProvider.appendACL(apiElement, user1);
 

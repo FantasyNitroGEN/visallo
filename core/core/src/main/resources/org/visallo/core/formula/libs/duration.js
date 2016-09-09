@@ -170,3 +170,10 @@ var Duration = (function () {
 if (typeof module !== "undefined") {
    module.exports = Duration;
 }
+
+var window;
+if (window) {
+    define([], function() {
+        return Duration;
+    });
+}

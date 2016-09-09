@@ -9,6 +9,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.Authorizations;
 import org.vertexium.Element;
+import org.vertexium.Graph;
+import org.vertexium.Visibility;
+import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
@@ -26,15 +29,19 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FormulaEvaluatorTest {
-
     private FormulaEvaluator evaluator;
     private FormulaEvaluator.UserContext userContext;
+    private Graph graph;
+    private Authorizations authorizations;
 
     @Mock
     private OntologyRepository ontologyRepository;
 
     @Before
-    public void setUp() throws Exception {
+    public void before() throws Exception {
+        graph = InMemoryGraph.create();
+        authorizations = graph.createAuthorizations();
+
         Map<String, String> map = new HashMap<>();
         ConfigurationLoader configurationLoader = new HashMapConfigurationLoader(map);
         Configuration configuration = configurationLoader.createConfiguration();
@@ -60,6 +67,9 @@ public class FormulaEvaluatorTest {
 
             @Override
             protected String toJson(Element element, String workspaceId, Authorizations authorizations) {
+                if (element != null) {
+                    return super.toJson(element, workspaceId, authorizations);
+                }
                 return vertexJson;
             }
         };
@@ -78,17 +88,30 @@ public class FormulaEvaluatorTest {
 
     @Test
     public void testEvaluateTitleFormula() {
-        assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, null));
+        assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, authorizations));
     }
 
     @Test
     public void testEvaluateSubtitleFormula() {
-        assertEquals("Prop C Value", evaluator.evaluateSubtitleFormula(null, userContext, null));
+        assertEquals("Prop C Value", evaluator.evaluateSubtitleFormula(null, userContext, authorizations));
     }
 
     @Test
     public void testEvaluateTimeFormula() {
-        assertEquals("2014-11-20", evaluator.evaluateTimeFormula(null, userContext, null));
+        assertEquals("2014-11-20", evaluator.evaluateTimeFormula(null, userContext, authorizations));
+    }
+
+    @Test
+    public void testDuration() {
+        String propertyKey = "pkey";
+        String propertyName = "http://visallo.org/dev#duration";
+
+        Element element = graph.prepareVertex("v1", new Visibility(""))
+                .addPropertyValue(propertyKey, propertyName, 1234, new Visibility(""))
+                .save(authorizations);
+        graph.flush();
+
+        assertEquals("20m 34s", evaluator.evaluatePropertyDisplayFormula(element, propertyKey, propertyName, userContext, authorizations));
     }
 
     @Test
@@ -99,7 +122,7 @@ public class FormulaEvaluatorTest {
         block.acquire(threads.length);
 
         // prime the main thread for evaluation
-        assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, null));
+        assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, authorizations));
 
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread(new Runnable() {
@@ -112,7 +135,7 @@ public class FormulaEvaluatorTest {
                         block.acquire(); // wait to run the look
                         for (int i = 0; i < 20; i++) {
                             System.out.println(Thread.currentThread().getName() + " - " + i);
-                            assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, null));
+                            assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, authorizations));
                         }
                     } catch (Exception ex) {
                         throw new RuntimeException("Could not run", ex);
@@ -140,7 +163,7 @@ public class FormulaEvaluatorTest {
         }
 
         // make sure the main threads evaluator isn't broken.
-        assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, null));
+        assertEquals("Prop A Value, Prop B Value", evaluator.evaluateTitleFormula(null, userContext, authorizations));
         evaluator.close();
     }
 }

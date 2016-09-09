@@ -29,6 +29,8 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
     private static final String VISALLO_TIME_ZONE_HEADER_NAME = "Visallo-TimeZone";
     private static final String TIME_ZONE_ATTRIBUTE_NAME = "timeZone";
     private static final String TIME_ZONE_PARAMETER_NAME = "timeZone";
+    static final String USER_REQUEST_ATTRIBUTE_NAME = "user";
+    static final String WORKSPACE_ID_ATTRIBUTE_NAME = "workspaceId";
     private final UserRepository userRepository;
     private final Configuration configuration;
 
@@ -38,11 +40,11 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
     }
 
     protected static String getActiveWorkspaceIdOrDefault(final HttpServletRequest request) {
-        String workspaceId = (String) request.getAttribute("workspaceId");
+        String workspaceId = (String) request.getAttribute(WORKSPACE_ID_ATTRIBUTE_NAME);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
             workspaceId = request.getHeader(VISALLO_WORKSPACE_ID_HEADER_NAME);
             if (workspaceId == null || workspaceId.trim().length() == 0) {
-                workspaceId = getOptionalParameter(request, "workspaceId");
+                workspaceId = getOptionalParameter(request, WORKSPACE_ID_ATTRIBUTE_NAME);
                 if (workspaceId == null || workspaceId.trim().length() == 0) {
                     return null;
                 }
@@ -204,12 +206,16 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             HttpServletRequest request,
             UserRepository userRepository
     ) {
-        ProxyUser user = (ProxyUser) request.getAttribute("user");
+        ProxyUser user = (ProxyUser) request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME);
         if (user != null) {
             return user;
         }
-        user = new ProxyUser(CurrentUser.getUserId(request), userRepository);
-        request.setAttribute("user", user);
+        String userId = CurrentUser.getUserId(request);
+        if (userId == null) {
+            return null;
+        }
+        user = new ProxyUser(userId, userRepository);
+        request.setAttribute(USER_REQUEST_ATTRIBUTE_NAME, user);
         return user;
     }
 

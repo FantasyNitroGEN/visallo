@@ -76,6 +76,7 @@ module.exports = {
         "no-proto": "error",
         "no-redeclare": "error",
         "no-regex-spaces": "error",
+        "no-return-assign": "error",
         "no-script-url": "error",
         "no-sequences": "error",
         "no-shadow-restricted-names": "error",

@@ -16,7 +16,7 @@ define([
             { value: 'term', name: 'Counts' },
             { value: 'histogram', name: 'Histogram', filter: function(properties) {
                 return _.filter(properties, function(p) {
-                    return p.dataType.toLowerCase() === 'date';
+                    return p.dataType.toLowerCase() !== 'string';
                 });
             }},
             { value: 'geohash', name: 'Geo-coordinate Cluster', filter: function(properties) {
@@ -26,6 +26,9 @@ define([
             }},
             { value: 'statistics', name: 'Statistics' }
         ],
+        AGGREGATIONS_NO_GEOHASH = _.reject(AGGREGATIONS, function(a) {
+            return a.value === 'geohash';
+        }),
         INTERVAL_UNITS = [
             { value: 1000 * 60, label: 'minutes' },
             { value: 1000 * 60 * 60, label: 'hours' },
@@ -90,13 +93,6 @@ define([
 
             this.mapzenSupported()
                 .then(function(mapzen) {
-                    if (!mapzen) {
-                        var index = AGGREGATIONS.findIndex(function(a) {
-                            return a.value === 'geohash';
-                        });
-                        AGGREGATIONS.splice(index, 1);
-                    }
-
                     self.aggregations = (self.attr.aggregations || []).map(function addId(a) {
                         if (!a.id) a.id = idIncrement++;
                         if (_.isArray(a.nested)) {
@@ -108,7 +104,7 @@ define([
                     self.updateAggregations(null, true);
 
                     self.$node.html(template({
-                        aggregations: AGGREGATIONS,
+                        aggregations: mapzen ? AGGREGATIONS : AGGREGATIONS_NO_GEOHASH,
                         precisions: PRECISIONS,
                         intervalUnits: INTERVAL_UNITS
                     }));
@@ -404,7 +400,6 @@ define([
                         section.find('.interval_value').val(Math.round(interval / intervalUnit.value));
                         section.find('.interval_units').val(intervalUnit.value);
                     }
-                    placeholder = i18n('dashboard.search.aggregation.histogram.property.placeholder');
                     break;
 
                 case 'term':

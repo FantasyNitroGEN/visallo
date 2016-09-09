@@ -25,7 +25,7 @@ define([
 
         this.defaultAttrs({
             connectButtonSelector: '.connect-dialog .btn-primary',
-            invertButtonSelector: '.connect-dialog .btn-link'
+            invertButtonSelector: '.connect-dialog button.invert-connection'
         });
 
         this.before('initialize', function(node, config) {
@@ -40,7 +40,7 @@ define([
         });
 
         this.popoverInitialize = function() {
-            this.visibilitySource = { value: '', valid: true };
+            this.visibilitySource = null;
             this.on('visibilitychange', this.onVisibilityChange);
             this.on('justificationchange', this.onJustificationChange);
 
@@ -150,6 +150,8 @@ define([
                     self.onViewportChanges();
                 }
             });
+
+            this.trigger(document, 'invertVertexConnection');
         };
 
         this.onCreateConnection = function(e) {

@@ -20,7 +20,11 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
     private List<BroadcastConsumer> broadcastConsumers = new ArrayList<>();
 
     @Inject
-    public InMemoryWorkQueueRepository(Graph graph, WorkQueueNames workQueueNames, Configuration configuration) {
+    public InMemoryWorkQueueRepository(
+            Graph graph,
+            WorkQueueNames workQueueNames,
+            Configuration configuration
+    ) {
         super(graph, workQueueNames, configuration);
     }
 

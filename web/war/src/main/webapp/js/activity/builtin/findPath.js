@@ -83,10 +83,7 @@ define([
         };
 
         this.onFocusPaths = function(event, data) {
-            // FIXME: if multiple paths using same src, dest it doesn't reset
-            // the others
-            if (data.sourceId !== this.attr.process.outVertexId ||
-               data.targetId !== this.attr.process.inVertexId) {
+            if (data.processId !== this.attr.process.id) {
                 this.loadDefaultContent();
             }
         };
@@ -164,7 +161,8 @@ define([
                     self.trigger('focusPaths', {
                         paths: paths,
                         sourceId: self.attr.process.outVertexId,
-                        targetId: self.attr.process.inVertexId
+                        targetId: self.attr.process.inVertexId,
+                        processId: self.attr.process.id
                     });
 
                     $target.hide();

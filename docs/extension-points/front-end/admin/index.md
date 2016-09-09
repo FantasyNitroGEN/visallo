@@ -24,6 +24,9 @@ require(['configuration/plugins/registry'], function(registry) {
 * `requiredPrivilege`: _(optional)_ `[String|function]` A string containing the privilege required to view
    this extension. Or, a function which will be executed, if function returns true the extension will be
    visible. The default for this property is `'ADMIN'`.
+* `options`: _(optional)_ `[Object]`
+  * `sortHint`: `[Number]` A number indicating the admin tool's position within the section. If not
+    included, admin items will be sorted within a section by name.
 * Exactly one of: `componentPath` or `Component`, or `url` _(required)_
 
     * `componentPath`: `[String]` requirejs or react component path

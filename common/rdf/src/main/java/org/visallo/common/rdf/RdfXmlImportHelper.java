@@ -41,6 +41,11 @@ public class RdfXmlImportHelper {
     private final String hasEntityIri;
     private final WorkspaceRepository workspaceRepository;
     private final VisibilityTranslator visibilityTranslator;
+    private boolean disableWorkQueues;
+
+    public void setDisableWorkQueues(boolean disableWorkQueues) {
+        this.disableWorkQueues = disableWorkQueues;
+    }
 
     @Inject
     public RdfXmlImportHelper(
@@ -104,19 +109,21 @@ public class RdfXmlImportHelper {
 
         graph.flush();
 
-        LOGGER.debug("pushing vertices from RDF import on to work queue");
-        for (Vertex vertex : results.getVertices()) {
-            workQueueRepository.broadcastElement(vertex, workspaceId);
-            for (Property prop : vertex.getProperties()) {
-                workQueueRepository.pushGraphPropertyQueue(vertex, prop, priority);
+        if (!disableWorkQueues) {
+            LOGGER.debug("pushing vertices from RDF import on to work queue");
+            for (Vertex vertex : results.getVertices()) {
+                workQueueRepository.broadcastElement(vertex, workspaceId);
+                for (Property prop : vertex.getProperties()) {
+                    workQueueRepository.pushGraphPropertyQueue(vertex, prop, priority);
+                }
             }
-        }
 
-        LOGGER.debug("pushing edges from RDF import on to work queue");
-        for (Edge edge : results.getEdges()) {
-            workQueueRepository.broadcastElement(edge, workspaceId);
-            for (Property prop : edge.getProperties()) {
-                workQueueRepository.pushGraphPropertyQueue(edge, prop, priority);
+            LOGGER.debug("pushing edges from RDF import on to work queue");
+            for (Edge edge : results.getEdges()) {
+                workQueueRepository.broadcastElement(edge, workspaceId);
+                for (Property prop : edge.getProperties()) {
+                    workQueueRepository.pushGraphPropertyQueue(edge, prop, priority);
+                }
             }
         }
     }

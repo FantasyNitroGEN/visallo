@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.vertexium.Authorizations;
 import org.vertexium.SecurityVertexiumException;
 import org.visallo.core.config.Configuration;
@@ -47,9 +46,11 @@ public class AuthorizationsParameterProviderFactory extends ParameterProviderFac
             AuthorizationRepository authorizationRepository,
             WorkspaceRepository workspaceRepository
     ) {
-
-        String workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
         User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+        if (user == null) {
+            return null;
+        }
+        String workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
         if (workspaceId != null) {
             try {
                 if (!workspaceRepository.hasReadPermissions(workspaceId, user)) {

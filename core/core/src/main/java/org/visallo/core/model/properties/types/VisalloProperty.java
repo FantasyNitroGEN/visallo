@@ -18,29 +18,53 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         super(propertyName);
     }
 
-    public final void addPropertyValue(final ElementMutation<?> mutation, final String multiKey, final TRaw value, final Visibility visibility) {
+    public final void addPropertyValue(ElementMutation<?> mutation, String multiKey, TRaw value, Visibility visibility) {
         mutation.addPropertyValue(multiKey, getPropertyName(), wrap(value), visibility);
     }
 
-    public final void addPropertyValue(final Element element, final String multiKey, final TRaw value, final Visibility visibility, Authorizations authorizations) {
+    public final void addPropertyValue(
+            Element element,
+            String multiKey,
+            TRaw value,
+            Visibility visibility,
+            Authorizations authorizations
+    ) {
         element.addPropertyValue(multiKey, getPropertyName(), wrap(value), visibility, authorizations);
     }
 
-    public final void addPropertyValue(final Element element, final String multiKey, final TRaw value, final Metadata metadata, final Visibility visibility, Authorizations authorizations) {
+    public final void addPropertyValue(
+            Element element,
+            String multiKey,
+            TRaw value,
+            Metadata metadata,
+            Visibility visibility,
+            Authorizations authorizations
+    ) {
         element.addPropertyValue(multiKey, getPropertyName(), wrap(value), metadata, visibility, authorizations);
     }
 
     public final void addPropertyValue(
-            final ElementMutation<?> mutation,
-            final String multiKey,
-            final TRaw value,
-            final Metadata metadata,
-            final Visibility visibility
+            ElementMutation<?> mutation,
+            String multiKey,
+            TRaw value,
+            Metadata metadata,
+            Visibility visibility
     ) {
-        mutation.addPropertyValue(multiKey, getPropertyName(), wrap(value), metadata, visibility);
+        addPropertyValue(mutation, multiKey, value, metadata, null, visibility);
     }
 
-    public final TRaw getPropertyValue(final Element element, String propertyKey) {
+    public final void addPropertyValue(
+            ElementMutation<?> mutation,
+            String multiKey,
+            TRaw value,
+            Metadata metadata,
+            Long timestamp,
+            Visibility visibility
+    ) {
+        mutation.addPropertyValue(multiKey, getPropertyName(), wrap(value), metadata, timestamp, visibility);
+    }
+
+    public final TRaw getPropertyValue(Element element, String propertyKey) {
         Object value = element != null ? element.getPropertyValue(propertyKey, getPropertyName()) : null;
         return value != null ? getRawConverter().apply(value) : null;
     }
@@ -51,7 +75,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
     }
 
     @SuppressWarnings("unchecked")
-    public final Iterable<TRaw> getPropertyValues(final Element element) {
+    public final Iterable<TRaw> getPropertyValues(Element element) {
         Iterable<Object> values = element != null ? element.getPropertyValues(getPropertyName()) : null;
         return values != null ? transform(values, getRawConverter()) : Collections.EMPTY_LIST;
     }
@@ -92,7 +116,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         element.softDeleteProperty(key, getPropertyName(), authorizations);
     }
 
-    public void removeProperty(ElementMutation m, String key, final Visibility visibility) {
+    public void removeProperty(ElementMutation m, String key, Visibility visibility) {
         m.softDeleteProperty(key, getPropertyName(), visibility);
     }
 
@@ -127,7 +151,23 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             PropertyMetadata metadata,
             Visibility visibility
     ) {
-        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), visibility);
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata, null, visibility);
+    }
+
+    /**
+     * @param changedPropertiesOut Adds the property to this list if the property value changed
+     */
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            String propertyKey,
+            TRaw newValue,
+            PropertyMetadata metadata,
+            Long timestamp,
+            Visibility visibility
+    ) {
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), timestamp, visibility);
     }
 
     /**
@@ -140,6 +180,22 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             String propertyKey,
             TRaw newValue,
             Metadata metadata,
+            Visibility visibility
+    ) {
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata, null, visibility);
+    }
+
+    /**
+     * @param changedPropertiesOut Adds the property to this list if the property value changed
+     */
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            String propertyKey,
+            TRaw newValue,
+            Metadata metadata,
+            Long timestamp,
             Visibility visibility
     ) {
         if (newValue == null) {
@@ -155,7 +211,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             currentValue = getPropertyValue(element, propertyKey);
         }
         if (currentValue == null || !newValue.equals(currentValue)) {
-            addPropertyValue(m, propertyKey, newValue, metadata, visibility);
+            addPropertyValue(m, propertyKey, newValue, metadata, timestamp, visibility);
             changedPropertiesOut.add(new VisalloPropertyUpdate(this, propertyKey));
         }
     }

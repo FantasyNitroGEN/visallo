@@ -36,6 +36,8 @@ define([], function() {
             this.on('finishedVertexConnection', this.onFinishedVertexConnection);
             this.on('selectObjects', this.onSelectObjects);
 
+            this.on(document, 'invertVertexConnection', this.onInvertVertexConnection);
+
             this.cytoscapeReady(function(cy) {
                 var mousedown = function(event) {
                     if (state > STATE_NONE) return;
@@ -161,6 +163,15 @@ define([], function() {
             });
         };
 
+        this.onInvertVertexConnection = function(event) {
+            var self = this;
+
+            this.cytoscapeReady(function(cy) {
+                startControlDragTarget = cy.getElementById(currentTargetId)
+                self.createTempEdge(cy, currentSourceId);
+            });
+        };
+
         this.onControlDragMouseMove = function(event) {
             var cy = event.cy,
                 target = event.cyTarget !== cy && event.cyTarget.is('node.v') ? event.cyTarget : null,
@@ -195,38 +206,38 @@ define([], function() {
                     tempTargetNode.position(position);
                 }
 
-                createTempEdge(tempTargetNode.id());
+                this.createTempEdge(cy, tempTargetNode.id());
 
             } else if (target && !targetIsSource) {
                 target.addClass('controlDragSelection');
-                createTempEdge(target.id());
+                this.createTempEdge(cy, target.id());
+            }
+        };
+
+        this.createTempEdge = function(cy, targetId) {
+            var sourceId = startControlDragTarget.id(),
+                edgeId = sourceId + '-' + targetId,
+                tempEdges = cy.$('edge.temp'),
+                edge = cy.getElementById(edgeId);
+
+            tempEdges.remove();
+            if (edge.removed) {
+                edge.restore();
             }
 
-            function createTempEdge(targetId) {
-                var sourceId = startControlDragTarget.id(),
-                    edgeId = sourceId + '-' + targetId,
-                    tempEdges = cy.$('edge.temp'),
-                    edge = cy.getElementById(edgeId);
-
-                tempEdges.remove();
-                if (edge.removed) {
-                    edge.restore();
-                }
-
-                currentEdgeId = edgeId;
-                currentSourceId = sourceId;
-                currentTargetId = targetId;
-                if (!edge.length) {
-                    cy.add({
-                        group: 'edges',
-                        classes: 'temp',
-                        data: {
-                            id: edgeId,
-                            source: sourceId,
-                            target: targetId
-                        }
-                    });
-                }
+            currentEdgeId = edgeId;
+            currentSourceId = sourceId;
+            currentTargetId = targetId;
+            if (!edge.length) {
+                cy.add({
+                    group: 'edges',
+                    classes: 'temp',
+                    data: {
+                        id: edgeId,
+                        source: sourceId,
+                        target: targetId
+                    }
+                });
             }
         };
     }

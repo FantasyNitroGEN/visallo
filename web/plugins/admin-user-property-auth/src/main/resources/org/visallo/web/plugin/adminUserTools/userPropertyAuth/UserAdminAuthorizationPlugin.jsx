@@ -33,6 +33,15 @@ define([
                 })
         },
 
+        componentWillReceiveProps(nextProps) {
+            this.setState({
+                error: null,
+                authorizations: nextProps.user.authorizations,
+                saveInProgress: false,
+                addAuthorizationValue: ''
+            });
+        },
+
         handleAddAuthorizationSubmit(e) {
             e.preventDefault();
             this.addAuthorization(this.state.addAuthorizationValue);

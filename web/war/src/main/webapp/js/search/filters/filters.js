@@ -91,6 +91,10 @@ define([
             this.on('searchByProperty', this.onSearchByProperty);
             this.on('filterExtensionChanged', this.onFilterExtensionChanged);
 
+            this.requestPropertiesByDomainType = function() {
+                return this.dataRequest('ontology', 'propertiesByDomainType', this.matchType);
+            };
+
             Promise.resolve(this.addSearchFilterExtensions())
                 .then(function() {
                     return self.loadPropertyFilters();
@@ -260,20 +264,38 @@ define([
         };
 
         this.setEdgeTypeFilter = function(edgeId) {
+            var self = this;
+
             this.edgeLabelFilter = edgeId || '';
             this.trigger(this.select('edgeLabelDropdownSelector'), 'selectRelationshipId', { relationshipId: edgeId });
 
-            // TODO: update property filters to edge properties for this type
-            this.filteredPropertiesList = null;
-            this.select('filterItemsSelector')
-                .add(this.select('sortContentSelector'))
-                .trigger('filterProperties', {
-                    properties: this.properties
-                })
-            this.notifyOfFilters();
+            if (this.edgeLabelFilter) {
+                return this.dataRequest('ontology', 'propertiesByRelationship', this.edgeLabelFilter)
+                    .then(function(properties) {
+                        self.filteredPropertiesList = _.reject(properties && properties.list || [], function(property) {
+                            return !_.isEmpty(property.dependentPropertyIris);
+                        });
+                        self.select('filterItemsSelector')
+                            .add(self.select('sortContentSelector'))
+                            .trigger('filterProperties', {
+                                properties: self.filteredPropertiesList
+                            })
+                        self.notifyOfFilters();
+                    })
+            } else {
+                this.filteredPropertiesList = null;
+                this.select('filterItemsSelector')
+                    .add(self.select('sortContentSelector'))
+                    .trigger('filterProperties', {
+                        properties: this.propertiesByDomainType[this.matchType]
+                    })
+                this.notifyOfFilters();
+            }
         };
 
         this.setMatchType = function(type) {
+            var self = this;
+
             this.matchType = type;
             this.$node.find('.match-type-' + type).prop('checked', true);
             this.$node.find('.match-type-edge').closest('label').andSelf()
@@ -285,7 +307,23 @@ define([
             } else {
                 this.setEdgeTypeFilter(this.edgeLabelFilter);
             }
-            this.notifyOfFilters();
+            this.select('filterItemsSelector').each(function() {
+                var $li = $(this);
+                    $li.teardownAllComponents();
+                    $li.remove();
+            });
+            this.setSort();
+            Promise.resolve(!this.propertiesByDomainType[type] ? this.requestPropertiesByDomainType() : [])
+                .then(function(result) {
+                    if (result.length) {
+                        self.propertiesByDomainType[type] = result;
+                    }
+                    self.select('sortContentSelector').trigger('filterProperties', {
+                        properties: self.propertiesByDomainType[type]
+                    });
+                    self.createNewRowIfNeeded();
+                    self.notifyOfFilters();
+                });
         };
 
         this.setConceptFilter = function(conceptId) {
@@ -312,7 +350,7 @@ define([
                 this.select('filterItemsSelector')
                     .add(self.select('sortContentSelector'))
                     .trigger('filterProperties', {
-                        properties: this.properties
+                        properties: this.propertiesByDomainType[this.matchType]
                     })
                 this.notifyOfFilters();
             }
@@ -384,10 +422,11 @@ define([
         }
 
         this.notifyOfFilters = function(options) {
+            var self = this;
+
             if (this.disableNotify) return;
 
-            var ontologyProperties = this.ontologyProperties,
-                filters = {
+            var filters = {
                     otherFilters: this.otherFilters,
                     conceptFilter: this.conceptFilter,
                     edgeLabelFilter: this.edgeLabelFilter,
@@ -395,7 +434,10 @@ define([
                     matchType: this.matchType,
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
-                            var ontologyProperty = ontologyProperties.byTitle[filter.propertyId];
+                            var ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
+                                return property.title === filter.propertyId;
+                            });
+
                             if (ontologyProperty && ontologyProperty.dependentPropertyIris) {
                                 return ontologyProperty.dependentPropertyIris.map(function(iri, i) {
                                     if (_.isArray(filter.values[i]) && _.reject(filter.values[i], function(v) {
@@ -447,7 +489,7 @@ define([
         };
 
         this.createNewRowIfNeeded = function() {
-            if (!this.properties) {
+            if (!this.propertiesByDomainType[this.matchType]) {
                 return;
             }
             if (this.$node.find('.newrow').length === 0) {
@@ -582,14 +624,16 @@ define([
         this.loadPropertyFilters = function() {
             var self = this;
 
-            this.ontologyPromise = this.dataRequest('ontology', 'properties')
+            if (!_.isObject(this.propertiesByDomainType)) {
+                this.propertiesByDomainType = {};
+            }
+
+            this.ontologyPromise = this.dataRequest('ontology', 'propertiesByDomainType', this.matchType)
                 .then(function(properties) {
-                    self.ontologyProperties = properties;
-                    self.properties = _.reject(properties.list, function(property) {
-                        return !_.isEmpty(property.dependentPropertyIris);
-                    });
+                    self.propertiesByDomainType[self.matchType] = properties;
+
                     return self.addFilterItem();
-                })
+                });
 
             return this.ontologyPromise;
         };
@@ -598,13 +642,13 @@ define([
             var self = this,
                 $li = $('<li>').data('filterId', this.filterId++),
                 attributes = filter ? {
-                    property: this.ontologyProperties.byTitle[
-                        filter.propertyId
-                    ],
+                    property: this.propertiesByDomainType[this.matchType].find(function(property) {
+                        return property.title === filter.propertyId;
+                    }),
                     predicate: filter.predicate,
                     values: filter.values
                 } : {
-                    properties: this.filteredPropertiesList || this.properties,
+                    properties: this.filteredPropertiesList || this.propertiesByDomainType[this.matchType],
                     supportsHistogram: this.attr.supportsHistogram
                 },
                 $newRow = this.$node.find('.newrow');
@@ -629,6 +673,7 @@ define([
                     fulfill();
                 });
                 FilterItem.attachTo($li, attributes);
+                self.createNewRowIfNeeded();
             })
         }
     }

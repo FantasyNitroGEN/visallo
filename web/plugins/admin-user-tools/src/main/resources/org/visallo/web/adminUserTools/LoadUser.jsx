@@ -3,17 +3,18 @@ define([
     'public/v1/api',
     './UserTypeaheadInput',
     'components/Alert'
-], function (React,
-             visallo,
-             UserTypeaheadInput,
-             Alert) {
+], function(React,
+            visallo,
+            UserTypeaheadInput,
+            Alert) {
 
     const LoadUser = React.createClass({
         dataRequest: null,
 
         getInitialState() {
             return {
-                username: null,
+                user: null,
+                userInput: '',
                 error: null
             };
         },
@@ -31,31 +32,34 @@ define([
             }
         },
 
-        handleUsernameChange(username) {
+        handleUserInputChange(userInput) {
             this.setState({
-                username: username,
+                user: null,
+                userInput: userInput,
                 error: null
             });
         },
 
-        handleUsernameSelected(username) {
+        handleUserSelected(user) {
             this.setState({
-                username: username
+                user: user,
+                error: null
             });
-            this.loadUser(username);
+            this.loadUser(user);
         },
 
         handleFormSubmit(e) {
             e.preventDefault();
-            this.loadUser(this.state.username);
+            this.loadUser(this.state.user);
         },
 
         reloadUser() {
-            this.loadUser(this.state.username);
+            this.loadUser(this.state.user);
         },
 
-        loadUser(username) {
-            this.dataRequest('user', 'get', username)
+        loadUser(user) {
+            const userName = user ? user.userName : this.state.userInput;
+            this.dataRequest('user', 'get', userName)
                 .then((user) => {
                     this.setState({error: null});
                     this.props.onUserLoaded(user);
@@ -76,8 +80,9 @@ define([
                 <form onSubmit={this.handleFormSubmit}>
                     <Alert error={this.state.error} onDismiss={this.handleAlertDismiss}/>
                     <div className="nav-header">{i18n('admin.user.editor.username')}</div>
-                    <UserTypeaheadInput username={this.state.username} onChange={this.handleUsernameChange}
-                                        onSelected={this.handleUsernameSelected}/>
+                    <UserTypeaheadInput user={this.state.user}
+                                        onInputChange={this.handleUserInputChange}
+                                        onUserSelected={this.handleUserSelected}/>
                     <button className="btn">{i18n('admin.user.editor.loadUser')}</button>
                 </form>
             );

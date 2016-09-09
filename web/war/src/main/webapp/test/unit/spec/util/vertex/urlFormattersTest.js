@@ -33,6 +33,20 @@ define(['util/vertex/urlFormatters'], function(f) {
             p.should.have.property('workspaceId').that.equals('')
         })
 
+        it('should be able to extract redirect url', function() {
+            var p = f.vertexUrl.parametersInUrl('#redirect=/newUrl')
+
+            p.should.have.property('redirectUrl').that.equals('/newUrl')
+        })
+
+        it('should be able to extract tools url', function() {
+            var p = f.vertexUrl.parametersInUrl('#tools=graph,search')
+            p.should.have.property('type').that.equals('TOOLS')
+            p.should.have.property('tools').that.deep.equals(['graph', 'search'])
+
+            f.vertexUrl.parametersInUrl('#tools=map').tools.should.deep.equals(['map'])
+        })
+
         it('should have be able to extract vertices and workspace from urls', function() {
             var p = f.vertexUrl.parametersInUrl(location.href + '#v=v1%2C,v2%20x&w=my%20big%20workspace')
 

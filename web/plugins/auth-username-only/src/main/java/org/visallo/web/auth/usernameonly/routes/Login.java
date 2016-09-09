@@ -9,8 +9,8 @@ import org.visallo.core.model.user.AuthorizationContext;
 import org.visallo.core.model.user.UserNameAuthorizationContext;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.AuthenticationHandler;
 import org.visallo.web.CurrentUser;
+import org.visallo.web.util.RemoteAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,7 +41,7 @@ public class Login implements ParameterizedHandler {
 
         AuthorizationContext authorizationContext = new UserNameAuthorizationContext(
                 username,
-                AuthenticationHandler.getRemoteAddr(request)
+                RemoteAddressUtil.getClientIpAddr(request)
         );
         userRepository.updateUser(user, authorizationContext);
 

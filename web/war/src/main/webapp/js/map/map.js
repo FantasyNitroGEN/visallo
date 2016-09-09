@@ -10,7 +10,8 @@ define([
     'util/vertex/formatters',
     'util/withAsyncQueue',
     'util/withContextMenu',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    './featureMoveInteraction'
 ], function(defineComponent,
     template,
     centerTemplate,
@@ -21,13 +22,15 @@ define([
     F,
     withAsyncQueue,
     withContextMenu,
-    withDataRequest) {
+    withDataRequest,
+    FeatureMoveInteraction) {
     'use strict';
 
-    var MODE_NORMAL = 0,
-        OpenLayers,
+    const MODE_NORMAL = 0,
+        FEATURE_SIZE = [22, 40],
         FEATURE_HEIGHT = 40,
         FEATURE_CLUSTER_HEIGHT = 24,
+        ANIMATION_DURATION = 200,
         MODE_REGION_SELECTION_MODE_POINT = 1,
         MODE_REGION_SELECTION_MODE_RADIUS = 2,
         MODE_REGION_SELECTION_MODE_LOADING = 3;
@@ -36,7 +39,7 @@ define([
 
     function MapViewOpenLayers() {
 
-        var ol, latLon, point;
+        var ol;
 
         this.mode = MODE_NORMAL;
 
@@ -49,10 +52,8 @@ define([
 
         this.before('teardown', function() {
             this.mapReady(function(map) {
-                map.featuresLayer.destroyFeatures();
-                this.clusterStrategy.deactivate();
-                this.clusterStrategy.destroy();
-                map.destroy();
+                this.pinSourceVector.clear(true);
+                map.dispose();
                 map = null;
                 this.mapUnload();
                 this.select('mapSelector').empty().removeClass('olMap');
@@ -109,41 +110,35 @@ define([
             this.mapReady(function(map) {
                 if (!self.viewportPositionChanges) {
                     self.viewportPositionChanges = [];
-                    self.onViewportChangesForPositionChangesBound = self.onViewportChangesForPositionChanges.bind(self);
-                    map.events.register('move', map, self.onViewportChangesForPositionChangesBound);
+                    self.viewportPositionChangesMapKeys = map.on('moveend', self.onViewportChangesForPositionChanges, self);
+                    self.viewportPositionChangesMapViewKeys = map.getView().on('change:center', self.onViewportChangesForPositionChanges, self);
                 }
 
                 self.viewportPositionChanges.push({
                     el: event.target,
                     fn: function(el) {
                         var vertexId = anchorTo.vertexId,
-                            feature = _.find(map.featuresLayer.features, function(f) {
-                                return f.cluster ?
-                                    _.find(f.cluster, function(f) {
-                                        return f.data.vertex.id === vertexId
-                                    }) :
-                                    f.data.vertex.id === vertexId;
-                            }),
-                            offset = self.$node.offset(),
-                            lonLat = feature.cluster ?
-                                feature.geometry.bounds.centerLonLat :
-                                new ol.LonLat(feature.geometry.x, feature.geometry.y),
-                            position = map.getPixelFromLonLat(lonLat),
-                            height = feature.cluster ? FEATURE_CLUSTER_HEIGHT : FEATURE_HEIGHT,
+                            feature = self.pinSourceVector.getFeatureById(vertexId);
+
+                        if (!feature) return;
+
+                        var offset = self.$node.offset(),
+                            position = map.getPixelFromCoordinate(feature.getGeometry().getCoordinates()[0]),
+                            height = feature.get('count') > 1 ? FEATURE_CLUSTER_HEIGHT : FEATURE_HEIGHT,
                             eventData = {
                                 anchor: anchorTo,
                                 position: {
-                                    x: position.x + offset.left,
-                                    y: position.y + offset.top
+                                    x: position[0] + offset.left,
+                                    y: position[1] + offset.top
                                 },
                                 positionIf: {
                                     above: {
-                                        x: position.x + offset.left,
-                                        y: position.y + offset.top - (feature.cluster ? height / 2 : height)
+                                        x: position[0] + offset.left,
+                                        y: position[1] + offset.top - height
                                     },
                                     below: {
-                                        x: position.x + offset.left,
-                                        y: position.y + offset.top + (feature.cluster ? height / 2 : 0)
+                                        x: position[0] + offset.left,
+                                        y: position[1] + offset.top
                                     }
                                 }
                             };
@@ -180,8 +175,8 @@ define([
                 }
 
                 this.mapReady(function(map) {
-                    map.events.unregister('move', map, self.onViewportChangesForPositionChangesBound);
-                    self.onViewportChangesForPositionChangesBound = null;
+                    map.unByKey(self.viewportPositionChangesMapKeys);
+                    map.getView().unByKey(self.viewportPositionChangesMapViewKeys);
                 })
             }
         };
@@ -190,6 +185,7 @@ define([
             Controls.attachTo(this.select('controlsSelector'));
 
             this.mapReady(function(map) {
+                var view = map.getView();
 
                 // While panning add a div so map doesn't swallow mousemove
                 // events
@@ -198,47 +194,58 @@ define([
                 });
                 this.on('endPan', function() {
                     this.$node.find('.draggable-wrapper').remove();
-                    map.featuresLayer.redraw();
                 });
 
                 this.on('pan', function(e, data) {
                     e.stopPropagation();
-                    map.pan(
-                        data.pan.x * -1,
-                        data.pan.y * -1,
-                        { animate: false }
-                    );
+
+                    var currentCenter = view.getCenter(),
+                        resolution = view.getResolution(),
+                        center = view.constrainCenter([
+                            currentCenter[0] - data.pan.x * resolution,
+                            currentCenter[1] + data.pan.y * resolution
+                        ]);
+
+                    view.setCenter(center);
                 });
                 this.on('fit', function(e) {
                     e.stopPropagation();
                     this.fit(map);
                 });
 
-                var slowZoomIn = _.throttle(map.zoomIn.bind(map), 250, {trailing: false}),
-                    slowZoomOut = _.throttle(map.zoomOut.bind(map), 250, {trailing: false});
+                var getResolutionForValueFunction = view.getResolutionForValueFunction(),
+                    getValueForResolutionFunction = view.getValueForResolutionFunction(),
+                    slowZoomIn = _.throttle(zoomByDelta(1), ANIMATION_DURATION, {trailing: false}),
+                    slowZoomOut = _.throttle(zoomByDelta(-1), ANIMATION_DURATION, {trailing: false});
 
-                this.on('zoomIn', function() {
-                    slowZoomIn();
-                });
-                this.on('zoomOut', function() {
-                    slowZoomOut();
-                });
+                this.on('zoomIn', slowZoomIn)
+                this.on('zoomOut', slowZoomOut);
+
+                function zoomByDelta(delta) {
+                    return () => {
+                        var currentResolution = view.getResolution();
+                        if (currentResolution) {
+                            map.beforeRender(ol.animation.zoom({
+                                resolution: currentResolution,
+                                duration: ANIMATION_DURATION
+                            }));
+                            const newResolution = view.constrainResolution(currentResolution, delta);
+                            view.setResolution(newResolution);
+                        }
+                    }
+                }
             });
         };
 
         this.onMapShow = function() {
-            if (this.mapIsReady()) {
-                this.mapReady(function(map) {
-                    _.defer(function() {
-                        map.updateSize();
-                    });
-                });
-            } else this.initializeMap();
+            if (!this.mapIsReady()) {
+                this.initializeMap();
+            }
         };
 
         this.onMapCenter = function(evt, data) {
             this.mapReady(function(map) {
-                map.setCenter(latLon(data.latitude, data.longitude), 7);
+                map.getView().setCenter(ol.proj.fromLonLat([data.longitude, data.latitude]));
             });
         };
 
@@ -272,19 +279,7 @@ define([
             var self = this;
             this.isWorkspaceEditable = workspaceData.editable;
             this.mapReady(function(map) {
-
-                map.featuresLayer.removeAllFeatures();
-
-                if (this.clusterStrategy.features) {
-                    this.clusterStrategy.features.length = 0;
-                }
-
-                if (this.clusterStrategy.clusters) {
-                    this.clusterStrategy.clusters.length = 0;
-                }
-
-                map.featuresLayer.redraw();
-
+                this.pinSourceVector.clear();
                 this.updateOrAddVertices(workspaceData.data.vertices, {
                     adding: true,
                     preventShake: true
@@ -316,24 +311,40 @@ define([
         };
 
         this.removeVertexIds = function(ids) {
+            var self = this;
+
             if (!ids || ids.length === 0) {
                 return;
             }
+
             this.mapReady(function(map) {
-                var featuresLayer = map.featuresLayer,
-                    toRemove = [];
-
-                featuresLayer.features.forEach(function removeIfDeleted(feature) {
-                    if (feature.cluster) {
-                        feature.cluster.forEach(removeIfDeleted);
-                    } else if (~ids.indexOf(feature.data.vertex.id)) {
-                        toRemove.push(feature);
-                    }
-                });
-
-                featuresLayer.removeFeatures(toRemove);
-                this.clusterStrategy.cluster();
+                ids.forEach(function(vertexId) {
+                    var feature = self.pinSourceVector.getFeatureById(vertexId)
+                    self.removeFeatures(feature);
+                })
             });
+        }
+
+        this.removeFeatures = function(features) {
+            var self = this;
+
+            if (!Array.isArray(features)) features = [features];
+
+            _.compact(features).forEach(function(feature) {
+                self.pinSourceVector.removeFeature(feature);
+                var remove,
+                    selected = self.pinSelectInteraction.getFeatures();
+
+                selected.forEach(function(selected) {
+                    var innerFeatures = selected.get('features');
+                    if (innerFeatures.length === 1 && innerFeatures[0] === feature) {
+                        remove = selected;
+                    }
+                })
+                if (remove) {
+                    selected.remove(remove);
+                }
+            })
         }
 
         this.onObjectsSelected = function(evt, data) {
@@ -342,45 +353,39 @@ define([
 
             this.mapReady(function(map) {
                 var self = this,
-                    featuresLayer = map.featuresLayer,
                     selectedIds = _.pluck(vertices, 'id'),
-                    toRemove = [];
+                    toRemove = [],
+                    selected = this.pinSelectInteraction.getFeatures();
 
                 // Remove features not selected and not in workspace
-                featuresLayer.features.forEach(function unselectFeature(feature) {
-                    if (feature.cluster) {
-                        feature.cluster.forEach(unselectFeature);
-                        return;
-                    }
-
-                    if (!~selectedIds.indexOf(feature.data.vertex.id)) {
-                        if (feature.data.inWorkspace) {
-                            feature.style.externalGraphic = feature.style.externalGraphic.replace(/&selected/, '');
+                self.pinSourceVector.forEachFeature(function(feature) {
+                    if (selectedIds.indexOf(feature.getId()) === -1) {
+                        if (feature.get('inWorkspace')) {
+                            feature.set('externalGraphic', feature.get('externalGraphic').replace(/&selected/, ''));
                         } else {
                             toRemove.push(feature);
                         }
                     }
                 });
 
-                if (toRemove.length) {
-                    featuresLayer.removeFeatures(toRemove);
-                }
+                if (toRemove.length) self.removeFeatures(toRemove);
 
                 // Create new features for new selections
+                var add = [];
                 vertices.forEach(function(vertex) {
-                    self.findOrCreateMarkers(map, vertex);
+                    var operation = self.findAndUpdateOrCreatePinFeature(map, vertex);
+                    if (operation && operation.op === 'add') {
+                        add.push(operation.feature);
+                    }
                 });
 
-                var sf = this.clusterStrategy.selectedFeatures = {};
-                selectedIds.forEach(function(sId) {
-                    sf[sId] = true;
-                });
-
-                featuresLayer.redraw();
+                if (add.length) {
+                    self.pinSourceVector.addFeatures(add);
+                }
             });
         };
 
-        this.findOrCreateMarkers = function(map, vertex) {
+        this.findAndUpdateOrCreatePinFeature = function(map, vertex, inWorkspace) {
             var self = this,
                 geoLocationProperties = this.ontologyProperties.byDataType.geoLocation,
                 geoLocations = geoLocationProperties &&
@@ -401,119 +406,68 @@ define([
                     scale: retina.devicePixelRatio > 1 ? '2' : '1'
                 }),
                 heading = F.vertex.heading(vertex),
-                previousFeatures = [];
-
-            _.each(map.featuresLayer.features, function(feature) {
-                if (feature.cluster) {
-                    feature.cluster.forEach(function(f) {
-                        if (f.id.indexOf(vertex.id) !== -1) {
-                            previousFeatures.push(f);
-                        }
-                    })
-                } else if (feature.id.indexOf(vertex.id) !== -1) {
-                    previousFeatures.push(feature);
-                }
-
-            });
+                featureId = vertex.id,
+                previousFeature = this.pinSourceVector.getFeatureById(featureId);
 
             if (!geoLocations || geoLocations.length === 0) {
-                if (previousFeatures && previousFeatures.length) {
-                    map.featuresLayer.removeFeatures(previousFeatures[0]);
+                if (previousFeature) {
+                    return { op: 'remove', feature: previousFeature };
                 }
                 return;
-            } else {
-                if (previousFeatures.length > geoLocations.length) {
-                    previousFeatures.forEach(function(feature) {
-                        map.featuresLayer.removeFeatures(feature);
-                    })
-                }
             }
+
             if (selected) iconUrl += '&selected';
 
-            return geoLocations.map(function(geoLocation) {
-                var featureId = vertex.id + geoLocation.key,
-                    feature = map.featuresLayer.getFeatureById(featureId);
-
-                if (!feature) {
-                    map.featuresLayer.features.forEach(function(f) {
-                        if (!feature && f.cluster) {
-                            feature = _.findWhere(f.cluster, { id: featureId });
-                        }
-                    });
+            if (previousFeature) {
+                previousFeature.set('externalGraphic', iconUrl);
+                if (!_.isUndefined(inWorkspace)) {
+                    previousFeature.set('inWorkspace', inWorkspace);
                 }
-
-                if (!feature) {
-                    feature = new ol.Feature.Vector(
-                        point(geoLocation.value.latitude, geoLocation.value.longitude),
-                        { vertex: vertex },
-                        {
-                            graphic: true,
-                            externalGraphic: iconUrl,
-                            graphicWidth: 22,
-                            graphicHeight: 40,
-                            graphicXOffset: -11,
-                            graphicYOffset: -40,
-                            rotation: heading,
-                            cursor: 'pointer'
-                        }
-                    );
-                    feature.id = featureId;
-                    map.featuresLayer.addFeatures(feature);
-                } else {
-                    if (feature.style.externalGraphic !== iconUrl) {
-                        feature.style.externalGraphic = iconUrl;
-                    }
-
-                    self.select('mapSelector').find('#' + feature.geometry.id).remove();
-                    feature.geometry = point(geoLocation.value.latitude, geoLocation.value.longitude);
-                    feature.move(latLon(geoLocation.value.latitude, geoLocation.value.longitude));
-                    feature.attributes.vertex = feature.data.vertex = vertex;
-
-                }
-
-                return feature;
-            })
+                previousFeature.set('vertex', vertex);
+                previousFeature.set('rotation', heading);
+                previousFeature.setGeometry(geometryFromGeolocationProperties(geoLocations))
+                return // updated already no nothing
+            } else {
+                var newFeature = new ol.Feature({
+                    geometry: geometryFromGeolocationProperties(geoLocations),
+                    vertex: vertex,
+                    graphic: true,
+                    inWorkspace: inWorkspace,
+                    externalGraphic: iconUrl,
+                    graphicWidth: 22,
+                    graphicHeight: 40,
+                    graphicXOffset: -11,
+                    graphicYOffset: -40,
+                    rotation: heading,
+                    cursor: 'pointer'
+                });
+                newFeature.setId(featureId);
+                return { op: 'add', feature: newFeature };
+            }
         };
 
         this.updateOrAddVertices = function(vertices, options) {
             var self = this,
                 adding = options && options.adding,
                 preventShake = options && options.preventShake,
-                validAddition = false,
-                redraw = false;
+                validAddition = false;
 
             this.mapReady(function(map) {
                 self.dataRequest('workspace', 'store')
                     .done(function(workspaceVertices) {
+                        var ops = { add: [], remove: [] };
                         vertices.forEach(function(vertex) {
                             var inWorkspace = vertex.id in workspaceVertices,
-                                markers = [];
+                                featureOperation = self.findAndUpdateOrCreatePinFeature(map, vertex, inWorkspace);
 
-                            if (!adding) {
-                                redraw = true;
-                                // Only update marker if it exists
-                                map.featuresLayer.features.forEach(function(f) {
-                                    if (f.cluster) {
-                                        markers.push(_.find(f.cluster, function(f) {
-                                            return f.data.vertex.id === vertex.id;
-                                        }))
-                                    } else if (f.data.vertex.id === vertex.id) {
-                                        markers.push(f);
-                                    }
-                                });
-                            }
-                            markers = self.findOrCreateMarkers(map, vertex);
-
-                            if (markers && markers.length) {
-                                markers.forEach(function(m) {
-                                    validAddition = true;
-                                    m.data.inWorkspace = inWorkspace;
-                                });
+                            if (featureOperation) {
+                                ops[featureOperation.op].push(featureOperation.feature);
+                                validAddition = validAddition || featureOperation.op === 'add';
                             }
                         });
 
-                        self.clusterStrategy.cluster(null, redraw);
-                        map.featuresLayer.redraw();
+                        if (ops.add.length) self.pinSourceVector.addFeatures(ops.add);
+                        if (ops.remove.length) self.removeFeatures(ops.remove);
 
                         if (adding && vertices.length && validAddition) {
                             self.fit(map);
@@ -529,44 +483,64 @@ define([
 
         this.fit = function(map) {
             var self = this,
-                dataExtent = map.featuresLayer.getDataExtent();
+                extent = this.pinSourceVector.getExtent(),
+                view = map.getView();
 
-            if (dataExtent) {
-                var screenPadding = 20,
-                    padding = {
-                        l: this.padding.l + screenPadding,
-                        r: this.padding.r + this.select('controlsSelector').width() + screenPadding,
-                        t: this.padding.t + screenPadding * 2,
-                        b: this.padding.b + screenPadding * 2
+            if (!ol.extent.isInfinite(extent) && !ol.extent.isEmpty(extent)) {
+                var screenPadding = 2,
+                    resolution = view.getResolution(),
+                    mapDistance = screenPadding * resolution,
+                    extentWithPadding = ol.extent.createEmpty(),
+                    extentSize = ol.extent.getSize(extent),
+                    buffer = _.max(extentSize) * 0.33
+
+                ol.extent.buffer(extent, buffer, extentWithPadding);
+
+                var padding = {
+                        l: this.padding.l,
+                        r: this.padding.r + this.select('controlsSelector').width(),
+                        t: this.padding.t,
+                        b: this.padding.b
                     },
                     viewportWidth = this.$node.width() - padding.l - padding.r,
                     viewportHeight = this.$node.height() - padding.t - padding.b,
+                    extentWithPaddingSize = ol.extent.getSize(extentWithPadding),
 
                     // Figure out ideal resolution based on available realestate
-                    idealResolution = Math.max(
-                        dataExtent.getWidth() / viewportWidth,
-                        dataExtent.getHeight() / viewportHeight
-                    ),
-                    zoom = map.getZoomForResolution(idealResolution, false),
-                    actualResolution = map.getResolutionForZoom(zoom),
+                    idealResolution = view.constrainResolution(Math.max(
+                        extentWithPaddingSize[0] / viewportWidth,
+                        extentWithPaddingSize[1] / viewportHeight
+                    ));
 
-                    // Center of markers...
-                    centerLonLat = dataExtent.getCenterLonLat(),
+                map.beforeRender(ol.animation.pan({
+                    source: view.getCenter(),
+                    duration: ANIMATION_DURATION
+                }))
+                map.beforeRender(ol.animation.zoom({
+                    resolution: resolution,
+                    duration: ANIMATION_DURATION
+                }));
+                view.setResolution(idealResolution);
 
-                    // Adjust center based on pane paddings
+                var center = ol.extent.getCenter(extentWithPadding),
                     offsetX = padding.l - padding.r,
                     offsetY = padding.t - padding.b,
-                    lon = offsetX * actualResolution / 2,
-                    lat = offsetY * actualResolution / 2;
+                    lon = offsetX * view.getResolution() / 2,
+                    lat = offsetY * view.getResolution() / 2;
 
-                // If there is only one feature don't zoom in so close
-                if (map.featuresLayer.features.length === 1) {
-                    zoom = Math.min(5, zoom);
-                }
-
-                map.setCenter(new ol.LonLat(centerLonLat.lon - lon, centerLonLat.lat - lat), zoom);
+                view.setCenter([center[0] - lon, center[1] - lat]);
             } else {
-                map.zoomTo(2);
+                map.beforeRender(ol.animation.zoom({
+                    resolution: view.getResolution(),
+                    duration: ANIMATION_DURATION
+                }));
+                map.beforeRender(ol.animation.pan({
+                    source: view.getCenter(),
+                    duration: ANIMATION_DURATION
+                }))
+                var params = this.getDefaultViewParameters();
+                view.setZoom(params.zoom);
+                view.setCenter(params.center);
             }
         };
 
@@ -595,18 +569,21 @@ define([
             event.originalEvent = event.originalEvent || event;
 
             this.mapReady(function(map) {
-                var feature = map.featuresLayer.getFeatureFromEvent(event);
-                if (feature) {
+                var coordinate = map.getEventCoordinate(event),
+                    extent = ol.extent.createEmpty(),
+                    mapDistance = FEATURE_HEIGHT * map.getView().getResolution();
 
-                    var vertices = (feature.cluster || [feature]).map(function(f) {
-                        return f.data.vertex;
-                    });
+                ol.extent.createOrUpdateFromCoordinate(coordinate, extent);
+                ol.extent.buffer(extent, mapDistance, extent);
 
-                    this.trigger('selectObjects', { vertices: vertices });
+                var clusters = this.pinSourceCluster.getFeaturesInExtent(extent),
+                    vertexIds = _.uniq(_.flatten(clusters.map(c => c.get('features').map(f => f.getId()))));
 
-                    if (vertices.length === 1) {
+                if (vertexIds.length) {
+                    this.trigger('selectObjects', { vertexIds: vertexIds });
+                    if (vertexIds.length === 1) {
                         this.trigger('showVertexContextMenu', {
-                            vertexId: vertices[0].id,
+                            vertexId: vertexIds[0],
                             position: {
                                 x: event.pageX,
                                 y: event.pageY
@@ -614,35 +591,49 @@ define([
                         });
                     } else {
                         var menu = this.select('contextMenuVertexSelector');
-                        menu.data('feature', feature);
                         this.toggleMenu({ positionUsingEvent: event }, menu);
                     }
                 }
             });
         };
 
-        this.onSearchResultsWithinRadius = function() {
+        this.onSearchResultsWithinRadius = function(event, data) {
             var self = this;
 
-            if (this.mode === MODE_NORMAL) {
-                this.mode = MODE_REGION_SELECTION_MODE_POINT;
+            if (data && data.currentValue && data.currentValue.longitude && data.currentValue.longitude) {
                 this.$node.find('.instructions').remove();
-                this.$node.append(centerTemplate({}));
-                $(document).on('keydown.regionselection', function(e) {
-                    if (e.which === $.ui.keyCode.ESCAPE) {
-                        self.endRegionSelection();
+                this.$node.append(radiusTemplate({}));
+                this.mapReady(function(map) {
+                    if (this.moveInteraction) {
+                        map.removeInteraction(this.moveInteraction);
                     }
-                });
-            } else if (this.mode === MODE_REGION_SELECTION_MODE_RADIUS) {
-                this.panToActiveRadius();
+                    var {longitude, latitude, radius} = data.currentValue;
+                    var centerCoordinate = ol.proj.fromLonLat([longitude, latitude])
+                    var move = new FeatureMoveInteraction({ center: centerCoordinate, radius: radius * 1000 });
+                    this.moveInteraction = move;
+                    map.addInteraction(move);
+                    this.mode = MODE_REGION_SELECTION_MODE_RADIUS;
+                })
+            } else {
+                if (this.mode === MODE_NORMAL) {
+                    this.mode = MODE_REGION_SELECTION_MODE_POINT;
+                    this.$node.find('.instructions').remove();
+                    this.$node.append(centerTemplate({}));
+                    $(document).on('keydown.regionselection', function(e) {
+                        if (e.which === $.ui.keyCode.ESCAPE) {
+                            self.endRegionSelection();
+                        }
+                    });
+                } else if (this.mode === MODE_REGION_SELECTION_MODE_RADIUS) {
+                    this.panToActiveRadius();
+                }
             }
         };
 
         this.panToActiveRadius = function() {
-            var regionCenterLonLat = new OpenLayers.LonLat(this.regionCenterPoint.lon, this.regionCenterPoint.lat);
-            this.mapReady(function(map) {
-                map.panTo(regionCenterLonLat);
-            });
+            if (this.moveInteraction) {
+                this.moveInteraction.fit();
+            }
         };
 
         this.endRegionSelection = function() {
@@ -652,10 +643,9 @@ define([
             $('#map_mouse_position_hack').remove();
             this.$node.find('.instructions').remove();
 
-            if (this.regionLayer) {
+            if (this.moveInteraction) {
                 this.mapReady(function(map) {
-                    map.removeLayer(this.regionLayer);
-                    map.removeControl(this.modifyRegionControl);
+                    map.removeInteraction(this.moveInteraction);
                 });
             }
 
@@ -669,8 +659,6 @@ define([
             switch (self.mode) {
                 case MODE_NORMAL:
                     $('.dialog-popover').remove();
-                    self.trigger('selectObjects');
-                    map.featuresLayer.events.triggerEvent('featureunselected');
                     break;
 
                 case MODE_REGION_SELECTION_MODE_POINT:
@@ -679,46 +667,12 @@ define([
 
                     this.$node.append(radiusTemplate({}));
 
-                    var offset = self.$node.offset();
-                    self.regionCenterPoint = map.getLonLatFromViewPortPx({
-                        x: evt.pageX - offset.left,
-                        y: evt.pageY - offset.top
-                    });
-                    var centerPoint = new ol.Geometry.Point(self.regionCenterPoint.lon, self.regionCenterPoint.lat),
-                        circleFeature = new ol.Feature.Vector(
-                            OpenLayers.Geometry.Polygon.createRegularPolygon(
-                                centerPoint,
-                                // Default diameter is 10% of viewport
-                                map.getExtent().getWidth() * 0.1 / 2,
-                                100,
-                                0
-                            ),
-                            {},
-                            { fillOpacity: 0.8, fillColor: '#0070C3', strokeColor: '#08538B' }
-                        ),
-                        layer = new ol.Layer.Vector('SelectionLayer', {
-                            /*
-                             * TODO: change resize handle colors
-                            styleMap: new ol.StyleMap({
-                                'default': new ol.Style({ fillColor: '#ff0000'}),
-                                'select': new ol.Style({ fillColor: '#ff0000'})
-                            })
-                            */
-                        });
+                    var offset = self.$node.offset(),
+                        centerCoordinate = map.getCoordinateFromPixel([evt.pageX - offset.left, evt.pageY - offset.top]),
+                        move = new FeatureMoveInteraction({ center: centerCoordinate, fit: false });
 
-                    self.regionLayer = layer;
-                    self.regionFeature = circleFeature;
-
-                    layer.addFeatures(circleFeature);
-                    map.addLayer(layer);
-
-                    var modify = new ol.Control.ModifyFeature(layer);
-                    modify.mode = ol.Control.ModifyFeature.RESIZE |
-                                  ol.Control.ModifyFeature.DRAG;
-                    map.addControl(modify);
-                    modify.activate();
-                    modify.selectFeature(circleFeature);
-                    self.modifyRegionControl = modify;
+                    this.moveInteraction = move;
+                    map.addInteraction(move);
 
                     break;
 
@@ -726,23 +680,18 @@ define([
 
                     self.mode = MODE_REGION_SELECTION_MODE_LOADING;
 
-                    var area = self.regionFeature.geometry.getGeodesicArea(map.getProjectionObject()),
-                        radius = 0.565352 * Math.sqrt(area) / 1000,
-                        lonlat = self.regionCenterPoint.transform(
-                            map.getProjectionObject(),
-                            new ol.Projection('EPSG:4326')
-                        ),
+                    var { center, radius } = this.moveInteraction.getRegion(),
+                        lonlat = ol.proj.toLonLat(center),
                         region = {
                             radius: radius,
-                            longitude: lonlat.lon,
-                            latitude: lonlat.lat
+                            longitude: lonlat[0],
+                            latitude: lonlat[1]
                         };
 
                     self.$node.find('.instructions').remove();
                     self.$node.append(loadingTemplate({}));
 
-                    self.trigger(document, 'regionSaved', region);
-                    $(document).off('regionSaved');
+                    self.trigger('regionSaved', region);
                     self.endRegionSelection();
 
                     break;
@@ -756,17 +705,10 @@ define([
                 mapProviderDeferred = $.Deferred();
 
             require(['openlayers'], openlayersDeferred.resolve);
-            require(['map/clusterStrategy'], clusterStrategyDeferred.resolve);
+            require(['map/multipointCluster'], clusterStrategyDeferred.resolve);
 
             this.dataRequest('config', 'properties').done(function(configProperties) {
-              if (configProperties['map.provider'] === 'google') {
-                require(['goog!maps,3,other_params:sensor=false'], function() {
-                  google.maps.visualRefresh = true;
-                  mapProviderDeferred.resolve(configProperties);
-                });
-              } else {
                 mapProviderDeferred.resolve(configProperties);
-              }
             });
 
             $.when(
@@ -774,196 +716,270 @@ define([
               clusterStrategyDeferred,
               mapProviderDeferred
             ).done(function(openlayers, cluster, configProperties) {
-              OpenLayers = ol = openlayers;
+              ol = openlayers;
               self.createMap(ol, cluster, configProperties);
             });
         };
 
-        this.createMap = function(ol, ClusterStrategy, configProperties) {
-            ol.ImgPath = '/libs/openlayers/img';
+        this.createMap = function(ol, MultiPointCluster, configProperties) {
+            var self = this;
 
-            var self = this,
-                controls = new ol.Control.Navigation({
-                    handleRightClicks: true,
-                    dragPanOptions: {
-                        enableKinetic: true
-                    }
-                }),
-                map = new ol.Map(this.select('mapSelector').get(0), {
-                    zoomDuration: 0,
-                    numZoomLevels: 18,
-                    theme: null,
-                    displayProjection: new ol.Projection('EPSG:4326'),
-                    controls: [ controls ]
-                }),
-                cluster = new ClusterStrategy({
-                    distance: 45,
-                    threshold: 2,
-                    animationMethod: ol.Easing.Expo.easeOut,
-                    animationDuration: 100
-                }),
-                style = self.featureStyle(),
-                selectedStyle = {
-                    fillColor: '#0070C3', labelOutlineColor: '#08538B', strokeColor: '#08538B'
-                },
-                partialSelectionStyle = {
-                    strokeColor: '#08538B'
-                },
-                base;
-
-            map.featuresLayer = new ol.Layer.Vector('Markers', {
-                strategies: [ cluster ],
-                styleMap: new ol.StyleMap({
-                    'default': new ol.Style(style.baseStyle, style.baseContext),
-                    temporary: new ol.Style($.extend({}, style.baseStyle, partialSelectionStyle), style.baseContext),
-                    select: new ol.Style($.extend({}, style.baseStyle, selectedStyle), style.baseContext)
-                })
+            this.pinSourceVector = new ol.source.Vector({ features: [] });
+            this.pinSourceCluster = new MultiPointCluster({
+                distance: Math.max(FEATURE_CLUSTER_HEIGHT, FEATURE_HEIGHT),
+                source: this.pinSourceVector
+            });
+            var styleCache = {};
+            this.pinClusters = new ol.layer.Vector({
+                id: 'workspaceVerticesLayer',
+                source: this.pinSourceCluster,
+                style: cluster => this.clusterStyle(cluster)
             });
 
-            map.featuresLayer.getDataExtent = function() {
-                var maxExtent = null,
-                    features = this.features;
-
-                if (features && (features.length > 0)) {
-                    var geometry = null;
-                    features.forEach(function(feature) {
-                        (feature.cluster || [feature]).forEach(function(f) {
-                            geometry = f.geometry;
-                            if (geometry) {
-                                if (maxExtent === null) {
-                                    maxExtent = new OpenLayers.Bounds();
-                                }
-                                maxExtent.extend(geometry.getBounds());
-                            }
-                        });
-                    });
-                }
-                return maxExtent;
-            };
-
-            // Feature Clustering
-            cluster.activate();
-            this.clusterStrategy = cluster;
+            var map = new ol.Map({
+                    loadTilesWhileInteracting: true,
+                    keyboardEventTarget: document,
+                    controls: [],
+                    layers: [
+                    ],
+                    target: this.select('mapSelector')[0]
+                });
 
             // Feature Selection
-            var selectFeature = this.featuresLayerSelection = new ol.Control.SelectFeature(map.featuresLayer, {
-                clickout: true
+            this.pinSelectInteraction = new ol.interaction.Select({
+                condition: ol.events.condition.click,
+                layers: [this.pinClusters],
+                style: cluster => this.clusterStyle(cluster)
             });
-            map.addControl(selectFeature);
-            selectFeature.activate();
-            map.featuresLayer.events.on({
-                featureselected: function(featureEvents) {
-                    var vertices = _.map(featureEvents.feature.cluster || [featureEvents.feature], function(feature) {
-                            return feature.data.vertex;
-                        });
-                    self.trigger('selectObjects', {vertices: vertices});
-                }
-            });
-            map.events.on({
-                mouseup: function(event) {
-                    if (event.button === 2 || event.ctrlKey) {
-                        self.handleContextMenu(event);
+            this.pinSourceCluster.on(ol.events.EventType.CHANGE, _.debounce(function() {
+                var selected = self.pinSelectInteraction.getFeatures(),
+                    clusters = this.getFeatures();
+
+                if (visalloData.selectedObjects.vertices.length) {
+                    var newSelection = [],
+                        selectedInnerIds = _.indexBy(_.flatten(
+                            selected.getArray().map(c => c.get('features').map(f => f.getId()))
+                        )),
+                        isSelected = feature => feature.getId() in visalloData.selectedObjects.vertexIds;
+
+                    clusters.forEach(cluster => {
+                        var innerFeatures = cluster.get('features');
+                        if (_.any(innerFeatures, isSelected)) {
+                            newSelection.push(cluster);
+                            if (_.all(innerFeatures, isSelected)) {
+                                cluster.set('selectionState', 'all');
+                            } else {
+                                cluster.set('selectionState', 'some');
+                            }
+                        } else {
+                            cluster.unset('selectionState');
+                        }
+                    })
+
+                    selected.clear()
+                    if (newSelection.length) {
+                        selected.extend(newSelection)
                     }
-                },
-                click: function(event) {
-                    self.closeMenu();
-                    self.onMapClicked(event, map);
                 }
+
+
+            }, 100));
+            map.addInteraction(this.pinSelectInteraction);
+            this.pinSelectInteraction.on('select', function(e) {
+                var features = e.target.getFeatures().getArray(),
+                    vertexIds = _.chain(features)
+                        .map(function(feature) { return feature.get('features').map(f => f.getId()); })
+                        .flatten()
+                        .value()
+                self.trigger('selectObjects', { vertexIds: vertexIds });
             });
 
-            if (configProperties['map.provider'] === 'google') {
-              base = new ol.Layer.Google('Google Streets', {
-                  minZoomLevel: 2,
-                  numZoomLevels: 18,
-                  wrapDateLine: false
-              });
-            } else if (configProperties['map.provider'] === 'osm') {
-              var osmURL = configProperties['map.provider.osm.url'];
-              if (osmURL) {
-                  osmURL = $.map(osmURL.split(','), $.trim);
-              }
-              base = new ol.Layer.OSM('Open Street Map', osmURL, {
-                tileOptions: { crossOriginKeyword: null }
-              });
-            } else if (configProperties['map.provider'] === 'ArcGIS93Rest') {
-                var arcgisURL = configProperties['map.provider.ArcGIS93Rest.url'];
-                base = new ol.Layer.ArcGIS93Rest('ArcGIS93Rest', arcgisURL, {
-                    layers: '0,1,2',
-                    format: 'png24'
-                });
-            } else {
-              console.error('Unknown map provider type: ', configProperties['map.provider']);
+            map.getViewport().addEventListener('contextmenu', function (evt) {
+                evt.preventDefault();
+            });
+            map.getViewport().addEventListener('mouseup', function (evt) {
+                evt.preventDefault();
+                if (evt.button === 2 || evt.ctrlKey) {
+                    self.handleContextMenu(evt);
+                }
+            });
+            map.on('click', function() {
+                self.closeMenu();
+                self.onMapClicked(event, map);
+            })
+
+            var provider = configProperties['map.provider'] || 'osm',
+                config = Object.assign({}, configProperties),
+                baseLayerSource,
+                getOptions = function(providerName) {
+                    try {
+                        var obj,
+                            prefix = `map.provider.${providerName}.`,
+                            options = _.chain(config)
+                                .pick((val, key) => key.indexOf(`map.provider.${providerName}.`) === 0)
+                                .tap(o => { obj = o })
+                                .pairs()
+                                .map(([key, value]) => {
+                                    if (/^[\d.-]+$/.test(value)) {
+                                        value = parseFloat(value, 10);
+                                    } else if ((/^(true|false)$/).test(value)) {
+                                        value = value === 'true'
+                                    } else if ((/^\[[^\]]+\]$/).test(value) || (/^\{[^\}]+\}$/).test(value)) {
+                                        value = JSON.parse(value)
+                                    }
+                                    return [key.replace(prefix, ''), value]
+                                })
+                                .object()
+                                .value()
+                        return options;
+                    } catch(e) {
+                        console.error(`${prefix} options could not be parsed. input:`, obj)
+                        throw e;
+                    }
+                };
+
+            if (provider === 'google') {
+                console.warn('google map.provider is no longer supported, switching to OpenStreetMap provider');
             }
 
-            map.addLayers([base, map.featuresLayer]);
-            map.setBaseLayer(base);
+            if (provider === 'google' || provider === 'osm') {
+                // Legacy configs accepted csv urls, warn and pick first
+                var osmURL = config['map.provider.osm.url'];
+                if (osmURL && osmURL.indexOf(',')) {
+                    console.warn('Comma-separated Urls not supported, using first url. Use urls with {a-c} for multiple CDNS');
+                    console.warn('For Example: https://{a-c}.tile.openstreetmap.org/${z}/${x}/${y}.png');
+                    config['map.provider.osm.url'] = osmURL.split(',')[0].trim()
+                }
+                baseLayerSource = new ol.source.OSM(getOptions('osm'))
 
-            latLon = calcLatLon.bind(null, map.displayProjection, map.getProjectionObject());
-            point = calcPoint.bind(null, map.displayProjection, map.getProjectionObject());
+            } else if (provider === 'ArcGIS93Rest') {
+                var urlKey = 'map.provider.ArcGIS93Rest.url';
+                // New OL3 ArcGIS Source will throw an error if url doesn't end
+                // with [Map|Image]Server
+                if (config[urlKey]) {
+                    config[urlKey] = config[urlKey].replace(/\/export(Image)?\/?\s*$/, '');
+                }
+                baseLayerSource = new ol.source.TileArcGISRest(Object.assign({
+                    params: { layers: 'show:0,1,2' }
+                }, getOptions(provider)))
 
-            map.setCenter(new ol.LonLat(0, 0), 0, true, true);
-            _.delay(function() {
-                map.setCenter(new ol.LonLat(0, 0), 2, true, true);
-                self.dataRequest('ontology', 'properties')
-                    .done(function(p) {
-                        self.ontologyProperties = p;
-                        // Prevent map shake on initialize while catching up with vertexAdd
-                        // events
-                        self.preventShake = true;
-                        self.mapMarkReady(map);
-                        self.mapReady().done(function(m) {
-                            self.preventShake = false;
-                        });
-                    })
-            }, 1000)
+            } else if (provider in ol.source && _.isFunction(ol.source[provider])) {
+                // http://openlayers.org/en/latest/apidoc/ol.source.html
+                baseLayerSource = new ol.source[provider](getOptions(provider))
+
+            } else {
+                console.error('Unknown map provider type: ', config['map.provider']);
+                throw new Error('map.provider is invalid')
+            }
+
+            var params = self.getDefaultViewParameters();
+            map.addLayer(new ol.layer.Tile({ source: baseLayerSource }));
+            map.addLayer(self.pinClusters);
+            map.setView(new ol.View(params));
+            self.dataRequest('ontology', 'properties')
+                .done(function(p) {
+                    self.ontologyProperties = p;
+                    // Prevent map shake on initialize while catching up with vertexAdd
+                    // events
+                    self.preventShake = true;
+                    self.mapMarkReady(map);
+                    self.mapReady().done(function(m) {
+                        self.preventShake = false;
+                    });
+                })
         };
 
-        this.featureStyle = function() {
+        this.getDefaultViewParameters = function() {
             return {
-                baseStyle: {
-                    pointRadius: '${radius}',
-                    label: '${label}',
-                    labelOutlineColor: '#AD2E2E',
-                    labelOutlineWidth: '2',
-                    fontWeight: 'bold',
-                    fontSize: '16px',
-                    fontColor: '#ffffff',
-                    fillColor: '#F13B3C',
-                    fillOpacity: 0.8,
-                    strokeColor: '#AD2E2E',
-                    strokeWidth: 3,
-                    cursor: 'pointer'
-                },
-                baseContext: {
-                    context: {
-                        label: function(feature) {
-                            return feature.attributes.count + '';
-                        },
-                        radius: function(feature) {
-                            var count = Math.min(feature.attributes.count || 0, 10);
-                            return count + 10;
-                        }
-                    }
-                }
+                zoom: 2,
+                center: [0, 0]
             };
         };
 
-        function calcPoint(sourceProjection, destProjection, x, y) {
-            if (arguments.length === 3 && _.isArray(x) && x.length === 2) {
-                y = x[1];
-                x = x[0];
+        this.clusterStyle = function() {
+            if (!this._clusterStyleWithCache) {
+                this._clusterStyleWithCache = _.memoize(
+                    this._clusterStyle.bind(this),
+                    function clusterStateHash(cluster) {
+                        var count = cluster.get('count'),
+                            selectionState = cluster.get('selectionState') || 'none',
+                            key = [count, selectionState];
+
+                        if (count === 1) {
+                            var vertex = cluster.get('features')[0].get('vertex'),
+                                conceptType = F.vertex.prop(vertex, 'conceptType');
+                            key.push('type=' + conceptType);
+                        }
+                        return key.join('')
+                    }
+                );
             }
 
-            return new ol.Geometry.Point(y, x).transform(sourceProjection, destProjection);
+            return this._clusterStyleWithCache.apply(this, arguments);
+        };
+
+        this._clusterStyle = function(cluster) {
+            var count = cluster.get('count'),
+                selectionState = cluster.get('selectionState') || 'none',
+                selected = selectionState !== 'none';
+
+            if (count === 1) {
+                var vertex = cluster.get('features')[0].get('vertex'),
+                    type = F.vertex.prop(vertex, 'conceptType'),
+                    scale = retina.devicePixelRatio,
+                    src = 'map/marker/image?' + $.param({ type, scale: scale > 1 ? '2' : '1', selected }),
+                    imgSize = FEATURE_SIZE.map(v => v * scale);
+
+                return [new ol.style.Style({
+                    image: new ol.style.Icon({ src, imgSize, scale: 1 / scale, anchor: [0.5, 1.0] })
+                })]
+            } else {
+                var radius = Math.min(count || 0, FEATURE_CLUSTER_HEIGHT / 2) + 10,
+                    unselectedFill = 'rgba(241,59,60, 0.8)',
+                    unselectedStroke = '#AD2E2E',
+                    stroke = selected ? '#08538B' : unselectedStroke,
+                    strokeWidth = Math.round(radius * 0.1),
+                    textStroke = stroke,
+                    fill = selected ? 'rgba(0,112,195, 0.8)' : unselectedFill;
+
+                if (selected && selectionState === 'some') {
+                    fill = unselectedFill;
+                    textStroke = unselectedStroke;
+                    strokeWidth *= 2;
+                }
+
+                return [new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: radius,
+                        stroke: new ol.style.Stroke({
+                            color: stroke,
+                            width: strokeWidth
+                        }),
+                        fill: new ol.style.Fill({
+                            color: fill
+                        })
+                    }),
+                    text: new ol.style.Text({
+                        text: count.toString(),
+                        font: `bold condensed ${radius}px sans-serif`,
+                        textAlign: 'center',
+                        fill: new ol.style.Fill({
+                            color: '#fff',
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: textStroke,
+                            width: 2
+                        })
+                    })
+                })];
+            }
         }
 
-        function calcLatLon(sourceProjection, destProjection, lat, lon) {
-            if (arguments.length === 3 && _.isArray(lat) && lat.length === 2) {
-                lon = lat[1];
-                lat = lat[0];
-            }
-
-            return new ol.LonLat(lon, lat).transform(sourceProjection, destProjection);
+        function geometryFromGeolocationProperties(geoLocations) {
+            return new ol.geom.MultiPoint(geoLocations.map(function(geo) {
+                var coord = [geo.value.longitude, geo.value.latitude];
+                return ol.proj.fromLonLat(coord);
+            }))
         }
     }
 

@@ -11,6 +11,41 @@
     # Compile less, js and watch directory
     > ./grunt
 
+## Routing with Fragment URLs
+
+Visallo has a built-in set of routing using the URLs fragment identifier.
+
+* **Open Entity / Relation Details** 
+
+        Fragment: #v=[(v[vertexId] | e[edgeId])]&w=[workspaceId]
+        Example: https://visallo.com/#v=vMY_VERTEX_ID,eMy_EDGE_ID&w=MY_WORKSPACE
+
+    Opens the full-screen view of one or many entities / relationships. A `v` or `e` must prefix the id to signify the element type.
+
+* **Prompt User to Add Entity / Relation**
+
+        Fragment: #add=[(v[vertexId] | e[edgeId])]
+        Example: https://visallo.com/#add=MY_VERTEX_ID_1,MY_VERTEX_ID_2
+
+    Opens Visallo, but prompts the user to add the passed in vertices to their workspace. Those vertices must be published.
+
+* **Open Visallo Admin Section**
+    
+        Fragment: #admin=[section][name]
+        Example: https://visallo.com/#admin=element:editor
+                 https://visallo.com/#admin=plugin:ui+extensions
+
+    Opens Visallo, and the admin pane (if the user has admin privilege) to the admin tool with name `[name]` in section `[section]`. 
+
+* **Open Visallo Menubar Tools**
+
+        Fragment: #tools=[menubar name, [menubar name]]
+        Example: https://visallo.com/#tools=graph      // Open Graph
+                 https://visallo.com/#tools=map,search // Open Map and Search Pane
+                 https://visallo.com/#tools=dashboard,workspaces,activity // Open Dashboard, Workspaces, and Activity Pane
+
+    Opens Visallo to the specified menubar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behevior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
+
 ## Helpful Global Functions
 
 These are some developer helper functions. Run these commands in the browser console.

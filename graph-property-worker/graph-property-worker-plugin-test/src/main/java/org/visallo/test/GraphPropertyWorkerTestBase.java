@@ -22,21 +22,26 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.graphProperty.*;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
 import org.visallo.vertexium.model.user.InMemoryUser;
-import org.visallo.web.clientapi.model.Privilege;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class GraphPropertyWorkerTestBase {
     private InMemoryGraph graph;
@@ -51,6 +56,15 @@ public abstract class GraphPropertyWorkerTestBase {
 
     @Mock
     protected OntologyRepository ontologyRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private AuthorizationRepository authorizationRepository;
+
+    @Mock
+    private WorkspaceRepository workspaceRepository;
 
     protected GraphPropertyWorkerTestBase() {
 
@@ -146,6 +160,10 @@ public abstract class GraphPropertyWorkerTestBase {
         return getGraph().createAuthorizations(authorizations);
     }
 
+    protected void setOntologyRepository(OntologyRepository ontologyRepository) {
+        this.ontologyRepository = ontologyRepository;
+    }
+
     protected byte[] getResourceAsByteArray(Class sourceClass, String resourceName) {
         try {
             InputStream in = sourceClass.getResourceAsStream(resourceName);
@@ -193,7 +211,8 @@ public abstract class GraphPropertyWorkerTestBase {
             InputStream in,
             String workspaceId,
             ElementOrPropertyStatus status,
-            String visibilitySource) {
+            String visibilitySource
+    ) {
         try {
             gpw.setConfiguration(getConfiguration());
             gpw.setGraph(getGraph());
@@ -239,7 +258,14 @@ public abstract class GraphPropertyWorkerTestBase {
 
     protected WorkQueueRepository getWorkQueueRepository() {
         if (workQueueRepository == null) {
-            workQueueRepository = new InMemoryWorkQueueRepository(getGraph(), workQueueNames, getConfiguration());
+            workQueueRepository = new InMemoryWorkQueueRepository(
+                    getGraph(),
+                    workQueueNames,
+                    getConfiguration()
+            );
+            workQueueRepository.setUserRepository(userRepository);
+            workQueueRepository.setAuthorizationRepository(authorizationRepository);
+            workQueueRepository.setWorkspaceRepository(workspaceRepository);
         }
         return workQueueRepository;
     }

@@ -121,6 +121,8 @@ function(jQuery,
 
             workspaceId = toOpen && toOpen.workspaceId,
 
+            redirectUrl = toOpen && toOpen.redirectUrl,
+
             // Is this the popoout details app? ids passed to hash?
             popoutDetails = !!(toOpen && toOpen.type === 'FULLSCREEN' && toOpenIds),
 
@@ -131,7 +133,7 @@ function(jQuery,
             mainApp = !popoutDetails,
             newUrl = window.location.href;
 
-        if (event && isAddUrl(previousUrl) && isMainApp(newUrl)) {
+        if (event && (isAddUrl(previousUrl) || isRedirectUrl(previousUrl)) && isMainApp(newUrl)) {
             previousUrl = newUrl;
             return;
         }
@@ -141,7 +143,8 @@ function(jQuery,
             return $('#app').trigger('vertexUrlChanged', {
                 vertexIds: vertexIds,
                 edgeIds: edgeIds,
-                workspaceId: workspaceId
+                workspaceId: workspaceId,
+                redirectUrl: redirectUrl
             });
         }
 
@@ -298,6 +301,13 @@ function(jQuery,
                                         if (toOpen && toOpen.type === 'ADMIN' && toOpen.section && toOpen.name) {
                                             appOptions.openAdminTool = _.pick(toOpen, 'section', 'name');
                                         }
+                                        if (toOpen && toOpen.type === 'REDIRECT' && toOpen.redirectUrl) {
+                                            window.location.href = toOpen.redirectUrl;
+                                            return;
+                                        }
+                                        if (toOpen && toOpen.type === 'TOOLS' && !_.isEmpty(toOpen.tools)) {
+                                            appOptions.openMenubarTools = toOpen.tools;
+                                        }
                                         if (animate) {
                                             $('#login .authentication button.loading').removeClass('loading');
                                             appOptions.animateFromLogin = true;
@@ -369,6 +379,10 @@ function(jQuery,
 
     function isAddUrl(url) {
         return (/#add=/).test(url);
+    }
+
+    function isRedirectUrl(url) {
+        return (/#redirect=/).test(url);
     }
 
     function isMainApp(url) {
