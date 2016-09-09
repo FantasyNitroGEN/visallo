@@ -116,11 +116,11 @@ public abstract class PropertyVisalloRdfTriple extends ElementVisalloRdfTriple {
                 IOUtils.readFully(value.getInputStream(), b);
                 return getValueRdfStringWithType(new String(Base64.encodeBase64(b)), VisalloRdfTriple.PROPERTY_TYPE_STREAMING_PROPERTY_VALUE_INLINE_BASE64);
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new VisalloException("Could not export StreamingPropertyValue", e);
             }
         }
 
-        LOGGER.warn("\"Unhandled value type " + getValue().getClass().getName() + " to convert to RDF string\"");
+        LOGGER.warn("Unhandled value type %s to convert to RDF string", getValue().getClass().getName());
         return null;
     }
 
