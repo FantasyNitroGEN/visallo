@@ -1,13 +1,16 @@
 define([
     'flight/lib/component',
-    'configuration/plugins/registry'
+    'configuration/plugins/registry',
+    'public/connectReact'
 ], function(
     defineComponent,
-    registry) {
+    registry,
+    connectReact) {
     'use strict';
 
     return {
         connect: connect,
+        connectReact: connectReact,
         defineComponent: defineComponent,
         registry: registry
     };

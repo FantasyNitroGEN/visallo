@@ -21,6 +21,7 @@ module.exports = function(config) {
 
                 // Source
                 {pattern: 'js/**/*.js', included: false},
+                {pattern: 'js/**/*.jsx', included: false},
 
                 // Templates
                 {pattern: 'js/**/*.ejs', included: false},
@@ -104,6 +105,7 @@ module.exports = function(config) {
             preprocessors: {
                 'js/**/*.js': ['babel'],
                 'js/**/*.jsx': ['babel'],
+                'test/unit/spec/**/*.js': ['babel'],
                 'test/**/*.jsx': ['babel']
             },
             babelPreprocessor: {
