@@ -12,14 +12,12 @@ One of the major components of Visallo is the system of Graph Property Workers t
 
 We will be using maven archetypes to do most of the bootstrapping of Visallo so that we can only focus on developing our graph property worker.
 
-<div class="alert alert-warning">
-  Please contact us at <a href='https://www.visallo.com/content/contact'>visallo.com</a> in order to receive the archetype jar and instructions.  The archetype jar will allow you to complete all of the tutorials.
-</div>
+You can either pull down a released Visallo archetype jar from Maven Central or build your own by running `mvn clean package -am -pl archetype` from the Visallo repository.
 
-* Run the following command in a directory of your choosing:
+* Run the following command from the Visallo repository:
 
 ```bash
-mvn archetype:generate -DarchetypeGroupId=com.visallo -DarchetypeArtifactId=visallo-plugin-archetype
+bin/install-plugin-archetype.sh
 ```
 
 Maven archetype will ask you a couple of questions:
