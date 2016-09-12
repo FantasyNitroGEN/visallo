@@ -1,0 +1,7 @@
+.idea/*
+!.idea/runConfigurations/
+*.iml
+target
+.DS_Store
+/work
+config/z-user.properties
