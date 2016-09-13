@@ -8,9 +8,9 @@ The `org.visallo.web.dashboard.item` extension allows custom content to be rende
 * `title` _(required)_ `[String]` Title of card to display when users are choosing items.
 * `description` _(required)_ `[String]` Description of card to display under title when users are choosing items.
 * One of the following is required: `componentPath`, or `report`.
-    * `componentPath` _(required)_ `[String]` Path to FlightJS component to render.
+    * `componentPath` _(required)_ `[String]` Path to FlightJS or React component to render.
     * `report` _(required)_ `[Object]` Specify an aggregation report. 
-* `configurationPath` _(optional)_ `[String]` Add custom configuration to the configure screen for this item.
+* `configurationPath` _(optional)_ `[String]` Add custom configuration to the configure screen for this item. FlightJS, or React
 * `grid` _(optional)_ `[Object]` Default sizing of item in grid.
     * `width` _(optional)_ `[Number]` Width in grid cells `1-12`
     * `height` _(optional)_ `[Number]` Height in grid rows `> 0`
@@ -117,19 +117,31 @@ The possible configuration can come from:
 * Default configuration (edit title)
 * Extension specific (configuration defined in extension `configurationPath`)
 * Report configuration (choose which reportRenderer)
-* Report choosen configuration (Report defined `configurationPath`)
+* Report chosen configuration (Report defined `configurationPath`)
 
 The configuration component gets attributes of the item when opened.
 
 * `extension` The extension registered
 * `item` The item instance which includes `configuration`
 
-To update an items configuration, trigger `configurationChanged`.
+To update an items configuration, trigger `configurationChanged` in FlightJS or call `configurationChanged` from `props` in React.
 
 ```js
+// Flight Example
+
 this.attr.item.configuration.myConfigOption = 'newValue';
 this.trigger('configurationChanged', {
     extension: this.attr.extension,
     item: this.attr.item
 });
+```
+
+```js
+// React Example
+
+var { item, extension } = this.props,
+    configuration = { ...item.configuration, newStateValue: true };
+
+item = { ...item, configuration }
+this.props.configurationChanged({ item, extension })
 ```
