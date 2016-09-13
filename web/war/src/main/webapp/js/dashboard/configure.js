@@ -1,12 +1,16 @@
 define([
     'flight/lib/component',
     'configuration/plugins/registry',
-    'util/popovers/withPopover'
+    'util/popovers/withPopover',
+    'util/component/attacher'
 ], function(
     defineComponent,
     registry,
-    withPopover) {
+    withPopover,
+    Attacher) {
     'use strict';
+
+    const reportConfigurationPath = 'dashboard/configs/report';
 
     var reportRenderers = registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer'),
         extensions = registry.extensionsForPoint('org.visallo.web.dashboard.item');
@@ -16,6 +20,9 @@ define([
     function ConfigPopover() {
 
         this.before('teardown', function() {
+            this.popover.find('.popover-content').children().each(function() {
+                Attacher().node(this).teardown();
+            })
             this.$node.closest('.card-toolbar').removeClass('active');
         })
 
@@ -24,7 +31,6 @@ define([
             var paths = config.configurationPaths || [],
                 extension = _.findWhere(extensions, { identifier: config.item.extensionId }),
                 report = config.item.configuration.report || extension.report,
-                reportConfigurationPath = 'dashboard/configs/report',
                 addDefaultConfiguration = !extension.options ||
                     extension.options.preventDefaultConfig !== true;
 
@@ -59,32 +65,33 @@ define([
                 this.on(this.$node.closest('.grid-stack-item').find('.item-content'), 'redirectEventToConfiguration', function(event, data) {
                     this.popover.find('.popover-content > div').trigger(data.name, data.data);
                 })
-                this.on(this.popover, 'configurationChanged', function(event, data) {
-                    self.trigger(event.type, data);
-
-                    var reportAdded = data.item.configuration.report || extension.report,
-                        reportRemoved = !data.item.configuration.report && !extension.report;
-                    if (reportAdded) {
-                        this.getDivForPath(reportConfigurationPath)
-                            .teardownAllComponents()
-                            .remove();
-                        this.renderConfigurations([
-                            Promise.all([reportConfigurationPath, Promise.require(reportConfigurationPath)])
-                        ]);
-                    } else if (reportRemoved) {
-                        this.getDivForPath(reportConfigurationPath)
-                            .teardownAllComponents()
-                            .remove();
-                    }
-                });
-
+                this.on(this.popover, 'configurationChanged', this.onConfigurationChanged);
                 this.renderConfigurations(configPathPromises);
             });
         });
 
-        this.getDivForPath = function(path) {
+        this.onConfigurationChanged = function(event, data) {
+            this.trigger('configurationChanged', data);
+
+            var extension = this.extension,
+                reportAdded = data.item.configuration.report || extension.report,
+                reportRemoved = !data.item.configuration.report && !extension.report;
+            if (reportAdded) {
+                this.teardownConfigPath(reportConfigurationPath)
+                this.renderConfigurations([
+                    Promise.all([reportConfigurationPath, Promise.require(reportConfigurationPath)])
+                ]);
+            } else if (reportRemoved) {
+                this.teardownConfigPath(reportConfigurationPath)
+            }
+        };
+
+        this.teardownConfigPath = function(path) {
             return this.popover.find('.popover-content > div').filter(function() {
                 return ($(this).data('path') === path);
+            }).each(function() {
+                Attacher().node(this).teardown();
+                $(this).empty();
             });
         }
 
@@ -95,21 +102,32 @@ define([
             Promise.all(promises).done(function(loaded) {
                 var root = self.popover.find('.popover-content');
 
-                loaded.forEach(function(promise) {
+                Promise.all(loaded.map(function(promise) {
                     var path = promise.shift(),
-                        Component = promise.shift();
-                    Component.attachTo(
-                        $('<div>')
-                            .data('path', path)
-                            .appendTo(root),
-                        {
+                        Component = promise.shift(),
+                        node = $('<div>').data('path', path).appendTo(root);
+
+                    return Attacher().node(node)
+                        .component(Component)
+                        .params({
                             extension: self.extension,
                             report: item.configuration.report || self.extension.report,
                             item: item
-                        }
-                    );
+                        })
+                        .behavior({
+                            configurationChanged: function(attacher, data) {
+                                self.onConfigurationChanged(null, data);
+                                // Only if react, update props
+                                if (attacher._reactElement) {
+                                    attacher.params(data).attach();
+                                }
+                                self.attr.item = data.item;
+                            }
+                        })
+                        .attach();
+                })).then(function() {
+                    self.positionDialog();
                 })
-                self.positionDialog();
             })
         };
 
