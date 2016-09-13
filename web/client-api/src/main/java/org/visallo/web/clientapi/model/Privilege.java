@@ -10,6 +10,7 @@ public final class Privilege {
     public static final String COMMENT = "COMMENT"; // add comments and edit/delete own comments
     public static final String COMMENT_EDIT_ANY = "COMMENT_EDIT_ANY"; // edit other users' comments
     public static final String COMMENT_DELETE_ANY = "COMMENT_DELETE_ANY"; // delete other users' comments
+    public static final String HISTORY_READ = "HISTORY_READ"; // read vertex/edge/property history
     public static final String SEARCH_SAVE_GLOBAL = "SEARCH_SAVE_GLOBAL";
     public static final String EDIT = "EDIT";
     public static final String PUBLISH = "PUBLISH";
@@ -18,7 +19,15 @@ public final class Privilege {
     static {
         // NOTE: Keep allNames in sync with the above public static strings.
         final String[] allNames = new String[] {
-                READ, COMMENT, COMMENT_EDIT_ANY, COMMENT_DELETE_ANY, SEARCH_SAVE_GLOBAL, EDIT, PUBLISH, ADMIN
+                READ,
+                COMMENT,
+                COMMENT_EDIT_ANY,
+                COMMENT_DELETE_ANY,
+                HISTORY_READ,
+                SEARCH_SAVE_GLOBAL,
+                EDIT,
+                PUBLISH,
+                ADMIN
         };
         Set<Privilege> allPrivileges = new HashSet<Privilege>(allNames.length);
         for (String name : allNames) {
