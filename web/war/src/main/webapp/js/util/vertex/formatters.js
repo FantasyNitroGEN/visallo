@@ -168,7 +168,8 @@ define([
                 link: function(el, property, vertex) {
                     var anchor = document.createElement('a'),
                         value = V.prop(vertex, property.name),
-                        href = $.trim(value);
+                        href = $.trim(value),
+                        linkTitle = property.metadata['http://visallo.org#linkTitle'];
 
                     if (!(/^http/).test(href)) {
                         href = 'http://' + href;
@@ -176,7 +177,7 @@ define([
 
                     anchor.setAttribute('href', href);
                     anchor.setAttribute('target', '_blank');
-                    anchor.textContent = href;
+                    anchor.textContent = linkTitle || href;
 
                     el.appendChild(anchor);
                 },
