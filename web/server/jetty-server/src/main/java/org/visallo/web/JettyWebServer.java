@@ -48,11 +48,13 @@ public class JettyWebServer extends WebServer {
         httpConnector.setPort(getHttpPort());
 
         SslContextFactory sslContextFactory = new SslContextFactory();
+        sslContextFactory.setKeyStoreType(getKeyStoreType());
         sslContextFactory.setKeyStorePath(getKeyStorePath().getAbsolutePath());
-        sslContextFactory.setKeyStorePassword(super.getKeyStorePassword());
+        sslContextFactory.setKeyStorePassword(getKeyStorePassword());
+        sslContextFactory.setTrustStoreType(getTrustStoreType());
         sslContextFactory.setTrustStorePath(getTrustStorePath().getAbsolutePath());
-        sslContextFactory.setTrustStorePassword(super.getTrustStorePassword());
-        sslContextFactory.setNeedClientAuth(super.getRequireClientCert());
+        sslContextFactory.setTrustStorePassword(getTrustStorePassword());
+        sslContextFactory.setNeedClientAuth(getRequireClientCert());
 
         HttpConfiguration https_config = new HttpConfiguration(http_config);
         https_config.addCustomizer(new SecureRequestCustomizer());
