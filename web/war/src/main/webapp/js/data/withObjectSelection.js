@@ -184,20 +184,22 @@ define([], function() {
             }
 
             function getSelectedVertices() {
-                var graphSelectionDelay = Promise.timeout(GRAPH_SELECTION_THROTTLE);
-                return graphSelectionDelay
-                    .then(getSelectedObjects)
-                    .then(_.property('vertices'));
+                return Promise.require('util/vertex/formatters')
+                    .then(function(F) {
+                        return Promise.all([
+                            self.dataRequestPromise,
+                            F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true })
+                        ])
+                    })
+                    .spread(function(dataRequest, vertexIds) {
+                        return dataRequest('vertex', 'store', { vertexIds: vertexIds });
+                    });
             }
 
             function getWorkspaceEdges() {
                 return self.dataRequestPromise.then(function(dataRequest) {
                     return dataRequest('workspace', 'edges');
                 });
-            }
-
-            function getSelectedObjects() {
-                return self.selectedObjectsPromise();
             }
         };
 
