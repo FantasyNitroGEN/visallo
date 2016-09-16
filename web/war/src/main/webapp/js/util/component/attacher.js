@@ -26,8 +26,10 @@ define([
         this._node = _.isFunction(node.get) ? node.get(0) : node;
         return this;
     };
-    Attacher.prototype.mapLegacyBehaviors = function() { };
-    Attacher.prototype.verifyState = function() {
+
+    Attacher.prototype._mapLegacyBehaviors = function() { };
+
+    Attacher.prototype._verifyState = function() {
         if (!_.isElement(this._node)) {
             throw new Error('Node is not an Element')
         }
@@ -43,16 +45,19 @@ define([
             }
         }
     };
+
     Attacher.prototype.teardown = function() {
         if (!this._node) throw new Error('No node specified');
         ReactDOM.unmountComponentAtNode(this._node);
         $(this._node).teardownAllComponents();
+        return this;
     };
+
     Attacher.prototype.attach = function(options) {
         var self = this,
             params = _.extend({}, this._params) || {};
 
-        return Promise.try(this.verifyState.bind(this))
+        return Promise.try(this._verifyState.bind(this))
             .then(function() {
                 return Promise.all([
                     self._component || Promise.require(self._path),
