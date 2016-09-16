@@ -11,6 +11,7 @@ public abstract class WebServer extends CommandLineTool {
     public static final int DEFAULT_HTTPS_SERVER_PORT = 8443;
     public static final String DEFAULT_CONTEXT_PATH = "/";
     public static final int DEFAULT_SESSION_TIMEOUT = 30;
+    public static final String DEFAULT_KEYSTORE_TYPE = "JKS";
 
     @Parameter(names = {"--port"}, arity = 1, description = "The port to run the HTTP connector on")
     private int httpPort = DEFAULT_SERVER_PORT;
@@ -18,16 +19,22 @@ public abstract class WebServer extends CommandLineTool {
     @Parameter(names = {"--httpsPort"}, arity = 1, description = "The port to run the HTTPS connector on")
     private int httpsPort = DEFAULT_HTTPS_SERVER_PORT;
 
-    @Parameter(names = {"--keyStorePath"}, required = true, arity = 1, converter = FileConverter.class, description = "Path to the JKS keystore used for SSL")
+    @Parameter(names = {"--keyStoreType"}, arity = 1, description = "Keystore type (JKS, PKCS12)")
+    private String keyStoreType = DEFAULT_KEYSTORE_TYPE;
+
+    @Parameter(names = {"--keyStorePath"}, required = true, arity = 1, converter = FileConverter.class, description = "Path to the keystore used for SSL")
     private File keyStorePath;
 
-    @Parameter(names = {"--keyStorePassword"}, required = true, arity = 1, description = "JKS keystore password")
+    @Parameter(names = {"--keyStorePassword"}, required = true, arity = 1, description = "Keystore password")
     private String keyStorePassword;
 
-    @Parameter(names = {"--trustStorePath"}, arity = 1, converter = FileConverter.class, description = "Path to the JKS truststore used for SSL")
+    @Parameter(names = {"--trustStoreType"}, arity = 1, description = "Truststore type (JKS, PKCS12)")
+    private String trustStoreType = DEFAULT_KEYSTORE_TYPE;
+
+    @Parameter(names = {"--trustStorePath"}, arity = 1, converter = FileConverter.class, description = "Path to the truststore used for SSL")
     private File trustStorePath;
 
-    @Parameter(names = {"--trustStorePassword"}, arity = 1, description = "JKS truststore password")
+    @Parameter(names = {"--trustStorePassword"}, arity = 1, description = "Truststore password")
     private String trustStorePassword;
 
     @Parameter(names = {"--requireClientCert"}, description = "require client certificate")
@@ -50,12 +57,20 @@ public abstract class WebServer extends CommandLineTool {
         return httpsPort;
     }
 
+    public String getKeyStoreType() {
+        return keyStoreType;
+    }
+
     public File getKeyStorePath() {
         return keyStorePath;
     }
 
     public String getKeyStorePassword() {
         return keyStorePassword;
+    }
+
+    public String getTrustStoreType() {
+        return trustStoreType;
     }
 
     public File getTrustStorePath() {
