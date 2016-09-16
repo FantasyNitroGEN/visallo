@@ -123,7 +123,7 @@ public class WebConfiguration {
         ));
 
         DEFAULTS.put(MAP_PROVIDER, MapProvider.OSM.toString());
-        DEFAULTS.put(MAP_PROVIDER_OSM_URL, "https://{a-c}.tile.openstreetmap.org/${z}/${x}/${y}.png");
+        DEFAULTS.put(MAP_PROVIDER_OSM_URL, "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png");
     }
 
     public static class PropertyMetadata {
