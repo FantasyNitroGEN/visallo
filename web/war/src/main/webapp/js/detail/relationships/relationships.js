@@ -22,6 +22,7 @@ define([
 
         this.defaultAttrs({
             relationshipsHeaderSelector: 'section.collapsible h1',
+            relationshipsSearchRelatedSelector: 'section.collapsible .search-related',
             relationshipsPagingButtonsSelector: 'section.collapsible .paging button'
         });
 
@@ -30,6 +31,7 @@ define([
 
             this.on('click', {
                 relationshipsHeaderSelector: this.onToggleRelationships,
+                relationshipsSearchRelatedSelector: this.onSearchRelated,
                 relationshipsPagingButtonsSelector: this.onPageRelationships
             });
 
@@ -52,6 +54,10 @@ define([
         };
 
         this.onToggleRelationships = function(event) {
+            if ($(event.target).hasClass('search-related')) {
+                return;
+            }
+
             var $section = $(event.target).closest('.collapsible');
 
             if ($section.hasClass('expanded')) {
@@ -62,6 +68,16 @@ define([
                 offset: 0,
                 size: MAX_RELATIONS_TO_DISPLAY
             }));
+        };
+
+        this.onSearchRelated = function(event) {
+            var $target = $(event.target),
+                $section = $target.closest('section');
+
+            this.trigger(document, 'searchByRelatedEntity', {
+                vertexIds: [this.data.id],
+                edgeLabel: $section.data('label')
+            });
         };
 
         this.requestRelationships = function($section) {
@@ -91,7 +107,8 @@ define([
                         return;
                     }
 
-                    var node = $content.empty().append('<div>').find('div');
+                    var node = $content.empty()
+                        .append('<div>').find('div');
 
                     node.teardownComponent(ElementList);
                     ElementList.attachTo(node, {
@@ -188,6 +205,9 @@ define([
                                 this.append('h1')
                                     .call(function() {
                                         this.append('strong');
+                                        this.append('s')
+                                            .attr('class', 'search-related')
+                                            .attr('title', i18n('detail.entity.relationships.open_in_search'));
                                         this.append('span').attr('class', 'badge');
                                     });
                                 this.append('div');

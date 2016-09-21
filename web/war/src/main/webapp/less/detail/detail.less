@@ -608,6 +608,34 @@
     background-color: red;
   }
 
+  .org-visallo-relationships {
+    .collapsible > h1 {
+      strong {
+        display: inline;
+        padding-right: 0.75em
+      }
+
+      .search-related {
+        display: inline-block;
+        visibility: hidden;
+        opacity: 0.4;
+        width: 10px;
+        height: 10px;
+        background-image: url(../img/glyphicons/glyphicons_027_search@2x.png);
+        background-repeat: no-repeat;
+        background-size: auto 100%;
+
+        &:hover {
+          opacity: 0.6;
+        }
+      }
+
+      &:hover .search-related {
+        visibility: visible;
+      }
+    }
+  }
+
   .org-visallo-texts {
     .vertex, .artifact {
       cursor: pointer;
