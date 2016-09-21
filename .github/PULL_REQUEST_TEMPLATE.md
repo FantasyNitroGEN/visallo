@@ -1,5 +1,5 @@
 - [ ] @joeferner
-- [ ] @srfarley @kunklejr
+- [ ] @kunklejr
 - [ ] @mwizeman @dsingley @EvanOxfeld 
 - [ ] @joeybrk372 @sfeng88 @rygim @jharwig 
 
