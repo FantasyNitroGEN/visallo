@@ -1,9 +1,6 @@
 package org.visallo.core.status;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
+import com.codahale.metrics.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,6 +32,11 @@ public class JmxMetricsManager implements MetricsManager {
     @Override
     public Timer timer(String name) {
         return REGISTRY.timer(name);
+    }
+
+    @Override
+    public Meter meter(String name) {
+        return REGISTRY.meter(name);
     }
 
     @Override

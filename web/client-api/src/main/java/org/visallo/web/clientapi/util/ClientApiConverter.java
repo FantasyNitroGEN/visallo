@@ -93,6 +93,10 @@ public class ClientApiConverter {
         }
     }
 
+    public static <T> T toClientApi(JSONObject json, Class<T> clazz) {
+        return toClientApi(json.toString(), clazz);
+    }
+
     public static <T> T toClientApi(String str, Class<T> clazz) {
         try {
             return ObjectMapperFactory.getInstance().readValue(str, clazz);
