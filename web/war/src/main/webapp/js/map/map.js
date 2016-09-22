@@ -803,7 +803,7 @@ define([
                     self.handleContextMenu(evt);
                 }
             });
-            map.on('click', function() {
+            map.on('click', function(event) {
                 self.closeMenu();
                 self.onMapClicked(event, map);
             })
