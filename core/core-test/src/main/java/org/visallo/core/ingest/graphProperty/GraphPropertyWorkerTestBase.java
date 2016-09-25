@@ -184,6 +184,7 @@ public abstract class GraphPropertyWorkerTestBase {
     }
 
     protected void run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e) {
+        run(gpw, workerPrepareData, e, null, null);
         for (Property property : e.getProperties()) {
             InputStream in = null;
             if (property.getValue() instanceof StreamingPropertyValue) {
@@ -238,7 +239,7 @@ public abstract class GraphPropertyWorkerTestBase {
                     workspaceId,
                     visibilitySource,
                     Priority.NORMAL,
-                    prop.getTimestamp() - 1,
+                    (prop == null ? e.getTimestamp() : prop.getTimestamp()) - 1,
                     status
             );
             if (gpw.isLocalFileRequired() && executeData.getLocalFile() == null && in != null) {
