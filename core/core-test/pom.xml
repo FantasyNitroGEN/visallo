@@ -44,5 +44,15 @@
             <artifactId>simple-orm-in-memory</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-queue-inmemory</artifactId>
+            <version>${v5.visallo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-model-vertexium-inmemory</artifactId>
+            <version>${v5.visallo.version}</version>
+        </dependency>
     </dependencies>
 </project>
