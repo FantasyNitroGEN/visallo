@@ -25,10 +25,7 @@ import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.GraphPropertyRunnerStatus;
 import org.visallo.core.status.model.ProcessStatus;
 import org.visallo.core.user.User;
-import org.visallo.core.util.ServiceLoaderUtil;
-import org.visallo.core.util.TeeInputStream;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.core.util.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -618,5 +615,47 @@ public class GraphPropertyRunner extends WorkerBase {
 
     private Collection<GraphPropertyWorker> getAllGraphPropertyWorkers() {
         return Lists.newArrayList(this.graphPropertyWorkers);
+    }
+
+    public static List<StoppableRunnable> startThreaded(int threadCount, User user) {
+        List<StoppableRunnable> stoppables = new ArrayList<>();
+
+        LOGGER.info("Starting GraphPropertyRunners on %d threads", threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            StoppableRunnable stoppable = new StoppableRunnable() {
+                private GraphPropertyRunner graphPropertyRunner = null;
+
+                @Override
+                public void run() {
+                    try {
+                        graphPropertyRunner = InjectHelper.getInstance(GraphPropertyRunner.class);
+                        graphPropertyRunner.prepare(user);
+                        graphPropertyRunner.run();
+                    } catch (Exception ex) {
+                        LOGGER.error("Failed running GraphPropertyRunner", ex);
+                    }
+                }
+
+                @Override
+                public void stop() {
+                    try {
+                        if (graphPropertyRunner != null) {
+                            LOGGER.debug("Stopping GraphPropertyRunner");
+                            graphPropertyRunner.stop();
+                        }
+                    } catch (Exception ex) {
+                        LOGGER.error("Failed stopping GraphPropertyRunner", ex);
+                    }
+                }
+            };
+            stoppables.add(stoppable);
+            Thread t = new Thread(stoppable);
+            t.setName("graph-property-runner-" + t.getId());
+            t.setDaemon(true);
+            LOGGER.debug("Starting GraphPropertyRunner thread: %s", t.getName());
+            t.start();
+        }
+
+        return stoppables;
     }
 }
