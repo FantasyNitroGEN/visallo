@@ -1,4 +1,4 @@
-package org.visallo.test;
+package org.visallo.core.ingest.graphProperty;
 
 import com.google.inject.Injector;
 import org.apache.commons.io.FileUtils;
@@ -19,7 +19,6 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.ingest.graphProperty.*;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;

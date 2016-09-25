@@ -16,7 +16,6 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
-import org.visallo.test.GraphPropertyWorkerTestBase;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.*;
@@ -27,9 +26,11 @@ import static org.mockito.Mockito.when;
  * This base class provides a common test setup for unit tests of GraphPropertyWorker subclasses. Both Mockito and
  * in-memory implementations are used to supply dependent objects to the GraphPropertyWorker.
  * <p/>
- * TODO: It might make sense to combine this with {@link GraphPropertyWorkerTestBase}.
  * TODO: There are a number of GPW unit tests with copied/pasted setup that should extend this base class.
+ *
+ * @deprecated use {@link GraphPropertyWorkerTestBase} instead
  */
+@Deprecated
 public abstract class GraphPropertyWorkerTestSetupBase {
     protected static final String WORKSPACE_ID = "TEST_WORKSPACE";
     protected static final String VISIBILITY_SOURCE = "TEST_VISIBILITY_SOURCE";
