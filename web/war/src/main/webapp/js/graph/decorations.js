@@ -311,7 +311,8 @@ define(['configuration/plugins/registry'], function(registry) {
                 decBBoxLabels = decorationNode ?
                     decorationNode.boundingBox({ includeLabels: true }) :
                     { w: 0, h: 0 },
-                padding = 8;
+                paddingX = (extension.padding && extension.padding.hasOwnProperty('x')) ? extension.padding.x : 8,
+                paddingY = (extension.padding && extension.padding.hasOwnProperty('y')) ? extension.padding.y : 8;
 
             switch (extension.alignment.h) {
               case 'center':
@@ -327,7 +328,7 @@ define(['configuration/plugins/registry'], function(registry) {
                 } else {
                     x = specs.position.x + specs.w / 2 + decBBox.w / 2;
                 }
-                x += padding
+                x += paddingX;
                 break;
 
               case 'left':
@@ -340,7 +341,7 @@ define(['configuration/plugins/registry'], function(registry) {
                 } else {
                     x = specs.position.x - specs.w / 2 - decBBox.w / 2;
                 }
-                x -= padding
+                x -= paddingX;
             }
             switch (extension.alignment.v) {
               case 'center':
@@ -349,22 +350,22 @@ define(['configuration/plugins/registry'], function(registry) {
 
               case 'bottom':
                 if (specs.textVAlign === extension.alignment.v && extension.alignment.h === 'center') {
-                    y = specs.position.y - specs.h / 2 + specs.bboxLabels.h + decBBoxLabels.h / 2 + padding;
+                    y = specs.position.y - specs.h / 2 + specs.bboxLabels.h + decBBoxLabels.h / 2 + paddingY;
                 } else if (specs.textVAlign === extension.alignment.v) {
-                    y = specs.position.y + specs.h / 2 + padding + (specs.bboxLabels.h - specs.h - padding) / 2;
+                    y = specs.position.y + specs.h / 2 + paddingY + (specs.bboxLabels.h - specs.h - paddingY) / 2;
                 } else {
-                    y = specs.position.y + specs.h / 2 + decBBoxLabels.h / 2 + padding;
+                    y = specs.position.y + specs.h / 2 + decBBoxLabels.h / 2 + paddingY;
                 }
                 break;
 
               case 'top':
               default:
                 if (specs.textVAlign === extension.alignment.v && extension.alignment.h === 'center') {
-                    y = specs.position.y + specs.h / 2 - specs.bboxLabels.h - decBBoxLabels.h / 2 - padding;
+                    y = specs.position.y + specs.h / 2 - specs.bboxLabels.h - decBBoxLabels.h / 2 - paddingY;
                 } else if (specs.textVAlign === extension.alignment.v) {
-                    y = specs.position.y - specs.h / 2 - padding - (specs.bboxLabels.h - specs.h - padding) / 2;
+                    y = specs.position.y - specs.h / 2 - paddingY - (specs.bboxLabels.h - specs.h - paddingY) / 2;
                 } else {
-                    y = specs.position.y - specs.h / 2 - decBBoxLabels.h / 2 - padding
+                    y = specs.position.y - specs.h / 2 - decBBoxLabels.h / 2 - paddingY
                 }
             }
 
