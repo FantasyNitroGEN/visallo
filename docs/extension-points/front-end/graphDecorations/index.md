@@ -17,6 +17,13 @@ Graph decorations are additional detail to display around a vertex when displaye
     * `h`: Horizontal alignment must be one of: `left`, `center`, `right`.
     * `v`: Vertical alignment must be one of: `top`, `center`, `bottom`.
 
+* `padding` _(optional)_ `[Object]`
+    
+    Specifies the padding between the decoration and the vertex.
+
+    * `x`: Horizontal padding.
+    * `y`: Vertical padding.
+
 * `classes` _(optional)_ `[String|Array|Function]`
 
     Class names to add to cytoscape node. This is most used with an [`org.visallo.graph.style`](../graphStyle) extension.
