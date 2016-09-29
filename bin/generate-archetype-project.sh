@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
+set -x
 
 DIR=$(cd $(dirname "$0") && pwd)
+VISALLO_DIR=${DIR}/..
+ARCHETYPE_JAR_DIR=$VISALLO_DIR/archetype/target
 
-ARCHETYPE_JAR_DIR=${DIR}/../archetype/target
+cd ${VISALLO_DIR}
+
+mvn clean package -am -pl archetype
+
+cd ${DIR}
+
 VERSION=$(find "${ARCHETYPE_JAR_DIR}" -name "visallo-plugin-archetype-*.jar" | sed -e 's/.*visallo-plugin-archetype-//' -e 's/\.jar$//')
 
 mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file \
