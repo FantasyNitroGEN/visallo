@@ -14,3 +14,5 @@ mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file \
     -DgeneratePom=true
 
 mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:crawl
+
+mvn archetype:generate -DarchetypeGroupId=com.visallo -DarchetypeArtifactId=visallo-plugin-archetype -DarchetypeVersion=${VERSION}
