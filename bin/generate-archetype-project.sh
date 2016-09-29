@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 
 DIR=$(cd $(dirname "$0") && pwd)
 VISALLO_DIR=${DIR}/..
