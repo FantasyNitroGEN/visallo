@@ -10,16 +10,21 @@ import org.vertexium.*;
 import org.vertexium.id.QueueIdGenerator;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.inmemory.InMemoryGraphConfiguration;
+import org.vertexium.mutation.ElementMutation;
 import org.vertexium.search.DefaultSearchIndex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +51,9 @@ public class GraphRepositoryTest {
     @Mock
     private TermMentionRepository termMentionRepository;
 
+    @Mock
+    private WorkQueueRepository workQueueRepository;
+
     private Authorizations defaultAuthorizations;
     private DirectVisibilityTranslator visibilityTranslator;
 
@@ -60,7 +68,8 @@ public class GraphRepositoryTest {
         graphRepository = new GraphRepository(
                 graph,
                 visibilityTranslator,
-                termMentionRepository
+                termMentionRepository,
+                workQueueRepository
         );
     }
 
@@ -278,6 +287,34 @@ public class GraphRepositoryTest {
         assertEquals(propertyValue, property.getValue());
         assertEquals(SECRET_AND_WORKSPACE_VISALLO_VIZ, property.getVisibility());
         assertFalse(property.getHiddenVisibilities().iterator().hasNext());
+    }
+
+    @Test
+    public void testBeginGraphUpdate() throws Exception {
+        Date modifiedDate = new Date();
+        VisibilityJson visibilityJson = new VisibilityJson();
+        PropertyMetadata metadata = new PropertyMetadata(modifiedDate, user1, visibilityJson, new Visibility(""));
+
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user1, defaultAuthorizations)) {
+            ElementMutation<Vertex> m = graph.prepareVertex("v1", new Visibility(""));
+            ctx.update(m, modifiedDate, visibilityJson, "http://visallo.org/text#concept1", updateContext -> {
+                VisalloProperties.FILE_NAME.updateProperty(updateContext, "k1", "test1.txt", metadata, new Visibility(""));
+            });
+
+            m = graph.prepareVertex("v2", new Visibility(""));
+            ctx.update(m, updateContext -> {
+                updateContext.updateBuiltInProperties(modifiedDate, visibilityJson);
+                updateContext.setConceptType("http://visallo.org/text#concept1");
+                VisalloProperties.FILE_NAME.updateProperty(updateContext, "k1", "test2.txt", metadata, new Visibility(""));
+            });
+        }
+
+        Vertex v1 = graph.getVertex("v1", defaultAuthorizations);
+        assertEquals("test1.txt", VisalloProperties.FILE_NAME.getFirstPropertyValue(v1));
+        assertEquals("http://visallo.org/text#concept1", VisalloProperties.CONCEPT_TYPE.getPropertyValue(v1));
+        assertEquals(modifiedDate, VisalloProperties.MODIFIED_DATE.getPropertyValue(v1));
+        assertEquals(user1.getUserId(), VisalloProperties.MODIFIED_BY.getPropertyValue(v1));
+        assertEquals(visibilityJson, VisalloProperties.VISIBILITY_JSON.getPropertyValue(v1));
     }
 
     private void setProperty(Vertex vertex, String value, String workspaceId, Authorizations workspaceAuthorizations) {
