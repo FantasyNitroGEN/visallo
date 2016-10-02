@@ -16,6 +16,5 @@
     <modules>
         <module>plugins</module>
         <module>graph-property-worker-plugin-base</module>
-        <module>graph-property-worker-plugin-test</module>
     </modules>
 </project>
