@@ -1,10 +1,10 @@
 package org.visallo.core.model.properties.types;
 
+import org.vertexium.Metadata;
+import org.vertexium.Visibility;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.Metadata;
-import org.vertexium.Visibility;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,8 +27,12 @@ public class PropertyMetadata {
     }
 
     public PropertyMetadata(
-            Date modifiedDate, User modifiedBy, Double confidence, VisibilityJson visibilityJson,
-            Visibility visibility) {
+            Date modifiedDate,
+            User modifiedBy,
+            Double confidence,
+            VisibilityJson visibilityJson,
+            Visibility visibility
+    ) {
         this.modifiedDate = modifiedDate;
         this.modifiedBy = modifiedBy;
         this.confidence = confidence;
@@ -60,6 +64,10 @@ public class PropertyMetadata {
 
     public Date getModifiedDate() {
         return modifiedDate;
+    }
+
+    public VisibilityJson getVisibilityJson() {
+        return visibilityJson;
     }
 
     public void add(String key, Object value, Visibility visibility) {
