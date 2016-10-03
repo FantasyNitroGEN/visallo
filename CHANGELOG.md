@@ -1,15 +1,37 @@
 
 v2.2.0
 ==================
-  * Include babel polyfill https://babeljs.io/docs/usage/polyfill/
-  * Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
-  * When providing Authorization or User parameters, provide null if not found
-  * Provide a way to redirect the user after authenticating
-  * Allow ACLProvider to continue even if a concept or relationship cannot be found
-  * Web: Merge logic to get client IP address from CurrentUser and AuthenticationHander
-  * Allow admin extensions to request a sort within a section
-  * Refactor web visibility validation to VisibilityValidator class
-  * OwlToJava: Support StreamingPropertyValue and DirectoryEntity types
+
+## Added
+
+* HISTORY_READ privilege required for viewing vertex/edge/property history
+* An archetype jar to help developers generate a maven project to start plugin development.
+* OwlToJava: Support StreamingPropertyValue and DirectoryEntity types
+* Allow admin extensions to request a sort within a section
+* Provide a way to redirect the user after authenticating
+* Add methods which take timestamps to SingleValueVisalloProperty and VisalloProperty
+* Include babel polyfill https://babeljs.io/docs/usage/polyfill/
+
+## Changed
+
+* Upgraded React from 0.14.8 to 15.3.0
+* version branch 2.2 depends on the vertexium 2.4.5
+* Refactor web visibility validation to VisibilityValidator class
+* Web: Merge logic to get client IP address from CurrentUser and AuthenticationHander
+* Allow ACLProvider to continue even if a concept or relationship cannot be found
+
+## Fixed
+
+* Add user admin privilges plugin to visallo-dev-jetty-server module
+* Dashboard pie chart infinite loop
+
+## Documentation
+
+* Steps to generate the archetype jar
+
+## Deprecated
+
+* getRemoteAddr to provide a more consistent way of retrieving the client IP address. Use RemoteAddressUtil.getClientIpAddr to get the client IP address in the future.
 
 v2.1.2
 ==================
@@ -62,7 +84,7 @@ key
 ## Removed
 
 * FormatVisallo CLI tool
- 
+
 v2.1.0
 ==================
 
