@@ -10,9 +10,9 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -32,13 +32,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * </pre>
  */
 public class GraphUpdateContext implements AutoCloseable {
+    private static final int DEFAULT_MAX_ELEMENT_UPDATE_CONTEXT_ITEMS = 1000;
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
     private final VisibilityTranslator visibilityTranslator;
     private final Priority priority;
     private final User user;
     private final Authorizations authorizations;
-    private final List<ElementUpdateContext> elementUpdateContexts = new ArrayList<>();
+    private final Queue<ElementUpdateContext> elementUpdateContexts = new LinkedList<>();
+    private int maxElementUpdateContextItems = DEFAULT_MAX_ELEMENT_UPDATE_CONTEXT_ITEMS;
 
     public GraphUpdateContext(
             Graph graph,
@@ -59,9 +61,14 @@ public class GraphUpdateContext implements AutoCloseable {
     @SuppressWarnings("unchecked")
     @Override
     public void close() throws Exception {
+        pushToWorkQueueRepository();
+    }
+
+    protected void pushToWorkQueueRepository() {
         graph.flush();
-        for (ElementUpdateContext ctx : elementUpdateContexts) {
-            workQueueRepository.pushGraphVisalloPropertyQueue(ctx.getElement(), ctx.getProperties(), priority);
+        while (elementUpdateContexts.size() > 0) {
+            ElementUpdateContext elemCtx = elementUpdateContexts.remove();
+            workQueueRepository.pushGraphVisalloPropertyQueue(elemCtx.getElement(), elemCtx.getProperties(), priority);
         }
     }
 
@@ -155,10 +162,38 @@ public class GraphUpdateContext implements AutoCloseable {
         }
         updateFn.update(elementUpdateContext);
         elementUpdateContext.save(authorizations);
+        addToElementUpdateContexts(elementUpdateContext);
+    }
+
+    private <T extends Element> void addToElementUpdateContexts(ElementUpdateContext<T> elementUpdateContext) {
         elementUpdateContexts.add(elementUpdateContext);
+        if (elementUpdateContexts.size() > maxElementUpdateContextItems) {
+            pushToWorkQueueRepository();
+        }
     }
 
     public interface Update<T extends Element> {
-        void update(ElementUpdateContext<T> ctx);
+        void update(ElementUpdateContext<T> elemCtx);
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public Authorizations getAuthorizations() {
+        return authorizations;
+    }
+
+    public int getMaxElementUpdateContextItems() {
+        return maxElementUpdateContextItems;
+    }
+
+    public GraphUpdateContext setMaxElementUpdateContextItems(int maxElementUpdateContextItems) {
+        this.maxElementUpdateContextItems = maxElementUpdateContextItems;
+        return this;
     }
 }
