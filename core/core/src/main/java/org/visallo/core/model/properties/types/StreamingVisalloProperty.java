@@ -1,7 +1,7 @@
 package org.visallo.core.model.properties.types;
 
 import org.apache.commons.io.IOUtils;
-import org.vertexium.Vertex;
+import org.vertexium.Element;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.exception.VisalloException;
 
@@ -20,8 +20,8 @@ public class StreamingVisalloProperty extends IdentityVisalloProperty<StreamingP
         super(key);
     }
 
-    public byte[] getFirstPropertyValueAsBytes(Vertex vertex) {
-        StreamingPropertyValue propertyValue = getFirstPropertyValue(vertex);
+    public byte[] getFirstPropertyValueAsBytes(Element element) {
+        StreamingPropertyValue propertyValue = getFirstPropertyValue(element);
         if (propertyValue == null) {
             return null;
         }
@@ -32,8 +32,8 @@ public class StreamingVisalloProperty extends IdentityVisalloProperty<StreamingP
         }
     }
 
-    public String getFirstPropertyValueAsString(Vertex vertex) {
-        StreamingPropertyValue propertyValue = getFirstPropertyValue(vertex);
+    public String getFirstPropertyValueAsString(Element element) {
+        StreamingPropertyValue propertyValue = getFirstPropertyValue(element);
         if (propertyValue == null) {
             return null;
         }
