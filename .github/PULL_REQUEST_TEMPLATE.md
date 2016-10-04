@@ -1,6 +1,6 @@
 - [ ] @joeferner
-- [ ] @kunklejr
-- [ ] @mwizeman @dsingley @EvanOxfeld 
+- [ ] @kunklejr @mwizeman
+- [ ] @dsingley @EvanOxfeld 
 - [ ] @joeybrk372 @sfeng88 @rygim @jharwig 
 
 
