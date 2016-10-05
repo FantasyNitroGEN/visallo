@@ -4,8 +4,6 @@ For simple ingestion processes, it is possible to use an RDF file with both xml 
 
 ## RDF Files
 
-### XML Format
-
 ### NT Format
 
 NT files that can be imported into Visallo are 
@@ -52,7 +50,6 @@ If you were to create multiple vertices with multiple concept types the NT file 
 
   # create one vertex with a concept type of contact info
 <contactinfo1> <http://visallo.org#conceptType> "http://visallo.org/sample#contactInfo"
-
 ```
 
 #### Vertex Properties
@@ -77,12 +74,7 @@ If we load an element with complete data through the RDF Importer file, it will 
 # create the vertex
 <person1> <http://visallo.org#conceptType> "http://visallo.org/sample#person"
 <person1> <http://visallo.org#sample> "http://visallo.org/sample#person"
-
-
-
 ```
-
-
 
 ##### Property Types
 
@@ -159,13 +151,6 @@ To specify the data type for the data that you are ingesting, you must create th
 </tbody>
 </table>
 
-
-
-
-
-
-
-
 #### Edge
 
 #### Edge Properties
@@ -173,12 +158,97 @@ To specify the data type for the data that you are ingesting, you must create th
 #### Authorizations
 
 
+### RDF XML Import
+
+It is possible to import data into Visallo using a RDF in an XML Format. Following is an example file that will import a single contact information entity from the sample.owl.
+
+```xml
+<?xml version="1.0"?>
+
+<!DOCTYPE rdf:RDF [
+        <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+        <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+        <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+        <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+        <!ENTITY visallo "http://visallo.org/sample#">
+        ]>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:visallo="http://visallo.org#">
+
+  <rdf:Description rdf:about="&visallo;contactinfo1">
+    <rdf:type rdf:resource="&visallo;contactInformation"/>
+    <visallo:title>Test contact information</visallo:title>
+  </rdf:Description>
+
+</rdf:RDF>
+```
+
+It should be notes that even though it is possible to import some data through the XML API, it is not fully featured at this point and cannot handle adding edges, edge properties, or entity visibilities.
+
+#### Vertex
+
+Importing a single vertex required the following format (The surrounding tags are omitted for brevity):
+
+```xml
+<rdf:Description rdf:about="&visallo;*Entity Id*">
+  <rdf:type rdf:resource="*concept type*"/>
+</rdf:Description>
+```
+
+For example, if the namespaces in the xml are set up appropriately, you can add a vertex with the vertex id of "contactinfo1" and the concept type of "http://visallo.org/sample#contactInformation":
+
+```xml
+<rdf:description rdf:about="&visallo;contactinfo1">
+  <rdf:type rdf:resource="&visallo;contactinformation"/>
+</rdf:description>
+```
+
+This will add the vertex into Visallo. To add multiple vertices in Visallo, it will look like the following:
+
+```xml
+<rdf:description rdf:about="&visallo;contactinfo1">
+  <rdf:type rdf:resource="&visallo;contactinformation"/>
+</rdf:description>
+
+<rdf:description rdf:about="&visallo;contactinfo2">
+  <rdf:type rdf:resource="&visallo;contactinformation"/>
+</rdf:description>
+
+<rdf:description rdf:about="&visallo;phoneNumber2">
+  <rdf:type rdf:resource="&visallo;phoneNumber"/>
+</rdf:description>
+```
+
+#### Vertex Properties
+
+To add properties to a vertex, simply add the following line to the vertex declaration:
+
+```xml
+<rdf:description rdf:about="&visallo;contactinfo1">
+  <rdf:type rdf:resource="&visallo;contactinformation"/>
+  <visallo:title>Test Contact Information Vertex</visallo:title>
+</rdf:description>
+```
+
+These will match up to the DataType Iris inside of your ontology.
+
 ## How to import RDF files
  
 ### External process
  
-org.visallo.tools.RdfImport
+#### org.visallo.tools.RdfImport 
+
+In Visallo the class that will allow you to import the data from the back end is `org.visallo.tool.RdfImport`. To get a full list of command line argument parameters, run that class in the main method. As an example, if you have your environment correctly configured with java, and you want to import all of the `.nt` files in a directory, you can run the following command: 
+
+`java -cp ${CLASSPATH} org.visallo.tools.RdfImport --indir ./datadir/ --pattern *.{nt}`
+
+This external process is very useful for ingesting data that is too large or split among too many files to be worthwhile ingesting from the front-end.
+
 
 ### Through the webapp UI
 
-show admin panel
+Visallo's admin panel has a section on RDF import. Simply upload the file and it will automatically be imported into the public dataset of your Visallo instance. 
+
+GIF
+
+This process is useful for adding incremental data by an administrator.
