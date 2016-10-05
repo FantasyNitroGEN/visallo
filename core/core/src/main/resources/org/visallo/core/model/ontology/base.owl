@@ -543,6 +543,16 @@
     
 
 
+    <!-- http://visallo.org#linkTitle -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org#linkTitle">
+        <userVisible>false</userVisible>
+        <textIndexHints>NONE</textIndexHints>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://visallo.org#mappingJson -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#mappingJson">
