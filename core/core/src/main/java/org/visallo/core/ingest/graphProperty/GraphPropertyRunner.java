@@ -2,7 +2,6 @@ package org.visallo.core.ingest.graphProperty;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -39,7 +38,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vertexium.util.IterableUtils.toList;
 
-@Singleton
 public class GraphPropertyRunner extends WorkerBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
     private final StatusRepository statusRepository;
@@ -54,6 +52,7 @@ public class GraphPropertyRunner extends WorkerBase {
     private VisibilityTranslator visibilityTranslator;
     private AtomicLong lastProcessedPropertyTime = new AtomicLong(0);
     private List<GraphPropertyWorker> graphPropertyWorkers = Lists.newArrayList();
+    private boolean prepareWorkersCalled;
 
     @Inject
     protected GraphPropertyRunner(
@@ -91,6 +90,11 @@ public class GraphPropertyRunner extends WorkerBase {
     }
 
     public void prepareWorkers(GraphPropertyWorkerInitializer initializer) {
+        if (prepareWorkersCalled) {
+            throw new VisalloException("prepareWorkers should be called only once");
+        }
+        prepareWorkersCalled = true;
+
         List<TermMentionFilter> termMentionFilters = loadTermMentionFilters();
 
         GraphPropertyWorkerPrepareData workerPrepareData = new GraphPropertyWorkerPrepareData(
