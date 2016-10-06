@@ -18,11 +18,10 @@ Each line in an NT file represents a single item of data that can be imported in
   
   # create another email
   <http://visallo.com/email2> <http://visallo.org#conceptType> "http://visallo.org/sample#emailAddress"
-  <http://visallo.com/email2> <http://visallo.org#title> "marcelo.sabino@gmail.com"
+  <http://visallo.com/email2> <http://visallo.org#title> "susan@v5analytics.com"
   
   # create an edge
   <http://visallo.com/email1> <http://visallo.org/structured-file#elementHasSource> <http://visallo.com/email2>
-</code>
 ```
 
 In this file, two email entities are created and an edge is created between them. 
@@ -153,9 +152,49 @@ To specify the data type for the data that you are ingesting, you must create th
 
 #### Edge
 
+Creating edges in the system will have the following syntax: 
+
+```xml
+<*fromVertexId*> <*edgeLabel*:*edgeId*> <*toVertexId*>
+```
+
+It is not required to specify an edge id when creating a relationship between two edges but there are situations that make it worthwhile to specify one:
+
+* Your use case requires deterministic edge ids
+* You will, at any point in the future, add edge properties to the edge
+
+For a more complete example of creating an edge, lets create two vertices, add title properties to them, and attach them together with an edge:
+
+```xml
+# create an email
+<email1> <http://visallo.org#conceptType> "http://visallo.org/sample#emailAddress"
+# create a property on email1
+<email1> <http://visallo.org#title> "ryan@v5analytics.com"
+
+# create another email
+<email2> <http://visallo.org#conceptType> "http://visallo.org/sample#emailAddress"
+# add a property to email2
+<email2> <http://visallo.org#title> "susan@v5analytics.com"
+
+# create an edge
+<email1> <http://visallo.org/structured-file#elementHasSource:email1hassourceemail2> <email2>
+```
+
 #### Edge Properties
 
-#### Authorizations
+Adding a property to an edge has the following syntax:
+
+```xml
+<EDGE:*edgeId*> <*edgePropertyIri*> "*propertyValue*"^^<*propertyDataType>
+```
+
+To add a property to the edge that was created above when we created an edge:
+
+```xml
+<EDGE:email1hassourceemail2> <http://visallo.com/sample#date> "2015-05-12"^^<http://www.w3.org/2001/XMLSchema#date>
+```
+
+The property data types are the same as show above for the Vertex Properties
 
 
 ### RDF XML Import
@@ -249,6 +288,6 @@ This external process is very useful for ingesting data that is too large or spl
 
 Visallo's admin panel has a section on RDF import. Simply upload the file and it will automatically be imported into the public dataset of your Visallo instance. 
 
-GIF
+<img src='./import-rdf.gif' />
 
 This process is useful for adding incremental data by an administrator.

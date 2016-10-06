@@ -1,10 +1,13 @@
 # Ingestion
 
-## REST
+There are multiple ways of ingesting data into Visallo. 
 
-Ingesting data into Visallo using the REST API is not the most performant way of getting a lot of data into the system but it is one of the easiest and the most compatible with non-JVM languages.
+* [RDF Import](./rdfimport.md)
+* [Code Generation](./codegen.md)
+* [REST API](./rest.md)
+* [Vertexium](./vertexium.md)
 
-An example Go client can be found [here](https://github.com/v5analytics/visallo/tree/master/web/client-api/examples/go)
+There are other alternatives for ingestion by using Visallo's enterprise offerings including:
 
-All the REST routes can be found [here](https://github.com/v5analytics/visallo/blob/master/web/web-base/src/main/java/org/visallo/web/Router.java)
-
+* [Spark](./spark.md)
+* [Pentaho](./pentaho.md)
