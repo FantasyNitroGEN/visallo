@@ -1,7 +1,6 @@
 package org.visallo.web.initializers;
 
 import com.google.inject.Inject;
-import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRunner;
 import org.visallo.core.util.*;
@@ -30,41 +29,7 @@ public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapIni
 
         int threadCount = config.getInt(CONFIG_THREAD_COUNT, DEFAULT_THREAD_COUNT);
 
-        LOGGER.debug("Starting LongRunningProcessRunners on %d threads", threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            StoppableRunnable stoppable = new StoppableRunnable() {
-                private LongRunningProcessRunner longRunningProcessRunner = null;
-
-                @Override
-                public void run() {
-                    try {
-                        longRunningProcessRunner = InjectHelper.getInstance(LongRunningProcessRunner.class);
-                        longRunningProcessRunner.prepare(config.toMap());
-                        longRunningProcessRunner.run();
-                    } catch (Exception ex) {
-                        LOGGER.error("Failed running LongRunningProcessRunner", ex);
-                    }
-                }
-
-                @Override
-                public void stop() {
-                    try {
-                        if (longRunningProcessRunner != null) {
-                            LOGGER.debug("Stopping LongRunningProcessRunner");
-                            longRunningProcessRunner.stop();
-                        }
-                    } catch (Exception ex) {
-                        LOGGER.error("Failed stopping LongRunningProcessRunner", ex);
-                    }
-                }
-            };
-            stoppables.add(stoppable);
-            Thread t = new Thread(stoppable);
-            t.setName("long-running-process-runner-" + t.getId());
-            t.setDaemon(true);
-            LOGGER.debug("Starting LongRunningProcessRunner thread: %s", t.getName());
-            t.start();
-        }
+        this.stoppables.addAll(LongRunningProcessRunner.startThreaded(threadCount, config));
     }
 
     @Override

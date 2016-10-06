@@ -125,7 +125,7 @@ public class GraphPropertyThreadedWrapper implements Runnable {
                 long startTime = new Date().getTime();
                 while (workResults.size() == 0 && (waitForever || (new Date().getTime() - startTime < 10 * 1000))) {
                     try {
-                        if (new Date().getTime() - startTime > 5 * 1000) {
+                        if (new Date().getTime() - startTime > 60 * 1000) {
                             LOGGER.warn("worker has zero results. sleeping waiting for results.");
                         } else {
                             LOGGER.debug("worker has zero results. sleeping waiting for results.");

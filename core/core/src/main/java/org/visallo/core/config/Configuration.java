@@ -178,12 +178,12 @@ public class Configuration {
         return subset;
     }
 
-    public void setConfigurables(Object o, String keyPrefix) {
+    public <T> T setConfigurables(T o, String keyPrefix) {
         Map<String, String> subset = getSubset(keyPrefix);
-        setConfigurables(o, subset);
+        return setConfigurables(o, subset);
     }
 
-    public static void setConfigurables(Object o, Map<String, String> config) {
+    public static <T> T setConfigurables(T o, Map<String, String> config) {
         ConvertUtilsBean convertUtilsBean = new ConvertUtilsBean();
         Map<Method, PostConfigurationValidator> validatorMap = new HashMap<>();
 
@@ -220,6 +220,8 @@ public class Configuration {
                 throw new VisalloException("IllegalAccessException invoking validator " + o.getClass().getName() + "." + postConfigurationValidatorMethod.getName(), e);
             }
         }
+
+        return o;
     }
 
     private static List<Field> getAllFields(Object o) {
@@ -388,7 +390,7 @@ public class Configuration {
 
         PrivilegeRepository privilegeRepository = getPrivilegeRepository();
         Set<String> allPrivileges = privilegeRepository.getAllPrivileges().stream()
-                .map(p -> p.getName())
+                .map(Privilege::getName)
                 .collect(Collectors.toSet());
         properties.put("privileges", Privilege.toJson(allPrivileges));
 
@@ -460,7 +462,7 @@ public class Configuration {
         Map<String, Map<String, String>> multiValues = getMultiValue(prefix);
         Map<String, T> results = new HashMap<>();
         for (Map.Entry<String, Map<String, String>> entry : multiValues.entrySet()) {
-            T o = null;
+            T o;
             try {
                 o = configurableType.newInstance();
             } catch (Exception e) {
