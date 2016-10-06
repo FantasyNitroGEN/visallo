@@ -33,8 +33,9 @@ public class ElementUpdateContext<T extends Element> {
         }
     }
 
-    public void save(Authorizations authorizations) {
+    public T save(Authorizations authorizations) {
         this.element = this.mutation.save(authorizations);
+        return this.element;
     }
 
     public ElementMutation<T> getMutation() {
