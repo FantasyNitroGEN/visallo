@@ -68,17 +68,22 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             final LockRepository lockRepository
     ) throws Exception {
         super(config, lockRepository);
-        this.graph = graph;
+        try {
+            this.graph = graph;
 
-        graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
+            graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
 
-        defineRequiredProperties(graph);
+            defineRequiredProperties(graph);
 
-        Set<String> authorizationsSet = new HashSet<>();
-        authorizationsSet.add(VISIBILITY_STRING);
-        this.authorizations = graph.createAuthorizations(authorizationsSet);
+            Set<String> authorizationsSet = new HashSet<>();
+            authorizationsSet.add(VISIBILITY_STRING);
+            this.authorizations = graph.createAuthorizations(authorizationsSet);
 
-        loadOntologies(config, authorizations);
+            loadOntologies(config, authorizations);
+        } catch (Exception ex) {
+            LOGGER.error("Could not initialize: %s", this.getClass().getName(), ex);
+            throw ex;
+        }
     }
 
     private void defineRequiredProperties(Graph graph) {
@@ -359,8 +364,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     displayName = relationship.getDisplayName();
                 }
             } catch (IllegalArgumentException iae) {
-                throw new IllegalStateException(String.format("Found multiple vertices for relationship label \"%s\"", relationshipIRI),
-                        iae);
+                throw new IllegalStateException(
+                        String.format("Found multiple vertices for relationship label \"%s\"", relationshipIRI),
+                        iae
+                );
             }
         }
         return displayName;
@@ -811,8 +818,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         try {
             return Iterables.getOnlyElement(conceptVertex.getVertices(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations()), null);
         } catch (IllegalArgumentException iae) {
-            throw new IllegalStateException(String.format("Unexpected number of parents for concept %s",
-                    OntologyProperties.TITLE.getPropertyValue(conceptVertex)), iae);
+            throw new IllegalStateException(String.format(
+                    "Unexpected number of parents for concept %s",
+                    OntologyProperties.TITLE.getPropertyValue(conceptVertex)
+            ), iae);
         }
     }
 
@@ -827,8 +836,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     /**
      * Overridable so subclasses can supply a custom implementation of OntologyProperty.
      */
-    protected OntologyProperty createOntologyProperty(Vertex propertyVertex,
-                                                      ImmutableList<String> dependentPropertyIris) {
+    protected OntologyProperty createOntologyProperty(
+            Vertex propertyVertex,
+            ImmutableList<String> dependentPropertyIris
+    ) {
         return new VertexiumOntologyProperty(propertyVertex, dependentPropertyIris);
     }
 
