@@ -31,7 +31,7 @@ define([
                 graph: 'img/glyphicons/white/glyphicons_326_share@2x.png',
                 logout: 'img/glyphicons/white/glyphicons_387_log_out@2x.png',
                 search: 'img/glyphicons/white/glyphicons_027_search@2x.png',
-                workspaces: 'img/glyphicons/white/glyphicons_153_more_windows@2x.png',
+                workspaces: 'img/case_icon_white@2x.png',
                 map: 'img/glyphicons/white/glyphicons_242_google_maps@2x.png'
             },
             menubarExtensions = registry.extensionsForPoint('org.visallo.menubar');
