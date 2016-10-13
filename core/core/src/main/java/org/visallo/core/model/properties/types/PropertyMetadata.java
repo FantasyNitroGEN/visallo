@@ -66,8 +66,20 @@ public class PropertyMetadata {
         return modifiedDate;
     }
 
+    public Double getConfidence() {
+        return confidence;
+    }
+
     public VisibilityJson getVisibilityJson() {
         return visibilityJson;
+    }
+
+    public Visibility getVisibility() {
+        return visibility;
+    }
+
+    public Iterable<AdditionalMetadataItem> getAdditionalMetadataItems() {
+        return additionalMetadataItems;
     }
 
     public void add(String key, Object value, Visibility visibility) {

@@ -10,9 +10,9 @@ import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestBase;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
-import org.visallo.test.GraphPropertyWorkerTestBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

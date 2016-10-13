@@ -5,8 +5,12 @@ import org.json.JSONObject;
 import org.mockito.Mock;
 import org.vertexium.Graph;
 import org.vertexium.inmemory.InMemoryGraph;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -21,6 +25,7 @@ import static org.mockito.Mockito.when;
 public class LongRunningProcessWorkerTestBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessWorkerTestBase.class);
     private Graph graph;
+    private GraphRepository graphRepository;
 
     @Mock
     private User user;
@@ -40,6 +45,12 @@ public class LongRunningProcessWorkerTestBase {
     private com.codahale.metrics.Timer mockTimer;
     @Mock
     private com.codahale.metrics.Meter mockMeter;
+    @Mock
+    private VisibilityTranslator visibilityTranslator;
+    @Mock
+    private TermMentionRepository termMentionRepository;
+    @Mock
+    private WorkQueueRepository workQueueRepository;
 
     protected void before() {
         graph = InMemoryGraph.create();
@@ -92,11 +103,35 @@ public class LongRunningProcessWorkerTestBase {
         return metricsManager;
     }
 
+    public GraphRepository getGraphRepository() {
+        if (graphRepository == null) {
+            graphRepository = new GraphRepository(
+                    getGraph(),
+                    getVisibilityTranslator(),
+                    getTermMentionRepository(),
+                    getWorkQueueRepository()
+            );
+        }
+        return graphRepository;
+    }
+
     protected void run(LongRunningProcessWorker worker, JSONObject queueItem) {
         if (worker.isHandled(queueItem)) {
             worker.process(queueItem);
         } else {
             LOGGER.warn("Unhandled: %s", queueItem.toString());
         }
+    }
+
+    public VisibilityTranslator getVisibilityTranslator() {
+        return visibilityTranslator;
+    }
+
+    public TermMentionRepository getTermMentionRepository() {
+        return termMentionRepository;
+    }
+
+    public WorkQueueRepository getWorkQueueRepository() {
+        return workQueueRepository;
     }
 }

@@ -20,7 +20,9 @@ import org.visallo.core.config.ConfigurationLoader;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -42,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+
 public abstract class GraphPropertyWorkerTestBase {
     private InMemoryGraph graph;
     private IdGenerator graphIdGenerator;
@@ -51,6 +55,8 @@ public abstract class GraphPropertyWorkerTestBase {
     private User user;
     private WorkQueueNames workQueueNames;
     private WorkQueueRepository workQueueRepository;
+    private GraphRepository graphRepository;
+    private TermMentionRepository termMentionRepository;
     private VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
 
     @Mock
@@ -180,6 +186,7 @@ public abstract class GraphPropertyWorkerTestBase {
         gpw.setVisibilityTranslator(getVisibilityTranslator());
         gpw.setGraph(getGraph());
         gpw.setWorkQueueRepository(getWorkQueueRepository());
+        gpw.setGraphRepository(getGraphRepository());
         gpw.prepare(getWorkerPrepareData());
     }
 
@@ -218,6 +225,7 @@ public abstract class GraphPropertyWorkerTestBase {
             gpw.setGraph(getGraph());
             gpw.setVisibilityTranslator(getVisibilityTranslator());
             gpw.setWorkQueueRepository(getWorkQueueRepository());
+            gpw.setGraphRepository(getGraphRepository());
             gpw.prepare(workerPrepareData);
         } catch (Exception ex) {
             throw new VisalloException("Failed to prepare: " + gpw.getClass().getName(), ex);
@@ -268,6 +276,25 @@ public abstract class GraphPropertyWorkerTestBase {
             workQueueRepository.setWorkspaceRepository(workspaceRepository);
         }
         return workQueueRepository;
+    }
+
+    protected TermMentionRepository getTermMentionRepository() {
+        if (termMentionRepository == null) {
+            termMentionRepository = mock(TermMentionRepository.class);
+        }
+        return termMentionRepository;
+    }
+
+    protected GraphRepository getGraphRepository() {
+        if (graphRepository == null) {
+            graphRepository = new GraphRepository(
+                    getGraph(),
+                    getVisibilityTranslator(),
+                    getTermMentionRepository(),
+                    getWorkQueueRepository()
+            );
+        }
+        return graphRepository;
     }
 
     protected List<JSONObject> getGraphPropertyQueue() {
