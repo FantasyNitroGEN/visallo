@@ -59,6 +59,12 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
     }
 
     @Test
+    public void testFindByIdNotExists() {
+        Workspace ws = workspaceRepository.findById("workspaceNotExists", false, user1);
+        assertEquals(null, ws);
+    }
+
+    @Test
     public void testAccessControl() {
         Authorizations allAuths = graph.createAuthorizations(
                 WorkspaceRepository.VISIBILITY_STRING,
