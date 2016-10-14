@@ -167,7 +167,7 @@ define([
 
                 link: function(el, property, vertex) {
                     var anchor = document.createElement('a'),
-                        value = V.prop(vertex, property.name),
+                        value = V.prop(vertex, property.name, property.key),
                         href = $.trim(value),
                         linkTitle = property.metadata['http://visallo.org#linkTitle'];
 
