@@ -229,6 +229,7 @@ define([
             this.disableNotify = true;
             Promise.resolve(this.clearFilters({ triggerUpdates: false }))
                 .then(this.setConceptFilter.bind(this, data.conceptId))
+                .then(this.setEdgeTypeFilter.bind(this, data.edgeLabel))
                 .then(this.setRelatedToEntityFilter.bind(this, data.vertexIds))
                 .then(function() {
                     self.disableNotify = false;
@@ -246,6 +247,7 @@ define([
                         title = vertices.length > 1 ? i18n('search.filters.title_multiple', vertices.length)
                                                     : single && F.vertex.title(single) || single.id;
 
+                    self.select('edgeLabelFilterSelector').show();
                     self.otherFilters.relatedToVertexIds = _.pluck(vertices, 'id');
                     self.$node.find('.entity-filters')
                         .append(entityItemTemplate({title: title})).show();
@@ -301,7 +303,7 @@ define([
             this.$node.find('.match-type-edge').closest('label').andSelf()
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
-            this.select('edgeLabelFilterSelector').toggle(type === 'edge');
+            this.select('edgeLabelFilterSelector').toggle(type === 'edge' || self.otherFilters.relatedToVertexIds);
             if (this.matchType === 'vertex') {
                 this.setConceptFilter(this.conceptFilter);
             } else {
