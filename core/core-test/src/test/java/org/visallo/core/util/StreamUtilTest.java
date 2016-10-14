@@ -1,7 +1,9 @@
 package org.visallo.core.util;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -20,6 +22,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,7 +48,8 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.collect(Collectors.toList()),
-                is(list));
+                is(list)
+        );
     }
 
     @Test
@@ -58,7 +62,8 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.collect(Collectors.toList()),
-                is(ImmutableList.builder().addAll(list1).addAll(list2).addAll(list3).build()));
+                is(ImmutableList.builder().addAll(list1).addAll(list2).addAll(list3).build())
+        );
     }
 
     @Test
@@ -76,7 +81,8 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.collect(Collectors.toList()),
-                is(list));
+                is(list)
+        );
     }
 
     @Test
@@ -89,7 +95,8 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.collect(Collectors.toList()),
-                is(ImmutableList.builder().addAll(list1).addAll(list2).addAll(list3).build()));
+                is(ImmutableList.builder().addAll(list1).addAll(list2).addAll(list3).build())
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -117,7 +124,8 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.map(Element::getId).collect(Collectors.toList()),
-                is(ImmutableList.of("v1", "v2")));
+                is(ImmutableList.of("v1", "v2"))
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -138,6 +146,37 @@ public class StreamUtilTest {
 
         assertThat(
                 stream.map(Element::getId).collect(Collectors.toList()),
-                is(ImmutableList.of("v1", "v2", "v3", "v4")));
+                is(ImmutableList.of("v1", "v2", "v3", "v4"))
+        );
+    }
+
+    @Test
+    public void testToImmutableList() {
+        ImmutableList<String> list = Lists.newArrayList("a", "b", "c").stream()
+                .collect(StreamUtil.toImmutableList());
+        assertEquals(3, list.size());
+        assertEquals("a", list.get(0));
+        assertEquals("b", list.get(1));
+        assertEquals("c", list.get(2));
+    }
+
+    @Test
+    public void testToImmutableSet() {
+        ImmutableSet<String> set = Lists.newArrayList("a", "b", "c").stream()
+                .collect(StreamUtil.toImmutableSet());
+        assertEquals(3, set.size());
+        assertEquals("a", set.toArray()[0]);
+        assertEquals("b", set.toArray()[1]);
+        assertEquals("c", set.toArray()[2]);
+    }
+
+    @Test
+    public void testToImmutableMap() {
+        ImmutableMap<String, String> map = Lists.newArrayList("a", "b", "c").stream()
+                .collect(StreamUtil.toImmutableMap(v -> "k" + v, v -> "v" + v));
+        assertEquals(3, map.size());
+        assertEquals("va", map.get("ka"));
+        assertEquals("vb", map.get("kb"));
+        assertEquals("vc", map.get("kc"));
     }
 }
