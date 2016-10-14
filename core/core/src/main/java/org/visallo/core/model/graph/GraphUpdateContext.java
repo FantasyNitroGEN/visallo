@@ -39,8 +39,9 @@ public class GraphUpdateContext implements AutoCloseable {
     private final Priority priority;
     private final User user;
     private final Authorizations authorizations;
-    private final Queue<ElementUpdateContext> elementUpdateContexts = new LinkedList<>();
+    private final Queue<ElementUpdateContext<? extends Element>> elementUpdateContexts = new LinkedList<>();
     private int maxElementUpdateContextItems = DEFAULT_MAX_ELEMENT_UPDATE_CONTEXT_ITEMS;
+    private boolean pushOnQueue = true;
 
     public GraphUpdateContext(
             Graph graph,
@@ -66,9 +67,13 @@ public class GraphUpdateContext implements AutoCloseable {
 
     protected void pushToWorkQueueRepository() {
         graph.flush();
-        while (elementUpdateContexts.size() > 0) {
-            ElementUpdateContext elemCtx = elementUpdateContexts.remove();
-            workQueueRepository.pushGraphVisalloPropertyQueue(elemCtx.getElement(), elemCtx.getProperties(), priority);
+        if (isPushOnQueue()) {
+            while (elementUpdateContexts.size() > 0) {
+                ElementUpdateContext<? extends Element> elemCtx = elementUpdateContexts.remove();
+                workQueueRepository.pushGraphVisalloPropertyQueue(elemCtx.getElement(), elemCtx.getProperties(), priority);
+            }
+        } else {
+            elementUpdateContexts.clear();
         }
     }
 
@@ -76,11 +81,11 @@ public class GraphUpdateContext implements AutoCloseable {
      * Similar to {@link GraphUpdateContext#update(ElementMutation, Update)} but
      * prepares the mutation from the element.
      */
-    public <T extends Element> void update(T element, Update<T> updateFn) {
+    public <T extends Element> T update(T element, Update<T> updateFn) {
         Date modifiedDate = null;
         VisibilityJson visibilityJson = null;
         String conceptType = null;
-        update(element, modifiedDate, visibilityJson, conceptType, updateFn);
+        return update(element, modifiedDate, visibilityJson, conceptType, updateFn);
     }
 
     /**
@@ -88,14 +93,14 @@ public class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#updateBuiltInProperties(Date, VisibilityJson)} before calling
      * updateFn.
      */
-    public <T extends Element> void update(
+    public <T extends Element> T update(
             T element,
             Date modifiedDate,
             VisibilityJson visibilityJson,
             Update<T> updateFn
     ) {
         String conceptType = null;
-        update(element, modifiedDate, visibilityJson, conceptType, updateFn);
+        return update(element, modifiedDate, visibilityJson, conceptType, updateFn);
     }
 
     /**
@@ -104,7 +109,7 @@ public class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#setConceptType(String)} before calling
      * updateFn.
      */
-    public <T extends Element> void update(
+    public <T extends Element> T update(
             T element,
             Date modifiedDate,
             VisibilityJson visibilityJson,
@@ -112,14 +117,14 @@ public class GraphUpdateContext implements AutoCloseable {
             Update<T> updateFn
     ) {
         checkNotNull(element, "element cannot be null");
-        update(element.prepareMutation(), modifiedDate, visibilityJson, conceptType, updateFn);
+        return update(element.prepareMutation(), modifiedDate, visibilityJson, conceptType, updateFn);
     }
 
-    public <T extends Element> void update(ElementMutation<T> m, Update<T> updateFn) {
+    public <T extends Element> T update(ElementMutation<T> m, Update<T> updateFn) {
         Date modifiedDate = null;
         VisibilityJson visibilityJson = null;
         String conceptType = null;
-        update(m, modifiedDate, visibilityJson, conceptType, updateFn);
+        return update(m, modifiedDate, visibilityJson, conceptType, updateFn);
     }
 
     /**
@@ -127,14 +132,14 @@ public class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#updateBuiltInProperties(Date, VisibilityJson)} before calling
      * updateFn.
      */
-    public <T extends Element> void update(
+    public <T extends Element> T update(
             ElementMutation<T> m,
             Date modifiedDate,
             VisibilityJson visibilityJson,
             Update<T> updateFn
     ) {
         String conceptType = null;
-        update(m, modifiedDate, visibilityJson, conceptType, updateFn);
+        return update(m, modifiedDate, visibilityJson, conceptType, updateFn);
     }
 
     /**
@@ -143,7 +148,7 @@ public class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#setConceptType(String)} before calling
      * updateFn.
      */
-    public <T extends Element> void update(
+    public <T extends Element> T update(
             ElementMutation<T> m,
             Date modifiedDate,
             VisibilityJson visibilityJson,
@@ -153,7 +158,7 @@ public class GraphUpdateContext implements AutoCloseable {
         checkNotNull(m, "element cannot be null");
         checkNotNull(updateFn, "updateFn cannot be null");
 
-        ElementUpdateContext<T> elementUpdateContext = new ElementUpdateContext<T>(visibilityTranslator, m, user);
+        ElementUpdateContext<T> elementUpdateContext = new ElementUpdateContext<>(visibilityTranslator, m, user);
         if (modifiedDate != null || visibilityJson != null) {
             elementUpdateContext.updateBuiltInProperties(modifiedDate, visibilityJson);
         }
@@ -161,14 +166,17 @@ public class GraphUpdateContext implements AutoCloseable {
             elementUpdateContext.setConceptType(conceptType);
         }
         updateFn.update(elementUpdateContext);
-        elementUpdateContext.save(authorizations);
+        T elem = elementUpdateContext.save(authorizations);
         addToElementUpdateContexts(elementUpdateContext);
+        return elem;
     }
 
     private <T extends Element> void addToElementUpdateContexts(ElementUpdateContext<T> elementUpdateContext) {
-        elementUpdateContexts.add(elementUpdateContext);
-        if (elementUpdateContexts.size() > maxElementUpdateContextItems) {
-            pushToWorkQueueRepository();
+        if (isPushOnQueue()) {
+            elementUpdateContexts.add(elementUpdateContext);
+            if (elementUpdateContexts.size() > maxElementUpdateContextItems) {
+                pushToWorkQueueRepository();
+            }
         }
     }
 
@@ -194,6 +202,15 @@ public class GraphUpdateContext implements AutoCloseable {
 
     public GraphUpdateContext setMaxElementUpdateContextItems(int maxElementUpdateContextItems) {
         this.maxElementUpdateContextItems = maxElementUpdateContextItems;
+        return this;
+    }
+
+    public boolean isPushOnQueue() {
+        return pushOnQueue;
+    }
+
+    public GraphUpdateContext setPushOnQueue(boolean pushOnQueue) {
+        this.pushOnQueue = pushOnQueue;
         return this;
     }
 }
