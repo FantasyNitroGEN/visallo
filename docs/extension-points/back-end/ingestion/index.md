@@ -9,5 +9,5 @@ There are multiple ways of ingesting data into Visallo.
 
 There are other alternatives for ingestion by using Visallo's enterprise offerings including:
 
-* [Spark](./spark.md)
-* [Pentaho](./pentaho.md)
+* Spark
+* Pentaho

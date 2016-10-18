@@ -19,8 +19,6 @@
             * [Rdf Import](extension-points/back-end/ingestion/rdfimport.md)
             * [Code Generation](extension-points/back-end/ingestion/codegen.md)
             * [REST](extension-points/back-end/ingestion/rest.md)
-            * [Pentaho](extension-points/back-end/ingestion/pentaho.md)
-            * [Spark](extension-points/back-end/ingestion/spark.md)
             * [Vertexium](extension-points/back-end/ingestion/vertexium.md)
         * [Graph Property Worker](extension-points/back-end/graphpropertyworkers.md)
         * [Long Running Processes](extension-points/back-end/longrunningprocesses.md)
