@@ -275,13 +275,13 @@ public class ACLProviderTest {
         when(user1CommentProperty.getMetadata()).thenReturn(user1CommentMetadata);
         when(vertex.getProperty(COMMENT_PROP_KEY, COMMENT.getPropertyName())).thenReturn(user1CommentProperty);
 
-        when(aclProvider.canUpdateElement(eq(vertex), any(User.class)))
+        when(aclProvider.canUpdateElement(eq(vertex), any(), any(User.class)))
                 .thenReturn(true);
-        when(aclProvider.canUpdateProperty(eq(vertex), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
+        when(aclProvider.canUpdateProperty(eq(vertex), any(), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
                 .thenReturn(true);
-        when(aclProvider.canAddProperty(eq(vertex), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
+        when(aclProvider.canAddProperty(eq(vertex), any(), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
                 .thenReturn(true);
-        when(aclProvider.canDeleteProperty(eq(vertex), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
+        when(aclProvider.canDeleteProperty(eq(vertex), any(), eq(COMMENT_PROP_KEY), eq(COMMENT_PROP_NAME), any(User.class)))
                 .thenReturn(true);
     }
 
@@ -297,15 +297,15 @@ public class ACLProviderTest {
         when(user1RegularProperty.getMetadata()).thenReturn(user1PropertyMetadata);
         when(vertex.getProperty(REGULAR_PROP_KEY, REGULAR_PROP_NAME)).thenReturn(user1RegularProperty);
 
-        when(aclProvider.canUpdateElement(vertex, user1)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1)).thenReturn(true);
-        when(aclProvider.canAddProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user1)).thenReturn(true);
+        when(aclProvider.canUpdateElement(eq(vertex), any(), eq(user1))).thenReturn(true);
+        when(aclProvider.canUpdateProperty(eq(vertex), any(), eq(REGULAR_PROP_KEY), eq(REGULAR_PROP_NAME), eq(user1))).thenReturn(true);
+        when(aclProvider.canAddProperty(eq(vertex), any(), eq(REGULAR_PROP_KEY), eq(REGULAR_PROP_NAME), eq(user1))).thenReturn(true);
+        when(aclProvider.canDeleteProperty(eq(vertex), any(), eq(REGULAR_PROP_KEY), eq(REGULAR_PROP_NAME), eq(user1))).thenReturn(true);
 
-        when(aclProvider.canUpdateElement(vertex, user2)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
-        when(aclProvider.canAddProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
-        when(aclProvider.canDeleteProperty(vertex, REGULAR_PROP_KEY, REGULAR_PROP_NAME, user2)).thenReturn(false);
+        when(aclProvider.canUpdateElement(eq(vertex), any(), eq(user2))).thenReturn(true);
+        when(aclProvider.canUpdateProperty(eq(vertex), any(), eq(REGULAR_PROP_KEY), eq(REGULAR_PROP_NAME), eq(user2))).thenReturn(false);
+        when(aclProvider.canAddProperty(eq(vertex), any(), eq(REGULAR_PROP_KEY), eq(REGULAR_PROP_NAME), eq(user2))).thenReturn(false);
+        when(aclProvider.canDeleteProperty(eq(vertex), any(), eq(REGULAR_PROP_KEY), eq(REGULAR_PROP_NAME), eq(user2))).thenReturn(false);
     }
 
     @Test
@@ -330,28 +330,28 @@ public class ACLProviderTest {
             apiElement = ClientApiConverter.toClientApiEdge((Edge) element, null);
         }
 
-        when(aclProvider.canUpdateElement(apiElement, user1)).thenReturn(true);
-        when(aclProvider.canDeleteElement(apiElement, user1)).thenReturn(true);
+        when(aclProvider.canUpdateElement(eq(apiElement), any(), eq(user1))).thenReturn(true);
+        when(aclProvider.canDeleteElement(eq(apiElement), any(), eq(user1))).thenReturn(true);
 
-        when(aclProvider.canAddProperty(apiElement, "keyA", "prop1", user1)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(apiElement, "keyA", "prop1", user1)).thenReturn(false);
-        when(aclProvider.canDeleteProperty(apiElement, "keyA", "prop1", user1)).thenReturn(true);
+        when(aclProvider.canAddProperty(eq(apiElement), any(), eq("keyA"), eq("prop1"), eq(user1))).thenReturn(true);
+        when(aclProvider.canUpdateProperty(eq(apiElement), any(), eq("keyA"), eq("prop1"), eq(user1))).thenReturn(false);
+        when(aclProvider.canDeleteProperty(eq(apiElement), any(), eq("keyA"), eq("prop1"), eq(user1))).thenReturn(true);
 
-        when(aclProvider.canAddProperty(apiElement, "keyA", "prop2", user1)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(apiElement, "keyA", "prop2", user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(apiElement, "keyA", "prop2", user1)).thenReturn(false);
+        when(aclProvider.canAddProperty(eq(apiElement), any(), eq("keyA"), eq("prop2"), eq(user1))).thenReturn(false);
+        when(aclProvider.canUpdateProperty(eq(apiElement), any(), eq("keyA"), eq("prop2"), eq(user1))).thenReturn(true);
+        when(aclProvider.canDeleteProperty(eq(apiElement), any(), eq("keyA"), eq("prop2"), eq(user1))).thenReturn(false);
 
-        when(aclProvider.canAddProperty(apiElement, "keyB", "prop2", user1)).thenReturn(true);
-        when(aclProvider.canUpdateProperty(apiElement, "keyB", "prop2", user1)).thenReturn(false);
-        when(aclProvider.canDeleteProperty(apiElement, "keyB", "prop2", user1)).thenReturn(true);
+        when(aclProvider.canAddProperty(eq(apiElement), any(), eq("keyB"), eq("prop2"), eq(user1))).thenReturn(true);
+        when(aclProvider.canUpdateProperty(eq(apiElement), any(), eq("keyB"), eq("prop2"), eq(user1))).thenReturn(false);
+        when(aclProvider.canDeleteProperty(eq(apiElement), any(), eq("keyB"), eq("prop2"), eq(user1))).thenReturn(true);
 
-        when(aclProvider.canAddProperty(apiElement, "keyA", "prop3", user1)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(apiElement, "keyA", "prop3", user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(apiElement, "keyA", "prop3", user1)).thenReturn(false);
+        when(aclProvider.canAddProperty(eq(apiElement), any(), eq("keyA"), eq("prop3"), eq(user1))).thenReturn(false);
+        when(aclProvider.canUpdateProperty(eq(apiElement), any(), eq("keyA"), eq("prop3"), eq(user1))).thenReturn(true);
+        when(aclProvider.canDeleteProperty(eq(apiElement), any(), eq("keyA"), eq("prop3"), eq(user1))).thenReturn(false);
 
-        when(aclProvider.canAddProperty(apiElement, null, "prop4", user1)).thenReturn(false);
-        when(aclProvider.canUpdateProperty(apiElement, null, "prop4", user1)).thenReturn(true);
-        when(aclProvider.canDeleteProperty(apiElement, null, "prop4", user1)).thenReturn(true);
+        when(aclProvider.canAddProperty(eq(apiElement), any(), eq(null), eq("prop4"), eq(user1))).thenReturn(false);
+        when(aclProvider.canUpdateProperty(eq(apiElement), any(), eq(null), eq("prop4"), eq(user1))).thenReturn(true);
+        when(aclProvider.canDeleteProperty(eq(apiElement), any(), eq(null), eq("prop4"), eq(user1))).thenReturn(true);
 
         apiElement = (ClientApiElement) aclProvider.appendACL(apiElement, user1);
 

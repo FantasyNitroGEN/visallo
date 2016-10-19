@@ -35,4 +35,36 @@ public abstract class ClientApiAcl implements ClientApiObject {
     public String toString() {
         return ClientApiConverter.clientApiToString(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ClientApiAcl that = (ClientApiAcl) o;
+
+        if (addable != that.addable) {
+            return false;
+        }
+        if (updateable != that.updateable) {
+            return false;
+        }
+        if (deleteable != that.deleteable) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (addable ? 1 : 0);
+        result = 31 * result + (updateable ? 1 : 0);
+        result = 31 * result + (deleteable ? 1 : 0);
+        return result;
+    }
 }

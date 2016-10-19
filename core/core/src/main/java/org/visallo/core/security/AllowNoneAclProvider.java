@@ -3,6 +3,7 @@ package org.visallo.core.security;
 import com.google.inject.Inject;
 import org.vertexium.Element;
 import org.vertexium.Graph;
+import org.visallo.core.model.ontology.OntologyElement;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
@@ -21,52 +22,52 @@ public class AllowNoneAclProvider extends ACLProvider {
     }
 
     @Override
-    public boolean canDeleteElement(Element element, User user) {
+    public boolean canDeleteElement(Element element, OntologyElement ontologyElement, User user) {
         return false;
     }
 
     @Override
-    public boolean canDeleteElement(ClientApiElement clientApiElement, User user) {
+    public boolean canDeleteElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
         return false;
     }
 
     @Override
-    public boolean canDeleteProperty(Element element, String propertyKey, String propertyName, User user) {
+    public boolean canDeleteProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
         return false;
     }
 
     @Override
-    public boolean canDeleteProperty(ClientApiElement clientApiElement, String propertyKey, String propertyName, User user) {
+    public boolean canDeleteProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
         return false;
     }
 
     @Override
-    public boolean canUpdateElement(Element element, User user) {
+    public boolean canUpdateElement(Element element, OntologyElement ontologyElement, User user) {
         return false;
     }
 
     @Override
-    public boolean canUpdateElement(ClientApiElement clientApiElement, User user) {
+    public boolean canUpdateElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
         return false;
     }
 
     @Override
-    public boolean canUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
+    public boolean canUpdateProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
         return false;
     }
 
     @Override
-    public boolean canUpdateProperty(ClientApiElement clientApiElement, String propertyKey, String propertyName, User user) {
+    public boolean canUpdateProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
         return false;
     }
 
     @Override
-    public boolean canAddProperty(Element element, String propertyKey, String propertyName, User user) {
+    public boolean canAddProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
         return false;
     }
 
     @Override
-    public boolean canAddProperty(ClientApiElement clientApiElement, String propertyKey, String propertyName, User user) {
+    public boolean canAddProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
         return false;
     }
 }

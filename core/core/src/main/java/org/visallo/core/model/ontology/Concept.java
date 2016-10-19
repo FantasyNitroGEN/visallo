@@ -10,7 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 
-public abstract class Concept implements HasOntologyProperties {
+public abstract class Concept implements OntologyElement, HasOntologyProperties {
     private final String parentConceptIRI;
     private final Collection<OntologyProperty> properties;
 
@@ -39,10 +39,13 @@ public abstract class Concept implements HasOntologyProperties {
 
     public abstract String getTimeFormula();
 
+    @Override
     public abstract boolean getUserVisible();
 
+    @Override
     public abstract boolean getDeleteable();
 
+    @Override
     public abstract boolean getUpdateable();
 
     public abstract Map<String, String> getMetadata();
