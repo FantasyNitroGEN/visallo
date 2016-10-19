@@ -6,6 +6,7 @@ define([
     'util/withDataRequest',
     'util/privileges',
     'util/visibility/view',
+    'util/acl',
     'd3'
 ], function(
     defineComponent,
@@ -14,6 +15,7 @@ define([
     withDataRequest,
     Privileges,
     VisibilityViewer,
+    acl,
     d3) {
     'use strict';
 
@@ -31,31 +33,15 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-            var findPropertyAcl = function(propertiesAcl, propName, propKey) {
-                var props = _.where(propertiesAcl, { name: propName, key: propKey });
-                if (props.length === 0) {
-                    var propsByName = _.where(propertiesAcl, { name: propName });
-                    if (propsByName.length === 0) {
-                        console.error(propName, propKey)
-                        throw new Error('no ACL property defined');
-                    }
-                    props = propsByName;
-                }
-                if (props.length !== 1) {
-                    console.error(propName, propKey, props)
-                    throw new Error('more than one ACL property with the same name defined');
-                }
-                return props[0];
-            };
-
             config.template = 'propertyInfo/template';
             config.isFullscreen = visalloData.isFullscreen;
             if (config.property) {
 
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
                 config.canAdd = config.canEdit = config.canDelete = false;
-                var allPropertyAcls = config.data.acl.propertyAcls;
-                var propertyAcl = findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
+
+                var allPropertyAcls = acl.getPropertyAcls(config.data);
+                var propertyAcl = acl.findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
 
                 if (config.isComment && visalloData.currentWorkspaceCommentable) {
                     config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;

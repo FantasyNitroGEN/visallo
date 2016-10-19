@@ -13,4 +13,34 @@ public class ClientApiElementAcl extends ClientApiAcl {
     public void setPropertyAcls(List<ClientApiPropertyAcl> propertyAcls) {
         this.propertyAcls = propertyAcls;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        ClientApiElementAcl that = (ClientApiElementAcl) o;
+
+        if (this.propertyAcls.size() != that.propertyAcls.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < this.propertyAcls.size(); i++) {
+            ClientApiPropertyAcl thisPropertyAcl = this.propertyAcls.get(i);
+            ClientApiPropertyAcl thatPropertyAcl = that.propertyAcls.get(i);
+            if (!thisPropertyAcl.equals(thatPropertyAcl)) {
+                return false;
+            }
+        }
+
+
+        return true;
+    }
 }

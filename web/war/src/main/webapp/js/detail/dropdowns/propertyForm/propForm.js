@@ -8,7 +8,8 @@ define([
     'util/withTeardown',
     'util/vertex/vertexSelect',
     'util/vertex/formatters',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    'util/acl'
 ], function(
     require,
     defineComponent,
@@ -19,7 +20,8 @@ define([
     withTeardown,
     VertexSelector,
     F,
-    withDataRequest
+    withDataRequest,
+    acl
 ) {
     'use strict';
 
@@ -117,11 +119,12 @@ define([
             }
 
             ontologyRequest.then(function(ontologyProperties) {
+                var propertyAcls = acl.getPropertyAcls(self.attr.data);
                 FieldSelection.attachTo(self.select('propertyListSelector'), {
                     properties: ontologyProperties.list,
                     focus: true,
                     placeholder: i18n('property.form.field.selection.placeholder'),
-                    unsupportedProperties: _.pluck(_.where(self.attr.data.acl.propertyAcls, { addable: false }), 'name')
+                    unsupportedProperties: _.pluck(_.where(propertyAcls, {addable: false}), 'name')
                 });
                 self.manualOpen();
             });
