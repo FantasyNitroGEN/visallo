@@ -40,6 +40,19 @@ public class PropertyMetadata {
         this.visibility = visibility;
     }
 
+    public PropertyMetadata(PropertyMetadata metadata) {
+        this(
+                metadata.getModifiedDate(),
+                metadata.getModifiedBy(),
+                metadata.getConfidence(),
+                metadata.getVisibilityJson(),
+                metadata.getVisibility()
+        );
+        for (AdditionalMetadataItem item : metadata.getAdditionalMetadataItems()) {
+            add(item.getKey(), item.getValue(), item.getVisibility());
+        }
+    }
+
     public Metadata createMetadata() {
         Metadata metadata = new Metadata();
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);

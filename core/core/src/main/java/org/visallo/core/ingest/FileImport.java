@@ -243,7 +243,7 @@ public class FileImport {
             VisalloVisibility visalloVisibility = this.visibilityTranslator.toVisibility(visibilityJson);
             Visibility visibility = visalloVisibility.getVisibility();
             Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
-            PropertyMetadata propertyMetadata = new PropertyMetadata(user, visibilityJson, visibilityTranslator.getDefaultVisibility());
+            PropertyMetadata propertyMetadata = new PropertyMetadata(user, visibilityJson, visibility);
             VisalloProperties.CONFIDENCE_METADATA.setMetadata(propertyMetadata, 0.1, visibilityTranslator.getDefaultVisibility());
 
             VertexBuilder vertexBuilder;
@@ -253,9 +253,9 @@ public class FileImport {
                 vertexBuilder = this.graph.prepareVertex(predefinedId, visibility);
             }
             List<VisalloPropertyUpdate> changedProperties = new ArrayList<>();
-            VisalloProperties.RAW.updateProperty(changedProperties, null, vertexBuilder, rawValue, propertyMetadata, visibility);
-            VisalloProperties.CONTENT_HASH.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, hash, propertyMetadata, visibility);
-            VisalloProperties.FILE_NAME.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, f.getName(), propertyMetadata, visibility);
+            VisalloProperties.RAW.updateProperty(changedProperties, null, vertexBuilder, rawValue, propertyMetadata);
+            VisalloProperties.CONTENT_HASH.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, hash, propertyMetadata);
+            VisalloProperties.FILE_NAME.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, f.getName(), propertyMetadata);
             VisalloProperties.MODIFIED_DATE.updateProperty(
                     changedProperties,
                     null,
@@ -342,12 +342,12 @@ public class FileImport {
             VisalloProperty prop = ontologyProperty.getVisalloProperty();
             VisibilityJson propertyVisibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, property.getVisibilitySource(), workspace == null ? null : workspace.getWorkspaceId());
             VisalloVisibility propertyVisibility = visibilityTranslator.toVisibility(propertyVisibilityJson);
-            PropertyMetadata propMetadata = new PropertyMetadata(user, visibilityJson, visibilityTranslator.getDefaultVisibility());
+            PropertyMetadata propMetadata = new PropertyMetadata(user, visibilityJson, propertyVisibility.getVisibility());
             for (Map.Entry<String, Object> metadataEntry : property.getMetadata().entrySet()) {
                 propMetadata.add(metadataEntry.getKey(), metadataEntry.getValue(), propertyVisibility.getVisibility());
             }
             //noinspection unchecked
-            prop.updateProperty(changedProperties, null, vertexBuilder, property.getKey(), value, propMetadata, propertyVisibility.getVisibility());
+            prop.updateProperty(changedProperties, null, vertexBuilder, property.getKey(), value, propMetadata);
         }
     }
 
