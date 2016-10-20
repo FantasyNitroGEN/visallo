@@ -129,7 +129,7 @@ define([
 
         this.update = function() {
             var self = this,
-                vertexId = this.attr.data.id,
+                element = this.attr.data,
                 isVisibility = this.attr.property.name === 'http://visallo.org#visibilityJson',
                 property = isVisibility ?
                     _.first(F.vertex.props(this.attr.data, this.attr.property.name)) :
@@ -183,25 +183,22 @@ define([
 
             this.contentRoot.selectAll('tr')
                 .call(function() {
-                    var self = this;
-
                     this.select('td.property-name').text(function(d) {
                         return displayNames[d[0]];
                     });
 
-                    var valueElement = self.select('td.property-value')
+                    var valueElement = this.select('td.property-value')
                         .each(function(d) {
                             var self = this,
-                                $self = $(this),
                                 typeName = displayTypes[d[0]],
                                 formatter = F.vertex.metadata[typeName],
                                 formatterAsync = F.vertex.metadata[typeName + 'Async'],
                                 value = d[1];
 
                             if (formatter) {
-                                formatter(this, value);
+                                formatter(self, value);
                             } else if (formatterAsync) {
-                                formatterAsync(self, value, property, vertexId)
+                                formatterAsync(self, value, property, element.id)
                                     .catch(function() {
                                         d3.select(self).text(i18n('popovers.property_info.error', value));
                                     })
@@ -210,7 +207,8 @@ define([
                             } else if (typeName === 'visibility') {
                                 VisibilityViewer.attachTo(this, {
                                     value: value && value.source,
-                                    property: property
+                                    property: property,
+                                    element: element
                                 });
                             } else {
                                 console.warn('No metadata type formatter: ' + typeName);
