@@ -95,6 +95,7 @@ define([
             headerSelector: '.header input',
             refreshSelector: '.header .refresh',
             editDashboardSelector: '.edit-dashboard',
+            itemContentSelector: '.grid-stack-item-content > .item-content',
             configureItemSelector: '.grid-stack-item-content > h1 .configure',
             removeItemSelector: '.remove-item',
             gridScrollerSelector: '.grid-scroller',
@@ -433,6 +434,7 @@ define([
         this.onRemoveItem = function(event) {
             var self = this,
                 gridItem = $(event.target).closest('.grid-stack-item'),
+                $content = gridItem.find('.item-content'),
                 itemId = gridItem.data('item-id');
 
             if (itemId) {
@@ -440,6 +442,7 @@ define([
                     .done(function() {
                         ignoreGridStackChange = true;
                         self.gridstack.batch_update();
+                        Attacher().node($content).teardown();
                         self.gridstack.remove_widget(gridItem);
                         self.createDashboardItemToGridStack().then(function() {
                             self.gridstack.commit();
@@ -801,6 +804,7 @@ define([
                 .then(function(dashboard) {
                     self.dashboard = dashboard;
                     self.workspaceTitle = workspace.title;
+                    self.select('itemContentSelector').each((i, node) => Attacher().node(node).teardown());
                     self.$node.removeClass('editing').html(template({
                         creator: self.isCreator,
                         title: dashboard.title || workspace.title,
