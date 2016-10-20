@@ -4,6 +4,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Element;
 import org.vertexium.Graph;
 import org.vertexium.mutation.ElementMutation;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
@@ -165,7 +166,11 @@ public class GraphUpdateContext implements AutoCloseable {
         if (conceptType != null) {
             elementUpdateContext.setConceptType(conceptType);
         }
-        updateFn.update(elementUpdateContext);
+        try {
+            updateFn.update(elementUpdateContext);
+        } catch (Exception ex) {
+            throw new VisalloException("Could not update element", ex);
+        }
         T elem = elementUpdateContext.save(authorizations);
         addToElementUpdateContexts(elementUpdateContext);
         return elem;
@@ -181,7 +186,7 @@ public class GraphUpdateContext implements AutoCloseable {
     }
 
     public interface Update<T extends Element> {
-        void update(ElementUpdateContext<T> elemCtx);
+        void update(ElementUpdateContext<T> elemCtx) throws Exception;
     }
 
     public Priority getPriority() {
