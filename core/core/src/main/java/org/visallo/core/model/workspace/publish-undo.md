@@ -12,7 +12,7 @@ All strikethroughs represent soft deletes
 |----|-----|---|-------|-----------------|--------|
 | v1 |     | 1 | PROP  | firstName\x1fk1 | Joe    |
         
-## Workspace Scoped Change
+## Case Scoped Change
 
 | Name      | Value  |                 |
 |-----------|--------|-----------------|

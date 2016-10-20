@@ -45,15 +45,15 @@ org.visallo.core.security.VisibilityTranslator to the org.visallo.core.security.
 value used to enforce data access control.
 
 ## visibility json
-A JSONObject consisting of the visibility source and a list of workspace ids. This value is stored
+A JSONObject consisting of the visibility source and a list of case ids. This value is stored
 as metadata on all vertices, properties, and edges to support data access control.
 
 ## authorization
 The data access control rights granted to Visallo users to control their access to vertices,
 properties, and edges. The term 'authorization' is borrowed from Accumulo.
 
-## workspace
+## case
 A named collection of vertices that can be shared for collaboration with
 other Visallo users. New and changed vertices, properties, and edges
-are only visible within a workspace until being published by a user with
+are only visible within a case until being published by a user with
 the PUBLISH privilege.

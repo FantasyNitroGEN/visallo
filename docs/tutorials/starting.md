@@ -44,7 +44,7 @@ Since we are already logged in as admin with the password of admin, we know that
 
 ### Example Graph Property Worker
 
-The graph property worker that is inside of your project is inside of the ```./worker``` folder.  It is designed to pull names outside of csv files, add the entities inside as people, then show the results on your workspace. 
+The graph property worker that is inside of your project is inside of the ```./worker``` folder.  It is designed to pull names outside of csv files, add the entities inside as people, then show the results in your case.
 
 * Switch to the graph view by clicking the graph button on the left hand side of your screen.
 * Drag and drop the file at ```./worker/src/test/resources/contacts.csv``` in your project onto the graph.
