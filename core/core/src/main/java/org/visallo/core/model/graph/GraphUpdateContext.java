@@ -1,8 +1,6 @@
 package org.visallo.core.model.graph;
 
-import org.vertexium.Authorizations;
-import org.vertexium.Element;
-import org.vertexium.Graph;
+import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
@@ -60,6 +58,9 @@ public class GraphUpdateContext implements AutoCloseable {
         this.authorizations = authorizations;
     }
 
+    /**
+     * Saves, flushes, and pushes element on work queue.
+     */
     @SuppressWarnings("unchecked")
     @Override
     public void close() throws Exception {
@@ -121,6 +122,10 @@ public class GraphUpdateContext implements AutoCloseable {
         return update(element.prepareMutation(), modifiedDate, visibilityJson, conceptType, updateFn);
     }
 
+    /**
+     * Calls the update function, saves the element, and adds any updates to
+     * the work queue.
+     */
     public <T extends Element> T update(ElementMutation<T> m, Update<T> updateFn) {
         Date modifiedDate = null;
         VisibilityJson visibilityJson = null;
@@ -176,6 +181,66 @@ public class GraphUpdateContext implements AutoCloseable {
         return elem;
     }
 
+    /**
+     * Similar to {@link GraphUpdateContext#getOrCreateVertexAndUpdate(String, Long, Visibility, Update)}
+     * using the current time as the timestamp.
+     */
+    public Vertex getOrCreateVertexAndUpdate(String vertexId, Visibility visibility, Update<Vertex> updateFn) {
+        return getOrCreateVertexAndUpdate(vertexId, null, visibility, updateFn);
+    }
+
+    /**
+     * Gets a vertex by id from the graph. If the vertex does not exist prepares a new mutation and
+     * calls update.
+     */
+    public Vertex getOrCreateVertexAndUpdate(
+            String vertexId,
+            Long timestamp,
+            Visibility visibility,
+            Update<Vertex> updateFn
+    ) {
+        Vertex existingVertex = graph.getVertex(vertexId, getAuthorizations());
+        ElementMutation<Vertex> m = existingVertex == null
+                ? graph.prepareVertex(vertexId, timestamp, visibility)
+                : existingVertex.prepareMutation();
+        return update(m, updateFn);
+    }
+
+    /**
+     * Similar to {@link GraphUpdateContext#getOrCreateEdgeAndUpdate(String, String, String, String, Long, Visibility, Update)}
+     * using the current time as the timestamp.
+     */
+    public Edge getOrCreateEdgeAndUpdate(
+            String edgeId,
+            String outVertexId,
+            String inVertexId,
+            String label,
+            Visibility visibility,
+            Update<Edge> updateFn
+    ) {
+        return getOrCreateEdgeAndUpdate(edgeId, outVertexId, inVertexId, label, null, visibility, updateFn);
+    }
+
+    /**
+     * Gets a edge by id from the graph. If the edge does not exist prepares a new mutation and
+     * calls update.
+     */
+    public Edge getOrCreateEdgeAndUpdate(
+            String edgeId,
+            String outVertexId,
+            String inVertexId,
+            String label,
+            Long timestamp,
+            Visibility visibility,
+            Update<Edge> updateFn
+    ) {
+        Edge existingEdge = graph.getEdge(edgeId, getAuthorizations());
+        ElementMutation<Edge> m = existingEdge == null
+                ? graph.prepareEdge(edgeId, outVertexId, inVertexId, label, timestamp, visibility)
+                : existingEdge.prepareMutation();
+        return update(m, updateFn);
+    }
+
     private <T extends Element> void addToElementUpdateContexts(ElementUpdateContext<T> elementUpdateContext) {
         if (isPushOnQueue()) {
             elementUpdateContexts.add(elementUpdateContext);
@@ -205,6 +270,10 @@ public class GraphUpdateContext implements AutoCloseable {
         return maxElementUpdateContextItems;
     }
 
+    /**
+     * Sets the maximum number of element updates to keep in memory before they are flushed
+     * and added to the work queue.
+     */
     public GraphUpdateContext setMaxElementUpdateContextItems(int maxElementUpdateContextItems) {
         this.maxElementUpdateContextItems = maxElementUpdateContextItems;
         return this;
@@ -214,6 +283,10 @@ public class GraphUpdateContext implements AutoCloseable {
         return pushOnQueue;
     }
 
+    /**
+     * By default updates are added to the work queue. If this is false updates will be
+     * saved but not added to the work queue.
+     */
     public GraphUpdateContext setPushOnQueue(boolean pushOnQueue) {
         this.pushOnQueue = pushOnQueue;
         return this;
