@@ -238,11 +238,11 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             LOGGER.error("passing an empty string value to updateProperty will not be allowed in the future: %s", this);
             return;
         }
-        Object currentValue = null;
+        TRaw currentValue = null;
         if (element != null) {
             currentValue = getPropertyValue(element, propertyKey);
         }
-        if (currentValue == null || !newValue.equals(currentValue)) {
+        if (currentValue == null || !isEquals(newValue, currentValue)) {
             addPropertyValue(m, propertyKey, newValue, metadata, timestamp, visibility);
             changedPropertiesOut.add(new VisalloPropertyUpdate(this, propertyKey));
         }

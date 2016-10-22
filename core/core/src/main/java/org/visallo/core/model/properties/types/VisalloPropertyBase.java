@@ -3,6 +3,8 @@ package org.visallo.core.model.properties.types;
 import com.google.common.base.Function;
 import org.vertexium.Property;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * A VisalloProperty provides convenience methods for converting standard
  * property values to and from their raw types to the types required to
@@ -57,6 +59,12 @@ public abstract class VisalloPropertyBase<TRaw, TGraph> {
         public TRaw apply(final Object input) {
             return unwrap(input);
         }
+    }
+
+    protected boolean isEquals(TRaw newValue, TRaw currentValue) {
+        checkNotNull(newValue, "newValue cannot be null");
+        checkNotNull(currentValue, "currentValue cannot be null");
+        return newValue.equals(currentValue);
     }
 
     @Override
