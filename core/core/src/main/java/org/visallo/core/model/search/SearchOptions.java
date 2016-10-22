@@ -44,6 +44,10 @@ public class SearchOptions {
     }
 
     private <T> T objectToType(Object obj, Class<T> resultType) {
+        if (obj != null && resultType == obj.getClass()) {
+            //noinspection unchecked
+            return (T) obj;
+        }
         if (resultType == Integer.class && obj instanceof String) {
             return resultType.cast(Integer.parseInt((String) obj));
         }
@@ -55,6 +59,9 @@ public class SearchOptions {
         }
         if (resultType == JSONArray.class && obj instanceof String) {
             return resultType.cast(new JSONArray((String) obj));
+        }
+        if (resultType == JSONArray.class && obj instanceof String[]) {
+            return resultType.cast(new JSONArray(obj));
         }
         return resultType.cast(obj);
     }
