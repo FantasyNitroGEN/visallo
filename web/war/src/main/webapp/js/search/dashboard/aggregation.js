@@ -47,8 +47,7 @@ define([
             { value: 8, label: '  25 x 25 meters (small)' }
         ],
         defaultInterval = 20,
-        idIncrement = 1,
-        _mapzenPromise;
+        idIncrement = 1;
 
     return defineComponent(Aggregation, withDataRequest);
 
@@ -473,15 +472,19 @@ define([
             return _.isFunction(aggregation.filter) ? aggregation.filter(filteredProperties) : filteredProperties;
         };
 
-        this.mapzenSupported = function() {
-            if (!_mapzenPromise) {
-                _mapzenPromise = new Promise(function(f) {
-                    d3.json('mapzen/osm/all/0/0/0.json', function(error, json) {
-                        f(!error);
-                    });
+        this.mapzenSupported = _.memoize(function() {
+            var self = this;
+            return new Promise(function(f) {
+                self.dataRequest('config', 'properties').then(function(config) {
+                    if (config['mapzen.enabled'] === 'false') {
+                        f(false);
+                    } else {
+                        d3.json('mapzen/osm/all/0/0/0.json', function(error, json) {
+                            f(!error);
+                        });
+                    }
                 });
-            }
-            return _mapzenPromise;
-        };
+            });
+        });
     }
 });
