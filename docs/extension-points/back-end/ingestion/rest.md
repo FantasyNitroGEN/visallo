@@ -1,6 +1,6 @@
 # REST Ingestion
 
-Since Visallo is a webapp, it has specific endpoints that you can use to develop your own REST clients. These are known to work since the webapp uses them for interaction with Visallo in order to show you the web UI.
+Since Visallo is a webapp, it has specific endpoints that you can use to develop your own REST clients.
 
 ## Add Vertex
 
