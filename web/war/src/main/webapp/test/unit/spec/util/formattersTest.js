@@ -226,9 +226,11 @@ define([
                     offset = date.getTimezoneOffset(),
                     dateLocal = new Date(date.getTime() + offset * 60 * 1000);
 
-                f.date.local('2015-06-23 13:16 CDT').getTime().should.equal(dateLocal.getTime())
+                f.date.local('2015-06-23T17:16:00.000+0000').getTime().should.equal(dateLocal.getTime());
+                f.date.local('2015-06-23T12:16:00.000-0500').getTime().should.equal(dateLocal.getTime());
+                f.date.local('2015-06-23 13:16 CDT').getTime().should.equal(dateLocal.getTime());
                 f.date.dateTimeString(dateLocal.getTime()).should.match(/^2015-06-23 13:16 .+$/)
-            })
+            });
 
             it('should format to preferred format', function() {
                 var now = new Date(),

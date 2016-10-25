@@ -482,8 +482,13 @@ define([
                             parsed += (isNegative ? '-' : '+') + hours + ':' + minutes;
                             dateInLocale = new Date(parsed);
                         } else {
-                            console.warn('Unable to parse date', numberOrString);
-                            return '';
+                            var m = moment(numberOrString, 'YYYY-MM-DDTHH:mm:ss.SSSZ', true);
+                            if (m.isValid()) {
+                                dateInLocale = m.local().toDate();
+                            } else {
+                                console.warn('Unable to parse date', numberOrString);
+                                return '';
+                            }
                         }
                     }
                 }
