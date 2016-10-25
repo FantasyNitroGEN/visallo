@@ -1,7 +1,7 @@
 package org.visallo.core.model.properties.types;
 
-import org.visallo.core.util.JSONUtil;
 import org.json.JSONObject;
+import org.visallo.core.util.JSONUtil;
 
 public class JsonVisalloProperty extends VisalloProperty<JSONObject, String> {
     public JsonVisalloProperty(String key) {
@@ -19,5 +19,10 @@ public class JsonVisalloProperty extends VisalloProperty<JSONObject, String> {
             return null;
         }
         return JSONUtil.parse(value.toString());
+    }
+
+    @Override
+    protected boolean isEquals(JSONObject newValue, JSONObject currentValue) {
+        return JSONUtil.areEqual(newValue, currentValue);
     }
 }

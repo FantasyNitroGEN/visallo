@@ -263,11 +263,11 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             LOGGER.error("passing an empty string value to updateProperty will not be allowed in the future: %s", this);
             return;
         }
-        Object currentValue = null;
+        TRaw currentValue = null;
         if (element != null) {
             currentValue = getPropertyValue(element);
         }
-        if (currentValue == null || !newValue.equals(currentValue)) {
+        if (currentValue == null || !isEquals(newValue, currentValue)) {
             setProperty(m, newValue, metadata, timestamp, visibility);
             changedPropertiesOut.add(new VisalloPropertyUpdate(this));
         }

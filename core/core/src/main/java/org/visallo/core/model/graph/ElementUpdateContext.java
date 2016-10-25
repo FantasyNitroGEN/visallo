@@ -39,6 +39,10 @@ public class ElementUpdateContext<T extends Element> {
         return this.element;
     }
 
+    public boolean isNewElement() {
+        return getElement() == null;
+    }
+
     public ElementMutation<T> getMutation() {
         return mutation;
     }
