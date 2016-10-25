@@ -592,7 +592,14 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
             for (Update update : updates) {
                 Vertex otherVertex = verticesMap.get(update.getVertexId());
-                checkNotNull(otherVertex, "Could not find vertex with id: " + update.getVertexId());
+                if (otherVertex == null) {
+                    LOGGER.error(
+                            "updateEntitiesOnWorkspace: could not find vertex with id \"%s\" for workspace \"%s\"",
+                            update.getVertexId(),
+                            workspace.getWorkspaceId()
+                    );
+                    continue;
+                }
                 createEdge(
                         workspaceVertex,
                         otherVertex,
