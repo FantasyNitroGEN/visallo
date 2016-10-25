@@ -201,8 +201,14 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     authorizations
             );
         } catch (SecurityVertexiumException e) {
+            if (!graphAuthorizationRepository.getGraphAuthorizations().contains(workspaceId)) {
+                return null;
+            }
+
+            String message = String.format("user %s does not have read access to workspace %s", user.getUserId(), workspaceId);
+            LOGGER.warn("%s", message, e);
             throw new VisalloAccessDeniedException(
-                    "user " + user.getUserId() + " does not have read access to workspace " + workspaceId,
+                    message,
                     user,
                     workspaceId
             );
