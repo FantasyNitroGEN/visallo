@@ -143,12 +143,15 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             TRaw newValue,
             Visibility visibility
     ) {
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, (PropertyMetadata) null, null, visibility);
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, (Metadata) null, null, visibility);
     }
 
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
+     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, Object, PropertyMetadata)}
      */
+    @SuppressWarnings("deprecation")
+    @Deprecated
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
@@ -160,18 +163,30 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         updateProperty(changedPropertiesOut, element, m, newValue, metadata, null, visibility);
     }
 
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            TRaw newValue,
+            PropertyMetadata metadata
+    ) {
+        checkNotNull(metadata, "metadata cannot be null");
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), null, metadata.getVisibility());
+    }
+
     public <T extends Element> void updateProperty(
             ElementUpdateContext<T> ctx,
             TRaw newValue,
-            PropertyMetadata metadata,
-            Visibility visibility
+            PropertyMetadata metadata
     ) {
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata, null, visibility);
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), null, metadata.getVisibility());
     }
 
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
+     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, Object, PropertyMetadata, Long)}
      */
+    @Deprecated
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
@@ -184,14 +199,25 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         updateProperty(changedPropertiesOut, element, m, newValue, metadata == null ? null : metadata.createMetadata(), timestamp, visibility);
     }
 
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            TRaw newValue,
+            PropertyMetadata metadata,
+            Long timestamp
+    ) {
+        checkNotNull(metadata, "metadata cannot be null");
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
+    }
+
     public <T extends Element> void updateProperty(
             ElementUpdateContext<T> ctx,
             TRaw newValue,
             PropertyMetadata metadata,
-            Long timestamp,
-            Visibility visibility
+            Long timestamp
     ) {
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), timestamp, visibility);
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
     }
 
     /**

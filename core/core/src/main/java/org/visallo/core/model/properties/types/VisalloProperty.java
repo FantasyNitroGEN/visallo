@@ -10,6 +10,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.*;
 
 public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<TRaw, TGraph> {
@@ -142,7 +143,10 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
 
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
+     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, String, Object, PropertyMetadata)}
      */
+    @SuppressWarnings("deprecation")
+    @Deprecated
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
@@ -155,19 +159,36 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata, null, visibility);
     }
 
+    /**
+     * @param changedPropertiesOut Adds the property to this list if the property value changed
+     */
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            String propertyKey,
+            TRaw newValue,
+            PropertyMetadata metadata
+    ) {
+        checkNotNull(metadata, "metadata is required");
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), null, metadata.getVisibility());
+    }
+
     public <T extends Element> void updateProperty(
             ElementUpdateContext<T> ctx,
             String propertyKey,
             TRaw newValue,
-            PropertyMetadata metadata,
-            Visibility visibility
+            PropertyMetadata metadata
     ) {
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata, null, visibility);
+        checkNotNull(metadata, "metadata is required");
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), null, metadata.getVisibility());
     }
 
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
+     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, String, Object, PropertyMetadata, Long)}
      */
+    @Deprecated
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
@@ -181,15 +202,31 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), timestamp, visibility);
     }
 
+    /**
+     * @param changedPropertiesOut Adds the property to this list if the property value changed
+     */
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            String propertyKey,
+            TRaw newValue,
+            PropertyMetadata metadata,
+            Long timestamp
+    ) {
+        checkNotNull(metadata, "metadata is required");
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
+    }
+
     public <T extends Element> void updateProperty(
             ElementUpdateContext<T> ctx,
             String propertyKey,
             TRaw newValue,
             PropertyMetadata metadata,
-            Long timestamp,
-            Visibility visibility
+            Long timestamp
     ) {
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), timestamp, visibility);
+        checkNotNull(metadata, "metadata is required");
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
     }
 
     /**

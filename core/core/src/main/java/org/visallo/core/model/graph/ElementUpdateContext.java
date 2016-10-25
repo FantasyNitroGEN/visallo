@@ -8,6 +8,7 @@ import org.vertexium.mutation.EdgeMutation;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
@@ -58,6 +59,10 @@ public class ElementUpdateContext<T extends Element> {
         VisalloProperties.MODIFIED_BY.updateProperty(this, user.getUserId(), defaultVisibility);
         VisalloProperties.MODIFIED_DATE.updateProperty(this, modifiedDate, defaultVisibility);
         VisalloProperties.VISIBILITY_JSON.updateProperty(this, visibilityJson, defaultVisibility);
+    }
+
+    public void updateBuiltInProperties(PropertyMetadata propertyMetadata) {
+        updateBuiltInProperties(propertyMetadata.getModifiedDate(), propertyMetadata.getVisibilityJson());
     }
 
     public void setConceptType(String conceptType) {

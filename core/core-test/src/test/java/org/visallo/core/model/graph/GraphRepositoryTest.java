@@ -306,7 +306,7 @@ public class GraphRepositoryTest {
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user1, defaultAuthorizations)) {
             ElementMutation<Vertex> m = graph.prepareVertex("v1", new Visibility(""));
             Vertex v1 = ctx.update(m, modifiedDate, visibilityJson, "http://visallo.org/text#concept1", updateContext -> {
-                VisalloProperties.FILE_NAME.updateProperty(updateContext, "k1", "test1.txt", metadata, new Visibility(""));
+                VisalloProperties.FILE_NAME.updateProperty(updateContext, "k1", "test1.txt", metadata);
             });
             assertNotNull(v1);
 
@@ -314,7 +314,7 @@ public class GraphRepositoryTest {
             Vertex v2 = ctx.update(m, updateContext -> {
                 updateContext.updateBuiltInProperties(modifiedDate, visibilityJson);
                 updateContext.setConceptType("http://visallo.org/text#concept1");
-                VisalloProperties.FILE_NAME.updateProperty(updateContext, "k1", "test2.txt", metadata, new Visibility(""));
+                VisalloProperties.FILE_NAME.updateProperty(updateContext, "k1", "test2.txt", metadata);
             });
             assertNotNull(v2);
         }
