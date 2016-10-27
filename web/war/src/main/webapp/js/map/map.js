@@ -667,8 +667,7 @@ define([
 
                     this.$node.append(radiusTemplate({}));
 
-                    var offset = self.$node.offset(),
-                        centerCoordinate = map.getCoordinateFromPixel([evt.pageX - offset.left, evt.pageY - offset.top]),
+                    var centerCoordinate = evt.coordinate,
                         move = new FeatureMoveInteraction({ center: centerCoordinate, fit: false });
 
                     this.moveInteraction = move;
