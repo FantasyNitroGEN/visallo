@@ -119,10 +119,11 @@ define([
                 //
                 // for example: geoLocation: function(...) { el.textContent = 'coords'; }
 
-                visibility: function(el, property) {
+                visibility: function(el, property, element) {
                     visibilityUtil.attachComponent('viewer', el, {
                         property: property,
-                        value: property.value && property.value.source
+                        value: property.value && property.value.source,
+                        element: element
                     })
                 },
 
