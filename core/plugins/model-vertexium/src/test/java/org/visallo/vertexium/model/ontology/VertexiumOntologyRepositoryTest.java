@@ -5,20 +5,27 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.semanticweb.owlapi.model.IRI;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
+import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.InMemoryGraphAuthorizationRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.web.clientapi.model.PropertyType;
 
 import java.io.File;
@@ -30,6 +37,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class VertexiumOntologyRepositoryTest {
     private static final String TEST_OWL = "test.owl";
     private static final String TEST_CHANGED_OWL = "test_changed.owl";
@@ -43,6 +51,10 @@ public class VertexiumOntologyRepositoryTest {
     private LockRepository lockRepository;
     @Mock
     private Configuration configuration;
+    @Mock
+    private TermMentionRepository termMentionRepository;
+    @Mock
+    private WorkQueueRepository workQueueRepository;
 
     @Before
     public void setup() throws Exception {
@@ -50,8 +62,15 @@ public class VertexiumOntologyRepositoryTest {
         authorizations = new InMemoryAuthorizations();
         graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
         lockRepository = new NonLockingLockRepository();
-        ontologyRepository = new VertexiumOntologyRepository(graph, configuration,
-                                                             graphAuthorizationRepository, lockRepository) {
+        VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
+        GraphRepository graphRepository = new GraphRepository(graph, visibilityTranslator, termMentionRepository, workQueueRepository);
+        ontologyRepository = new VertexiumOntologyRepository(
+                graph,
+                graphRepository,
+                configuration,
+                graphAuthorizationRepository,
+                lockRepository
+        ) {
             @Override
             public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
                 Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null);
@@ -91,8 +110,8 @@ public class VertexiumOntologyRepositoryTest {
         OntologyProperty aliasProperty = ontologyRepository.getPropertyByIRI(TEST01_IRI + "#alias");
         Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person");
         assertTrue(person.getProperties()
-                .stream()
-                .anyMatch(p -> p.getIri().equals(aliasProperty.getIri()))
+                           .stream()
+                           .anyMatch(p -> p.getIri().equals(aliasProperty.getIri()))
         );
     }
 
@@ -109,10 +128,10 @@ public class VertexiumOntologyRepositoryTest {
         assertEquals("Name", nameProperty.getDisplayName());
         assertEquals(PropertyType.STRING, nameProperty.getDataType());
         assertEquals("_.compact([\n" +
-                "            dependentProp('http://visallo.org/test#firstName'),\n" +
-                "            dependentProp('http://visallo.org/test#middleName'),\n" +
-                "            dependentProp('http://visallo.org/test#lastName')\n" +
-                "            ]).join(', ')", nameProperty.getDisplayFormula().trim());
+                             "            dependentProp('http://visallo.org/test#firstName'),\n" +
+                             "            dependentProp('http://visallo.org/test#middleName'),\n" +
+                             "            dependentProp('http://visallo.org/test#lastName')\n" +
+                             "            ]).join(', ')", nameProperty.getDisplayFormula().trim());
         ImmutableList<String> dependentPropertyIris = nameProperty.getDependentPropertyIris();
         assertEquals(3, dependentPropertyIris.size());
         assertTrue(dependentPropertyIris.contains("http://visallo.org/test#firstName"));
@@ -121,8 +140,10 @@ public class VertexiumOntologyRepositoryTest {
         List<String> intents = Arrays.asList(nameProperty.getIntents());
         assertEquals(1, intents.size());
         assertTrue(intents.contains("test3"));
-        assertEquals("dependentProp('http://visallo.org/test#lastName') && dependentProp('http://visallo.org/test#firstName')",
-                nameProperty.getValidationFormula());
+        assertEquals(
+                "dependentProp('http://visallo.org/test#lastName') && dependentProp('http://visallo.org/test#firstName')",
+                nameProperty.getValidationFormula()
+        );
         assertEquals("Personal Information", nameProperty.getPropertyGroup());
         assertEquals("test", nameProperty.getDisplayType());
         assertFalse(nameProperty.getAddable());
@@ -135,8 +156,8 @@ public class VertexiumOntologyRepositoryTest {
 
         Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person");
         assertTrue(person.getProperties()
-                .stream()
-                .anyMatch(p -> p.getIri().equals(nameProperty.getIri()))
+                           .stream()
+                           .anyMatch(p -> p.getIri().equals(nameProperty.getIri()))
         );
 
         OntologyProperty firstMetProperty = ontologyRepository.getPropertyByIRI(TEST_IRI + "#firstMet");
@@ -145,8 +166,8 @@ public class VertexiumOntologyRepositoryTest {
 
         Relationship relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertTrue(relationship.getProperties()
-                .stream()
-                .anyMatch(p -> p.getIri().equals(firstMetProperty.getIri()))
+                           .stream()
+                           .anyMatch(p -> p.getIri().equals(firstMetProperty.getIri()))
         );
     }
 
@@ -216,9 +237,9 @@ public class VertexiumOntologyRepositoryTest {
         assertEquals("http://visallo.org/test#name", nameProperty.getDisplayName());
         assertEquals(PropertyType.STRING, nameProperty.getDataType());
         assertEquals("_.compact([\n" +
-                "            dependentProp('http://visallo.org/test#firstName'),\n" +
-                "            dependentProp('http://visallo.org/test#lastName')\n" +
-                "            ]).join(', ')", nameProperty.getDisplayFormula().trim());
+                             "            dependentProp('http://visallo.org/test#firstName'),\n" +
+                             "            dependentProp('http://visallo.org/test#lastName')\n" +
+                             "            ]).join(', ')", nameProperty.getDisplayFormula().trim());
         ImmutableList<String> dependentPropertyIris = nameProperty.getDependentPropertyIris();
         assertEquals(3, dependentPropertyIris.size());
         assertTrue(dependentPropertyIris.contains("http://visallo.org/test#firstName"));
@@ -227,8 +248,10 @@ public class VertexiumOntologyRepositoryTest {
         List<String> intents = Arrays.asList(nameProperty.getIntents());
         assertEquals(1, intents.size());
         assertTrue(intents.contains("test3"));
-        assertEquals("dependentProp('http://visallo.org/test#lastName') && dependentProp('http://visallo.org/test#firstName')",
-                nameProperty.getValidationFormula());
+        assertEquals(
+                "dependentProp('http://visallo.org/test#lastName') && dependentProp('http://visallo.org/test#firstName')",
+                nameProperty.getValidationFormula()
+        );
         assertEquals("Personal Information", nameProperty.getPropertyGroup());
         assertEquals("test 2", nameProperty.getDisplayType());
         assertTrue(nameProperty.getAddable());
@@ -243,8 +266,8 @@ public class VertexiumOntologyRepositoryTest {
 
         Relationship relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertTrue(relationship.getProperties()
-                .stream()
-                .anyMatch(p -> p.getIri().equals(firstMetProperty.getIri()))
+                           .stream()
+                           .anyMatch(p -> p.getIri().equals(firstMetProperty.getIri()))
         );
     }
 }
