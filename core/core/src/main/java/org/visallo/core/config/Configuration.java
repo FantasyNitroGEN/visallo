@@ -61,6 +61,7 @@ public class Configuration {
     public static final String VISIBILITY_TRANSLATOR = "security.visibilityTranslator";
     public static final String WEB_CONFIGURATION_PREFIX = "web.ui.";
     public static final String WEB_GEOCODER_ENABLED = WEB_CONFIGURATION_PREFIX + "geocoder.enabled";
+    public static final String MAPZEN_ENABLED = WEB_CONFIGURATION_PREFIX + "mapzen.enabled";
     public static final String MAPZEN_TILE_API_KEY = "mapzen.tile.api.key";
     public static final String DEV_MODE = "devMode";
     public static final boolean DEV_MODE_DEFAULT = false;
