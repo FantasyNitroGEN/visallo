@@ -497,7 +497,7 @@ public class GraphRepository {
     }
 
     public GraphUpdateContext beginGraphUpdate(Priority priority, User user, Authorizations authorizations) {
-        return new GraphUpdateContext(
+        return new MyGraphUpdateContext(
                 graph,
                 workQueueRepository,
                 visibilityTranslator,
@@ -505,5 +505,18 @@ public class GraphRepository {
                 user,
                 authorizations
         );
+    }
+
+    private static class MyGraphUpdateContext extends GraphUpdateContext {
+        protected MyGraphUpdateContext(
+                Graph graph,
+                WorkQueueRepository workQueueRepository,
+                VisibilityTranslator visibilityTranslator,
+                Priority priority,
+                User user,
+                Authorizations authorizations
+        ) {
+            super(graph, workQueueRepository, visibilityTranslator, priority, user, authorizations);
+        }
     }
 }
