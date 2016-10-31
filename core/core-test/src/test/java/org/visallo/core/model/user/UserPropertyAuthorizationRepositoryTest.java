@@ -77,7 +77,7 @@ public class UserPropertyAuthorizationRepositoryTest {
 
     @Test
     public void testGetAuthorizationsForExisting() {
-        String[] authorizationsArray = {"userAuthorization1", "userAuthorization2"};
+        String[] authorizationsArray = {"userAuthorization1", "userAuthorization2", "userRepositoryAuthorization1", "userRepositoryAuthorization2"};
         when(user.getProperty(eq(UserPropertyAuthorizationRepository.AUTHORIZATIONS_PROPERTY_IRI)))
                 .thenReturn("userAuthorization1,userAuthorization2");
 
