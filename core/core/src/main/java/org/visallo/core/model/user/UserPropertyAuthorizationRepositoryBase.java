@@ -86,11 +86,12 @@ public abstract class UserPropertyAuthorizationRepositoryBase extends Authorizat
         if (user instanceof SystemUser) {
             return Sets.newHashSet(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
         }
+        HashSet<String> authSet = new HashSet<>(getDefaultAuthorizations());
         String authorizations = (String) user.getProperty(AUTHORIZATIONS_PROPERTY_IRI);
-        if (authorizations == null) {
-            return new HashSet<>(getDefaultAuthorizations());
+        if (authorizations != null) {
+            authSet.addAll(parseAuthorizations(authorizations));
         }
-        return Sets.newHashSet(parseAuthorizations(authorizations));
+        return authSet;
     }
 
     protected ImmutableSet<String> getDefaultAuthorizations() {
