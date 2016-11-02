@@ -15,6 +15,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.StatusRepository;
 
@@ -31,7 +32,6 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GraphPropertyRunnerTest {
-    private static final Object MESSAGE_ID = "messageId";
     private static final String VERTEX_ID = "vertexID";
     private static final String EDGE_ID = "edgeID";
 
@@ -60,6 +60,7 @@ public class GraphPropertyRunnerTest {
                 workQueueRepository,
                 statusRepository,
                 configuration,
+                new JmxMetricsManager(),
                 authorizationRepository
         );
         graph = mock(Graph.class);
@@ -69,7 +70,8 @@ public class GraphPropertyRunnerTest {
     @Test(expected = VisalloException.class)
     public void testUnknownProcessingMessageThrowsException() throws Exception {
         JSONObject obj = createTestJSONGPWMessage();
-        testSubject.process(MESSAGE_ID, obj);
+        GraphPropertyWorkerItem workerItem = testSubject.tupleDataToWorkerItem(obj.toString().getBytes());
+        testSubject.process(workerItem);
     }
 
     @Test
@@ -187,13 +189,13 @@ public class GraphPropertyRunnerTest {
         assertThat(countingGPWStub.isHandledCount.get(), is(expectedNumProperties));
     }
 
-
     private void runTests(GraphPropertyWorker worker, JSONObject message) throws Exception {
         GraphPropertyThreadedWrapper graphPropertyThreadedWrapper = startInThread(worker);
 
         testSubject.addGraphPropertyThreadedWrappers(graphPropertyThreadedWrapper);
 
-        testSubject.process(MESSAGE_ID, message);
+        GraphPropertyWorkerItem workerItem = testSubject.tupleDataToWorkerItem(message.toString().getBytes());
+        testSubject.process(workerItem);
 
         stopInThread(graphPropertyThreadedWrapper);
     }
@@ -312,24 +314,21 @@ public class GraphPropertyRunnerTest {
     }
 
     private static JSONObject createMultiVertexPropertyMessage(String[] vertexIds, Property property) {
-        return createTestJSONGPWMessage().put(
-                GraphPropertyMessage.GRAPH_VERTEX_ID,
-                createStringJSONArray(vertexIds)
-        ).put(GraphPropertyMessage.PROPERTY_KEY, property.getKey()).put(
-                GraphPropertyMessage.PROPERTY_NAME,
-                property.getName()
-        );
+        return createTestJSONGPWMessage()
+                .put(GraphPropertyMessage.GRAPH_VERTEX_ID, createStringJSONArray(vertexIds))
+                .put(GraphPropertyMessage.PROPERTY_KEY, property.getKey())
+                .put(GraphPropertyMessage.PROPERTY_NAME, property.getName());
     }
 
     private static JSONObject createMultiVertexIdJSONGPWMessage(String... vertexIds) {
-        return createTestJSONGPWMessage().put(GraphPropertyMessage.GRAPH_VERTEX_ID, createStringJSONArray(vertexIds));
+        return createTestJSONGPWMessage()
+                .put(GraphPropertyMessage.GRAPH_VERTEX_ID, createStringJSONArray(vertexIds));
     }
 
     private static JSONObject createVertexPropertyGPWMessage(String vertexId, String propertyName, String propertyKey) {
-        return createVertexIdJSONGPWMessage(vertexId).put(GraphPropertyMessage.PROPERTY_KEY, propertyKey).put(
-                GraphPropertyMessage.PROPERTY_NAME,
-                propertyName
-        );
+        return createVertexIdJSONGPWMessage(vertexId)
+                .put(GraphPropertyMessage.PROPERTY_KEY, propertyKey)
+                .put(GraphPropertyMessage.PROPERTY_NAME, propertyName);
     }
 
     private static JSONObject createEdgeIdJSONGPWMessage(String edgeId, String propertyName, String propertyKey) {
@@ -345,10 +344,10 @@ public class GraphPropertyRunnerTest {
     }
 
     private static JSONObject createTestJSONGPWMessage() {
-        return new JSONObject().put(GraphPropertyMessage.PRIORITY, "1").put(
-                GraphPropertyMessage.VISIBILITY_SOURCE,
-                ""
-        ).put(GraphPropertyMessage.WORKSPACE_ID, "wsId");
+        return new JSONObject()
+                .put(GraphPropertyMessage.PRIORITY, "1")
+                .put(GraphPropertyMessage.VISIBILITY_SOURCE, "")
+                .put(GraphPropertyMessage.WORKSPACE_ID, "wsId");
     }
 
     private static JSONArray createStringJSONArray(String... strs) {

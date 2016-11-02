@@ -65,7 +65,8 @@ public abstract class QueueExternalResourceWorker extends ExternalResourceWorker
             }
             try (Timer.Context t = processingTimeTimer.time()) {
                 long startTime = System.currentTimeMillis();
-                process(tuple.getMessageId(), tuple.getJson(), authorizations);
+                JSONObject json = new JSONObject(new String(tuple.getData()));
+                process(tuple.getMessageId(), json, authorizations);
                 long endTime = System.currentTimeMillis();
                 logger.debug("completed processing in (%dms)", endTime - startTime);
                 workerSpout.ack(tuple.getMessageId());

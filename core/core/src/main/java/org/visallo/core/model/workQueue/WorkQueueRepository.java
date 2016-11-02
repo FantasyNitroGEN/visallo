@@ -998,10 +998,21 @@ public abstract class WorkQueueRepository {
         return json;
     }
 
-    public abstract void pushOnQueue(
+    public final void pushOnQueue(
             String queueName,
             @Deprecated FlushFlag flushFlag,
             JSONObject json,
+            Priority priority
+    ) {
+        if (priority != null) {
+            json.put("priority", priority.name());
+        }
+        pushOnQueue(queueName, json.toString().getBytes(), priority);
+    }
+
+    public abstract void pushOnQueue(
+            String queueName,
+            byte[] data,
             Priority priority
     );
 

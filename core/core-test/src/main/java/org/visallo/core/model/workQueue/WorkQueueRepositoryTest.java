@@ -11,7 +11,6 @@ import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
-import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
@@ -156,7 +155,7 @@ public class WorkQueueRepositoryTest {
 
     public class TestWorkQueueRepository extends WorkQueueRepository {
         public List<JSONObject> broadcastJsonValues = new ArrayList<>();
-        public Map<String, List<JSONObject>> queues = new HashMap<>();
+        public Map<String, List<byte[]>> queues = new HashMap<>();
 
         public TestWorkQueueRepository(
                 Graph graph,
@@ -178,16 +177,16 @@ public class WorkQueueRepositoryTest {
         }
 
         @Override
-        public void pushOnQueue(String queueName, @Deprecated FlushFlag flushFlag, JSONObject json, Priority priority) {
-            List<JSONObject> queue = queues.get(queueName);
+        public void pushOnQueue(String queueName, byte[] data, Priority priority) {
+            List<byte[]> queue = queues.get(queueName);
             if (queue == null) {
                 queue = new ArrayList<>();
                 queues.put(queueName, queue);
             }
-            queue.add(json);
+            queue.add(data);
         }
 
-        public List<JSONObject> getWorkQueue() {
+        public List<byte[]> getWorkQueue() {
             return queues.get(workQueueNames.getGraphPropertyQueueName());
         }
 

@@ -1,29 +1,26 @@
 package org.visallo.core.ingest;
 
-import org.json.JSONObject;
-
 public class WorkerTuple {
     private final Object messageId;
-    private final JSONObject json;
+    private final byte[] data;
 
-    public WorkerTuple(Object messageId, JSONObject json) {
+    public WorkerTuple(Object messageId, byte[] data) {
         this.messageId = messageId;
-        this.json = json;
+        this.data = data;
     }
 
     public Object getMessageId() {
         return messageId;
     }
 
-    public JSONObject getJson() {
-        return json;
+    public byte[] getData() {
+        return data;
     }
 
     @Override
     public String toString() {
         return "WorkerTuple{" +
                 "messageId=" + messageId +
-                ", json=" + json.toString() +
                 '}';
     }
 }

@@ -23,13 +23,12 @@ public class GraphPropertyMessage {
 
     private JSONObject _obj;
 
-    public boolean isValid() {
-        return canHandleVertex() || canHandleEdge();
+    public GraphPropertyMessage(byte[] data) {
+        this(new String(data));
     }
 
-    public enum ProcessingType {
-        PROPERTY,
-        ELEMENT
+    public GraphPropertyMessage(String data) {
+        this(new JSONObject(data));
     }
 
     public GraphPropertyMessage(JSONObject obj) {

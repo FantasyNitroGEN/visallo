@@ -1,11 +1,11 @@
 package org.visallo.core.ingest.graphProperty;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.IterableUtils;
@@ -20,6 +20,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.StatusRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.GraphPropertyRunnerStatus;
@@ -36,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vertexium.util.IterableUtils.toList;
 
-public class GraphPropertyRunner extends WorkerBase {
+public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
     private final StatusRepository statusRepository;
     private final AuthorizationRepository authorizationRepository;
@@ -57,24 +58,29 @@ public class GraphPropertyRunner extends WorkerBase {
             WorkQueueRepository workQueueRepository,
             StatusRepository statusRepository,
             Configuration configuration,
+            MetricsManager metricsManager,
             AuthorizationRepository authorizationRepository
     ) {
-        super(workQueueRepository, configuration);
+        super(workQueueRepository, configuration, metricsManager);
         this.statusRepository = statusRepository;
         this.authorizationRepository = authorizationRepository;
     }
 
     @Override
-    public void process(Object messageId, JSONObject json) throws Exception {
-        GraphPropertyMessage message = new GraphPropertyMessage(json);
-        if (!message.isValid()) {
-            throw new VisalloException(String.format("Cannot process unknown type of gpw message %s", json.toString()));
-        } else if (message.canHandleByProperties()) {
-            safeExecuteHandlePropertiesOnElements(message);
+    protected GraphPropertyWorkerItem tupleDataToWorkerItem(byte[] data) {
+        GraphPropertyMessage message = new GraphPropertyMessage(data);
+        return new GraphPropertyWorkerItem(message, getElements(message));
+    }
+
+    @Override
+    public void process(GraphPropertyWorkerItem workerItem) throws Exception {
+        GraphPropertyMessage message = workerItem.getMessage();
+        if (message.canHandleByProperties()) {
+            safeExecuteHandlePropertiesOnElements(workerItem);
         } else if (message.canHandleByProperty()) {
-            safeExecuteHandlePropertyOnElements(message);
+            safeExecuteHandlePropertyOnElements(workerItem);
         } else {
-            safeExecuteHandleAllEntireElements(message);
+            safeExecuteHandleAllEntireElements(workerItem);
         }
     }
 
@@ -203,10 +209,9 @@ public class GraphPropertyRunner extends WorkerBase {
         };
     }
 
-    private void safeExecuteHandleAllEntireElements(GraphPropertyMessage message) throws Exception {
-        List<Element> elements = getElement(message);
-        for (Element element : elements) {
-            safeExecuteHandleEntireElement(element, message);
+    private void safeExecuteHandleAllEntireElements(GraphPropertyWorkerItem workerItem) throws Exception {
+        for (Element element : workerItem.getElements()) {
+            safeExecuteHandleEntireElement(element, workerItem.getMessage());
         }
     }
 
@@ -217,8 +222,8 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    private List<Element> getVerticesFromMessage(GraphPropertyMessage message) {
-        List<Element> vertices = Lists.newLinkedList();
+    private ImmutableList<Element> getVerticesFromMessage(GraphPropertyMessage message) {
+        ImmutableList.Builder<Element> vertices = ImmutableList.builder();
 
         for (String vertexId : message.getVertexIds()) {
             Vertex vertex;
@@ -238,11 +243,11 @@ public class GraphPropertyRunner extends WorkerBase {
                 LOGGER.warn("Could not find vertex with id %s", vertexId);
             }
         }
-        return vertices;
+        return vertices.build();
     }
 
-    private List<Element> getEdgesFromMessage(GraphPropertyMessage message) {
-        List<Element> edges = Lists.newLinkedList();
+    private ImmutableList<Element> getEdgesFromMessage(GraphPropertyMessage message) {
+        ImmutableList.Builder<Element> edges = ImmutableList.builder();
 
         for (String edgeId : message.getEdgeIds()) {
             Edge edge;
@@ -257,16 +262,16 @@ public class GraphPropertyRunner extends WorkerBase {
                 LOGGER.warn("Could not find edge with id %s", edgeId);
             }
         }
-        return edges;
+        return edges.build();
     }
 
     private boolean doesExist(Element element) {
         return element != null;
     }
 
-    private void safeExecuteHandlePropertiesOnElements(GraphPropertyMessage message) throws Exception {
-        List<Element> elements = getElement(message);
-        for (Element element : elements) {
+    private void safeExecuteHandlePropertiesOnElements(GraphPropertyWorkerItem workerItem) throws Exception {
+        GraphPropertyMessage message = workerItem.getMessage();
+        for (Element element : workerItem.getElements()) {
             for (int i = 0; i < message.getProperties().length(); i++) {
                 GraphPropertyMessage propertyMessage = new GraphPropertyMessage(message.getProperties().getJSONObject(i));
                 Property property = null;
@@ -303,9 +308,9 @@ public class GraphPropertyRunner extends WorkerBase {
         }
     }
 
-    private void safeExecuteHandlePropertyOnElements(GraphPropertyMessage message) throws Exception {
-        List<Element> elements = getElement(message);
-        for (Element element : elements) {
+    private void safeExecuteHandlePropertyOnElements(GraphPropertyWorkerItem workerItem) throws Exception {
+        GraphPropertyMessage message = workerItem.getMessage();
+        for (Element element : workerItem.getElements()) {
             Property property = null;
             if (StringUtils.isNotEmpty(message.getPropertyKey()) || StringUtils.isNotEmpty(message.getPropertyName())) {
                 if (message.getPropertyKey() == null) {
@@ -563,7 +568,7 @@ public class GraphPropertyRunner extends WorkerBase {
         return names;
     }
 
-    private List<Element> getElement(GraphPropertyMessage message) {
+    private ImmutableList<Element> getElements(GraphPropertyMessage message) {
         if (message.canHandleVertex()) {
             return getVerticesFromMessage(message);
         } else if (message.canHandleEdge()) {

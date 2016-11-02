@@ -320,7 +320,7 @@ public class GraphRepositoryTest {
             assertNotNull(v2);
         }
 
-        List<JSONObject> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
+        List<byte[]> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
         assertEquals(2, queue.size());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.MODIFIED_DATE.getPropertyName());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.VISIBILITY_JSON.getPropertyName());
@@ -339,12 +339,13 @@ public class GraphRepositoryTest {
         assertEquals(visibilityJson, VisalloProperties.VISIBILITY_JSON.getPropertyValue(v1));
     }
 
-    private void assertWorkQueueContains(List<JSONObject> queue, String vertexId, String propertyKey, String propertyName) {
-        for (JSONObject item : queue) {
-            JSONArray properties = item.getJSONArray("properties");
+    private void assertWorkQueueContains(List<byte[]> queue, String vertexId, String propertyKey, String propertyName) {
+        for (byte[] item : queue) {
+            JSONObject json = new JSONObject(new String(item));
+            JSONArray properties = json.getJSONArray("properties");
             for (int i = 0; i < properties.length(); i++) {
                 JSONObject property = properties.getJSONObject(i);
-                if (item.getString("graphVertexId").equals(vertexId)
+                if (json.getString("graphVertexId").equals(vertexId)
                         && property.getString("propertyKey").equals(propertyKey)
                         && property.getString("propertyName").equals(propertyName)) {
                     return;

@@ -9,6 +9,7 @@ import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.StatusRepository;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.LongRunningProcessRunnerStatus;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class LongRunningProcessRunner extends WorkerBase {
+public class LongRunningProcessRunner extends WorkerBase<LongRunningProcessWorkerItem> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessRunner.class);
     private UserRepository userRepository;
     private LongRunningProcessRepository longRunningProcessRepository;
@@ -36,9 +37,10 @@ public class LongRunningProcessRunner extends WorkerBase {
     public LongRunningProcessRunner(
             WorkQueueRepository workQueueRepository,
             StatusRepository statusRepository,
-            Configuration configuration
+            Configuration configuration,
+            MetricsManager metricsManager
     ) {
-        super(workQueueRepository, configuration);
+        super(workQueueRepository, configuration, metricsManager);
         this.statusRepository = statusRepository;
     }
 
@@ -86,7 +88,13 @@ public class LongRunningProcessRunner extends WorkerBase {
     }
 
     @Override
-    public void process(Object messageId, JSONObject longRunningProcessQueueItem) {
+    protected LongRunningProcessWorkerItem tupleDataToWorkerItem(byte[] data) {
+        return new LongRunningProcessWorkerItem(data);
+    }
+
+    @Override
+    public void process(LongRunningProcessWorkerItem workerItem) {
+        JSONObject longRunningProcessQueueItem = workerItem.getJson();
         LOGGER.info("process long running queue item %s", longRunningProcessQueueItem.toString());
 
         for (LongRunningProcessWorker worker : workers) {

@@ -3,7 +3,6 @@ package org.visallo.core.ingest.graphProperty;
 import com.google.inject.Injector;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.mockito.Mock;
@@ -297,7 +296,7 @@ public abstract class GraphPropertyWorkerTestBase {
         return graphRepository;
     }
 
-    protected List<JSONObject> getGraphPropertyQueue() {
+    protected List<byte[]> getGraphPropertyQueue() {
         return InMemoryWorkQueueRepository.getQueue(workQueueNames.getGraphPropertyQueueName());
     }
 
