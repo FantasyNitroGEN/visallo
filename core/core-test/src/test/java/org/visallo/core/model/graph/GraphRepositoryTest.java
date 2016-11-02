@@ -1,6 +1,7 @@
 package org.visallo.core.model.graph;
 
 import com.google.common.collect.ImmutableSet;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -320,7 +321,7 @@ public class GraphRepositoryTest {
         }
 
         List<JSONObject> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
-        assertEquals(8, queue.size());
+        assertEquals(2, queue.size());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.MODIFIED_DATE.getPropertyName());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.VISIBILITY_JSON.getPropertyName());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.CONCEPT_TYPE.getPropertyName());
@@ -340,10 +341,14 @@ public class GraphRepositoryTest {
 
     private void assertWorkQueueContains(List<JSONObject> queue, String vertexId, String propertyKey, String propertyName) {
         for (JSONObject item : queue) {
-            if (item.getString("graphVertexId").equals(vertexId)
-                    && item.getString("propertyKey").equals(propertyKey)
-                    && item.getString("propertyName").equals(propertyName)) {
-                return;
+            JSONArray properties = item.getJSONArray("properties");
+            for (int i = 0; i < properties.length(); i++) {
+                JSONObject property = properties.getJSONObject(i);
+                if (item.getString("graphVertexId").equals(vertexId)
+                        && property.getString("propertyKey").equals(propertyKey)
+                        && property.getString("propertyName").equals(propertyName)) {
+                    return;
+                }
             }
         }
         fail("Could not find queue item " + vertexId + ", " + propertyKey + ", " + propertyName);

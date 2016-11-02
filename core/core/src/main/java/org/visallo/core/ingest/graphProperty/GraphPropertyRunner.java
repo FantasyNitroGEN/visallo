@@ -17,6 +17,7 @@ import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.StatusRepository;
@@ -68,6 +69,8 @@ public class GraphPropertyRunner extends WorkerBase {
         GraphPropertyMessage message = new GraphPropertyMessage(json);
         if (!message.isValid()) {
             throw new VisalloException(String.format("Cannot process unknown type of gpw message %s", json.toString()));
+        } else if (message.canHandleByProperties()) {
+            safeExecuteHandlePropertiesOnElements(message);
         } else if (message.canHandleByProperty()) {
             safeExecuteHandlePropertyOnElements(message);
         } else {
@@ -261,6 +264,45 @@ public class GraphPropertyRunner extends WorkerBase {
         return element != null;
     }
 
+    private void safeExecuteHandlePropertiesOnElements(GraphPropertyMessage message) throws Exception {
+        List<Element> elements = getElement(message);
+        for (Element element : elements) {
+            for (int i = 0; i < message.getProperties().length(); i++) {
+                GraphPropertyMessage propertyMessage = new GraphPropertyMessage(message.getProperties().getJSONObject(i));
+                Property property = null;
+                String propertyKey = propertyMessage.getPropertyKey();
+                String propertyName = propertyMessage.getPropertyName();
+                if (StringUtils.isNotEmpty(propertyKey) || StringUtils.isNotEmpty(propertyName)) {
+                    if (propertyKey == null) {
+                        property = element.getProperty(propertyName);
+                    } else {
+                        property = element.getProperty(propertyKey, propertyName);
+                    }
+
+                    if (property == null) {
+                        LOGGER.error(
+                                "Could not find property [%s]:[%s] on vertex with id %s",
+                                propertyKey,
+                                propertyName,
+                                element.getId()
+                        );
+                        continue;
+                    }
+                }
+
+                safeExecuteHandlePropertyOnElement(
+                        element,
+                        property,
+                        message.getWorkspaceId(),
+                        message.getVisibilitySource(),
+                        message.getPriority(),
+                        propertyMessage.getStatus(),
+                        propertyMessage.getBeforeActionTimestamp()
+                );
+            }
+        }
+    }
+
     private void safeExecuteHandlePropertyOnElements(GraphPropertyMessage message) throws Exception {
         List<Element> elements = getElement(message);
         for (Element element : elements) {
@@ -292,8 +334,27 @@ public class GraphPropertyRunner extends WorkerBase {
             Property property,
             GraphPropertyMessage message
     ) throws Exception {
+        safeExecuteHandlePropertyOnElement(
+                element,
+                property,
+                message.getWorkspaceId(),
+                message.getVisibilitySource(),
+                message.getPriority(),
+                message.getStatus(),
+                message.getBeforeActionTimestamp()
+        );
+    }
+
+    private void safeExecuteHandlePropertyOnElement(
+            Element element,
+            Property property,
+            String workspaceId,
+            String visibilitySource,
+            Priority priority,
+            ElementOrPropertyStatus status,
+            long beforeActionTimestamp
+    ) throws Exception {
         String propertyText = getPropertyText(property);
-        ElementOrPropertyStatus status = message.getStatus();
 
         List<GraphPropertyThreadedWrapper> interestedWorkerWrappers = findInterestedWorkers(element, property, status);
         if (interestedWorkerWrappers.size() == 0) {
@@ -323,10 +384,10 @@ public class GraphPropertyRunner extends WorkerBase {
                 visibilityTranslator,
                 element,
                 property,
-                message.getWorkspaceId(),
-                message.getVisibilitySource(),
-                message.getPriority(),
-                message.getBeforeActionTimestamp(),
+                workspaceId,
+                visibilitySource,
+                priority,
+                beforeActionTimestamp,
                 status
         );
 

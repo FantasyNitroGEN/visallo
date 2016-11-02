@@ -318,7 +318,8 @@ public class FileImport {
             this.workQueueRepository.broadcastElement(vertex, workspaceId);
             this.workQueueRepository.pushGraphVisalloPropertyQueue(
                     vertex,
-                    changedProperties, workspace == null ? null : workspace.getWorkspaceId(),
+                    changedProperties,
+                    workspace == null ? null : workspace.getWorkspaceId(),
                     visibilitySource,
                     priority
             );

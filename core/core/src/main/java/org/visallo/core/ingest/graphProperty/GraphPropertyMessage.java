@@ -19,6 +19,7 @@ public class GraphPropertyMessage {
     public static final String PRIORITY = "priority";
     public static final String STATUS = "status";
     public static final String BEFORE_ACTION_TIMESTAMP = "beforeActionTimestamp";
+    public static final String PROPERTIES = "properties";
 
     private JSONObject _obj;
 
@@ -39,16 +40,16 @@ public class GraphPropertyMessage {
         return _obj.optString(WORKSPACE_ID, null);
     }
 
-    public String getVisibilitySource(){
+    public String getVisibilitySource() {
         return _obj.optString(VISIBILITY_SOURCE, null);
     }
 
-    public Priority getPriority(){
+    public Priority getPriority() {
         String priorityString = _obj.optString(PRIORITY, null);
         return Priority.safeParse(priorityString);
     }
 
-    public String getPropertyKey(){
+    public String getPropertyKey() {
         return _obj.optString(PROPERTY_KEY, "");
     }
 
@@ -60,7 +61,7 @@ public class GraphPropertyMessage {
         return getListOfItemsFromJSONKey(_obj, GRAPH_VERTEX_ID);
     }
 
-    public List<String> getEdgeIds(){
+    public List<String> getEdgeIds() {
         return getListOfItemsFromJSONKey(_obj, GRAPH_EDGE_ID);
     }
 
@@ -69,49 +70,49 @@ public class GraphPropertyMessage {
         return ElementOrPropertyStatus.safeParse(status);
     }
 
-    public long getBeforeActionTimestamp() { return _obj.optLong(BEFORE_ACTION_TIMESTAMP, -1L); }
+    public long getBeforeActionTimestamp() {
+        return _obj.optLong(BEFORE_ACTION_TIMESTAMP, -1L);
+    }
 
-    public boolean canHandleVertex(){
+    public JSONArray getProperties() {
+        return _obj.optJSONArray(PROPERTIES);
+    }
+
+    public boolean canHandleVertex() {
         return canHandleElementById(getVertexIds());
     }
 
-    public boolean canHandleEdge(){
+    public boolean canHandleEdge() {
         return canHandleElementById(getEdgeIds());
     }
 
-    public boolean canHandleByProperty(){
+    public boolean canHandleByProperty() {
         return _obj.has(PROPERTY_KEY) || this._obj.has(PROPERTY_NAME);
     }
 
-    public ProcessingType findProcessingType(){
-        if(canHandleByProperty()){
-            return ProcessingType.PROPERTY;
-        }
-        else if(canHandleVertex() || canHandleEdge()) {
-            return ProcessingType.ELEMENT;
-        }
-
-        throw new VisalloException(String.format("Unable to determine processing type from invalid message %s", _obj.toString()));
+    public boolean canHandleByProperties() {
+        return _obj.has(PROPERTIES);
     }
 
-    private static boolean canHandleElementById(List<String> id){
+    private static boolean canHandleElementById(List<String> id) {
         return id != null && !id.isEmpty();
     }
 
-    private static List<String> getListOfItemsFromJSONKey(JSONObject obj, String key){
+    private static List<String> getListOfItemsFromJSONKey(JSONObject obj, String key) {
         Object edges = obj.opt(key);
 
-        if(edges == null){
+        if (edges == null) {
             return Lists.newArrayList();
         }
-        if(edges instanceof JSONArray){
+
+        if (edges instanceof JSONArray) {
             return JSONUtil.toStringList((JSONArray) edges);
         }
-        else if(edges instanceof String){
-            return Lists.newArrayList((String)edges);
+
+        if (edges instanceof String) {
+            return Lists.newArrayList((String) edges);
         }
-        else{
-            throw new VisalloException("unknown format to parse messages");
-        }
+
+        throw new VisalloException("unknown format to parse messages");
     }
 }
