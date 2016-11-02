@@ -997,7 +997,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                             visibility
                     );
                 }
-            });
+            }).get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1047,7 +1047,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 if (productId == null) {
                     WorkspaceProperties.PRODUCT_KIND.setProperty(elemCtx.getMutation(), kind, visibility);
                 }
-            });
+            }).get();
 
             WorkProduct workProduct = getWorkProductByKind(
                     kind == null

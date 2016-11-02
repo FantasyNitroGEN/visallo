@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.search.SearchProperties;
@@ -93,26 +92,24 @@ public class VertexiumSearchRepository extends SearchRepository {
         }
 
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, user, authorizations)) {
-            Vertex searchVertex = saveSearchVertex(ctx, id, name, url, searchParameters, authorizations);
+            saveSearchVertex(ctx, id, name, url, searchParameters);
 
             Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
             checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
-            String edgeId = userVertex.getId() + "_" + SearchProperties.HAS_SAVED_SEARCH + "_" + searchVertex.getId();
+            String edgeId = userVertex.getId() + "_" + SearchProperties.HAS_SAVED_SEARCH + "_" + id;
             if (graph.getEdge(edgeId, authorizations) == null) {
                 graph.addEdge(
                         edgeId,
-                        userVertex,
-                        searchVertex,
+                        userVertex.getId(),
+                        id,
                         SearchProperties.HAS_SAVED_SEARCH,
                         VISIBILITY.getVisibility(),
                         authorizations
                 );
             }
-
-            return searchVertex.getId();
-        } catch (Exception ex) {
-            throw new VisalloException("Could not save search", ex);
         }
+
+        return id;
     }
 
     @Override
@@ -140,36 +137,33 @@ public class VertexiumSearchRepository extends SearchRepository {
         }
 
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, user, authorizations)) {
-            Vertex searchVertex = saveSearchVertex(ctx, id, name, url, searchParameters, authorizations);
+            saveSearchVertex(ctx, id, name, url, searchParameters);
 
             String edgeId = String.format(
                     "%s_%s_%s",
-                    GLOBAL_SAVED_SEARCHES_ROOT_VERTEX_ID, SearchProperties.HAS_SAVED_SEARCH, searchVertex.getId()
+                    GLOBAL_SAVED_SEARCHES_ROOT_VERTEX_ID, SearchProperties.HAS_SAVED_SEARCH, id
             );
             if (graph.getEdge(edgeId, authorizations) == null) {
                 graph.addEdge(
                         edgeId,
-                        getGlobalSavedSearchesRootVertex(),
-                        searchVertex,
+                        getGlobalSavedSearchesRootVertex().getId(),
+                        id,
                         SearchProperties.HAS_SAVED_SEARCH,
                         VISIBILITY.getVisibility(),
                         authorizations
                 );
             }
-
-            return searchVertex.getId();
-        } catch (Exception ex) {
-            throw new VisalloException("Could not save global search", ex);
         }
+
+        return id;
     }
 
-    private Vertex saveSearchVertex(
+    private GraphUpdateContext.UpdateFuture<Vertex> saveSearchVertex(
             GraphUpdateContext ctx,
             String id,
             String name,
             String url,
-            JSONObject searchParameters,
-            Authorizations authorizations
+            JSONObject searchParameters
     ) {
         Visibility visibility = VISIBILITY.getVisibility();
         return ctx.getOrCreateVertexAndUpdate(id, visibility, elemCtx -> {

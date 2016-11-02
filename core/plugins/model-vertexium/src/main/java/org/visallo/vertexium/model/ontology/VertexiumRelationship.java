@@ -37,25 +37,25 @@ public class VertexiumRelationship extends Relationship {
     @Override
     public void addIntent(String intent, Authorizations authorizations) {
         OntologyProperties.INTENT.addPropertyValue(vertex, intent, intent, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
-        vertex.getGraph().flush();
+        getVertex().getGraph().flush();
     }
 
     @Override
     public void removeIntent(String intent, Authorizations authorizations) {
         OntologyProperties.INTENT.removeProperty(vertex, intent, authorizations);
-        vertex.getGraph().flush();
+        getVertex().getGraph().flush();
     }
 
     @Override
     public void setProperty(String name, Object value, Authorizations authorizations) {
         getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
-        vertex.getGraph().flush();
+        getVertex().getGraph().flush();
     }
 
     @Override
     public void removeProperty(String name, Authorizations authorizations) {
         getVertex().softDeleteProperty(ElementMutation.DEFAULT_KEY, name, authorizations);
-        vertex.getGraph().flush();
+        getVertex().getGraph().flush();
     }
 
     @Override
