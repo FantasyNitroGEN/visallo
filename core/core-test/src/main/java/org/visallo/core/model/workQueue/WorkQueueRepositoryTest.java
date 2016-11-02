@@ -149,8 +149,8 @@ public class WorkQueueRepositoryTest {
         workQueueRepository.pushGraphVisalloPropertyQueue(element, properties, Priority.HIGH);
 
         assertEquals(1, workQueueRepository.getWorkQueue().size());
-        GraphPropertyMessage message = new GraphPropertyMessage(workQueueRepository.getWorkQueue().get(0));
-        assertEquals(3, message.getProperties().length());
+        GraphPropertyMessage message = GraphPropertyMessage.create(workQueueRepository.getWorkQueue().get(0));
+        assertEquals(3, message.getProperties().length);
     }
 
     public class TestWorkQueueRepository extends WorkQueueRepository {

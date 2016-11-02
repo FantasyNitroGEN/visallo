@@ -68,16 +68,16 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
 
     @Override
     protected GraphPropertyWorkerItem tupleDataToWorkerItem(byte[] data) {
-        GraphPropertyMessage message = new GraphPropertyMessage(data);
+        GraphPropertyMessage message = GraphPropertyMessage.create(data);
         return new GraphPropertyWorkerItem(message, getElements(message));
     }
 
     @Override
     public void process(GraphPropertyWorkerItem workerItem) throws Exception {
         GraphPropertyMessage message = workerItem.getMessage();
-        if (message.canHandleByProperties()) {
+        if (message.getProperties() != null && message.getProperties().length > 0) {
             safeExecuteHandlePropertiesOnElements(workerItem);
-        } else if (message.canHandleByProperty()) {
+        } else if (message.getPropertyName() != null) {
             safeExecuteHandlePropertyOnElements(workerItem);
         } else {
             safeExecuteHandleAllEntireElements(workerItem);
@@ -225,7 +225,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private ImmutableList<Element> getVerticesFromMessage(GraphPropertyMessage message) {
         ImmutableList.Builder<Element> vertices = ImmutableList.builder();
 
-        for (String vertexId : message.getVertexIds()) {
+        for (String vertexId : message.getGraphVertexId()) {
             Vertex vertex;
             if (message.getStatus() == ElementOrPropertyStatus.DELETION || message.getStatus() == ElementOrPropertyStatus.HIDDEN) {
                 vertex = graph.getVertex(
@@ -249,7 +249,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private ImmutableList<Element> getEdgesFromMessage(GraphPropertyMessage message) {
         ImmutableList.Builder<Element> edges = ImmutableList.builder();
 
-        for (String edgeId : message.getEdgeIds()) {
+        for (String edgeId : message.getGraphEdgeId()) {
             Edge edge;
             if (message.getStatus() == ElementOrPropertyStatus.DELETION || message.getStatus() == ElementOrPropertyStatus.HIDDEN) {
                 edge = graph.getEdge(edgeId, FetchHint.ALL, message.getBeforeActionTimestamp(), this.authorizations);
@@ -272,8 +272,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private void safeExecuteHandlePropertiesOnElements(GraphPropertyWorkerItem workerItem) throws Exception {
         GraphPropertyMessage message = workerItem.getMessage();
         for (Element element : workerItem.getElements()) {
-            for (int i = 0; i < message.getProperties().length(); i++) {
-                GraphPropertyMessage propertyMessage = new GraphPropertyMessage(message.getProperties().getJSONObject(i));
+            for (GraphPropertyMessage.Property propertyMessage : message.getProperties()) {
                 Property property = null;
                 String propertyKey = propertyMessage.getPropertyKey();
                 String propertyName = propertyMessage.getPropertyName();
@@ -302,7 +301,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
                         message.getVisibilitySource(),
                         message.getPriority(),
                         propertyMessage.getStatus(),
-                        propertyMessage.getBeforeActionTimestamp()
+                        propertyMessage.getBeforeActionTimestampOrDefault()
                 );
             }
         }
@@ -346,7 +345,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
                 message.getVisibilitySource(),
                 message.getPriority(),
                 message.getStatus(),
-                message.getBeforeActionTimestamp()
+                message.getBeforeActionTimestampOrDefault()
         );
     }
 
@@ -569,17 +568,14 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     }
 
     private ImmutableList<Element> getElements(GraphPropertyMessage message) {
-        if (message.canHandleVertex()) {
-            return getVerticesFromMessage(message);
-        } else if (message.canHandleEdge()) {
-            return getEdgesFromMessage(message);
-        } else {
-            throw new VisalloException(String.format(
-                    "Could not find %s or %s",
-                    GraphPropertyMessage.GRAPH_VERTEX_ID,
-                    GraphPropertyMessage.GRAPH_EDGE_ID
-            ));
+        ImmutableList.Builder<Element> results = ImmutableList.builder();
+        if (message.getGraphVertexId() != null && message.getGraphVertexId().length > 0) {
+            results.addAll(getVerticesFromMessage(message));
         }
+        if (message.getGraphEdgeId() != null && message.getGraphEdgeId().length > 0) {
+            results.addAll(getEdgesFromMessage(message));
+        }
+        return results.build();
     }
 
     public void shutdown() {

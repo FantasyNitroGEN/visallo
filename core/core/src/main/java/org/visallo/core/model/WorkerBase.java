@@ -153,7 +153,7 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
      * This method gets called in a different thread than {@link #process(WorkerItem)} this
      * allows an implementing class to prefetch data needed for processing.
      */
-    protected abstract TWorkerItem tupleDataToWorkerItem(byte[] data);
+    protected abstract TWorkerItem tupleDataToWorkerItem(byte[] data) throws Exception;
 
     public void stop() {
         shouldRun = false;
