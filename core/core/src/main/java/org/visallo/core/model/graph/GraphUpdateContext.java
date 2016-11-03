@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * }
  * </pre>
  */
-public class GraphUpdateContext implements AutoCloseable {
+public abstract class GraphUpdateContext implements AutoCloseable {
     private static final int DEFAULT_MAX_ELEMENT_UPDATE_CONTEXT_ITEMS = 1000;
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
@@ -42,7 +42,7 @@ public class GraphUpdateContext implements AutoCloseable {
     private int maxElementUpdateContextItems = DEFAULT_MAX_ELEMENT_UPDATE_CONTEXT_ITEMS;
     private boolean pushOnQueue = true;
 
-    public GraphUpdateContext(
+    protected GraphUpdateContext(
             Graph graph,
             WorkQueueRepository workQueueRepository,
             VisibilityTranslator visibilityTranslator,
