@@ -1,6 +1,6 @@
 # Ingest 
 
-Visallo has a module that allows you to generate code that will interact with your repository to generate code for you to custom import code. By using the generated code, you can use any software that runs on the JVM to import Visallo data. 
+Visallo has a module that will interact with your Visallo instance to generate code that will let you write customized code to ingest your data. By using the generated code, you can use any software that runs on the JVM to import data into Visallo.
 
 ## Using the code generator
 
@@ -29,7 +29,7 @@ Once run, the code will then be generated into the directory that you have speci
 
 ### Have an ontology json file
 
-While it is possible for you to specify a file that can be used in place of calling Visallo in order to get the ontology, there is no current native way to do it. You will have to have saved the result from the REST call once before into a file so that you can keep using that. The benefit of this approach is that you can develop with the ontology offline from having the app running, but it won't necessarily be updated if there is an ontology change inside of Visallo. Therefore, while possible this way is not recommended and you should query a running instance of the app every time.
+While it is possible for you to specify a file that can be used in place of calling Visallo in order to get the ontology, there is no current native way to do it. You will have to have saved the result from the REST call into a file that you can keep using to generate code. The benefit of this approach is that you can develop with the ontology offline from having the app running, but it won't automatically be updated if there is an ontology change inside of Visallo. Therefore, while possible this way is not recommended and you should query a running instance of the app every time.
 
 ## Working with the generated code
 
