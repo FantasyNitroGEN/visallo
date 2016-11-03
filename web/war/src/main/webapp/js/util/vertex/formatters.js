@@ -90,14 +90,17 @@ define([
 
                 datetime: function(el, value) {
                     el.textContent = F.date.dateTimeString(value);
+                    return el;
                 },
 
                 sandboxStatus: function(el, value) {
                     el.textContent = V.sandboxStatus({ sandboxStatus: value }) || '';
+                    return el;
                 },
 
                 percent: function(el, value) {
                     el.textContent = F.number.percent(value);
+                    return el;
                 },
 
                 userAsync: function(el, userId) {
@@ -107,6 +110,7 @@ define([
                         })
                         .then(function(users) {
                             el.textContent = users && users[0] || i18n('user.unknown.displayName');
+                            return el;
                         })
                 }
             },
@@ -124,12 +128,15 @@ define([
                         property: property,
                         value: property.value && property.value.source
                     })
+
+                    return el;
                 },
 
                 'directory/entity': function(el, property) {
-                    F.directoryEntity.requestPretty(property.value)
+                    return F.directoryEntity.requestPretty(property.value)
                       .then(function(value) {
                           $(el).text(value);
+                          return el;
                       });
                 },
 
@@ -138,7 +145,7 @@ define([
                         $(el).append(
                             F.geoLocation.pretty(property.value)
                         );
-                        return;
+                        return el;
                     }
 
                     var anchor = $('<a>')
@@ -159,10 +166,13 @@ define([
                         .appendTo(anchor);
 
                     anchor.appendTo(el);
+
+                    return el;
                 },
 
                 bytes: function(el, property) {
                     el.textContent = F.bytes.pretty(property.value);
+                    return el;
                 },
 
                 link: function(el, property, vertex) {
@@ -179,10 +189,13 @@ define([
                     anchor.textContent = href;
 
                     el.appendChild(anchor);
+
+                    return el;
                 },
 
                 textarea: function(el, property) {
                     $(el).html(_.escape(property.value || '').replace(/\r?\n+/g, '<br>'));
+                    return el;
                 },
 
                 heading: function(el, property) {
@@ -196,31 +209,34 @@ define([
                     div.style.marginRight = '0.25em';
                     div = el.insertBefore(div, el.childNodes[0]);
 
-                    require(['d3'], function(d3) {
-                        d3.select(div)
-                            .append('svg')
-                                .style('vertical-align', 'middle')
-                                .attr('width', dim)
-                                .attr('height', dim)
-                                .append('g')
-                                    .attr('transform', 'rotate(' + property.value + ' ' + half + ' ' + half + ')')
-                                    .call(function() {
-                                        this.append('line')
-                                            .attr('x1', half)
-                                            .attr('y1', 0)
-                                            .attr('x2', half)
-                                            .attr('y2', dim)
-                                            .call(styling)
+                    return Promise.require('d3')
+                        .then(function(d3) {
+                            d3.select(div)
+                                .append('svg')
+                                    .style('vertical-align', 'middle')
+                                    .attr('width', dim)
+                                    .attr('height', dim)
+                                    .append('g')
+                                        .attr('transform', 'rotate(' + property.value + ' ' + half + ' ' + half + ')')
+                                        .call(function() {
+                                            this.append('line')
+                                                .attr('x1', half)
+                                                .attr('y1', 0)
+                                                .attr('x2', half)
+                                                .attr('y2', dim)
+                                                .call(styling)
 
-                                        this.append('g')
-                                            .attr('transform', 'rotate(30 ' + half + ' 0)')
-                                            .call(createArrowLine)
+                                            this.append('g')
+                                                .attr('transform', 'rotate(30 ' + half + ' 0)')
+                                                .call(createArrowLine)
 
-                                        this.append('g')
-                                            .attr('transform', 'rotate(-30 ' + half + ' 0)')
-                                            .call(createArrowLine)
-                                    });
-                    });
+                                            this.append('g')
+                                                .attr('transform', 'rotate(-30 ' + half + ' 0)')
+                                                .call(createArrowLine)
+                                        });
+
+                            return el;
+                        });
 
                     function createArrowLine() {
                         this.append('line')
