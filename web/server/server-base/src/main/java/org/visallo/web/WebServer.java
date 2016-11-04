@@ -40,6 +40,9 @@ public abstract class WebServer extends CommandLineTool {
     @Parameter(names = {"--requireClientCert"}, description = "require client certificate")
     private boolean requireClientCert = false;
 
+    @Parameter(names = {"--wantClientCert"}, description = "want client certificate, but don't require it")
+    private boolean wantClientCert = false;
+
     @Parameter(names = {"--webAppDir"}, required = true, arity = 1, converter = FileConverter.class, description = "Path to the webapp directory")
     private File webAppDir;
 
@@ -91,6 +94,10 @@ public abstract class WebServer extends CommandLineTool {
 
     public boolean getRequireClientCert() {
         return requireClientCert;
+    }
+
+    public boolean getWantClientCert() {
+        return wantClientCert;
     }
 
     public String getContextPath() {
