@@ -2,6 +2,7 @@ package org.visallo.core.security;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,20 +104,16 @@ public class ACLProviderTest {
         ));
 
         when(user1.getUserId()).thenReturn("USER_1");
-        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.EDIT))).thenReturn(true);
-        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.COMMENT))).thenReturn(true);
+        when(privilegeRepository.getPrivileges(eq(user1))).thenReturn(Sets.newHashSet(Privilege.EDIT, Privilege.COMMENT));
 
         when(user2.getUserId()).thenReturn("USER_2");
-        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.EDIT))).thenReturn(true);
-        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.COMMENT))).thenReturn(true);
+        when(privilegeRepository.getPrivileges(eq(user2))).thenReturn(Sets.newHashSet(Privilege.EDIT, Privilege.COMMENT));
 
         when(userWithCommentEditAny.getUserId()).thenReturn("USER_WITH_COMMENT_EDIT_ANY");
-        when(privilegeRepository.hasPrivilege(eq(userWithCommentEditAny), eq(Privilege.EDIT))).thenReturn(true);
-        when(privilegeRepository.hasPrivilege(eq(userWithCommentEditAny), eq(Privilege.COMMENT_EDIT_ANY))).thenReturn(true);
+        when(privilegeRepository.getPrivileges(eq(userWithCommentEditAny))).thenReturn(Sets.newHashSet(Privilege.EDIT, Privilege.COMMENT_EDIT_ANY));
 
         when(userWithCommentDeleteAny.getUserId()).thenReturn("USER_WITH_COMMENT_DELETE_ANY");
-        when(privilegeRepository.hasPrivilege(eq(userWithCommentDeleteAny), eq(Privilege.EDIT))).thenReturn(true);
-        when(privilegeRepository.hasPrivilege(eq(userWithCommentDeleteAny), eq(Privilege.COMMENT_DELETE_ANY))).thenReturn(true);
+        when(privilegeRepository.getPrivileges(eq(userWithCommentDeleteAny))).thenReturn(Sets.newHashSet(Privilege.EDIT, Privilege.COMMENT_DELETE_ANY));
 
         when(ontologyRepository.getConceptByIRI("vertex")).thenReturn(vertexConcept);
         when(ontologyRepository.getConceptByIRI("parent")).thenReturn(parentConcept);
@@ -264,10 +261,8 @@ public class ACLProviderTest {
     }
 
     private void setupForCommentPropertyTests() {
-        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.EDIT))).thenReturn(false);
-        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.EDIT))).thenReturn(false);
-        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.COMMENT))).thenReturn(true);
-        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.COMMENT))).thenReturn(true);
+        when(privilegeRepository.getPrivileges(eq(user1))).thenReturn(Sets.newHashSet( Privilege.COMMENT));
+        when(privilegeRepository.getPrivileges(eq(user2))).thenReturn(Sets.newHashSet( Privilege.COMMENT));
 
         // user1 and user2 can both add/update/delete the comment property, but not other properties
 
@@ -286,10 +281,8 @@ public class ACLProviderTest {
     }
 
     private void setupForRegularPropertyTests() {
-        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.EDIT))).thenReturn(true);
-        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.EDIT))).thenReturn(true);
-        when(privilegeRepository.hasPrivilege(eq(user1), eq(Privilege.COMMENT))).thenReturn(false);
-        when(privilegeRepository.hasPrivilege(eq(user2), eq(Privilege.COMMENT))).thenReturn(false);
+        when(privilegeRepository.getPrivileges(eq(user1))).thenReturn(Sets.newHashSet( Privilege.EDIT));
+        when(privilegeRepository.getPrivileges(eq(user2))).thenReturn(Sets.newHashSet( Privilege.EDIT));
 
         // only user1 can add/update/delete the regular property
 

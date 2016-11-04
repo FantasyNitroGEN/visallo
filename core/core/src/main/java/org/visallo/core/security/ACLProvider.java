@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.model.properties.VisalloProperties.CONCEPT_TYPE_THING;
+import static org.visallo.core.model.user.PrivilegeRepository.hasPrivilege;
 
 public abstract class ACLProvider {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ACLProvider.class);
@@ -113,8 +114,9 @@ public abstract class ACLProvider {
     protected abstract boolean canAddProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user);
 
     public final void checkCanAddOrUpdateProperty(Element element, String propertyKey, String propertyName, User user) {
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         OntologyElement ontologyElement = getOntologyElement(element);
-        checkCanAddOrUpdateProperty(element, ontologyElement, propertyKey, propertyName, user);
+        checkCanAddOrUpdateProperty(element, ontologyElement, propertyKey, propertyName, privileges, user);
     }
 
     private void checkCanAddOrUpdateProperty(
@@ -122,13 +124,13 @@ public abstract class ACLProvider {
             OntologyElement ontologyElement,
             String propertyKey,
             String propertyName,
+            Set<String> privileges,
             User user
-    )
-            throws VisalloAccessDeniedException {
+    ) throws VisalloAccessDeniedException {
         boolean isUpdate = element.getProperty(propertyKey, propertyName) != null;
         boolean canAddOrUpdate = isUpdate
-                ? internalCanUpdateProperty(element, ontologyElement, propertyKey, propertyName, user)
-                : internalCanAddProperty(element, ontologyElement, propertyKey, propertyName, user);
+                ? internalCanUpdateProperty(element, ontologyElement, propertyKey, propertyName, privileges, user)
+                : internalCanAddProperty(element, ontologyElement, propertyKey, propertyName, privileges, user);
 
         if (!canAddOrUpdate) {
             throw new VisalloAccessDeniedException(
@@ -152,12 +154,12 @@ public abstract class ACLProvider {
             String propertyKey,
             String propertyName,
             User user
-    )
-            throws VisalloAccessDeniedException {
+    ) throws VisalloAccessDeniedException {
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         boolean isUpdate = clientApiElement.getProperty(propertyKey, propertyName) != null;
         boolean canAddOrUpdate = isUpdate
-                ? internalCanUpdateProperty(clientApiElement, ontologyElement, propertyKey, propertyName, user)
-                : internalCanAddProperty(clientApiElement, ontologyElement, propertyKey, propertyName, user);
+                ? internalCanUpdateProperty(clientApiElement, ontologyElement, propertyKey, propertyName, privileges, user)
+                : internalCanAddProperty(clientApiElement, ontologyElement, propertyKey, propertyName, privileges, user);
 
         if (!canAddOrUpdate) {
             throw new VisalloAccessDeniedException(
@@ -166,28 +168,40 @@ public abstract class ACLProvider {
     }
 
     public final void checkCanDeleteProperty(Element element, String propertyKey, String propertyName, User user) {
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         OntologyElement ontologyElement = getOntologyElement(element);
-        checkCanDeleteProperty(element, ontologyElement, propertyKey, propertyName, user);
+        checkCanDeleteProperty(element, ontologyElement, propertyKey, propertyName, privileges, user);
     }
 
-    private void checkCanDeleteProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user)
-            throws VisalloAccessDeniedException {
-        boolean canDelete = internalCanDeleteProperty(element, ontologyElement, propertyKey, propertyName, user);
-
+    private void checkCanDeleteProperty(
+            Element element,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) throws VisalloAccessDeniedException {
+        boolean canDelete = internalCanDeleteProperty(element, ontologyElement, propertyKey, propertyName, privileges, user);
         if (!canDelete) {
-            throw new VisalloAccessDeniedException(
-                    propertyName + " cannot be deleted due to ACL restriction", user, element.getId());
+            throw new VisalloAccessDeniedException(propertyName + " cannot be deleted due to ACL restriction", user, element.getId());
         }
     }
 
     public final void checkCanDeleteProperty(ClientApiElement clientApiElement, String propertyKey, String propertyName, User user) {
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         OntologyElement ontologyElement = getOntologyElement(clientApiElement);
-        checkCanDeleteProperty(clientApiElement, ontologyElement, propertyKey, propertyName, user);
+        checkCanDeleteProperty(clientApiElement, ontologyElement, propertyKey, propertyName, privileges, user);
     }
 
-    private void checkCanDeleteProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user)
-            throws VisalloAccessDeniedException {
-        boolean canDelete = internalCanDeleteProperty(clientApiElement, ontologyElement, propertyKey, propertyName, user);
+    private void checkCanDeleteProperty(
+            ClientApiElement clientApiElement,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) throws VisalloAccessDeniedException {
+        boolean canDelete = internalCanDeleteProperty(clientApiElement, ontologyElement, propertyKey, propertyName, privileges, user);
 
         if (!canDelete) {
             throw new VisalloAccessDeniedException(
@@ -196,16 +210,22 @@ public abstract class ACLProvider {
     }
 
     public final ClientApiElementAcl elementACL(ClientApiElement clientApiElement, User user) {
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         OntologyElement ontologyElement = getOntologyElement(clientApiElement);
-        return elementACL(clientApiElement, ontologyElement, user);
+        return elementACL(clientApiElement, ontologyElement, privileges, user);
     }
 
-    private ClientApiElementAcl elementACL(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
+    private ClientApiElementAcl elementACL(
+            ClientApiElement clientApiElement,
+            OntologyElement ontologyElement,
+            Set<String> privileges,
+            User user
+    ) {
         checkNotNull(clientApiElement, "clientApiElement is required");
         ClientApiElementAcl elementAcl = new ClientApiElementAcl();
         elementAcl.setAddable(true);
-        elementAcl.setUpdateable(internalCanUpdateElement(clientApiElement, ontologyElement, user));
-        elementAcl.setDeleteable(internalCanDeleteElement(clientApiElement, ontologyElement, user));
+        elementAcl.setUpdateable(internalCanUpdateElement(clientApiElement, ontologyElement, privileges, user));
+        elementAcl.setDeleteable(internalCanDeleteElement(clientApiElement, ontologyElement, privileges, user));
 
         List<ClientApiPropertyAcl> propertyAcls = elementAcl.getPropertyAcls();
         if (clientApiElement instanceof ClientApiVertex) {
@@ -216,7 +236,7 @@ public abstract class ACLProvider {
                     LOGGER.warn("Could not find concept: %s", iri);
                     break;
                 }
-                populatePropertyAcls(concept, clientApiElement, ontologyElement, user, propertyAcls);
+                populatePropertyAcls(concept, clientApiElement, ontologyElement, privileges, user, propertyAcls);
                 iri = concept.getParentConceptIRI();
             }
         } else if (clientApiElement instanceof ClientApiEdge) {
@@ -227,7 +247,7 @@ public abstract class ACLProvider {
                     LOGGER.warn("Could not find relationship: %s", iri);
                     break;
                 }
-                populatePropertyAcls(relationship, clientApiElement, ontologyElement, user, propertyAcls);
+                populatePropertyAcls(relationship, clientApiElement, ontologyElement, privileges, user, propertyAcls);
                 iri = relationship.getParentIRI();
             }
         } else {
@@ -237,8 +257,13 @@ public abstract class ACLProvider {
     }
 
     public final ClientApiObject appendACL(ClientApiObject clientApiObject, User user) {
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
+        return appendACL(clientApiObject, privileges, user);
+    }
+
+    private ClientApiObject appendACL(ClientApiObject clientApiObject, Set<String> privileges, User user) {
         if (clientApiObject instanceof ClientApiElement) {
-            appendACL((ClientApiElement) clientApiObject, user);
+            appendACL((ClientApiElement) clientApiObject, privileges, user);
         } else if (clientApiObject instanceof ClientApiWorkspaceVertices) {
             appendACL(((ClientApiWorkspaceVertices) clientApiObject).getVertices(), user);
         } else if (clientApiObject instanceof ClientApiVertexMultipleResponse) {
@@ -251,7 +276,7 @@ public abstract class ACLProvider {
             appendACL(((ClientApiEdgeSearchResponse) clientApiObject).getResults(), user);
         } else if (clientApiObject instanceof ClientApiVertexEdges) {
             ClientApiVertexEdges vertexEdges = (ClientApiVertexEdges) clientApiObject;
-            appendACL(vertexEdges, user);
+            appendACL(vertexEdges, privileges, user);
         } else if (clientApiObject instanceof ClientApiElementFindRelatedResponse) {
             appendACL(((ClientApiElementFindRelatedResponse) clientApiObject).getElements(), user);
         }
@@ -289,44 +314,46 @@ public abstract class ACLProvider {
         }
     }
 
-    protected final boolean hasPrivilege(User user, String privilege) {
-        return privilegeRepository.hasPrivilege(user, privilege);
-    }
-
     private void appendACL(Collection<? extends ClientApiObject> clientApiObject, User user) {
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
         for (ClientApiObject apiObject : clientApiObject) {
-            appendACL(apiObject, user);
+            appendACL(apiObject, privileges, user);
         }
     }
 
-    private void appendACL(ClientApiElement clientApiElement, User user) {
+    private void appendACL(ClientApiElement clientApiElement, Set<String> privileges, User user) {
         OntologyElement ontologyElement = getOntologyElement(clientApiElement);
-        appendACL(clientApiElement, ontologyElement, user);
+        appendACL(clientApiElement, ontologyElement, privileges, user);
     }
 
-    private void appendACL(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
+    private void appendACL(
+            ClientApiElement clientApiElement,
+            OntologyElement ontologyElement,
+            Set<String> privileges,
+            User user
+    ) {
         for (ClientApiProperty apiProperty : clientApiElement.getProperties()) {
             String key = apiProperty.getKey();
             String name = apiProperty.getName();
-            apiProperty.setUpdateable(internalCanUpdateProperty(clientApiElement, ontologyElement, key, name, user));
-            apiProperty.setDeleteable(internalCanDeleteProperty(clientApiElement, ontologyElement, key, name, user));
-            apiProperty.setAddable(internalCanAddProperty(clientApiElement, ontologyElement, key, name, user));
+            apiProperty.setUpdateable(internalCanUpdateProperty(clientApiElement, ontologyElement, key, name, privileges, user));
+            apiProperty.setDeleteable(internalCanDeleteProperty(clientApiElement, ontologyElement, key, name, privileges, user));
+            apiProperty.setAddable(internalCanAddProperty(clientApiElement, ontologyElement, key, name, privileges, user));
         }
-        clientApiElement.setUpdateable(internalCanUpdateElement(clientApiElement, ontologyElement, user));
-        clientApiElement.setDeleteable(internalCanDeleteElement(clientApiElement, ontologyElement, user));
+        clientApiElement.setUpdateable(internalCanUpdateElement(clientApiElement, ontologyElement, privileges, user));
+        clientApiElement.setDeleteable(internalCanDeleteElement(clientApiElement, ontologyElement, privileges, user));
 
-        clientApiElement.setAcl(elementACL(clientApiElement, ontologyElement, user));
+        clientApiElement.setAcl(elementACL(clientApiElement, ontologyElement, privileges, user));
 
         if (clientApiElement instanceof ClientApiEdgeWithVertexData) {
-            appendACL(((ClientApiEdgeWithVertexData) clientApiElement).getSource(), user);
-            appendACL(((ClientApiEdgeWithVertexData) clientApiElement).getTarget(), user);
+            appendACL(((ClientApiEdgeWithVertexData) clientApiElement).getSource(), privileges, user);
+            appendACL(((ClientApiEdgeWithVertexData) clientApiElement).getTarget(), privileges, user);
         }
     }
 
-    private void appendACL(ClientApiVertexEdges edges, User user) {
+    private void appendACL(ClientApiVertexEdges edges, Set<String> privileges, User user) {
         for (ClientApiVertexEdges.Edge vertexEdge : edges.getRelationships()) {
-            appendACL(vertexEdge.getRelationship(), user);
-            appendACL(vertexEdge.getVertex(), user);
+            appendACL(vertexEdge.getRelationship(), privileges, user);
+            appendACL(vertexEdge.getVertex(), privileges, user);
         }
     }
 
@@ -334,20 +361,35 @@ public abstract class ACLProvider {
             HasOntologyProperties hasOntologyProperties,
             ClientApiElement clientApiElement,
             OntologyElement ontologyElement,
+            Set<String> privileges,
             User user,
             List<ClientApiPropertyAcl> propertyAcls
     ) {
         Collection<OntologyProperty> ontologyProperties = hasOntologyProperties.getProperties();
         Set<String> addedPropertyNames = new HashSet<>();
         for (OntologyProperty ontologyProperty : ontologyProperties) {
-            String name = ontologyProperty.getTitle();
-            for (ClientApiProperty property : clientApiElement.getProperties(name)) {
-                ClientApiPropertyAcl acl = newClientApiPropertyAcl(clientApiElement, ontologyElement, property.getKey(), name, user);
-                ClientApiPropertyAcl defaultAcl = newClientApiPropertyAcl(null, ontologyElement, property.getKey(), name, user);
+            String propertyName = ontologyProperty.getTitle();
+            for (ClientApiProperty property : clientApiElement.getProperties(propertyName)) {
+                ClientApiPropertyAcl acl = newClientApiPropertyAcl(
+                        clientApiElement,
+                        ontologyElement,
+                        property.getKey(),
+                        propertyName,
+                        privileges,
+                        user
+                );
+                ClientApiPropertyAcl defaultAcl = newClientApiPropertyAcl(
+                        null,
+                        ontologyElement,
+                        property.getKey(),
+                        propertyName,
+                        privileges,
+                        user
+                );
                 if (!acl.equals(defaultAcl)) {
                     propertyAcls.add(acl);
                 }
-                addedPropertyNames.add(name);
+                addedPropertyNames.add(propertyName);
             }
         }
 
@@ -356,8 +398,23 @@ public abstract class ACLProvider {
                 ontologyProperties.stream()
                         .filter(ontologyProperty -> !addedPropertyNames.contains(ontologyProperty.getTitle()))
                         .map(ontologyProperty -> {
-                            ClientApiPropertyAcl acl = newClientApiPropertyAcl(clientApiElement, ontologyElement, null, ontologyProperty.getTitle(), user);
-                            ClientApiPropertyAcl defaultAcl = newClientApiPropertyAcl(null, ontologyElement, null, ontologyProperty.getTitle(), user);
+                            String propertyName = ontologyProperty.getTitle();
+                            ClientApiPropertyAcl acl = newClientApiPropertyAcl(
+                                    clientApiElement,
+                                    ontologyElement,
+                                    null,
+                                    propertyName,
+                                    privileges,
+                                    user
+                            );
+                            ClientApiPropertyAcl defaultAcl = newClientApiPropertyAcl(
+                                    null,
+                                    ontologyElement,
+                                    null,
+                                    propertyName,
+                                    privileges,
+                                    user
+                            );
                             return acl.equals(defaultAcl) ? null : acl;
                         })
                         .filter(acl -> acl != null)
@@ -370,85 +427,128 @@ public abstract class ACLProvider {
             OntologyElement ontologyElement,
             String key,
             String name,
+            Set<String> privileges,
             User user
     ) {
         ClientApiPropertyAcl propertyAcl = new ClientApiPropertyAcl();
         propertyAcl.setKey(key);
         propertyAcl.setName(name);
-        propertyAcl.setAddable(internalCanAddProperty(clientApiElement, ontologyElement, key, name, user));
-        propertyAcl.setUpdateable(internalCanUpdateProperty(clientApiElement, ontologyElement, key, name, user));
-        propertyAcl.setDeleteable(internalCanDeleteProperty(clientApiElement, ontologyElement, key, name, user));
+        propertyAcl.setAddable(internalCanAddProperty(clientApiElement, ontologyElement, key, name, privileges, user));
+        propertyAcl.setUpdateable(internalCanUpdateProperty(clientApiElement, ontologyElement, key, name, privileges, user));
+        propertyAcl.setDeleteable(internalCanDeleteProperty(clientApiElement, ontologyElement, key, name, privileges, user));
         return propertyAcl;
     }
 
-    private boolean internalCanDeleteElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
-        return hasPrivilege(user, Privilege.EDIT) && canDeleteElement(clientApiElement, ontologyElement, user);
+    private boolean internalCanDeleteElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, Set<String> privileges, User user) {
+        return hasPrivilege(privileges, Privilege.EDIT) && canDeleteElement(clientApiElement, ontologyElement, user);
     }
 
-    private boolean internalCanUpdateElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
-        return hasPrivilege(user, Privilege.EDIT) && canUpdateElement(clientApiElement, ontologyElement, user);
+    private boolean internalCanUpdateElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, Set<String> privileges, User user) {
+        return hasPrivilege(privileges, Privilege.EDIT) && canUpdateElement(clientApiElement, ontologyElement, user);
     }
 
-    private boolean internalCanDeleteProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
-        boolean canDelete = hasEditOrCommentPrivilege(propertyName, user)
+    private boolean internalCanDeleteProperty(
+            Element element,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) {
+        boolean canDelete = hasEditOrCommentPrivilege(privileges, propertyName)
                 && canDeleteProperty(element, ontologyElement, propertyKey, propertyName, user);
         if (canDelete && isComment(propertyName)) {
-            canDelete = hasPrivilege(user, Privilege.COMMENT_DELETE_ANY) ||
-                    (hasPrivilege(user, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
+            canDelete = hasPrivilege(privileges, Privilege.COMMENT_DELETE_ANY) ||
+                    (hasPrivilege(privileges, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
         }
         return canDelete;
     }
 
-    private boolean internalCanDeleteProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
-        boolean canDelete = hasEditOrCommentPrivilege(propertyName, user)
+    private boolean internalCanDeleteProperty(
+            ClientApiElement clientApiElement,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) {
+        boolean canDelete = hasEditOrCommentPrivilege(privileges, propertyName)
                 && canDeleteProperty(clientApiElement, ontologyElement, propertyKey, propertyName, user);
         if (canDelete && isComment(propertyName)) {
-            canDelete = hasPrivilege(user, Privilege.COMMENT_DELETE_ANY) ||
-                    (hasPrivilege(user, Privilege.COMMENT) && isAuthor(clientApiElement, propertyKey, propertyName, user));
+            canDelete = hasPrivilege(privileges, Privilege.COMMENT_DELETE_ANY) ||
+                    (hasPrivilege(privileges, Privilege.COMMENT) && isAuthor(clientApiElement, propertyKey, propertyName, user));
         }
         return canDelete;
     }
 
-    private boolean internalCanUpdateProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
-        boolean canUpdate = hasEditOrCommentPrivilege(propertyName, user)
+    private boolean internalCanUpdateProperty(
+            Element element,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) {
+        boolean canUpdate = hasEditOrCommentPrivilege(privileges, propertyName)
                 && canUpdateProperty(element, ontologyElement, propertyKey, propertyName, user);
         if (canUpdate && isComment(propertyName)) {
-            canUpdate = hasPrivilege(user, Privilege.COMMENT_EDIT_ANY) ||
-                    (hasPrivilege(user, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
+            canUpdate = hasPrivilege(privileges, Privilege.COMMENT_EDIT_ANY) ||
+                    (hasPrivilege(privileges, Privilege.COMMENT) && isAuthor(element, propertyKey, propertyName, user));
         }
         return canUpdate;
     }
 
-    private boolean internalCanUpdateProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
-        boolean canUpdate = hasEditOrCommentPrivilege(propertyName, user)
+    private boolean internalCanUpdateProperty(
+            ClientApiElement clientApiElement,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) {
+        boolean canUpdate = hasEditOrCommentPrivilege(privileges, propertyName)
                 && canUpdateProperty(clientApiElement, ontologyElement, propertyKey, propertyName, user);
         if (canUpdate && isComment(propertyName)) {
-            canUpdate = hasPrivilege(user, Privilege.COMMENT_EDIT_ANY) ||
-                    (hasPrivilege(user, Privilege.COMMENT) && isAuthor(clientApiElement, propertyKey, propertyName, user));
+            canUpdate = hasPrivilege(privileges, Privilege.COMMENT_EDIT_ANY) ||
+                    (hasPrivilege(privileges, Privilege.COMMENT) && isAuthor(clientApiElement, propertyKey, propertyName, user));
         }
         return canUpdate;
     }
 
-    private boolean internalCanAddProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
-        boolean canAdd = hasEditOrCommentPrivilege(propertyName, user)
+    private boolean internalCanAddProperty(
+            Element element,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) {
+        boolean canAdd = hasEditOrCommentPrivilege(privileges, propertyName)
                 && canAddProperty(element, ontologyElement, propertyKey, propertyName, user);
         if (canAdd && isComment(propertyName)) {
-            canAdd = hasPrivilege(user, Privilege.COMMENT);
+            canAdd = hasPrivilege(privileges, Privilege.COMMENT);
         }
         return canAdd;
     }
 
-    private boolean internalCanAddProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
-        boolean canAdd = hasEditOrCommentPrivilege(propertyName, user)
+    private boolean internalCanAddProperty(
+            ClientApiElement clientApiElement,
+            OntologyElement ontologyElement,
+            String propertyKey,
+            String propertyName,
+            Set<String> privileges,
+            User user
+    ) {
+        boolean canAdd = hasEditOrCommentPrivilege(privileges, propertyName)
                 && canAddProperty(clientApiElement, ontologyElement, propertyKey, propertyName, user);
         if (canAdd && isComment(propertyName)) {
-            canAdd = hasPrivilege(user, Privilege.COMMENT);
+            canAdd = hasPrivilege(privileges, Privilege.COMMENT);
         }
         return canAdd;
     }
 
-    private boolean hasEditOrCommentPrivilege(String propertyName, User user) {
-        return hasPrivilege(user, Privilege.EDIT) || (isComment(propertyName) && hasPrivilege(user, Privilege.COMMENT));
+    private boolean hasEditOrCommentPrivilege(Set<String> privileges, String propertyName) {
+        return hasPrivilege(privileges, Privilege.EDIT) || (isComment(propertyName) && hasPrivilege(privileges, Privilege.COMMENT));
     }
 
     protected OntologyElement getOntologyElement(Element element) {
