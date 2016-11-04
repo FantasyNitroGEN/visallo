@@ -22,18 +22,21 @@ define([
             }
 
             function mergeElementPropertyAcls(propertyAcls) {
-                _.each(element.acl.propertyAcls, function(elementPropertyAcl) {
-                    var matches = _.where(propertyAcls, {
-                        name: elementPropertyAcl.name,
-                        key: elementPropertyAcl.keys || null
-                    });
-                    if (matches.length === 0) {
-                        propertyAcls.push(elementPropertyAcl);
-                    } else {
-                        _.each(matches, function(r) {
-                            _.extend(r, elementPropertyAcl);
+                const elements = Array.isArray(element) ? element : [element];
+                elements.forEach(function (e) {
+                    e.acl.propertyAcls.forEach(function (elementPropertyAcl) {
+                        var matches = _.where(propertyAcls, {
+                            name: elementPropertyAcl.name,
+                            key: elementPropertyAcl.keys || null
                         });
-                    }
+                        if (matches.length === 0) {
+                            propertyAcls.push(elementPropertyAcl);
+                        } else {
+                            _.each(matches, function(r) {
+                                _.extend(r, elementPropertyAcl);
+                            });
+                        }
+                    });
                 });
                 return propertyAcls;
             }
