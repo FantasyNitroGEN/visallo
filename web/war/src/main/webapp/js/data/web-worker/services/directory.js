@@ -14,10 +14,9 @@ define([
             });
         },
 
-        search: function(search) {
-            return ajax('GET', '/directory/search', {
-                search: search
-            });
+        search: function(search, options) {
+            var params = _.extend({}, options, { search: search });
+            return ajax('GET', '/directory/search', params);
         }
     };
 
