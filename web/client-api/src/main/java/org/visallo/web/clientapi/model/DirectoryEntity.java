@@ -67,4 +67,18 @@ public abstract class DirectoryEntity implements ClientApiObject, Comparable<Dir
         }
         return getId().compareTo(o.getId());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DirectoryEntity)) {
+            return false;
+        }
+        DirectoryEntity other = (DirectoryEntity)o;
+        return id.equals(other.id) && displayName.equals(other.displayName);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode() + 31 * displayName.hashCode();
+    }
 }
