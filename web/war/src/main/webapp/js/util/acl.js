@@ -22,8 +22,9 @@ define([
             }
 
             function mergeElementPropertyAcls(propertyAcls) {
-                _.each(element, function (e) {
-                    _.each(e.acl.propertyAcls, function (elementPropertyAcl) {
+                const elements = Array.isArray(element) ? element : [element];
+                elements.forEach(function (e) {
+                    e.acl.propertyAcls.forEach(function (elementPropertyAcl) {
                         var matches = _.where(propertyAcls, {
                             name: elementPropertyAcl.name,
                             key: elementPropertyAcl.keys || null
@@ -35,7 +36,7 @@ define([
                                 _.extend(r, elementPropertyAcl);
                             });
                         }
-                    })
+                    });
                 });
                 return propertyAcls;
             }
