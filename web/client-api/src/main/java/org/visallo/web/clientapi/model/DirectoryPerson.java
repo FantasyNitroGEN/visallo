@@ -34,4 +34,18 @@ public class DirectoryPerson extends DirectoryEntity {
     public String getEmail() {
         return email;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DirectoryPerson)) {
+            return false;
+        }
+        DirectoryPerson other = (DirectoryPerson)o;
+        return super.equals(other) && email.equals(other.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() + 31 * email.hashCode();
+    }
 }

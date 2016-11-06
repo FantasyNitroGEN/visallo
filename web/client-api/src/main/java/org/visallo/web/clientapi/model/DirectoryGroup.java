@@ -18,4 +18,17 @@ public class DirectoryGroup extends DirectoryEntity {
     public String getType() {
         return TYPE_GROUP;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof DirectoryGroup) {
+            return super.equals(o);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() + 13;
+    }
 }
