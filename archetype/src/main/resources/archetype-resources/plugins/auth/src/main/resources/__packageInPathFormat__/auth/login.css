@@ -1,0 +1,22 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+.${artifactId} input {
+    width: 100%;
+    height: 100%;
+    padding: 0.5em;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.${artifactId} .text-error {
+    text-align: center;
+}
+
+.${artifactId} button {
+    width: 100%;
+}
+
+.${artifactId} button.loading {
+    margin-left: 0;
+}

@@ -9,7 +9,7 @@ Register a function that can add a menu option in export context menu.
 * `attributes` _(optional)_ `[Function]`: Function to transform the attributes to send to component.
 
     * Function argument `attrs` with keys:
-        * `workspaceId` `[String]` Workspace id.
+        * `workspaceId` `[String]` Case id.
         * `exporter` `[Object]` This export extension config.
         * `cy` `[Object]` The cytoscape object.
 * `showPopoverTitle` _(optional)_ `[Boolean]` Whether to show the popover title as _Export as [menuItem]_. Defaults to `true`

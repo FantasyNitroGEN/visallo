@@ -22,7 +22,7 @@ All work should be done inside of this method for every Graph Property Worker.  
 
 ### Data Enhancement
 
-Since Graph Property Workers look at the data on a per-element and per-property basis, data enhancement can be easily applied to each element. As an example, consider a video that is dragged onto the workspace by someone who is trying to discover if a specific person is in the video.  The following steps can happen if the correct Graph Property Workers are running and an appropriate ontology is loaded.
+Since Graph Property Workers look at the data on a per-element and per-property basis, data enhancement can be easily applied to each element. As an example, consider a video that is dragged onto the case by someone who is trying to discover if a specific person is in the video.  The following steps can happen if the correct Graph Property Workers are running and an appropriate ontology is loaded.
 
 1. The file is uploaded to the server.
 1. The server creates a vertex with the following properties set:

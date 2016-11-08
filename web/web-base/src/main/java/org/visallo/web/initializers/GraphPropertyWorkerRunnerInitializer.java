@@ -1,7 +1,6 @@
 package org.visallo.web.initializers;
 
 import com.google.inject.Inject;
-import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.model.user.UserRepository;
@@ -39,41 +38,7 @@ public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapIn
         int threadCount = config.getInt(CONFIG_THREAD_COUNT, DEFAULT_THREAD_COUNT);
         User user = userRepository.getSystemUser();
 
-        LOGGER.debug("Starting GraphPropertyRunners on %d threads", threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            StoppableRunnable stoppable = new StoppableRunnable() {
-                private GraphPropertyRunner graphPropertyRunner = null;
-
-                @Override
-                public void run() {
-                    try {
-                        graphPropertyRunner = InjectHelper.getInstance(GraphPropertyRunner.class);
-                        graphPropertyRunner.prepare(user);
-                        graphPropertyRunner.run();
-                    } catch (Exception ex) {
-                        LOGGER.error("Failed running GraphPropertyRunner", ex);
-                    }
-                }
-
-                @Override
-                public void stop() {
-                    try {
-                        if (graphPropertyRunner != null) {
-                            LOGGER.debug("Stopping GraphPropertyRunner");
-                            graphPropertyRunner.stop();
-                        }
-                    } catch (Exception ex) {
-                        LOGGER.error("Failed stopping GraphPropertyRunner", ex);
-                    }
-                }
-            };
-            stoppables.add(stoppable);
-            Thread t = new Thread(stoppable);
-            t.setName("graph-property-runner-" + t.getId());
-            t.setDaemon(true);
-            LOGGER.debug("Starting GraphPropertyRunner thread: %s", t.getName());
-            t.start();
-        }
+        this.stoppables.addAll(GraphPropertyRunner.startThreaded(threadCount, user));
     }
 
     @Override

@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class Relationship implements HasOntologyProperties {
+public abstract class Relationship implements OntologyElement, HasOntologyProperties {
     private final String parentIRI;
     private final List<String> domainConceptIRIs;
     private final List<String> rangeConceptIRIs;
@@ -52,10 +52,13 @@ public abstract class Relationship implements HasOntologyProperties {
         return rangeConceptIRIs;
     }
 
+    @Override
     public abstract boolean getUserVisible();
 
+    @Override
     public abstract boolean getDeleteable();
 
+    @Override
     public abstract boolean getUpdateable();
 
     public abstract String[] getIntents();

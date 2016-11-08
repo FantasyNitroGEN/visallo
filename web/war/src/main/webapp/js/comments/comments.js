@@ -155,7 +155,7 @@ define([
             }
         };
 
-        this.renderCommentLevel = function(maxDepth, level, selection) {
+        this.renderCommentLevel = function(maxDepth, level, selection, config) {
             var self = this;
 
             if (level > maxDepth) {
@@ -167,17 +167,19 @@ define([
                 .call(function() {
                     this.append('div').attr('class', 'wrap')
                         .call(function() {
-                            this.append('div').attr('class', 'comment-text')
-                            this.append('span').attr('class', 'visibility')
-                            this.append('span').attr('class', 'user')
-                            this.append('span').attr('class', 'date')
-                            this.append('button').attr('class', 'info')
-                            this.append('button').attr('class', 'replies btn-link btn')
-                        })
+                            this.append('div').attr('class', 'comment-text');
+                            if (config['showVisibilityInDetailsPane'] !== 'false') {
+                                this.append('span').attr('class', 'visibility');
+                            }
+                            this.append('span').attr('class', 'user');
+                            this.append('span').attr('class', 'date');
+                            this.append('button').attr('class', 'info');
+                            this.append('button').attr('class', 'replies btn-link btn');
+                        });
                     this.append('ul').attr('class', 'collapsed');
-                })
+                });
 
-            selection.order()
+            selection.order();
             selection.select('.comment-text')
                 .classed('redacted', function(p) {
                     return p[0].redacted || false;
@@ -195,18 +197,20 @@ define([
                         $(this).html(_.escape('\n' + p[0].value).replace(/\r?\n+/g, '<p>'));
                     }
                 });
-            selection.select('.visibility').each(function(p) {
-                this.textContent = '';
-                if (p[0].redacted) {
-                    $(this).hide();
-                    return;
-                }
-                F.vertex.properties.visibility(
-                    this,
-                    { value: p[0].metadata && p[0].metadata[VISIBILITY_NAME] },
-                    self.attr.data.id
-                );
-            })
+            if (config['showVisibilityInDetailsPane'] !== 'false') {
+                selection.select('.visibility').each(function(p) {
+                    this.textContent = '';
+                    if (p[0].redacted) {
+                        $(this).hide();
+                        return;
+                    }
+                    F.vertex.properties.visibility(
+                        this,
+                        {value: p[0].metadata && p[0].metadata[VISIBILITY_NAME]},
+                        self.attr.data.id
+                    );
+                });
+            }
             selection.select('.user').each(function(p, i) {
                 var $this = $(this);
                 if (p[0].redacted) {
@@ -300,7 +304,7 @@ define([
                         return p[1] || [];
                     });
 
-            this.renderCommentLevel(maxDepth, nextLevel, subselection);
+            this.renderCommentLevel(maxDepth, nextLevel, subselection, config);
         };
 
         this.update = function() {
@@ -309,21 +313,24 @@ define([
                 commentsTree = commentsTreeResponse.roots,
                 selection = d3.select(this.$node.find('.comment-content ul').get(0))
                     .selectAll('.comment-0')
-                    .data(commentsTree)
+                    .data(commentsTree);
 
-            this.renderCommentLevel(commentsTreeResponse.maxDepth, 0, selection);
-            this.dataRequest('user', 'getUserNames', commentsTreeResponse.userIds)
-                .done(function(users) {
-                    var usersById = _.object(commentsTreeResponse.userIds, users);
-                    self.$node.find('.user').each(function() {
-                        $(this).text(usersById[$(this).data('userId')]);
-                    })
+            this.dataRequest('config', 'properties')
+                .then(function(config) {
+                    self.renderCommentLevel(commentsTreeResponse.maxDepth, 0, selection, config);
+                    self.dataRequest('user', 'getUserNames', commentsTreeResponse.userIds)
+                        .done(function(users) {
+                            var usersById = _.object(commentsTreeResponse.userIds, users);
+                            self.$node.find('.user').each(function() {
+                                $(this).text(usersById[$(this).data('userId')]);
+                            })
+                        });
+
+                    self.$node.find('.badge').text(
+                        F.number.pretty(commentsTreeResponse.total)
+                    );
+                    self.$node.find('.collapsible-header').toggle(commentsTreeResponse.total > 0);
                 });
-
-            this.$node.find('.badge').text(
-                F.number.pretty(commentsTreeResponse.total)
-            );
-            this.$node.find('.collapsible-header').toggle(commentsTreeResponse.total > 0);
         };
 
         this.onEditProperty = function(event, data) {

@@ -26,6 +26,19 @@ define([
                         ]
                     },
                     {
+                        label: i18n('vertex.contextmenu.select'),
+                        submenu: [
+                            {
+                                label: i18n('vertex.contextmenu.select.connected'),
+                                subtitle: i18n('vertex.contextmenu.select.connected.subtitle'),
+                                shortcut: 'meta-e',
+                                event: 'selectConnected',
+                                selection: 1
+                            }
+                        ]
+                    },
+
+                    {
                         label: i18n('vertex.contextmenu.search'),
                         submenu: [
                             { label: '{ title }', shortcut: 'alt+t', event: 'searchTitle', selection: 1 },

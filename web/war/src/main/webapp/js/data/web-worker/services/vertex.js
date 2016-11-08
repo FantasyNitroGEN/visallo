@@ -18,7 +18,8 @@ define([
             if (options.conceptFilter && matchType === 'vertex') {
                 params.conceptType = options.conceptFilter;
             }
-            if (options.edgeLabelFilter && matchType === 'edge') {
+            if (options.edgeLabelFilter
+                && (matchType === 'edge' || (options.otherFilters && options.otherFilters.relatedToVertexIds))) {
                 params.edgeLabel = options.edgeLabelFilter;
             }
             if (options.paging) {

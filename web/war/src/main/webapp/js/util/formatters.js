@@ -660,9 +660,9 @@ define([
                 return $.extend({}, tz, tzInfo);
             },
 
-            currentTimezone: function() {
+            currentTimezone: _.once(function() {
                 return FORMATTERS.timezone.lookupTimezone(jstz.determine().name());
-            }
+            })
         }
     };
 

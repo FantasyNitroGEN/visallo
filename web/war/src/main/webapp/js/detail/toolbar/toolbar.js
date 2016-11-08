@@ -3,13 +3,15 @@ define([
     'hbs!./template',
     'configuration/plugins/registry',
     'util/vertex/formatters',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    'util/acl'
 ], function(
     defineComponent,
     template,
     registry,
     F,
-    withDataRequest) {
+    withDataRequest,
+    acl) {
     'use strict';
 
     registry.documentExtensionPoint('org.visallo.detail.toolbar',
@@ -80,13 +82,12 @@ define([
         });
 
         this.after('initialize', function() {
-            var self = this,
-                model = this.attr.model;
-            self.initializeToolbar(model);
+            var model = this.attr.model;
+            this.initializeToolbar(model, acl.getPropertyAcls(model));
         });
 
-        this.initializeToolbar = function(model) {
-            var config = this.calculateItemsForModel(model),
+        this.initializeToolbar = function(model, propertyAcls) {
+            var config = this.calculateItemsForModel(model, propertyAcls),
                 toolbarItems = config.items,
                 objects = config.objects,
                 toolbarExtensions = _.sortBy(registry.extensionsForPoint('org.visallo.detail.toolbar'), 'title');
@@ -124,7 +125,7 @@ define([
             }
         };
 
-        this.calculateItemsForModel = function(model) {
+        this.calculateItemsForModel = function(model, propertyAcls) {
             var isArray = _.isArray(model),
                 vertices = isArray ? _.where(model, { type: 'vertex' }) : (model.type === 'vertex' ? [model] : []),
                 edges = isArray ? _.where(model, { type: 'edge' }) : (model.type === 'edge' ? [model] : []);
@@ -163,9 +164,9 @@ define([
                     {
                         title: i18n('detail.toolbar.add'),
                         submenu: _.compact([
-                            this.addPropertyToolbarItem(model),
+                            this.addPropertyToolbarItem(model, propertyAcls),
                             this.addImageToolbarItem(model),
-                            this.addCommentToolbarItem(model)
+                            this.addCommentToolbarItem(model, propertyAcls)
                         ])
                     },
                     {
@@ -293,11 +294,11 @@ define([
             }
         };
 
-        this.addPropertyToolbarItem = function(model) {
-            var propertyAcls = _.reject(model.acl.propertyAcls, function(property) {
+        this.addPropertyToolbarItem = function(model, propertyAcls) {
+            var commentPropertyAcls = _.reject(propertyAcls, function(property) {
                     return property.name === 'http://visallo.org/comment#entry';
                 }),
-                hasAddableProperties = _.where(propertyAcls, { addable: true }).length > 0,
+                hasAddableProperties = _.where(commentPropertyAcls, { addable: true }).length > 0,
                 disableAdd = (model.hasOwnProperty('updateable') && !model.updateable) || !hasAddableProperties;
 
             if (!disableAdd) {
@@ -314,8 +315,8 @@ define([
             }
         };
 
-        this.addCommentToolbarItem = function(model) {
-            var hasAddableCommentProperty = _.where(model.acl.propertyAcls, { name: 'http://visallo.org/comment#entry', addable: true }).length > 0,
+        this.addCommentToolbarItem = function(model, propertyAcls) {
+            var hasAddableCommentProperty = _.where(propertyAcls, { name: 'http://visallo.org/comment#entry', addable: true }).length > 0,
                 disableAdd = (model.hasOwnProperty('updateable') && !model.updateable) || !hasAddableCommentProperty;
 
             if (!disableAdd) {

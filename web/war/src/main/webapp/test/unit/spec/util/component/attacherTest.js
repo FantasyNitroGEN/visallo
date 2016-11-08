@@ -13,6 +13,10 @@ define([
         })
 
         describe('General', function() {
+            it('should be able to be created with new or without', function() {
+                attacher().node.should.be.a('function');
+                (new attacher()).node.should.be.a('function');
+            })
             it('should support jQuery nodes', function() {
                 var $node = $(this.node);
                 attacher().node($node)._node.should.equal(this.node)
@@ -134,7 +138,7 @@ define([
                     .node(this.node)
                     .path('../test/unit/spec/util/component/attacherFlightBehavior')
                     .behavior({
-                        customBehavior: function(param) {
+                        customBehavior: function(attacher, param) {
                             param.should.equal('param1fromflight')
                             called.resolve(true);
                         }
@@ -156,7 +160,7 @@ define([
                     .node(this.node)
                     .path('../test/unit/spec/util/component/attacherFlightBehavior')
                     .behavior({
-                        customBehavior: function(param) {
+                        customBehavior: function(attacher, param) {
                             param.should.equal('param1fromflightMapped')
                             called.resolve(true)
                         }
@@ -181,7 +185,7 @@ define([
                     .node(this.node)
                     .path('../test/unit/spec/util/component/attacherFlightBehavior')
                     .behavior({
-                        customBehavior: function(param) {
+                        customBehavior: function(attacher, param) {
                             param.should.equal('param1fromflight')
                             called.resolve(true)
                         },
@@ -214,12 +218,26 @@ define([
             it('simple render', function() {
                 return attacher()
                     .node(this.node)
+                    .component(function() {
+                        return react.createElement('div', null, 'Pure');
+                    })
+                    .attach()
+                    .then(function(a) {
+                        a._node.textContent.should.equal('Pure')
+                        a._reactElement.should.exist
+                        expect(a._flightComponent).to.not.exist
+                    })
+            })
+            it('supports react pure functions', function() {
+                return attacher()
+                    .node(this.node)
                     .path('../test/unit/spec/util/component/attacherReactSimple')
                     .attach()
                     .then(function(a) {
                         a._node.textContent.should.equal('ReactSimple')
                         a._reactElement.should.exist
                     })
+
             })
             it('accepts params', function() {
                 return attacher()
@@ -248,7 +266,7 @@ define([
                     .node(this.node)
                     .path('../test/unit/spec/util/component/attacherReactBehavior')
                     .behavior({
-                        customBehavior: function(param) {
+                        customBehavior: function(attacher, param) {
                             param.should.equal('param1')
                             called.resolve(true)
                         }
@@ -268,8 +286,8 @@ define([
                     .params({ param: 'first' })
                     .path('../test/unit/spec/util/component/attacherReactReattach')
                     .behavior({
-                        changeParam: function(newParam) {
-                            a.params({ param: newParam }).attach().then(function(a) {
+                        changeParam: function(attacher, newParam) {
+                            attacher.params({ param: newParam }).attach().then(function(a) {
                                 a._node.textContent.should.equal(newParam)
                                 called.resolve(true);
                             })

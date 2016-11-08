@@ -59,6 +59,10 @@ public abstract class MetadataVisalloProperty<TRaw, TGraph> {
         return (TRaw) metadata.get(getMetadataKey());
     }
 
+    public TRaw getMetadataValue(Property property) {
+        return getMetadataValue(property.getMetadata());
+    }
+
     public void setMetadata(Metadata metadata, TRaw value, Visibility visibility) {
         metadata.add(getMetadataKey(), wrap(value), visibility);
     }

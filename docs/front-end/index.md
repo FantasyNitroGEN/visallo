@@ -27,7 +27,7 @@ Visallo has a built-in set of routing using the URLs fragment identifier.
         Fragment: #add=[(v[vertexId] | e[edgeId])]
         Example: https://visallo.com/#add=MY_VERTEX_ID_1,MY_VERTEX_ID_2
 
-    Opens Visallo, but prompts the user to add the passed in vertices to their workspace. Those vertices must be published.
+    Opens Visallo, but prompts the user to add the passed in vertices to their case. Those vertices must be published.
 
 * **Open Visallo Admin Section**
     
@@ -42,7 +42,7 @@ Visallo has a built-in set of routing using the URLs fragment identifier.
         Fragment: #tools=[menubar name, [menubar name]]
         Example: https://visallo.com/#tools=graph      // Open Graph
                  https://visallo.com/#tools=map,search // Open Map and Search Pane
-                 https://visallo.com/#tools=dashboard,workspaces,activity // Open Dashboard, Workspaces, and Activity Pane
+                 https://visallo.com/#tools=dashboard,workspaces,activity // Open Dashboard, Cases, and Activity Pane
 
     Opens Visallo to the specified menubar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behevior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
 

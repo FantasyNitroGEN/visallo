@@ -10,7 +10,7 @@ Plugin to add new items to search filter component.
 * filterKeys: names of parameters filter will change
 * *or*
 * filterKey: name of param
-* searchType: Visallo or Workspace. Only `Visallo` is implemented
+* searchType: Visallo or Case. Only `Visallo` is implemented
 
 ## Optional parameters:
 

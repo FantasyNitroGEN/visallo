@@ -48,11 +48,13 @@ public class JettyWebServer extends WebServer {
         httpConnector.setPort(getHttpPort());
 
         SslContextFactory sslContextFactory = new SslContextFactory();
+        sslContextFactory.setKeyStoreType(getKeyStoreType());
         sslContextFactory.setKeyStorePath(getKeyStorePath().getAbsolutePath());
-        sslContextFactory.setKeyStorePassword(super.getKeyStorePassword());
+        sslContextFactory.setKeyStorePassword(getKeyStorePassword());
+        sslContextFactory.setTrustStoreType(getTrustStoreType());
         sslContextFactory.setTrustStorePath(getTrustStorePath().getAbsolutePath());
-        sslContextFactory.setTrustStorePassword(super.getTrustStorePassword());
-        sslContextFactory.setNeedClientAuth(super.getRequireClientCert());
+        sslContextFactory.setTrustStorePassword(getTrustStorePassword());
+        setClientCertHandling(sslContextFactory);
 
         HttpConfiguration https_config = new HttpConfiguration(http_config);
         https_config.addCustomizer(new SecureRequestCustomizer());
@@ -104,5 +106,16 @@ public class JettyWebServer extends WebServer {
         String message = String.format("Listening on http port %d and https port %d", getHttpPort(), getHttpsPort());
         LOGGER.info(message);
         System.out.println(message);
+    }
+
+    public void setClientCertHandling(SslContextFactory sslContextFactory) {
+        if (getRequireClientCert() && getWantClientCert()) {
+            throw new IllegalArgumentException("Choose only one of --requireClientCert and --wantClientCert");
+        }
+        if (getRequireClientCert()) {
+            sslContextFactory.setNeedClientAuth(true);
+        } else if (getWantClientCert()) {
+            sslContextFactory.setWantClientAuth(true);
+        }
     }
 }

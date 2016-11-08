@@ -10,6 +10,8 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionFor;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
@@ -32,16 +34,19 @@ public class GraphRepository {
     private final Graph graph;
     private final VisibilityTranslator visibilityTranslator;
     private final TermMentionRepository termMentionRepository;
+    private final WorkQueueRepository workQueueRepository;
 
     @Inject
     public GraphRepository(
             Graph graph,
             VisibilityTranslator visibilityTranslator,
-            TermMentionRepository termMentionRepository
+            TermMentionRepository termMentionRepository,
+            WorkQueueRepository workQueueRepository
     ) {
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
         this.termMentionRepository = termMentionRepository;
+        this.workQueueRepository = workQueueRepository;
     }
 
     public void verifyVersion() {
@@ -489,5 +494,29 @@ public class GraphRepository {
             return true;
         }
         return false;
+    }
+
+    public GraphUpdateContext beginGraphUpdate(Priority priority, User user, Authorizations authorizations) {
+        return new MyGraphUpdateContext(
+                graph,
+                workQueueRepository,
+                visibilityTranslator,
+                priority,
+                user,
+                authorizations
+        );
+    }
+
+    private static class MyGraphUpdateContext extends GraphUpdateContext {
+        protected MyGraphUpdateContext(
+                Graph graph,
+                WorkQueueRepository workQueueRepository,
+                VisibilityTranslator visibilityTranslator,
+                Priority priority,
+                User user,
+                Authorizations authorizations
+        ) {
+            super(graph, workQueueRepository, visibilityTranslator, priority, user, authorizations);
+        }
     }
 }

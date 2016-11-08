@@ -14,12 +14,16 @@ import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.search.SearchProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiSearch;
 import org.visallo.web.clientapi.model.ClientApiSearchListResponse;
@@ -71,6 +75,9 @@ public class VertexiumSearchRepositoryTest {
     @Mock
     private PrivilegeRepository privilegeRepository;
 
+    @Mock
+    private WorkQueueRepository workQueueRepository;
+
     @Before
     public void setUp() {
         InjectHelper.setInjector(injector);
@@ -80,8 +87,11 @@ public class VertexiumSearchRepositoryTest {
                 VertexiumSearchRepository.VISIBILITY_STRING,
                 UserRepository.VISIBILITY_STRING
         );
+        VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
+        GraphRepository graphRepository = new GraphRepository(graph, visibilityTranslator, null, workQueueRepository);
         searchRepository = new VertexiumSearchRepository(
                 graph,
+                graphRepository,
                 userRepository,
                 configuration,
                 graphAuthorizationRepository,

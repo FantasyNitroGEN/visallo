@@ -30,7 +30,7 @@ define([
                 logout: 'img/glyphicons/white/glyphicons_387_log_out@2x.png',
                 products: 'img/glyphicons/white/glyphicons_330_blog@2x.png',
                 search: 'img/glyphicons/white/glyphicons_027_search@2x.png',
-                workspaces: 'img/glyphicons/white/glyphicons_153_more_windows@2x.png'
+                workspaces: 'img/white_glyphicons_341_briefcase@2x_no_gray.png'
             },
             menubarExtensions = registry.extensionsForPoint('org.visallo.menubar');
 

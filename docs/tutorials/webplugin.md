@@ -247,7 +247,7 @@ public class SelectedVertexAction implements ParameterizedHandler {
         // make sure that the changes are persisted into the graph
         this.graph.flush();
 
-        //tell the workspace that the vertex has changed so it needs to be reloaded
+        //tell the case that the vertex has changed so it needs to be reloaded
         this.repository.broadcastElement(v, workspaceId);
 
         return new ClientApiSuccess();

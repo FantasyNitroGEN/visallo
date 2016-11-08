@@ -190,7 +190,8 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
         graphRepository = new GraphRepository(
                 graph,
                 VISIBILITY_TRANSLATOR,
-                termMentionRepository
+                termMentionRepository,
+                workQueueRepository
         );
 
         InMemoryOntologyProperty prop1 = new InMemoryOntologyProperty();

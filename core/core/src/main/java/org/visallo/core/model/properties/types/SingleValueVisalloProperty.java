@@ -3,6 +3,7 @@ package org.visallo.core.model.properties.types;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiElement;
@@ -137,9 +138,20 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         }
     }
 
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            TRaw newValue,
+            Visibility visibility
+    ) {
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, (Metadata) null, null, visibility);
+    }
+
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
+     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, Object, PropertyMetadata)}
      */
+    @SuppressWarnings("deprecation")
+    @Deprecated
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
@@ -151,9 +163,30 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         updateProperty(changedPropertiesOut, element, m, newValue, metadata, null, visibility);
     }
 
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            TRaw newValue,
+            PropertyMetadata metadata
+    ) {
+        checkNotNull(metadata, "metadata cannot be null");
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), null, metadata.getVisibility());
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            TRaw newValue,
+            PropertyMetadata metadata
+    ) {
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), null, metadata.getVisibility());
+    }
+
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
+     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, Object, PropertyMetadata, Long)}
      */
+    @Deprecated
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
@@ -163,7 +196,28 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             Long timestamp,
             Visibility visibility
     ) {
-        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), timestamp, visibility);
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata == null ? null : metadata.createMetadata(), timestamp, visibility);
+    }
+
+    public void updateProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            ElementMutation m,
+            TRaw newValue,
+            PropertyMetadata metadata,
+            Long timestamp
+    ) {
+        checkNotNull(metadata, "metadata cannot be null");
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            TRaw newValue,
+            PropertyMetadata metadata,
+            Long timestamp
+    ) {
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
     }
 
     /**
@@ -178,6 +232,15 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             Visibility visibility
     ) {
         updateProperty(changedPropertiesOut, element, m, newValue, metadata, null, visibility);
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            TRaw newValue,
+            Metadata metadata,
+            Visibility visibility
+    ) {
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata, null, visibility);
     }
 
     /**
@@ -200,13 +263,23 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             LOGGER.error("passing an empty string value to updateProperty will not be allowed in the future: %s", this);
             return;
         }
-        Object currentValue = null;
+        TRaw currentValue = null;
         if (element != null) {
             currentValue = getPropertyValue(element);
         }
-        if (currentValue == null || !newValue.equals(currentValue)) {
+        if (currentValue == null || !isEquals(newValue, currentValue)) {
             setProperty(m, newValue, metadata, timestamp, visibility);
             changedPropertiesOut.add(new VisalloPropertyUpdate(this));
         }
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            TRaw newValue,
+            Metadata metadata,
+            Long timestamp,
+            Visibility visibility
+    ) {
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata, timestamp, visibility);
     }
 }

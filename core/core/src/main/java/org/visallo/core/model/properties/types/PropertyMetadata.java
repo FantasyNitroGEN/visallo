@@ -1,10 +1,10 @@
 package org.visallo.core.model.properties.types;
 
+import org.vertexium.Metadata;
+import org.vertexium.Visibility;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.Metadata;
-import org.vertexium.Visibility;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,13 +27,30 @@ public class PropertyMetadata {
     }
 
     public PropertyMetadata(
-            Date modifiedDate, User modifiedBy, Double confidence, VisibilityJson visibilityJson,
-            Visibility visibility) {
+            Date modifiedDate,
+            User modifiedBy,
+            Double confidence,
+            VisibilityJson visibilityJson,
+            Visibility visibility
+    ) {
         this.modifiedDate = modifiedDate;
         this.modifiedBy = modifiedBy;
         this.confidence = confidence;
         this.visibilityJson = visibilityJson;
         this.visibility = visibility;
+    }
+
+    public PropertyMetadata(PropertyMetadata metadata) {
+        this(
+                metadata.getModifiedDate(),
+                metadata.getModifiedBy(),
+                metadata.getConfidence(),
+                metadata.getVisibilityJson(),
+                metadata.getVisibility()
+        );
+        for (AdditionalMetadataItem item : metadata.getAdditionalMetadataItems()) {
+            add(item.getKey(), item.getValue(), item.getVisibility());
+        }
     }
 
     public Metadata createMetadata() {
@@ -60,6 +77,22 @@ public class PropertyMetadata {
 
     public Date getModifiedDate() {
         return modifiedDate;
+    }
+
+    public Double getConfidence() {
+        return confidence;
+    }
+
+    public VisibilityJson getVisibilityJson() {
+        return visibilityJson;
+    }
+
+    public Visibility getVisibility() {
+        return visibility;
+    }
+
+    public Iterable<AdditionalMetadataItem> getAdditionalMetadataItems() {
+        return additionalMetadataItems;
     }
 
     public void add(String key, Object value, Visibility visibility) {

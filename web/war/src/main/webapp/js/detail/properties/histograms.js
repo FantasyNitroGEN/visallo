@@ -78,7 +78,7 @@ define([
             var self = this,
                 opacityScale = d3.scale.linear().domain([0, 100]).range(SCALE_OPACITY_BASED_ON_WIDTH_RANGE),
                 colorScale = d3.scale.linear().domain([0, 100]).range(SCALE_COLOR_BASED_ON_WIDTH_RANGE),
-                animationDuration = (options && _.isNumber(options.duration)) || ANIMATION_DURATION;
+                animationDuration = (options && _.isNumber(options.duration)) ? options.duration : ANIMATION_DURATION;
 
             var propertySections = _.chain(elements)
                     .map(function(element) {

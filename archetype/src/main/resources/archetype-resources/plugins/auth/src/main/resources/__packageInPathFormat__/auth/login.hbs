@@ -1,0 +1,13 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<div class="${artifactId}">
+  <form action="" class="login">
+    <p class="text-error">{{${symbol_pound}if errorMessage}}{{errorMessage}}{{/if}}</p>
+
+    <input class="username" type="text" placeholder="{{i18n '${package}.auth.username'}}" autofocus />
+    <input class="password" type="password" placeholder="{{i18n '${package}.auth.password'}}" />
+
+    <button class="btn btn-primary">{{i18n '${package}.auth.login'}}</button>
+  </form>
+</div>

@@ -6,6 +6,7 @@ define([
     'util/withDataRequest',
     'util/privileges',
     'util/visibility/view',
+    'util/acl',
     'd3'
 ], function(
     defineComponent,
@@ -14,6 +15,7 @@ define([
     withDataRequest,
     Privileges,
     VisibilityViewer,
+    acl,
     d3) {
     'use strict';
 
@@ -31,31 +33,15 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-            var findPropertyAcl = function(propertiesAcl, propName, propKey) {
-                var props = _.where(propertiesAcl, { name: propName, key: propKey });
-                if (props.length === 0) {
-                    var propsByName = _.where(propertiesAcl, { name: propName });
-                    if (propsByName.length === 0) {
-                        console.error(propName, propKey)
-                        throw new Error('no ACL property defined');
-                    }
-                    props = propsByName;
-                }
-                if (props.length !== 1) {
-                    console.error(propName, propKey, props)
-                    throw new Error('more than one ACL property with the same name defined');
-                }
-                return props[0];
-            };
-
             config.template = 'propertyInfo/template';
             config.isFullscreen = visalloData.isFullscreen;
             if (config.property) {
 
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
                 config.canAdd = config.canEdit = config.canDelete = false;
-                var allPropertyAcls = config.data.acl.propertyAcls;
-                var propertyAcl = findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
+
+                var allPropertyAcls = acl.getPropertyAcls(config.data);
+                var propertyAcl = acl.findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
 
                 if (config.isComment && visalloData.currentWorkspaceCommentable) {
                     config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
@@ -129,7 +115,7 @@ define([
 
         this.update = function() {
             var self = this,
-                vertexId = this.attr.data.id,
+                element = this.attr.data,
                 isVisibility = this.attr.property.name === 'http://visallo.org#visibilityJson',
                 property = isVisibility ?
                     _.first(F.vertex.props(this.attr.data, this.attr.property.name)) :
@@ -183,25 +169,22 @@ define([
 
             this.contentRoot.selectAll('tr')
                 .call(function() {
-                    var self = this;
-
                     this.select('td.property-name').text(function(d) {
                         return displayNames[d[0]];
                     });
 
-                    var valueElement = self.select('td.property-value')
+                    var valueElement = this.select('td.property-value')
                         .each(function(d) {
                             var self = this,
-                                $self = $(this),
                                 typeName = displayTypes[d[0]],
                                 formatter = F.vertex.metadata[typeName],
                                 formatterAsync = F.vertex.metadata[typeName + 'Async'],
                                 value = d[1];
 
                             if (formatter) {
-                                formatter(this, value);
+                                formatter(self, value);
                             } else if (formatterAsync) {
-                                formatterAsync(self, value, property, vertexId)
+                                formatterAsync(self, value, property, element.id)
                                     .catch(function() {
                                         d3.select(self).text(i18n('popovers.property_info.error', value));
                                     })
@@ -209,7 +192,9 @@ define([
                                 d3.select(this).text(i18n('popovers.property_info.loading'));
                             } else if (typeName === 'visibility') {
                                 VisibilityViewer.attachTo(this, {
-                                    value: value && value.source
+                                    value: value && value.source,
+                                    property: property,
+                                    element: element
                                 });
                             } else {
                                 console.warn('No metadata type formatter: ' + typeName);

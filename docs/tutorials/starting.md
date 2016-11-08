@@ -10,19 +10,15 @@ One of the major components of Visallo is the system of Graph Property Workers t
 
 ## Getting Started
 
-We will be using maven archetypes to do most of the bootstrapping of Visallo so that we can only focus on developing our graph property worker.
+We will be using maven archetypes to do most of the bootstrapping of Visallo so that we can focus on developing our graph property worker.
 
-<div class="alert alert-warning">
-  Please contact us at <a href='https://www.visallo.com/content/contact'>visallo.com</a> in order to receive the archetype jar and instructions.  The archetype jar will allow you to complete all of the tutorials.
-</div>
-
-* Run the following command in a directory of your choosing:
+* Run the following command from the Visallo repository:
 
 ```bash
-mvn archetype:generate -DarchetypeGroupId=com.visallo -DarchetypeArtifactId=visallo-plugin-archetype
+bin/generate-archetype-project.sh
 ```
 
-Maven archetype will ask you a couple of questions:
+The project will be generated and will ask you a couple of questions before it finishes:
 
 * for groupId, put in ```com.visalloexample.helloworld```
 * for artifactId, put in ```visallo-helloworld```
@@ -48,7 +44,7 @@ Since we are already logged in as admin with the password of admin, we know that
 
 ### Example Graph Property Worker
 
-The graph property worker that is inside of your project is inside of the ```./worker``` folder.  It is designed to pull names outside of csv files, add the entities inside as people, then show the results on your workspace. 
+The graph property worker that is inside of your project is inside of the ```./worker``` folder.  It is designed to pull names outside of csv files, add the entities inside as people, then show the results in your case.
 
 * Switch to the graph view by clicking the graph button on the left hand side of your screen.
 * Drag and drop the file at ```./worker/src/test/resources/contacts.csv``` in your project onto the graph.

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
+                      name="example-visallo-plugins"
+                      xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <requiredProperties>
+    <requiredProperty key="ontologyBaseIri">
+      <!--
+      NOTE: There is a bug in Maven where the user won't be prompted for the value of a property unless
+            there's an expression present in defaultValue. Thus, it works in this case because ${artifactId} is
+            part of defaultValue for ontologyBaseIri.
+            https://issues.apache.org/jira/browse/ARCHETYPE-308
+            http://stackoverflow.com/questions/3895175/ask-for-maven-archetype-properties-with-defaults
+      -->
+      <defaultValue>http://example.org/${artifactId}</defaultValue>
+    </requiredProperty>
+  </requiredProperties>
+  <fileSets>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>config</directory>
+      <includes>
+        <include>*.properties</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="false" encoding="UTF-8">
+      <directory>config</directory>
+      <includes>
+        <include>*.jks</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>config/ontology</directory>
+      <includes>
+        <include>*.owl</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory>config/ontology</directory>
+      <includes>
+        <include>*.png</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory/>
+      <includes>
+        <include>gitignore</include>
+        <include>README.md</include>
+        <include>*.sh</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <modules>
+    <module id="${rootArtifactId}-auth" dir="plugins/auth" name="${rootArtifactId}-auth">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/main/resources</directory>
+          <includes>
+            <include>**/*.properties</include>
+            <include>**/*.WebAppPlugin</include>
+            <include>**/*.css</include>
+            <include>**/*.hbs</include>
+            <include>**/*.js</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+    <module id="${rootArtifactId}-deploy" dir="deploy" name="${rootArtifactId}-deploy">
+      <fileSets>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory/>
+          <includes>
+            <include>assembly-*.xml</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+    <module id="${rootArtifactId}-web" dir="plugins/web" name="${rootArtifactId}-web">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/main/resources</directory>
+          <includes>
+            <include>**/*.properties</include>
+            <include>**/*.WebAppPlugin</include>
+            <include>**/*.css</include>
+            <include>**/*.hbs</include>
+            <include>**/*.js</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+    <module id="${rootArtifactId}-worker" dir="plugins/worker" name="${rootArtifactId}-worker">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/main/resources</directory>
+          <includes>
+            <include>**/*.GraphPropertyWorker</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/test/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet encoding="UTF-8">
+          <directory>src/test/resources</directory>
+          <includes>
+            <include>**/*.csv</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+  </modules>
+</archetype-descriptor>

@@ -38,6 +38,7 @@ public class WebConfiguration {
     public static final String MAP_PROVIDER_OSM_URL = PREFIX + "map.provider.osm.url";
     public static final String LOGIN_SHOW_POWERED_BY = PREFIX + "login.showPoweredBy";
     public static final String SHOW_VERSION_COMMENTS = PREFIX + "showVersionComments";
+    public static final String SHOW_VISIBILITY_IN_DETAILS_PANE = PREFIX + "showVisibilityInDetailsPane";
     public static final PropertyMetadata PROPERTY_METADATA_SOURCE_TIMEZONE = new PropertyMetadata("http://visallo.org#sourceTimezone",
             "properties.metadata.label.source_timezone",
             "timezone");
@@ -59,6 +60,8 @@ public class WebConfiguration {
     static {
         DEFAULTS.put(LOGIN_SHOW_POWERED_BY, "false");
         DEFAULTS.put(SHOW_VERSION_COMMENTS, "true");
+
+        DEFAULTS.put(SHOW_VISIBILITY_IN_DETAILS_PANE, "true");
 
         DEFAULTS.put(THROTTLE_MESSAGING_SECONDS, "2");
 
@@ -97,24 +100,30 @@ public class WebConfiguration {
         DEFAULTS.put(PROPERTIES_MULTIVALUE_DEFAULT_VISIBLE_COUNT, "2");
 
         // Property Metadata shown in info popover
-        DEFAULTS.put(PROPERTIES_METADATA_PROPERTY_NAMES, Joiner.on(',').join(PROPERTY_METADATA_SOURCE_TIMEZONE.getName(),
+        DEFAULTS.put(PROPERTIES_METADATA_PROPERTY_NAMES, Joiner.on(',').join(
+                PROPERTY_METADATA_SOURCE_TIMEZONE.getName(),
                 PROPERTY_METADATA_MODIFIED_DATE.getName(),
                 PROPERTY_METADATA_MODIFIED_BY.getName(),
                 PROPERTY_METADATA_STATUS.getName(),
-                PROPERTY_METADATA_CONFIDENCE.getName()));
-        DEFAULTS.put(PROPERTIES_METADATA_PROPERTY_NAMES_DISPLAY, Joiner.on(',').join(PROPERTY_METADATA_SOURCE_TIMEZONE.getMessageKey(),
+                PROPERTY_METADATA_CONFIDENCE.getName()
+        ));
+        DEFAULTS.put(PROPERTIES_METADATA_PROPERTY_NAMES_DISPLAY, Joiner.on(',').join(
+                PROPERTY_METADATA_SOURCE_TIMEZONE.getMessageKey(),
                 PROPERTY_METADATA_MODIFIED_DATE.getMessageKey(),
                 PROPERTY_METADATA_MODIFIED_BY.getMessageKey(),
                 PROPERTY_METADATA_STATUS.getMessageKey(),
-                PROPERTY_METADATA_CONFIDENCE.getMessageKey()));
-        DEFAULTS.put(PROPERTIES_METADATA_PROPERTY_NAMES_TYPE, Joiner.on(',').join(PROPERTY_METADATA_SOURCE_TIMEZONE.getDataType(),
+                PROPERTY_METADATA_CONFIDENCE.getMessageKey()
+        ));
+        DEFAULTS.put(PROPERTIES_METADATA_PROPERTY_NAMES_TYPE, Joiner.on(',').join(
+                PROPERTY_METADATA_SOURCE_TIMEZONE.getDataType(),
                 PROPERTY_METADATA_MODIFIED_DATE.getDataType(),
                 PROPERTY_METADATA_MODIFIED_BY.getDataType(),
                 PROPERTY_METADATA_STATUS.getDataType(),
-                PROPERTY_METADATA_CONFIDENCE.getDataType()));
+                PROPERTY_METADATA_CONFIDENCE.getDataType()
+        ));
 
         DEFAULTS.put(MAP_PROVIDER, MapProvider.OSM.toString());
-        DEFAULTS.put(MAP_PROVIDER_OSM_URL, "https://{a-c}.tile.openstreetmap.org/${z}/${x}/${y}.png");
+        DEFAULTS.put(MAP_PROVIDER_OSM_URL, "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png");
     }
 
     public static class PropertyMetadata {

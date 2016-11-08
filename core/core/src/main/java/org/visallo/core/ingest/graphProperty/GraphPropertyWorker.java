@@ -67,15 +67,15 @@ public abstract class GraphPropertyWorker {
 
     public boolean isDeleteHandled(Element element, Property property) {
         return false;
-    };
+    }
 
     public boolean isHiddenHandled(Element element, Property property) {
         return false;
-    };
+    }
 
     public boolean isUnhiddenHandled(Element element, Property property) {
         return false;
-    };
+    }
 
     public abstract void execute(InputStream in, GraphPropertyWorkData data) throws Exception;
 

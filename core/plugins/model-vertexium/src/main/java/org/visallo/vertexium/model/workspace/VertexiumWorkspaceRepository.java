@@ -213,8 +213,14 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     authorizations
             );
         } catch (SecurityVertexiumException e) {
+            if (!graphAuthorizationRepository.getGraphAuthorizations().contains(workspaceId)) {
+                return null;
+            }
+
+            String message = String.format("user %s does not have read access to workspace %s", user.getUserId(), workspaceId);
+            LOGGER.warn("%s", message, e);
             throw new VisalloAccessDeniedException(
-                    "user " + user.getUserId() + " does not have read access to workspace " + workspaceId,
+                    message,
                     user,
                     workspaceId
             );
@@ -583,7 +589,15 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
             for (String vertexId : vertexIds) {
                 Vertex otherVertex = verticesMap.get(vertexId);
-                checkNotNull(otherVertex, "Could not find vertex with id: " + vertexId);
+                if (otherVertex == null) {
+                    LOGGER.error(
+                            "updateEntitiesOnWorkspace: could not find vertex with id \"%s\" for workspace \"%s\"",
+                            update.getVertexId(),
+                            workspace.getWorkspaceId()
+                    );
+                    continue;
+                }                            
+
                 createEdge(
                         workspaceVertex,
                         otherVertex,

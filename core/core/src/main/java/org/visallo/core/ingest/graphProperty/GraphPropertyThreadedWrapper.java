@@ -4,6 +4,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.inject.Inject;
 import org.vertexium.Element;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.PausableTimerContext;
 import org.visallo.core.status.PausableTimerContextAware;
@@ -21,6 +22,9 @@ import java.util.Queue;
 
 public class GraphPropertyThreadedWrapper implements Runnable {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyThreadedWrapper.class);
+    private static final int DEQUEUE_TIMEOUT_MS = 30 * 1000;
+    private static final int DEQUEUE_LOG_MESSAGE_FREQUENCY_MS = 10 * 1000;
+    private static final int DEQUEUE_WARN_THRESHOLD_MS = 30 * 1000;
     private final GraphPropertyWorker worker;
 
     public GraphPropertyThreadedWrapper(GraphPropertyWorker worker) {
@@ -122,22 +126,37 @@ public class GraphPropertyThreadedWrapper implements Runnable {
     public WorkResult dequeueResult(boolean waitForever) {
         synchronized (workResults) {
             if (workResults.size() == 0) {
-                long startTime = new Date().getTime();
-                while (workResults.size() == 0 && (waitForever || (new Date().getTime() - startTime < 10 * 1000))) {
+                Date startTime = new Date();
+                Date lastMessageTime = new Date();
+                while (workResults.size() == 0 && (waitForever || (getElapsedTime(startTime) < DEQUEUE_TIMEOUT_MS))) {
                     try {
-                        if (new Date().getTime() - startTime > 5 * 1000) {
-                            LOGGER.warn("worker has zero results. sleeping waiting for results.");
-                        } else {
-                            LOGGER.debug("worker has zero results. sleeping waiting for results.");
+                        if (getElapsedTime(lastMessageTime) > DEQUEUE_LOG_MESSAGE_FREQUENCY_MS) {
+                            String message = String.format(
+                                    "Worker \"%s\" has zero results. Waiting for results. (startTime: %s, elapsedTime: %ds, thread: %s)",
+                                    worker.getClass().getName(),
+                                    startTime,
+                                    getElapsedTime(startTime) / 1000,
+                                    Thread.currentThread().getName()
+                            );
+                            if (getElapsedTime(startTime) > DEQUEUE_WARN_THRESHOLD_MS) {
+                                LOGGER.warn("%s", message);
+                            } else {
+                                LOGGER.debug("%s", message);
+                            }
+                            lastMessageTime = new Date();
                         }
-                        workResults.wait(waitForever ? 30 * 1000 : 1000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        workResults.wait(1000);
+                    } catch (InterruptedException ex) {
+                        throw new VisalloException("Failed to wait for worker " + worker.getClass().getName(), ex);
                     }
                 }
             }
             return workResults.remove();
         }
+    }
+
+    private long getElapsedTime(Date date) {
+        return new Date().getTime() - date.getTime();
     }
 
     public void stop() {
