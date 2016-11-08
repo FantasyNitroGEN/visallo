@@ -29,8 +29,8 @@ requirejs(['/base/js/require.config.js'], function(cfg) {
             'util/service/messagesPromise': '../test/unit/mocks/messagePromise',
             'util/service/ontologyPromise': '../test/unit/mocks/ontologyPromise',
             'util/service/propertiesPromise': '../test/unit/mocks/propertiesPromise',
-            //'util/service/ontology.json': '../test/unit/mocks/ontology.json',
             'util/messages': '../test/unit/mocks/messages',
+            'data/web-worker/store': '../test/unit/mocks/store',
             'data/web-worker/util/ajax': '../test/unit/mocks/ajax',
             testutils: '../test/unit/utils'
         },
