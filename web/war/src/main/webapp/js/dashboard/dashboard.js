@@ -493,9 +493,28 @@ define([
                 .done(function(result) {
                     item.id = result.dashboardItemId;
                     $(node).attr('data-item-id', item.id);
+                    self.dashboard.items.push(item);
+                    self.updateAllDashboardItems();
+                });
+        };
+
+        this.updateAllDashboardItems = function(){
+            var self = this,
+                stackItemMap = {},
+                nodes = _.reject($(this.$node).find('.grid-stack-item'), function(item) {
+                  return $(item.el).hasClass('new-item');
                 });
 
-            this.dashboard.items.push(item);
+            _.each(nodes, function(item){
+                var id = $(item).data('itemId');
+                stackItemMap[id] = item;
+            });
+
+            _.each(self.dashboard.items, function(item){
+                var id = item.id;
+                item.configuration.metrics = self.metricsForGridItem(stackItemMap[id]);
+                self.request('dashboardItemUpdate', item);
+            });
         };
 
         this.metricsForGridItem = function(el) {
@@ -544,9 +563,9 @@ define([
                     }
                 },
                 { concurrency: 1 }
-            ).done(function() {
-                self.createDashboardItemToGridStackInBatch();
-            })
+            )
+            .then(this.updateAllDashboardItems.bind(this))
+            .done(this.createDashboardItemToGridStackInBatch.bind(this));
         };
 
         this.createDashboardItemToGridStackInBatch = function() {
