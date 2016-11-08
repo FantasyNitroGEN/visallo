@@ -277,13 +277,13 @@ define([
                     const specs = specsForNode(cyNode, toPosition);
                     if (animate) {
                         decorations.each(function() {
-                            const position = calculatePosition(this.data('alignment'), this, specs);
+                            const position = calculatePosition(this.data('padding'), this.data('alignment'), this, specs);
                             this.stop().animate({ position }, { ...ANIMATION });
                         })
                     } else {
                         this.state.cy.batch(function() {
                             decorations.each(function() {
-                                this.position(calculatePosition(this.data('alignment'), this, specs));
+                                this.position(calculatePosition(this.data('padding'), this.data('alignment'), this, specs));
                             })
                         })
                     }
@@ -622,7 +622,7 @@ define([
                         })
                         decorations.push(() => {
                             const specs = specsForNode(cy.getElementById(data.vertex.id));
-                            dec.position(calculatePosition(data.alignment, dec, specs));
+                            dec.position(calculatePosition(data.padding, data.alignment, dec, specs));
                         })
                     } else {
                         cy.add({ ...item, group: 'nodes' })
@@ -724,7 +724,10 @@ define([
 
     return Cytoscape;
 
-    function calculatePosition(alignment, decorationNode, specs) {
+    function calculatePosition(padding, alignment, decorationNode, specs) {
+        const paddingX = padding && ('x' in padding) ? padding.x : 8;
+        const paddingY = padding && ('y' in padding) ? padding.y : 8;
+
         if (alignment) {
             var x, y,
                 decBBox = decorationNode ?
@@ -732,8 +735,7 @@ define([
                     { w: 0, h: 0 },
                 decBBoxLabels = decorationNode ?
                     decorationNode.boundingBox({ includeLabels: true }) :
-                    { w: 0, h: 0 },
-                padding = 8;
+                    { w: 0, h: 0 };
 
             switch (alignment.h) {
               case 'center':
@@ -749,7 +751,7 @@ define([
                 } else {
                     x = specs.position.x + specs.w / 2 + decBBox.w / 2;
                 }
-                x += padding
+                x += paddingX
                 break;
 
               case 'left':
@@ -762,7 +764,7 @@ define([
                 } else {
                     x = specs.position.x - specs.w / 2 - decBBox.w / 2;
                 }
-                x -= padding
+                x -= paddingX
             }
             switch (alignment.v) {
               case 'center':
@@ -771,22 +773,22 @@ define([
 
               case 'bottom':
                 if (specs.textVAlign === alignment.v && alignment.h === 'center') {
-                    y = specs.position.y - specs.h / 2 + specs.bboxLabels.h + decBBoxLabels.h / 2 + padding;
+                    y = specs.position.y - specs.h / 2 + specs.bboxLabels.h + decBBoxLabels.h / 2 + paddingY;
                 } else if (specs.textVAlign === alignment.v) {
-                    y = specs.position.y + specs.h / 2 + padding + (specs.bboxLabels.h - specs.h - padding) / 2;
+                    y = specs.position.y + specs.h / 2 + paddingY + (specs.bboxLabels.h - specs.h - paddingY) / 2;
                 } else {
-                    y = specs.position.y + specs.h / 2 + decBBoxLabels.h / 2 + padding;
+                    y = specs.position.y + specs.h / 2 + decBBoxLabels.h / 2 + paddingY;
                 }
                 break;
 
               case 'top':
               default:
                 if (specs.textVAlign === alignment.v && alignment.h === 'center') {
-                    y = specs.position.y + specs.h / 2 - specs.bboxLabels.h - decBBoxLabels.h / 2 - padding;
+                    y = specs.position.y + specs.h / 2 - specs.bboxLabels.h - decBBoxLabels.h / 2 - paddingY;
                 } else if (specs.textVAlign === alignment.v) {
-                    y = specs.position.y - specs.h / 2 - padding - (specs.bboxLabels.h - specs.h - padding) / 2;
+                    y = specs.position.y - specs.h / 2 - paddingY - (specs.bboxLabels.h - specs.h - paddingY) / 2;
                 } else {
-                    y = specs.position.y - specs.h / 2 - decBBoxLabels.h / 2 - padding
+                    y = specs.position.y - specs.h / 2 - decBBoxLabels.h / 2 - paddingY
                 }
             }
 

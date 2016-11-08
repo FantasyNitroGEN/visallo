@@ -562,6 +562,7 @@ define([
                                     if (!data) {
                                         return;
                                     }
+                                    var { padding } = dec;
                                     return {
                                         group: 'nodes',
                                         classes: mapDecorationToClasses(dec, vertex),
@@ -569,6 +570,7 @@ define([
                                             ...data,
                                             id: idForDecoration(dec, vertex.id),
                                             alignment: dec.alignment,
+                                            padding,
                                             parent: parentId,
                                             vertex
                                         },

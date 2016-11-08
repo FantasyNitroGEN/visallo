@@ -592,7 +592,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 if (otherVertex == null) {
                     LOGGER.error(
                             "updateEntitiesOnWorkspace: could not find vertex with id \"%s\" for workspace \"%s\"",
-                            update.getVertexId(),
+                            vertexId,
                             workspace.getWorkspaceId()
                     );
                     continue;

@@ -497,9 +497,6 @@ define([
 
             this.olEvents.push(map.on('click', function(event) {
                 self.props.onTap(event);
-                // TODO:
-                //self.closeMenu();
-                //self.onMapClicked(event, map);
             }));
             this.olEvents.push(map.on('pointerup', function(event) {
                 const { pointerEvent } = event;
