@@ -31,8 +31,8 @@ define([
         ],
 
         ACTION_TYPES = {
-            full: MUTALLY_EXCLUSIVE_SWITCHES[0],
-            pane: MUTALLY_EXCLUSIVE_SWITCHES[1],
+            full: MUTALLY_EXCLUSIVE_SWITCHES[1],
+            pane: MUTALLY_EXCLUSIVE_SWITCHES[2],
             url: { names: [], options: {}}
         },
 
