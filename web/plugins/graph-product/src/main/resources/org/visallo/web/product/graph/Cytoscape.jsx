@@ -340,6 +340,10 @@ define([
             cy.animate({ zoom: zoom2, pan: pan2 }, { ...ANIMATION, queue: false });
         },
 
+        onMenuFitToWindow() {
+            this.fit();
+        },
+
         onMenuSelect(select) {
             const { cy } = this.state;
 
