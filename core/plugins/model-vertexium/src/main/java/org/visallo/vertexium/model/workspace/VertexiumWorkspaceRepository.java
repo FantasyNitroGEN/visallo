@@ -970,7 +970,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 }
                 previewImageMD5 = sb.toString();
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                LOGGER.error("No md5 algorithm available for product previews", e);
             }
 
             StreamingPropertyValue value = new StreamingPropertyValue(new ByteArrayInputStream(imageData), byte[].class);
