@@ -844,9 +844,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             if (entry != null) {
                 md5 = (String) entry.getValue();
             }
-            StreamingPropertyValue previewValue = (StreamingPropertyValue) previewDataUrlProperty.getValue();
-            previewDataUrl = previewValue.getInputStream();
-
         }
 
         // Don't use current workspace, use the product workspace.
@@ -855,7 +852,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             workspaceId = edgeInfos.get(0).getVertexId();
         }
 
-        return new VertexiumProduct(productVertex.getId(), workspaceId, title, kind, data, extendedDataStr, previewDataUrl, md5);
+        return new VertexiumProduct(productVertex.getId(), workspaceId, title, kind, data, extendedDataStr, md5);
     }
 
     @Override
@@ -1122,6 +1119,26 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         } else {
             throw new VisalloException("Work Product of kind: " + kind + " not found");
         }
+    }
+
+    @Override
+    public InputStream getProductPreviewById(String workspaceId, String productId, User user) {
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+        Vertex productVertex = getGraph().getVertex(productId, authorizations);
+        if (productVertex != null) {
+            Property previewDataUrlProperty = WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.getProperty(productVertex, user.getUserId());
+            if (previewDataUrlProperty != null) {
+                StreamingPropertyValue previewValue = (StreamingPropertyValue) previewDataUrlProperty.getValue();
+                if (previewValue != null) {
+                    return previewValue.getInputStream();
+                }
+            }
+        }
+        return null;
     }
 
     @Override

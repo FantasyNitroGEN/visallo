@@ -5,7 +5,6 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.user.User;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
@@ -29,15 +28,11 @@ public class ProductPreview implements ParameterizedHandler {
             User user,
             VisalloResponse response
     ) throws Exception {
-        Product product = workspaceRepository.findProductById(workspaceId, productId, null, false, user);
-        InputStream preview = product.getPreviewDataUrl();
-        if (preview == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        } else {
-            try {
+        try (InputStream preview = workspaceRepository.getProductPreviewById(workspaceId, productId, user)) {
+            if (preview == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            } else {
                 response.write(preview);
-            } finally {
-                preview.close();
             }
         }
     }

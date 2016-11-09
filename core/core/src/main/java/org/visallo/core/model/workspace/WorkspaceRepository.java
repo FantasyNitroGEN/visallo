@@ -30,6 +30,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -910,6 +911,8 @@ public abstract class WorkspaceRepository {
     public abstract void deleteProduct(String workspaceId, String productId, User user);
 
     public abstract Product findProductById(String workspaceId, String productId, JSONObject params, boolean includeExtended, User user);
+
+    public abstract InputStream getProductPreviewById(String workspaceId, String productId, User user);
 
     protected VisibilityTranslator getVisibilityTranslator() {
         return visibilityTranslator;
