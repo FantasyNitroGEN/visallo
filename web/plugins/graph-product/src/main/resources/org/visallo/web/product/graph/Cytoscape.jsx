@@ -76,6 +76,7 @@ define([
 
         propTypes: {
             initialProductDisplay: PropTypes.bool,
+            hasPreview: PropTypes.bool,
             ...eventPropTypes
         },
 
@@ -146,7 +147,7 @@ define([
 
         componentDidUpdate() {
             const { cy } = this.state;
-            const { elements, drawEdgeToMouseFrom, initialProductDisplay } = this.props;
+            const { elements, drawEdgeToMouseFrom, initialProductDisplay, hasPreview } = this.props;
             const newData = { elements };
             const oldData = cy.json()
             const disableSelection = Boolean(drawEdgeToMouseFrom);
@@ -169,9 +170,10 @@ define([
 
             const viewport = this.updateConfiguration(this.previousConfig, this.props.config);
             let deferredNodes = [], decorations = [];
+            let nodeChanges, edgeChanges;
             cy.batch(() => {
-                this.makeChanges(oldNodes, newNodes, deferredNodes, decorations)
-                this.makeChanges(oldEdges, newEdges, null, null);
+                nodeChanges = this.makeChanges(oldNodes, newNodes, deferredNodes, decorations)
+                edgeChanges = this.makeChanges(oldEdges, newEdges, null, null);
             })
             deferredNodes.forEach(n => n());
             cy.batch(() => decorations.forEach(n => n()));
@@ -179,6 +181,9 @@ define([
             cy.autounselectify(disableSelection)
 
             this.adjustViewport(cy, viewport, initialProductDisplay);
+            if ((initialProductDisplay && !hasPreview) || nodeChanges || edgeChanges) {
+                this.updatePreview();
+            }
         },
 
         adjustViewport(cy, viewport, initialProductDisplay) {
@@ -553,6 +558,7 @@ define([
                 }
             })
 
+            let modifiedPosition = false;
             modify.forEach(({ item, diffs }) => {
                 const topLevelChanges = _.indexBy(diffs.filter(diff => diff.op !== 'remove'), d => d.path.replace(/^\/([^\/]+).*$/, '$1'))
                 Object.keys(topLevelChanges).forEach(change => {
@@ -590,6 +596,7 @@ define([
 
                         case 'position':
                             if (!cyNode.grabbed() && !(cyNode.id() in this.moving)) {
+                                modifiedPosition = true;
                                 if (!item.data.alignment) {
                                     if (this.props.animate) {
                                         this.positionDisabled = true;
@@ -611,6 +618,7 @@ define([
 
                         case 'renderedPosition':
                             if (!topLevelChanges.position && change) {
+                                modifiedPosition = true;
                                 this.disableEvent('position', () => cyNode.renderedPosition(item.renderedPosition))
                             }
                             break;
@@ -646,6 +654,7 @@ define([
                     cy.remove(cyNode)
                 }
             })
+            return add.length || remove.length || modifiedPosition;
         },
 
         drawPaths(newData) {

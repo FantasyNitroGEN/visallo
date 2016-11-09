@@ -142,8 +142,9 @@ define([
 
         render() {
             var { viewport, initialProductDisplay, draw, paths } = this.state,
-                { panelPadding, registry, workspace } = this.props,
+                { panelPadding, registry, workspace, product } = this.props,
                 { editable } = workspace,
+                { previewMD5 } = product,
                 config = {...CONFIGURATION(this.props), ...viewport},
                 events = {
                     onSelect: this.onSelect,
@@ -179,6 +180,7 @@ define([
                         {...menuHandlers}
                         tools={this.getTools()}
                         initialProductDisplay={initialProductDisplay}
+                        hasPreview={Boolean(previewMD5)}
                         config={config}
                         panelPadding={panelPadding}
                         elements={cyElements}
