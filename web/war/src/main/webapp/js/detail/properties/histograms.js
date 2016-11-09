@@ -647,19 +647,18 @@ define([
             textWidth = getWidthOfNodeByClass('on-bar-text'),
             textNumberWidth = getWidthOfNodeByClass('on-number-bar-text'),
             barRect = this.parentNode.nextSibling,
-            barWidthVal = barRect.width.baseVal,
-            barWidth = barWidthVal.value,
+            barWidth = barRect.getBoundingClientRect().width,
             remainingBarWidth = barWidth - textWidth - tX - PADDING,
             mask0 = this.parentNode.querySelector('defs mask:first-child');
 
-        if (remainingBarWidth <= textNumberWidth && barWidthVal.valueAsString !== '100%') {
+        if (remainingBarWidth <= textNumberWidth) {
             if (mask0) mask0.setAttribute('width', '100%');
             this.setAttribute('x', Math.max(barWidth, tX + textWidth) + PADDING);
             this.setAttribute('text-anchor', 'start');
             this.setAttribute('dx', 0);
         } else {
             if (mask0) mask0.setAttribute('width', (1 - (textNumberWidth + PADDING * 2) / barWidth) * 100 + '%');
-            this.setAttribute('x', barWidthVal.valueAsString);
+            this.setAttribute('x', barWidth);
             this.setAttribute('dx', -PADDING);
             this.setAttribute('text-anchor', 'end');
         }
