@@ -504,6 +504,8 @@ define([
 
         updateConfiguration(previous, nextConfig) {
             const { cy } = this.state;
+            var retViewport = null;
+
             if (previous) {
                 let { style, pan, zoom, ...other } = nextConfig
                 _.each(other, (val, key) => {
@@ -515,14 +517,17 @@ define([
                 })
 
                 if (!_.isEqual(previous.style, style)) {
-                    cy.style(style)
+                    cy.style()
+                        .resetToDefault()
+                        .fromJson(style)
+                        .update();
                 }
 
-                // Set viewport
-                return { pan, zoom }
+                retViewport = { pan, zoom }
             }
 
             this.previousConfig = nextConfig
+            return retViewport;
         },
 
         makeChanges(older, newer, reparenting, decorations) {
