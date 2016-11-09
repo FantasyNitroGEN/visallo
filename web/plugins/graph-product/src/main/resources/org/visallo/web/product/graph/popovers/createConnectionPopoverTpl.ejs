@@ -1,0 +1,16 @@
+<div class="popover connect-dialog top">
+  <div class="popover-title">
+    <button class="btn btn-link invert-connection">Invert</button>
+    <span class="title"><%= cy.getElementById(edge.data('source')).data('truncatedTitle') %></span>
+  </div>
+  <div class="arrow"></div>
+  <div class="popover-content">
+    <div class="errors"></div>
+    <div class="form create-connection-form">
+      <select></select>
+      <div class="justification"></div>
+      <div class="visibility"></div>
+      <button class="btn btn-primary"><%= i18n('popovers.connection.button.connect') %></button>
+    </div>
+  </div>
+</div>

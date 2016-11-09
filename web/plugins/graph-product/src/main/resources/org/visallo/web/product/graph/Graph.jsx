@@ -5,6 +5,7 @@ define([
     './styles',
     './GraphEmpty',
     './GraphExtensionViews',
+    './popovers/index',
     'util/vertex/formatters',
     'util/retina',
     'components/RegistryInjectorHOC'
@@ -15,6 +16,7 @@ define([
     styles,
     GraphEmpty,
     GraphExtensionViews,
+    Popovers,
     F,
     retina,
     RegistryInjectorHOC) {
@@ -380,15 +382,15 @@ define([
                 position = { x: window.lastMousePositionX, y: window.lastMousePositionY };
             }
 
-            // TODO: privilieges
-            //if (Privileges.canEDIT) {
-            Promise.require('util/popovers/fileImport/fileImport')
-                .then(CreateVertex => {
-                    CreateVertex.attachTo(this.refs.node, {
-                        anchorTo: { page: position }
+
+            if (this.props.workspace.editable) {
+                Promise.require('util/popovers/fileImport/fileImport')
+                    .then(CreateVertex => {
+                        CreateVertex.attachTo(this.refs.node, {
+                            anchorTo: { page: position }
+                        });
                     });
-                });
-            //}
+            }
         },
 
         onUpdatePreview(data) {
@@ -670,23 +672,16 @@ define([
         showConnectionPopover() {
             const cy = this.refs.cytoscape.state.cy;
             const { connectionType, vertexId, toVertexId, connectionData } = this.state.draw;
-            const componentName = {
-                CreateConnection: 'createConnectionPopover',
-                FindPath: 'findPathPopover'
-            }[connectionType] || 'controlDragPopover';
-            const path = `graph/popovers/${componentName}`;
-
-            Promise.require(path).then(Popover => {
-                Popover.teardownAll();
-                Popover.attachTo(this.refs.node, {
-                    cy,
-                    cyNode: cy.getElementById(toVertexId),
-                    otherCyNode: cy.getElementById(vertexId),
-                    edge: cy.$('edge.drawEdgeToMouse'),
-                    outVertexId: vertexId,
-                    inVertexId: toVertexId,
-                    connectionData
-                });
+            const Popover = Popovers(connectionType);
+            Popover.teardownAll();
+            Popover.attachTo(this.refs.node, {
+                cy,
+                cyNode: cy.getElementById(toVertexId),
+                otherCyNode: cy.getElementById(vertexId),
+                edge: cy.$('edge.drawEdgeToMouse'),
+                outVertexId: vertexId,
+                inVertexId: toVertexId,
+                connectionData
             });
         },
 

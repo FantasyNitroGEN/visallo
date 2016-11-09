@@ -21,6 +21,12 @@ var VisalloAmdExternals = [
     'util/vertex/formatters',
     'util/retina',
     'util/withContextMenu',
+    'util/withDataRequest',
+    'util/withTeardown',
+    'util/withFormFieldErrors',
+    'detail/dropdowns/propertyForm/justification',
+    'util/visibility/edit',
+    'flight/lib/component',
     'cytoscape',
     'fast-json-patch',
     'updeep',
@@ -72,10 +78,15 @@ module.exports = {
     }
   ]),
   resolve: {
-    extensions: ['', '.js', '.jsx', '.hbs']
+    extensions: ['', '.js', '.jsx', '.hbs', '.ejs']
   },
   module: {
     loaders: [
+        {
+            test: /\.ejs$/,
+            exclude: /(node_modules)/,
+            loader: 'ejs-compiled'
+        },
         {
             test: /\.jsx?$/,
             exclude: /(node_modules)/,
