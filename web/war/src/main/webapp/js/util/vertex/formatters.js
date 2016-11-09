@@ -142,31 +142,19 @@ define([
                 },
 
                 geoLocation: function(el, property) {
-                    if ($('#app.fullscreen-details').length) {
-                        $(el).append(
-                            F.geoLocation.pretty(property.value)
-                        );
-                        return el;
-                    }
-
-                    var anchor = $('<a>')
-                        .addClass('map-coordinates')
-                        .data({
-                            latitude: property.value.latitude,
-                            longitude: property.value.longitude
-                        }),
+                    var wrap = $('<span>'),
                         displayValue = F.geoLocation.pretty(property.value, true);
 
                     if (property.value.description) {
-                        anchor.append(property.value.description + ' ');
+                        wrap.append(property.value.description + ' ');
                     }
 
                     $('<small>')
                         .css('white-space', 'nowrap')
                         .text(F.geoLocation.pretty(property.value, true))
-                        .appendTo(anchor);
+                        .appendTo(wrap);
 
-                    anchor.appendTo(el);
+                    wrap.appendTo(el);
 
                     return el;
                 },
