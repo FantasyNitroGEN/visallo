@@ -160,6 +160,7 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
 
         workspaceRepository = new VertexiumWorkspaceRepository(
                 graph,
+                graphRepository,
                 userRepository,
                 graphAuthorizationRepository,
                 workspaceDiff,

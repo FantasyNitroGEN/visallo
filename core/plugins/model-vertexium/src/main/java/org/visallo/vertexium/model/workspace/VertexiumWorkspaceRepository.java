@@ -22,6 +22,8 @@ import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.formula.FormulaEvaluator;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -29,6 +31,7 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
 import org.visallo.core.model.workspace.product.Product;
@@ -62,6 +65,7 @@ import static org.visallo.core.util.StreamUtil.stream;
 public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexiumWorkspaceRepository.class);
     private UserRepository userRepository;
+    private GraphRepository graphRepository;
     private GraphAuthorizationRepository graphAuthorizationRepository;
     private WorkspaceDiffHelper workspaceDiff;
     private Configuration configuration;
@@ -100,6 +104,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     @Inject
     public VertexiumWorkspaceRepository(
             Graph graph,
+            GraphRepository graphRepository,
             UserRepository userRepository,
             GraphAuthorizationRepository graphAuthorizationRepository,
             WorkspaceDiffHelper workspaceDiff,
@@ -118,6 +123,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workQueueRepository,
                 authorizationRepository
         );
+        this.graphRepository = graphRepository;
         this.userRepository = userRepository;
         this.graphAuthorizationRepository = graphAuthorizationRepository;
         this.workspaceDiff = workspaceDiff;
@@ -931,6 +937,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
     }
 
+    @Override
     public Product updateProductPreview(String workspaceId, String productId, String previewDataUrl, User user) {
         LOGGER.debug(
                 "updateProductPreview(workspaceId: %s, productId: %s, userId: %s)",
@@ -952,48 +959,31 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workspaceId
         );
         Visibility visibility = VISIBILITY.getVisibility();
-        Graph graph = getGraph();
-        VertexBuilder productVertexBuilder = graph.prepareVertex(productId, visibility);
+        Vertex productVertex;
+        ProductPreview preview = getProductPreviewFromUrl(previewDataUrl);
 
-        String previewImageMD5 = null;
-        if (previewDataUrl != null && previewDataUrl.indexOf("base64") >= 0) {
-            String encodingPrefix = "base64,";
-            int contentStartIndex = previewDataUrl.indexOf(encodingPrefix) + encodingPrefix.length();
-            byte[] imageData = Base64.getDecoder().decode(previewDataUrl.substring(contentStartIndex));
-            MessageDigest md = null;
-            try {
-                md = MessageDigest.getInstance("MD5");
-                byte[] array = md.digest(imageData);
-                StringBuffer sb = new StringBuffer();
-                for (int i = 0; i < array.length; i++) {
-                    sb.append( String.format( "%02x", array[i]));
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+            productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elCtx -> {
+                if (preview == null) {
+                    WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.removeProperty(elCtx.getMutation(), user.getUserId(), visibility);
+                } else {
+                    StreamingPropertyValue value = new StreamingPropertyValue(new ByteArrayInputStream(preview.getImageData()), byte[].class);
+                    value.store(true).searchIndex(false);
+                    Metadata metadata = new Metadata();
+                    metadata.add("http://visallo.org/product#previewImageMD5", preview.getMD5(), visibility);
+                    WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.addPropertyValue(
+                            elCtx.getMutation(),
+                            user.getUserId(),
+                            value,
+                            metadata,
+                            visibility);
                 }
-                previewImageMD5 = sb.toString();
-            } catch (NoSuchAlgorithmException e) {
-                LOGGER.error("No md5 algorithm available for product previews", e);
-            }
-
-            StreamingPropertyValue value = new StreamingPropertyValue(new ByteArrayInputStream(imageData), byte[].class);
-            value.store(true).searchIndex(false);
-            Metadata metadata = new Metadata();
-            metadata.add("http://visallo.org/product#previewImageMD5", previewImageMD5, visibility);
-            WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.addPropertyValue(
-                    productVertexBuilder,
-                    user.getUserId(),
-                    value,
-                    metadata,
-                    visibility);
-        } else if (previewDataUrl != null) {
-            WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.removeProperty(productVertexBuilder, user.getUserId(), visibility);
-            previewImageMD5 = "";
+            });
+        } catch(Exception e) {
+            throw new RuntimeException(e);
         }
 
-        Vertex productVertex = productVertexBuilder.save(authorizations);
-        graph.flush();
-
-        if (previewImageMD5 != null) {
-            getWorkQueueRepository().broadcastWorkProductPreviewChange(productVertex.getId(), workspaceId, user, previewImageMD5);
-        }
+        getWorkQueueRepository().broadcastWorkProductPreviewChange(productVertex.getId(), workspaceId, user, preview == null ? null : preview.getMD5());
 
         return productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
     }
@@ -1161,6 +1151,29 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
 
         return productVertexToProduct(workspaceId, productVertex, authorizations, extendedData, user);
+    }
+
+    private ProductPreview getProductPreviewFromUrl(String url) {
+        if (url != null && url.indexOf("base64") >= 0) {
+            String encodingPrefix = "base64,";
+            int contentStartIndex = url.indexOf(encodingPrefix) + encodingPrefix.length();
+            byte[] imageData = Base64.getDecoder().decode(url.substring(contentStartIndex));
+            MessageDigest md = null;
+            String md5 = null;
+            try {
+                md = MessageDigest.getInstance("MD5");
+                byte[] array = md.digest(imageData);
+                StringBuffer sb = new StringBuffer();
+                for (int i = 0; i < array.length; i++) {
+                    sb.append(String.format("%02x", array[i]));
+                }
+                md5 = sb.toString();
+                return new ProductPreview(imageData, md5);
+            } catch (NoSuchAlgorithmException e) {
+                LOGGER.error("No md5 algorithm available for product previews", e);
+            }
+        }
+        return null;
     }
 
     private void createEdge(
@@ -1403,5 +1416,22 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     @Inject
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
+    }
+
+    private class ProductPreview {
+        private byte[] imageData;
+        private String md5;
+        ProductPreview(byte[] imageData, String md5) {
+            this.imageData = imageData;
+            this.md5 = md5;
+        }
+
+        public byte[] getImageData() {
+            return imageData;
+        }
+
+        public String getMD5() {
+            return md5;
+        }
     }
 }
