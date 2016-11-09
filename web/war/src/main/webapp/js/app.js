@@ -345,11 +345,13 @@ define([
             if ($button.is(':visible')) {
                 WorkspaceTimeline.attachTo(this.$node.find('.workspace-timeline'));
                 this.$node.toggleClass('workspace-timeline-visible');
+                $button.toggleClass('expanded');
                 if (!this.$node.hasClass('workspace-timeline-visible')) {
                     this.$node.find('.workspace-timeline').teardownComponent(WorkspaceTimeline);
                 }
             } else {
                 this.$node.removeClass('workspace-timeline-visible');
+                $button.removeClass('expanded');
             }
         };
 
