@@ -74,7 +74,7 @@ define([
                         <div style={{display: (optionsOpen ? 'block' : 'none')}} className="options-container">
                             <ul>{
                                 tools.map((tool, i) => {
-                                    return <li key={tool.identifier}><Attacher componentPath={tool.optionComponentPath} {...tool.getProps()} /></li>
+                                    return <Attacher nodeType="li" key={tool.identifier} componentPath={tool.optionComponentPath} {...tool.getProps()} />
                                 })
                             }</ul>
                         </div>

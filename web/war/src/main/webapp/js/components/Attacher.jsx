@@ -8,7 +8,12 @@ define([
     const Attacher = React.createClass({
 
         propTypes: {
-            componentPath: PropTypes.string.isRequired
+            componentPath: PropTypes.string.isRequired,
+            nodeType: PropTypes.string
+        },
+
+        getDefaultProps() {
+            return { nodeType: 'div' };
         },
 
         componentDidMount() {
@@ -26,7 +31,9 @@ define([
         },
 
         render() {
-            return <div ref="node" />;
+            const { nodeType } = this.props;
+
+            return React.createElement(nodeType, { ref: 'node' });
         },
 
         reattach(props) {

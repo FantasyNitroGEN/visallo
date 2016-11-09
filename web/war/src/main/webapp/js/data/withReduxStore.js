@@ -37,10 +37,10 @@ define([
             var self = this;
 
             loadOntology();
-            loadPixeRatio();
+            loadPixelRatio();
             loadConfiguration();
 
-            function loadPixeRatio() {
+            function loadPixelRatio() {
                 require(['util/retina', 'data/web-worker/store/screen/actions'], (retina, screenActions) => {
                     $(document).on('devicePixelRatioChanged', (event, { devicePixelRatio }) => {
                         self._reduxStore.dispatch(screenActions.setPixelRatio(devicePixelRatio))

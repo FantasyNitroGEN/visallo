@@ -77,7 +77,10 @@ module.exports = {
   devtool: 'source-map',
   plugins: [
     new webpack.optimize.UglifyJsPlugin({
-        mangle: false
+        mangle: false,
+        compress: {
+            drop_debugger: false
+        }
     })
   ]
 };
