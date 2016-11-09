@@ -116,6 +116,7 @@ define([
             if (nextProps.product.id === this.props.product.id) {
                 this.setState({ viewport: {}, initialProductDisplay: false })
             } else {
+                this.teardownPreviews();
                 this.saveViewport(nextProps)
                 this.setState({ viewport: nextProps.viewport || {}, initialProductDisplay: true })
             }
@@ -125,9 +126,18 @@ define([
             this.removeEvents.forEach(({ node, func, events }) => {
                 $(node).off(events, func);
             })
+
+            this.teardownPreviews();
             this.popoverHelper.destroy();
             this.popoverHelper = null;
             this.saveViewport(this.props)
+        },
+
+        teardownPreviews() {
+            if (this.detailPopoversMap) {
+                _.each(this.detailPopoversMap, e => $(e).teardownAllComponents())
+                this.detailPopoversMap = {};
+            }
         },
 
         render() {
@@ -147,6 +157,7 @@ define([
                     onMouseOver: this.onMouseOver,
                     onMouseOut: this.onMouseOut,
                     onTap: this.onTap,
+                    onTapHold: this.onTapHold,
                     onTapStart: this.onTapStart,
                     onContextTap: this.onContextTap,
                     onPan: this.onViewport,
@@ -401,6 +412,12 @@ define([
             const cy = this.refs.cytoscape.state.cy;
             cy.autoungrabify(false);
             this.setState({ draw: null })
+        },
+
+        onTapHold({ cy, cyTarget }) {
+            if (cy !== cyTarget) {
+                this.previewVertex(null, { vertexId: cyTarget.id() })
+            }
         },
 
         onTapStart(event) {
