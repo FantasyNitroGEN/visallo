@@ -53,7 +53,8 @@ define([
             var self = this;
 
             getObjectsFromClipboardData(data.data).then(elements => {
-                if (elements.length) {
+                const { vertexIds, edgeIds } = elements;
+                if (elements && !(_.isEmpty(vertexIds) && _.isEmpty(edgeIds))) {
                     this.trigger('elementsPasted', elements);
                 } else {
                     this.trigger('genericPaste', data);
