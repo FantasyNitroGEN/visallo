@@ -1016,7 +1016,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Vertex productVertex;
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
             productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elCtx -> {
-                String id = elCtx.getElement().getId();
+                String id = productId;
                 VisalloProperties.CONCEPT_TYPE.setProperty(
                         elCtx.getMutation(),
                         WorkspaceProperties.PRODUCT_CONCEPT_IRI,
@@ -1028,6 +1028,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 String kindValue = null;
                 if (productId == null) {
                     WorkspaceProperties.PRODUCT_KIND.setProperty(elCtx.getMutation(), kind, visibility);
+                    elCtx.save(authorizations);
+                    id = elCtx.getElement().getId();
                 }
 
                 WorkProduct workProduct = getWorkProductByKind(
