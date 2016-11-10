@@ -103,7 +103,7 @@ define([
             }));
         },
 
-        list: () => function handler(dispatch, getState) {
+        list: ({ initialProductId }) => function handler(dispatch, getState) {
             const state = getState();
             const workspaceId = state.workspace.currentId
             const workspaceProduct = state.product.workspaces[workspaceId]
@@ -118,7 +118,9 @@ define([
                 ajax('GET', '/product/all').then(({types, products}) => {
                     dispatch({type: 'PRODUCT_UPDATE_TYPES', payload: { types }})
                     dispatch({type: 'PRODUCT_LIST', payload: { workspaceId, loading: false, loaded: true, products }})
-                    if (!getState().product.workspaces[workspaceId].selected) {
+                    if (initialProductId) {
+                        dispatch(api.select({ productId: initialProductId }))
+                    } else if (!getState().product.workspaces[workspaceId].selected) {
                         dispatch(api.select({ productId: null }))
                     }
                 })

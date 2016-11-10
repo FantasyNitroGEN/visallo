@@ -233,8 +233,8 @@ define([
                         urlSpecifiedTools = self.attr.openMenubarTools;
 
                     if (urlSpecifiedTools) {
-                        urlSpecifiedTools.forEach(function(name) {
-                            self.trigger(document, 'menubarToggleDisplay', { name: name });
+                        _.each(urlSpecifiedTools, function(options = {}, name) {
+                            self.trigger(document, 'menubarToggleDisplay', { name, options });
                         })
                     }
                     if (properties[defaultKey]) {

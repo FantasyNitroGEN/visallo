@@ -4,7 +4,7 @@ define(['../actions'], function(actions) {
     return actions.createActions({
         workerImpl: 'data/web-worker/store/product/actions-impl',
         actions: {
-            list: () => ({}),
+            list: (initialProductId) => ({ initialProductId }),
             get: (productId) => ({ productId }),
             create: (title, kind, params) => ({ title, kind, params }),
             select: (productId) => ({ productId }),
