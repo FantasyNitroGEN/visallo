@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
+import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 
@@ -15,10 +16,10 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
 
         @Override
-        public void update(JSONObject params, Graph graph, Vertex workspaceVertex, VertexBuilder vertexBuilder, User user, Visibility visibility, Authorizations authorizations) {
+        public void update(JSONObject params, Graph graph, Vertex workspaceVertex, ElementUpdateContext<Vertex> vertexBuilder, User user, Visibility visibility, Authorizations authorizations) {
             JSONObject updateVertices = params.optJSONObject("updateVertices");
             if (updateVertices != null) {
-                Vertex productVertex = graph.getVertex(vertexBuilder.getVertexId(), authorizations);
+                Vertex productVertex = graph.getVertex(vertexBuilder.getElement().getId(), authorizations);
                 List<String> vertexIds = Lists.newArrayList(updateVertices.keys());
                 for (String id : vertexIds) {
                     String edgeId = getEdgeId(productVertex.getId(), id);
@@ -30,7 +31,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
             JSONArray removeVertices = params.optJSONArray("removeVertices");
             if (removeVertices != null) {
                 JSONUtil.toList(removeVertices).stream().forEach(id -> {
-                    graph.softDeleteEdge(getEdgeId(vertexBuilder.getVertexId(), (String) id), authorizations);
+                    graph.softDeleteEdge(getEdgeId(vertexBuilder.getElement().getId(), (String) id), authorizations);
                 });
             }
         }

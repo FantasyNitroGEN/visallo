@@ -1011,41 +1011,44 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workspaceId
         );
         Visibility visibility = VISIBILITY.getVisibility();
-        Graph graph = getGraph();
-        VertexBuilder productVertexBuilder = graph.prepareVertex(productId, visibility);
-        VisalloProperties.CONCEPT_TYPE.setProperty(
-                productVertexBuilder,
-                WorkspaceProperties.PRODUCT_CONCEPT_IRI,
-                getVisibilityTranslator().getDefaultVisibility()
-        );
-        if (productId == null || title != null) {
-            WorkspaceProperties.TITLE.setProperty(productVertexBuilder, title == null ? "" : title.substring(0, Math.min(title.length(),  128)), visibility);
+
+
+        Vertex productVertex;
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+            productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elCtx -> {
+                String id = elCtx.getElement().getId();
+                VisalloProperties.CONCEPT_TYPE.setProperty(
+                        elCtx.getMutation(),
+                        WorkspaceProperties.PRODUCT_CONCEPT_IRI,
+                        getVisibilityTranslator().getDefaultVisibility()
+                );
+                if (productId == null || title != null) {
+                    WorkspaceProperties.TITLE.setProperty(elCtx.getMutation(), title == null ? "" : title.substring(0, Math.min(title.length(),  128)), visibility);
+                }
+                String kindValue = null;
+                if (productId == null) {
+                    WorkspaceProperties.PRODUCT_KIND.setProperty(elCtx.getMutation(), kind, visibility);
+                }
+
+                WorkProduct workProduct = getWorkProductByKind(
+                        kind == null ?
+                        WorkspaceProperties.PRODUCT_KIND.getPropertyValue(elCtx.getElement(), null) : kind
+                );
+                if (params != null) {
+                    workProduct.update(params, getGraph(), workspaceVertex, elCtx, user, visibility, authorizations);
+                }
+                String edgeId = workspaceVertex.getId() + "_hasProduct_" + elCtx.getElement().getId();
+                ctx.getOrCreateEdgeAndUpdate(edgeId, workspaceId, id, WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
+                        visibility,
+                        elemCtx -> {}
+                );
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        if (productId == null) {
-            WorkspaceProperties.PRODUCT_KIND.setProperty(productVertexBuilder, kind, visibility);
-        } else if (kind == null) {
-            Element productVertex = graph.getVertex(productId, authorizations);
-            kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex, null);
-        }
 
-        WorkProduct workProduct = getWorkProductByKind(kind);
-        if (params != null) {
-            workProduct.update(params, graph, workspaceVertex, productVertexBuilder, user, visibility, authorizations);
-        }
 
-        Vertex productVertex = productVertexBuilder.save(authorizations);
-
-        String edgeId = workspaceVertex.getId() + "_hasProduct_" + productVertex.getId();
-        getGraph().addEdge(
-                edgeId,
-                workspaceVertex,
-                productVertex,
-                WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
-                visibility,
-                authorizations
-        );
-
-        graph.flush();
+        getGraph().flush();
 
         Workspace ws = findById(workspaceId, user);
         ClientApiWorkspace userWorkspace = toClientApi(ws, user, authorizations);
