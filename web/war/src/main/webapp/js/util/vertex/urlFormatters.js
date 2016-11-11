@@ -60,9 +60,9 @@ define([], function() {
                     }
 
                     if (match[1] === URL_TYPES.TOOLS) {
-                        const tools = _.unique(match[2].trim().split(','));
-                        const toolsWithOptions = _.object(tools.map(tool => {
-                            const optionsIndex = tool.indexOf('&');
+                        var tools = _.unique(match[2].trim().split(','));
+                        var toolsWithOptions = _.object(tools.map(function(tool) {
+                            var optionsIndex = tool.indexOf('&');
                             var name = tool;
                             var options = {};
                             if (optionsIndex > 0) {

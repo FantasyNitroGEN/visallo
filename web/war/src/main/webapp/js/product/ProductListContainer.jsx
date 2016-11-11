@@ -36,14 +36,8 @@ define([
 
         (dispatch, props) => {
 
-            $(document).on('didToggleDisplay', function(event, data) {
-                if (data.name === 'products' && data.visible) {
-                    dispatch(productActions.list(initialProductId));
-                    initialProductId = null;
-                }
-            })
             return {
-                onLoadProducts: () => { dispatch(productActions.list()) },
+                onLoadProducts: () => { dispatch(productActions.list(initialProductId)); initialProductId = null },
                 onCreate: (type) => { dispatch(productActions.create('Untitled', type)) },
                 onDeleteProduct: (productId) => { dispatch(productActions.delete(productId)) },
                 onUpdateTitle: (productId, title) => {
