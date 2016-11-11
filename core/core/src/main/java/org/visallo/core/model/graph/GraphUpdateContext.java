@@ -63,7 +63,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void close() throws Exception {
+    public void close() {
         pushToWorkQueueRepository();
     }
 
