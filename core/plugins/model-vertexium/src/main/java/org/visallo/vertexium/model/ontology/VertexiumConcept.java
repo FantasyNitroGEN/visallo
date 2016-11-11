@@ -131,11 +131,13 @@ public class VertexiumConcept extends Concept {
     @Override
     public void addIntent(String intent, Authorizations authorizations) {
         OntologyProperties.INTENT.addPropertyValue(vertex, intent, intent, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+        getVertex().getGraph().flush();
     }
 
     @Override
     public void removeIntent(String intent, Authorizations authorizations) {
         OntologyProperties.INTENT.removeProperty(vertex, intent, authorizations);
+        getVertex().getGraph().flush();
     }
 
     @Override
@@ -162,15 +164,18 @@ public class VertexiumConcept extends Concept {
     @Override
     public void setProperty(String name, Object value, Authorizations authorizations) {
         getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+        getVertex().getGraph().flush();
     }
 
     public void removeProperty(String key, String name, Authorizations authorizations) {
         getVertex().softDeleteProperty(key, name, authorizations);
+        getVertex().getGraph().flush();
     }
 
     @Override
     public void removeProperty(String name, Authorizations authorizations) {
         removeProperty(ElementMutation.DEFAULT_KEY, name, authorizations);
+        getVertex().getGraph().flush();
     }
 
     @Override
