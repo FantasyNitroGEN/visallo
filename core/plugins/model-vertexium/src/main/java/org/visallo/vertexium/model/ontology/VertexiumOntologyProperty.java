@@ -16,11 +16,13 @@ import java.util.Map;
 
 public class VertexiumOntologyProperty extends OntologyProperty {
     private final Vertex vertex;
+    private final String iri;
     private ImmutableList<String> dependentPropertyIris;
 
     public VertexiumOntologyProperty(Vertex vertex, ImmutableList<String> dependentPropertyIris) {
         this.vertex = vertex;
         this.dependentPropertyIris = dependentPropertyIris;
+        this.iri = OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(vertex);
     }
 
     @Override
@@ -29,7 +31,7 @@ public class VertexiumOntologyProperty extends OntologyProperty {
     }
 
     public String getTitle() {
-        return OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(vertex);
+        return iri;
     }
 
     public String getDisplayName() {
