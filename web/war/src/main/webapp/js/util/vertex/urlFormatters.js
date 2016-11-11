@@ -60,7 +60,7 @@ define([], function() {
                     }
 
                     if (match[1] === URL_TYPES.TOOLS) {
-                        var tools = _.unique(match[2].trim().split(','));
+                        var tools = _.uniq(match[2].trim().split(','));
                         var toolsWithOptions = _.object(tools.map(function(tool) {
                             var optionsIndex = tool.indexOf('&');
                             var name = tool;

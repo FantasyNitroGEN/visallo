@@ -90,7 +90,7 @@ public class WorkQueueRepositoryTest {
         assertEquals("user123", json.getString("modifiedBy"));
         assertEquals(new JSONObject("{\"users\":[\"user123\"]}").toString(), json.getJSONObject("permissions").toString());
         assertEquals(
-                new JSONObject("{\"vertices\":[],\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"sharedToUser\":false}").toString(),
+                new JSONObject("{\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"sharedToUser\":false}").toString(),
                 json.getJSONObject("data").toString()
         );
         assertEquals("123-123-1234", json.getString("sourceGuid"));
@@ -123,7 +123,7 @@ public class WorkQueueRepositoryTest {
         assertEquals("mockUser2", json.getString("modifiedBy"));
         assertEquals(new JSONObject("{\"users\":[\"mockUser1\"]}").toString(), json.getJSONObject("permissions").toString());
         assertEquals(
-                new JSONObject("{\"vertices\":[],\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"workspaceId\":\"ws1\",\"sharedToUser\":false}").toString(),
+                new JSONObject("{\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"workspaceId\":\"ws1\",\"sharedToUser\":false}").toString(),
                 json.getJSONObject("data").toString()
         );
         assertEquals("123-123-1234", json.getString("sourceGuid"));
