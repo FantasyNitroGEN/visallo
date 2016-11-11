@@ -12,6 +12,11 @@ define([
             if (!workspace) return null;
             const { editable } = workspace;
 
+            if (!loaded && !loading) {
+                this.props.onLoadProducts();
+                return null;
+            }
+
             var itemElements = products.map(product => <ProductListItem key={product.id} registry={registry} product={product} editable={editable} {...rest} />),
                 content = loading ? (<div className="message">{i18n('product.empty.message')}</div>) :
                     loaded && itemElements.length ? itemElements :

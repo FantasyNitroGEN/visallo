@@ -43,6 +43,7 @@ define([
                 }
             })
             return {
+                onLoadProducts: () => { dispatch(productActions.list()) },
                 onCreate: (type) => { dispatch(productActions.create('Untitled', type)) },
                 onDeleteProduct: (productId) => { dispatch(productActions.delete(productId)) },
                 onUpdateTitle: (productId, title) => {
