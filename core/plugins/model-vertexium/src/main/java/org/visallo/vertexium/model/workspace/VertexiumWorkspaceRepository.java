@@ -8,16 +8,22 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.mutation.ExistingEdgeMutation;
+import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.query.Compare;
 import org.vertexium.query.QueryResultsIterable;
 import org.vertexium.search.IndexHint;
-import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
+import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.formula.FormulaEvaluator;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -25,8 +31,12 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
+import org.visallo.core.model.workspace.product.Product;
+import org.visallo.core.model.workspace.product.WorkProduct;
+import org.visallo.core.model.workspace.product.WorkProductElements;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
@@ -35,15 +45,16 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
+import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
-import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -54,9 +65,14 @@ import static org.visallo.core.util.StreamUtil.stream;
 public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexiumWorkspaceRepository.class);
     private UserRepository userRepository;
+    private GraphRepository graphRepository;
     private GraphAuthorizationRepository graphAuthorizationRepository;
     private WorkspaceDiffHelper workspaceDiff;
+    private Configuration configuration;
+    private Collection<WorkProduct> workProducts;
+
     private final LockRepository lockRepository;
+
     private Cache<String, Boolean> usersWithReadAccessCache = CacheBuilder.newBuilder()
             .expireAfterWrite(15, TimeUnit.SECONDS)
             .build();
@@ -88,6 +104,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     @Inject
     public VertexiumWorkspaceRepository(
             Graph graph,
+            GraphRepository graphRepository,
             UserRepository userRepository,
             GraphAuthorizationRepository graphAuthorizationRepository,
             WorkspaceDiffHelper workspaceDiff,
@@ -106,6 +123,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workQueueRepository,
                 authorizationRepository
         );
+        this.graphRepository = graphRepository;
         this.userRepository = userRepository;
         this.graphAuthorizationRepository = graphAuthorizationRepository;
         this.workspaceDiff = workspaceDiff;
@@ -357,7 +375,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             return Lists.newArrayList();
         } else {
             Iterable<Edge> userEdges = workspaceVertex.getEdges(
-                    Direction.BOTH,
+                    Direction.OUT,
                     WORKSPACE_TO_USER_RELATIONSHIP_IRI,
                     authorizations
             );
@@ -443,14 +461,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 .map(edge -> {
                     String entityVertexId = edge.getOtherVertexId(workspace.getWorkspaceId());
 
-                    Integer graphPositionX
-                            = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_X.getPropertyValue(edge);
-                    Integer graphPositionY
-                            = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_Y.getPropertyValue(edge);
-                    String graphLayoutJson
-                            = WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_LAYOUT_JSON.getPropertyValue(edge);
-                    boolean visible = WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.getPropertyValue(edge, false);
-                    if (!includeHidden && !visible) {
+                    if (!includeHidden) {
                         return null;
                     }
 
@@ -460,10 +471,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     }
                     return new WorkspaceEntity(
                             entityVertexId,
-                            visible,
-                            graphPositionX,
-                            graphPositionY,
-                            graphLayoutJson,
                             workspaceVertex1
                     );
                 })
@@ -544,10 +551,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             };
             for (Edge edge : edges) {
                 ExistingEdgeMutation m = edge.prepareMutation();
-                WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.setProperty(m, false, VISIBILITY.getVisibility());
-                WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_LAYOUT_JSON.removeProperty(m, VISIBILITY.getVisibility());
-                WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_X.removeProperty(m, VISIBILITY.getVisibility());
-                WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_Y.removeProperty(m, VISIBILITY.getVisibility());
                 m.setIndexHint(IndexHint.DO_NOT_INDEX);
                 m.save(authorizations);
             }
@@ -558,10 +561,10 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     @Override
     public void updateEntitiesOnWorkspace(
             final Workspace workspace,
-            final Collection<Update> updates,
+            final Collection<String> vertexIds,
             final User user
     ) {
-        if (updates.size() == 0) {
+        if (vertexIds.size() == 0) {
             return;
         }
         if (!hasCommentPermissions(workspace.getWorkspaceId(), user)) {
@@ -587,31 +590,23 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 );
             }
 
-            Iterable<String> vertexIds = new ConvertingIterable<Update, String>(updates) {
-                @Override
-                protected String convert(Update o) {
-                    return o.getVertexId();
-                }
-            };
             Iterable<Vertex> vertices = getGraph().getVertices(vertexIds, authorizations);
             ImmutableMap<String, Vertex> verticesMap = Maps.uniqueIndex(vertices, Element::getId);
 
-            for (Update update : updates) {
-                Vertex otherVertex = verticesMap.get(update.getVertexId());
+            for (String vertexId : vertexIds) {
+                Vertex otherVertex = verticesMap.get(vertexId);
                 if (otherVertex == null) {
                     LOGGER.error(
                             "updateEntitiesOnWorkspace: could not find vertex with id \"%s\" for workspace \"%s\"",
-                            update.getVertexId(),
+                            vertexId,
                             workspace.getWorkspaceId()
                     );
                     continue;
-                }
+                }                            
+
                 createEdge(
                         workspaceVertex,
                         otherVertex,
-                        update.getGraphPosition(),
-                        update.getGraphLayoutJson(),
-                        update.getVisible(),
                         authorizations
                 );
             }
@@ -841,6 +836,31 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return new VertexiumDashboard(dashboardVertex.getId(), workspaceId, title, items);
     }
 
+    private Product productVertexToProduct(String workspaceId, Vertex productVertex, Authorizations authorizations, JSONObject extendedData, User user) {
+        String title = WorkspaceProperties.TITLE.getPropertyValue(productVertex);
+        String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
+        String data = WorkspaceProperties.PRODUCT_DATA.getPropertyValue(productVertex);
+        String extendedDataStr = extendedData == null ? null : extendedData.toString();
+
+        Property previewDataUrlProperty = WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.getProperty(productVertex, user.getUserId());
+        InputStream previewDataUrl = null;
+        String md5 = null;
+        if (previewDataUrlProperty != null) {
+            Metadata.Entry entry = previewDataUrlProperty.getMetadata().getEntry("http://visallo.org/product#previewImageMD5");
+            if (entry != null) {
+                md5 = (String) entry.getValue();
+            }
+        }
+
+        // Don't use current workspace, use the product workspace.
+        List<EdgeInfo> edgeInfos = Lists.newArrayList(productVertex.getEdgeInfos(Direction.BOTH, WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI, authorizations));
+        if (edgeInfos.size() > 0) {
+            workspaceId = edgeInfos.get(0).getVertexId();
+        }
+
+        return new VertexiumProduct(productVertex.getId(), workspaceId, title, kind, data, extendedDataStr, md5);
+    }
+
     @Override
     public String addOrUpdateDashboard(String workspaceId, String dashboardId, String title, User user) {
         LOGGER.debug(
@@ -887,12 +907,283 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return dashboardVertex.getId();
     }
 
+    @Override
+    public Collection<Product> findAllProductsForWorkspace(String workspaceId, User user) {
+        LOGGER.debug("findAllProductsForWorkspace(workspaceId: %s, userId: %s)", workspaceId, user.getUserId());
+        final Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+        final Vertex workspaceVertex = getVertex(workspaceId, user);
+        if (workspaceVertex == null) {
+            return null;
+        }
+        if (!hasReadPermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException(
+                    "user " + user.getUserId() + " does not have read access to workspace " + workspaceId,
+                    user,
+                    workspaceId
+            );
+        }
+        Iterable<Vertex> productVertices = workspaceVertex.getVertices(
+                Direction.OUT,
+                WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
+                authorizations
+        );
+        return stream(productVertices)
+                .map(productVertex -> productVertexToProduct(workspaceId, productVertex, authorizations, null, user))
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public Product updateProductPreview(String workspaceId, String productId, String previewDataUrl, User user) {
+        LOGGER.debug(
+                "updateProductPreview(workspaceId: %s, productId: %s, userId: %s)",
+                workspaceId,
+                productId,
+                user.getUserId()
+        );
+        if (!hasReadPermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException(
+                    "user " + user.getUserId() + " does not have read access to workspace " + workspaceId,
+                    user,
+                    workspaceId
+            );
+        }
+
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+        Visibility visibility = VISIBILITY.getVisibility();
+        Vertex productVertex;
+        ProductPreview preview = getProductPreviewFromUrl(previewDataUrl);
+
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+            productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elCtx -> {
+                if (preview == null) {
+                    WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.removeProperty(elCtx.getMutation(), user.getUserId(), visibility);
+                } else {
+                    StreamingPropertyValue value = new StreamingPropertyValue(new ByteArrayInputStream(preview.getImageData()), byte[].class);
+                    value.store(true).searchIndex(false);
+                    Metadata metadata = new Metadata();
+                    metadata.add("http://visallo.org/product#previewImageMD5", preview.getMD5(), visibility);
+                    WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.addPropertyValue(
+                            elCtx.getMutation(),
+                            user.getUserId(),
+                            value,
+                            metadata,
+                            visibility);
+                }
+            });
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        getWorkQueueRepository().broadcastWorkProductPreviewChange(productVertex.getId(), workspaceId, user, preview == null ? null : preview.getMD5());
+
+        return productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
+    }
+
+    @Override
+    public Product addOrUpdateProduct(String workspaceId, String productId, String title, String kind, JSONObject params, User user) {
+        LOGGER.debug(
+                "addOrUpdateProduct(workspaceId: %s, productId: %s, userId: %s)",
+                workspaceId,
+                productId,
+                user.getUserId()
+        );
+        if (!hasWritePermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException(
+                    "user " + user.getUserId() + " does not have write access to workspace " + workspaceId,
+                    user,
+                    workspaceId
+            );
+        }
+
+        Vertex workspaceVertex = getVertex(workspaceId, user);
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+        Visibility visibility = VISIBILITY.getVisibility();
+
+
+        Vertex productVertex;
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+            productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elCtx -> {
+                String id = productId;
+                VisalloProperties.CONCEPT_TYPE.setProperty(
+                        elCtx.getMutation(),
+                        WorkspaceProperties.PRODUCT_CONCEPT_IRI,
+                        getVisibilityTranslator().getDefaultVisibility()
+                );
+                if (productId == null || title != null) {
+                    WorkspaceProperties.TITLE.setProperty(elCtx.getMutation(), title == null ? "" : title.substring(0, Math.min(title.length(),  128)), visibility);
+                }
+                String kindValue = null;
+                if (productId == null) {
+                    WorkspaceProperties.PRODUCT_KIND.setProperty(elCtx.getMutation(), kind, visibility);
+                    elCtx.save(authorizations);
+                    id = elCtx.getElement().getId();
+                }
+
+                WorkProduct workProduct = getWorkProductByKind(
+                        kind == null ?
+                        WorkspaceProperties.PRODUCT_KIND.getPropertyValue(elCtx.getElement(), null) : kind
+                );
+                if (params != null) {
+                    workProduct.update(params, getGraph(), workspaceVertex, elCtx, user, visibility, authorizations);
+                }
+                String edgeId = workspaceVertex.getId() + "_hasProduct_" + elCtx.getElement().getId();
+                ctx.getOrCreateEdgeAndUpdate(edgeId, workspaceId, id, WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
+                        visibility,
+                        elemCtx -> {}
+                );
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+        getGraph().flush();
+
+        Workspace ws = findById(workspaceId, user);
+        ClientApiWorkspace userWorkspace = toClientApi(ws, user, authorizations);
+
+        getWorkQueueRepository().broadcastWorkProductChange(productVertex.getId(), userWorkspace, user);
+
+        return productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
+    }
+
+    public void deleteProduct(String workspaceId, String productId, User user) {
+        LOGGER.debug("deleteProduct(productId: %s, userId: %s)", productId, user.getUserId());
+        if (!hasWritePermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException(
+                    "user " + user.getUserId() + " does not have write access to workspace " + workspaceId,
+                    user,
+                    workspaceId
+            );
+        }
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+
+        Vertex productVertex = getGraph().getVertex(productId, authorizations);
+        Iterable<Edge> productElementEdges = productVertex.getEdges(
+                Direction.OUT,
+                WorkProductElements.WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                authorizations
+        );
+        for (Edge productToElement : productElementEdges) {
+            getGraph().softDeleteEdge(productToElement, authorizations);
+        }
+
+        getGraph().softDeleteVertex(productId, authorizations);
+        getGraph().flush();
+
+        Workspace ws = findById(workspaceId, user);
+        ClientApiWorkspace userWorkspace = toClientApi(ws, user, authorizations);
+        getWorkQueueRepository().broadcastWorkProductDelete(productId, userWorkspace);
+
+    }
+
+    private WorkProduct getWorkProductByKind(String kind) {
+        if (kind == null) {
+            throw new VisalloException("Work product kind must not be null");
+        }
+        if (workProducts == null) {
+            if (configuration == null) {
+                throw new VisalloException("Configuration not injected");
+            } else {
+                workProducts = InjectHelper.getInjectedServices(WorkProduct.class, configuration);
+            }
+        }
+        Optional<WorkProduct> foundProduct = workProducts.stream().filter(
+                workProduct -> workProduct.getClass().getName().equals(kind)
+        ).findFirst();
+
+        if (foundProduct.isPresent()) {
+            return foundProduct.get();
+        } else {
+            throw new VisalloException("Work Product of kind: " + kind + " not found");
+        }
+    }
+
+    @Override
+    public InputStream getProductPreviewById(String workspaceId, String productId, User user) {
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+        Vertex productVertex = getGraph().getVertex(productId, authorizations);
+        if (productVertex != null) {
+            Property previewDataUrlProperty = WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.getProperty(productVertex, user.getUserId());
+            if (previewDataUrlProperty != null) {
+                StreamingPropertyValue previewValue = (StreamingPropertyValue) previewDataUrlProperty.getValue();
+                if (previewValue != null) {
+                    return previewValue.getInputStream();
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Product findProductById(String workspaceId, String productId, JSONObject params, boolean includeExtended, User user) {
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+        Vertex productVertex = getGraph().getVertex(productId, authorizations);
+        if (productVertex == null) {
+            return null;
+        }
+
+        String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
+        WorkProduct workProduct = getWorkProductByKind(kind);
+        JSONObject extendedData = null;
+        if (includeExtended) {
+            extendedData = workProduct.get(params, getGraph(), getVertex(workspaceId, user), productVertex, user, authorizations);
+        }
+
+        return productVertexToProduct(workspaceId, productVertex, authorizations, extendedData, user);
+    }
+
+    private ProductPreview getProductPreviewFromUrl(String url) {
+        if (url != null && url.indexOf("base64") >= 0) {
+            String encodingPrefix = "base64,";
+            int contentStartIndex = url.indexOf(encodingPrefix) + encodingPrefix.length();
+            byte[] imageData = Base64.getDecoder().decode(url.substring(contentStartIndex));
+            MessageDigest md = null;
+            String md5 = null;
+            try {
+                md = MessageDigest.getInstance("MD5");
+                byte[] array = md.digest(imageData);
+                StringBuffer sb = new StringBuffer();
+                for (int i = 0; i < array.length; i++) {
+                    sb.append(String.format("%02x", array[i]));
+                }
+                md5 = sb.toString();
+                return new ProductPreview(imageData, md5);
+            } catch (NoSuchAlgorithmException e) {
+                LOGGER.error("No md5 algorithm available for product previews", e);
+            }
+        }
+        return null;
+    }
+
     private void createEdge(
             Vertex workspaceVertex,
             Vertex otherVertex,
-            GraphPosition graphPosition,
-            String graphLayoutJson,
-            Boolean visible,
             Authorizations authorizations
     ) {
         String workspaceVertexId = workspaceVertex.getId();
@@ -905,32 +1196,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI,
                 VISIBILITY.getVisibility()
         );
-        if (graphPosition != null) {
-            WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_X.setProperty(
-                    edgeBuilder,
-                    graphPosition.getX(),
-                    VISIBILITY.getVisibility()
-            );
-            WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_POSITION_Y.setProperty(
-                    edgeBuilder,
-                    graphPosition.getY(),
-                    VISIBILITY.getVisibility()
-            );
-        }
-        if (graphLayoutJson != null) {
-            WorkspaceProperties.WORKSPACE_TO_ENTITY_GRAPH_LAYOUT_JSON.setProperty(
-                    edgeBuilder,
-                    graphLayoutJson,
-                    VISIBILITY.getVisibility()
-            );
-        }
-        if (visible != null) {
-            WorkspaceProperties.WORKSPACE_TO_ENTITY_VISIBLE.setProperty(
-                    edgeBuilder,
-                    visible,
-                    VISIBILITY.getVisibility()
-            );
-        }
         edgeBuilder.setIndexHint(IndexHint.DO_NOT_INDEX);
         edgeBuilder.save(authorizations);
     }
@@ -1121,6 +1386,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         });
     }
 
+
+
     @Override
     @Traced
     public ClientApiWorkspaceDiff getDiff(
@@ -1148,5 +1415,28 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             );
             return workspaceDiff.diff(workspace, workspaceEntities, workspaceEdges, userContext, user);
         });
+    }
+
+
+    @Inject
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
+    private class ProductPreview {
+        private byte[] imageData;
+        private String md5;
+        ProductPreview(byte[] imageData, String md5) {
+            this.imageData = imageData;
+            this.md5 = md5;
+        }
+
+        public byte[] getImageData() {
+            return imageData;
+        }
+
+        public String getMD5() {
+            return md5;
+        }
     }
 }

@@ -158,7 +158,6 @@ public class WorkspaceDiffHelper {
                     entityVertex,
                     sandboxStatus,
                     userContext,
-                    workspaceEntity.isVisible(),
                     isPublicDelete
             ));
         }
@@ -175,7 +174,6 @@ public class WorkspaceDiffHelper {
             Vertex vertex,
             SandboxStatus sandboxStatus,
             FormulaEvaluator.UserContext userContext,
-            boolean visible,
             boolean deleted
     ) {
         String vertexId = vertex.getId();
@@ -190,8 +188,7 @@ public class WorkspaceDiffHelper {
                 conceptType,
                 visibilityJson,
                 sandboxStatus,
-                deleted,
-                visible
+                deleted
         );
     }
 

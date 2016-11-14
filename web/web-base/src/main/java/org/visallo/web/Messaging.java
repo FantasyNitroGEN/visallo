@@ -12,7 +12,6 @@ import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 import org.atmosphere.interceptor.BroadcastOnPostAtmosphereInterceptor;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.atmosphere.interceptor.JavaScriptProtocol;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
@@ -22,16 +21,15 @@ import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.user.User;
-import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.UserStatus;
 
-import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -200,15 +198,12 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
         // Handle posts form client
         if (type != null) {
             switch (type) {
-                case "setActiveWorkspace":
+                case MessagingFilter.TYPE_SET_ACTIVE_WORKSPACE:
                     String authUserId = getCurrentUserId(resource);
                     JSONObject dataJson = messageJson.optJSONObject("data");
                     if (dataJson != null) {
                         String workspaceId = dataJson.getString("workspaceId");
-                        String userId = dataJson.getString("userId");
-                        if (userId.equals(authUserId)) {
-                            switchWorkspace(authUserId, workspaceId);
-                        }
+                        switchWorkspace(authUserId, workspaceId);
                     }
                     break;
             }

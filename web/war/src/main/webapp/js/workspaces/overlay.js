@@ -17,7 +17,7 @@ define([
 
     var LAST_SAVED_UPDATE_FREQUENCY_SECONDS = 30,
         MENUBAR_WIDTH = 30,
-        UPDATE_WORKSPACE_DIFF_SECONDS = 3,
+        UPDATE_WORKSPACE_DIFF_SECONDS = 5,
         SHOW_UNPUBLUSHED_CHANGES_SECONDS = 3;
 
     return defineComponent(WorkspaceOverlay, withDataRequest);
@@ -52,6 +52,7 @@ define([
                 'http://docs.visallo.org/extension-points/front-end/userAccount'
             );
 
+            this.updateDiffBadgeImmediate = this.updateDiffBadge;
             this.updateDiffBadge = _.throttle(this.updateDiffBadge.bind(this), UPDATE_WORKSPACE_DIFF_SECONDS * 1000)
 
             this.$node.hide().html(template({}));
@@ -63,12 +64,12 @@ define([
             });
 
             this.on(document, 'workspaceSaving', this.onWorkspaceSaving);
+            this.on(document, 'didToggleDisplay', this.onDidToggleDisplay);
             this.on(document, 'workspaceSaved', this.onWorkspaceSaved);
             this.on(document, 'workspaceLoaded', this.onWorkspaceLoaded);
             this.on(document, 'workspaceUpdated', this.onWorkspaceUpdated);
             this.on(document, 'switchWorkspace', this.onSwitchWorkspace);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
-            this.on(document, 'edgesLoaded', this.onEdgesLoaded);
 
             this.on(document, 'verticesUpdated', this.updateDiffBadge);
             this.on(document, 'verticesDeleted', this.updateDiffBadge);
@@ -79,9 +80,6 @@ define([
             this.on(document, 'toggleDiffPanel', this.toggleDiffPanel);
             this.on(document, 'escape', this.closeDiffPanel);
 
-            this.on(document, 'toggleTimeline', function() {
-                self.select('toggleTimelineSelector').toggleClass('expanded');
-            });
             this.on('click', {
                 toggleTimelineSelector: this.onToggleTimeline
             });
@@ -100,6 +98,15 @@ define([
                 }
             });
         });
+
+        this.onDidToggleDisplay = function(event, data) {
+            if (data.name === 'products-full' && data.visible) {
+                this.select('toggleTimelineSelector').show();
+            } else if (data.visible && data.type === 'full') {
+                this.select('toggleTimelineSelector').hide()
+                this.trigger('toggleTimeline');
+            }
+        };
 
         this.onToggleTimeline = function() {
             this.trigger('toggleTimeline');
@@ -165,7 +172,6 @@ define([
                 workspace.commentable
             );
             clearTimeout(this.updateTimer);
-            this.updateWorkspaceTooltip(workspace);
         };
 
         this.onSwitchWorkspace = function(event, data) {
@@ -179,6 +185,7 @@ define([
             this.$node.show();
             this.updateWithNewWorkspaceData(data);
             this.previousWorkspace = data.workspaceId;
+            this.updateDiffBadgeImmediate();
         };
 
         this.onWorkspaceUpdated = function(event, data) {
@@ -187,14 +194,8 @@ define([
             }
         };
 
-        this.onEdgesLoaded = function(event, data) {
-            this.updateWorkspaceTooltip(data);
-            this.updateDiffBadge();
-        };
-
         this.onWorkspaceSaving = function(event, data) {
             clearTimeout(this.updateTimer);
-            this.updateWorkspaceTooltip(data);
         };
 
         this.onWorkspaceSaved = function(event, data) {
@@ -204,13 +205,11 @@ define([
             if (data.title) {
                 this.select('nameSelector').text(data.title);
             }
-
-            this.updateWorkspaceTooltip(data);
         };
 
         this.onDiffBadgeMouse = function(event) {
             this.trigger(
-                event.type === 'mouseenter' ? 'focusVertices' : 'defocusVertices',
+                event.type === 'mouseenter' ? 'focusElements' : 'defocusElements',
                 { elementIds: this.currentDiffIds || [] }
             );
         };
@@ -426,42 +425,6 @@ define([
                         delay: { show: 250, hide: 0 }
                     })
             }
-        }
-
-        this.updateWorkspaceTooltip = function(data) {
-            if (data && data.data && data.data.vertices) {
-                this.verticesCount = data.data.vertices.length;
-            }
-            if (this.verticesCount === 0) {
-                this.edgesCount = 0;
-            } else if (data.edges) {
-                this.edgesCount = data.edges.length;
-            } else {
-                this.edgesCount = 0;
-            }
-
-            var name = this.select('nameSelector'),
-                tooltip = name.data('tooltip'),
-                tip = tooltip && tooltip.tip(),
-                text = i18n('workspaces.overlay.vertices') + ': ' +
-                    F.number.pretty(this.verticesCount || 0) + ', ' +
-                    i18n('workspaces.overlay.edges') + ': ' +
-                    F.number.pretty(this.edgesCount || 0)
-
-            if (tip && tip.is(':visible')) {
-                tip.find('.tooltip-inner span').text(text);
-            } else {
-                name
-                    .tooltip('destroy')
-                    .tooltip({
-                        placement: 'right',
-                        html: true,
-                        title: '<span style="white-space:nowrap">' + text + '</span>',
-                        trigger: 'hover',
-                        delay: { show: 500, hide: 0 }
-                    });
-            }
-
         }
     }
 });

@@ -38,7 +38,6 @@ define([
             this.on('keyup', this.onKeyUp);
             this.on('click', this.onClick);
             this.on('mousemove', this.onMouseMove);
-            this.on('didToggleDisplay', this.onToggleDisplay);
             this.on('focusLostByClipboard', this.onFocusLostByClipboard);
             this.on('focusComponent', this.onFocus);
 
@@ -65,15 +64,6 @@ define([
 
         this.onRequestKeyboardShortcuts = function() {
             this.trigger('keyboardShortcutsRegistered', this.shortcutsByScope);
-        };
-
-        this.onToggleDisplay = function(e, data) {
-            if (!data.visible) return;
-            if (data.name === 'map') {
-                this.pushToStackIfNotLast($('.map-pane').get(0));
-            } else if (data.name === 'graph') {
-                this.pushToStackIfNotLast($('.graph-pane:visible').get(0));
-            }
         };
 
         this.onRegisterKeyboardShortcuts = function(e, data) {
@@ -130,7 +120,7 @@ define([
                 };
 
             if (keys[w]) {
-                return { preventDefault: false, fire: keys[w] };
+                return { preventDefault: false, fire: keys[w], enabled: true };
             }
             if (event.type === 'keydown') {
                 this.currentMetaKeyState = _.pick(event, 'metaKey', 'ctrlKey', 'shiftKey', 'altKey');

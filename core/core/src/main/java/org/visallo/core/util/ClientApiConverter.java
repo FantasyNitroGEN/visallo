@@ -12,11 +12,13 @@ import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workspace.Dashboard;
 import org.visallo.core.model.workspace.DashboardItem;
+import org.visallo.core.model.workspace.product.Product;
 import org.visallo.web.clientapi.model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.util.StreamUtil.stream;
@@ -362,6 +364,26 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         result.title = dashboardItem.getTitle();
         result.configuration = dashboardItem.getConfiguration();
         return result;
+    }
+
+    public static ClientApiProducts toClientApiProducts(List<String> types, Collection<Product> products) {
+        ClientApiProducts productsResponse = new ClientApiProducts();
+        productsResponse.getTypes().addAll(types);
+        productsResponse.getProducts().addAll(products.stream().map(ClientApiConverter::toClientApiProduct).collect(Collectors.toList()));
+        return productsResponse;
+    }
+
+    public static ClientApiProduct toClientApiProduct(Product product) {
+        return new ClientApiProduct(
+                product.getId(),
+                product.getWorkspaceId(),
+                product.getTitle(),
+                product.getKind(),
+                product.getData(),
+                product.getExtendedData(),
+                product.getPreviewImageMD5()
+        );
+
     }
 
     public static ClientApiGeoPoint toClientApiGeoPoint(GeoPoint geoPoint) {

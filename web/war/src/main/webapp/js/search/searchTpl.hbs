@@ -1,11 +1,5 @@
 <div class="navbar-search">
 
-  <div class="segmented-control">
-    {{#each types}}
-    <button data-type="{{name}}" class="find-{{cls}} {{#if selected}}active{{/if}}">{{displayName}}</button>
-    {{/each}}
-  </div>
-
   <div class="search-dropdowns btn-group">
     <button class="btn btn-mini btn-link saved">
       {{ i18n 'search.savedsearches.button' }} <span class="caret"></span>

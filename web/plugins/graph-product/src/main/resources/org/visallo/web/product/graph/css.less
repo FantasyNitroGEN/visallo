@@ -1,0 +1,30 @@
+.org-visallo-graph {
+  background: white;
+
+  .products-empty ul li {
+    background: #eee;
+    padding: 1em;
+    border-radius: 5px;
+    color: #777;
+    text-shadow: 0 1px 0 white;
+    p {
+      font-size: 90%;
+      text-shadow: none;
+      margin: 0.5em 0 0 0;
+      color: #999;
+    }
+  }
+
+  .graph-views {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 50; /* same as graph */
+    & > div {
+      pointer-events: all;
+    }
+  }
+}

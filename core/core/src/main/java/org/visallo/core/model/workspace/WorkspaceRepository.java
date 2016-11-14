@@ -1,7 +1,5 @@
 package org.visallo.core.model.workspace;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,6 +19,7 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
@@ -30,9 +29,12 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -140,19 +142,6 @@ public abstract class WorkspaceRepository {
 
     public Workspace copyTo(Workspace workspace, User destinationUser, User user) {
         Workspace newWorkspace = add("Copy of " + workspace.getDisplayTitle(), destinationUser);
-        List<WorkspaceEntity> entities = findEntities(workspace, user);
-        List<Update> updates = Lists.transform(entities, new Function<WorkspaceEntity, Update>() {
-            @Nullable
-            @Override
-            public Update apply(WorkspaceEntity entity) {
-                return new Update(
-                        entity.getEntityVertexId(),
-                        entity.isVisible(),
-                        new GraphPosition(entity.getGraphPositionX(), entity.getGraphPositionY())
-                );
-            }
-        });
-        updateEntitiesOnWorkspace(newWorkspace, updates, destinationUser);
         return newWorkspace;
     }
 
@@ -192,15 +181,15 @@ public abstract class WorkspaceRepository {
 
     public abstract boolean hasReadPermissions(String workspaceId, User user);
 
-    public JSONArray toJson(Iterable<Workspace> workspaces, User user, boolean includeVertices) {
+    public JSONArray toJson(Iterable<Workspace> workspaces, User user) {
         JSONArray resultJson = new JSONArray();
         for (Workspace workspace : workspaces) {
-            resultJson.put(toJson(workspace, user, includeVertices));
+            resultJson.put(toJson(workspace, user));
         }
         return resultJson;
     }
 
-    public JSONObject toJson(Workspace workspace, User user, boolean includeVertices) {
+    public JSONObject toJson(Workspace workspace, User user) {
         checkNotNull(workspace, "workspace cannot be null");
         checkNotNull(user, "user cannot be null");
 
@@ -226,30 +215,6 @@ public abstract class WorkspaceRepository {
             }
             workspaceJson.put("users", usersJson);
 
-            if (includeVertices) {
-                JSONArray verticesJson = new JSONArray();
-                for (WorkspaceEntity workspaceEntity : findEntities(workspace, user)) {
-                    if (!workspaceEntity.isVisible()) {
-                        continue;
-                    }
-
-                    JSONObject vertexJson = new JSONObject();
-                    vertexJson.put("vertexId", workspaceEntity.getEntityVertexId());
-
-                    Integer graphPositionX = workspaceEntity.getGraphPositionX();
-                    Integer graphPositionY = workspaceEntity.getGraphPositionY();
-                    if (graphPositionX != null && graphPositionY != null) {
-                        JSONObject graphPositionJson = new JSONObject();
-                        graphPositionJson.put("x", graphPositionX);
-                        graphPositionJson.put("y", graphPositionY);
-                        vertexJson.put("graphPosition", graphPositionJson);
-                    }
-
-                    verticesJson.put(vertexJson);
-                }
-                workspaceJson.put("vertices", verticesJson);
-            }
-
             return workspaceJson;
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -259,7 +224,6 @@ public abstract class WorkspaceRepository {
     public ClientApiWorkspace toClientApi(
             Workspace workspace,
             User user,
-            boolean includeVertices,
             Authorizations authorizations
     ) {
         checkNotNull(workspace, "workspace cannot be null");
@@ -288,47 +252,6 @@ public abstract class WorkspaceRepository {
                 workspaceClientApi.addUser(workspaceUser);
             }
 
-            if (includeVertices) {
-                List<WorkspaceEntity> workspaceEntities = findEntities(workspace, user);
-                Iterable<String> workspaceEntityIds = workspaceEntities.stream()
-                        .map(workspaceEntity -> workspaceEntity.getEntityVertexId())
-                        .collect(Collectors.toList());
-                Map<String, Boolean> viewableVertices = getGraph().doVerticesExist(workspaceEntityIds, authorizations);
-                for (WorkspaceEntity workspaceEntity : workspaceEntities) {
-                    if (!workspaceEntity.isVisible()) {
-                        continue;
-                    }
-                    if (!viewableVertices.get(workspaceEntity.getEntityVertexId())) {
-                        continue;
-                    }
-
-                    ClientApiWorkspace.Vertex v = new ClientApiWorkspace.Vertex();
-                    v.setVertexId(workspaceEntity.getEntityVertexId());
-                    v.setVisible(workspaceEntity.isVisible());
-
-                    Integer graphPositionX = workspaceEntity.getGraphPositionX();
-                    Integer graphPositionY = workspaceEntity.getGraphPositionY();
-                    if (graphPositionX != null && graphPositionY != null) {
-                        GraphPosition graphPosition = new GraphPosition(graphPositionX, graphPositionY);
-                        v.setGraphPosition(graphPosition);
-                        v.setGraphLayoutJson(null);
-                    } else {
-                        v.setGraphPosition(null);
-
-                        String graphLayoutJson = workspaceEntity.getGraphLayoutJson();
-                        if (graphLayoutJson != null) {
-                            v.setGraphLayoutJson(graphLayoutJson);
-                        } else {
-                            v.setGraphLayoutJson("{}");
-                        }
-                    }
-
-                    workspaceClientApi.addVertex(v);
-                }
-            } else {
-                workspaceClientApi.removeVertices();
-            }
-
             return workspaceClientApi;
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -339,33 +262,25 @@ public abstract class WorkspaceRepository {
         return graph;
     }
 
-    public abstract void updateEntitiesOnWorkspace(Workspace workspace, Collection<Update> updates, User user);
-
-    public void updateEntityOnWorkspace(Workspace workspace, Update update, User user) {
-        List<Update> updates = new ArrayList<>();
-        updates.add(update);
-        updateEntitiesOnWorkspace(workspace, updates, user);
-    }
+    public abstract void updateEntitiesOnWorkspace(Workspace workspace, Collection<String> vertexIds, User user);
 
     public void updateEntityOnWorkspace(
             Workspace workspace,
             String vertexId,
-            Boolean visible,
-            GraphPosition graphPosition,
             User user
     ) {
-        updateEntityOnWorkspace(workspace, new Update(vertexId, visible, graphPosition), user);
+        Collection<String> vertexIds = new ArrayList<>();
+        vertexIds.add(vertexId);
+        updateEntitiesOnWorkspace(workspace, vertexIds, user);
     }
 
     public void updateEntityOnWorkspace(
             String workspaceId,
             String vertexId,
-            Boolean visible,
-            GraphPosition graphPosition,
             User user
     ) {
         Workspace workspace = findById(workspaceId, user);
-        updateEntityOnWorkspace(workspace, vertexId, visible, graphPosition, user);
+        updateEntityOnWorkspace(workspace, vertexId, user);
     }
 
     public ClientApiWorkspacePublishResponse publish(
@@ -987,6 +902,18 @@ public abstract class WorkspaceRepository {
 
     public abstract void deleteDashboardItem(String workspaceId, String dashboardItemId, User user);
 
+    public abstract Collection<Product> findAllProductsForWorkspace(String workspaceId, User user);
+
+    public abstract Product addOrUpdateProduct(String workspaceId, String productId, String title, String kind, JSONObject params, User user);
+
+    public abstract Product updateProductPreview(String workspaceId, String productId, String previewDataUrl, User user);
+
+    public abstract void deleteProduct(String workspaceId, String productId, User user);
+
+    public abstract Product findProductById(String workspaceId, String productId, JSONObject params, boolean includeExtended, User user);
+
+    public abstract InputStream getProductPreviewById(String workspaceId, String productId, User user);
+
     protected VisibilityTranslator getVisibilityTranslator() {
         return visibilityTranslator;
     }
@@ -1014,43 +941,6 @@ public abstract class WorkspaceRepository {
     );
 
     public abstract String addOrUpdateDashboard(String workspaceId, String dashboardId, String title, User user);
-
-    public static class Update {
-        private final String vertexId;
-        private final Boolean visible;
-        private final GraphPosition graphPosition;
-        private final String graphLayoutJson;
-
-        public Update(String vertexId, Boolean visible, GraphPosition graphPosition) {
-            this.vertexId = vertexId;
-            this.visible = visible;
-            this.graphPosition = graphPosition;
-            graphLayoutJson = null;
-        }
-
-        public Update(String vertexId, Boolean visible, GraphPosition graphPosition, String graphLayoutJson) {
-            this.vertexId = vertexId;
-            this.visible = visible;
-            this.graphPosition = graphPosition;
-            this.graphLayoutJson = graphLayoutJson;
-        }
-
-        public String getVertexId() {
-            return vertexId;
-        }
-
-        public Boolean getVisible() {
-            return visible;
-        }
-
-        public GraphPosition getGraphPosition() {
-            return graphPosition;
-        }
-
-        public String getGraphLayoutJson() {
-            return graphLayoutJson;
-        }
-    }
 
     protected AuthorizationRepository getAuthorizationRepository() {
         return authorizationRepository;

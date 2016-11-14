@@ -52,7 +52,6 @@ public class WorkspaceList implements ParameterizedHandler {
             ClientApiWorkspace workspaceClientApi = workspaceRepository.toClientApi(
                     workspace,
                     user,
-                    false,
                     authorizations
             );
             if (workspaceClientApi != null) {

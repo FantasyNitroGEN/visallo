@@ -1,20 +1,25 @@
 
 define([
     '../util/ajax',
-    '../util/store',
+    '../store',
+    '../store/workspace/actions-impl',
     '../util/queue'
-], function(ajax, store, queue) {
+], function(ajax, storeHelper, workspaceActions, queue) {
     'use strict';
+
+    const { getStore } = storeHelper;
 
     var api = {
         diff: function(workspaceId) {
+            var workspaces = getStore().getState().workspace;
             return ajax('GET', '/workspace/diff', {
-                workspaceId: workspaceId || publicData.currentWorkspaceId
+                workspaceId: workspaceId || workspaces.currentId
             });
         },
 
         getOrCreate: function() {
-            return (publicData.currentWorkspaceId ? api.get() : Promise.reject())
+            var workspaces = getStore().getState().workspace;
+            return (workspaces.currentId ? api.get() : Promise.reject())
                 .catch(function() {
                     return api.all()
                         .then(function(workspaces) {
@@ -28,78 +33,117 @@ define([
         },
 
         all: function() {
-            return ajax('GET', '/workspace/all')
-                .then(function(result) {
-                    return _.sortBy(result.workspaces, function(w) {
-                        return w.title.toLowerCase();
-                    });
-                })
+            var workspaces = getStore().getState().workspace;
+            if (workspaces.allLoaded) {
+                return Promise.resolve(sort(Object.values(workspaces.byId)));
+            } else {
+                return ajax('GET', '/workspace/all')
+                    .then(function(result) {
+                        getStore().dispatch(workspaceActions.setAll({ workspaces: result.workspaces }));
+                        return sort(result.workspaces);
+                    })
+            }
+
+            function sort(workspaces) {
+                return _.sortBy(workspaces, function(w) {
+                    return w.title.toLowerCase();
+                });
+            }
         },
 
         get: function(workspaceId) {
+            var workspaces = getStore().getState().workspace;
             return ajax('GET', '/workspace', {
-                workspaceId: workspaceId || publicData.currentWorkspaceId
-            }).then(function(workspace) {
-                return store.setWorkspace(workspace);
+                workspaceId: workspaceId || workspaces.currentId
+            }).tap(workspace => {
+                getStore().dispatch(workspaceActions.update({ workspace }))
             });
         },
 
         'delete': function(workspaceId) {
             return ajax('DELETE', '/workspace', {
                 workspaceId: workspaceId
-            });
+            })
+                .tap(() => {
+                    getStore().dispatch(workspaceActions.deleteWorkspace({ workspaceId, createIfEmpty: true }))
+                })
         },
 
         current: function(workspaceId) {
-            var workspace = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspace');
-            return Promise.resolve(workspace);
+            var workspaces = getStore().getState().workspace;
+            return Promise.resolve(workspaces.byId[workspaceId || workspaces.currentId]);
         },
 
-        store: function(workspaceId) {
-            var workspace = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspace');
-            return Promise.resolve(workspace && workspace.vertices || []);
-        },
+        histogramValues: function(property) {
+            const store = getStore();
+            const state = store.getState();
+            const workspaceId = state.workspace.currentId;
+            const elements = state.element[workspaceId];
+            const productId = state.product.workspaces[workspaceId].selected;
+            const product = productId && state.product.workspaces[workspaceId].products[productId];
 
-        storeEdges: function(workspaceId) {
-            var workspaceEdges = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspaceEdges');
-            return Promise.resolve(workspaceEdges || []);
-        },
-
-        histogramValues: function(workspaceId, property) {
-            if (arguments.length === 1) {
-                property = arguments[0];
-                workspaceId = null;
+            if (!product) {
+                throw new Error('No Product to calculate timeline')
             }
 
-            var workspace = store.getObject(workspaceId || publicData.currentWorkspaceId, 'workspace'),
-                edgeIds;
+            const getExtendedData = () => {
+                if (product.extendedData) {
+                    return Promise.resolve(product.extendedData);
+                }
+                let unsubscribe = () => {};
+                return new Promise(function(fulfill) {
+                    unsubscribe = store.subscribe(() => {
+                        const state = store.getState();
+                        const product = productId && state.product.workspaces[workspaceId].products[productId];
+                        if (product.extendedData.vertices && product.extendedData.edges) {
+                            fulfill(product.extendedData);
+                        }
+                    })
+                }).tap(unsubscribe);
+            }
+            const getElements = ({ vertices, edges }) => {
+                const check = (elementsState) => {
+                    const ret = {
+                        vertices: _.compact(vertices.map(({ id }) => elementsState.vertices[id])),
+                        edges: _.compact(edges.map(({ edgeId }) => elementsState.edges[edgeId]))
+                    }
+                    if (ret.vertices.length === vertices.length && ret.edges.length === edges.length) {
+                        return ret;
+                    }
+                }
+                const result = check(elements);
+                if (result) {
+                    return result;
+                } else {
+                    let unsubscribe = () => {};
+                    return new Promise(function(fulfill) {
+                        var previous = state.element[state.workspace.currentId];
+                        unsubscribe = store.subscribe(() => {
+                            const state = store.getState();
+                            const elements = state.element[state.workspace.currentId];
+                            if (previous !== elements) {
+                                let result = check(elements);
+                                if (result) {
+                                    fulfill(result);
+                                }
+                            }
+                        })
+                    }).tap(unsubscribe);
+                }
+            }
+            const getOntology = () => Promise.require('data/web-worker/services/ontology').then(o => o.ontology());
 
-            return (property.title === 'ALL_DATES' ?
-                Promise.all([
-                        Promise.require('data/web-worker/services/ontology').then(function(o) {
-                            return o.ontology();
-                        }),
-                        (edgeIds = _.pluck(store.getObjects(workspace.workspaceId, 'workspaceEdges'), 'edgeId')).length ?
-                            Promise.require('data/web-worker/services/edge').then(function(edge) {
-                                return edge.multiple({ edgeIds: edgeIds })
-                            }) : Promise.resolve([])
-                    ]) :
-                Promise.resolve())
-                    .then(function(results) {
-                        var ontology = results && results.shift(),
-                            edges = results && results.shift().edges,
-                            ontologyConcepts = ontology && ontology.concepts,
+            return Promise.all([
+                getExtendedData().then(getElements),
+                (property.title === 'ALL_DATES' ? getOntology() : Promise.resolve())
+            ])
+                    .spread(function({ vertices, edges }, ontology) {
+                        var ontologyConcepts = ontology && ontology.concepts,
                             ontologyRelationships = ontology && ontology.relationships,
                             ontologyProperties = ontology && ontology.properties,
-                            filteredVertexIds = store.getObject(workspace.workspaceId, 'filteredVertexIds'),
-                            vertexIds = _.chain(workspace.vertices)
-                                .omit(filteredVertexIds || [])
-                                .keys()
-                                .value(),
-                            vertices = store.getObjects(workspace.workspaceId, 'vertex', vertexIds),
                             foundOntologyProperties = [],
                             foundYPropertiesByConcept = {},
-                            values = _.chain(vertices.concat(edges || []))
+                            values = _.chain(vertices.concat(edges))
                                 .compact()
                                 .map(function(v) {
                                     var isEdge = ('label' in v && 'inVertexId' in v && 'outVertexId' in v),
@@ -215,59 +259,19 @@ define([
                 workspaceId = publicData.currentWorkspaceId;
             }
 
-            var workspace = store.getObject(workspaceId, 'workspace');
-
-            if (_.isEmpty(changes)) {
-                console.warn('Workspace update called with no changes');
-                return Promise.resolve({ saved: false, workspace: workspace });
-            }
-
             var allChanges = _.extend({}, {
-                entityUpdates: [],
-                entityDeletes: [],
                 userUpdates: [],
                 userDeletes: []
             }, changes || {});
 
-            allChanges.entityUpdates.forEach(function(entityUpdate) {
-                var p = entityUpdate.graphPosition,
-                    layout = entityUpdate.graphLayoutJson;
-
-                if (p) {
-                    p.x = Math.round(p.x);
-                    p.y = Math.round(p.y);
-                }
-                if (layout) {
-                    entityUpdate.graphLayoutJson = JSON.stringify(layout);
-                } else if (!p) {
-                    console.error('Entity updates require either graphPosition or graphLayoutJson', entityUpdate);
-                }
-            })
-
-            allChanges.entityUpdates = _.filter(allChanges.entityUpdates, function(update) {
-                var inWorkspace = update.vertexId in workspace.vertices,
-                    hasGraphPosition = 'graphPosition' in update;
-
-                return !inWorkspace || hasGraphPosition;
-            });
-
-            if (!store.workspaceShouldSave(workspace, allChanges)) {
-                return Promise.resolve({ saved: false, workspace: workspace });
-            }
-
             return ajax('POST', '/workspace/update', {
                 workspaceId: workspaceId,
                 data: JSON.stringify(allChanges)
-            }).then(function() {
-                return { saved: true, workspace: store.updateWorkspace(workspaceId, allChanges) };
+            }).then(function(workspace) {
+                getStore().dispatch(workspaceActions.update({ workspace }))
+                return { saved: true, workspace };
             });
         }),
-
-        vertices: function(workspaceId) {
-            return ajax('GET', '/workspace/vertices', {
-                workspaceId: workspaceId || publicData.currentWorkspaceId
-            });
-        },
 
         publish: function(changes) {
             return ajax('POST', '/workspace/publish', {
@@ -281,21 +285,11 @@ define([
             });
         },
 
-        edges: function(workspaceId, additionalVertices) {
-            var params = {
-                workspaceId: workspaceId || publicData.currentWorkspaceId
-            };
-            if (additionalVertices && additionalVertices.length) {
-                params.ids = additionalVertices
-            }
-
-            return ajax('GET', '/workspace/edges', params).then(function(result) {
-                return result.edges;
-            })
-        },
-
         create: function(options) {
-            return ajax('POST', '/workspace/create', options);
+            return ajax('POST', '/workspace/create', options)
+                .tap(workspace => {
+                    getStore().dispatch(workspaceActions.update({ workspace }))
+                })
         }
     };
 

@@ -15,6 +15,7 @@
         map: {
             '*': {
                 'lodash': 'underscore',
+                'reselect': 'Reselect',
                 'jquery-ui': 'jquery-ui-bundle',
                 'jquery-ui/droppable': 'jquery-ui-bundle',
                 'jquery-ui/core': 'jquery-ui-bundle',
@@ -25,7 +26,6 @@
             }
         },
         paths: {
-            'arbor': '../libs/cytoscape-arbor/arbor',
             'async': '../libs/requirejs-plugins/src/async',
             'atmosphere': '../libs/atmosphere.js/lib/atmosphere',
             'beautify': '../libs/js-beautify/js/lib/beautify',
@@ -37,7 +37,6 @@
             'classnames': '../libs/classnames/index',
             'colorjs': '../libs/color-js/color',
             'cytoscape': '../libs/cytoscape/dist/cytoscape',
-            'cytoscape-arbor': '../libs/cytoscape-arbor/cytoscape-arbor',
             'd3': '../libs/d3/d3.min',
             'd3-tip': '../libs/d3-tip/index',
             'd3-plugins': '../libs/d3-plugins-dist/dist/mbostock',
@@ -45,6 +44,7 @@
             'duration-js': '../libs/duration-js/duration',
             'easing': '../libs/jquery.easing/jquery.easing.1.3',
             'ejs': '../libs/ejs/ejs',
+            'fast-json-patch': '../libs/fast-json-patch/dist/json-patch-duplex.min',
             'flight': '../libs/flightjs/build/flight',
             'flight/lib': 'util/flight/compat',
             'goog': '../libs/requirejs-plugins/src/goog',
@@ -72,15 +72,18 @@
             'rangy-serializer': '../libs/rangy/lib/rangy-serializer',
             'react': '../libs/react/dist/react-with-addons',
             'react-dom': '../libs/react-dom/dist/react-dom',
+            'react-redux': '../libs/react-redux/dist/react-redux',
+            'Reselect': '../libs/reselect/dist/reselect',
+            'redux': '../libs/redux/dist/redux',
             'sf': '../libs/sf/sf',
             'text': '../libs/requirejs-text/text',
             'tpl': '../libs/@visallo/requirejs-ejs-plugin/rejs',
             'underscore': '../libs/underscore/underscore-min',
             'underscore.inflection': '../libs/underscore.inflection/lib/underscore.inflection',
+            'updeep': '../libs/updeep/dist/umd/updeep-standalone',
             'videojs': '../libs/video.js/dist/video'
         },
         shim: {
-            'arbor': { exports: 'arbor', deps: ['jquery'] },
             'atmosphere': { init: function() { return $.atmosphere; }, deps: ['jquery'] },
             'bootstrap': { exports: 'window', deps: ['jquery', 'jquery-ui-bundle'] },
             'bootstrap-datepicker': { exports: 'window', deps: ['bootstrap'] },
@@ -92,6 +95,7 @@
             'duration-js': { exports: 'Duration' },
             'easing': { init: function() { return $.easing; }, deps: ['jquery'] },
             'ejs': { exports: 'ejs' },
+            'fast-json-patch': { exports: 'jsonpatch' },
             'jquery': { exports: 'jQuery' },
             'jstz': { exports: 'jstz' },
             'pathfinding': { exports: 'PF' },

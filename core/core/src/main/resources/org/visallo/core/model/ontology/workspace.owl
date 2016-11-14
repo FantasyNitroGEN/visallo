@@ -42,7 +42,6 @@
         <rdfs:range rdf:resource="http://visallo.org/workspace#dashboard"/>
         <rdfs:domain rdf:resource="http://visallo.org/workspace#workspace"/>
     </owl:ObjectProperty>
-    
 
 
     <!-- http://visallo.org/workspace#toDashboardItem -->
@@ -52,7 +51,15 @@
         <rdfs:domain rdf:resource="http://visallo.org/workspace#dashboard"/>
         <rdfs:range rdf:resource="http://visallo.org/workspace#dashboardItem"/>
     </owl:ObjectProperty>
-    
+
+
+    <!-- http://visallo.org/workspace#toProduct -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/workspace#toProduct">
+        <rdfs:label xml:lang="en">To Product</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/workspace#workspace"/>
+        <rdfs:range rdf:resource="http://visallo.org/workspace#product"/>
+    </owl:ObjectProperty>
 
 
     <!-- http://visallo.org/workspace#toEntity -->
@@ -206,7 +213,14 @@
         <visallo:titleFormula>&apos;Dashboard Item: &apos; + prop(&apos;http://visallo.org/workspace#extensionId&apos;)</visallo:titleFormula>
         <visallo:userVisible>false</visallo:userVisible>
     </owl:Class>
-    
+
+
+    <!-- http://visallo.org/workspace#product -->
+
+    <owl:Class rdf:about="http://visallo.org/workspace#product">
+        <rdfs:label xml:lang="en">Product</rdfs:label>
+        <visallo:userVisible>false</visallo:userVisible>
+    </owl:Class>
 
 
     <!-- http://visallo.org/workspace#workspace -->

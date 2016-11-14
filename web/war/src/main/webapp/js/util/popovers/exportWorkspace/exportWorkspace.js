@@ -30,6 +30,7 @@ define([
                 var self = this,
                     node = this.popover.find('.plugin-content'),
                     workspaceId = this.attr.workspaceId,
+                    productId = this.attr.productId,
                     exporter = this.attr.exporter;
 
                 this.on(this.popover, 'click', {
@@ -38,8 +39,9 @@ define([
 
                 require([exporter.componentPath], function(C) {
                     var attrs = {
-                        workspaceId: workspaceId,
-                        exporter: exporter,
+                        workspaceId,
+                        productId,
+                        exporter,
                         cy: self.attr.cy
                     };
 

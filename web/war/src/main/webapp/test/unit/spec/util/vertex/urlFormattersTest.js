@@ -42,9 +42,16 @@ define(['util/vertex/urlFormatters'], function(f) {
         it('should be able to extract tools url', function() {
             var p = f.vertexUrl.parametersInUrl('#tools=graph,search')
             p.should.have.property('type').that.equals('TOOLS')
-            p.should.have.property('tools').that.deep.equals(['graph', 'search'])
+            p.should.have.property('tools').that.deep.equals({ graph:{}, search: {} })
 
-            f.vertexUrl.parametersInUrl('#tools=map').tools.should.deep.equals(['map'])
+            f.vertexUrl.parametersInUrl('#tools=map').tools.should.deep.equals({map:{}})
+        })
+        
+        it('should be able to extract tools url with options', function() {
+            var p = f.vertexUrl.parametersInUrl('#tools=graph&id=x,search&id2=y')
+            p.should.have.property('tools').that.deep.equals({ graph:{ id: 'x'}, search: { id2: 'y' } })
+
+            f.vertexUrl.parametersInUrl('#tools=map&x=1').tools.should.deep.equals({map:{ x: '1' }})
         })
 
         it('should have be able to extract vertices and workspace from urls', function() {

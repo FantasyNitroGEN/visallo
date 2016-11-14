@@ -114,7 +114,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 DEFAULT_VISIBILITY
         );
 
-        workspaceRepository.updateEntityOnWorkspace(workspace, entity1Vertex.getId(), true, GRAPH_POSITION, user1);
+        workspaceRepository.updateEntityOnWorkspace(workspace, entity1Vertex.getId(), user1);
 
         when(termMentionRepository.findByVertexId(anyString(), any(Authorizations.class)))
                 .thenReturn(Collections.emptyList());
@@ -423,7 +423,6 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         assertEquals(VERTEX_TITLE, vertexDiff.getTitle());
         assertEquals("VertexDiffItem", vertexDiff.getType());
         assertEquals(SandboxStatus.PRIVATE, vertexDiff.getSandboxStatus());
-        assertTrue(vertexDiff.isVisible());
         assertFalse(vertexDiff.isDeleted());
         assertEquals(initialVisibilityJson.toString(), vertexDiff.getVisibilityJson().get("value").toString());
 
@@ -471,7 +470,6 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         assertNull(vertexDiff.getTitle());
         assertEquals("VertexDiffItem", vertexDiff.getType());
         assertEquals(SandboxStatus.PUBLIC, vertexDiff.getSandboxStatus());
-        assertTrue(vertexDiff.isVisible());
         assertTrue(vertexDiff.isDeleted());
         assertEquals(
                 new VisibilityJson(initialVisibilitySource).toString(),
@@ -540,7 +538,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         Vertex v1 = vertexBuilder.save(workspaceAuthorizations);
         graph.flush();
 
-        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), true, null, user1);
+        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), user1);
         graph.flush();
 
         String vertexId = v1.getId();
@@ -558,7 +556,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         vertexBuilder.save(workspaceAuthorizations);
         graph.flush();
 
-        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), true, null, user1);
+        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), user1);
         graph.flush();
 
         assertNotNull(graph.getVertex(vertexId, workspaceAuthorizations));
@@ -771,8 +769,8 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         Edge edge = edgeBuilder.save(workspaceAuthorizations);
         graph.flush();
 
-        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), true, null, user1);
-        workspaceRepository.updateEntityOnWorkspace(workspace, v2.getId(), true, null, user1);
+        workspaceRepository.updateEntityOnWorkspace(workspace, v1.getId(), user1);
+        workspaceRepository.updateEntityOnWorkspace(workspace, v2.getId(), user1);
         return edge;
     }
 
@@ -816,7 +814,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
         Vertex vertex = vertexBuilder.save(workspaceAuthorizations);
         graph.flush();
 
-        workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), true, null, user1);
+        workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), user1);
         graph.flush();
         return vertex;
     }

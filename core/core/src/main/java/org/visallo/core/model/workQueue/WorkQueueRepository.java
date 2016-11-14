@@ -529,6 +529,44 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
+    public void broadcastWorkProductChange(String workProductId, ClientApiWorkspace workspace, User user) {
+        JSONObject json = new JSONObject();
+        json.put("type", "workProductChange");
+        json.put("permissions", getPermissionsWithUsers(workspace, null));
+        JSONObject dataJson = new JSONObject();
+        dataJson.put("id", workProductId);
+        json.put("data", dataJson);
+        broadcastJson(json);
+    }
+
+    public void broadcastWorkProductPreviewChange(String workProductId, String workspaceId, User user, String md5) {
+        JSONObject json = new JSONObject();
+        json.put("type", "workProductPreviewChange");
+
+        JSONObject permissions = new JSONObject();
+        JSONArray users = new JSONArray();
+        users.put(user.getUserId());
+        permissions.put("users", users);
+        json.put("permissions", permissions);
+
+        JSONObject dataJson = new JSONObject();
+        dataJson.put("id", workProductId);
+        dataJson.put("workspaceId", workspaceId);
+        dataJson.putOpt("md5", md5);
+        json.put("data", dataJson);
+        broadcastJson(json);
+    }
+
+    public void broadcastWorkProductDelete(String workProductId, ClientApiWorkspace workspace) {
+        JSONObject json = new JSONObject();
+        json.put("type", "workProductDelete");
+        json.put("permissions", getPermissionsWithUsers(workspace, null));
+        JSONObject dataJson = new JSONObject();
+        dataJson.put("id", workProductId);
+        json.put("data", dataJson);
+        broadcastJson(json);
+    }
+
     public void broadcastElement(Element element, String workspaceId) {
         broadcastPropertyChange(element, null, null, workspaceId);
     }
@@ -741,7 +779,7 @@ public abstract class WorkQueueRepository {
 
             // No need to regenerate client api if changing user
             try {
-                ClientApiWorkspace userWorkspace = isChangingUser ? workspace : getWorkspaceRepository().toClientApi(ws, user, true, authorizations);
+                ClientApiWorkspace userWorkspace = isChangingUser ? workspace : getWorkspaceRepository().toClientApi(ws, user, authorizations);
                 JSONObject json = new JSONObject();
                 json.put("type", "workspaceChange");
                 json.put("modifiedBy", changedByUserId);
@@ -929,6 +967,8 @@ public abstract class WorkQueueRepository {
 
         JSONObject dataJson = new JSONObject();
         dataJson.put("graphEdgeId", edge.getId());
+        dataJson.put("outVertexId", edge.getVertexId(Direction.OUT));
+        dataJson.put("inVertexId", edge.getVertexId(Direction.IN));
         dataJson.putOpt("workspaceId", workspaceId);
 
         json.put("data", dataJson);

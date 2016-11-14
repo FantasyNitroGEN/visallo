@@ -131,7 +131,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
 
         if (!autoPublish) {
             // add the vertex to the workspace so that the changes show up in the diff panel
-            workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), null, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspaceId, vertex.getId(), user);
         }
 
         for (SavePropertyResults savePropertyResult : savePropertyResults) {

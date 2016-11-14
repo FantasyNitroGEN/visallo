@@ -895,6 +895,7 @@ define([
 
             this.dataRequest('ontology', 'concepts')
                 .done(function(concepts) {
+                    var currentlyDragging = null;
 
                     validWords
                         .each(function() {
@@ -906,58 +907,66 @@ define([
                             if (concept) {
                                 $this.removePrefixedClasses('conceptId-').addClass(concept.className)
                             }
+
+                            $this.attr('draggable', true)
+                                .off('dragstart dragend')
+                                .on('dragstart', function(event) {
+                                    const dt = event.originalEvent.dataTransfer;
+                                    const elements = { vertexIds: [info.resolvedToVertexId], edgeIds: [] };
+                                    dt.effectAllowed = 'all';
+                                    dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
+                                    dt.setData(VISALLO_MIMETYPES.RESOLVED_INFO, JSON.stringify({ info }));
+                                    $(this).closest('.text').addClass('drag-focus');
+                                    currentlyDragging = event.target;
+                                })
+                                .on('dragend', function() {
+                                    $(this).closest('.text').removeClass('drag-focus');
+                                });
                         })
-                        .draggable({
-                            helper: 'clone',
-                            revert: 'invalid',
-                            revertDuration: 250,
-                            scroll: false,
-                            zIndex: 100,
-                            distance: 10,
-                            cursorAt: { left: -10, top: -10 },
-                            start: function() {
-                                $(this)
-                                    .parents('.text').addClass('drag-focus');
-                            },
-                            stop: function() {
-                                $(this)
-                                    .parents('.text').removeClass('drag-focus');
-                            }
-                        });
 
                     if (Privileges.canEDIT) {
 
-                        words.droppable({
-                            activeClass: 'drop-target',
-                            hoverClass: 'drop-hover',
-                            tolerance: 'pointer',
-                            accept: function(el) {
-                                var item = $(el),
-                                    isEntity = item.is('.vertex.resolved');
-
-                                return isEntity;
-                            },
-                            drop: function(event, ui) {
-                                var destTerm = $(this),
-                                    form;
-
-                                if (destTerm.hasClass('opens-dropdown')) {
-                                    form = $('<div class="underneath"/>')
-                                        .insertAfter(destTerm.closest('.detected-object-labels'));
-                                } else {
-                                    form = $('<div class="underneath"/>').insertAfter(destTerm);
+                        words
+                            .off('dragover drop dragenter dragleave')
+                            .on('dragover', function(event) {
+                                if (event.target.classList.contains('resolved')) {
+                                    event.preventDefault();
                                 }
-                                self.tearDownDropdowns();
-                                self.disableSelection = true;
+                            })
+                            .on('dragenter dragleave', function(event) {
+                                if (event.target.classList.contains('resolved')) {
+                                    $(event.target).toggleClass('drop-hover', event.type === 'dragenter');
+                                }
+                            })
+                            .on('drop', function(event) {
+                                event.preventDefault();
+                                $(event.target).removeClass('drop-hover');
 
-                                require(['../dropdowns/statementForm/statementForm'], function(StatementForm) {
-                                    StatementForm.attachTo(form, {
-                                        sourceTerm: ui.draggable,
-                                        destTerm: destTerm
-                                    });
-                                })
-                            }
-                        });
+                                if (!currentlyDragging) {
+                                    throw new Error('Cannot drag from other detail panes.')
+                                }
+
+                                if (event.target.classList.contains('resolved')) {
+                                    var destTerm = $(event.target),
+                                        form;
+
+                                    if (destTerm.hasClass('opens-dropdown')) {
+                                        form = $('<div class="underneath"/>')
+                                            .insertAfter(destTerm.closest('.detected-object-labels'));
+                                    } else {
+                                        form = $('<div class="underneath"/>').insertAfter(destTerm);
+                                    }
+                                    self.tearDownDropdowns();
+                                    self.disableSelection = true;
+
+                                    require(['../dropdowns/statementForm/statementForm'], function(StatementForm) {
+                                        StatementForm.attachTo(form, {
+                                            sourceTerm: $(currentlyDragging),
+                                            destTerm: destTerm
+                                        });
+                                    })
+                                }
+                            })
                     }
                 });
         };

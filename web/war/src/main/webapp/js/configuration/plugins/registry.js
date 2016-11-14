@@ -82,7 +82,11 @@ define(['underscore'], function(_) {
 
                 triggerChange(extensionPoint);
             },
-
+            markUndocumentedExtensionPoint: function(extensionPoint) {
+                extensionDocumentation[extensionPoint] = {
+                    undocumented: true
+                }
+            },
             documentExtensionPoint: function(extensionPoint, description, validator, externalDocumentationUrl) {
                 if (!description) {
                     throw new Error('Description required for documentation')
@@ -100,7 +104,8 @@ define(['underscore'], function(_) {
             },
 
             extensionPointDocumentation: function() {
-                return _.mapObject(extensionDocumentation, function(doc, point) {
+                return _.omit(_.mapObject(extensionDocumentation, function(doc, point) {
+                    if (doc.undocumented) return;
                     return {
                         extensionPoint: point,
                         description: doc.description,
@@ -108,6 +113,8 @@ define(['underscore'], function(_) {
                         externalDocumentationUrl: doc.externalDocumentationUrl,
                         registered: api.extensionsForPoint(point).map(replaceFunctions)
                     };
+                }), function(value) {
+                    return !value;
                 });
 
                 function replaceFunctions(object) {

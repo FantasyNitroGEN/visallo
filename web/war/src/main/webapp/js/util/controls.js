@@ -1,4 +1,3 @@
-
 define([
     'flight/lib/component',
     'tpl!./controls'

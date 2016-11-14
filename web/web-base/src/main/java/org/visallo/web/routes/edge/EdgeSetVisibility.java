@@ -66,8 +66,8 @@ public class EdgeSetVisibility implements ParameterizedHandler {
         VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, visibilitySource, user, authorizations);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphEdge.getVertexId(Direction.IN), null, null, user);
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphEdge.getVertexId(Direction.OUT), null, null, user);
+        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphEdge.getVertexId(Direction.IN), user);
+        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphEdge.getVertexId(Direction.OUT), user);
 
         LOGGER.info("changing edge (%s) visibility source to %s", graphEdge.getId(), visibilitySource);
 

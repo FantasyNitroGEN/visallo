@@ -5,14 +5,16 @@ define([
     'tpl!./justificationRef',
     'util/withTeardown',
     'util/withDataRequest',
-    'util/vertex/formatters'
+    'util/vertex/formatters',
+    'util/requirejs/promise!util/service/propertiesPromise'
 ], function(
     defineComponent,
     template,
     templateRef,
     withTeardown,
     withDataRequest,
-    F
+    F,
+    properties
 ) {
     'use strict';
 
@@ -38,26 +40,21 @@ define([
         })
 
         this.after('initialize', function() {
-            var self = this;
+            this.justificationValidation = properties['field.justification.validation'];
+            if (this.attr.justificationOverride) {
+                this.justificationValidation = this.attr.justificationOverride;
+            }
+            if (VALIDATION_VALUES.indexOf(this.justificationValidation) === -1) {
+                throw new Error('web.ui.field.justification.validation must match:', VALIDATION_VALUES);
+            }
 
-            this.dataRequest('config', 'properties')
-                .done(function(properties) {
-                    self.justificationValidation = properties['field.justification.validation'];
-                    if (self.attr.justificationOverride) {
-                        self.justificationValidation = self.attr.justificationOverride;
-                    }
-                    if (VALIDATION_VALUES.indexOf(self.justificationValidation) === -1) {
-                        throw new Error('web.ui.field.justification.validation must match:', VALIDATION_VALUES);
-                    }
-
-                    if (self.attr.sourceInfo) {
-                        self.setValue(self.attr.sourceInfo)
-                    } else if (self.attr.justificationText) {
-                        self.setValue(self.attr.justificationText);
-                    } else {
-                        self.setValue();
-                    }
-                });
+            if (this.attr.sourceInfo) {
+                this.setValue(this.attr.sourceInfo)
+            } else if (this.attr.justificationText) {
+                this.setValue(this.attr.justificationText);
+            } else {
+                this.setValue();
+            }
 
             this.on('valuepasted', this.onValuePasted);
             this.on('change keyup paste', {

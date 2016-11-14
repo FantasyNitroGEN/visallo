@@ -535,27 +535,19 @@ define([
 
         //TODO handle in react
         this.updateDraggables = function() {
-            this.$node.find('.vertex-label h1')
-                .draggable({
-                    appendTo: 'body',
-                    helper: 'clone',
-                    revert: 'invalid',
-                    revertDuration: 250,
-                    scroll: false,
-                    zIndex: 100,
-                    distance: 10,
-                    start: function(event, ui) {
-                        ui.helper.css({
-                            paddingLeft: $(this).css('padding-left'),
-                            paddingTop: 0,
-                            paddingBottom: 0,
-                            margin: 0,
-                            fontSize: $(this).css('font-size')
-                        })
-                    }
-                });
+            this.$node.find('.vertex-label')
+                .attr('draggable', true)
+                .off('dragstart')
+                .on('dragstart', function(event) {
+                    const $h1 = $(event.target).find('h1');
+                    const vertexId = $h1.data('vertexId');
+                    const edgeId = $h1.data('edgeId');
+                    const elements = { vertexIds: vertexId ? [vertexId] : [], edgeIds: edgeId ? [edgeId] : [] };
+                    const dt = event.originalEvent.dataTransfer;
 
-            this.$node.droppable({ tolerance: 'pointer', accept: '*' });
+                    dt.effectAllowed = 'all';
+                    dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
+                });
         };
 
         this.updateVisibility = function() {

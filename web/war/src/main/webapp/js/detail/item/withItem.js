@@ -102,20 +102,27 @@ define([
         };
 
         this.makeVertexTitlesDraggable = function() {
+            const model = this.attr.model;
             this.$node.find('.org-visallo-layout-header .vertex-draggable')
                 .filter(function() {
-                    return !_.isEmpty($(this).attr('data-vertex-id'));
-                })
-                .draggable({
-                    helper: 'clone',
-                    revert: 'invalid',
-                    revertDuration: 250,
-                    scroll: false,
-                    zIndex: 100,
-                    distance: 10,
-                    start: function(event, ui) {
-                        ui.helper.css('width', $(event.target).width());
+                    if (!_.isEmpty($(this).attr('data-vertex-id'))) {
+                        this.setAttribute('draggable', true)
+                        return true
                     }
+                    return false
+                })
+                .on('dragstart', function(e) {
+                    const id = e.target.dataset.vertexId;
+                    const elements = { vertexIds: [id], edgeIds: [] };
+                    const dt = e.originalEvent.dataTransfer;
+
+                    dt.effectAllowed = 'all';
+                    if (model.id === id) {
+                        const url = F.vertexUrl.url([model], visalloData.currentWorkspaceId);
+                        dt.setData('text/uri-list', url);
+                        dt.setData('text/plain', [F.vertex.title(model), url].join('\n'));
+                    }
+                    dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
                 })
         };
 
@@ -169,6 +176,7 @@ define([
             event.stopPropagation();
             if (data.done) {
                 this.$node.find('.detail-overlay').remove();
+                this.trigger('selectObjects');
             } else {
                 $('<div>')
                     .addClass('detail-overlay')

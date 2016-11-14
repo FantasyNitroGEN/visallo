@@ -1,4 +1,4 @@
-define([], function() {
+define(['data/web-worker/store/user/actions'], function(userActions) {
     'use strict';
 
     return withCurrentUser;
@@ -33,15 +33,17 @@ define([], function() {
                 var user = request.result;
 
                 this.setPublicApi('currentUser', user, { onlyIfNull: true });
+                visalloData.storePromise.then(store => store.dispatch(userActions.putUser(user)));
 
                 if (user.currentWorkspaceId) {
                     this.setPublicApi('currentWorkspaceId', user.currentWorkspaceId, { onlyIfNull: true });
                 } else {
                     return this.findOrCreateWorkspace(user.id, dataRequestCompleted, request);
                 }
-            } else if (isUserPreferenceUpdate(request)) {
+            } else if (isUserPreferencesUpdate(request)) {
                 visalloData.currentUser.uiPreferences = request.result.uiPreferences;
                 this.setPublicApi('currentUser', visalloData.currentUser);
+                visalloData.storePromise.then(store => store.dispatch(userActions.putUserPreferences(request.result.uiPreferences)));
             }
 
             return dataRequestCompleted.call(this, request);
@@ -76,10 +78,16 @@ define([], function() {
 
     }
 
-    function isUserPreferenceUpdate(request) {
+    function isUserPreferencesUpdate(request) {
         return request &&
             request.result &&
             request.result.uiPreferences;
+    }
+
+    function isUserPreferenceUpdate(request) {
+        return request &&
+            request.originalRequest.service === 'user' &&
+            request.originalRequest.method === 'preference';
     }
 
     function isUserMeRequest(request) {

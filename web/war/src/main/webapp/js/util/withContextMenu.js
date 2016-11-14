@@ -6,9 +6,6 @@ define([], function() {
 
     function withContextMenu() {
 
-        this.after('initialize', function() {
-        });
-
         this.bindContextMenuClickEvent = function() {
             this.$node.find('.dropdown-menu a').off('click.bindCtxMenu');
             this.$node.find('.dropdown-menu a').on('click.bindCtxMenu', this.onContextMenuClick.bind(this));
@@ -87,5 +84,6 @@ define([], function() {
 
             menu.dropdown('toggle');
         };
+
     }
 });
