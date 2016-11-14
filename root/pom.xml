@@ -155,7 +155,7 @@
         <!-- Node Properties -->
         <node.version>v6.2.0</node.version>
         <npm.version>3.8.9</npm.version>
-        <yarnjs.version>v0.17.0</yarnjs.version>
+        <yarnjs.version>v0.16.1</yarnjs.version>
         <frontend.installDirectory>${settings.localRepository}/node/${node.version}</frontend.installDirectory>
     </properties>
 
