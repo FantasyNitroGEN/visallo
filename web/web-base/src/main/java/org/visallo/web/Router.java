@@ -40,6 +40,7 @@ import org.visallo.web.routes.notification.UserNotificationMarkRead;
 import org.visallo.web.routes.ontology.Ontology;
 import org.visallo.web.routes.ping.Ping;
 import org.visallo.web.routes.ping.PingStats;
+import org.visallo.web.routes.product.*;
 import org.visallo.web.routes.resource.MapMarkerImage;
 import org.visallo.web.routes.resource.ResourceExternalGet;
 import org.visallo.web.routes.resource.ResourceGet;
@@ -193,9 +194,6 @@ public class Router extends HttpServlet {
             app.get("/workspace/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceList.class);
             app.post("/workspace/create", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceCreate.class);
             app.get("/workspace/diff", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceDiff.class);
-            app.get("/workspace/edges", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceEdges.class);
-            app.post("/workspace/edges", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceEdges.class); // this is a post method to allow large data (ie data larger than would fit in the URL)
-            app.get("/workspace/vertices", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceVertices.class);
             app.post("/workspace/update", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceUpdate.class);
             app.get("/workspace", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceById.class);
             app.delete("/workspace", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceDelete.class);
@@ -207,6 +205,12 @@ public class Router extends HttpServlet {
             app.delete("/dashboard", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardDelete.class);
             app.post("/dashboard/item", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardItemUpdate.class);
             app.delete("/dashboard/item", authenticator, csrfProtector, ReadPrivilegeFilter.class, DashboardItemDelete.class);
+
+            app.get("/product/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, ProductAll.class);
+            app.get("/product", authenticator, csrfProtector, ReadPrivilegeFilter.class, ProductGet.class);
+            app.get("/product/preview", authenticator, csrfProtector, ReadPrivilegeFilter.class, ProductPreview.class);
+            app.post("/product", authenticator, csrfProtector, EditPrivilegeFilter.class, ProductUpdate.class);
+            app.delete("/product", authenticator, csrfProtector, EditPrivilegeFilter.class, ProductDelete.class);
 
             app.get("/user/me", authenticator, csrfProtector, MeGet.class);
             app.post("/user/ui-preferences", authenticator, csrfProtector, UserSetUiPreferences.class);

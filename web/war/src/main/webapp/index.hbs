@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class='no-js lt-ie9 lt-ie8 lt-ie7'> <![endif]-->
-<!--[if IE 7]>         <html class='no-js lt-ie9 lt-ie8'> <![endif]-->
-<!--[if IE 8]>         <html class='no-js lt-ie9'> <![endif]-->
-<!--[if gt IE 8]><!--> <html class='no-js'> <!--<![endif]-->
+<html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta charset='utf-8'>
@@ -14,8 +11,7 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
     <link href='css/visallo.css' rel='stylesheet' media='screen'>
-    {{#each pluginCssResources}}
-    <link href='{{contextPath}}/{{.}}' rel='stylesheet' media='screen'>
+    {{#each pluginCssResources}}<link href='{{contextPath}}/{{.}}' rel='stylesheet' media='screen'>
     {{/each}}
 
     <script src='libs/babel-polyfill/dist/polyfill.min.js'></script>

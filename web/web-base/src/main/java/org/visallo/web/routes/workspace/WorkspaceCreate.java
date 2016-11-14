@@ -13,8 +13,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 
-import java.util.ArrayList;
-
 public class WorkspaceCreate implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceCreate.class);
     private static final String DEFAULT_WORKSPACE_TITLE = "Default";
@@ -44,9 +42,9 @@ public class WorkspaceCreate implements ParameterizedHandler {
         workspace = workspaceRepository.add(title, user);
 
         LOGGER.info("Created workspace: %s, title: %s", workspace.getWorkspaceId(), workspace.getDisplayTitle());
-        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, true, authorizations);
+        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, authorizations);
 
-        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, new ArrayList<ClientApiWorkspace.User>(), user.getUserId(), null);
+        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, clientApiWorkspace.getUsers(), user.getUserId(), null);
 
         return clientApiWorkspace;
     }

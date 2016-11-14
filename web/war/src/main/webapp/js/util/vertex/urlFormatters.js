@@ -4,7 +4,6 @@ define([], function() {
 
     var URL_TYPES = {
             FULLSCREEN: 'v',
-            ADD: 'add',
             ADMIN: 'admin',
             REDIRECT: 'redirect',
             TOOLS: 'tools'
@@ -36,7 +35,7 @@ define([], function() {
 
             parametersInUrl: function(url) {
                 var type = _.invert(URL_TYPES),
-                    match = url.match(/#(v|add|admin|redirect|tools)=(.+?)(?:&w=(.*))?$/);
+                    match = url.match(/#(v|admin|redirect|tools)=(.+?)(?:&w=(.*))?$/);
 
                 if (match && match.length === 4) {
                     if (match[1] === URL_TYPES.ADMIN) {
@@ -61,11 +60,21 @@ define([], function() {
                     }
 
                     if (match[1] === URL_TYPES.TOOLS) {
-                        var tools = _.unique(match[2].trim().split(','));
+                        var tools = _.uniq(match[2].trim().split(','));
+                        var toolsWithOptions = _.object(tools.map(function(tool) {
+                            var optionsIndex = tool.indexOf('&');
+                            var name = tool;
+                            var options = {};
+                            if (optionsIndex > 0) {
+                                name = tool.substring(0, optionsIndex);
+                                options = unserialize(tool.substring(optionsIndex + 1))
+                            }
+                            return [name, options || {}]
+                        }))
 
                         return {
                             type: type[match[1]],
-                            tools: tools
+                            tools: toolsWithOptions
                         };
                     }
 
@@ -98,4 +107,16 @@ define([], function() {
     };
 
     return $.extend({}, { vertexUrl: V });
+
+
+    function unserialize(str) {
+      str = decodeURIComponent(str);
+      var chunks = str.split('&'),
+          obj = {};
+      chunks.forEach(function(c) {
+          var split = c.split('=', 2);
+          obj[split[0]] = split[1];
+      })
+      return obj;
+    }
 });

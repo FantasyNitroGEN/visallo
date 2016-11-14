@@ -44,7 +44,7 @@ public class UserGet implements ParameterizedHandler {
 
         Iterable<Workspace> workspaces = workspaceRepository.findAllForUser(user);
         for (Workspace workspace : workspaces) {
-            clientApiUser.getWorkspaces().add(workspaceRepository.toClientApi(workspace, user, false, authorizations));
+            clientApiUser.getWorkspaces().add(workspaceRepository.toClientApi(workspace, user, authorizations));
         }
 
         return clientApiUser;

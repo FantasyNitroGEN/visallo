@@ -197,8 +197,6 @@ public class FileImport {
                         workspaceRepository.updateEntityOnWorkspace(
                                 workspace,
                                 vertex.getId(),
-                                addToWorkspace ? true : null,
-                                null,
                                 user
                         );
                         workQueueRepository.broadcastElement(vertex, workspace.getWorkspaceId());
@@ -311,7 +309,7 @@ public class FileImport {
 
             String workspaceId = null;
             if (workspace != null) {
-                workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), addToWorkspace ? true : null, null, user);
+                workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), user);
                 workspaceId = workspace.getWorkspaceId();
             }
 

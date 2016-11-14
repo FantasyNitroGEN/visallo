@@ -91,15 +91,17 @@ define([
             if (val.length) {
                 require(['util/vertex/urlFormatters'], function(F) {
                     var parameters = F.vertexUrl.parametersInUrl(val),
-                        vertices = parameters && parameters.vertexIds;
+                        vertices = parameters && parameters.vertexIds && parameters.vertexIds.length || 0,
+                        edges = parameters && parameters.edgeIds && parameters.edgeIds.length || 0,
+                        total = vertices + edges;
 
-                    if (vertices && vertices.length === 1) {
-                        self.trigger('displayInformation', { message: i18n('vertex.clipboard.copy.one') });
-                    } else if (vertices && vertices.length > 1) {
+                    if (total === 1) {
+                        self.trigger('displayInformation', { message: i18n('element.clipboard.copy.one') });
+                    } else if (total > 1) {
                         self.trigger('displayInformation', {
-                            message: i18n('vertex.clipboard.copy.some', vertices.length)
+                            message: i18n('element.clipboard.copy.some', total)
                         });
-                    } else if (!vertices) {
+                    } else if (!total) {
                         self.trigger('displayInformation', { message: i18n('clipboard.copy') });
                     }
                 })

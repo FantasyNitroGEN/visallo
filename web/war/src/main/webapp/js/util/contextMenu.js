@@ -86,6 +86,7 @@ define([
                 };
 
             document.addEventListener('mousedown', function(event) {
+                if ($(event.target).closest('.dropdown-menu').length) return;
                 reset();
                 downPosition = [event.pageX, event.pageY];
                 altKey = event.altKey;
@@ -94,11 +95,13 @@ define([
             }, true);
 
             document.addEventListener('mouseup', function(event) {
+                if ($(event.target).closest('.dropdown-menu').length) return;
                 progressContextMenu(event);
             }, true);
 
             document.addEventListener('click', function(event) {
                 if (event.which === 3) return;
+                if ($(event.target).closest('.dropdown-menu').length) return;
 
                 if (altKey || (ctrlKey && !contextMenuBlocked)) {
                     event.stopPropagation();
@@ -110,6 +113,7 @@ define([
             var delay;
 
             document.addEventListener('contextmenu', function(event) {
+                if ($(event.target).closest('.dropdown-menu').length) return;
                 progressContextMenu(event);
             }, true);
         });

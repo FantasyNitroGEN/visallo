@@ -1,8 +1,9 @@
 
 define([
     '../util/ajax',
-    './storeHelper'
-], function(ajax, storeHelper) {
+    './storeHelper',
+    'require'
+], function(ajax, storeHelper, require) {
     'use strict';
 
     var api = {
@@ -60,7 +61,7 @@ define([
                 if (optionalWorkspaceId) {
                     params.workspaceId = optionalWorkspaceId;
                 }
-            }));
+            })).tap(storeHelper.updateElement);
         },
 
         deleteProperty: function(edgeId, property) {
@@ -94,23 +95,17 @@ define([
             ));
         },
 
-        multiple: function(options) {
-            return ajax('POST', '/edge/multiple', options);
-        },
+        multiple: storeHelper.createStoreAccessorOrDownloader('edge'),
 
-        store: storeHelper.createStoreAccessorOrDownloader(
-            'edge', 'edgeIds', 'edges',
-            function(toRequest) {
-                return api.multiple({
-                    edgeIds: toRequest
-                });
-            }),
+        store: function(options) {
+            return api.multiple(options);
+        },
 
         setVisibility: function(edgeId, visibilitySource) {
             return ajax('POST', '/edge/visibility', {
                 graphEdgeId: edgeId,
                 visibilitySource: visibilitySource
-            });
+            }).tap(storeHelper.updateElement);
         }
     };
 

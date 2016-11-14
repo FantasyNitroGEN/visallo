@@ -115,19 +115,11 @@ define([
         this.onPromptAdd = function(event) {
             var self = this;
 
-            this.trigger('updateWorkspace', {
-                options: {
-                    selectAll: true
-                },
-                entityUpdates: this.promptAddVertices.map(function(vertex) {
-                    return {
-                        vertexId: vertex.id,
-                        graphLayoutJson: {
-                            relatedToVertexId: self.attr.relatedToVertexIds[0]
-                        }
-                    };
-                })
-            });
+            this.trigger('addRelatedDoAdd', {
+                addVertices: this.promptAddVertices,
+                relatedToVertexIds: self.attr.relatedToVertexIds
+            })
+
             this.teardown();
         };
 
@@ -181,19 +173,10 @@ define([
                         promptAdd.text(i18n('popovers.add_related.button.prompt_add', count)).show();
                     } else {
                         _.defer(function() {
-                            self.trigger('updateWorkspace', {
-                                options: {
-                                    selectAll: true
-                                },
-                                entityUpdates: vertices.map(function(vertex) {
-                                    return {
-                                        vertexId: vertex.id,
-                                        graphLayoutJson: {
-                                            relatedToVertexId: self.attr.relatedToVertexIds[0]
-                                        }
-                                    };
-                                })
-                            });
+                            self.trigger('addRelatedDoAdd', {
+                                addVertices: vertices,
+                                relatedToVertexIds: self.attr.relatedToVertexIds
+                            })
                         });
                         self.teardown();
                     }

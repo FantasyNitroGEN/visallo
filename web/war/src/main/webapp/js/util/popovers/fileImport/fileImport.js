@@ -67,10 +67,6 @@ define([
             this.after('setupWithTemplate', function() {
                 var self = this;
 
-                this.mousePosition = {
-                    x: window.lastMousePositionX,
-                    y: window.lastMousePositionY
-                };
                 this.visibilitySource = null;
                 this.visibilitySources = new Array(config.files.length);
                 this.concepts = new Array(config.files.length);
@@ -311,22 +307,13 @@ define([
 
             this.request.then(function(result) {
                 var vertexIds = _.isArray(result.vertexIds) ? result.vertexIds : [result.id];
-                self.trigger('updateWorkspace', {
-                    options: {
-                        selectAll: true
-                    },
-                    entityUpdates: vertexIds.map(function(vId, i) {
-                        var page = self.attr.anchorTo.page;
-                        return {
-                            vertexId: vId,
-                            graphLayoutJson: i === 0 ? {
-                                pagePosition: page && page.x && page.y ?
-                                    page : self.mousePosition
-                            } : {}
-                        }
-                    })
-                });
-                self.teardown();
+                var page = self.attr.anchorTo.page;
+
+                self.trigger('fileImportSuccess', { vertexIds, position: page });
+
+                _.defer(function() {
+                    self.teardown();
+                })
             })
             .catch(function(error) {
                 self.attr.teardownOnTap = true;

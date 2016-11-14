@@ -1,4 +1,9 @@
-define([], function() {
+define([
+    'data/web-worker/store/selection/actions',
+    'data/web-worker/store/element/actions',
+    'data/web-worker/store/product/actions',
+    'data/web-worker/store/product/selectors'
+], function(selectionActions, elementActions, productActions, productSelectors) {
     'use strict';
 
     return withObjectSelection;
@@ -28,17 +33,17 @@ define([], function() {
             var self = this;
             this.selectedObjectsStack = [];
 
+            this.subscribeForSelection();
+
             this.setPublicApi('selectedObjects', defaultNoObjectsOrData());
-            this.setPublicApi('graphSelectionThrottle', GRAPH_SELECTION_THROTTLE);
 
             // Guarantees that we aren't after a selectObjects call but before objectsSelected
             this.currentSelectObjectsPromise = Promise.resolve();
             visalloData.selectedObjectsPromise = this.selectedObjectsPromise.bind(this);
 
             this.on('selectObjects', this.onSelectObjects);
-            this.on('selectAll', this.onSelectAll);
-            this.on('selectConnected', this.onSelectConnected);
-
+            this.on('focusElements', this.onFocusElements);
+            this.on('defocusElements', this.onDefocusElements);
             this.on('deleteSelected', this.onDeleteSelected);
             this.on('edgesLoaded', this.onEdgesLoaded);
             this.on('edgesDeleted', function(event, data) {
@@ -68,11 +73,6 @@ define([], function() {
                 }
                 this.removeFromStack(data.vertexIds);
             });
-            this.on('workspaceUpdated', function(event, data) {
-                if (data.entityDeletes.length) {
-                    this.removeFromStack(data.entityDeletes);
-                }
-            });
             this.on('switchWorkspace', function() {
                 this.selectedObjectsStack = [];
                 this.setPublicApi('selectedObjectsStack');
@@ -82,6 +82,25 @@ define([], function() {
             this.on('addRelatedItems', this.onAddRelatedItems);
             this.on('objectsSelected', this.onObjectsSelected);
         });
+
+        this.subscribeForSelection = function() {
+            const selectState = state => state.selection.idsByType;
+            let previousState = null;
+            visalloData.storePromise.then(store => store.subscribe(() => {
+                let newState = store.getState();
+                let prevSelection = previousState && selectState(previousState);
+                let newSelection = selectState(newState);
+
+                if (!prevSelection || prevSelection !== newSelection) {
+                    previousState = newState;
+                    this.trigger('selectObjects', {
+                        vertexIds: newSelection.vertices,
+                        edgeIds: newSelection.edges,
+                        dispatch: false
+                    });
+                }
+            }))
+        };
 
         this.displayInfo = function(i18nMessage) {
             this.trigger('displayInformation', {
@@ -99,131 +118,55 @@ define([], function() {
             this.setPublicApi('workspaceEdges', data.edges);
         };
 
-        this.onSelectAll = function(event, data) {
-            var self = this;
-
-            this.displayInfo('graph.select.all.starting');
-            this.on(document, 'objectsSelected objectsSelectedAborted', function handler() {
-                self.trigger('hideInformation');
-                self.off(document, 'objectsSelected objectsSelectedAborted', handler);
-            })
-            this.dataRequestPromise.done(function(dataRequest) {
-                Promise.all([
-                    dataRequest('workspace', 'store'),
-                    dataRequest('workspace', 'storeEdges')
-                ]).done(function(results) {
-                    var vertices = results.shift(),
-                        edges = results.shift();
-
-                    self.trigger('selectObjects', {
-                        vertexIds: _.keys(vertices),
-                        edgeIds: _.pluck(edges, 'edgeId')
-                    });
-                });
-            })
-        };
-
-        this.onSelectConnected = function(event, data) {
-            var self = this;
-
-            this.displayInfo('graph.select.connected.starting');
-
-            Promise.all([getSelectedVertices(), getWorkspaceEdges()])
-                .spread(function(vertices, edges) {
-                    if (vertices.length && edges.length) {
-                        return [vertices, edges, getWorkspaceVertices()]
-                    }
-                })
-                .spread(getOtherVertices)
-                .then(function(vertexIds) {
-                    if (vertexIds) {
-                        displayMessageForVertexIds(vertexIds);
-                        if (vertexIds.length) {
-                            selectVertexIds(vertexIds)
-                        }
-                    }
-                });
-
-            function displayMessageForVertexIds(ids) {
-                var suffix = ids.length === 1 ? '' : '.plural';
-                self.displayInfo('graph.select.connected.finished' + suffix, ids.length)
-            }
-
-            function selectVertexIds(ids) {
-                self.trigger('selectObjects', { vertexIds: ids });
-            }
-
-            function getOtherVertices(vertices, edges, workspaceVertices) {
-                if (!vertices) return;
-
-                var selected = _.pluck(vertices, 'id'),
-                    toSelect = _.chain(edges)
-                        .map(function(e) {
-                            return selected.map(function(v) {
-                                return e.outVertexId === v ?
-                                    e.inVertexId :
-                                    e.inVertexId === v ?
-                                    e.outVertexId :
-                                    null
-                            })
-                        })
-                        .flatten()
-                        .compact()
-                        .unique()
-                        .filter(function(vId) {
-                            return vId in workspaceVertices;
-                        })
-                        .value();
-                return toSelect;
-            }
-
-            function getWorkspaceVertices() {
-                return self.dataRequestPromise.then(function(dataRequest) {
-                    return dataRequest('workspace', 'store');
-                });
-            }
-
-            function getSelectedVertices() {
-                return Promise.require('util/vertex/formatters')
-                    .then(function(F) {
-                        return Promise.all([
-                            self.dataRequestPromise,
-                            F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true })
-                        ])
-                    })
-                    .spread(function(dataRequest, vertexIds) {
-                        return dataRequest('vertex', 'store', { vertexIds: vertexIds });
-                    });
-            }
-
-            function getWorkspaceEdges() {
-                return self.dataRequestPromise.then(function(dataRequest) {
-                    return dataRequest('workspace', 'edges');
-                });
-            }
-        };
-
         this.onDeleteSelected = function(event, data) {
             var self = this;
 
-            if (!visalloData.currentWorkspaceEditable) {
-                return;
-            }
+            visalloData.storePromise.then(store => {
+                var vertexIds = [],
+                    productId = productSelectors.getSelectedId(store.getState());
 
-            if (data && data.vertexId) {
-                self.trigger('updateWorkspace', {
-                    entityDeletes: [data.vertexId]
-                });
-            } else if (selectedObjects) {
-                if (selectedObjects.vertices.length) {
-                    self.trigger('updateWorkspace', {
-                        entityDeletes: _.pluck(selectedObjects.vertices, 'id')
-                    });
+                if (productId) {
+                    if (data && data.vertexId) {
+                        vertexIds = [data.vertexId]
+                    } else if (selectedObjects && selectedObjects.vertices.length) {
+                        vertexIds = _.pluck(selectedObjects.vertices, 'id')
+                    }
+                    store.dispatch(productActions.removeElements(productId, { vertexIds }))
                 }
-            }
+            })
+        };
+
+        this.onFocusElements = function(event, data) {
+            visalloData.storePromise.then(store => {
+                store.dispatch(elementActions.setFocus(data));
+            });
+        };
+
+        this.onDefocusElements = function(event, data) {
+            visalloData.storePromise.then(store => {
+                store.dispatch(elementActions.setFocus({ vertexIds: [], edgeIds: [] }));
+            });
         };
 
         this.onSelectObjects = function(event, data) {
+            if (!data || data.dispatch !== false) {
+                visalloData.storePromise.then(store => {
+                    var action;
+                    if (data) {
+                        let payload = {
+                            vertices: data.vertexIds,
+                            edges: data.edgeIds
+                        };
+                        if (data.vertices) payload.vertices = _.pluck(data.vertices, 'id');
+                        if (data.edges) payload.edges = _.pluck(data.edges, 'id');
+                        action = selectionActions.set(payload);
+                    } else {
+                        action = selectionActions.clear();
+                    }
+                    store.dispatch(action);
+                })
+            }
+
             var self = this;
             this.currentSelectObjectsPromise = new Promise(function(f) {
                 var hasItems = data &&
@@ -320,10 +263,10 @@ define([], function() {
         this.onObjectsSelected = function(event, data) {
             var self = this;
 
-            if (data.vertices.length) {
+            if (data.vertices.length || data.edges.length) {
                 require(['util/vertex/urlFormatters'], function(F) {
                     self.trigger('clipboardSet', {
-                        text: F.vertexUrl.url(data.vertices, visalloData.currentWorkspaceId)
+                        text: F.vertexUrl.url(data.vertices.concat(data.edges), visalloData.currentWorkspaceId)
                     });
                 })
             } else {
@@ -376,7 +319,7 @@ define([], function() {
         this.onAddRelatedItems = function(event, data) {
             var self = this;
 
-            if ($(event.target).closest('.graph-pane').length === 0) return;
+            if ($(event.target).closest('.org-visallo-graph').length === 0) return;
 
             Promise.require('util/vertex/formatters')
                 .then(function(F) {

@@ -304,7 +304,7 @@ public class RdfXmlImportHelper {
             return;
         }
         graph.flush();
-        workspaceRepository.updateEntityOnWorkspace(data.getWorkspaceId(), vertex.getId(), false, null, user);
+        workspaceRepository.updateEntityOnWorkspace(data.getWorkspaceId(), vertex.getId(), user);
     }
 
     private static class Results {

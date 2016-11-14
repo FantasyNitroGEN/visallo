@@ -1,12 +1,15 @@
+(function() {
+    'use strict';
 define([
     'react-dom',
     'react',
+    'react-redux',
     'util/promise'
 ], function(
     ReactDOM,
     React,
+    { Provider },
     Promise) {
-    'use strict';
 
     var API_VERSIONS = ['v1'],
         self = this,
@@ -61,10 +64,11 @@ define([
             .then(function() {
                 return Promise.all([
                     self._component || Promise.require(self._path),
-                    cachedApiVersions || (cachedApiVersions = loadApiVersions())
+                    cachedApiVersions || (cachedApiVersions = loadApiVersions()),
+                    visalloData.storePromise
                 ]);
             })
-            .spread(function(Component, api) {
+            .spread(function(Component, api, store) {
                 params.visalloApi = api;
 
                 if (options && options.teardown) {
@@ -81,8 +85,9 @@ define([
                     self._flightComponent = Component;
                 } else {
                     var reactElement = React.createElement(Component, _.extend(params, wrapBehavior(self)));
-                    ReactDOM.render(reactElement, self._node);
-                    self._reactElement = reactElement;
+                    var provider = React.createElement(Provider, { store }, reactElement);
+                    ReactDOM.render(provider, self._node);
+                    self._reactElement = provider;
                 }
                 return self;
             })
@@ -159,4 +164,4 @@ define([
         }
     }
 });
-
+})();

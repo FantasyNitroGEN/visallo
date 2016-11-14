@@ -13,6 +13,7 @@ module.exports = {
         "visalloPluginResources": false,
         "TRANSITION_END": false,
         "ANIMATION_END": false,
+        "VISALLO_MIMETYPES": false,
         "i18n": false,
         "_": false
     },
@@ -96,7 +97,6 @@ module.exports = {
         "eqeqeq": "error",
         "new-parens": "error",
         "space-infix-ops": "error",
-        "strict": ["error", "function"],
         "use-isnan": "error",
         "valid-typeof": "error",
         "no-console": [

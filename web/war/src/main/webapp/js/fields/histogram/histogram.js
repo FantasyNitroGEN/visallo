@@ -3,13 +3,15 @@ define([
     'hbs!./histogramTpl',
     'd3',
     'util/withDataRequest',
-    'colorjs'
+    'colorjs',
+    'data/web-worker/store/product/selectors'
 ], function(
     defineComponent,
     template,
     d3,
     withDataRequest,
-    Color) {
+    Color,
+    productSelectors) {
     'use strict';
 
     var HEIGHT = 100,
@@ -38,6 +40,12 @@ define([
             includeYAxis: false
         });
 
+        this.before('teardown', function() {
+            if (this.subscription) {
+                this.subscription();
+            }
+        })
+
         this.after('initialize', function() {
             this.$node.html(template({
                 noDataMessageDetailsText: this.attr.noDataMessageDetailsText
@@ -46,7 +54,6 @@ define([
             this.triggerChange = _.debounce(this.triggerChange.bind(this), 500);
             this.onGraphPaddingUpdated = _.debounce(this.onGraphPaddingUpdated.bind(this), 500);
             this.on(document, 'graphPaddingUpdated', this.onGraphPaddingUpdated);
-            this.on(document, 'workspaceUpdated', this.onWorkspaceUpdated);
             this.on(document, 'workspaceLoaded', this.onWorkspaceLoaded);
             this.on(document, 'objectsSelected', this.onObjectsSelected);
             this.on(document, 'verticesUpdated', this.onVerticesUpdated);
@@ -54,7 +61,8 @@ define([
             this.on('propertyConfigChanged', this.onPropertyConfigChanged);
             this.on('fitHistogram', this.onFitHistogram);
 
-            // FIXME: use different attr config to get all date properties
+            this.watchForProductChanges();
+
             if (!this.attr.property) {
                 this.attr.property = {
                     title: ALL_DATES,
@@ -67,6 +75,21 @@ define([
 
             this.renderChart();
         });
+
+        this.watchForProductChanges = function() {
+            visalloData.storePromise.then(store => {
+                var state = store.getState();
+                var previous = productSelectors.getProduct(state);
+                this.subscription = store.subscribe(() => {
+                    state = store.getState();
+                    var product = productSelectors.getProduct(state);
+                    if (product !== previous && product) {
+                        this.renderChart().then(() => this.updateBarSelection(this.currentSelected));
+                    }
+                    previous = product;
+                });
+            });
+        }
 
         this.onFitHistogram = function() {
             this.zoom.scale(1).translate([0, 0]).event(this.svg);
@@ -109,24 +132,6 @@ define([
             this.renderChart().then(function() {
                 self.updateBarSelection(self.currentSelected);
             });
-        };
-
-        this.onWorkspaceUpdated = function(event, data) {
-            if (data.newVertices.length) {
-                var self = this;
-                this.renderChart().then(function() {
-                    self.updateBarSelection(self.currentSelected);
-                });
-            }
-            if (data.entityDeletes.length) {
-                this.currentSelected.vertexIds = _.without(this.currentSelected.vertexIds || [], data.entityDeletes);
-                this.values = _.reject(this.values, function(v) {
-                    return _.contains(data.entityDeletes, v.vertexId);
-                });
-                this.data = this.binValues();
-                this.createBars(this.data);
-                this.updateBarSelection(this.currentSelected);
-            }
         };
 
         this.onWorkspaceLoaded = function() {

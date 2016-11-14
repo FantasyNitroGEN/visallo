@@ -90,7 +90,7 @@ public class WorkQueueRepositoryTest {
         assertEquals("user123", json.getString("modifiedBy"));
         assertEquals(new JSONObject("{\"users\":[\"user123\"]}").toString(), json.getJSONObject("permissions").toString());
         assertEquals(
-                new JSONObject("{\"vertices\":[],\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"sharedToUser\":false}").toString(),
+                new JSONObject("{\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"sharedToUser\":false}").toString(),
                 json.getJSONObject("data").toString()
         );
         assertEquals("123-123-1234", json.getString("sourceGuid"));
@@ -113,7 +113,7 @@ public class WorkQueueRepositoryTest {
         when(workspaceRepository.findById(eq("ws1"), eq(mockUser2))).thenReturn(workspace);
         when(userRepository.findById(eq("mockUser1"))).thenReturn(mockUser1);
         when(authorizationRepository.getGraphAuthorizations(eq(mockUser1), eq("ws1"))).thenReturn(mockUser1Auths);
-        when(workspaceRepository.toClientApi(eq(workspace), eq(mockUser1), eq(true), any())).thenReturn(clientApiWorkspace);
+        when(workspaceRepository.toClientApi(eq(workspace), eq(mockUser1), any())).thenReturn(clientApiWorkspace);
 
         workQueueRepository.pushWorkspaceChange(clientApiWorkspace, previousUsers, changedByUserId, changedBySourceGuid);
 
@@ -123,7 +123,7 @@ public class WorkQueueRepositoryTest {
         assertEquals("mockUser2", json.getString("modifiedBy"));
         assertEquals(new JSONObject("{\"users\":[\"mockUser1\"]}").toString(), json.getJSONObject("permissions").toString());
         assertEquals(
-                new JSONObject("{\"vertices\":[],\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"workspaceId\":\"ws1\",\"sharedToUser\":false}").toString(),
+                new JSONObject("{\"editable\":false,\"active\":false,\"users\":[],\"commentable\":false,\"workspaceId\":\"ws1\",\"sharedToUser\":false}").toString(),
                 json.getJSONObject("data").toString()
         );
         assertEquals("123-123-1234", json.getString("sourceGuid"));

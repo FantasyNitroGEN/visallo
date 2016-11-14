@@ -68,7 +68,7 @@ public class VertexSetPropertyVisibility implements ParameterizedHandler {
         VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, newVisibilitySource, user, authorizations);
 
         // add the vertex to the workspace so that the changes show up in the diff panel
-        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, null, null, user);
+        workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, user);
 
         Property property = graphRepository.updatePropertyVisibilitySource(
                 vertex,

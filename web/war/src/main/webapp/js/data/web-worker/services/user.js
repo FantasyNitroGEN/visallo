@@ -1,5 +1,5 @@
 
-define(['../util/ajax'], function(ajax) {
+define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax, store, userActions) {
     'use strict';
 
     var api = {
@@ -19,6 +19,7 @@ define(['../util/ajax'], function(ajax) {
         },
 
         preference: function(name, value) {
+            store.getStore().dispatch(userActions.putUserPreference(name, value))
             return ajax('POST', '/user/ui-preferences', {
                 name: name,
                 value: value

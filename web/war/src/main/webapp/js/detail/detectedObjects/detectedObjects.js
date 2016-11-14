@@ -290,22 +290,17 @@ define([
                 objects = this.$node.children();
 
             objects.each(function(i, object) {
-                $(object).draggable({
-                    helper: 'clone',
-                    revert: 'invalid',
-                    revertDuration: 250,
-                    scroll: false,
-                    zIndex: 100,
-                    distance: 10,
-                    start: function() {
-                        $(this)
-                            .parent().addClass('drag-focus');
-                    },
-                    stop: function() {
-                        $(this)
-                            .parent().removeClass('drag-focus');
-                    }
-                });
+                $(object)
+                    .attr('draggable', true)
+                    .off('dragstart')
+                    .on('dragstart', function(event) {
+                        const vertexId = $(event.target).data('vertexId');
+                        const elements = { vertexIds: [vertexId] };
+                        const dt = event.originalEvent.dataTransfer;
+
+                        dt.effectAllowed = 'all';
+                        dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
+                    });
             })
         };
     }

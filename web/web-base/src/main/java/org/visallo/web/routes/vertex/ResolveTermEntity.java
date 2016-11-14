@@ -117,7 +117,7 @@ public class ResolveTermEntity implements ParameterizedHandler {
 
             this.graph.flush();
 
-            workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), null, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), user);
         }
 
         EdgeBuilder edgeBuilder = graph.prepareEdge(artifactVertex, vertex, this.artifactHasEntityIri, visalloVisibility.getVisibility());

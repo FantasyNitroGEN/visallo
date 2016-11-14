@@ -5,7 +5,6 @@ import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.GraphPosition;
 
 import java.io.Serializable;
 import java.util.List;
@@ -18,25 +17,13 @@ public class WorkspaceEntity implements Serializable {
     static long serialVersionUID = 1L;
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceEntity.class);
     private final String entityVertexId;
-    private final boolean visible;
-    private final Integer graphPositionX;
-    private final Integer graphPositionY;
-    private final String graphLayoutJson;
     private transient Vertex vertex;
 
     public WorkspaceEntity(
             String entityVertexId,
-            boolean visible,
-            Integer graphPositionX,
-            Integer graphPositionY,
-            String graphLayoutJson,
             Vertex vertex
     ) {
         this.entityVertexId = entityVertexId;
-        this.visible = visible;
-        this.graphPositionX = graphPositionX;
-        this.graphPositionY = graphPositionY;
-        this.graphLayoutJson = graphLayoutJson;
         this.vertex = vertex;
     }
 
@@ -44,31 +31,8 @@ public class WorkspaceEntity implements Serializable {
         return entityVertexId;
     }
 
-    public Integer getGraphPositionX() {
-        return graphPositionX;
-    }
-
-    public Integer getGraphPositionY() {
-        return graphPositionY;
-    }
-
-    public String getGraphLayoutJson() {
-        return graphLayoutJson;
-    }
-
-    public boolean isVisible() {
-        return visible;
-    }
-
     public Vertex getVertex() {
         return vertex;
-    }
-
-    public GraphPosition getGraphPosition() {
-        if (getGraphPositionX() == null || getGraphPositionY() == null) {
-            return null;
-        }
-        return new GraphPosition(getGraphPositionX(), getGraphPositionY());
     }
 
     public static Iterable<Vertex> toVertices(final Iterable<WorkspaceEntity> workspaceEntities, final Graph graph, final Authorizations authorizations) {

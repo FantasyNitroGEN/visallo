@@ -11,7 +11,6 @@ console = {
     error: consoleError
 };
 window.addEventListener = function() { };
-
 require.config({
     baseUrl: '',
     paths: {
@@ -32,6 +31,7 @@ require.config({
         'util/ajax': 'mocks/ajax',
         'util/memoize': 'mocks/memoize',
         'configuration/plugins/registry': 'mocks/registry',
+        'store': 'mocks/store',
 
         // SRC
         'util/formatters': 'util_formatters',
@@ -42,7 +42,9 @@ require.config({
         'util/service/ontologyPromise': 'util_service_ontologyPromise',
         'util/vertex/formatters': 'util_vertex_formatters',
         'util/vertex/formula': 'util_vertex_formula',
-        'util/vertex/urlFormatters': 'util_vertex_urlFormatters'
+        'util/vertex/urlFormatters': 'util_vertex_urlFormatters',
+        'service/config': 'service/config',
+        'service/ontology': 'service/ontology'
     },
     shims: {
         'bluebird': { exports: 'Promise' },

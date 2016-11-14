@@ -121,21 +121,19 @@ define([
                         }
                     })
 
-                    self.select('radiusSearchSelector').on('click', function() {
-                       self.trigger(document, 'changeView', {
-                           view: 'map'
-                       });
-                       self.trigger(document, 'searchResultsWithinRadius', {
-                           currentValue: self.getValue()
-                       });
-
-                       $(document)
-                           .off('regionSaved')
-                           .on('regionSaved', function(event, data) {
-                               self.setValue(data);
-                               self.triggerFieldUpdated();
-                           });
-                    });
+                    self.on('click', {
+                        radiusSearchSelector(event) {
+                            require(['util/popovers/mapSearch/mapSearch'], function(MapSearchPopover) {
+                                MapSearchPopover.attachTo(self.node, {
+                                    currentValue: self.getValue()
+                                });
+                            })
+                        }
+                    })
+                    self.on('mapSearchRegionUpdated', _.debounce((event, {region}) => {
+                        self.setValue(region);
+                        self.triggerFieldUpdated();
+                    }, 500))
                 });
             })
         });

@@ -37,7 +37,7 @@ define([
                     if (_.isString(error)) {
                         error = new Error(error);
                     }
-                    request.promiseReject(data.error);
+                    request.promiseReject(error);
                 }
             }
         });

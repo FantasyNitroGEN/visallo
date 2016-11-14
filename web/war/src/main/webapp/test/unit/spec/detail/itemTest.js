@@ -326,7 +326,7 @@ require(['configuration/plugins/registry'], function(registry) {
                 $items.each(function() {
                     var attached = $(this).lookupAllComponents()
                     attached.length.should.equal(1)
-                    attached[0].toString().should.equal('ItemTestCollectionItem')
+                    _.last(attached[0].mixedIn).name.should.equal('ItemTestCollectionItem')
                 })
             })
 
@@ -338,7 +338,7 @@ require(['configuration/plugins/registry'], function(registry) {
                     div = $list.children().eq(0).find('div').on('updateModel', spy)
                     
                 comps.length.should.equal(1)
-                comps.toString().should.equal('ItemTestCollectionItem')
+                _.last(comps[0].mixedIn).name.should.equal('ItemTestCollectionItem')
 
                 $node.on('modelUpdated', function(event) {
                         _.delay(function() {
@@ -395,7 +395,7 @@ require(['configuration/plugins/registry'], function(registry) {
                 $node.on('modelUpdated', function(event) {
                         comps = $list.lookupAllComponents();
                         comps.length.should.equal(1)
-                        comps[0].toString().should.equal('FlexLayout')
+                        _.last(comps[0].mixedIn).name.should.equal('FlexLayout')
                         done()
                     })
                     .trigger('updateModel', {
@@ -575,13 +575,13 @@ require(['configuration/plugins/registry'], function(registry) {
                             $c.length.should.equal(4)
                             // Component order is changed
                             $c.eq(0).text().should.equal('1_OVERRIDE_1')
-                            $c.eq(0).lookupAllComponents()[0].toString()
+                            _.last($c.eq(0).lookupAllComponents()[0].mixedIn).name
                                 .should.equal('ItemTestCollectionItemNoEventSuppress')
                             $c.eq(1).text().should.equal('1_OVERRIDE_1')
-                            $c.eq(1).lookupAllComponents()[0].toString()
+                            _.last($c.eq(1).lookupAllComponents()[0].mixedIn).name
                                 .should.equal('ItemTestCollectionItem')
                             $c.eq(2).text().should.equal('1_OVERRIDE_1')
-                            $c.eq(2).lookupAllComponents()[0].toString()
+                            _.last($c.eq(2).lookupAllComponents()[0].mixedIn).name
                                 .should.equal('ItemTestCollectionItem')
                             $c.eq(3).text().should.equal('1_OVERRIDE_1')
                             tryNum++;
@@ -610,8 +610,8 @@ require(['configuration/plugins/registry'], function(registry) {
                         // Check if it's the same element
                         $c[0].dataset.flag.should.equal('1')
                         $c.eq(0).text().should.equal('2_OVERRIDE')
-                        $c.eq(0).lookupAllComponents()[0].toString().should
-                            .equal('ItemTestCollectionItem')
+                        _.last($c.eq(0).lookupAllComponents()[0].mixedIn).name
+                            .should.equal('ItemTestCollectionItem')
                         $c.eq(1).text().should.equal('2_OVERRIDE')
                         // Make sure that we teardown old components
                         $c.eq(1).lookupAllComponents().should.be.empty

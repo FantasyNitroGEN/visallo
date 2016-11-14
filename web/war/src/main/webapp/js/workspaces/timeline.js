@@ -21,6 +21,12 @@ define([
             timelineFitSelector: '.timeline-fit'
         });
 
+        this.before('teardown', function() {
+            if (this.Histogram) {
+                this.$node.children('.timeline-svg-container').teardownComponent(this.Histogram);
+            }
+        })
+
         this.after('initialize', function() {
             var self = this;
 
@@ -94,11 +100,9 @@ define([
 
             Promise.all([
                 Promise.require('fields/histogram/histogram'),
-                this.dataRequest('ontology', 'properties')
-            ]).done(function(results) {
-                var Histogram = results.shift(),
-                    ontologyProperties = results.shift();
-
+                this.dataRequest('ontology', 'properties'),
+            ]).spread(function(Histogram, ontologyProperties) {
+                self.Histogram = Histogram;
                 Histogram.attachTo(self.$node.children('.timeline-svg-container'), {
                     noDataMessageDetailsText: i18n('timeline.no_data_details'),
                     includeYAxis: true

@@ -21,7 +21,14 @@ public class BabelExecutor {
     private ExecutorService executorService;
 
     public BabelExecutor() {
-        this.executorService = Executors.newSingleThreadExecutor();
+        this.executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setPriority(Thread.MIN_PRIORITY);
+                return thread;
+            }
+        });
         this.babelFuture = this.executorService.submit(() -> initializeBabel());
     }
 
@@ -35,6 +42,8 @@ public class BabelExecutor {
     public synchronized void compileWithSharedEngine(CachedCompilation cachedCompilation, SourceMapType sourceMapType) throws ScriptException {
         ScriptEngine engine = this.engine;
         Bindings bindings = this.bindings;
+
+        LOGGER.debug("Compiling jsx with babel: " + cachedCompilation.getResourcePath());
 
         bindings.put("input", cachedCompilation.getInput());
         bindings.put("resourcePath", cachedCompilation.getResourcePath());

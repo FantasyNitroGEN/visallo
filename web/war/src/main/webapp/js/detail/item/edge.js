@@ -37,14 +37,14 @@ define([
         };
 
         this.onVerticesUpdated = function(event, data) {
-            var source = _.findWhere(data.vertices, { id: this.attr.model.source.id }),
-                target = _.findWhere(data.vertices, { id: this.attr.model.target.id });
+            var source = _.findWhere(data.vertices, { id: this.attr.model.outVertexId }),
+                target = _.findWhere(data.vertices, { id: this.attr.model.inVertexId });
 
             if (source || target) {
                 this.trigger('updateModel', {
                     model: _.extend({}, this.attr.model, {
-                        source: source || this.attr.model.source,
-                        target: target || this.attr.model.target
+                        source: source,
+                        target: target
                     })
                 })
             }

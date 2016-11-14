@@ -127,7 +127,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
 
             graph.flush();
 
-            workspaceRepository.updateEntityOnWorkspace(workspace, resolvedVertex.getId(), null, null, user);
+            workspaceRepository.updateEntityOnWorkspace(workspace, resolvedVertex.getId(), user);
         } else {
             resolvedVertex = graph.getVertex(graphVertexId, authorizations);
             resolvedVertexMutation = resolvedVertex.prepareMutation();

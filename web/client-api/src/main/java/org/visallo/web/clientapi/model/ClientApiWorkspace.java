@@ -1,7 +1,5 @@
 package org.visallo.web.clientapi.model;
 
-import org.visallo.web.clientapi.util.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +11,6 @@ public class ClientApiWorkspace implements ClientApiObject {
     private boolean isEditable;
     private boolean isCommentable;
     private List<User> users = new ArrayList<User>();
-    private List<Vertex> vertices = new ArrayList<Vertex>();
     private boolean active;
 
     public String getWorkspaceId() {
@@ -68,20 +65,8 @@ public class ClientApiWorkspace implements ClientApiObject {
         return users;
     }
 
-    public List<Vertex> getVertices() {
-        return vertices;
-    }
-
     public void addUser(User user) {
         this.users.add(user);
-    }
-
-    public void addVertex(Vertex vertex) {
-        this.vertices.add(vertex);
-    }
-
-    public void removeVertices() {
-        this.vertices = null;
     }
 
     @Override

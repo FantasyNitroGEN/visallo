@@ -1,10 +1,8 @@
 define(['util/promise'], function() {
     return new Promise(function(resolve) {
         require([
-            'text!../test/unit/mocks/ontology.json',
-            'data/web-worker/services/ontology',
-            'data/web-worker/util/ajax'
-        ], function(json, ontology, ajax) {
+            'text!../test/unit/mocks/ontology.json'
+        ], function(json) {
             // Hack ontology for testing
             var ontologyJson = JSON.parse(json),
                 person = _.findWhere(ontologyJson.concepts, { id: 'http://visallo.org/dev#person' });
@@ -81,8 +79,10 @@ define(['util/promise'], function() {
                 properties:[]
             });
 
-            ajax.setNextResponse(ontologyJson);
-            resolve(ontology.ontology());
+            window.ONTOLOGY_JSON = ontologyJson;
+            require(['data/web-worker/services/ontology'], function(ontology) {
+                resolve(ontology.ontology());
+            })
         });
     });
 });
