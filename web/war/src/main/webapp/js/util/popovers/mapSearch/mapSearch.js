@@ -21,7 +21,8 @@ define([
     function MapSearchPopover() {
 
         this.defaultAttrs({
-            mapSelector: '.map'
+            mapSelector: '.map',
+            closeSelector: '.close'
         });
 
         this.before('initialize', function(node, config) {
@@ -70,6 +71,9 @@ define([
             this.map = map;
 
             map.on('click', event => this.onMapClicked(event))
+            this.on(this.popover, 'click', {
+                closeSelector: this.teardown
+            })
 
             if (existing) {
                 this.mode = MODE_REGION_SELECTION_MODE_RADIUS;
