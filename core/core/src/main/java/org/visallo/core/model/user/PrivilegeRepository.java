@@ -15,4 +15,8 @@ public interface PrivilegeRepository {
     boolean hasAllPrivileges(User user, Set<String> requiredPrivileges);
 
     Set<Privilege> getAllPrivileges();
+
+    static boolean hasPrivilege(Set<String> privileges, String privilege) {
+        return privileges.contains(privilege);
+    }
 }

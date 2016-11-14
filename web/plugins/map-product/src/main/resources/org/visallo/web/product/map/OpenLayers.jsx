@@ -278,7 +278,7 @@ define([
             const extent = cluster.source.getExtent();
             const view = map.getView();
 
-            if (!ol.extent.isInfinite(extent) && !ol.extent.isEmpty(extent)) {
+            if (!ol.extent.isEmpty(extent)) {
                 var resolution = view.getResolution(),
                     extentWithPadding = extent,
                     { left, right, top, bottom } = this.props.panelPadding,

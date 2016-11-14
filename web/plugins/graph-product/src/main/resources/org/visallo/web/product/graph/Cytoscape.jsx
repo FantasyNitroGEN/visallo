@@ -1,6 +1,6 @@
 define([
     'react',
-    'cytoscape',
+    './node_modules/cytoscape/src/index',
     'fast-json-patch',
     'components/NavigationControls',
     'colorjs',

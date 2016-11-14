@@ -435,7 +435,8 @@ define([
         },
 
         onTap(event) {
-            const { cy, cyTarget } = event;
+            const { cy, cyTarget, cyPosition } = event;
+            const { x, y } = cyPosition;
             const { ctrlKey, shiftKey } = event.originalEvent;
             const { draw, paths } = this.state;
 
@@ -446,13 +447,14 @@ define([
                 }
             }
             if (draw) {
-                if (cy === cyTarget || draw.vertexId === cyTarget.id()) {
+                const upElement = cy.renderer().findNearestElement(x, y, true, false);
+                if (!upElement || draw.vertexId === upElement.id()) {
                     this.cancelDraw();
-                    if (ctrlKey) {
+                    if (ctrlKey && upElement) {
                         this.onContextTap(event);
                     }
                 } else {
-                    this.setState({ draw: {...draw, toVertexId: cyTarget.id() } });
+                    this.setState({ draw: {...draw, toVertexId: upElement.id() } });
                     this.showConnectionPopover();
                 }
             } else {

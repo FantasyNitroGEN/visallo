@@ -23,7 +23,7 @@ public abstract class PrivilegeRepositoryBase implements PrivilegeRepository {
 
     public boolean hasPrivilege(User user, String privilege) {
         Set<String> privileges = getPrivileges(user);
-        return privileges.contains(privilege);
+        return PrivilegeRepository.hasPrivilege(privileges, privilege);
     }
 
     public boolean hasAllPrivileges(User user, Set<String> requiredPrivileges) {

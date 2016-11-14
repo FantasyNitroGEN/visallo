@@ -10,6 +10,7 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
+    "cytoscape": "2.7.10"
   },
   "devDependencies": {
     "babel-core": "^6.14.0",

@@ -10,6 +10,17 @@ define([
 
     registry.markUndocumentedExtensionPoint('org.visallo.workproduct')
 
+    var initialProductId = null;
+    $(document).on('menubarToggleDisplay', function handler(event, data) {
+        const { name, options } = data;
+        if (name === 'products' && !_.isEmpty(options)) {
+            if ('id' in options) {
+                initialProductId = options.id
+                $(document).off('menubarToggleDisplay', handler)
+            } else console.warn('Specify id=[product id] in url to open product. #tools=products&id=...')
+        }
+    })
+
     return redux.connect(
 
         (state, props) => {
@@ -25,12 +36,8 @@ define([
 
         (dispatch, props) => {
 
-            $(document).on('didToggleDisplay', function(event, data) {
-                if (data.name === 'products' && data.visible) {
-                    dispatch(productActions.list());
-                }
-            })
             return {
+                onLoadProducts: () => { dispatch(productActions.list(initialProductId)); initialProductId = null },
                 onCreate: (type) => { dispatch(productActions.create('Untitled', type)) },
                 onDeleteProduct: (productId) => { dispatch(productActions.delete(productId)) },
                 onUpdateTitle: (productId, title) => {
