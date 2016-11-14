@@ -2,7 +2,7 @@ define([
     'react',
     'util/withContextMenu',
     'util/formatters',
-    'cytoscape',
+    './node_modules/cytoscape/src/index',
     'components/RegistryInjectorHOC'
 ], function(React, withContextMenu, F, cytoscape, RegistryInjectorHOC) {
     'use strict';

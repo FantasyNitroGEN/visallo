@@ -27,7 +27,6 @@ var VisalloAmdExternals = [
     'detail/dropdowns/propertyForm/justification',
     'util/visibility/edit',
     'flight/lib/component',
-    'cytoscape',
     'fast-json-patch',
     'updeep',
     'underscore',

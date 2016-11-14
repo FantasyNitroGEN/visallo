@@ -45,7 +45,6 @@
             'easing': '../libs/jquery.easing/jquery.easing.1.3',
             'ejs': '../libs/ejs/ejs',
             'fast-json-patch': '../libs/fast-json-patch/dist/json-patch-duplex.min',
-            'flux-standard-action': '../libs/amd-wrap/flux-standard-action/lib/index',
             'flight': '../libs/flightjs/build/flight',
             'flight/lib': 'util/flight/compat',
             'goog': '../libs/requirejs-plugins/src/goog',
@@ -110,8 +109,7 @@
             'videojs': { exports: 'videojs' }
         },
         amdWrap: [
-            'deep-freeze-strict/index.js',
-            'flux-standard-action/lib/index.js'
+            'deep-freeze-strict/index.js'
         ]
     };
 }));
