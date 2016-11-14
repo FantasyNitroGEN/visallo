@@ -27,6 +27,11 @@ define(['util/websocket'], function(websocketUtils) {
                 }
             });
 
+            this.on(window, 'offline', this.onWebsocketDisconnect);
+            this.on('websocketNotSupportedInWorker', () => {
+                this.off(window, 'offline', this.onWebsocketDisconnect);
+            });
+
             if (window.DEBUG) {
                 DEBUG.pushSocket = this.pushSocket.bind(this);
             }
@@ -63,6 +68,16 @@ define(['util/websocket'], function(websocketUtils) {
         };
 
         this.websocketStateOnError = function(error) {
+            this.onWebsocketDisconnect();
+        };
+
+        this.websocketStateOnClose = function(message) {
+            if (message && message.error) {
+                console.error('Websocket closed', message.reasonPhrase, message.error);
+            } else console.error('Websocket closed', message.status)
+        };
+
+        this.onWebsocketDisconnect = function() {
             overlayPromise.done(function(Overlay) {
                 // Might be closing because of browser refresh, delay
                 // so it only happens if server went down
@@ -70,12 +85,6 @@ define(['util/websocket'], function(websocketUtils) {
                     Overlay.attachTo(document);
                 }, 1000);
             });
-        };
-
-        this.websocketStateOnClose = function(message) {
-            if (message && message.error) {
-                console.error('Websocket closed', message.reasonPhrase, message.error);
-            } else console.error('Websocket closed', message.status)
         };
     }
 });
