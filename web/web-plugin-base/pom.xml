@@ -79,14 +79,13 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>install-node-and-npm</id>
+                        <id>install-node-and-yarn</id>
                         <goals>
-                            <goal>install-node-and-npm</goal>
+                            <goal>install-node-and-yarn</goal>
                         </goals>
-                        <phase>generate-resources</phase>
                         <configuration>
                             <nodeVersion>${node.version}</nodeVersion>
-                            <npmVersion>${npm.version}</npmVersion>
+                            <yarnVersion>${yarnjs.version}</yarnVersion>
                         </configuration>
                     </execution>
                 </executions>

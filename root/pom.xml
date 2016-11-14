@@ -149,12 +149,13 @@
         <plugin.sonar.version>4.0</plugin.sonar.version>
         <plugin.taglist.version>2.4</plugin.taglist.version>
         <plugin.template.resgen.version>0.11</plugin.template.resgen.version>
-        <plugin.frontend>0.0.28</plugin.frontend>
+        <plugin.frontend>1.2</plugin.frontend>
         <maven.plugin.gpg.version>1.6</maven.plugin.gpg.version>
 
         <!-- Node Properties -->
         <node.version>v6.2.0</node.version>
         <npm.version>3.8.9</npm.version>
+        <yarnjs.version>v0.17.0</yarnjs.version>
         <frontend.installDirectory>${settings.localRepository}/node/${node.version}</frontend.installDirectory>
     </properties>
 
