@@ -23,8 +23,7 @@ define([
                 return _.filter(properties, function(p) {
                     return p.dataType.toLowerCase() === 'geolocation';
                 });
-            }},
-            { value: 'statistics', name: 'Statistics' }
+            }}
         ],
         AGGREGATIONS_NO_GEOHASH = _.reject(AGGREGATIONS, function(a) {
             return a.value === 'geohash';
@@ -402,9 +401,6 @@ define([
                     break;
 
                 case 'term':
-                    break;
-
-                case 'statistics':
                     break;
 
                 default:
