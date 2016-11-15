@@ -38,6 +38,26 @@ define([], function() {
                 });
 
                 require(['jquery-ui'], function() {
+                  var stopDroppable = function(event, ui) {
+                      $('.draggable-wrapper').remove();
+
+                      // Early exit if should leave to a different droppable
+                      if (!enabled) return;
+
+                        verticesFromDraggable(ui.draggable, self.dataRequestPromise)
+                            .done(function(vertices) {
+                                var graphVisible = $('.graph-pane-2d').is('.visible');
+
+                                if (visalloData.currentWorkspaceEditable && vertices.length) {
+                                    self.trigger('clearWorkspaceFilter');
+                                    self.trigger('verticesDropped', {
+                                        vertices: vertices,
+                                        dropPosition: { x: event.clientX, y: event.clientY }
+                                    });
+                                }
+                            })
+                    };
+
                     droppable.droppable({
                         tolerance: 'pointer',
                         accept: function(item) {
@@ -109,25 +129,8 @@ define([], function() {
                                 }
                             });
                         },
-                        drop: function(event, ui) {
-                            $('.draggable-wrapper').remove();
-
-                            // Early exit if should leave to a different droppable
-                            if (!enabled) return;
-
-                            verticesFromDraggable(ui.draggable, self.dataRequestPromise)
-                                .done(function(vertices) {
-                                    var graphVisible = $('.graph-pane-2d').is('.visible');
-
-                                    if (visalloData.currentWorkspaceEditable && vertices.length) {
-                                        self.trigger('clearWorkspaceFilter');
-                                        self.trigger('verticesDropped', {
-                                            vertices: vertices,
-                                            dropPosition: { x: event.clientX, y: event.clientY }
-                                        });
-                                    }
-                                })
-                        }
+                        deactivate: stopDroppable,
+                        drop: stopDroppable,
                     });
                 });
             }));
