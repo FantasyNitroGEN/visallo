@@ -49,6 +49,7 @@
         * [Layout Component](extension-points/front-end/layout/component.md)
         * [Layout Type](extension-points/front-end/layout/type.md)
         * [Logout](extension-points/front-end/logout/index.md)
+        * [Map Options](extension-points/front-end/mapOptions/index.md)
         * [Menubar](extension-points/front-end/menubar/index.md)
         * [Search Filters](extension-points/front-end/searchFilters/index.md)
         * [Search Toolbar](extension-points/front-end/searchToolbar/index.md)
