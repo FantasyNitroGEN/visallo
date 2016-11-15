@@ -54,10 +54,13 @@ define([
             } else if (extensions.length && loaded) {
                 const workspace = state.workspace.currentId ?
                     state.workspace.byId[state.workspace.currentId] : null;
+                const user = state.user.current;
                 return {
                     padding: state.panel.padding,
                     extensions,
-                    editable: workspace ? workspace.editable : false
+                    editable: workspace && user ?
+                        workspace.editable && user.privileges.includes('EDIT') :
+                        false
                 };
             }
             return {}

@@ -29,6 +29,7 @@ define([
                 types: productSelectors.getProductTypes(state),
                 selected: productSelectors.getSelectedId(state),
                 products: productSelectors.getProducts(state),
+                user: state.user.current,
                 workspace: state.workspace.currentId ?
                     state.workspace.byId[state.workspace.currentId] : null
             }
