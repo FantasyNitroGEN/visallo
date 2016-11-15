@@ -224,11 +224,19 @@ define([
             it('should create local dates', function() {
                 var date = new Date('2015-06-23T13:16:00'),
                     offset = date.getTimezoneOffset(),
-                    dateLocal = new Date(date.getTime() + offset * 60 * 1000);
+                    dateLocal = new Date(date.getTime() + offset * 60 * 1000),
+                    isNegative = offset > 0,
+                    hours = '' + Math.floor(Math.abs(offset) / 60),
+                    minutes = '' + (Math.abs(offset) % 60);
 
-                f.date.local('2015-06-23 13:16 CDT').getTime().should.equal(dateLocal.getTime())
+                if (hours.length < 2) hours = '0' + hours;
+                if (minutes.length < 2) minutes = '0' + minutes;
+
+                var thisMachineTimezoneOffsetStr = (isNegative ? '-' : '+') + hours + ':' + minutes;
+                f.date.local('2015-06-23 13:16 ' + thisMachineTimezoneOffsetStr).getTime()
+                    .should.equal(dateLocal.getTime())
                 f.date.dateTimeString(dateLocal.getTime()).should.match(/^2015-06-23 13:16 .+$/)
-            })
+            });
 
             it('should format to preferred format', function() {
                 var now = new Date(),
