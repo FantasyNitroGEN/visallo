@@ -46,6 +46,8 @@ define([], function() {
                     });
                 });
 
+            this.trigger('websocketNotSupportedInWorker');
+
             this.around('pushSocket', function(push, message) {
                 atmospherePromise.then(function(socket) {
                     var string = JSON.stringify(_.extend({}, message, {
