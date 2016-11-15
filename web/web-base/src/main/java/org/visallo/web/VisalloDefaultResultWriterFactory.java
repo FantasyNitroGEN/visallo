@@ -11,6 +11,8 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.security.ACLProvider;
+import org.visallo.core.trace.Trace;
+import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
@@ -80,7 +82,9 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                     if (resultIsClientApiObject) {
                         ClientApiObject clientApiObject = (ClientApiObject) result;
                         User user = VisalloBaseParameterProvider.getUser(request, userRepository);
-                        clientApiObject = aclProvider.appendACL(clientApiObject, user);
+                        try (TraceSpan ignored = Trace.start("aclProvider.appendACL")) {
+                            clientApiObject = aclProvider.appendACL(clientApiObject, user);
+                        }
                         String jsonObject;
                         try {
                             jsonObject = ObjectMapperFactory.getInstance().writeValueAsString(clientApiObject);
