@@ -29,11 +29,11 @@ define([
             source: PropTypes.string.isRequired,
             sourceOptions: PropTypes.object,
             generatePreview: PropTypes.bool,
+            tools: PropTypes.array,
             onSelectElements: PropTypes.func.isRequired,
             onUpdatePreview: PropTypes.func.isRequired,
             onTap: PropTypes.func,
             onContextTap: PropTypes.func,
-
             onZoom: PropTypes.func,
             onPan: PropTypes.func
         },
@@ -48,7 +48,8 @@ define([
                 onTap: noop,
                 onContextTap: noop,
                 onZoom: noop,
-                onPan: noop
+                onPan: noop,
+                tools: []
             }
         },
 
@@ -209,6 +210,7 @@ define([
                 <div style={{height: '100%'}}>
                     <div style={{height: '100%'}} ref="map"></div>
                     <NavigationControls
+                        tools={this.injectExtraPropsToTools()}
                         rightOffset={this.props.panelPadding.right}
                         onFit={this.onControlsFit}
                         onZoom={this.onControlsZoom}
@@ -558,6 +560,19 @@ define([
         domEvent(el, type, handler) {
             this.domEvents.push(() => el.removeEventListener(type, handler));
             el.addEventListener(type, handler, false);
+        },
+
+        injectExtraPropsToTools() {
+            const { map, cluster } = this.state;
+            if (map && cluster) {
+                return this.props.tools.map(tool => {
+                    return {
+                        ...tool,
+                        props: { ol, map, cluster }
+                    }
+                });
+            }
+            return [];
         }
     })
 
