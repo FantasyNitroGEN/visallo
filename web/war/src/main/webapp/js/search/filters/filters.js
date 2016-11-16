@@ -268,6 +268,10 @@ define([
         this.setEdgeTypeFilter = function(edgeId) {
             var self = this;
 
+            if (this.matchType === 'vertex') {
+                return;
+            }
+
             this.edgeLabelFilter = edgeId || '';
             this.trigger(this.select('edgeLabelDropdownSelector'), 'selectRelationshipId', { relationshipId: edgeId });
 
@@ -330,6 +334,10 @@ define([
 
         this.setConceptFilter = function(conceptId) {
             var self = this;
+
+            if (this.matchType === 'edge') {
+                return;
+            }
 
             this.conceptFilter = conceptId || '';
             this.trigger(this.select('conceptDropdownSelector'), 'selectConceptId', { conceptId: conceptId });
