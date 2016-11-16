@@ -95,7 +95,7 @@ define([
                     .then(function(ontology) {
                         var propertyIds = [],
                             collectPropertyIds = function(rId) {
-                                var relation = ontology.relationships[rId],
+                                var relation = ontology.relationships.byId[rId],
                                 properties = relation && relation.properties,
                                 parentId = relation && relation.parentIri;
 
@@ -112,7 +112,7 @@ define([
                         var properties = _.chain(propertyIds)
                             .uniq()
                             .map(function(pId) {
-                                return ontology.properties[pId];
+                                return ontology.properties.byTitle[pId];
                             })
                             .value();
 
