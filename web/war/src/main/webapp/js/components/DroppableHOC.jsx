@@ -1,4 +1,4 @@
-define(['react'], function(React) {
+define(['react', 'util/dnd'], function(React, dnd) {
     'use strict';
 
     const Events = 'dragover dragenter dragleave drop'.split(' ');
@@ -28,7 +28,7 @@ define(['react'], function(React) {
             })
         },
         dataTransferHasValidMimeType(dataTransfer) {
-            return _.any(dataTransfer.types, type => this.props.mimeTypes.includes(type));
+            return dnd.dataTransferHasValidMimeType(dataTransfer, this.props.mimeTypes)
         },
         dragover(event) {
             const { dataTransfer } = event;

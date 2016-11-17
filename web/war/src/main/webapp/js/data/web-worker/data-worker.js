@@ -14,11 +14,18 @@ var BASE_URL = '../../..',
     needsInitialSetup = true,
     publicData = {};
 
-var timer;
+var timer, todo = [], setupInProgress = true;
 onmessage = function(event) {
     if (needsInitialSetup) {
+        todo = [];
         needsInitialSetup = false;
+        setupInProgress = true;
         setupAll(JSON.parse(event.data));
+        return;
+    }
+
+    if (setupInProgress) {
+        todo.push(event);
         return;
     }
 
@@ -30,12 +37,19 @@ onmessage = function(event) {
     })
 };
 
+function setupComplete() {
+    setupInProgress = false;
+    todo.forEach(event => onmessage(event));
+}
+
 function setupAll(data) {
     setupConsole();
     setupWebsocket(data);
-    setupRequireJs(data);
-    documentExtensionPoints();
-    setupRedux(data);
+    setupRequireJs(data, () => {
+        documentExtensionPoints();
+        setupRedux(data);
+        setupComplete();
+    });
 }
 
 function setupRedux(data) {
@@ -120,7 +134,7 @@ function setupWebsocket(data) {
     }
 }
 
-function setupRequireJs(data) {
+function setupRequireJs(data, callback) {
     if (typeof File === 'undefined') {
         self.File = Blob;
     }
@@ -131,6 +145,7 @@ function setupRequireJs(data) {
     require.baseUrl = BASE_URL + '/jsc/';
     require.urlArgs = data.cacheBreaker;
     require.deps = data.webWorkerResources;
+    require.callback = callback;
     importScripts(BASE_URL + '/libs/requirejs/require.js?' + data.cacheBreaker);
 }
 

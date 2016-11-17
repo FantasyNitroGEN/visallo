@@ -10,6 +10,7 @@ define([
     'util/requirejs/promise!util/service/ontologyPromise',
     'util/vertex/formatters',
     'util/withDataRequest',
+    'util/dnd',
     'util/popovers/withElementScrollingPositionUpdates',
     'util/jquery.withinScrollable'
 ], function(
@@ -23,6 +24,7 @@ define([
     ontologyPromise,
     F,
     withDataRequest,
+    dnd,
     withPositionUpdates) {
     'use strict';
 
@@ -42,7 +44,7 @@ define([
 
         this.defaultAttrs({
             itemSelector: 'ul > li.element-item',
-            draggableSelector: '.element-item a[draggable]',
+            draggableSelector: '.element-item a.draggable',
             infiniteScrolling: false,
             usageContext: 'search'
         });
@@ -123,7 +125,7 @@ define([
                 if (data.edgeId) selectEdgeIds.push(data.edgeId)
             };
 
-            var data = $(event.target).closest('a[draggable]').data();
+            var data = $(event.target).closest('a.draggable').data();
             var [selectVertexIds, selectEdgeIds] = [[], []];
 
             if (!this.attr.singleSelection) {
@@ -135,7 +137,7 @@ define([
                     const max = Math.max(index, targetIndex);
                     const $items = $target.parent().children();
                     for (let i = min; i <= max; i++) {
-                        pushData($items.eq(i).find('a[draggable]').data());
+                        pushData($items.eq(i).find('a.draggable').data());
                     }
                 } else if (event.metaKey || event.ctrlKey) {
                     selectVertexIds = Object.keys(vertexIds);
@@ -293,9 +295,9 @@ define([
 
             el.children('a').teardownAllComponents();
             el.empty();
-            itemRenderer.attachTo($('<a class="draggable" draggable="true" />').appendTo(el), { item: item, usageContext: usageContext });
+            itemRenderer.attachTo($('<a class="draggable"/>').appendTo(el), { item: item, usageContext: usageContext });
 
-            this.applyDraggable(el.children('a.draggable'));
+            this.applyDraggable(el[0]);
 
             return el;
         };
@@ -367,30 +369,23 @@ define([
         this.applyDraggable = function(el) {
             var self = this;
 
-            el[0].addEventListener('dragstart', function(e) {
-                const elements = { vertexIds: [], edgeIds: [] };
-                const $target = $(e.target).closest('li');
-                const items = [];
+            el.setAttribute('draggable', true)
+            el.addEventListener('dragstart', function(e) {
+                const $target = $(e.target);
+                const elements = [];
 
                 $target.siblings('.active').andSelf().each(function() {
-                    var data = $(this).find('a[draggable]').data();
+                    var data = $(this).find('a.draggable').data();
                     if (data.vertexId) {
-                        elements.vertexIds.push(data.vertexId);
-                        items.push(self._items[data.vertexId])
+                        elements.push(self._items[data.vertexId])
                     }
                     if (data.edgeId) {
-                        elements.edgeIds.push(data.edgeId);
-                        items.push(self._items[data.edgeId])
+                        elements.push(self._items[data.edgeId])
                     }
                 })
                 const dt = e.dataTransfer;
-
                 dt.effectAllowed = 'all';
-                dt.setData('text/uri-list', F.vertexUrl.url(items, visalloData.currentWorkspaceId));
-                dt.setData('text/plain', items.map(item => [
-                    F.vertex.title(item), F.vertexUrl.url([item], visalloData.currentWorkspaceId)
-                ].join('\n')).join('\n\n'));
-                dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
+                dnd.setDataTransferWithElements(dt, { elements })
             }, false)
         };
 

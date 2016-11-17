@@ -4,13 +4,15 @@ define([
     'react-dom',
     './DiffPanel',
     'util/vertex/formatters',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    'util/dnd'
 ], function(
     defineComponent,
     ReactDOM,
     DiffPanel,
     F,
-    withDataRequest) {
+    withDataRequest,
+    dnd) {
     'use strict';
 
     var SHOW_CHANGES_TEXT_SECONDS = 3;
@@ -546,7 +548,7 @@ define([
                     const dt = event.originalEvent.dataTransfer;
 
                     dt.effectAllowed = 'all';
-                    dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
+                    dnd.setDataTransferWithElements(dt, elements);
                 });
         };
 
