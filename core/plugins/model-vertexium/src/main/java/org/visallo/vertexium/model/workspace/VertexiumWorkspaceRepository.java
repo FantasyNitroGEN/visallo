@@ -1055,7 +1055,15 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Workspace ws = findById(workspaceId, user);
         ClientApiWorkspace userWorkspace = toClientApi(ws, user, authorizations);
 
-        getWorkQueueRepository().broadcastWorkProductChange(productVertex.getId(), userWorkspace, user);
+        String skipSourceId = null;
+        if (params != null && params.has("broadcastOptions")) {
+            JSONObject broadcastOptions = params.getJSONObject("broadcastOptions");
+            if (broadcastOptions.optBoolean("preventBroadcastToSourceGuid", false)) {
+                skipSourceId = broadcastOptions.getString("sourceGuid");
+            }
+        }
+        getWorkQueueRepository().broadcastWorkProductChange(productVertex.getId(), userWorkspace, user, skipSourceId);
+
 
         return productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
     }

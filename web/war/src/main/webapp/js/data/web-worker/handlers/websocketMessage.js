@@ -24,6 +24,13 @@ define([
                 })
             },
             workProductChange: function(data) {
+                const guid = publicData.socketSourceGuid;
+                if ('skipSourceGuid' in data) {
+                    if (guid === data.skipSourceGuid) {
+                        return;
+                    }
+                }
+
                 require(['../store/product/actions-impl'], function(actions) {
                     store.getStore().dispatch(actions.changedOnServer(data.id));
                 })
