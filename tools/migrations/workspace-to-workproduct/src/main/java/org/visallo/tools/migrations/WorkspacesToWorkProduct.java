@@ -3,6 +3,9 @@ package org.visallo.tools.migrations;
 import com.beust.jcommander.Parameters;
 import org.json.JSONObject;
 import org.vertexium.*;
+import org.vertexium.query.GraphQuery;
+import org.vertexium.query.Query;
+import org.vertexium.query.QueryResultsIterable;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 import org.visallo.core.cmdline.CommandLineTool;
 import org.visallo.core.config.Configuration;
@@ -59,13 +62,10 @@ public class WorkspacesToWorkProduct extends CommandLineTool {
             }
 
             Authorizations authorizations = graph.createAuthorizations(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
-            Iterable<Vertex> vertices = getGraph().getVertices(EnumSet.of(FetchHint.OUT_EDGE_LABELS), authorizations);
+            GraphQuery query = graph.query(authorizations);
+            QueryResultsIterable<Vertex> workspaceVertices = query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), WorkspaceProperties.WORKSPACE_CONCEPT_IRI).vertices();
 
-            stream(vertices)
-                    .filter(vertex ->
-                            stream(vertex.getEdgeLabels(Direction.OUT, authorizations))
-                                    .anyMatch(s -> s.equals(WorkspaceRepository.WORKSPACE_TO_USER_RELATIONSHIP_IRI))
-                    )
+            stream(workspaceVertices)
                     .forEach(workspace -> {
                         LOGGER.info("Found a workspace: %s", workspace.getId());
 
