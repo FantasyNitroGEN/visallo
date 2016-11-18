@@ -2,6 +2,30 @@
 v3.0.0
 ==================
 
+v2.2.1
+==================
+
+## Added
+
+* Add the ability to configure development web servers to ask for a
+  client certificate (i.e. want), without requiring one.
+* Data/display type formatters now return the element.
+
+## Changed
+
+* Added method to allow directory searches for people to return an email
+  attribute
+* Default authorizations will be given to all users, not just users
+  without any existing authorizations.
+* Provide options for restricting directory search to people and/or
+  groups
+
+## Fixed
+
+* Dashboard card components no longer stick around when they’re not
+  supposed to.
+* Dashboard does not freeze anymore when cards are moved vertically
+
 v2.2.0
 ==================
 
