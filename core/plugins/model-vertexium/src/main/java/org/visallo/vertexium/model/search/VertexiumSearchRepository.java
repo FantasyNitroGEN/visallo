@@ -17,6 +17,7 @@ import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
@@ -39,6 +40,7 @@ public class VertexiumSearchRepository extends SearchRepository {
     private final UserRepository userRepository;
     private final AuthorizationRepository authorizationRepository;
     private final PrivilegeRepository privilegeRepository;
+    private final WorkspaceRepository workspaceRepository;
 
     @Inject
     public VertexiumSearchRepository(
@@ -48,7 +50,8 @@ public class VertexiumSearchRepository extends SearchRepository {
             Configuration configuration,
             GraphAuthorizationRepository graphAuthorizationRepository,
             AuthorizationRepository authorizationRepository,
-            PrivilegeRepository privilegeRepository
+            PrivilegeRepository privilegeRepository,
+            WorkspaceRepository workspaceRepository
     ) {
         super(configuration);
         this.graph = graph;
@@ -56,6 +59,7 @@ public class VertexiumSearchRepository extends SearchRepository {
         this.userRepository = userRepository;
         this.authorizationRepository = authorizationRepository;
         this.privilegeRepository = privilegeRepository;
+        this.workspaceRepository = workspaceRepository;
         graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
     }
 
@@ -260,6 +264,35 @@ public class VertexiumSearchRepository extends SearchRepository {
             return null;
         }
         return toClientApiSearch(searchVertex);
+    }
+
+    @Override
+    public ClientApiSearch getSavedSearchOnWorkspace(String id, User user, String workspaceId) {
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        Vertex searchVertex = graph.getVertex(id, authorizations);
+        if (searchVertex == null) {
+            return null;
+        }
+
+        boolean isGlobalSearch = isSearchGlobal(id, authorizations);
+        boolean hasWorkspaceAccess = workspaceId != null && workspaceRepository.hasReadPermissions(workspaceId, user);
+
+        if (isGlobalSearch || isSearchPrivateToUser(id, user, authorizations)) {
+            return toClientApiSearch(searchVertex);
+        } else if (!isGlobalSearch && !hasWorkspaceAccess) {
+            return null;
+        } else {
+            String workspaceCreatorId = workspaceRepository.getCreatorUserId(workspaceId, user);
+            if (isSearchPrivateToUser(id, userRepository.findById(workspaceCreatorId), authorizations)) {
+                return toClientApiSearch(searchVertex);
+            }
+            return null;
+        }
     }
 
     @Override

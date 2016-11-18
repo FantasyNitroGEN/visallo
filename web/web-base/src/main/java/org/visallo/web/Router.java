@@ -44,10 +44,7 @@ import org.visallo.web.routes.product.*;
 import org.visallo.web.routes.resource.MapMarkerImage;
 import org.visallo.web.routes.resource.ResourceExternalGet;
 import org.visallo.web.routes.resource.ResourceGet;
-import org.visallo.web.routes.search.SearchDelete;
-import org.visallo.web.routes.search.SearchList;
-import org.visallo.web.routes.search.SearchRun;
-import org.visallo.web.routes.search.SearchSave;
+import org.visallo.web.routes.search.*;
 import org.visallo.web.routes.user.*;
 import org.visallo.web.routes.vertex.*;
 import org.visallo.web.routes.workspace.*;
@@ -124,6 +121,7 @@ public class Router extends HttpServlet {
 
             app.post("/search/save", authenticator, csrfProtector, SearchSave.class);
             app.get("/search/all", authenticator, csrfProtector, SearchList.class);
+            app.get("/search", authenticator, csrfProtector, SearchGet.class);
             app.get("/search/run", authenticator, csrfProtector, SearchRun.class);
             app.post("/search/run", authenticator, csrfProtector, SearchRun.class);
             app.delete("/search", authenticator, csrfProtector, SearchDelete.class);

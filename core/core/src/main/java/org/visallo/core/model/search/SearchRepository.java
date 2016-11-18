@@ -36,6 +36,8 @@ public abstract class SearchRepository {
 
     public abstract ClientApiSearch getSavedSearch(String id, User user);
 
+    public abstract ClientApiSearch getSavedSearchOnWorkspace(String id, User user, String workspaceId);
+
     public abstract void deleteSearch(String id, User user);
 
     public SearchRunner findSearchRunnerByUri(String searchUri) {

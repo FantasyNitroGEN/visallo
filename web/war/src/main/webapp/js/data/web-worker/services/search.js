@@ -50,6 +50,12 @@ define(['../util/ajax'], function(ajax) {
             });
         },
 
+        get: function(queryId) {
+            return ajax('GET', '/search', {
+                id: queryId
+            });
+        },
+
         run: function(queryId, otherParams) {
             return ajax('GET', '/search/run', _.extend({}, otherParams || {}, {
                 id: queryId
