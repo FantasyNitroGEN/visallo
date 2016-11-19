@@ -598,10 +598,9 @@ define([
             display = i18n('detail.multiple.histogram.other');
         } else if (ontology.properties.byTitle[propertyName]) {
             if ('dx' in bin) {
-                display =
-                    F.vertex.propDisplay(propertyName, bin.x) +
-                    ' – ' +
-                    F.vertex.propDisplay(propertyName, bin.x + bin.dx);
+                const min = F.vertex.propDisplay(propertyName, bin.x);
+                const max = F.vertex.propDisplay(propertyName, bin.x + bin.dx);
+                display = min === max ? min : min + ' – ' + max;
             } else {
                 display = F.vertex.propDisplay(propertyName, propertyValue);
             }
