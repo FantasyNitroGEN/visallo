@@ -54,7 +54,10 @@ define([
 
                     if (self.$node.hasClass('uploading')) return;
                     if (e.dataTransfer.files.length === 0 &&
-                        e.dataTransfer.items.length === 0) return;
+                        (!e.dataTransfer.items ||
+                          e.dataTransfer.items.length === 0)) {
+                        return;
+                    }
 
                     if (Privileges.canEDIT) {
                         var dt = e.dataTransfer,

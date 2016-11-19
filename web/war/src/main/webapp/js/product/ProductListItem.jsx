@@ -1,7 +1,8 @@
 define([
     'react',
-    'components/DroppableHOC'
-], function(React, DroppableHOC) {
+    'components/DroppableHOC',
+    'util/dnd'
+], function(React, DroppableHOC, dnd) {
     'use strict';
 
     const MaxTitleLength = 128;
@@ -137,7 +138,9 @@ define([
                 });
 
                 if (_.isFunction(extension.handleDrop)) {
-                    if (extension.handleDrop(e, props.product)) {
+                    const elements = dnd.getElementsFromDataTransfer(e.dataTransfer);
+                    if (elements) {
+                        extension.handleDrop(elements, props.product);
                         e.preventDefault();
                         e.stopPropagation();
                     }

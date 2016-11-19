@@ -5,10 +5,11 @@ define([
     'data/web-worker/store/selection/actions',
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/selectors',
+    'util/dnd',
     './worker/actions',
     'components/DroppableHOC',
     './Map'
-], function(React, redux, ReactDom, selectionActions, productActions, productSelectors, mapActions, DroppableHOC, Map) {
+], function(React, redux, ReactDom, selectionActions, productActions, productSelectors, dnd, mapActions, DroppableHOC, Map) {
     'use strict';
 
     const mimeTypes = [VISALLO_MIMETYPES.ELEMENTS];
@@ -46,14 +47,12 @@ define([
 
                 // For DroppableHOC
                 onDrop: (event) => {
-                    const dataStr = event.dataTransfer.getData(VISALLO_MIMETYPES.ELEMENTS);
-                    if (dataStr) {
+                    const elements = dnd.getElementsFromDataTransfer(event.dataTransfer);
+                    if (elements) {
                         event.preventDefault();
                         event.stopPropagation();
 
-                        const data = JSON.parse(dataStr);
-                        // TODO: mapActions
-                        dispatch(mapActions.dropElements(props.product.id, data.elements))
+                        dispatch(mapActions.dropElements(props.product.id, elements))
                     }
                 },
 

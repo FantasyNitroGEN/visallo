@@ -529,12 +529,13 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
-    public void broadcastWorkProductChange(String workProductId, ClientApiWorkspace workspace, User user) {
+    public void broadcastWorkProductChange(String workProductId, ClientApiWorkspace workspace, User user, String skipSourceGuid) {
         JSONObject json = new JSONObject();
         json.put("type", "workProductChange");
         json.put("permissions", getPermissionsWithUsers(workspace, null));
         JSONObject dataJson = new JSONObject();
         dataJson.put("id", workProductId);
+        dataJson.putOpt("skipSourceGuid", skipSourceGuid);
         json.put("data", dataJson);
         broadcastJson(json);
     }

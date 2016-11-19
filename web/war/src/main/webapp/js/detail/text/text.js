@@ -8,6 +8,7 @@ define([
     'util/jquery.withinScrollable',
     'util/withCollapsibleSections',
     'util/popovers/propertyInfo/withPropertyInfo',
+    'util/dnd',
     'colorjs',
     'hbs!./transcriptEntries',
     'tpl!util/alert',
@@ -23,6 +24,7 @@ define([
     jqueryWithinScrollable,
     withCollapsibleSections,
     withPropertyInfo,
+    dnd,
     colorjs,
     transcriptEntriesTemplate,
     alertTemplate,
@@ -914,8 +916,7 @@ define([
                                     const dt = event.originalEvent.dataTransfer;
                                     const elements = { vertexIds: [info.resolvedToVertexId], edgeIds: [] };
                                     dt.effectAllowed = 'all';
-                                    dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
-                                    dt.setData(VISALLO_MIMETYPES.RESOLVED_INFO, JSON.stringify({ info }));
+                                    dnd.setDataTransferWithElements(dt, elements);
                                     $(this).closest('.text').addClass('drag-focus');
                                     currentlyDragging = event.target;
                                 })

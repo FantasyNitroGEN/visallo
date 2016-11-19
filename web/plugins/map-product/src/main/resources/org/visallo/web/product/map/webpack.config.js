@@ -12,6 +12,7 @@ var VisalloAmdExternals = [
     'data/web-worker/store/user/actions-impl',
     'data/web-worker/util/ajax',
     'public/v1/api',
+    'util/dnd',
     'util/formatters',
     'util/popovers/fileImport/fileImport',
     'util/vertex/formatters',

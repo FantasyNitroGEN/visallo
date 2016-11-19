@@ -20,6 +20,7 @@ var VisalloAmdExternals = [
     'util/formatters',
     'util/vertex/formatters',
     'util/retina',
+    'util/dnd',
     'util/withContextMenu',
     'util/withDataRequest',
     'util/withTeardown',
