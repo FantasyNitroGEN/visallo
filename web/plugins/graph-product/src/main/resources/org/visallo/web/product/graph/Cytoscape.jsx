@@ -6,6 +6,7 @@ define([
     'colorjs',
     './betterGrid',
     './Menu',
+    './cytoscapeCorsFix',
     'util/formatters'
 ], function(
     React,
@@ -15,6 +16,7 @@ define([
     colorjs,
     betterGrid,
     Menu,
+    fixCytoscapeCorsHandling,
     F) {
     const { PropTypes } = React;
     const ANIMATION = { duration: 400, easing: 'spring(250, 20)' };
@@ -103,6 +105,7 @@ define([
             this.previousConfig = this.prepareConfig();
             const cy = cytoscape(this.previousConfig);
 
+            fixCytoscapeCorsHandling(cy);
             cytoscape('layout', 'bettergrid', betterGrid);
 
             this.clientRect = this.refs.cytoscape.getBoundingClientRect();
