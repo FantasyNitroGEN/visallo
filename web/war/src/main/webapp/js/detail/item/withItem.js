@@ -4,6 +4,7 @@ define([
     'util/vertex/formatters',
     'util/withDataRequest',
     'util/privileges',
+    'util/dnd',
     'require'
 ], function(
     withElementScrolling,
@@ -11,6 +12,7 @@ define([
     F,
     withDataRequest,
     Privileges,
+    dnd,
     require) {
     'use strict';
 
@@ -119,10 +121,10 @@ define([
                     dt.effectAllowed = 'all';
                     if (model.id === id) {
                         const url = F.vertexUrl.url([model], visalloData.currentWorkspaceId);
-                        dt.setData('text/uri-list', url);
-                        dt.setData('text/plain', [F.vertex.title(model), url].join('\n'));
+                        dnd.setDataTransferWithElements(dt, { elements: [model] })
+                    } else {
+                        dnd.setDataTransferWithElements(dt, elements);
                     }
-                    dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
                 })
         };
 

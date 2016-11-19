@@ -111,11 +111,6 @@ define([
             this.clientRect = this.refs.cytoscape.getBoundingClientRect();
             this.setState({ cy })
 
-            cy.on('add remove position', ({ cy, cyTarget }) => {
-                if (cyTarget !== cy && cyTarget.is('node.v')) {
-                    this.updatePreview()
-                }
-            });
             cy.on('tap mouseover mouseout', 'node.decoration', event => {
                 this.props.onDecorationEvent(event);
             });
@@ -599,19 +594,26 @@ define([
 
                         case 'position':
                             if (!cyNode.grabbed() && !(cyNode.id() in this.moving)) {
-                                modifiedPosition = true;
                                 if (!item.data.alignment) {
-                                    if (this.props.animate) {
-                                        this.positionDisabled = true;
-                                        this.updateDecorationPositions(cyNode, { toPosition: item.position, animate: true });
-                                        cyNode.stop().animate({ position: item.position }, { ...ANIMATION, complete: () => {
-                                            this.positionDisabled = false;
-                                        }})
-                                    } else {
-                                        this.disableEvent('position', () => {
-                                            cyNode.position(item.position)
-                                            this.updateDecorationPositions(cyNode);
-                                        })
+                                    const positionChangedWithinTolerance = _.some(cyNode.position(), (oldV, key) => {
+                                        const newV = item.position[key];
+                                        return (Math.max(newV, oldV) - Math.min(newV, oldV)) >= 1
+                                    });
+
+                                    if (positionChangedWithinTolerance) {
+                                        modifiedPosition = true;
+                                        if (this.props.animate) {
+                                            this.positionDisabled = true;
+                                            this.updateDecorationPositions(cyNode, { toPosition: item.position, animate: true });
+                                            cyNode.stop().animate({ position: item.position }, { ...ANIMATION, complete: () => {
+                                                this.positionDisabled = false;
+                                            }})
+                                        } else {
+                                            this.disableEvent('position', () => {
+                                                cyNode.position(item.position)
+                                                this.updateDecorationPositions(cyNode);
+                                            })
+                                        }
                                     }
                                 }
                             } else if (this.layoutDone) {

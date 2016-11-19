@@ -48,24 +48,19 @@ define([
             }
 
             const workspaceId = getState().workspace.currentId;
+            updateVertices = _.mapObject(updateVertices, pos => {
+                return _.mapObject(pos, v => Math.round(v));
+            });
             dispatch({
                 type: 'PRODUCT_GRAPH_SET_POSITIONS',
                 payload: {
                     productId,
                     updateVertices,
+                    snapToGrid,
                     workspaceId
                 }
             })
             if (snapToGrid) {
-                dispatch({
-                    type: 'PRODUCT_GRAPH_SET_POSITIONS',
-                    payload: {
-                        productId,
-                        updateVertices,
-                        snapToGrid,
-                        workspaceId
-                    }
-                })
                 const product = getState().product.workspaces[workspaceId].products[productId];
                 const byId = _.indexBy(product.extendedData.vertices, 'id');
                 updateVertices = _.mapObject(updateVertices, (pos, id) => {
@@ -73,7 +68,15 @@ define([
                 });
             }
 
-            ajax('POST', '/product', { productId, params: { updateVertices } });
+            ajax('POST', '/product', {
+                productId,
+                params: {
+                    updateVertices,
+                    broadcastOptions: {
+                        preventBroadcastToSourceGuid: true
+                    } 
+                },
+            });
         },
 
         updatePositions: ({ productId, updateVertices }) => (dispatch, getState) => {

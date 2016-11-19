@@ -3,6 +3,7 @@ define([
     'util/withDataRequest',
     'util/vertex/formatters',
     'util/privileges',
+    'util/dnd',
     'd3',
     'require'
 ], function(
@@ -10,6 +11,7 @@ define([
     withDataRequest,
     F,
     Privileges,
+    dnd,
     d3,
     require) {
     'use strict';
@@ -299,7 +301,7 @@ define([
                         const dt = event.originalEvent.dataTransfer;
 
                         dt.effectAllowed = 'all';
-                        dt.setData(VISALLO_MIMETYPES.ELEMENTS, JSON.stringify({ elements }));
+                        dnd.setDataTransferWithElements(dt, elements);
                     });
             })
         };

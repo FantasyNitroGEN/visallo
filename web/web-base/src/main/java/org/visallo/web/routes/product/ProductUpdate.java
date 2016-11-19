@@ -12,6 +12,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiProduct;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
+import org.visallo.web.parameterProviders.SourceGuid;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ResourceBundle;
@@ -32,6 +33,7 @@ public class ProductUpdate implements ParameterizedHandler {
             @Optional(name = "params") String paramsStr,
             @Optional(name = "preview") String previewDataUrl,
             @ActiveWorkspaceId String workspaceId,
+            @SourceGuid String sourceGuid,
             Authorizations authorizations,
             ResourceBundle resourceBundle,
             HttpServletRequest request,
@@ -43,6 +45,9 @@ public class ProductUpdate implements ParameterizedHandler {
         }
         Product product = null;
         if (previewDataUrl == null) {
+            if (params != null && params.has("broadcastOptions")) {
+                params.getJSONObject("broadcastOptions").put("sourceGuid", sourceGuid);
+            }
             product = workspaceRepository.addOrUpdateProduct(workspaceId, productId, title, kind, params, user);
         } else {
             product = workspaceRepository.updateProductPreview(workspaceId, productId, previewDataUrl, user);

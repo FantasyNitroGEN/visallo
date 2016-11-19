@@ -45,9 +45,6 @@ define([
         }),
 
         changedOnServer: (productId) => (dispatch, getState) => {
-            // TODO: Should check current workspace
-            // not current ? just mark it invalid
-            // is current  ? is it selected ? get : load list
             dispatch(api.get({ productId, invalidate: true }));
         },
 

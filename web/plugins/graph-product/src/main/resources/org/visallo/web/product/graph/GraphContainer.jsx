@@ -8,6 +8,7 @@ define([
     'components/DroppableHOC',
     'configuration/plugins/registry',
     'util/retina',
+    'util/dnd',
     './worker/actions',
     './Graph'
 ], function(
@@ -20,6 +21,7 @@ define([
     DroppableHOC,
     registry,
     retina,
+    dnd,
     graphActions,
     Graph) {
     'use strict';
@@ -252,13 +254,12 @@ define([
                     }
                 },
                 onDrop: (event, position) => {
-                    const dataStr = event.dataTransfer.getData(VISALLO_MIMETYPES.ELEMENTS);
-                    if (dataStr) {
+                    const { dataTransfer } = event;
+                    const elements = dnd.getElementsFromDataTransfer(dataTransfer);
+                    if (elements) {
                         event.preventDefault();
                         event.stopPropagation();
-
-                        const data = JSON.parse(dataStr);
-                        dispatch(graphActions.dropElements(props.product.id, data.elements, position))
+                        dispatch(graphActions.dropElements(props.product.id, elements, position))
                     }
                 },
                 onDropElementIds: (elementIds, position) => {
