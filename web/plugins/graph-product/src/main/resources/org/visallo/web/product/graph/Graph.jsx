@@ -233,8 +233,7 @@ define([
         getTools() {
             return this.props.registry['org.visallo.graph.options'].map(e => ({
                 identifier: e.identifier,
-                optionComponentPath: e.optionComponentPath,
-                getProps: () => ({ cy: this.refs.cytoscape.state.cy })
+                componentPath: e.optionComponentPath
             }));
         },
 

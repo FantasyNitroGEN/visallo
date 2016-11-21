@@ -260,7 +260,7 @@ define([
                     {this.state.cy ? (
                         <NavigationControls
                             rightOffset={this.props.panelPadding.right}
-                            tools={this.props.tools}
+                            tools={this.injectToolProps()}
                             onFit={this.onControlsFit}
                             onZoom={this.onControlsZoom}
                             onPan={this.onControlsPan} />
@@ -742,6 +742,17 @@ define([
                     classes: 'drawEdgeToMouse'
                 })
             }
+        },
+
+        injectToolProps() {
+            const { cy } = this.state;
+            if (cy) {
+                return this.props.tools.map(tool => ({
+                    ...tool,
+                    props: { cy }
+                }))
+            }
+            return [];
         }
     })
 

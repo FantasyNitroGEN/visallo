@@ -21,7 +21,11 @@ define([
         propTypes: {
             zoom: PropTypes.bool,
             pan: PropTypes.bool,
-            tools: PropTypes.array,
+            tools: PropTypes.arrayOf(PropTypes.shape({
+                identifier: PropTypes.string.isRequired,
+                componentPath: PropTypes.string.isRequired,
+                props: PropTypes.object
+            })),
             rightOffset: PropTypes.number,
             onZoom: PropTypes.func,
             onPan: PropTypes.func,
@@ -73,8 +77,12 @@ define([
                             title={i18n('controls.options.toggle')}>Options</button>
                         <div style={{display: (optionsOpen ? 'block' : 'none')}} className="options-container">
                             <ul>{
-                                tools.map((tool, i) => {
-                                    return <Attacher nodeType="li" key={tool.identifier} componentPath={tool.optionComponentPath} {...tool.getProps()} />
+                                tools.map(tool => {
+                                    return <Attacher
+                                        nodeType="li"
+                                        key={tool.identifier}
+                                        componentPath={tool.componentPath}
+                                        {...(tool.props || {})} />
                                 })
                             }</ul>
                         </div>

@@ -1,9 +1,10 @@
 define([
     'react',
     './OpenLayers',
+    'components/RegistryInjectorHOC',
     'util/vertex/formatters',
     'util/mapConfig'
-], function(React, OpenLayers, F, mapConfig) {
+], function(React, OpenLayers, RegistryInjectorHOC, F, mapConfig) {
     'use strict';
 
     const PropTypes = React.PropTypes;
@@ -27,6 +28,7 @@ define([
                 <OpenLayers
                     features={this.mapElementsToFeatures()}
                     viewport={viewport}
+                    tools={this.getTools()}
                     generatePreview={generatePreview}
                     panelPadding={this.props.panelPadding}
                     onPan={this.onViewport}
@@ -83,6 +85,13 @@ define([
                     { x: pageX, y: pageY }
                 );
             }
+        },
+
+        getTools() {
+            return this.props.registry['org.visallo.map.options'].map(e => ({
+                identifier: e.identifier,
+                componentPath: e.optionComponentPath
+            }));
         },
 
         onViewport(event) {
@@ -213,5 +222,7 @@ define([
 
     });
 
-    return Map;
+    return RegistryInjectorHOC(Map, [
+        'org.visallo.map.options'
+    ])
 });
