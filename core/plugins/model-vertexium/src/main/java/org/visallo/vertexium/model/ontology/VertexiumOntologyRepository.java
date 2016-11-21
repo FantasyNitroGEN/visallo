@@ -1,7 +1,6 @@
 package org.visallo.vertexium.model.ontology;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -16,13 +15,15 @@ import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.ConvertingIterable;
-import org.vertexium.util.FilterIterable;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.TimingCallable;
 import org.visallo.core.util.VisalloLogger;
@@ -45,7 +46,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     public static final String ID_PREFIX_PROPERTY = ID_PREFIX + "prop_";
     public static final String ID_PREFIX_RELATIONSHIP = ID_PREFIX + "rel_";
     public static final String ID_PREFIX_CONCEPT = ID_PREFIX + "concept_";
-    private Graph graph;
+    private final Graph graph;
+    private final GraphRepository graphRepository;
     private Authorizations authorizations;
     private Cache<String, List<Concept>> allConceptsWithPropertiesCache = CacheBuilder.newBuilder()
             .expireAfterWrite(15, TimeUnit.HOURS)
@@ -62,14 +64,16 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     @Inject
     public VertexiumOntologyRepository(
-            final Graph graph,
-            final Configuration config,
-            final GraphAuthorizationRepository graphAuthorizationRepository,
-            final LockRepository lockRepository
+            Graph graph,
+            GraphRepository graphRepository,
+            Configuration config,
+            GraphAuthorizationRepository graphAuthorizationRepository,
+            LockRepository lockRepository
     ) throws Exception {
         super(config, lockRepository);
         try {
             this.graph = graph;
+            this.graphRepository = graphRepository;
 
             graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
 
@@ -292,12 +296,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 @Override
                 public List<Relationship> callWithTime() throws Exception {
                     Iterable<Vertex> vertices = graph.getVerticesWithPrefix(ID_PREFIX_RELATIONSHIP, getAuthorizations());
-                    vertices = Iterables.filter(vertices, new Predicate<Vertex>() {
-                        @Override
-                        public boolean apply(@Nullable Vertex vertex) {
-                            return VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_RELATIONSHIP);
-                        }
-                    });
+                    vertices = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_RELATIONSHIP));
                     return Lists.newArrayList(Iterables.transform(vertices, new Function<Vertex, Relationship>() {
                         @Nullable
                         @Override
@@ -380,12 +379,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 @Override
                 public List<OntologyProperty> callWithTime() throws Exception {
                     Iterable<Vertex> vertices = graph.getVerticesWithPrefix(ID_PREFIX_PROPERTY, getAuthorizations());
-                    vertices = Iterables.filter(vertices, new Predicate<Vertex>() {
-                        @Override
-                        public boolean apply(@Nullable Vertex vertex) {
-                            return VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_PROPERTY);
-                        }
-                    });
+                    vertices = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_PROPERTY));
                     return Lists.newArrayList(Iterables.transform(vertices, new Function<Vertex, OntologyProperty>() {
                         @Nullable
                         @Override
@@ -402,13 +396,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     protected ImmutableList<String> getDependentPropertyIris(final Vertex vertex) {
         List<Edge> dependentProperties = Lists.newArrayList(vertex.getEdges(Direction.OUT, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY, getAuthorizations()));
-        Collections.sort(dependentProperties, new Comparator<Edge>() {
-            @Override
-            public int compare(Edge e1, Edge e2) {
-                Integer o1 = OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyValue(e1, 0);
-                Integer o2 = OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyValue(e2, 0);
-                return Integer.compare(o1, o2);
-            }
+        Collections.sort(dependentProperties, (e1, e2) -> {
+            Integer o1 = OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyValue(e1, 0);
+            Integer o2 = OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyValue(e2, 0);
+            return Integer.compare(o1, o2);
         });
         return ImmutableList.copyOf(Iterables.transform(dependentProperties, new Function<Edge, String>() {
             @Nullable
@@ -432,12 +423,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 @Override
                 public List<Concept> callWithTime() throws Exception {
                     Iterable<Vertex> vertices = graph.getVerticesWithPrefix(ID_PREFIX_CONCEPT, getAuthorizations());
-                    vertices = Iterables.filter(vertices, new Predicate<Vertex>() {
-                        @Override
-                        public boolean apply(@Nullable Vertex vertex) {
-                            return VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_CONCEPT);
-                        }
-                    });
+                    vertices = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_CONCEPT));
                     return Lists.newArrayList(Iterables.transform(vertices, new Function<Vertex, Concept>() {
                         @Nullable
                         @Override
@@ -526,38 +512,45 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             return concept;
         }
 
-        VertexBuilder builder = graph.prepareVertex(ID_PREFIX_CONCEPT + conceptIRI, VISIBILITY.getVisibility());
-        VisalloProperties.CONCEPT_TYPE.setProperty(builder, TYPE_CONCEPT, VISIBILITY.getVisibility());
-        OntologyProperties.ONTOLOGY_TITLE.setProperty(builder, conceptIRI, VISIBILITY.getVisibility());
-        OntologyProperties.DISPLAY_NAME.setProperty(builder, displayName, VISIBILITY.getVisibility());
-        if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
-            OntologyProperties.TITLE_FORMULA.setProperty(builder, "prop('http://visallo.org#title') || ''", VISIBILITY.getVisibility());
-            OntologyProperties.SUBTITLE_FORMULA.setProperty(builder, "prop('http://visallo.org#source') || ''", VISIBILITY.getVisibility());
-            OntologyProperties.TIME_FORMULA.setProperty(builder, "''", VISIBILITY.getVisibility());
-        }
-        Vertex vertex = builder.save(getAuthorizations());
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, null, getAuthorizations())) {
+            ctx.setPushOnQueue(false);
 
-        concept = createConcept(vertex);
-        if (parent != null) {
-            findOrAddEdge(((VertexiumConcept) concept).getVertex(), ((VertexiumConcept) parent).getVertex(), LabelName.IS_A.toString());
-        }
+            VertexBuilder builder = graph.prepareVertex(ID_PREFIX_CONCEPT + conceptIRI, VISIBILITY.getVisibility());
+            Vertex vertex = ctx.update(builder, elemCtx -> {
+                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_CONCEPT, VISIBILITY.getVisibility());
+                OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, conceptIRI, VISIBILITY.getVisibility());
+                OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName, VISIBILITY.getVisibility());
+                if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
+                    OntologyProperties.TITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#title') || ''", VISIBILITY.getVisibility());
+                    OntologyProperties.SUBTITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#source') || ''", VISIBILITY.getVisibility());
+                    OntologyProperties.TIME_FORMULA.updateProperty(elemCtx, "''", VISIBILITY.getVisibility());
+                }
+            });
 
-        graph.flush();
-        return concept;
+            concept = createConcept(vertex);
+            if (parent != null) {
+                findOrAddEdge(ctx, ((VertexiumConcept) concept).getVertex(), ((VertexiumConcept) parent).getVertex(), LabelName.IS_A.toString());
+            }
+
+            return concept;
+        } catch (Exception e) {
+            throw new VisalloException("Could not create concept: " + conceptIRI, e);
+        }
     }
 
     protected void findOrAddEdge(Vertex fromVertex, final Vertex toVertex, String edgeLabel) {
-        List<Vertex> matchingEdges = Lists.newArrayList(new FilterIterable<Vertex>(fromVertex.getVertices(Direction.OUT, edgeLabel, getAuthorizations())) {
-            @Override
-            protected boolean isIncluded(Vertex vertex) {
-                return vertex.getId().equals(toVertex.getId());
-            }
-        });
-        if (matchingEdges.size() > 0) {
-            return;
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, null, getAuthorizations())) {
+            ctx.setPushOnQueue(false);
+            findOrAddEdge(ctx, fromVertex, toVertex, edgeLabel);
+        } catch (Exception e) {
+            throw new VisalloException("Could not findOrAddEdge", e);
         }
+    }
+
+    protected void findOrAddEdge(GraphUpdateContext ctx, Vertex fromVertex, final Vertex toVertex, String edgeLabel) {
         String edgeId = fromVertex.getId() + "-" + toVertex.getId();
-        fromVertex.getGraph().addEdge(edgeId, fromVertex, toVertex, edgeLabel, VISIBILITY.getVisibility(), getAuthorizations());
+        ctx.getOrCreateEdgeAndUpdate(edgeId, fromVertex.getId(), toVertex.getId(), edgeLabel, VISIBILITY.getVisibility(), elemCtx -> {
+        });
     }
 
     @Override
@@ -595,47 +588,55 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 relationships
         );
         checkNotNull(vertex, "Could not find property: " + propertyIri);
+        String vertexId = vertex.getId();
 
-        ExistingElementMutation<Vertex> builder = vertex.prepareMutation();
-        searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
-        OntologyProperties.SEARCHABLE.setProperty(builder, searchable, VISIBILITY.getVisibility());
-        OntologyProperties.SORTABLE.setProperty(builder, sortable, VISIBILITY.getVisibility());
-        OntologyProperties.ADDABLE.setProperty(builder, addable, VISIBILITY.getVisibility());
-        OntologyProperties.DELETEABLE.setProperty(builder, deleteable, VISIBILITY.getVisibility());
-        OntologyProperties.UPDATEABLE.setProperty(builder, updateable, VISIBILITY.getVisibility());
-        OntologyProperties.USER_VISIBLE.setProperty(builder, userVisible, VISIBILITY.getVisibility());
-        if (boost != null) {
-            OntologyProperties.BOOST.setProperty(builder, boost, VISIBILITY.getVisibility());
-        }
-        if (displayName != null && !displayName.trim().isEmpty()) {
-            OntologyProperties.DISPLAY_NAME.setProperty(builder, displayName.trim(), VISIBILITY.getVisibility());
-        }
-        if (displayType != null && !displayType.trim().isEmpty()) {
-            OntologyProperties.DISPLAY_TYPE.setProperty(builder, displayType, VISIBILITY.getVisibility());
-        }
-        if (propertyGroup != null && !propertyGroup.trim().isEmpty()) {
-            OntologyProperties.PROPERTY_GROUP.setProperty(builder, propertyGroup, VISIBILITY.getVisibility());
-        }
-        if (validationFormula != null && !validationFormula.trim().isEmpty()) {
-            OntologyProperties.VALIDATION_FORMULA.setProperty(builder, validationFormula, VISIBILITY.getVisibility());
-        }
-        if (displayFormula != null && !displayFormula.trim().isEmpty()) {
-            OntologyProperties.DISPLAY_FORMULA.setProperty(builder, displayFormula, VISIBILITY.getVisibility());
-        }
-        if (dependentPropertyIris != null) {
-            saveDependentProperties(vertex.getId(), dependentPropertyIris);
-        }
-        if (intents != null) {
-            for (String intent : intents) {
-                OntologyProperties.INTENT.addPropertyValue(builder, intent, intent, VISIBILITY.getVisibility());
-            }
-        }
+        boolean finalSearchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
 
-        vertex = builder.save(authorizations);
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, null, getAuthorizations())) {
+            ctx.setPushOnQueue(false);
 
-        graph.flush();
+            ExistingElementMutation<Vertex> builder = vertex.prepareMutation();
+            vertex = ctx.update(builder, elemCtx -> {
+                Visibility visibility = VISIBILITY.getVisibility();
+                OntologyProperties.SEARCHABLE.updateProperty(elemCtx, finalSearchable, visibility);
+                OntologyProperties.SORTABLE.updateProperty(elemCtx, sortable, visibility);
+                OntologyProperties.ADDABLE.updateProperty(elemCtx, addable, visibility);
+                OntologyProperties.DELETEABLE.updateProperty(elemCtx, deleteable, visibility);
+                OntologyProperties.UPDATEABLE.updateProperty(elemCtx, updateable, visibility);
+                OntologyProperties.USER_VISIBLE.updateProperty(elemCtx, userVisible, visibility);
+                if (boost != null) {
+                    OntologyProperties.BOOST.updateProperty(elemCtx, boost, visibility);
+                }
+                if (displayName != null && !displayName.trim().isEmpty()) {
+                    OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName.trim(), visibility);
+                }
+                if (displayType != null && !displayType.trim().isEmpty()) {
+                    OntologyProperties.DISPLAY_TYPE.updateProperty(elemCtx, displayType, visibility);
+                }
+                if (propertyGroup != null && !propertyGroup.trim().isEmpty()) {
+                    OntologyProperties.PROPERTY_GROUP.updateProperty(elemCtx, propertyGroup, visibility);
+                }
+                if (validationFormula != null && !validationFormula.trim().isEmpty()) {
+                    OntologyProperties.VALIDATION_FORMULA.updateProperty(elemCtx, validationFormula, visibility);
+                }
+                if (displayFormula != null && !displayFormula.trim().isEmpty()) {
+                    OntologyProperties.DISPLAY_FORMULA.updateProperty(elemCtx, displayFormula, visibility);
+                }
+                if (dependentPropertyIris != null) {
+                    saveDependentProperties(vertexId, dependentPropertyIris);
+                }
+                if (intents != null) {
+                    Metadata metadata = new Metadata();
+                    for (String intent : intents) {
+                        OntologyProperties.INTENT.updateProperty(elemCtx, intent, intent, metadata, visibility);
+                    }
+                }
+            });
 
-        return createOntologyProperty(vertex, dependentPropertyIris);
+            return createOntologyProperty(vertex, dependentPropertyIris);
+        } catch (Exception e) {
+            throw new VisalloException("Could not create property: " + propertyIri, e);
+        }
     }
 
     @Override
@@ -669,44 +670,49 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             return relationship;
         }
 
-        VertexBuilder builder = graph.prepareVertex(ID_PREFIX_RELATIONSHIP + relationshipIRI, VISIBILITY.getVisibility());
-        VisalloProperties.CONCEPT_TYPE.setProperty(builder, TYPE_RELATIONSHIP, VISIBILITY.getVisibility());
-        OntologyProperties.ONTOLOGY_TITLE.setProperty(builder, relationshipIRI, VISIBILITY.getVisibility());
-        Vertex relationshipVertex = builder.save(getAuthorizations());
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, null, getAuthorizations())) {
+            ctx.setPushOnQueue(false);
 
-        for (Concept domainConcept : domainConcepts) {
-            findOrAddEdge(((VertexiumConcept) domainConcept).getVertex(), relationshipVertex, LabelName.HAS_EDGE.toString());
-        }
+            VertexBuilder builder = graph.prepareVertex(ID_PREFIX_RELATIONSHIP + relationshipIRI, VISIBILITY.getVisibility());
+            Vertex relationshipVertex = ctx.update(builder, elemCtx -> {
+                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_RELATIONSHIP, VISIBILITY.getVisibility());
+                OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, relationshipIRI, VISIBILITY.getVisibility());
+            });
 
-        for (Concept rangeConcept : rangeConcepts) {
-            findOrAddEdge(relationshipVertex, ((VertexiumConcept) rangeConcept).getVertex(), LabelName.HAS_EDGE.toString());
-        }
-
-        if (parent != null) {
-            findOrAddEdge(relationshipVertex, ((VertexiumRelationship) parent).getVertex(), LabelName.IS_A.toString());
-        }
-
-        List<String> inverseOfIRIs = new ArrayList<>(); // no inverse of because this relationship is new
-
-        graph.flush();
-
-        List<String> domainConceptIris = Lists.newArrayList(new ConvertingIterable<Concept, String>(domainConcepts) {
-            @Override
-            protected String convert(Concept o) {
-                return o.getIRI();
+            for (Concept domainConcept : domainConcepts) {
+                findOrAddEdge(ctx, ((VertexiumConcept) domainConcept).getVertex(), relationshipVertex, LabelName.HAS_EDGE.toString());
             }
-        });
 
-        List<String> rangeConceptIris = Lists.newArrayList(new ConvertingIterable<Concept, String>(rangeConcepts) {
-            @Override
-            protected String convert(Concept o) {
-                return o.getIRI();
+            for (Concept rangeConcept : rangeConcepts) {
+                findOrAddEdge(ctx, relationshipVertex, ((VertexiumConcept) rangeConcept).getVertex(), LabelName.HAS_EDGE.toString());
             }
-        });
 
-        Collection<OntologyProperty> properties = new ArrayList<>();
-        String parentIRI = parent == null ? null : parent.getIRI();
-        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris, properties);
+            if (parent != null) {
+                findOrAddEdge(ctx, relationshipVertex, ((VertexiumRelationship) parent).getVertex(), LabelName.IS_A.toString());
+            }
+
+            List<String> inverseOfIRIs = new ArrayList<>(); // no inverse of because this relationship is new
+
+            List<String> domainConceptIris = Lists.newArrayList(new ConvertingIterable<Concept, String>(domainConcepts) {
+                @Override
+                protected String convert(Concept o) {
+                    return o.getIRI();
+                }
+            });
+
+            List<String> rangeConceptIris = Lists.newArrayList(new ConvertingIterable<Concept, String>(rangeConcepts) {
+                @Override
+                protected String convert(Concept o) {
+                    return o.getIRI();
+                }
+            });
+
+            Collection<OntologyProperty> properties = new ArrayList<>();
+            String parentIRI = parent == null ? null : parent.getIRI();
+            return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris, properties);
+        } catch (Exception ex) {
+            throw new VisalloException("Could not create relationship: " + relationshipIRI, ex);
+        }
     }
 
     private Vertex getOrCreatePropertyVertex(
@@ -725,27 +731,34 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
 
             String propertyVertexId = ID_PREFIX_PROPERTY + propertyIri;
-            VertexBuilder builder = graph.prepareVertex(propertyVertexId, VISIBILITY.getVisibility());
-            VisalloProperties.CONCEPT_TYPE.setProperty(builder, TYPE_PROPERTY, VISIBILITY.getVisibility());
-            OntologyProperties.ONTOLOGY_TITLE.setProperty(builder, propertyIri, VISIBILITY.getVisibility());
-            OntologyProperties.DATA_TYPE.setProperty(builder, dataType.toString(), VISIBILITY.getVisibility());
-            if (possibleValues != null) {
-                OntologyProperties.POSSIBLE_VALUES.setProperty(builder, JSONUtil.toJson(possibleValues), VISIBILITY.getVisibility());
-            }
-            if (textIndexHints.size() > 0) {
-                textIndexHints.stream().forEach(i -> {
-                    String textIndexHint = i.toString();
-                    OntologyProperties.TEXT_INDEX_HINTS.addPropertyValue(builder, textIndexHint, textIndexHint, VISIBILITY.getVisibility());
-                });
-            }
-            propertyVertex = builder.save(getAuthorizations());
-            graph.flush();
+            try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, null, getAuthorizations())) {
+                ctx.setPushOnQueue(false);
 
-            for (Concept concept : concepts) {
-                findOrAddEdge(((VertexiumConcept) concept).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
-            }
-            for (Relationship relationship : relationships) {
-                findOrAddEdge(((VertexiumRelationship) relationship).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
+                VertexBuilder builder = graph.prepareVertex(propertyVertexId, VISIBILITY.getVisibility());
+                propertyVertex = ctx.update(builder, elemCtx -> {
+                    VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_PROPERTY, VISIBILITY.getVisibility());
+                    OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, propertyIri, VISIBILITY.getVisibility());
+                    OntologyProperties.DATA_TYPE.updateProperty(elemCtx, dataType.toString(), VISIBILITY.getVisibility());
+                    if (possibleValues != null) {
+                        OntologyProperties.POSSIBLE_VALUES.updateProperty(elemCtx, JSONUtil.toJson(possibleValues), VISIBILITY.getVisibility());
+                    }
+                    if (textIndexHints.size() > 0) {
+                        Metadata metadata = new Metadata();
+                        textIndexHints.forEach(i -> {
+                            String textIndexHint = i.toString();
+                            OntologyProperties.TEXT_INDEX_HINTS.updateProperty(elemCtx, textIndexHint, textIndexHint, metadata, VISIBILITY.getVisibility());
+                        });
+                    }
+                });
+
+                for (Concept concept : concepts) {
+                    findOrAddEdge(ctx, ((VertexiumConcept) concept).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
+                }
+                for (Relationship relationship : relationships) {
+                    findOrAddEdge(ctx, ((VertexiumRelationship) relationship).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
+                }
+            } catch (Exception e) {
+                throw new VisalloException("Could not getOrCreatePropertyVertex: " + propertyIri, e);
             }
         } else {
             propertyVertex = ((VertexiumOntologyProperty) typeProperty).getVertex();
