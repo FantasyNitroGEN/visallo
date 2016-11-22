@@ -205,9 +205,11 @@ define([
                                 this.append('h1')
                                     .call(function() {
                                         this.append('strong');
-                                        this.append('s')
-                                            .attr('class', 'search-related')
-                                            .attr('title', i18n('detail.entity.relationships.open_in_search'));
+                                        if (!visalloData.isFullscreen) {
+                                            this.append('s')
+                                                .attr('class', 'search-related')
+                                                .attr('title', i18n('detail.entity.relationships.open_in_search'));
+                                        }
                                         this.append('span').attr('class', 'badge');
                                     });
                                 this.append('div');
