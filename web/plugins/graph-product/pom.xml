@@ -25,14 +25,10 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>install-npm-modules</id>
+                        <id>yarn install</id>
                         <goals>
-                            <goal>npm</goal>
+                            <goal>yarn</goal>
                         </goals>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <arguments>install</arguments>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>webpack build</id>
