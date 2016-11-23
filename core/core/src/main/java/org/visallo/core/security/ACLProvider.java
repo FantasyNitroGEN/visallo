@@ -257,6 +257,9 @@ public abstract class ACLProvider {
     }
 
     public final ClientApiObject appendACL(ClientApiObject clientApiObject, User user) {
+        if (user == null) {
+            return clientApiObject;
+        }
         Set<String> privileges = privilegeRepository.getPrivileges(user);
         return appendACL(clientApiObject, privileges, user);
     }
