@@ -7,10 +7,11 @@ define([
 
     const ProductList = React.createClass({
         render() {
-            const { products, status, onCreate, types, registry, workspace, ...rest } = this.props;
+            const { products, status, onCreate, types, registry, workspace, user, ...rest } = this.props;
             const { loading, loaded } = status;
             if (!workspace) return null;
-            const { editable } = workspace;
+            if (!user) return null;
+            const editable = workspace.editable && user.privileges.includes('EDIT')
 
             if (!loaded && !loading) {
                 this.props.onLoadProducts();

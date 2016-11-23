@@ -29,7 +29,9 @@ define([
                 <div className="products-empty-wrap" style={{ ...padding }}>
                     <div className="products-empty">
                         <h1>{i18n('product.empty.message')}</h1>
-                        {editable ? (<h2>{i18n('product.empty.create')}</h2>) : null}
+                        {editable ?
+                            (<h2>{i18n('product.empty.create')}</h2>) :
+                            (<h2>{i18n('product.empty.readonly')}</h2>)}
                         {editable ? (<ul>{extensionItems}</ul>) : null}
                     </div>
                 </div>
