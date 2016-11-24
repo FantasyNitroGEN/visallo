@@ -37,8 +37,6 @@ define(['data/web-worker/store/user/actions'], function(userActions) {
 
                 if (user.currentWorkspaceId) {
                     this.setPublicApi('currentWorkspaceId', user.currentWorkspaceId, { onlyIfNull: true });
-                } else {
-                    return this.findOrCreateWorkspace(user.id, dataRequestCompleted, request);
                 }
             } else if (isUserPreferencesUpdate(request)) {
                 visalloData.currentUser.uiPreferences = request.result.uiPreferences;

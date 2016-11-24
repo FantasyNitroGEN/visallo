@@ -1,16 +1,50 @@
 define(['../actions', '../../util/ajax'], function(actions, ajax) {
     actions.protectFromMain();
 
+    const sort = workspaces => _.sortBy(
+        _.filter(workspaces, function(w) {
+            return !w.sharedToUser && ('createdBy' in w);
+        }),
+        w => w.title.toLowerCase()
+    );
+
     const api = {
 
         setCurrent: ({ workspaceId }) => (dispatch, getState) => {
-
-            dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
-            dispatch(api.get({ workspaceId }))
-            pushSocketMessage({
-                type: 'setActiveWorkspace',
-                data: { workspaceId: workspaceId }
-            });
+            if (!workspaceId) {
+                var workspaces = getState().workspace;
+                Promise.try(() => {
+                    if (workspaces.allLoaded) {
+                        return Promise.resolve(sort(Object.values(workspaces.byId)));
+                    } else {
+                        return ajax('GET', '/workspace/all')
+                            .then(function(result) {
+                                dispatch(api.setAll({ workspaces: result.workspaces }));
+                                return sort(result.workspaces);
+                            })
+                    }
+                }).then(list => {
+                    if (list.length) {
+                        return list[0].workspaceId
+                    }
+                    return ajax('POST', '/workspace/create').then(workspace => {
+                        dispatch(api.update({ workspace }))
+                    })
+                }).then(workspaceId => {
+                    dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                    pushSocketMessage({
+                        type: 'setActiveWorkspace',
+                        data: { workspaceId: workspaceId }
+                    });
+                })
+            } else {
+                dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                dispatch(api.get({ workspaceId }))
+                pushSocketMessage({
+                    type: 'setActiveWorkspace',
+                    data: { workspaceId: workspaceId }
+                });
+            }
         },
 
         setAll: ({ workspaces }) => ({
@@ -18,7 +52,7 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             payload: { workspaces }
         }),
 
-        deleteWorkspace: ({ workspaceId, createIfEmpty = false }) => (dispatch, getState) => {
+        deleteWorkspace: ({ workspaceId }) => (dispatch, getState) => {
             const workspaces = getState().workspace;
             const workspace = workspaces.byId[workspaceId];
 
@@ -30,17 +64,7 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
 
                 const workspaces = getState().workspace;
                 if (workspaces.currentId === workspaceId) {
-                    const nextValidWorkspace = _.sortBy(_.filter(Object.values(workspaces.byId), function(w) {
-                        return !w.sharedToUser && ('createdBy' in w);
-                    }), w => w.title.toLowerCase())[0];
-                    if (nextValidWorkspace) {
-                        dispatch(api.setCurrent({ workspaceId: nextValidWorkspace.workspaceId }))
-                    } else if (createIfEmpty) {
-                        ajax('POST', '/workspace/create').then(workspace => {
-                            dispatch(api.update({ workspace }))
-                            dispatch(api.setCurrent({ workspaceId: workspace.workspaceId }))
-                        })
-                    }
+                    dispatch(api.setCurrent({ workspaceId: undefined }))
                 }
             }
         },
