@@ -65,7 +65,7 @@ define([
                 workspaceId: workspaceId
             })
                 .tap(() => {
-                    getStore().dispatch(workspaceActions.deleteWorkspace({ workspaceId, createIfEmpty: true }))
+                    getStore().dispatch(workspaceActions.deleteWorkspace({ workspaceId }))
                 })
         },
 

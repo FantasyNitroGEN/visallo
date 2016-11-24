@@ -452,7 +452,7 @@ define([
             if (cyNodes.size() === 0) {
                 cy.reset();
             } else {
-                var bb = cyNodes.boundingBox({ includeLabels: true, includeNodes: true, includeEdges: false }),
+                var bb = cyNodes.boundingBox({ includeLabels: false, includeNodes: true, includeEdges: false }),
                     style = cy.style(),
                     { left, right, top, bottom } = this.props.panelPadding,
                     w = parseFloat(style.containerCss('width')),
@@ -570,6 +570,12 @@ define([
                                     reparenting.push(() => cyNode.move({ parent: item.data.parent }));
                                 } else {
                                     cyNode.removeData().data(item.data)
+                                }
+
+                                if (decorations) {
+                                    decorations.push(() => {
+                                        this.updateDecorationPositions(cyNode);
+                                    })
                                 }
                             })
                             break;
@@ -809,7 +815,7 @@ define([
                 if (specs.textVAlign === alignment.v && alignment.h === 'center') {
                     y = specs.position.y - specs.h / 2 + specs.bboxLabels.h + decBBoxLabels.h / 2 + paddingY;
                 } else if (specs.textVAlign === alignment.v) {
-                    y = specs.position.y + specs.h / 2 + paddingY + (specs.bboxLabels.h - specs.h - paddingY) / 2;
+                    y = specs.position.y + specs.h / 2 + (specs.bboxLabels.h - specs.h) / 2;
                 } else {
                     y = specs.position.y + specs.h / 2 + decBBoxLabels.h / 2 + paddingY;
                 }
@@ -820,7 +826,7 @@ define([
                 if (specs.textVAlign === alignment.v && alignment.h === 'center') {
                     y = specs.position.y + specs.h / 2 - specs.bboxLabels.h - decBBoxLabels.h / 2 - paddingY;
                 } else if (specs.textVAlign === alignment.v) {
-                    y = specs.position.y - specs.h / 2 - paddingY - (specs.bboxLabels.h - specs.h - paddingY) / 2;
+                    y = specs.position.y - specs.h / 2 - (specs.bboxLabels.h - specs.h) / 2;
                 } else {
                     y = specs.position.y - specs.h / 2 - decBBoxLabels.h / 2 - paddingY
                 }
@@ -838,8 +844,8 @@ define([
             textVAlign: node.style('text-valign'),
             h: node.height(),
             w: node.width(),
-            bbox: node.boundingBox({includeLabels: false}),
-            bboxLabels: node.boundingBox({includeLabels: true})
+            bbox: node.boundingBox({includeNodes: true, includeLabels: false}),
+            bboxLabels: node.boundingBox({includeNodes: true, includeLabels: true})
         }
     }
 })

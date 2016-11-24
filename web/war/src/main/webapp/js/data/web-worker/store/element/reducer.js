@@ -7,14 +7,29 @@ define(['updeep'], function(u) {
         if (payload) {
             switch (type) {
                 case 'ELEMENT_SET_FOCUS': return setFocusing(state, payload)
+
                 case 'ELEMENT_UPDATE':
                     const { workspaceId } = payload;
                     if (!workspaceId) throw new Error('WorkspaceId required');
                     return { ...state, [workspaceId]: update(state[workspaceId], payload) };
+
+                case 'ELEMENT_UPDATE_EDGELABELS': return updateEdgeLabels(state, payload);
             }
         }
 
         return state;
+    }
+
+    function updateEdgeLabels(state, { workspaceId, vertexLabels }) {
+        return u({
+            [workspaceId]: {
+                vertices: {
+                    ..._.mapObject(vertexLabels, labels => {
+                        return { edgeLabels: u.constant(labels) };
+                    })
+                }
+            }
+        }, state)
     }
 
     function setFocusing(state, { vertexIds = [], edgeIds = [], elementIds = [] }) {

@@ -42,9 +42,41 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
                                     ...{[resultType]:elements}
                                 };
                                 dispatch(api.update(updates));
+                                if (type === 'edge' && elements.length) {
+                                    dispatch(api.updateEdgeLabels({ workspaceId, edges: elements }));
+                                }
                             })
                     }
                 });
+            }
+        },
+
+        updateEdgeLabels: ({ workspaceId, edges }) => (dispatch, getState) => {
+            const state = getState();
+            const elementState = state.element[workspaceId];
+            if (!elementState) return;
+            const { vertices } = elementState;
+            const updates = {};
+            const addToUpdates = (vertexId, label) => {
+                if (vertexId in vertices) {
+                    const vertex = vertices[vertexId];
+                    const labels = vertex.edgeLabels || [];
+                    if (!labels.includes(label)) {
+                        updates[vertexId] = [...labels, label];
+                    }
+                }
+            };
+
+            edges.forEach(edge => {
+                addToUpdates(edge.inVertexId, edge.label)
+                addToUpdates(edge.outVertexId, edge.label)
+            })
+
+            if (!_.isEmpty(updates)) {
+                dispatch({
+                    type: 'ELEMENT_UPDATE_EDGELABELS',
+                    payload: { workspaceId, vertexLabels: updates }
+                })
             }
         },
 
