@@ -5,6 +5,52 @@ v3.1.0
 v3.0.0
 ==================
 
+## Added
+
+* Add map configuration UI with [`org.visallo.map.options`](http://docs.visallo.org/extension-points/front-end/mapOptions/) extension point
+* Graph and Map are now &#34;Case Work Products&#34; within a workspace. Multiple of each type can be created within one workspace.
+
+## Changed
+
+* Collapse equal histogram detail values instead of range
+* Geolocation properties are not sortable by default.
+* Give default authorizations to all users, not just users without auths
+* GraphUpdateContext to abstract to make it clear that you should get the instance from GraphRepository
+* Multi-select detail histogram bottom margin
+* Remove Exception from GraphUpdateContext#close to avoid needing to catch
+* Speed up ACLProvider by caching the ontology property IRI
+* Speed up ACLProvider by not repeatly calling hasPrivilege
+* Upgrade Accumulo from 1.6.1 to 1.6.6
+* Upgrade Accumulo from 1.6.6 to 1.7.2
+* Upgrade Elasticsearch from 1.7.2 to 1.7.5
+* Upgrade Hadoop from CDH5.4.2 to 2.7.3
+* Upgrade V5 dependencies to support new infrastructure versions
+* Upgrade ZooKeeper from 3.4.7 to 3.4.9
+* Webapp and plugins install dependencies with [yarn](https://yarnpkg.com) instead of npm
+* Webstart version from v2.2.0 to v2.2.1
+
+## Fixed
+
+* Added listeners to update the card locations on the server since there were certain instances in which the card locations were not updated and saved to the server.
+* After a successful logout, a &#39;Server is not available&#39; message would appear.
+* Find related properties missing
+* Multiple selection histogram would sometimes have overlapping number/text
+* Offline overlay not appearing when the browser loses network connection.
+* Relationship lookup in ontology gets related properties
+* Relationship lookup in ontology gets related properties
+* Search related icon on relationship sections in vertex detail panes no longer shows in fullscreen details where search is not available.
+* Users without edit privilege won&#39;t see work product create /  delete / edit buttons
+* detail pane showing comment reply buttons and add property/comment toolbar items
+* graph images in IE
+* graph.flush calls on ontology update methods to prevent race conditions
+
+## Removed
+
+* Add to Workspace URL scheme has been removed as entities can&#39;t be added to a workspace.
+* Statistics aggregation option in saved search dashboard cards. This aggregation type will be reworked in a future release.
+* Workspace search is removed since workspaces don&#39;t have entities
+
+
 v2.2.1
 ==================
 
