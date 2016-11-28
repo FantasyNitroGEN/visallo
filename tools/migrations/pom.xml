@@ -6,7 +6,7 @@
     <parent>
         <artifactId>visallo-tools-group</artifactId>
         <groupId>org.visallo</groupId>
-        <version>3.0.0-RC1</version>
+        <version>3.0.0-RC2-SNAPSHOT</version>
     </parent>
 
     <artifactId>visallo-tools-migrations</artifactId>
