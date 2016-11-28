@@ -335,7 +335,10 @@ define([
                         fieldComponent;
 
                     if (isCompoundField) {
-                        self.currentValue = _.pluck(F.vertex.props(self.attr.data, propertyName), 'value');
+                        const dependentProperties = property.key ?
+                            F.vertex.props(self.attr.data, propertyName, property.key) :
+                            F.vertex.props(self.attr.data, propertyName);
+                        self.currentValue = _.pluck(dependentProperties, 'value');
                         fieldComponent = 'fields/compound/compound';
                     } else if (propertyDetails.displayType === 'duration') {
                         fieldComponent = 'fields/duration';
