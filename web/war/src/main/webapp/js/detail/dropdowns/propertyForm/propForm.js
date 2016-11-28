@@ -108,8 +108,7 @@ define([
         });
 
         this.setupPropertySelectionField = function() {
-            var self = this,
-                ontologyRequest;
+            let ontologyRequest;
 
             if (F.vertex.isEdge(this.attr.data)) {
                 ontologyRequest = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label);
@@ -118,15 +117,18 @@ define([
                     F.vertex.prop(this.attr.data, 'conceptType'));
             }
 
-            ontologyRequest.then(function(ontologyProperties) {
-                var propertyAcls = acl.getPropertyAcls(self.attr.data);
-                FieldSelection.attachTo(self.select('propertyListSelector'), {
+            Promise.all([
+                ontologyRequest,
+                acl.getPropertyAcls(this.attr.data)
+            ]).spread((ontologyProperties, propertyAcls) => {
+                FieldSelection.attachTo(this.select('propertyListSelector'), {
                     properties: ontologyProperties.list,
                     focus: true,
                     placeholder: i18n('property.form.field.selection.placeholder'),
                     unsupportedProperties: _.pluck(_.where(propertyAcls, {addable: false}), 'name')
                 });
-                self.manualOpen();
+
+                this.manualOpen();
             });
         };
 
