@@ -6,7 +6,7 @@
     <parent>
         <artifactId>visallo-web-plugin-base</artifactId>
         <groupId>org.visallo</groupId>
-        <version>3.0-SNAPSHOT</version>
+        <version>3.0.0-RC1</version>
         <relativePath>../../web-plugin-base</relativePath>
     </parent>
 
