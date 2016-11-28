@@ -11,6 +11,7 @@ import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class JSONUtil {
     private static ObjectMapper mapper = ObjectMapperFactory.getInstance();
@@ -163,4 +164,7 @@ public class JSONUtil {
         }
     }
 
+    public static Stream<Object> stream(JSONArray jsonArray) {
+        return toList(jsonArray).stream();
+    }
 }
