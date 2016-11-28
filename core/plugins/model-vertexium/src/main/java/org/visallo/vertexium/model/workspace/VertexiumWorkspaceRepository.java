@@ -64,13 +64,12 @@ import static org.visallo.core.util.StreamUtil.stream;
 @Singleton
 public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexiumWorkspaceRepository.class);
-    private UserRepository userRepository;
-    private GraphRepository graphRepository;
-    private GraphAuthorizationRepository graphAuthorizationRepository;
-    private WorkspaceDiffHelper workspaceDiff;
-    private Configuration configuration;
+    private final UserRepository userRepository;
+    private final GraphRepository graphRepository;
+    private final GraphAuthorizationRepository graphAuthorizationRepository;
+    private final WorkspaceDiffHelper workspaceDiff;
+    private final Configuration configuration;
     private Collection<WorkProduct> workProducts;
-
     private final LockRepository lockRepository;
 
     private Cache<String, Boolean> usersWithReadAccessCache = CacheBuilder.newBuilder()
@@ -113,7 +112,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             TermMentionRepository termMentionRepository,
             OntologyRepository ontologyRepository,
             WorkQueueRepository workQueueRepository,
-            AuthorizationRepository authorizationRepository
+            AuthorizationRepository authorizationRepository,
+            Configuration configuration
     ) {
         super(
                 graph,
@@ -128,6 +128,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         this.graphAuthorizationRepository = graphAuthorizationRepository;
         this.workspaceDiff = workspaceDiff;
         this.lockRepository = lockRepository;
+        this.configuration = configuration;
 
         graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
         graphAuthorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
@@ -602,7 +603,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                             workspace.getWorkspaceId()
                     );
                     continue;
-                }                            
+                }
 
                 createEdge(
                         workspaceVertex,
@@ -843,7 +844,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         String extendedDataStr = extendedData == null ? null : extendedData.toString();
 
         Property previewDataUrlProperty = WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.getProperty(productVertex, user.getUserId());
-        InputStream previewDataUrl = null;
         String md5 = null;
         if (previewDataUrlProperty != null) {
             Metadata.Entry entry = previewDataUrlProperty.getMetadata().getEntry("http://visallo.org/product#previewImageMD5");
@@ -976,10 +976,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                             user.getUserId(),
                             value,
                             metadata,
-                            visibility);
+                            visibility
+                    );
                 }
             });
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -1023,9 +1024,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                         getVisibilityTranslator().getDefaultVisibility()
                 );
                 if (productId == null || title != null) {
-                    WorkspaceProperties.TITLE.setProperty(elCtx.getMutation(), title == null ? "" : title.substring(0, Math.min(title.length(),  128)), visibility);
+                    WorkspaceProperties.TITLE.setProperty(elCtx.getMutation(), title == null ? "" : title.substring(0, Math.min(title.length(), 128)), visibility);
                 }
-                String kindValue = null;
                 if (productId == null) {
                     WorkspaceProperties.PRODUCT_KIND.setProperty(elCtx.getMutation(), kind, visibility);
                     elCtx.save(authorizations);
@@ -1034,15 +1034,16 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
                 WorkProduct workProduct = getWorkProductByKind(
                         kind == null ?
-                        WorkspaceProperties.PRODUCT_KIND.getPropertyValue(elCtx.getElement(), null) : kind
+                                WorkspaceProperties.PRODUCT_KIND.getPropertyValue(elCtx.getElement(), null) : kind
                 );
                 if (params != null) {
                     workProduct.update(params, getGraph(), workspaceVertex, elCtx, user, visibility, authorizations);
                 }
                 String edgeId = workspaceVertex.getId() + "_hasProduct_" + elCtx.getElement().getId();
                 ctx.getOrCreateEdgeAndUpdate(edgeId, workspaceId, id, WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
-                        visibility,
-                        elemCtx -> {}
+                                             visibility,
+                                             elemCtx -> {
+                                             }
                 );
             });
         } catch (Exception e) {
@@ -1102,7 +1103,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
     }
 
-    private WorkProduct getWorkProductByKind(String kind) {
+    protected WorkProduct getWorkProductByKind(String kind) {
         if (kind == null) {
             throw new VisalloException("Work product kind must not be null");
         }
@@ -1167,18 +1168,18 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     private ProductPreview getProductPreviewFromUrl(String url) {
-        if (url != null && url.indexOf("base64") >= 0) {
+        if (url != null && url.contains("base64")) {
             String encodingPrefix = "base64,";
             int contentStartIndex = url.indexOf(encodingPrefix) + encodingPrefix.length();
             byte[] imageData = Base64.getDecoder().decode(url.substring(contentStartIndex));
-            MessageDigest md = null;
-            String md5 = null;
+            MessageDigest md;
+            String md5;
             try {
                 md = MessageDigest.getInstance("MD5");
                 byte[] array = md.digest(imageData);
-                StringBuffer sb = new StringBuffer();
-                for (int i = 0; i < array.length; i++) {
-                    sb.append(String.format("%02x", array[i]));
+                StringBuilder sb = new StringBuilder();
+                for (byte anArray : array) {
+                    sb.append(String.format("%02x", anArray));
                 }
                 md5 = sb.toString();
                 return new ProductPreview(imageData, md5);
@@ -1394,8 +1395,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         });
     }
 
-
-
     @Override
     @Traced
     public ClientApiWorkspaceDiff getDiff(
@@ -1425,15 +1424,10 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         });
     }
 
-
-    @Inject
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
-    }
-
     private class ProductPreview {
         private byte[] imageData;
         private String md5;
+
         ProductPreview(byte[] imageData, String md5) {
             this.imageData = imageData;
             this.md5 = md5;

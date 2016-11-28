@@ -147,7 +147,7 @@ public class UserNotificationRepository extends NotificationRepository {
     /**
      * Avoid circular reference with UserRepository
      */
-    private UserRepository getUserRepository() {
+    protected UserRepository getUserRepository() {
         if (userRepository == null) {
             userRepository = InjectHelper.getInstance(UserRepository.class);
         }
