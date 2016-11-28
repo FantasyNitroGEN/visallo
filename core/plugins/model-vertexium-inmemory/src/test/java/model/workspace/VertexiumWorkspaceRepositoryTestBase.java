@@ -109,7 +109,7 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
         Configuration visalloConfiguration = new HashMapConfigurationLoader(configMap).createConfiguration();
         LockRepository lockRepository = new NonLockingLockRepository();
 
-        authorizationRepository =new UserPropertyAuthorizationRepository(
+        authorizationRepository = new UserPropertyAuthorizationRepository(
                 graph,
                 ontologyRepository,
                 visalloConfiguration,
@@ -160,6 +160,7 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
 
         workspaceRepository = new VertexiumWorkspaceRepository(
                 graph,
+                visalloConfiguration,
                 graphRepository,
                 userRepository,
                 graphAuthorizationRepository,
@@ -169,8 +170,7 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
                 termMentionRepository,
                 ontologyRepository,
                 workQueueRepository,
-                authorizationRepository,
-                visalloConfiguration
+                authorizationRepository
         );
 
         workspaceHelper = new WorkspaceHelper(

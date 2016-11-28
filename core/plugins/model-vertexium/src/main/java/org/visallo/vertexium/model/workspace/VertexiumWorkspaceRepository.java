@@ -56,6 +56,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -103,6 +104,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     @Inject
     public VertexiumWorkspaceRepository(
             Graph graph,
+            Configuration configuration,
             GraphRepository graphRepository,
             UserRepository userRepository,
             GraphAuthorizationRepository graphAuthorizationRepository,
@@ -112,11 +114,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             TermMentionRepository termMentionRepository,
             OntologyRepository ontologyRepository,
             WorkQueueRepository workQueueRepository,
-            AuthorizationRepository authorizationRepository,
-            Configuration configuration
+            AuthorizationRepository authorizationRepository
     ) {
         super(
                 graph,
+                configuration,
                 visibilityTranslator,
                 termMentionRepository,
                 ontologyRepository,
@@ -143,6 +145,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     workspace.getWorkspaceId()
             );
         }
+
+        fireWorkspaceBeforeDelete(workspace, user);
 
         lockRepository.lock(getLockName(workspace), () -> {
             Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
@@ -281,7 +285,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
 
         getGraph().flush();
-        return new VertexiumWorkspace(workspaceVertex);
+        VertexiumWorkspace workspace = new VertexiumWorkspace(workspaceVertex);
+        fireWorkspaceAdded(workspace, user);
+        return workspace;
     }
 
     public void addWorkspaceToUser(Vertex workspaceVertex, Vertex userVertex, Authorizations authorizations) {
@@ -614,6 +620,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             getGraph().flush();
             workspaceEntitiesCached.invalidateAll();
         });
+
+        fireWorkspaceUpdateEntities(workspace, vertexIds, user);
     }
 
     @Override
@@ -1013,10 +1021,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         );
         Visibility visibility = VISIBILITY.getVisibility();
 
-
+        AtomicBoolean isNew = new AtomicBoolean();
         Vertex productVertex;
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
             productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elCtx -> {
+                isNew.set(elCtx.isNewElement());
                 String id = productId;
                 VisalloProperties.CONCEPT_TYPE.setProperty(
                         elCtx.getMutation(),
@@ -1050,7 +1059,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             throw new RuntimeException(e);
         }
 
-
         getGraph().flush();
 
         Workspace ws = findById(workspaceId, user);
@@ -1065,8 +1073,12 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
         getWorkQueueRepository().broadcastWorkProductChange(productVertex.getId(), userWorkspace, user, skipSourceId);
 
-
-        return productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
+        Product product = productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
+        if (isNew.get()) {
+            fireWorkspaceAddProduct(product, user);
+        }
+        fireWorkspaceProductUpdated(product, params, user);
+        return product;
     }
 
     public void deleteProduct(String workspaceId, String productId, User user) {
@@ -1078,6 +1090,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     workspaceId
             );
         }
+
+        fireWorkspaceBeforeDeleteProduct(workspaceId, productId, user);
+
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
                 user,
                 VISIBILITY_STRING,
@@ -1244,6 +1259,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
             clearCache();
         });
+
+        fireWorkspaceDeleteUser(workspace, userId, user);
     }
 
     @Override
@@ -1390,6 +1407,8 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             getGraph().flush();
 
             clearCache();
+
+            fireWorkspaceUpdateUser(workspace, userId, workspaceAccess, user);
 
             return result;
         });

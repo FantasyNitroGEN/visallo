@@ -323,7 +323,7 @@ public abstract class UserRepository {
         }
     }
 
-    private Collection<UserListener> getUserListeners() {
+    protected Collection<UserListener> getUserListeners() {
         if (userListeners == null) {
             userListeners = InjectHelper.getInjectedServices(UserListener.class, configuration);
         }
