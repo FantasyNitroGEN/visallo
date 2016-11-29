@@ -169,7 +169,8 @@ public abstract class VertexiumWorkspaceRepositoryTestBase {
                 termMentionRepository,
                 ontologyRepository,
                 workQueueRepository,
-                authorizationRepository
+                authorizationRepository,
+                visalloConfiguration
         );
 
         workspaceHelper = new WorkspaceHelper(
