@@ -1,32 +1,54 @@
 package org.visallo.web.product.graph;
 
+import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.vertexium.Edge;
 import org.vertexium.ElementBuilder;
+import org.vertexium.TextIndexHint;
 import org.vertexium.Visibility;
+import org.visallo.core.model.ontology.OntologyPropertyDefinition;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.Relationship;
+import org.visallo.core.model.properties.types.JsonSingleValueVisalloProperty;
 import org.visallo.core.model.workspace.product.WorkProductElements;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.PropertyType;
+
+import java.util.ArrayList;
 
 public class GraphWorkProduct extends WorkProductElements {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphWorkProduct.class);
-    public static final String EDGE_POSITION = "http://visallo.org/workspace/product/graph#entityPosition";
+    public static final JsonSingleValueVisalloProperty EDGE_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");
+
+    @Inject
+    public GraphWorkProduct(OntologyRepository ontologyRepository) {
+        super(ontologyRepository);
+        addEdgePositionToOntology(ontologyRepository);
+    }
+
+    private void addEdgePositionToOntology(OntologyRepository ontologyRepository) {
+        Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
+        OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
+                new ArrayList<>(),
+                EDGE_POSITION.getPropertyName(),
+                "Entity Position",
+                PropertyType.STRING
+        );
+        propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
+        propertyDefinition.getRelationships().add(productToEntityRelationship);
+        ontologyRepository.getOrCreateProperty(propertyDefinition);
+    }
 
     @Override
     protected void updateProductEdge(JSONObject update, ElementBuilder edgeBuilder, Visibility visibility) {
         JSONObject position = update;
-        edgeBuilder.setProperty(EDGE_POSITION, position.toString(), visibility);
+        EDGE_POSITION.setProperty(edgeBuilder, position, visibility);
     }
 
     protected void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex) {
-        String positionStr = (String) propertyVertexEdge.getPropertyValue(EDGE_POSITION);
-        JSONObject position;
-        if (positionStr == null) {
+        JSONObject position = EDGE_POSITION.getPropertyValue(propertyVertexEdge);
+        if (position == null) {
             position = new JSONObject();
             position.put("x", 0);
             position.put("y", 0);
-        } else {
-            position = new JSONObject(positionStr);
         }
         vertex.put("pos", position);
     }
