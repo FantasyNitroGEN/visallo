@@ -83,7 +83,10 @@ define([
 
         this.after('initialize', function() {
             var model = this.attr.model;
-            this.initializeToolbar(model, acl.getPropertyAcls(model));
+
+            acl.getPropertyAcls(model).then((propertyAcls) => {
+                this.initializeToolbar(model, propertyAcls);
+            });
         });
 
         this.initializeToolbar = function(model, propertyAcls) {

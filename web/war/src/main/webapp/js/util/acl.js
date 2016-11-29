@@ -1,16 +1,37 @@
 define([
-    './requirejs/promise!./service/ontologyPromise'
-], function(ontology) {
+    'util/withDataRequest'
+], function(withDataRequest) {
     'use strict';
 
     return {
         getPropertyAcls: function(element) {
-            return mergeElementPropertyAcls(
-                ontologyPropertiesToAclProperties(ontology.properties)
-            );
+            const elements = Array.isArray(element) ? element : [element];
+
+            return Promise.map(elements, (element) => {
+                    let propertiesPromise = [];
+
+                    if (element.type === 'vertex') {
+                        propertiesPromise = withDataRequest.dataRequest('ontology', 'propertiesByConceptId', element.conceptType);
+                    } else {
+                        propertiesPromise = withDataRequest.dataRequest('ontology', 'propertiesByRelationship', element.label);
+                    }
+
+                    return propertiesPromise;
+                })
+                .then((elementsProperties) => {
+                    const ontologyProperties = _.chain(elementsProperties)
+                        .map((properties) => properties.list)
+                        .flatten()
+                        .uniq((p) => p.title)
+                        .value();
+
+                    return mergeElementPropertyAcls(
+                        ontologyPropertiesToAclProperties(ontologyProperties)
+                    );
+                })
 
             function ontologyPropertiesToAclProperties(properties) {
-                return properties.list.map(function(property) {
+                return properties.map(function(property) {
                     return {
                         key: null,
                         name: property.title,
@@ -22,7 +43,6 @@ define([
             }
 
             function mergeElementPropertyAcls(propertyAcls) {
-                const elements = Array.isArray(element) ? element : [element];
                 elements.forEach(function (e) {
                     e.acl.propertyAcls.forEach(function (elementPropertyAcl) {
                         var matches = _.where(propertyAcls, {
@@ -38,6 +58,7 @@ define([
                         }
                     });
                 });
+
                 return propertyAcls;
             }
         },
