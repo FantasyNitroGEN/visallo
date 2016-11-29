@@ -83,7 +83,7 @@ define([
         };
 
         this.onAddVertices = function(event) {
-            this.trigger('focusPathsAddVertexIds', { vertexIds: this.toAdd })
+            this.trigger('focusPathsAddVertexIds');
             this.loadDefaultContent();
         };
 
@@ -94,12 +94,8 @@ define([
             this.dataRequest('longRunningProcess', 'get', this.attr.process.id)
                 .done(function(process) {
                     var paths = process.results && process.results.paths || [],
-                        allVertices = _.flatten(paths),
-                        vertices = _.chain(allVertices)
-                            .unique()
-                            .value();
+                        vertices = _.chain(paths).flatten().uniq().value();
 
-                    self.toAdd = vertices;
                     self.trigger('focusPaths', {
                         paths: paths,
                         sourceId: self.attr.process.outVertexId,
