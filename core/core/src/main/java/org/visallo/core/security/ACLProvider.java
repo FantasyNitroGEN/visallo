@@ -153,7 +153,7 @@ public abstract class ACLProvider {
     }
 
     private void appendACL(ClientApiElement apiElement, User user) {
-        Element element = findElement(apiElement);
+        Element element = findElement(apiElement, user);
 
         for (ClientApiProperty apiProperty : apiElement.getProperties()) {
             String key = apiProperty.getKey();
@@ -219,9 +219,10 @@ public abstract class ACLProvider {
         return propertyAcl;
     }
 
-    private Element findElement(ClientApiElement apiElement) {
+    private Element findElement(ClientApiElement apiElement, User user) {
         Element element;
-        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(userRepository.getSystemUser());
+
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(user, user.getCurrentWorkspaceId());
         if (apiElement instanceof ClientApiVertex) {
             element = graph.getVertex(apiElement.getId(), authorizations);
             checkNotNull(element, "could not find vertex with id: " + apiElement.getId());
