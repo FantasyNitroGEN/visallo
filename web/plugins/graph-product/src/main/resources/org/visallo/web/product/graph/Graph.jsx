@@ -209,9 +209,11 @@ define([
             })
         },
 
-        onFocusPathsAdd(event, data) {
-            if (data) {
-                const { vertexIds } = data;
+        onFocusPathsAdd(event) {
+            const { paths } = this.state;
+            if (paths) {
+                const limitedPaths = paths.paths.slice(0, MaxPathsToFocus);
+                const vertexIds = _.chain(limitedPaths).flatten().uniq().value();
                 this.props.onDropElementIds({ vertexIds });
             }
         },
