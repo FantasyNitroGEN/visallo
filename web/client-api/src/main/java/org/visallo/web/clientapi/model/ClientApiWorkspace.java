@@ -11,7 +11,6 @@ public class ClientApiWorkspace implements ClientApiObject {
     private boolean isEditable;
     private boolean isCommentable;
     private List<User> users = new ArrayList<User>();
-    private boolean active;
 
     public String getWorkspaceId() {
         return workspaceId;
@@ -77,22 +76,11 @@ public class ClientApiWorkspace implements ClientApiObject {
                 ", createdBy='" + createdBy + '\'' +
                 ", isSharedToUser=" + isSharedToUser +
                 ", isEditable=" + isEditable +
-                ", active=" + active +
                 '}';
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public boolean isActive() {
-        return active;
     }
 
     public static class Vertex {
         private String vertexId;
-        private GraphPosition graphPosition = new GraphPosition();
-        private String graphLayoutJson;
         private boolean visible;
 
         public String getVertexId() {
@@ -103,14 +91,6 @@ public class ClientApiWorkspace implements ClientApiObject {
             this.vertexId = vertexId;
         }
 
-        public GraphPosition getGraphPosition() {
-            return graphPosition;
-        }
-
-        public void setGraphPosition(GraphPosition graphPosition) {
-            this.graphPosition = graphPosition;
-        }
-
         public boolean isVisible() {
             return visible;
         }
@@ -119,19 +99,11 @@ public class ClientApiWorkspace implements ClientApiObject {
             this.visible = visible;
         }
 
-        public String getGraphLayoutJson() {
-            return graphLayoutJson;
-        }
-
-        public void setGraphLayoutJson(String graphLayoutJson) {
-            this.graphLayoutJson = graphLayoutJson;
-        }
-
         @Override
         public String toString() {
             return "Vertex{" +
                     "vertexId='" + vertexId + '\'' +
-                    ", graphPosition=" + graphPosition +
+                    ", visible=" + visible +
                     '}';
         }
     }

@@ -39,7 +39,7 @@ define(['util/undoManager'], function(UndoManager) {
                         this.fireApplicationReadyOnce();
                     } else {
                         _.each(state.workspace.byId, (workspace, id) => {
-                            const workspaceChanged = previous.workspace.byId[id] !== workspace;
+                            const workspaceChanged = previous.workspace.byId[id] && previous.workspace.byId[id] !== workspace;
                             if (workspaceChanged) {
                                 this.setPublicApi('currentWorkspaceName', workspace.title);
                                 this.setPublicApi('currentWorkspaceEditable', workspace.editable);
