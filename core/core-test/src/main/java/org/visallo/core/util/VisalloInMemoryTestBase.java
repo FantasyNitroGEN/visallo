@@ -81,6 +81,7 @@ public abstract class VisalloInMemoryTestBase {
         }
         workspaceRepository = new VertexiumWorkspaceRepository(
                 getGraph(),
+                getConfiguration(),
                 getGraphRepository(),
                 getUserRepository(),
                 getGraphAuthorizationRepository(),
@@ -90,8 +91,7 @@ public abstract class VisalloInMemoryTestBase {
                 getTermMentionRepository(),
                 getOntologyRepository(),
                 getWorkQueueRepository(),
-                getAuthorizationRepository(),
-                getConfiguration()
+                getAuthorizationRepository()
         ) {
             @Override
             protected WorkProduct getWorkProductByKind(String kind) {
