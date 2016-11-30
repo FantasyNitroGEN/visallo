@@ -8,6 +8,8 @@ import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.IterableUtils;
+import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
@@ -52,15 +54,18 @@ public abstract class WorkspaceRepository {
     public static final String OWL_IRI = "http://visallo.org/workspace";
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceRepository.class);
     private final Graph graph;
+    private final Configuration configuration;
     private final VisibilityTranslator visibilityTranslator;
     private final TermMentionRepository termMentionRepository;
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;
     private String entityHasImageIri;
     private final AuthorizationRepository authorizationRepository;
+    private Collection<WorkspaceListener> workspaceListeners;
 
     protected WorkspaceRepository(
             Graph graph,
+            Configuration configuration,
             VisibilityTranslator visibilityTranslator,
             TermMentionRepository termMentionRepository,
             OntologyRepository ontologyRepository,
@@ -68,6 +73,7 @@ public abstract class WorkspaceRepository {
             AuthorizationRepository authorizationRepository
     ) {
         this.graph = graph;
+        this.configuration = configuration;
         this.visibilityTranslator = visibilityTranslator;
         this.termMentionRepository = termMentionRepository;
         this.ontologyRepository = ontologyRepository;
@@ -141,8 +147,7 @@ public abstract class WorkspaceRepository {
     }
 
     public Workspace copyTo(Workspace workspace, User destinationUser, User user) {
-        Workspace newWorkspace = add("Copy of " + workspace.getDisplayTitle(), destinationUser);
-        return newWorkspace;
+        return add("Copy of " + workspace.getDisplayTitle(), destinationUser);
     }
 
     public abstract void softDeleteEntitiesFromWorkspace(
@@ -944,6 +949,61 @@ public abstract class WorkspaceRepository {
 
     protected AuthorizationRepository getAuthorizationRepository() {
         return authorizationRepository;
+    }
+
+    protected void fireWorkspaceBeforeDelete(Workspace workspace, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceBeforeDelete(workspace, user);
+        }
+    }
+
+    protected void fireWorkspaceProductUpdated(Product product, JSONObject params, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceProductUpdated(product, params, user);
+        }
+    }
+
+    protected void fireWorkspaceAddProduct(Product product, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceAddProduct(product, user);
+        }
+    }
+
+    protected void fireWorkspaceUpdateEntities(Workspace workspace, Collection<String> vertexIds, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceUpdateEntities(workspace, vertexIds, user);
+        }
+    }
+
+    protected void fireWorkspaceUpdateUser(Workspace workspace, String userId, WorkspaceAccess workspaceAccess, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceUpdateUser(workspace, userId, workspaceAccess, user);
+        }
+    }
+
+    protected void fireWorkspaceAdded(Workspace workspace, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceAdded(workspace, user);
+        }
+    }
+
+    protected void fireWorkspaceBeforeDeleteProduct(String workspaceId, String productId, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceBeforeDeleteProduct(workspaceId, productId, user);
+        }
+    }
+
+    protected void fireWorkspaceDeleteUser(Workspace workspace, String userId, User user) {
+        for (WorkspaceListener workspaceListener : getWorkspaceListeners()) {
+            workspaceListener.workspaceDeleteUser(workspace, userId, user);
+        }
+    }
+
+    protected Collection<WorkspaceListener> getWorkspaceListeners() {
+        if (workspaceListeners == null) {
+            workspaceListeners = InjectHelper.getInjectedServices(WorkspaceListener.class, configuration);
+        }
+        return workspaceListeners;
     }
 }
 
