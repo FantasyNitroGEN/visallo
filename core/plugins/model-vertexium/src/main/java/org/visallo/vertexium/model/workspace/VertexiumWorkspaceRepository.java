@@ -481,7 +481,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                             workspaceVertex1
                     );
                 })
-                .filter(o -> o != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         workspaceEntitiesCached.put(cacheKey, results);
         LOGGER.debug(
@@ -576,7 +576,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
         if (!hasCommentPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException(
-                    "user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(),
+                    "user " + user.getUserId() + " does not have comment access to workspace " + workspace.getWorkspaceId(),
                     user,
                     workspace.getWorkspaceId()
             );
@@ -1024,37 +1024,39 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         AtomicBoolean isNew = new AtomicBoolean();
         Vertex productVertex;
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
-            productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elCtx -> {
-                isNew.set(elCtx.isNewElement());
-                String id = productId;
+            productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elemCtx -> {
+                isNew.set(elemCtx.isNewElement());
                 VisalloProperties.CONCEPT_TYPE.setProperty(
-                        elCtx.getMutation(),
+                        elemCtx.getMutation(),
                         WorkspaceProperties.PRODUCT_CONCEPT_IRI,
                         getVisibilityTranslator().getDefaultVisibility()
                 );
                 if (productId == null || title != null) {
-                    WorkspaceProperties.TITLE.setProperty(elCtx.getMutation(), title == null ? "" : title.substring(0, Math.min(title.length(), 128)), visibility);
+                    WorkspaceProperties.TITLE.setProperty(elemCtx.getMutation(), title == null ? "" : title.substring(0, Math.min(title.length(), 128)), visibility);
                 }
                 if (productId == null) {
-                    WorkspaceProperties.PRODUCT_KIND.setProperty(elCtx.getMutation(), kind, visibility);
-                    elCtx.save(authorizations);
-                    id = elCtx.getElement().getId();
+                    WorkspaceProperties.PRODUCT_KIND.setProperty(elemCtx.getMutation(), kind, visibility);
                 }
-
-                WorkProduct workProduct = getWorkProductByKind(
-                        kind == null ?
-                                WorkspaceProperties.PRODUCT_KIND.getPropertyValue(elCtx.getElement(), null) : kind
-                );
-                if (params != null) {
-                    workProduct.update(params, getGraph(), workspaceVertex, elCtx, user, visibility, authorizations);
-                }
-                String edgeId = workspaceVertex.getId() + "_hasProduct_" + elCtx.getElement().getId();
-                ctx.getOrCreateEdgeAndUpdate(edgeId, workspaceId, id, WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
-                                             visibility,
-                                             elemCtx -> {
-                                             }
-                );
             });
+
+            WorkProduct workProduct = getWorkProductByKind(
+                    kind == null
+                            ? WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex, null)
+                            : kind
+            );
+            if (params != null) {
+                workProduct.update(ctx, workspaceVertex, productVertex, params, user, visibility, authorizations);
+            }
+            String edgeId = workspaceVertex.getId() + "_hasProduct_" + productVertex.getId();
+            ctx.getOrCreateEdgeAndUpdate(
+                    edgeId,
+                    workspaceId,
+                    productVertex.getId(),
+                    WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
+                    visibility,
+                    edgeCtx -> {
+                    }
+            );
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1176,7 +1178,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         WorkProduct workProduct = getWorkProductByKind(kind);
         JSONObject extendedData = null;
         if (includeExtended) {
-            extendedData = workProduct.get(params, getGraph(), getVertex(workspaceId, user), productVertex, user, authorizations);
+            extendedData = workProduct.getExtendedData(getGraph(), getVertex(workspaceId, user), productVertex, params, user, authorizations);
         }
 
         return productVertexToProduct(workspaceId, productVertex, authorizations, extendedData, user);
@@ -1424,7 +1426,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     ) {
         if (!hasReadPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException(
-                    "user " + user.getUserId() + " does not have write access to workspace " + workspace.getWorkspaceId(),
+                    "user " + user.getUserId() + " does not have read access to workspace " + workspace.getWorkspaceId(),
                     user,
                     workspace.getWorkspaceId()
             );

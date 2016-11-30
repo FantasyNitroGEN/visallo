@@ -16,7 +16,7 @@ import org.visallo.web.clientapi.model.PropertyType;
 import java.util.ArrayList;
 
 public class GraphWorkProduct extends WorkProductElements {
-    public static final JsonSingleValueVisalloProperty EDGE_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");
+    public static final JsonSingleValueVisalloProperty ENTITY_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");
 
     @Inject
     public GraphWorkProduct(OntologyRepository ontologyRepository) {
@@ -28,7 +28,7 @@ public class GraphWorkProduct extends WorkProductElements {
         Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
                 new ArrayList<>(),
-                EDGE_POSITION.getPropertyName(),
+                ENTITY_POSITION.getPropertyName(),
                 "Entity Position",
                 PropertyType.STRING
         );
@@ -40,11 +40,11 @@ public class GraphWorkProduct extends WorkProductElements {
     @Override
     protected void updateProductEdge(JSONObject update, ElementBuilder edgeBuilder, Visibility visibility) {
         JSONObject position = update;
-        EDGE_POSITION.setProperty(edgeBuilder, position, visibility);
+        ENTITY_POSITION.setProperty(edgeBuilder, position, visibility);
     }
 
     protected void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex) {
-        JSONObject position = EDGE_POSITION.getPropertyValue(propertyVertexEdge);
+        JSONObject position = ENTITY_POSITION.getPropertyValue(propertyVertexEdge);
         if (position == null) {
             position = new JSONObject();
             position.put("x", 0);

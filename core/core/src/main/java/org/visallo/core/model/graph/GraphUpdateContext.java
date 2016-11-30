@@ -283,6 +283,10 @@ public abstract class GraphUpdateContext implements AutoCloseable {
         return pushOnQueue;
     }
 
+    public Graph getGraph() {
+        return graph;
+    }
+
     /**
      * By default updates are added to the work queue. If this is false updates will be
      * saved but not added to the work queue.

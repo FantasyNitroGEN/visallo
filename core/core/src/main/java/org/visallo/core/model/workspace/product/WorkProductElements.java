@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
-import org.visallo.core.model.graph.ElementUpdateContext;
+import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -45,21 +45,20 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
     @Override
     public void update(
-            JSONObject params,
-            Graph graph,
+            GraphUpdateContext ctx,
             Vertex workspaceVertex,
-            ElementUpdateContext<Vertex> vertexBuilder,
+            Vertex productVertex,
+            JSONObject params,
             User user,
             Visibility visibility,
             Authorizations authorizations
     ) {
         JSONObject updateVertices = params.optJSONObject("updateVertices");
         if (updateVertices != null) {
-            Vertex productVertex = graph.getVertex(vertexBuilder.getElement().getId(), authorizations);
             List<String> vertexIds = Lists.newArrayList(updateVertices.keys());
             for (String id : vertexIds) {
                 String edgeId = getEdgeId(productVertex.getId(), id);
-                EdgeBuilderByVertexId edgeBuilder = graph.prepareEdge(
+                EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
                         edgeId,
                         productVertex.getId(),
                         id,
@@ -72,18 +71,17 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
         }
         JSONArray removeVertices = params.optJSONArray("removeVertices");
         if (removeVertices != null) {
-            JSONUtil.toList(removeVertices).forEach(id -> {
-                graph.softDeleteEdge(getEdgeId(vertexBuilder.getElement().getId(), (String) id), authorizations);
-            });
+            JSONUtil.toList(removeVertices)
+                    .forEach(id -> ctx.getGraph().softDeleteEdge(getEdgeId(productVertex.getId(), (String) id), authorizations));
         }
     }
 
     @Override
-    public JSONObject get(
-            JSONObject params,
+    public JSONObject getExtendedData(
             Graph graph,
             Vertex workspaceVertex,
             Vertex productVertex,
+            JSONObject params,
             User user,
             Authorizations authorizations
     ) {
