@@ -29,6 +29,7 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
                     }
                     return ajax('POST', '/workspace/create').then(workspace => {
                         dispatch(api.update({ workspace }))
+                        return workspace.workspaceId;
                     })
                 }).then(workspaceId => {
                     dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
