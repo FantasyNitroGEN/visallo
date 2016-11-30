@@ -125,11 +125,12 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             if (!state.element[workspaceId]) {
                 return;
             }
-            const { vertices, edges } = state.element[workspaceId];
-            const update = (key, list, api, storeKey, otherStoreKey) => {
-                const inStore = list.filter(id => vertices[id]);
+            const elementStore = state.element[workspaceId];
+            const { vertices, edges } = elementStore;
+            const update = (key, list, type, storeKey, otherStoreKey) => {
+                const inStore = list.filter(id => elementStore[storeKey][id]);
                 if (inStore.length) {
-                    ajax('POST', `/${api}/exists`, { [key]: inStore })
+                    ajax('POST', `/${type}/exists`, { [key]: inStore })
                         .then(({ exists }) => {
                             const elements = [];
                             _.map(exists, (exists, id) => {
