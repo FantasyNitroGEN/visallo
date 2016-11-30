@@ -55,9 +55,6 @@ public class WorkspaceList implements ParameterizedHandler {
                     authorizations
             );
             if (workspaceClientApi != null) {
-                if (activeWorkspaceId.equals(workspace.getWorkspaceId())) { //if its the active one
-                    workspaceClientApi.setActive(true);
-                }
                 results.addWorkspace(workspaceClientApi);
             }
         }
