@@ -274,7 +274,7 @@ define([
         updateDecorationPositions(cyNode, options = {}) {
             const { animate = false, toPosition } = options;
 
-            if (cyNode.isChild()) {
+            if (cyNode.isChild() && !cyNode.hasClass('decoration')) {
                 const decorations = cyNode.siblings().filter('.decoration');
                 if (decorations && decorations.length) {
                     const specs = specsForNode(cyNode, toPosition);
