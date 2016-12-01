@@ -86,22 +86,53 @@ public abstract class WorkQueueRepository {
             String visibilitySource,
             Priority priority
     ) {
+        GraphPropertyMessage data = new GraphPropertyMessage();
+        data.setPriority(priority);
+
+        List<GraphPropertyMessage.Property> messageProperties = new ArrayList<>();
         for (VisalloPropertyUpdate propertyUpdate : properties) {
-            ElementOrPropertyStatus status = ElementOrPropertyStatus.getStatus(propertyUpdate);
-            Long beforeDeleteTimestamp = propertyUpdate instanceof VisalloPropertyUpdateRemove
-                    ? ((VisalloPropertyUpdateRemove) propertyUpdate).getBeforeDeleteTimestamp()
-                    : null;
-            pushGraphPropertyQueue(
-                    element,
-                    propertyUpdate.getPropertyKey(),
-                    propertyUpdate.getPropertyName(),
-                    workspaceId,
-                    visibilitySource,
-                    priority,
-                    status,
-                    beforeDeleteTimestamp,
-                    FlushFlag.DEFAULT
-            );
+            String propertyKey = propertyUpdate.getPropertyKey();
+            String propertyName = propertyUpdate.getPropertyName();
+
+            if (shouldBroadcastGraphPropertyChange(element, propertyKey, propertyName, workspaceId, priority)) {
+                broadcastPropertyChange(element, propertyKey, propertyName, workspaceId);
+            }
+
+            if (canHandle(element, propertyKey, propertyName)) {
+                ElementOrPropertyStatus status = ElementOrPropertyStatus.getStatus(propertyUpdate);
+                Long beforeDeleteTimestamp = propertyUpdate instanceof VisalloPropertyUpdateRemove
+                        ? ((VisalloPropertyUpdateRemove) propertyUpdate).getBeforeDeleteTimestamp()
+                        : null;
+                GraphPropertyMessage.Property property = new GraphPropertyMessage.Property();
+                property.setPropertyKey(propertyKey);
+                property.setPropertyName(propertyName);
+                property.setStatus(status);
+                property.setBeforeActionTimestamp(beforeDeleteTimestamp);
+                messageProperties.add(property);
+            }
+        }
+        if (messageProperties.size() == 0) {
+            return;
+        }
+        data.setProperties(messageProperties.toArray(new GraphPropertyMessage.Property[messageProperties.size()]));
+
+        addElementTypeToJson(data, element);
+
+        if (workspaceId != null && !workspaceId.equals("")) {
+            data.setWorkspaceId(workspaceId);
+            data.setVisibilitySource(visibilitySource);
+        }
+
+        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), data.toBytes(), priority);
+    }
+
+    private void addElementTypeToJson(GraphPropertyMessage data, Element element) {
+        if (element instanceof Vertex) {
+            data.setGraphVertexId(new String[]{element.getId()});
+        } else if (element instanceof Edge) {
+            data.setGraphEdgeId(new String[]{element.getId()});
+        } else {
+            throw new VisalloException("Unexpected element type: " + element.getClass().getName());
         }
     }
 
@@ -291,7 +322,6 @@ public abstract class WorkQueueRepository {
             Long beforeActionTimestamp,
             FlushFlag flushFlag
     ) {
-
         checkNotNull(elements);
         if (!elements.iterator().hasNext()) {
             return;
@@ -299,36 +329,36 @@ public abstract class WorkQueueRepository {
 
         getGraph().flush();
 
-        JSONObject data = createPropertySpecificJSON(
+        GraphPropertyMessage data = createPropertySpecificMessage(
                 propertyKey,
                 propertyName,
                 workspaceId,
                 visibilitySource,
                 status,
-                beforeActionTimestamp
+                beforeActionTimestamp,
+                priority
         );
-        JSONArray vertices = new JSONArray();
-        JSONArray edges = new JSONArray();
 
+        List<String> vertices = new ArrayList<>();
+        List<String> edges = new ArrayList<>();
         for (Element element : elements) {
             if (!canHandle(element, propertyKey, propertyName)) {
                 continue;
             }
 
             if (element instanceof Vertex) {
-                vertices.put(element.getId());
+                vertices.add(element.getId());
             } else if (element instanceof Edge) {
-                edges.put(element.getId());
+                edges.add(element.getId());
             } else {
                 throw new VisalloException("Unexpected element type: " + element.getClass().getName());
             }
         }
 
-        data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, vertices);
-        data.put(GraphPropertyMessage.GRAPH_EDGE_ID, edges);
+        data.setGraphVertexId(vertices.toArray(new String[vertices.size()]));
+        data.setGraphEdgeId(edges.toArray(new String[edges.size()]));
 
-
-        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), data.toBytes(), priority);
 
         for (Element element : elements) {
             if (shouldBroadcastGraphPropertyChange(element, propertyKey, propertyName, workspaceId, priority)) {
@@ -346,30 +376,25 @@ public abstract class WorkQueueRepository {
             Priority priority,
             ElementOrPropertyStatus status,
             Long beforeDeleteTimestamp,
-            FlushFlag flushFlag
+            @Deprecated FlushFlag flushFlag
     ) {
         getGraph().flush();
         checkNotNull(element);
 
-        JSONObject data = createPropertySpecificJSON(
+        GraphPropertyMessage data = createPropertySpecificMessage(
                 propertyKey,
                 propertyName,
                 workspaceId,
                 visibilitySource,
                 status,
-                beforeDeleteTimestamp
+                beforeDeleteTimestamp,
+                priority
         );
 
-        if (element instanceof Vertex) {
-            data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, element.getId());
-        } else if (element instanceof Edge) {
-            data.put(GraphPropertyMessage.GRAPH_EDGE_ID, element.getId());
-        } else {
-            throw new VisalloException("Unexpected element type: " + element.getClass().getName());
-        }
+        addElementTypeToJson(data, element);
 
         if (canHandle(element, propertyKey, propertyName)) {
-            pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+            pushOnQueue(workQueueNames.getGraphPropertyQueueName(), data.toBytes(), priority);
         }
 
         if (shouldBroadcastGraphPropertyChange(element, propertyKey, propertyName, workspaceId, priority)) {
@@ -389,27 +414,28 @@ public abstract class WorkQueueRepository {
     }
 
 
-    private JSONObject createPropertySpecificJSON(
+    private GraphPropertyMessage createPropertySpecificMessage(
             String propertyKey,
             final String propertyName,
             String workspaceId,
             String visibilitySource,
             ElementOrPropertyStatus status,
-            Long beforeActionTimestamp
+            Long beforeActionTimestamp,
+            Priority priority
     ) {
-        JSONObject data = new JSONObject();
+        GraphPropertyMessage data = new GraphPropertyMessage();
 
         if (workspaceId != null && !workspaceId.equals("")) {
-            data.put(GraphPropertyMessage.WORKSPACE_ID, workspaceId);
-            data.put(GraphPropertyMessage.VISIBILITY_SOURCE, visibilitySource);
+            data.setWorkspaceId(workspaceId);
+            data.setVisibilitySource(visibilitySource);
         }
-        data.put(GraphPropertyMessage.PROPERTY_KEY, propertyKey);
-        data.put(GraphPropertyMessage.PROPERTY_NAME, propertyName);
-        data.put(GraphPropertyMessage.STATUS, status);
+        data.setPropertyKey(propertyKey);
+        data.setPropertyName(propertyName);
+        data.setStatus(status);
         if (status == ElementOrPropertyStatus.DELETION || status == ElementOrPropertyStatus.HIDDEN) {
             checkNotNull(beforeActionTimestamp, "Timestamp before " + status + " cannot be null");
         }
-        data.put(GraphPropertyMessage.BEFORE_ACTION_TIMESTAMP, beforeActionTimestamp);
+        data.setBeforeActionTimestamp(beforeActionTimestamp);
         return data;
     }
 
@@ -426,22 +452,17 @@ public abstract class WorkQueueRepository {
     ) {
         getGraph().flush();
         checkNotNull(element);
-        JSONObject data = new JSONObject();
-        if (element instanceof Vertex) {
-            data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, element.getId());
-        } else if (element instanceof Edge) {
-            data.put(GraphPropertyMessage.GRAPH_EDGE_ID, element.getId());
-        } else {
-            throw new VisalloException("Unexpected element type: " + element.getClass().getName());
-        }
+        GraphPropertyMessage data = new GraphPropertyMessage();
+        data.setPriority(priority);
+        addElementTypeToJson(data, element);
 
         if (workspaceId != null && !workspaceId.equals("")) {
-            data.put("workspaceId", workspaceId);
-            data.put("visibilitySource", visibilitySource);
+            data.setWorkspaceId(workspaceId);
+            data.setVisibilitySource(visibilitySource);
         }
 
         if (canHandle(element, null, null)) {
-            pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+            pushOnQueue(workQueueNames.getGraphPropertyQueueName(), data.toBytes(), priority);
         }
     }
 
@@ -452,9 +473,10 @@ public abstract class WorkQueueRepository {
     }
 
     private void pushVertexId(String vertexId, Priority priority, FlushFlag flushFlag) {
-        JSONObject data = new JSONObject();
-        data.put(GraphPropertyMessage.GRAPH_VERTEX_ID, vertexId);
-        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), flushFlag, data, priority);
+        GraphPropertyMessage data = new GraphPropertyMessage();
+        data.setPriority(priority);
+        data.setGraphVertexId(new String[]{vertexId});
+        pushOnQueue(workQueueNames.getGraphPropertyQueueName(), data.toBytes(), priority);
     }
 
     protected boolean shouldBroadcastGraphPropertyChange(
@@ -977,10 +999,21 @@ public abstract class WorkQueueRepository {
         return json;
     }
 
-    public abstract void pushOnQueue(
+    public final void pushOnQueue(
             String queueName,
             @Deprecated FlushFlag flushFlag,
             JSONObject json,
+            Priority priority
+    ) {
+        if (priority != null) {
+            json.put("priority", priority.name());
+        }
+        pushOnQueue(queueName, json.toString().getBytes(), priority);
+    }
+
+    public abstract void pushOnQueue(
+            String queueName,
+            byte[] data,
             Priority priority
     );
 

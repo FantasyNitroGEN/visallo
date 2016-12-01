@@ -1,6 +1,7 @@
 package org.visallo.core.model.graph;
 
 import com.google.common.collect.ImmutableSet;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -319,8 +320,8 @@ public class GraphRepositoryTest {
             assertNotNull(v2);
         }
 
-        List<JSONObject> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
-        assertEquals(8, queue.size());
+        List<byte[]> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
+        assertEquals(2, queue.size());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.MODIFIED_DATE.getPropertyName());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.VISIBILITY_JSON.getPropertyName());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.CONCEPT_TYPE.getPropertyName());
@@ -338,12 +339,17 @@ public class GraphRepositoryTest {
         assertEquals(visibilityJson, VisalloProperties.VISIBILITY_JSON.getPropertyValue(v1));
     }
 
-    private void assertWorkQueueContains(List<JSONObject> queue, String vertexId, String propertyKey, String propertyName) {
-        for (JSONObject item : queue) {
-            if (item.getString("graphVertexId").equals(vertexId)
-                    && item.getString("propertyKey").equals(propertyKey)
-                    && item.getString("propertyName").equals(propertyName)) {
-                return;
+    private void assertWorkQueueContains(List<byte[]> queue, String vertexId, String propertyKey, String propertyName) {
+        for (byte[] item : queue) {
+            JSONObject json = new JSONObject(new String(item));
+            JSONArray properties = json.getJSONArray("properties");
+            for (int i = 0; i < properties.length(); i++) {
+                JSONObject property = properties.getJSONObject(i);
+                if (json.getString("graphVertexId").equals(vertexId)
+                        && property.getString("propertyKey").equals(propertyKey)
+                        && property.getString("propertyName").equals(propertyName)) {
+                    return;
+                }
             }
         }
         fail("Could not find queue item " + vertexId + ", " + propertyKey + ", " + propertyName);

@@ -6,7 +6,6 @@ import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.WorkerTuple;
-import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -16,7 +15,7 @@ import org.visallo.core.status.model.Status;
 import java.util.*;
 
 public class InMemoryWorkQueueRepository extends WorkQueueRepository {
-    private static Map<String, List<JSONObject>> queues = new HashMap<>();
+    private static Map<String, List<byte[]>> queues = new HashMap<>();
     private List<BroadcastConsumer> broadcastConsumers = new ArrayList<>();
 
     @Inject
@@ -36,20 +35,20 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
     }
 
     @Override
-    public void pushOnQueue(String queueName, FlushFlag flushFlag, JSONObject json, Priority priority) {
-        LOGGER.debug("push on queue: %s: %s", queueName, json);
-        addToQueue(queueName, json, priority);
+    public void pushOnQueue(String queueName, byte[] data, Priority priority) {
+        LOGGER.debug("push on queue: %s: %s", queueName, data);
+        addToQueue(queueName, data, priority);
     }
 
-    public void addToQueue(String queueName, JSONObject json, Priority priority) {
-        final List<JSONObject> queue = getQueue(queueName);
+    public void addToQueue(String queueName, byte[] data, Priority priority) {
+        final List<byte[]> queue = getQueue(queueName);
         // getQueue - only returns static variables
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (queue) {
             if (priority == Priority.HIGH) {
-                queue.add(0, json);
+                queue.add(0, data);
             } else {
-                queue.add(json);
+                queue.add(data);
             }
             queue.notifyAll();
         }
@@ -72,7 +71,7 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
 
     @Override
     public WorkerSpout createWorkerSpout(String queueName) {
-        final List<JSONObject> queue = getQueue(queueName);
+        final List<byte[]> queue = getQueue(queueName);
         return new WorkerSpout() {
             @Override
             public WorkerTuple nextTuple() throws Exception {
@@ -80,7 +79,7 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
                     if (queue.size() == 0) {
                         return null;
                     }
-                    JSONObject entry = queue.remove(0);
+                    byte[] entry = queue.remove(0);
                     if (entry == null) {
                         return null;
                     }
@@ -93,7 +92,7 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
     @Override
     public Map<String, Status> getQueuesStatus() {
         Map<String, Status> results = new HashMap<>();
-        for (Map.Entry<String, List<JSONObject>> queue : queues.entrySet()) {
+        for (Map.Entry<String, List<byte[]>> queue : queues.entrySet()) {
             results.put(queue.getKey(), new QueueStatus(queue.getValue().size()));
         }
         return results;
@@ -108,8 +107,8 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
         queues.remove(queueName);
     }
 
-    public static List<JSONObject> getQueue(String queueName) {
-        List<JSONObject> queue = queues.get(queueName);
+    public static List<byte[]> getQueue(String queueName) {
+        List<byte[]> queue = queues.get(queueName);
         if (queue == null) {
             queue = new LinkedList<>();
             queues.put(queueName, queue);

@@ -6,13 +6,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
+import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.WorkerSpout;
-import org.visallo.core.model.FlushFlag;
+import org.visallo.core.ingest.graphProperty.GraphPropertyMessage;
 import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
@@ -22,6 +23,7 @@ import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +36,7 @@ import static org.mockito.Mockito.when;
 public class WorkQueueRepositoryTest {
     private TestWorkQueueRepository workQueueRepository;
     private Graph graph;
+    private Authorizations authorizations;
 
     @Mock
     private WorkQueueNames workQueueNames;
@@ -62,6 +65,7 @@ public class WorkQueueRepositoryTest {
     @Before
     public void before() {
         graph = InMemoryGraph.create();
+        authorizations = graph.createAuthorizations();
         workQueueRepository = new TestWorkQueueRepository(
                 graph,
                 workQueueNames,
@@ -129,8 +133,29 @@ public class WorkQueueRepositoryTest {
         assertEquals("123-123-1234", json.getString("sourceGuid"));
     }
 
+    @Test
+    public void testPushGraphVisalloPropertyQueue() {
+        Visibility visibility = new Visibility("");
+        VertexBuilder m = graph.prepareVertex("v1", visibility);
+        VisalloProperties.COMMENT.addPropertyValue(m, "k1", "comment1", visibility);
+        VisalloProperties.COMMENT.addPropertyValue(m, "k2", "comment2", visibility);
+        VisalloProperties.COMMENT.addPropertyValue(m, "k3", "comment3", visibility);
+        Vertex element = m.save(authorizations);
+
+        List<VisalloPropertyUpdate> properties = new ArrayList<>();
+        properties.add(new VisalloPropertyUpdate(VisalloProperties.COMMENT, "k1"));
+        properties.add(new VisalloPropertyUpdate(VisalloProperties.COMMENT, "k2"));
+        properties.add(new VisalloPropertyUpdate(VisalloProperties.COMMENT, "k3"));
+        workQueueRepository.pushGraphVisalloPropertyQueue(element, properties, Priority.HIGH);
+
+        assertEquals(1, workQueueRepository.getWorkQueue().size());
+        GraphPropertyMessage message = GraphPropertyMessage.create(workQueueRepository.getWorkQueue().get(0));
+        assertEquals(3, message.getProperties().length);
+    }
+
     public class TestWorkQueueRepository extends WorkQueueRepository {
         public List<JSONObject> broadcastJsonValues = new ArrayList<>();
+        public Map<String, List<byte[]>> queues = new HashMap<>();
 
         public TestWorkQueueRepository(
                 Graph graph,
@@ -152,8 +177,17 @@ public class WorkQueueRepositoryTest {
         }
 
         @Override
-        public void pushOnQueue(String queueName, @Deprecated FlushFlag flushFlag, JSONObject json, Priority priority) {
+        public void pushOnQueue(String queueName, byte[] data, Priority priority) {
+            List<byte[]> queue = queues.get(queueName);
+            if (queue == null) {
+                queue = new ArrayList<>();
+                queues.put(queueName, queue);
+            }
+            queue.add(data);
+        }
 
+        public List<byte[]> getWorkQueue() {
+            return queues.get(workQueueNames.getGraphPropertyQueueName());
         }
 
         @Override
