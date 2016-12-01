@@ -38,7 +38,6 @@ public class WebApp extends App {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WebApp.class);
     private final Injector injector;
     private final boolean devMode;
-    private final boolean pluginDevMode;
 
     private final List<String> pluginsJsResourcesWebWorker = new ArrayList<>();
     private final List<String> pluginsJsResourcesBeforeAuth = new ArrayList<>();
@@ -77,7 +76,6 @@ public class WebApp extends App {
 
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = config.getBoolean(Configuration.DEV_MODE, Configuration.DEV_MODE_DEFAULT);
-        this.pluginDevMode = config.getBoolean(Configuration.PLUGIN_DEV_MODE, Configuration.PLUGIN_DEV_MODE_DEFAULT);
 
         if (!isDevModeEnabled()) {
             String pluginsCssRoute = "plugins.css";
@@ -123,7 +121,7 @@ public class WebApp extends App {
             boolean skipCompile
     ) {
         String resourcePath = "/" + (pathPrefix + name).replaceAll("^/", "");
-        if (type.equals("application/javascript") && !pluginDevMode && !skipCompile) {
+        if (type.equals("application/javascript") && !skipCompile) {
             boolean enableSourceMaps = isDevModeEnabled();
             JavascriptResourceHandler handler = new JavascriptResourceHandler(name, resourcePath, enableSourceMaps, closureExternResourcePath);
             get(resourcePath, handler);
@@ -229,8 +227,7 @@ public class WebApp extends App {
      *
      * Converts .jsx files to .js files using babel.
      *
-     * Source maps are always created, but placed inline in
-     * pluginDevMode and externally linked when not.
+     * Source maps are always created and externally linked
      *
      * @param scriptResourceName
      */
@@ -238,7 +235,7 @@ public class WebApp extends App {
         if (scriptResourceName.endsWith("jsx")) {
             String resourcePath = "/" + ("jsc" + scriptResourceName).replaceAll("^/", "");
             String toResourcePath = resourcePath.replaceAll("jsx$", "js");
-            SourceMapType map = pluginDevMode ? SourceMapType.INLINE : SourceMapType.EXTERNAL;
+            SourceMapType map = SourceMapType.EXTERNAL;
             JsxResourceHandler handler = new JsxResourceHandler(scriptResourceName, resourcePath, toResourcePath, map);
             get(toResourcePath, handler);
             if (map == SourceMapType.EXTERNAL) {
