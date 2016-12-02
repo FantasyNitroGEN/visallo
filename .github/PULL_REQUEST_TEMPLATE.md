@@ -1,7 +1,7 @@
 - [ ] @joeferner
-- [ ] @srfarley @kunklejr
-- [ ] @mwizeman @dsingley @EvanOxfeld 
-- [ ] @joeybrk372 @sfeng88 @rygim @jharwig 
+- [ ] @kunklejr @sfeng88 @diegogrz
+- [ ] @mwizeman @EvanOxfeld 
+- [ ] @joeybrk372 @rygim @jharwig 
 
 
 
