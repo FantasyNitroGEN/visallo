@@ -6,6 +6,6 @@
 
     <groupId>org.visallo</groupId>
     <artifactId>visallo-plugin-archetype</artifactId>
-    <version>2.2-SNAPSHOT</version>
+    <version>3.0.0-RC2-SNAPSHOT</version>
     <packaging>maven-archetype</packaging>
 </project>
