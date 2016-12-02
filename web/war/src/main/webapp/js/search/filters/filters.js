@@ -268,12 +268,12 @@ define([
         this.setEdgeTypeFilter = function(edgeId) {
             var self = this;
 
+            this.edgeLabelFilter = edgeId || '';
+            this.trigger(this.select('edgeLabelDropdownSelector'), 'selectRelationshipId', { relationshipId: edgeId });
+
             if (this.matchType === 'vertex') {
                 return;
             }
-
-            this.edgeLabelFilter = edgeId || '';
-            this.trigger(this.select('edgeLabelDropdownSelector'), 'selectRelationshipId', { relationshipId: edgeId });
 
             if (this.edgeLabelFilter) {
                 return this.dataRequest('ontology', 'propertiesByRelationship', this.edgeLabelFilter)
@@ -335,12 +335,12 @@ define([
         this.setConceptFilter = function(conceptId) {
             var self = this;
 
+            this.conceptFilter = conceptId || '';
+            this.trigger(this.select('conceptDropdownSelector'), 'selectConceptId', { conceptId: conceptId });
+
             if (this.matchType === 'edge') {
                 return;
             }
-
-            this.conceptFilter = conceptId || '';
-            this.trigger(this.select('conceptDropdownSelector'), 'selectConceptId', { conceptId: conceptId });
 
             if (this.conceptFilter) {
                 return this.dataRequest('ontology', 'propertiesByConceptId', this.conceptFilter)
