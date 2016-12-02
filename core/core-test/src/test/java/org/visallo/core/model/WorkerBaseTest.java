@@ -1,6 +1,5 @@
 package org.visallo.core.model;
 
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,7 +8,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.ingest.WorkerSpout;
+import org.visallo.core.ingest.graphProperty.WorkerItem;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.util.VisalloLogger;
 
@@ -66,9 +67,14 @@ public class WorkerBaseTest {
         assertEquals(1, nextTupleExceptionCount);
     }
 
-    private class TestWorker extends WorkerBase {
+    private class TestWorker extends WorkerBase<TestWorkerItem> {
         protected TestWorker(WorkQueueRepository workQueueRepository, Configuration configuration) {
-            super(workQueueRepository, configuration);
+            super(workQueueRepository, configuration, new JmxMetricsManager());
+        }
+
+        @Override
+        public TestWorkerItem tupleDataToWorkerItem(byte[] data) {
+            return new TestWorkerItem(data);
         }
 
         @Override
@@ -77,7 +83,7 @@ public class WorkerBaseTest {
         }
 
         @Override
-        protected void process(Object messageId, JSONObject json) throws Exception {
+        protected void process(TestWorkerItem workerItem) throws Exception {
             stop();
         }
 
@@ -94,6 +100,14 @@ public class WorkerBaseTest {
                 return;
             }
             super.handleNextTupleException(logger, ex);
+        }
+    }
+
+    private class TestWorkerItem extends WorkerItem {
+        private final byte[] data;
+
+        public TestWorkerItem(byte[] data) {
+            this.data = data;
         }
     }
 }

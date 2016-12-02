@@ -19,6 +19,7 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceDiffHelper;
+import org.visallo.core.model.workspace.WorkspaceListener;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.product.WorkProduct;
 import org.visallo.core.security.DirectVisibilityTranslator;
@@ -29,6 +30,8 @@ import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 public abstract class VisalloInMemoryTestBase {
@@ -97,8 +100,17 @@ public abstract class VisalloInMemoryTestBase {
             protected WorkProduct getWorkProductByKind(String kind) {
                 return VisalloInMemoryTestBase.this.getWorkProductByKind(kind);
             }
+
+            @Override
+            protected Collection<WorkspaceListener> getWorkspaceListeners() {
+                return VisalloInMemoryTestBase.this.getWorkspaceListeners();
+            }
         };
         return workspaceRepository;
+    }
+
+    protected Collection<WorkspaceListener> getWorkspaceListeners() {
+        return new ArrayList<>();
     }
 
     protected TermMentionRepository getTermMentionRepository() {
@@ -243,8 +255,17 @@ public abstract class VisalloInMemoryTestBase {
                 getLockRepository(),
                 getAuthorizationRepository(),
                 getPrivilegeRepository()
-        );
+        ) {
+            @Override
+            protected Collection<UserListener> getUserListeners() {
+                return VisalloInMemoryTestBase.this.getUserListeners();
+            }
+        };
         return userRepository;
+    }
+
+    protected Collection<UserListener> getUserListeners() {
+        return new ArrayList<>();
     }
 
     protected PrivilegeRepository getPrivilegeRepository() {
@@ -256,8 +277,17 @@ public abstract class VisalloInMemoryTestBase {
                 getConfiguration(),
                 getUserNotificationRepository(),
                 getWorkQueueRepository()
-        );
+        ) {
+            @Override
+            protected Iterable<PrivilegesProvider> getPrivilegesProviders(Configuration configuration) {
+                return VisalloInMemoryTestBase.this.getPrivilegesProviders();
+            }
+        };
         return privilegeRepository;
+    }
+
+    protected Iterable<PrivilegesProvider> getPrivilegesProviders() {
+        return new ArrayList<>();
     }
 
     protected UserSessionCounterRepository getUserSessionCounterRepository() {

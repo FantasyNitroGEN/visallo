@@ -1,117 +1,201 @@
 package org.visallo.core.ingest.graphProperty;
 
-import com.google.common.collect.Lists;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.util.JSONUtil;
 
-import java.util.List;
+import java.io.IOException;
 
 public class GraphPropertyMessage {
-    public static final String PROPERTY_KEY = "propertyKey";
-    public static final String PROPERTY_NAME = "propertyName";
-    public static final String GRAPH_VERTEX_ID = "graphVertexId";
-    public static final String GRAPH_EDGE_ID = "graphEdgeId";
-    public static final String WORKSPACE_ID = "workspaceId";
-    public static final String VISIBILITY_SOURCE = "visibilitySource";
-    public static final String PRIORITY = "priority";
-    public static final String STATUS = "status";
-    public static final String BEFORE_ACTION_TIMESTAMP = "beforeActionTimestamp";
+    private static final ObjectMapper mapper;
 
-    private JSONObject _obj;
-
-    public boolean isValid() {
-        return canHandleVertex() || canHandleEdge();
+    static {
+        mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.configure(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED, true);
+        mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     }
 
-    public enum ProcessingType {
-        PROPERTY,
-        ELEMENT
-    }
-
-    public GraphPropertyMessage(JSONObject obj) {
-        _obj = obj;
-    }
+    private String workspaceId;
+    private String visibilitySource;
+    private Priority priority;
+    private Property[] properties;
+    private String[] graphVertexId;
+    private String[] graphEdgeId;
+    private String propertyKey;
+    private String propertyName;
+    private ElementOrPropertyStatus status;
+    private Long beforeActionTimestamp;
 
     public String getWorkspaceId() {
-        return _obj.optString(WORKSPACE_ID, null);
+        return workspaceId;
     }
 
-    public String getVisibilitySource(){
-        return _obj.optString(VISIBILITY_SOURCE, null);
+    public GraphPropertyMessage setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+        return this;
     }
 
-    public Priority getPriority(){
-        String priorityString = _obj.optString(PRIORITY, null);
-        return Priority.safeParse(priorityString);
+    public String getVisibilitySource() {
+        return visibilitySource;
     }
 
-    public String getPropertyKey(){
-        return _obj.optString(PROPERTY_KEY, "");
+    public GraphPropertyMessage setVisibilitySource(String visibilitySource) {
+        this.visibilitySource = visibilitySource;
+        return this;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public GraphPropertyMessage setPriority(Priority priority) {
+        this.priority = priority;
+        return this;
+    }
+
+    public String getPropertyKey() {
+        return propertyKey;
+    }
+
+    public GraphPropertyMessage setPropertyKey(String propertyKey) {
+        this.propertyKey = propertyKey;
+        return this;
     }
 
     public String getPropertyName() {
-        return _obj.optString(PROPERTY_NAME, "");
+        return propertyName;
     }
 
-    public List<String> getVertexIds() {
-        return getListOfItemsFromJSONKey(_obj, GRAPH_VERTEX_ID);
+    public GraphPropertyMessage setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
+        return this;
     }
 
-    public List<String> getEdgeIds(){
-        return getListOfItemsFromJSONKey(_obj, GRAPH_EDGE_ID);
+    public String[] getGraphEdgeId() {
+        return graphEdgeId;
+    }
+
+    public GraphPropertyMessage setGraphEdgeId(String[] graphEdgeId) {
+        this.graphEdgeId = graphEdgeId;
+        return this;
+    }
+
+    public String[] getGraphVertexId() {
+        return graphVertexId;
+    }
+
+    public GraphPropertyMessage setGraphVertexId(String[] graphVertexId) {
+        this.graphVertexId = graphVertexId;
+        return this;
     }
 
     public ElementOrPropertyStatus getStatus() {
-        String status = _obj.optString(STATUS, null);
-        return ElementOrPropertyStatus.safeParse(status);
+        return status;
     }
 
-    public long getBeforeActionTimestamp() { return _obj.optLong(BEFORE_ACTION_TIMESTAMP, -1L); }
-
-    public boolean canHandleVertex(){
-        return canHandleElementById(getVertexIds());
+    public GraphPropertyMessage setStatus(ElementOrPropertyStatus status) {
+        this.status = status;
+        return this;
     }
 
-    public boolean canHandleEdge(){
-        return canHandleElementById(getEdgeIds());
+    public Long getBeforeActionTimestamp() {
+        return beforeActionTimestamp;
     }
 
-    public boolean canHandleByProperty(){
-        return _obj.has(PROPERTY_KEY) || this._obj.has(PROPERTY_NAME);
+    @JsonIgnore
+    public long getBeforeActionTimestampOrDefault() {
+        return getBeforeActionTimestamp() == null ? -1L : getBeforeActionTimestamp();
     }
 
-    public ProcessingType findProcessingType(){
-        if(canHandleByProperty()){
-            return ProcessingType.PROPERTY;
+    public GraphPropertyMessage setBeforeActionTimestamp(Long beforeActionTimestamp) {
+        this.beforeActionTimestamp = beforeActionTimestamp;
+        return this;
+    }
+
+    public GraphPropertyMessage.Property[] getProperties() {
+        return properties;
+    }
+
+    public GraphPropertyMessage setProperties(Property[] properties) {
+        this.properties = properties;
+        return this;
+    }
+
+    public static GraphPropertyMessage create(byte[] data) {
+        try {
+            return mapper.readValue(data, GraphPropertyMessage.class);
+        } catch (IOException e) {
+            throw new VisalloException("Could not create " + GraphPropertyMessage.class.getName() + " from " + new String(data), e);
         }
-        else if(canHandleVertex() || canHandleEdge()) {
-            return ProcessingType.ELEMENT;
-        }
-
-        throw new VisalloException(String.format("Unable to determine processing type from invalid message %s", _obj.toString()));
     }
 
-    private static boolean canHandleElementById(List<String> id){
-        return id != null && !id.isEmpty();
+    public String toJsonString() {
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            throw new VisalloException("Could not write " + this.getClass().getName(), e);
+        }
     }
 
-    private static List<String> getListOfItemsFromJSONKey(JSONObject obj, String key){
-        Object edges = obj.opt(key);
+    public byte[] toBytes() {
+        try {
+            return mapper.writeValueAsBytes(this);
+        } catch (JsonProcessingException e) {
+            throw new VisalloException("Could not write " + this.getClass().getName(), e);
+        }
+    }
 
-        if(edges == null){
-            return Lists.newArrayList();
+    public static class Property {
+        private String propertyKey;
+        private String propertyName;
+        private ElementOrPropertyStatus status;
+        private Long beforeActionTimestamp;
+
+        public String getPropertyKey() {
+            return propertyKey;
         }
-        if(edges instanceof JSONArray){
-            return JSONUtil.toStringList((JSONArray) edges);
+
+        public Property setPropertyKey(String propertyKey) {
+            this.propertyKey = propertyKey;
+            return this;
         }
-        else if(edges instanceof String){
-            return Lists.newArrayList((String)edges);
+
+        public String getPropertyName() {
+            return propertyName;
         }
-        else{
-            throw new VisalloException("unknown format to parse messages");
+
+        public Property setPropertyName(String propertyName) {
+            this.propertyName = propertyName;
+            return this;
+        }
+
+        public ElementOrPropertyStatus getStatus() {
+            return status;
+        }
+
+        public Property setStatus(ElementOrPropertyStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public Long getBeforeActionTimestamp() {
+            return beforeActionTimestamp;
+        }
+
+        @JsonIgnore
+        public long getBeforeActionTimestampOrDefault() {
+            return getBeforeActionTimestamp() == null ? -1L : getBeforeActionTimestamp();
+        }
+
+        public Property setBeforeActionTimestamp(Long beforeActionTimestamp) {
+            this.beforeActionTimestamp = beforeActionTimestamp;
+            return this;
         }
     }
 }
