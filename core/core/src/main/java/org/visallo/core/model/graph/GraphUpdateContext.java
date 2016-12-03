@@ -11,7 +11,13 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -31,15 +37,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * </pre>
  */
 public abstract class GraphUpdateContext implements AutoCloseable {
-    private static final int DEFAULT_MAX_ELEMENT_UPDATE_CONTEXT_ITEMS = 1000;
+    private static final int DEFAULT_SAVE_QUEUE_SIZE = 1000;
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;
     private final VisibilityTranslator visibilityTranslator;
     private final Priority priority;
     private final User user;
     private final Authorizations authorizations;
-    private final Queue<ElementUpdateContext<? extends Element>> elementUpdateContexts = new LinkedList<>();
-    private int maxElementUpdateContextItems = DEFAULT_MAX_ELEMENT_UPDATE_CONTEXT_ITEMS;
+    private final Queue<UpdateFuture<? extends Element>> outstandingFutures = new LinkedList<>();
+    private int saveQueueSize = DEFAULT_SAVE_QUEUE_SIZE;
     private boolean pushOnQueue = true;
 
     protected GraphUpdateContext(
@@ -64,18 +70,41 @@ public abstract class GraphUpdateContext implements AutoCloseable {
     @SuppressWarnings("unchecked")
     @Override
     public void close() {
-        pushToWorkQueueRepository();
+        flushFutures();
     }
 
-    protected void pushToWorkQueueRepository() {
+    protected void flushFutures() {
+        saveOutstandingUpdateFutures();
         graph.flush();
         if (isPushOnQueue()) {
-            while (elementUpdateContexts.size() > 0) {
-                ElementUpdateContext<? extends Element> elemCtx = elementUpdateContexts.remove();
-                workQueueRepository.pushGraphVisalloPropertyQueue(elemCtx.getElement(), elemCtx.getProperties(), priority);
+            pushOutstandingUpdateFutures();
+        }
+        outstandingFutures.clear();
+    }
+
+    private void pushOutstandingUpdateFutures() {
+        outstandingFutures.forEach(f -> {
+            try {
+                workQueueRepository.pushGraphVisalloPropertyQueue(f.get(), f.getElementUpdateContext().getProperties(), priority);
+            } catch (Exception ex) {
+                throw new VisalloException("Could not push on queue", ex);
             }
-        } else {
-            elementUpdateContexts.clear();
+        });
+    }
+
+    protected void saveOutstandingUpdateFutures() {
+        List<UpdateFuture<?>> futures = outstandingFutures.stream()
+                .filter(f -> !f.isDone())
+                .collect(Collectors.toList());
+        List<ElementMutation> mutations = futures.stream()
+                .map(f -> f.getElementUpdateContext().getMutation())
+                .collect(Collectors.toList());
+        Iterable<Element> results = graph.saveElementMutations(mutations, authorizations);
+        int i = 0;
+        for (Element result : results) {
+            UpdateFuture future = futures.get(i);
+            future.setElement(result);
+            i++;
         }
     }
 
@@ -83,7 +112,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * Similar to {@link GraphUpdateContext#update(ElementMutation, Update)} but
      * prepares the mutation from the element.
      */
-    public <T extends Element> T update(T element, Update<T> updateFn) {
+    public <T extends Element> UpdateFuture<T> update(T element, Update<T> updateFn) {
         Date modifiedDate = null;
         VisibilityJson visibilityJson = null;
         String conceptType = null;
@@ -95,7 +124,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#updateBuiltInProperties(Date, VisibilityJson)} before calling
      * updateFn.
      */
-    public <T extends Element> T update(
+    public <T extends Element> UpdateFuture<T> update(
             T element,
             Date modifiedDate,
             VisibilityJson visibilityJson,
@@ -111,7 +140,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#setConceptType(String)} before calling
      * updateFn.
      */
-    public <T extends Element> T update(
+    public <T extends Element> UpdateFuture<T> update(
             T element,
             Date modifiedDate,
             VisibilityJson visibilityJson,
@@ -126,7 +155,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * Calls the update function, saves the element, and adds any updates to
      * the work queue.
      */
-    public <T extends Element> T update(ElementMutation<T> m, Update<T> updateFn) {
+    public <T extends Element> UpdateFuture<T> update(ElementMutation<T> m, Update<T> updateFn) {
         Date modifiedDate = null;
         VisibilityJson visibilityJson = null;
         String conceptType = null;
@@ -138,7 +167,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#updateBuiltInProperties(Date, VisibilityJson)} before calling
      * updateFn.
      */
-    public <T extends Element> T update(
+    public <T extends Element> UpdateFuture<T> update(
             ElementMutation<T> m,
             Date modifiedDate,
             VisibilityJson visibilityJson,
@@ -154,7 +183,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * {@link ElementUpdateContext#setConceptType(String)} before calling
      * updateFn.
      */
-    public <T extends Element> T update(
+    public <T extends Element> UpdateFuture<T> update(
             ElementMutation<T> m,
             Date modifiedDate,
             VisibilityJson visibilityJson,
@@ -176,16 +205,16 @@ public abstract class GraphUpdateContext implements AutoCloseable {
         } catch (Exception ex) {
             throw new VisalloException("Could not update element", ex);
         }
-        T elem = elementUpdateContext.save(authorizations);
-        addToElementUpdateContexts(elementUpdateContext);
-        return elem;
+        UpdateFuture<T> future = new UpdateFuture<>(elementUpdateContext);
+        addToOutstandingFutures(future);
+        return future;
     }
 
     /**
      * Similar to {@link GraphUpdateContext#getOrCreateVertexAndUpdate(String, Long, Visibility, Update)}
      * using the current time as the timestamp.
      */
-    public Vertex getOrCreateVertexAndUpdate(String vertexId, Visibility visibility, Update<Vertex> updateFn) {
+    public UpdateFuture<Vertex> getOrCreateVertexAndUpdate(String vertexId, Visibility visibility, Update<Vertex> updateFn) {
         return getOrCreateVertexAndUpdate(vertexId, null, visibility, updateFn);
     }
 
@@ -193,7 +222,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * Gets a vertex by id from the graph. If the vertex does not exist prepares a new mutation and
      * calls update.
      */
-    public Vertex getOrCreateVertexAndUpdate(
+    public UpdateFuture<Vertex> getOrCreateVertexAndUpdate(
             String vertexId,
             Long timestamp,
             Visibility visibility,
@@ -210,7 +239,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * Similar to {@link GraphUpdateContext#getOrCreateEdgeAndUpdate(String, String, String, String, Long, Visibility, Update)}
      * using the current time as the timestamp.
      */
-    public Edge getOrCreateEdgeAndUpdate(
+    public UpdateFuture<Edge> getOrCreateEdgeAndUpdate(
             String edgeId,
             String outVertexId,
             String inVertexId,
@@ -225,7 +254,7 @@ public abstract class GraphUpdateContext implements AutoCloseable {
      * Gets a edge by id from the graph. If the edge does not exist prepares a new mutation and
      * calls update.
      */
-    public Edge getOrCreateEdgeAndUpdate(
+    public UpdateFuture<Edge> getOrCreateEdgeAndUpdate(
             String edgeId,
             String outVertexId,
             String inVertexId,
@@ -241,12 +270,10 @@ public abstract class GraphUpdateContext implements AutoCloseable {
         return update(m, updateFn);
     }
 
-    private <T extends Element> void addToElementUpdateContexts(ElementUpdateContext<T> elementUpdateContext) {
-        if (isPushOnQueue()) {
-            elementUpdateContexts.add(elementUpdateContext);
-            if (elementUpdateContexts.size() > maxElementUpdateContextItems) {
-                pushToWorkQueueRepository();
-            }
+    private <T extends Element> void addToOutstandingFutures(UpdateFuture<T> future) {
+        outstandingFutures.add(future);
+        if (outstandingFutures.size() > saveQueueSize) {
+            flushFutures();
         }
     }
 
@@ -266,16 +293,16 @@ public abstract class GraphUpdateContext implements AutoCloseable {
         return authorizations;
     }
 
-    public int getMaxElementUpdateContextItems() {
-        return maxElementUpdateContextItems;
+    public int getSaveQueueSize() {
+        return saveQueueSize;
     }
 
     /**
      * Sets the maximum number of element updates to keep in memory before they are flushed
      * and added to the work queue.
      */
-    public GraphUpdateContext setMaxElementUpdateContextItems(int maxElementUpdateContextItems) {
-        this.maxElementUpdateContextItems = maxElementUpdateContextItems;
+    public GraphUpdateContext setSaveQueueSize(int saveQueueSize) {
+        this.saveQueueSize = saveQueueSize;
         return this;
     }
 
@@ -294,5 +321,50 @@ public abstract class GraphUpdateContext implements AutoCloseable {
     public GraphUpdateContext setPushOnQueue(boolean pushOnQueue) {
         this.pushOnQueue = pushOnQueue;
         return this;
+    }
+
+    public class UpdateFuture<T extends Element> implements Future<T> {
+        private final ElementUpdateContext<T> elementUpdateContext;
+        private T element;
+
+        public UpdateFuture(ElementUpdateContext<T> elementUpdateContext) {
+            this.elementUpdateContext = elementUpdateContext;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            throw new VisalloException("Not supported");
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            return element != null;
+        }
+
+        @Override
+        public T get() throws InterruptedException, ExecutionException {
+            if (element == null) {
+                element = this.elementUpdateContext.getMutation().save(authorizations);
+            }
+            return element;
+        }
+
+        @Override
+        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            return get();
+        }
+
+        protected ElementUpdateContext<T> getElementUpdateContext() {
+            return elementUpdateContext;
+        }
+
+        protected void setElement(T element) {
+            this.element = element;
+        }
     }
 }
