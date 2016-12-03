@@ -3,9 +3,9 @@ package org.visallo.web.product.graph;
 import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.vertexium.Edge;
-import org.vertexium.ElementBuilder;
 import org.vertexium.TextIndexHint;
 import org.vertexium.Visibility;
+import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.ontology.OntologyPropertyDefinition;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
@@ -38,9 +38,8 @@ public class GraphWorkProduct extends WorkProductElements {
     }
 
     @Override
-    protected void updateProductEdge(JSONObject update, ElementBuilder edgeBuilder, Visibility visibility) {
-        JSONObject position = update;
-        ENTITY_POSITION.setProperty(edgeBuilder, position, visibility);
+    protected void updateProductEdge(ElementUpdateContext<Edge> elemCtx, JSONObject update, Visibility visibility) {
+        ENTITY_POSITION.updateProperty(elemCtx, update, visibility);
     }
 
     protected void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex) {

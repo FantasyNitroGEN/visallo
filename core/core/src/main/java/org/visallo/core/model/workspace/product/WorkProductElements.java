@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
+import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -53,10 +54,16 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
             Visibility visibility,
             Authorizations authorizations
     ) {
+        if (params == null) {
+            return;
+        }
+
         JSONObject updateVertices = params.optJSONObject("updateVertices");
         if (updateVertices != null) {
+            @SuppressWarnings("unchecked")
             List<String> vertexIds = Lists.newArrayList(updateVertices.keys());
             for (String id : vertexIds) {
+                JSONObject updateData = updateVertices.getJSONObject(id);
                 String edgeId = getEdgeId(productVertex.getId(), id);
                 EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
                         edgeId,
@@ -65,10 +72,10 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                         WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                         visibility
                 );
-                updateProductEdge(updateVertices.getJSONObject(id), edgeBuilder, visibility);
-                edgeBuilder.save(authorizations);
+                ctx.update(edgeBuilder, elemCtx -> updateProductEdge(elemCtx, updateData, visibility));
             }
         }
+
         JSONArray removeVertices = params.optJSONArray("removeVertices");
         if (removeVertices != null) {
             JSONUtil.toList(removeVertices)
@@ -86,49 +93,42 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
             Authorizations authorizations
     ) {
         JSONObject extendedData = new JSONObject();
-
-        boolean includeVertices = params.optBoolean("includeVertices");
-        boolean includeEdges = params.optBoolean("includeEdges");
         String id = productVertex.getId();
 
-        if (includeVertices || includeEdges) {
+        if (params.optBoolean("includeVertices")) {
+            JSONArray vertices = new JSONArray();
+            Iterable<Edge> productVertexEdges = productVertex.getEdges(
+                    Direction.OUT,
+                    WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                    authorizations
+            );
+            for (Edge propertyVertexEdge : productVertexEdges) {
+                String other = propertyVertexEdge.getOtherVertexId(id);
+                JSONObject vertex = new JSONObject();
+                vertex.put("id", other);
+                setEdgeJson(propertyVertexEdge, vertex);
+                vertices.put(vertex);
+            }
+            extendedData.put("vertices", vertices);
+        }
+
+        if (params.optBoolean("includeEdges")) {
+            JSONArray edges = new JSONArray();
             List<String> vertexIds = Lists.newArrayList(productVertex.getVertexIds(
                     Direction.OUT,
                     WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                     authorizations
             ));
-
-            JSONArray edges = new JSONArray();
-            JSONArray vertices = new JSONArray();
-
-            if (includeVertices) {
-                Iterable<Edge> productVertexEdges = productVertex.getEdges(
-                        Direction.OUT,
-                        WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                        authorizations
-                );
-                for (Edge propertyVertexEdge : productVertexEdges) {
-                    String other = propertyVertexEdge.getOtherVertexId(id);
-                    JSONObject vertex = new JSONObject();
-                    vertex.put("id", other);
-                    setEdgeJson(propertyVertexEdge, vertex);
-                    vertices.put(vertex);
-                }
-                extendedData.put("vertices", vertices);
+            Iterable<RelatedEdge> relatedEdges = graph.findRelatedEdgeSummary(vertexIds, authorizations);
+            for (RelatedEdge relatedEdge : relatedEdges) {
+                JSONObject edge = new JSONObject();
+                edge.put("edgeId", relatedEdge.getEdgeId());
+                edge.put("label", relatedEdge.getLabel());
+                edge.put("outVertexId", relatedEdge.getOutVertexId());
+                edge.put("inVertexId", relatedEdge.getInVertexId());
+                edges.put(edge);
             }
-
-            if (includeEdges) {
-                Iterable<RelatedEdge> relatedEdges = graph.findRelatedEdgeSummary(vertexIds, authorizations);
-                for (RelatedEdge relatedEdge : relatedEdges) {
-                    JSONObject edge = new JSONObject();
-                    edge.put("edgeId", relatedEdge.getEdgeId());
-                    edge.put("label", relatedEdge.getLabel());
-                    edge.put("outVertexId", relatedEdge.getOutVertexId());
-                    edge.put("inVertexId", relatedEdge.getInVertexId());
-                    edges.put(edge);
-                }
-                extendedData.put("edges", edges);
-            }
+            extendedData.put("edges", edges);
         }
 
         return extendedData;
@@ -136,8 +136,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
     protected abstract void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex);
 
-    protected abstract void updateProductEdge(JSONObject update, ElementBuilder edgeBuilder, Visibility visibility);
-
+    protected abstract void updateProductEdge(ElementUpdateContext<Edge> elemCtx, JSONObject update, Visibility visibility);
 
     private String getEdgeId(String productId, String vertexId) {
         return productId + "_hasVertex_" + vertexId;
