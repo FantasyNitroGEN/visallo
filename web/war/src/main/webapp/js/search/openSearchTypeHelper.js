@@ -15,8 +15,14 @@ define(['util/promise'], function() {
                     }
                 })
                 .then(function() {
-                    var currentType = $searchPane.find('.navbar-search .segmented-control .active').data('type'),
-                        filtersLoaded = $searchPane.find('.search-filters').length,
+                    var currentType = null;
+                    $searchPane.find('.content').lookupAllComponents().forEach(function(c) {
+                        if (c.searchType) {
+                            currentType = c.searchType;
+                        }
+                    });
+
+                    var filtersLoaded = $searchPane.find('.search-filters').length,
                         advancedSearchActive = $searchPane.find('.search-type.active').length === 0;
 
                     if (advancedSearchActive ||
