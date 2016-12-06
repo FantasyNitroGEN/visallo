@@ -566,9 +566,10 @@ define([
             const { map, cluster } = this.state;
             if (map && cluster) {
                 return this.props.tools.map(tool => {
+                    const { product, ...rest } = tool;
                     return {
-                        ...tool,
-                        props: { ol, map, cluster }
+                        ...rest,
+                        props: { product, ol, map, cluster }
                     }
                 });
             }

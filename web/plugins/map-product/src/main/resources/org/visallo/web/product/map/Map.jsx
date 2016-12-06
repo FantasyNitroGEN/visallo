@@ -2,10 +2,19 @@ define([
     'react',
     './OpenLayers',
     'components/RegistryInjectorHOC',
+    'configuration/plugins/registry',
     'util/vertex/formatters',
     'util/mapConfig'
-], function(React, OpenLayers, RegistryInjectorHOC, F, mapConfig) {
+], function(React, OpenLayers, RegistryInjectorHOC, registry, F, mapConfig) {
     'use strict';
+
+    registry.documentExtensionPoint('org.visallo.map.options',
+        'Add components to map options dropdown',
+        function(e) {
+            return ('identifier' in e) && ('optionComponentPath' in e);
+        },
+        'http://docs.visallo.org/extension-points/front-end/mapOptions'
+    );
 
     const PropTypes = React.PropTypes;
     const Map = React.createClass({
@@ -90,7 +99,8 @@ define([
         getTools() {
             return this.props.registry['org.visallo.map.options'].map(e => ({
                 identifier: e.identifier,
-                componentPath: e.optionComponentPath
+                componentPath: e.optionComponentPath,
+                product: this.props.product
             }));
         },
 

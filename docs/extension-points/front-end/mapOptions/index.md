@@ -11,6 +11,14 @@ All registered components will be passed:
     * `clusterSource` [`[MultiPointCluster]`](https://github.com/v5analytics/visallo/blob/master/web/plugins/map-product/src/main/resources/org/visallo/web/product/map/multiPointCluster.js): Implements the [`ol.source.Cluster`](http://openlayers.org/en/latest/apidoc/ol.source.Cluster.html) interface to cluster the `source` features.
     * `source` [`[ol.source.Vector]`](http://openlayers.org/en/latest/apidoc/ol.source.Vector.html): The source of all map pins before clustering. 
     * `layer` [`[ol.layer.Vector]`](http://openlayers.org/en/latest/apidoc/ol.layer.Vector.html): The pin vector layer
+* `product` `[Object]`: Work Product json details
+    * `data` `[Object]`: Data for product (loaded when all products loaded)
+    * `extendedData` `[Object]`: Extended data for product (vertices/edges, loaded only when product opened)
+    * `id` `[String]`: Product identifier
+    * `kind` `[String]`: Work product class name: `org.visallo.web.product.map.MapWorkProduct`.
+    * `previewMD5` `[String]`: Preview image hash
+    * `title` `[String]`: Work product title
+    * `workspaceId` `[String]`: Workspace of the work product
 
 To register an option:
 
