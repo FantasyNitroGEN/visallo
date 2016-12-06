@@ -77,10 +77,12 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
             public WorkerTuple nextTuple() throws Exception {
                 synchronized (queue) {
                     if (queue.size() == 0) {
+                        Thread.sleep(100);
                         return null;
                     }
                     byte[] entry = queue.remove(0);
                     if (entry == null) {
+                        Thread.sleep(100);
                         return null;
                     }
                     return new WorkerTuple("", entry);

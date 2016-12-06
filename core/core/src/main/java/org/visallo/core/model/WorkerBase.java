@@ -122,7 +122,6 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
                 continue;
             }
             if (workerItemWrapper == null) {
-                Thread.sleep(100);
                 continue;
             }
             synchronized (tupleQueue) {
