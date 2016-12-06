@@ -45,16 +45,14 @@ define([
             function mergeElementPropertyAcls(propertyAcls) {
                 elements.forEach(function (e) {
                     e.acl.propertyAcls.forEach(function (elementPropertyAcl) {
-                        var matches = _.where(propertyAcls, {
-                            name: elementPropertyAcl.name,
-                            key: elementPropertyAcl.keys || null
+                        var matchIndex = propertyAcls.findIndex((p) => {
+                            let key = elementPropertyAcl.key || null;
+                            return p.name === elementPropertyAcl.name && p.key === key;
                         });
-                        if (matches.length === 0) {
+                        if (matchIndex < 0) {
                             propertyAcls.push(elementPropertyAcl);
                         } else {
-                            _.each(matches, function(r) {
-                                _.extend(r, elementPropertyAcl);
-                            });
+                            propertyAcls[matchIndex] = _.extend(propertyAcls[matchIndex], elementPropertyAcl);
                         }
                     });
                 });
@@ -66,14 +64,14 @@ define([
         findPropertyAcl: function(propertiesAcl, propName, propKey) {
             var props = _.where(propertiesAcl, {name: propName, key: propKey});
             if (props.length === 0) {
-                var propsByName = _.where(propertiesAcl, {name: propName});
+                var propsByName = _.where(propertiesAcl, { name: propName, key: null });
                 if (propsByName.length === 0) {
                     throw new Error('no ACL property defined "' + propName + ':' + propKey + '"');
                 }
                 props = propsByName;
             }
             if (props.length !== 1) {
-                throw new Error('more than one ACL property with the same name defined "' + propName + ':' + propKey + '" lenght: ' + props.length);
+                throw new Error('more than one ACL property with the same name defined "' + propName + ':' + propKey + '" length: ' + props.length);
             }
             return props[0];
         }
