@@ -22,6 +22,7 @@ import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
@@ -41,11 +42,16 @@ import static org.vertexium.util.IterableUtils.toList;
 @RunWith(MockitoJUnitRunner.class)
 public class VertexiumSearchRepositoryTest {
     private static final Visibility VISIBILITY = Visibility.EMPTY;
-    private static final String USER_ID = "USER123";
+    private static final String USER1_ID = "USER123";
+    private static final String USER2_ID = "USER456";
+    private static final String WORKSPACE_ID = "WS123";
     private static final String ID = "123";
     private static final String NAME = "search1";
+    private static final String ID2 = "456";
+    private static final String NAME2 = "search2";
     private static final String URL = "/vertex/search";
     private static final JSONObject PARAMETERS = new JSONObject(ImmutableMap.of("key1", "value1"));
+
 
     private VertexiumSearchRepository searchRepository;
     private InMemoryGraph graph;
@@ -61,7 +67,10 @@ public class VertexiumSearchRepositoryTest {
     private Configuration configuration;
 
     @Mock
-    private User user;
+    private User user1;
+
+    @Mock
+    private User user2;
 
     @Mock
     private Injector injector;
@@ -77,6 +86,9 @@ public class VertexiumSearchRepositoryTest {
 
     @Mock
     private WorkQueueRepository workQueueRepository;
+
+    @Mock
+    private WorkspaceRepository workspaceRepository;
 
     @Before
     public void setUp() {
@@ -96,11 +108,14 @@ public class VertexiumSearchRepositoryTest {
                 configuration,
                 graphAuthorizationRepository,
                 authorizationRepository,
-                privilegeRepository
+                privilegeRepository,
+                workspaceRepository
         );
 
-        when(user.getUserId()).thenReturn(USER_ID);
-        graph.addVertex(USER_ID, VISIBILITY, authorizations);
+        when(user1.getUserId()).thenReturn(USER1_ID);
+        when(user2.getUserId()).thenReturn(USER2_ID);
+        graph.addVertex(USER1_ID, VISIBILITY, authorizations);
+        graph.addVertex(USER2_ID, VISIBILITY, authorizations);
         graph.flush();
 
         when(userRepository.getSystemUser()).thenReturn(systemUser);
@@ -118,17 +133,17 @@ public class VertexiumSearchRepositoryTest {
 
     @Test
     public void testSaveSearch() {
-        String foundId = searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user);
+        String foundId = searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
         assertEquals(ID, foundId);
 
-        Vertex userVertex = graph.getVertex(USER_ID, authorizations);
+        Vertex userVertex = graph.getVertex(USER1_ID, authorizations);
         List<Edge> hasSavedSearchEdges = toList(userVertex.getEdges(
                 Direction.OUT,
                 SearchProperties.HAS_SAVED_SEARCH,
                 authorizations
         ));
         assertEquals(1, hasSavedSearchEdges.size());
-        Vertex savedSearchVertex = hasSavedSearchEdges.get(0).getOtherVertex(USER_ID, authorizations);
+        Vertex savedSearchVertex = hasSavedSearchEdges.get(0).getOtherVertex(USER1_ID, authorizations);
         assertEquals(
                 SearchProperties.CONCEPT_TYPE_SAVED_SEARCH,
                 VisalloProperties.CONCEPT_TYPE.getPropertyValue(savedSearchVertex, null)
@@ -146,7 +161,7 @@ public class VertexiumSearchRepositoryTest {
         // User without the SEARCH_SAVE_GLOBAL privilege can't save as global.
 
         try {
-            searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user);
+            searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user1);
             fail("Expected VisalloAccessDeniedException");
         } catch (VisalloAccessDeniedException ex) {
             // expected
@@ -154,9 +169,9 @@ public class VertexiumSearchRepositoryTest {
 
         // User with the SEARCH_SAVE_GLOBAL privilege can save as global.
 
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
 
-        String foundId = searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user);
+        String foundId = searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user1);
         assertEquals(ID, foundId);
 
         Vertex savedSearchVertex = graph.getVertex(ID, authorizations);
@@ -179,10 +194,10 @@ public class VertexiumSearchRepositoryTest {
 
         // User without the privilege can't re-save as a non-global, private saved search.
 
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(false);
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(false);
 
         try {
-            searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user);
+            searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
             fail("Expected VisalloAccessDeniedException");
         } catch (VisalloAccessDeniedException ex) {
             // expected
@@ -190,37 +205,37 @@ public class VertexiumSearchRepositoryTest {
 
         // User with the privilege can re-save as a non-global, private saved search.
 
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
 
-        foundId = searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user);
+        foundId = searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
         assertEquals(ID, foundId);
     }
 
     @Test
     public void testSaveSearchAlternatingPrivateGlobalPrivate() {
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
 
-        searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user);
+        searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
         assertSavedSearchState(false);
 
-        searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user);
+        searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user1);
         assertSavedSearchState(true);
 
-        searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user);
+        searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
         assertSavedSearchState(false);
     }
 
     @Test
     public void testSaveSearchAlternatingGlobalPrivateGlobal() {
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
 
-        searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user);
+        searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user1);
         assertSavedSearchState(true);
 
-        searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user);
+        searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
         assertSavedSearchState(false);
 
-        searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user);
+        searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user1);
         assertSavedSearchState(true);
     }
 
@@ -232,19 +247,15 @@ public class VertexiumSearchRepositoryTest {
         SearchProperties.URL.setProperty(vb, URL, VISIBILITY);
         SearchProperties.PARAMETERS.setProperty(vb, PARAMETERS, VISIBILITY);
         vb.save(authorizations);
-        graph.addEdge(USER_ID, ID, SearchProperties.HAS_SAVED_SEARCH, VISIBILITY, authorizations);
+        graph.addEdge(USER1_ID, ID, SearchProperties.HAS_SAVED_SEARCH, VISIBILITY, authorizations);
         graph.flush();
 
-        ClientApiSearchListResponse response = searchRepository.getSavedSearches(user);
+        ClientApiSearchListResponse response = searchRepository.getSavedSearches(user1);
 
         assertEquals(1, response.searches.size());
         for (ClientApiSearch search : response.searches) {
             if (search.id.equals(ID)) {
-                assertEquals(ID, search.id);
-                assertEquals(NAME, search.name);
-                assertEquals(URL, search.url);
-                assertEquals(PARAMETERS.keySet().size(), search.parameters.size());
-                assertEquals(PARAMETERS.getString("key1"), search.parameters.get("key1"));
+                assertSearch(search);
             } else {
                 throw new VisalloException("Invalid search item");
             }
@@ -259,11 +270,87 @@ public class VertexiumSearchRepositoryTest {
         SearchProperties.URL.setProperty(vb, URL, VISIBILITY);
         SearchProperties.PARAMETERS.setProperty(vb, PARAMETERS, VISIBILITY);
         vb.save(authorizations);
-        graph.addEdge(USER_ID, ID, SearchProperties.HAS_SAVED_SEARCH, VISIBILITY, authorizations);
+        graph.addEdge(USER1_ID, ID, SearchProperties.HAS_SAVED_SEARCH, VISIBILITY, authorizations);
         graph.flush();
 
-        ClientApiSearch search = searchRepository.getSavedSearch(ID, user);
+        ClientApiSearch search = searchRepository.getSavedSearch(ID, user1);
 
+        assertSearch(search);
+    }
+
+    @Test
+    public void testGetSavedSearchOnWorkspaceShouldReturnIfGlobal() {
+        setupForSearchOnWorkspaceTests(true);
+
+        assertSearch(searchRepository.getSavedSearchOnWorkspace(ID, user1, WORKSPACE_ID));
+
+        assertSearch(searchRepository.getSavedSearchOnWorkspace(ID, user2, WORKSPACE_ID));
+
+        when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user2)).thenReturn(false);
+        assertSearch(searchRepository.getSavedSearchOnWorkspace(ID, user2, WORKSPACE_ID));
+    }
+
+    @Test
+    public void testGetSavedSearchOnWorkspaceIfPrivate() {
+        setupForSearchOnWorkspaceTests(false);
+
+        assertSearch(searchRepository.getSavedSearchOnWorkspace(ID, user1, WORKSPACE_ID));
+
+        assertSearch(searchRepository.getSavedSearchOnWorkspace(ID, user2, WORKSPACE_ID));
+
+        when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user2)).thenReturn(false);
+        assertEquals(null, searchRepository.getSavedSearchOnWorkspace(ID, user2, WORKSPACE_ID));
+
+        searchRepository.saveSearch(ID2, NAME2, URL, PARAMETERS, user2);
+        assertEquals(null, searchRepository.getSavedSearchOnWorkspace(ID2, user1, WORKSPACE_ID));
+    }
+
+    private void setupForSearchOnWorkspaceTests(boolean expectGlobal) {
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
+        when(workspaceRepository.getCreatorUserId(eq(WORKSPACE_ID), any(User.class))).thenReturn(USER1_ID);
+        when(userRepository.findById(USER1_ID)).thenReturn(user1);
+        when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user1)).thenReturn(true);
+        when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user2)).thenReturn(true);
+
+        if (expectGlobal) {
+            searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user1);
+        } else {
+            searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
+        }
+    }
+
+    @Test
+    public void testDeleteSearch() {
+        String foundId = searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user1);
+        assertEquals(ID, foundId);
+
+        searchRepository.deleteSearch(ID, user1);
+
+        assertEquals(null, graph.getVertex(ID, authorizations));
+    }
+
+    @Test
+    public void testDeleteGlobalSearch() {
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
+        String foundId = searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user1);
+        assertEquals(ID, foundId);
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(false);
+
+        try {
+            searchRepository.deleteSearch(ID, user1);
+            fail("Expected VisalloAccessDeniedException");
+        } catch (VisalloAccessDeniedException ex) {
+            // expected
+        }
+
+        when(privilegeRepository.hasPrivilege(user1, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
+
+        searchRepository.deleteSearch(ID, user1);
+
+        assertEquals(null, graph.getVertex(ID, authorizations));
+    }
+
+    private void assertSearch(ClientApiSearch search) {
         assertEquals(ID, search.id);
         assertEquals(NAME, search.name);
         assertEquals(URL, search.url);
@@ -271,41 +358,10 @@ public class VertexiumSearchRepositoryTest {
         assertEquals(PARAMETERS.getString("key1"), search.parameters.get("key1"));
     }
 
-    @Test
-    public void testDeleteSearch() {
-        String foundId = searchRepository.saveSearch(ID, NAME, URL, PARAMETERS, user);
-        assertEquals(ID, foundId);
-
-        searchRepository.deleteSearch(ID, user);
-
-        assertEquals(null, graph.getVertex(ID, authorizations));
-    }
-
-    @Test
-    public void testDeleteGlobalSearch() {
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
-        String foundId = searchRepository.saveGlobalSearch(ID, NAME, URL, PARAMETERS, user);
-        assertEquals(ID, foundId);
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(false);
-
-        try {
-            searchRepository.deleteSearch(ID, user);
-            fail("Expected VisalloAccessDeniedException");
-        } catch (VisalloAccessDeniedException ex) {
-            // expected
-        }
-
-        when(privilegeRepository.hasPrivilege(user, Privilege.SEARCH_SAVE_GLOBAL)).thenReturn(true);
-
-        searchRepository.deleteSearch(ID, user);
-
-        assertEquals(null, graph.getVertex(ID, authorizations));
-    }
-
     private void assertSavedSearchState(boolean expectGlobal) {
-        ClientApiSearchListResponse response = searchRepository.getSavedSearches(user);
+        ClientApiSearchListResponse response = searchRepository.getSavedSearches(user1);
         assertEquals(1, response.searches.size());
         assertEquals(searchRepository.isSearchGlobal(ID, authorizations), expectGlobal);
-        assertEquals(searchRepository.isSearchPrivateToUser(ID, user, authorizations), !expectGlobal);
+        assertEquals(searchRepository.isSearchPrivateToUser(ID, user1, authorizations), !expectGlobal);
     }
 }
