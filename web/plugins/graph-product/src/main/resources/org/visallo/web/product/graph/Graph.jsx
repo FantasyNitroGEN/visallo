@@ -91,6 +91,11 @@ define([
                         }
                     });
                 },
+                menubarToggleDisplay: { node: document, handler: (event, data) => {
+                    if (data.name === 'products-full') {
+                        this.teardownPreviews();
+                    }
+                }},
                 finishedVertexConnection: this.cancelDraw,
                 'zoomOut zoomIn fit': this.onKeyboard,
                 createVertex: event => this.createVertex(),
