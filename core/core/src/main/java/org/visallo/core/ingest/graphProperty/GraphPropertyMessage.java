@@ -11,6 +11,8 @@ import org.visallo.core.model.workQueue.Priority;
 
 import java.io.IOException;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class GraphPropertyMessage {
     private static final ObjectMapper mapper;
 
@@ -55,6 +57,7 @@ public class GraphPropertyMessage {
     }
 
     public GraphPropertyMessage setPriority(Priority priority) {
+        checkNotNull(priority, "priority cannot be null");
         this.priority = priority;
         return this;
     }
@@ -129,7 +132,9 @@ public class GraphPropertyMessage {
 
     public static GraphPropertyMessage create(byte[] data) {
         try {
-            return mapper.readValue(data, GraphPropertyMessage.class);
+            GraphPropertyMessage message = mapper.readValue(data, GraphPropertyMessage.class);
+            checkNotNull(message.getPriority(), "priority cannot be null");
+            return message;
         } catch (IOException e) {
             throw new VisalloException("Could not create " + GraphPropertyMessage.class.getName() + " from " + new String(data), e);
         }
@@ -137,6 +142,7 @@ public class GraphPropertyMessage {
 
     public String toJsonString() {
         try {
+            checkNotNull(getPriority(), "priority cannot be null");
             return mapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
             throw new VisalloException("Could not write " + this.getClass().getName(), e);
@@ -145,6 +151,7 @@ public class GraphPropertyMessage {
 
     public byte[] toBytes() {
         try {
+            checkNotNull(getPriority(), "priority cannot be null");
             return mapper.writeValueAsBytes(this);
         } catch (JsonProcessingException e) {
             throw new VisalloException("Could not write " + this.getClass().getName(), e);

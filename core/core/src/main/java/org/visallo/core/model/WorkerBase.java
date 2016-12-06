@@ -202,5 +202,13 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
         public TWorkerItem getWorkerItem() {
             return workerItem;
         }
+
+        @Override
+        public String toString() {
+            return "WorkerItemWrapper{" +
+                    "messageId=" + messageId +
+                    ", workerItem=" + workerItem +
+                    '}';
+        }
     }
 }
