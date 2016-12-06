@@ -104,18 +104,18 @@ public class ExampleGraphPropertyWorker extends GraphPropertyWorker {
     }
 
     private void addVerticesToWorkspace(Set<Element> newElements, Workspace workspace) {
-        Collection<WorkspaceRepository.Update> workspaceUpdates =
+        Collection<String> vertexIds =
                 newElements.stream()
                                .filter(element -> element instanceof Vertex)
-                               .map(element -> new WorkspaceRepository.Update(element.getId(), true, null))
+                               .map(element -> element.getId())
                                .collect(Collectors.toList());
-        getWorkspaceRepository().updateEntitiesOnWorkspace(workspace, workspaceUpdates, getUser());
+        getWorkspaceRepository().updateEntitiesOnWorkspace(workspace, vertexIds, getUser());
         getGraph().flush();
     }
 
     private void notifyUserInterfaceClients(Workspace workspace) {
         ClientApiWorkspace apiWorkspace =
-                getWorkspaceRepository().toClientApi(workspace, getUser(), true, getAuthorizations());
+                getWorkspaceRepository().toClientApi(workspace, getUser(), getAuthorizations());
         getWorkQueueRepository().pushWorkspaceChange(
                 apiWorkspace, Collections.emptyList(), getUser().getUserId(), null);
     }
