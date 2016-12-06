@@ -42,6 +42,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                 rangeConcepts,
                 WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI
         );
+        ontologyRepository.clearCache();
     }
 
     @Override

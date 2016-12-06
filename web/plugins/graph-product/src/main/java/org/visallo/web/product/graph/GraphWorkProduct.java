@@ -15,6 +15,8 @@ import org.visallo.web.clientapi.model.PropertyType;
 
 import java.util.ArrayList;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class GraphWorkProduct extends WorkProductElements {
     public static final JsonSingleValueVisalloProperty ENTITY_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");
 
@@ -26,6 +28,7 @@ public class GraphWorkProduct extends WorkProductElements {
 
     private void addEdgePositionToOntology(OntologyRepository ontologyRepository) {
         Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
+        checkNotNull(productToEntityRelationship, "Cannot find relationship: " + WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
                 new ArrayList<>(),
                 ENTITY_POSITION.getPropertyName(),
