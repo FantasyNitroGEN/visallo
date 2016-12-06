@@ -1,6 +1,5 @@
 package org.visallo.core.model.graph;
 
-import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Element;
 import org.vertexium.Visibility;
@@ -23,7 +22,7 @@ public class ElementUpdateContext<T extends Element> {
     private final ElementMutation<T> mutation;
     private final User user;
     private final List<VisalloPropertyUpdate> properties = new ArrayList<>();
-    private T element;
+    private final T element;
 
     public ElementUpdateContext(VisibilityTranslator visibilityTranslator, ElementMutation<T> mutation, User user) {
         this.visibilityTranslator = visibilityTranslator;
@@ -31,12 +30,9 @@ public class ElementUpdateContext<T extends Element> {
         this.user = user;
         if (mutation instanceof ExistingElementMutation) {
             element = ((ExistingElementMutation<T>) mutation).getElement();
+        } else {
+            element = null;
         }
-    }
-
-    public T save(Authorizations authorizations) {
-        this.element = this.mutation.save(authorizations);
-        return this.element;
     }
 
     public boolean isNewElement() {

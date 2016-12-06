@@ -525,7 +525,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     OntologyProperties.SUBTITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#source') || ''", VISIBILITY.getVisibility());
                     OntologyProperties.TIME_FORMULA.updateProperty(elemCtx, "''", VISIBILITY.getVisibility());
                 }
-            });
+            }).get();
 
             concept = createConcept(vertex);
             if (parent != null) {
@@ -631,7 +631,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                         OntologyProperties.INTENT.updateProperty(elemCtx, intent, intent, metadata, visibility);
                     }
                 }
-            });
+            }).get();
 
             return createOntologyProperty(vertex, dependentPropertyIris);
         } catch (Exception e) {
@@ -677,7 +677,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Vertex relationshipVertex = ctx.update(builder, elemCtx -> {
                 VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_RELATIONSHIP, VISIBILITY.getVisibility());
                 OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, relationshipIRI, VISIBILITY.getVisibility());
-            });
+            }).get();
 
             for (Concept domainConcept : domainConcepts) {
                 findOrAddEdge(ctx, ((VertexiumConcept) domainConcept).getVertex(), relationshipVertex, LabelName.HAS_EDGE.toString());
@@ -749,12 +749,14 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                             OntologyProperties.TEXT_INDEX_HINTS.updateProperty(elemCtx, textIndexHint, textIndexHint, metadata, VISIBILITY.getVisibility());
                         });
                     }
-                });
+                }).get();
 
                 for (Concept concept : concepts) {
+                    checkNotNull(concept, "concepts cannot have null values");
                     findOrAddEdge(ctx, ((VertexiumConcept) concept).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
                 }
                 for (Relationship relationship : relationships) {
+                    checkNotNull(relationships, "relationships cannot have null values");
                     findOrAddEdge(ctx, ((VertexiumRelationship) relationship).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString());
                 }
             } catch (Exception e) {
@@ -897,5 +899,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 vertex.softDeleteProperty(property.getKey(), property.getName(), authorizations);
             }
         }
+        graph.flush();
     }
 }

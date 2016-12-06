@@ -559,8 +559,8 @@ require(['configuration/plugins/registry'], function(registry) {
                 var $node = this.component.$node,
                     root = $node.get(0);
 
-                root.style.flexDirection.should.equal('column')
-                $node.find('.y').get(0).style.flexDirection.should.equal('row')
+                getStyle(root, 'flexDirection').should.equal('column');
+                getStyle($node.find('.y').get(0), 'flexDirection').should.equal('row')
             })
 
             it('should handle updating', function(done) {
@@ -672,7 +672,7 @@ require(['configuration/plugins/registry'], function(registry) {
                             var $c = $y.children()
                             if (tryNum === 0) {
                                 $c.length.should.equal(4)
-                                $c[0].style.flex.should.contain('1')
+                                getStyle($c[0], 'flex').should.contain('1')
                                 tryNum++;
                                 $node.trigger('updateModel', { model: vertexGen('3_OVERRIDE_1', []) })
                             } else {
@@ -691,11 +691,11 @@ require(['configuration/plugins/registry'], function(registry) {
                 var $node = this.component.$node,
                     $y = $node.find('.y')
 
-                $node[0].style.flexDirection.should.equal('column')
-                $y[0].style.flexDirection.should.equal('row')
-                $y[0].style.flexWrap.should.equal('nowrap')
+                getStyle($node[0], 'flexDirection').should.equal('column')
+                getStyle($y[0], 'flexDirection').should.equal('row')
+                getStyle($y[0], 'flexWrap').should.equal('nowrap')
                 $y.children().length.should.equal(2)
-                $y.children()[1].style.flex.should.contain('1')
+                getStyle($y.children()[1], 'flex').should.contain('1')
 
                 return new Promise(function(f) {
                     var tryNum = 0;
@@ -703,19 +703,19 @@ require(['configuration/plugins/registry'], function(registry) {
                             $y = $node.find('.y')
                             var $c = $y.children()
                             if (tryNum === 0) {
-                                $node[0].style.flexDirection.should.equal('column')
-                                $y[0].style.flexDirection.should.equal('row')
+                                getStyle($node[0], 'flexDirection').should.equal('column')
+                                getStyle($y[0], 'flexDirection').should.equal('row')
                                 expect($y[0].style.flexWrap || false).to.be.false
                                 $c.length.should.equal(4)
-                                $c[0].style.flex.should.contain('1')
+                                getStyle($c[0], 'flex').should.contain('1')
                                 expect($c[1].style.flex || false).to.be.false
                                 
                                 tryNum++;
                                 $node.trigger('updateModel', { model: vertexGen('2_OVERRIDE_1', []) })
                             } else {
                                 $c.length.should.equal(2)
-                                $node[0].style.flexDirection.should.equal('column')
-                                $y[0].style.flexDirection.should.equal('column')
+                                getStyle($node[0], 'flexDirection').should.equal('column')
+                                getStyle($y[0], 'flexDirection').should.equal('column')
                                 expect($c[0].style.flex || false).to.be.false
                                 expect($c[1].style.flex || false).to.be.false
                                 f();
@@ -996,5 +996,9 @@ require(['configuration/plugins/registry'], function(registry) {
         function doc() {
             registry.documentExtensionPoint(layoutComponentPoint, 'desc', function() { return true; })
         }
+    }
+
+    function getStyle(node, name) {
+        return node.style[name] || node.style['webkit' + name.substring(0, 1).toUpperCase() + name.substring(1)]
     }
 })

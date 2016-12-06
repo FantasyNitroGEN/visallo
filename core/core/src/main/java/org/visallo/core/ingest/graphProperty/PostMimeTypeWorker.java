@@ -49,7 +49,8 @@ public abstract class PostMimeTypeWorker {
         }
         StreamingPropertyValue rawValue = VisalloProperties.RAW.getPropertyValue(element);
         try (InputStream in = rawValue.getInputStream()) {
-            localFileForRaw = File.createTempFile(PostMimeTypeWorker.class.getName() + "-", "-" + element.getId());
+            String suffix = "-" + element.getId().replaceAll("\\W", "_");
+            localFileForRaw = File.createTempFile(PostMimeTypeWorker.class.getName() + "-", suffix);
             try (FileOutputStream out = new FileOutputStream(localFileForRaw)) {
                 IOUtils.copy(in, out);
                 return localFileForRaw;

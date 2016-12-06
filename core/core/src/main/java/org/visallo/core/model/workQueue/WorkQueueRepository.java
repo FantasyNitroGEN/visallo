@@ -432,6 +432,7 @@ public abstract class WorkQueueRepository {
         data.setPropertyKey(propertyKey);
         data.setPropertyName(propertyName);
         data.setStatus(status);
+        data.setPriority(priority);
         if (status == ElementOrPropertyStatus.DELETION || status == ElementOrPropertyStatus.HIDDEN) {
             checkNotNull(beforeActionTimestamp, "Timestamp before " + status + " cannot be null");
         }

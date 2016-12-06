@@ -59,6 +59,28 @@ public class JSONUtil {
         }
     }
 
+    public static Object parseObject(Object value) {
+        if (value == null) {
+            return null;
+        } else if (value instanceof String) {
+            String valueString = (String) value;
+            valueString = valueString.trim();
+            if (valueString.startsWith("{") && valueString.endsWith("}")) {
+                return new JSONObject(valueString);
+            } else if (valueString.startsWith("[") && valueString.endsWith("]")) {
+                return new JSONArray(valueString);
+            } else {
+                return value;
+            }
+        } else if (value instanceof JSONObject) {
+            return value;
+        } else if (value instanceof JSONArray) {
+            return value;
+        } else {
+            throw new VisalloException("Could not parse object: " + value);
+        }
+    }
+
     public static JSONObject parse(String jsonString) {
         try {
             return new JSONObject(jsonString);

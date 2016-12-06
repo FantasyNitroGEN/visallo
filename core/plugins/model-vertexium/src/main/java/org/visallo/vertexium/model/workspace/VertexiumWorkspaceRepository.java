@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.mutation.ExistingEdgeMutation;
@@ -52,8 +53,6 @@ import org.visallo.web.clientapi.model.WorkspaceAccess;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -997,7 +996,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                             visibility
                     );
                 }
-            });
+            }).get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1036,18 +1035,14 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
             productVertex = ctx.getOrCreateVertexAndUpdate(productId, visibility, elemCtx -> {
                 isNew.set(elemCtx.isNewElement());
-                VisalloProperties.CONCEPT_TYPE.setProperty(
-                        elemCtx.getMutation(),
-                        WorkspaceProperties.PRODUCT_CONCEPT_IRI,
-                        getVisibilityTranslator().getDefaultVisibility()
-                );
-                if (productId == null || title != null) {
-                    WorkspaceProperties.TITLE.setProperty(elemCtx.getMutation(), title == null ? "" : title.substring(0, Math.min(title.length(), 128)), visibility);
+                elemCtx.setConceptType(WorkspaceProperties.PRODUCT_CONCEPT_IRI);
+                if (title != null) {
+                    WorkspaceProperties.TITLE.updateProperty(elemCtx, title.substring(0, Math.min(title.length(), 128)), visibility);
                 }
-                if (productId == null) {
-                    WorkspaceProperties.PRODUCT_KIND.setProperty(elemCtx.getMutation(), kind, visibility);
+                if (kind != null) {
+                    WorkspaceProperties.PRODUCT_KIND.updateProperty(elemCtx, kind, visibility);
                 }
-            });
+            }).get();
 
             WorkProduct workProduct = getWorkProductByKind(
                     kind == null
@@ -1199,20 +1194,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             String encodingPrefix = "base64,";
             int contentStartIndex = url.indexOf(encodingPrefix) + encodingPrefix.length();
             byte[] imageData = Base64.getDecoder().decode(url.substring(contentStartIndex));
-            MessageDigest md;
-            String md5;
-            try {
-                md = MessageDigest.getInstance("MD5");
-                byte[] array = md.digest(imageData);
-                StringBuilder sb = new StringBuilder();
-                for (byte anArray : array) {
-                    sb.append(String.format("%02x", anArray));
-                }
-                md5 = sb.toString();
-                return new ProductPreview(imageData, md5);
-            } catch (NoSuchAlgorithmException e) {
-                LOGGER.error("No md5 algorithm available for product previews", e);
-            }
+            return new ProductPreview(imageData, DigestUtils.md5Hex(imageData));
         }
         return null;
     }

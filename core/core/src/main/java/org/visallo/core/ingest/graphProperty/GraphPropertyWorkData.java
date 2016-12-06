@@ -10,6 +10,8 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 import java.io.File;
 import java.util.Date;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class GraphPropertyWorkData {
     private final VisibilityTranslator visibilityTranslator;
     private final Element element;
@@ -29,6 +31,7 @@ public class GraphPropertyWorkData {
             String visibilitySource,
             Priority priority
     ) {
+        checkNotNull(priority, "priority cannot be null");
         this.visibilityTranslator = visibilityTranslator;
         this.element = element;
         this.property = property;
@@ -47,6 +50,7 @@ public class GraphPropertyWorkData {
             long beforeActionTimestamp,
             ElementOrPropertyStatus status
     ) {
+        checkNotNull(priority, "priority cannot be null");
         this.visibilityTranslator = visibilityTranslator;
         this.element = element;
         this.property = property;
@@ -93,7 +97,9 @@ public class GraphPropertyWorkData {
         return beforeActionTimestamp;
     }
 
-    public ElementOrPropertyStatus getPropertyStatus() { return status; }
+    public ElementOrPropertyStatus getPropertyStatus() {
+        return status;
+    }
 
     // TODO this is a weird method. I'm not sure what this should be used for
     public VisibilityJson getVisibilitySourceJson() {
