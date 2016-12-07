@@ -53,9 +53,16 @@ define([
             if (config.property) {
 
                 config.isComment = config.property.name === 'http://visallo.org/comment#entry';
+                config.isVisibility = config.property.name === 'http://visallo.org#visibilityJson';
                 config.canAdd = config.canEdit = config.canDelete = false;
-                var allPropertyAcls = config.data.acl.propertyAcls;
-                var propertyAcl = findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
+
+                var propertyAcl;
+                if (config.isVisibility) {
+                    propertyAcl = config.ontologyProperty;
+                } else {
+                    var allPropertyAcls = config.data.acl.propertyAcls;
+                    propertyAcl = findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
+                }
 
                 if (config.isComment && visalloData.currentWorkspaceCommentable) {
                     config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
@@ -64,8 +71,8 @@ define([
                 } else if (!config.isComment && visalloData.currentWorkspaceEditable) {
                     config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
                     config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
-                    config.canDelete = config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false &&
-                        config.property.name !== 'http://visallo.org#visibilityJson';
+                    config.canDelete = (config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false) &&
+                        !config.isVisibility;
                 }
 
                 var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
