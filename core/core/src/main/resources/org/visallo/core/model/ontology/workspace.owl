@@ -97,6 +97,17 @@
     
 
 
+    <!-- http://visallo.org/product#extendedData -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/product#extendedData">
+        <rdfs:domain rdf:resource="http://visallo.org/workspace#product"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <visallo:textIndexHints>NONE</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://visallo.org/product#kind -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/product#kind">

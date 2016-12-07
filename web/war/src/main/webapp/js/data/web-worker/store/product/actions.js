@@ -10,6 +10,8 @@ define(['../actions'], function(actions) {
             select: (productId) => ({ productId }),
             delete: (productId) => ({ productId }),
             updateTitle: (productId, title) => ({ productId, title }),
+            updateData: (productId, key, value) => ({ productId, key, value }),
+            updateExtendedData: (productId, key, value) => ({ productId, key, value }),
 
             updatePreview: (productId, dataUrl) => ({ productId, dataUrl }),
             updateViewport: (productId, { pan, zoom }) => ({ productId, pan, zoom }),
@@ -17,4 +19,4 @@ define(['../actions'], function(actions) {
             selectAll: (productId) => ({ productId })
         }
     })
-})
+});

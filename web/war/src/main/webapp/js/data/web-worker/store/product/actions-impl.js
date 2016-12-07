@@ -13,7 +13,7 @@ define([
             const workspaceId = state.workspace.currentId;
             const { products } = state.product.workspaces[workspaceId];
             const product = products[productId];
-            var request;
+            let request;
 
             if (invalidate || !product || !product.extendedData) {
                 request = ajax('GET', '/product', {
@@ -28,9 +28,9 @@ define([
 
             if (request) {
                 request.then(function(product) {
-                    dispatch(api.update(product))
+                    dispatch(api.update(product));
 
-                    const { vertices, edges } = JSON.parse(product.extendedData)
+                    const { vertices, edges } = product.extendedData;
                     const vertexIds = _.pluck(vertices, 'id');
                     const edgeIds = _.pluck(edges, 'edgeId');
 
@@ -59,6 +59,32 @@ define([
             ajax('POST', '/product', { productId, preview: dataUrl })
         },
 
+        updateData: ({productId, key, value}) => (dispatch, getState) => {
+            const state = getState();
+            const workspaceId = state.workspace.currentId;
+            const params = {
+                data: {}
+            };
+            params.data[key] = value;
+            ajax('POST', '/product', {productId, params})
+                .then(() => {
+                    dispatch({type: 'PRODUCT_UPDATE_DATA', payload: {workspaceId, productId, key, value}});
+                });
+        },
+
+        updateExtendedData: ({productId, key, value}) => (dispatch, getState) => {
+            const state = getState();
+            const workspaceId = state.workspace.currentId;
+            const params = {
+                extendedData: {}
+            };
+            params.extendedData[key] = value;
+            ajax('POST', '/product', {productId, params})
+                .then(() => {
+                    dispatch({type: 'PRODUCT_UPDATE_EXTENDED_DATA', payload: {workspaceId, productId, key, value}});
+                });
+        },
+
         updateViewport: ({ productId, pan, zoom }) => (dispatch, getState) => dispatch({
             type: 'PRODUCT_UPDATE_VIEWPORT',
             payload: {
@@ -77,7 +103,7 @@ define([
                 dispatch({
                     type: 'PRODUCT_REMOVE_ELEMENTS',
                     payload: { elements: { vertexIds: removeVertices }, productId, workspaceId }
-                })
+                });
                 dispatch(selectionActions.remove({
                     selection: { vertices: removeVertices }
                 }));
@@ -88,7 +114,7 @@ define([
         },
 
         selectAll: ({ productId }) => (dispatch, getState) => {
-            var state = getState(),
+            const state = getState(),
                 workspaceId = state.workspace.currentId,
                 product = state.product.workspaces[workspaceId].products[productId];
 
@@ -102,8 +128,8 @@ define([
 
         list: ({ initialProductId }) => function handler(dispatch, getState) {
             const state = getState();
-            const workspaceId = state.workspace.currentId
-            const workspaceProduct = state.product.workspaces[workspaceId]
+            const workspaceId = state.workspace.currentId;
+            const workspaceProduct = state.product.workspaces[workspaceId];
 
             if (!workspaceId) {
                 _.delay(handler, 250, dispatch, getState);
@@ -111,10 +137,10 @@ define([
             }
 
             if (!workspaceProduct || (!workspaceProduct.loaded && !workspaceProduct.loading)) {
-                dispatch({ type: 'PRODUCT_LIST', payload: { loading: true, loaded: false, workspaceId } })
+                dispatch({ type: 'PRODUCT_LIST', payload: { loading: true, loaded: false, workspaceId } });
                 ajax('GET', '/product/all').then(({types, products}) => {
-                    dispatch({type: 'PRODUCT_UPDATE_TYPES', payload: { types }})
-                    dispatch({type: 'PRODUCT_LIST', payload: { workspaceId, loading: false, loaded: true, products }})
+                    dispatch({type: 'PRODUCT_UPDATE_TYPES', payload: { types }});
+                    dispatch({type: 'PRODUCT_LIST', payload: { workspaceId, loading: false, loaded: true, products }});
                     if (initialProductId) {
                         dispatch(api.select({ productId: initialProductId }))
                     } else if (!getState().product.workspaces[workspaceId].selected) {
@@ -125,12 +151,11 @@ define([
         },
 
         create: ({title, kind}) => (dispatch, getState) => {
-            const products = selectors.getProducts(getState())
-            const shouldSelectProduct = _.isEmpty(products);
+            const products = selectors.getProducts(getState());
 
             ajax('POST', '/product', { title, kind })
                 .then(product => {
-                    dispatch(api.update(product))
+                    dispatch(api.update(product));
                     dispatch(api.select({ productId: product.id }))
                 })
         },
@@ -149,7 +174,7 @@ define([
             dispatch({
                 type: 'PRODUCT_UPDATE_TITLE',
                 payload: { productId, loading: true, workspaceId }
-            })
+            });
             ajax('POST', '/product', { title, kind, productId })
                 .then(result => {
                     dispatch({
@@ -192,7 +217,7 @@ define([
             })
         }
 
-    }
+    };
 
     return api;
-})
+});

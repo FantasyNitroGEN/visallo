@@ -3,6 +3,7 @@ package org.visallo.core.model.workspace;
 import org.visallo.core.model.properties.types.BooleanSingleValueVisalloProperty;
 import org.visallo.core.model.properties.types.StreamingVisalloProperty;
 import org.visallo.core.model.properties.types.StringSingleValueVisalloProperty;
+import org.visallo.core.model.properties.types.StringVisalloProperty;
 
 public class WorkspaceProperties {
     public static final String WORKSPACE_CONCEPT_IRI = "http://visallo.org/workspace#workspace";
@@ -23,6 +24,7 @@ public class WorkspaceProperties {
     public static final StringSingleValueVisalloProperty DASHBOARD_ITEM_CONFIGURATION = new StringSingleValueVisalloProperty("http://visallo.org/workspace#configuration");
 
     public static final StringSingleValueVisalloProperty PRODUCT_KIND = new StringSingleValueVisalloProperty("http://visallo.org/product#kind");
-    public static final StringSingleValueVisalloProperty PRODUCT_DATA = new StringSingleValueVisalloProperty("http://visallo.org/product#data");
+    public static final StringVisalloProperty PRODUCT_DATA = new StringVisalloProperty("http://visallo.org/product#data");
+    public static final StringVisalloProperty PRODUCT_EXTENDED_DATA = new StringVisalloProperty("http://visallo.org/product#extendedData");
     public static final StreamingVisalloProperty PRODUCT_PREVIEW_DATA_URL = new StreamingVisalloProperty("http://visallo.org/product#previewDataUrl");
 }

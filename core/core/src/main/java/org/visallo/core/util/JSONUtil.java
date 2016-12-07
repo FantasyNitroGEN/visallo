@@ -189,4 +189,12 @@ public class JSONUtil {
     public static Stream<Object> stream(JSONArray jsonArray) {
         return toList(jsonArray).stream();
     }
+
+    public static Stream<String> streamKeys(JSONObject data) {
+        List<String> keys = new ArrayList<>();
+        for (Object key : data.keySet()) {
+            keys.add("" + key);
+        }
+        return keys.stream();
+    }
 }

@@ -1,6 +1,10 @@
 package org.visallo.core.model.workspace.product;
 
+import org.json.JSONObject;
+import org.visallo.core.util.JSONUtil;
+
 import java.io.Serializable;
+import java.util.Map;
 
 public abstract class Product implements Serializable {
     static long serialVersionUID = 1L;
@@ -8,16 +12,16 @@ public abstract class Product implements Serializable {
     private final String workspaceId;
     private final String title;
     private final String kind;
-    private final String data;
-    private final String extendedData;
+    private final Map<String, Object> data;
+    private final Map<String, Object> extendedData;
     private final String previewImageMD5;
 
-    public Product(String id, String workspaceId, String kind, String title, String data, String extendedData, String md5) {
+    public Product(String id, String workspaceId, String kind, String title, JSONObject data, JSONObject extendedData, String md5) {
         this.id = id;
         this.workspaceId = workspaceId;
         this.kind = kind;
-        this.data = data;
-        this.extendedData = extendedData;
+        this.data = data == null ? null : JSONUtil.toMap(data);
+        this.extendedData = extendedData == null ? null : JSONUtil.toMap(extendedData);
         this.title = title;
         this.previewImageMD5 = md5;
     }
@@ -34,15 +38,15 @@ public abstract class Product implements Serializable {
         return kind;
     }
 
-    public String getData() {
-        return data;
-    }
-
     public String getTitle() {
         return title;
     }
 
-    public String getExtendedData() {
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public Map<String, Object> getExtendedData() {
         return extendedData;
     }
 

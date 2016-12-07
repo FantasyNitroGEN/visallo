@@ -23,11 +23,13 @@ import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.formula.FormulaEvaluator;
+import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.StringVisalloProperty;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
@@ -43,6 +45,7 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
+import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
@@ -854,12 +857,30 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return new VertexiumDashboard(dashboardVertex.getId(), workspaceId, title, items);
     }
 
-    private Product productVertexToProduct(String workspaceId, Vertex productVertex, Authorizations authorizations, JSONObject extendedData, User user) {
+    private Product productVertexToProduct(
+            String workspaceId,
+            Vertex productVertex,
+            boolean includeExtended,
+            JSONObject workProductExtendedData,
+            Authorizations authorizations,
+            User user
+    ) {
         String title = WorkspaceProperties.TITLE.getPropertyValue(productVertex);
         String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
-        String data = WorkspaceProperties.PRODUCT_DATA.getPropertyValue(productVertex);
-        String extendedDataStr = extendedData == null ? null : extendedData.toString();
+        JSONObject data = getProductDataJson(productVertex);
+        JSONObject extendedData = includeExtended ? getProductExtendedDataJson(productVertex, workProductExtendedData) : null;
+        String md5 = getProductPreviewDataMd5(productVertex, user);
 
+        // Don't use current workspace, use the product workspace.
+        List<EdgeInfo> edgeInfos = Lists.newArrayList(productVertex.getEdgeInfos(Direction.BOTH, WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI, authorizations));
+        if (edgeInfos.size() > 0) {
+            workspaceId = edgeInfos.get(0).getVertexId();
+        }
+
+        return new VertexiumProduct(productVertex.getId(), workspaceId, title, kind, data, extendedData, md5);
+    }
+
+    private String getProductPreviewDataMd5(Vertex productVertex, User user) {
         Property previewDataUrlProperty = WorkspaceProperties.PRODUCT_PREVIEW_DATA_URL.getProperty(productVertex, user.getUserId());
         String md5 = null;
         if (previewDataUrlProperty != null) {
@@ -868,14 +889,27 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 md5 = (String) entry.getValue();
             }
         }
+        return md5;
+    }
 
-        // Don't use current workspace, use the product workspace.
-        List<EdgeInfo> edgeInfos = Lists.newArrayList(productVertex.getEdgeInfos(Direction.BOTH, WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI, authorizations));
-        if (edgeInfos.size() > 0) {
-            workspaceId = edgeInfos.get(0).getVertexId();
+    private JSONObject getProductDataJson(Vertex productVertex) {
+        JSONObject data = new JSONObject();
+        Iterable<Property> dataProperties = WorkspaceProperties.PRODUCT_DATA.getProperties(productVertex);
+        for (Property dataProperty : dataProperties) {
+            data.put(dataProperty.getKey(), dataProperty.getValue());
         }
+        return data;
+    }
 
-        return new VertexiumProduct(productVertex.getId(), workspaceId, title, kind, data, extendedDataStr, md5);
+    private JSONObject getProductExtendedDataJson(Vertex productVertex, JSONObject extendedData) {
+        if (extendedData == null) {
+            extendedData = new JSONObject();
+        }
+        Iterable<Property> extendedDataProperties = WorkspaceProperties.PRODUCT_EXTENDED_DATA.getProperties(productVertex);
+        for (Property extendedDataProperty : extendedDataProperties) {
+            extendedData.put(extendedDataProperty.getKey(), JSONUtil.parseObject(extendedDataProperty.getValue()));
+        }
+        return extendedData;
     }
 
     @Override
@@ -949,7 +983,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 authorizations
         );
         return stream(productVertices)
-                .map(productVertex -> productVertexToProduct(workspaceId, productVertex, authorizations, null, user))
+                .map(productVertex -> productVertexToProduct(workspaceId, productVertex, false, null, authorizations, user))
                 .collect(Collectors.toList());
 
     }
@@ -1003,7 +1037,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
         getWorkQueueRepository().broadcastWorkProductPreviewChange(productVertex.getId(), workspaceId, user, preview == null ? null : preview.getMD5());
 
-        return productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
+        return productVertexToProduct(workspaceId, productVertex, false, null, authorizations, user);
     }
 
     @Override
@@ -1041,6 +1075,13 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 }
                 if (kind != null) {
                     WorkspaceProperties.PRODUCT_KIND.updateProperty(elemCtx, kind, visibility);
+                }
+                if (productId == null) {
+                    WorkspaceProperties.PRODUCT_KIND.setProperty(elemCtx.getMutation(), kind, visibility);
+                }
+                if (params != null) {
+                    updateProductData(elemCtx, WorkspaceProperties.PRODUCT_DATA, params.optJSONObject("data"));
+                    updateProductData(elemCtx, WorkspaceProperties.PRODUCT_EXTENDED_DATA, params.optJSONObject("extendedData"));
                 }
             }).get();
 
@@ -1080,12 +1121,24 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
         getWorkQueueRepository().broadcastWorkProductChange(productVertex.getId(), userWorkspace, user, skipSourceId);
 
-        Product product = productVertexToProduct(workspaceId, productVertex, authorizations, null, user);
+        Product product = productVertexToProduct(workspaceId, productVertex, false, null, authorizations, user);
         if (isNew.get()) {
             fireWorkspaceAddProduct(product, user);
         }
         fireWorkspaceProductUpdated(product, params, user);
         return product;
+    }
+
+    private void updateProductData(ElementUpdateContext<Vertex> elemCtx, StringVisalloProperty property, JSONObject data) {
+        if (data == null) {
+            return;
+        }
+        Visibility visibility = VISIBILITY.getVisibility();
+        Metadata metadata = new Metadata();
+        JSONUtil.streamKeys(data).forEach(key -> {
+            String value = data.get(key).toString();
+            property.updateProperty(elemCtx, key, value, metadata, visibility);
+        });
     }
 
     public void deleteProduct(String workspaceId, String productId, User user) {
@@ -1186,7 +1239,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             extendedData = workProduct.getExtendedData(getGraph(), getVertex(workspaceId, user), productVertex, params, user, authorizations);
         }
 
-        return productVertexToProduct(workspaceId, productVertex, authorizations, extendedData, user);
+        return productVertexToProduct(workspaceId, productVertex, includeExtended, extendedData, authorizations, user);
     }
 
     private ProductPreview getProductPreviewFromUrl(String url) {

@@ -92,7 +92,7 @@ define([
                     }).then(product => {
                         dispatch(productActions.update(product));
 
-                        const { edges } = JSON.parse(product.extendedData)
+                        const { edges } = product.extendedData;
                         const vertexIds = Object.keys(updateVertices);
                         const edgeIds = _.pluck(edges, 'edgeId');
                         dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
