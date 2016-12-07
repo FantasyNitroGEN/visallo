@@ -33,43 +33,13 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-            config.template = 'propertyInfo/template';
-            config.isFullscreen = visalloData.isFullscreen;
-            if (config.property) {
-
-                config.isComment = config.property.name === 'http://visallo.org/comment#entry';
-                config.canAdd = config.canEdit = config.canDelete = false;
-
-                var allPropertyAcls = acl.getPropertyAcls(config.data);
-                var propertyAcl = acl.findPropertyAcl(allPropertyAcls, config.property.name, config.property.key);
-
-                if (config.isComment && visalloData.currentWorkspaceCommentable) {
-                    config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
-                    config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
-                    config.canDelete = config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false;
-                } else if (!config.isComment && visalloData.currentWorkspaceEditable) {
-                    config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
-                    config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
-                    config.canDelete = config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false &&
-                        config.property.name !== 'http://visallo.org#visibilityJson';
-                }
-
-                var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
-                    config.ontologyProperty.dependentPropertyIris.length;
-
-                config.canSearch = config.ontologyProperty &&
-                    (config.ontologyProperty.searchable || isCompoundField) &&
-                    !config.isFullscreen;
-
-                if (config.property.streamingPropertyValue) {
-                    config.canAdd = config.canDelete = config.canSearch = false;
-                }
-            }
-            config.hideDialog = true;
+            config.manualSetup = true;
         });
 
         this.after('initialize', function() {
             var self = this;
+
+            this.setupConfig(this.attr);
 
             this.after('setupWithTemplate', function() {
                 this.dataRequest('config', 'properties')
@@ -108,6 +78,50 @@ define([
                     });
             });
         });
+
+        this.setupConfig = function(config) {
+            config.template = 'propertyInfo/template';
+            config.isFullscreen = visalloData.isFullscreen;
+
+            acl.getPropertyAcls(config.data)
+                .then((propertyAcls) => {
+                    if (config.property) {
+                        config.isComment = config.property.name === 'http://visallo.org/comment#entry';
+                        config.isVisibility = config.property.name === 'http://visallo.org#visibilityJson';
+                        config.canAdd = config.canEdit = config.canDelete = false;
+
+                        var propertyAcl = config.isVisibility ? config.ontologyProperty :
+                            acl.findPropertyAcl(propertyAcls, config.property.name, config.property.key);
+
+                        if (config.isComment && visalloData.currentWorkspaceCommentable) {
+                            config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
+                            config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
+                            config.canDelete = config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false;
+                        } else if (!config.isComment && visalloData.currentWorkspaceEditable) {
+                            config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
+                            config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
+                            config.canDelete = (config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false) &&
+                                !config.isVisibility;
+                        }
+
+                        var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
+                            config.ontologyProperty.dependentPropertyIris.length;
+
+                        config.canSearch = config.ontologyProperty &&
+                            (config.ontologyProperty.searchable || isCompoundField) &&
+                            !config.isFullscreen;
+
+                        if (config.property.streamingPropertyValue) {
+                            config.canAdd = config.canDelete = config.canSearch = false;
+                        }
+
+                    }
+
+                    config.hideDialog = true;
+
+                    this.attr.finishSetup();
+            });
+        };
 
         this.onEscapeKey = function() {
             this.teardown();

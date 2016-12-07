@@ -12,8 +12,9 @@ define([], function() {
         this.defaultAttrs({
             withPopoverInputSelector: 'input,select',
             hideDialog: false,
-            keepInView: true
-        })
+            keepInView: true,
+            manualSetup: false
+        });
 
         this.before('teardown', function() {
             clearTimeout(this.positionChangeErrorCheck);
@@ -27,16 +28,28 @@ define([], function() {
         });
 
         this.after('initialize', function() {
-            var t = this.attr.template || 'noTemplate',
-                path;
+            const self = this;
 
-            if (/^\//.test(t)) {
-                path = 'hbs!' + t.substring(1);
-            } else {
-                path = 'hbs!util/popovers/' + t;
+            this.attr.finishSetup = () => {
+                return require([getTemplatePath()], this.setupWithTemplate.bind(this));
+            };
+
+            if (!this.attr.manualSetup) {
+                this.attr.finishSetup();
             }
 
-            require([path], this.setupWithTemplate.bind(this));
+            function getTemplatePath() {
+                const t = self.attr.template || 'noTemplate';
+                let path;
+
+                if (/^\//.test(t)) {
+                    path = 'hbs!' + t.substring(1);
+                } else {
+                    path = 'hbs!util/popovers/' + t;
+                }
+
+                return path;
+            }
         });
 
         this.setupWithTemplate = function(tpl) {
