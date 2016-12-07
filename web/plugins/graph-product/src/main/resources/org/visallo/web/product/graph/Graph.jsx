@@ -553,7 +553,6 @@ define([
                 data = product.extendedData,
                 { vertices, edges } = data;
                 const nodeIds = {};
-                const deletedVertexIds = [];
                 const cyNodes = _.compact(_.flatten(
                     vertices.map(({ id, pos }) => {
                         const data = mapVertexToData(id, elementVertices,
@@ -576,7 +575,6 @@ define([
                         if (id in elementVertices) {
                             const markedAsDeleted = elementVertices[id] === null;
                             if (markedAsDeleted) {
-                                deletedVertexIds.push(id);
                                 return;
                             }
                             const vertex = elementVertices[id];
@@ -644,10 +642,6 @@ define([
                         }
                     })
                     .value()
-
-            if (deletedVertexIds.length) {
-                this.props.onRemoveElementIds({ vertexIds: deletedVertexIds })
-            }
 
             return { nodes: cyNodes, edges: cyEdges };
         },
