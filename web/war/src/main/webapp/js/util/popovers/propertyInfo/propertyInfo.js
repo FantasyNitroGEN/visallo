@@ -87,9 +87,11 @@ define([
                 .then((propertyAcls) => {
                     if (config.property) {
                         config.isComment = config.property.name === 'http://visallo.org/comment#entry';
+                        config.isVisibility = config.property.name === 'http://visallo.org#visibilityJson';
                         config.canAdd = config.canEdit = config.canDelete = false;
 
-                        var propertyAcl = acl.findPropertyAcl(propertyAcls, config.property.name, config.property.key);
+                        var propertyAcl = config.isVisibility ? config.ontologyProperty :
+                            acl.findPropertyAcl(propertyAcls, config.property.name, config.property.key);
 
                         if (config.isComment && visalloData.currentWorkspaceCommentable) {
                             config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
@@ -99,7 +101,7 @@ define([
                             config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
                             config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
                             config.canDelete = (config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false) &&
-                                config.property.name !== 'http://visallo.org#visibilityJson';
+                                !config.isVisibility;
                         }
 
                         var isCompoundField = config.ontologyProperty && config.ontologyProperty.dependentPropertyIris &&
