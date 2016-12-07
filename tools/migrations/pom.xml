@@ -4,23 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
+        <artifactId>visallo-tools-group</artifactId>
         <groupId>org.visallo</groupId>
-        <artifactId>visallo</artifactId>
         <version>3.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>visallo-tools-group</artifactId>
+    <artifactId>visallo-tools-migrations</artifactId>
     <packaging>pom</packaging>
+    <name>Visallo: Tools: Migrations</name>
 
-    <name>Visallo: Tools</name>
-	
-	<modules>
-        <module>cli</module>
-        <module>import</module>
-        <module>ontology-ingest</module>
-        <module>owl</module>
-        <module>rdf-import</module>
-        <module>reindex</module>
-        <module>migrations</module>
+    <modules>
+        <module>workspace-to-workproduct</module>
     </modules>
 </project>
