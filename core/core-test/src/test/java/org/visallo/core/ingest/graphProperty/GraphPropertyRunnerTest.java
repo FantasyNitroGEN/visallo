@@ -18,6 +18,8 @@ import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.StatusRepository;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -276,6 +278,7 @@ public class GraphPropertyRunnerTest {
         when(prop.getName()).thenReturn(name);
         when(prop.getKey()).thenReturn(key);
         when(prop.getValue()).thenReturn(value);
+        when(prop.getVisibility()).thenReturn(Visibility.EMPTY);
         return prop;
     }
 
@@ -285,8 +288,12 @@ public class GraphPropertyRunnerTest {
         when(v.getId()).thenReturn(id);
         when(v.getProperties()).thenReturn(propList);
         for (Property property : properties) {
-            when(v.getProperty(property.getKey(), property.getName())).thenReturn(property);
-            when(v.getProperty(property.getName())).thenReturn(property);
+            String key = property.getKey();
+            String name = property.getName();
+            when(v.getProperty(key, name)).thenReturn(property);
+            when(v.getProperty(name)).thenReturn(property);
+            when(v.getProperties(name)).thenReturn(Collections.singletonList(property));
+            when(v.getProperties(key, name)).thenReturn(Collections.singletonList(property));
         }
 
         return v;

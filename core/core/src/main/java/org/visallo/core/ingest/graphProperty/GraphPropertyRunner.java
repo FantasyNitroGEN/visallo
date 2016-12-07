@@ -2,6 +2,7 @@ package org.visallo.core.ingest.graphProperty;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.google.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -29,10 +30,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vertexium.util.IterableUtils.toList;
@@ -310,27 +308,43 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private void safeExecuteHandlePropertyOnElements(GraphPropertyWorkerItem workerItem) throws Exception {
         GraphPropertyMessage message = workerItem.getMessage();
         for (Element element : workerItem.getElements()) {
-            Property property = null;
-            if (StringUtils.isNotEmpty(message.getPropertyKey()) || StringUtils.isNotEmpty(message.getPropertyName())) {
-                if (message.getPropertyKey() == null) {
-                    property = element.getProperty(message.getPropertyName());
-                } else {
-                    property = element.getProperty(message.getPropertyKey(), message.getPropertyName());
-                }
+            Property property = getProperty(element, message);
 
-                if (property == null) {
-                    LOGGER.error(
-                            "Could not find property [%s]:[%s] on vertex with id %s",
-                            message.getPropertyKey(),
-                            message.getPropertyName(),
-                            element.getId()
-                    );
-                    continue;
-                }
+            if (property != null) {
+                safeExecuteHandlePropertyOnElement(element, property, message);
+            } else {
+                LOGGER.error(
+                        "Could not find property [%s]:[%s] on vertex with id %s",
+                        message.getPropertyKey(),
+                        message.getPropertyName(),
+                        element.getId()
+                );
             }
-
-            safeExecuteHandlePropertyOnElement(element, property, message);
         }
+    }
+
+    private Property getProperty(Element element, GraphPropertyMessage message) {
+        if (message.getPropertyName() == null) {
+            return null;
+        }
+
+        Iterable<Property> properties;
+
+        if (message.getPropertyKey() == null) {
+            properties = element.getProperties(message.getPropertyName());
+        } else {
+            properties = element.getProperties(message.getPropertyKey(), message.getPropertyName());
+        }
+
+        Property result = null;
+        for (Property property : properties) {
+            if (message.getWorkspaceId() != null && property.getVisibility().hasAuthorization(message.getWorkspaceId())) {
+                result = property;
+            } else if (result == null) {
+                result = property;
+            }
+        }
+        return result;
     }
 
     private void safeExecuteHandlePropertyOnElement(
