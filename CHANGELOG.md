@@ -7,8 +7,10 @@ v3.0.0
 
 ## Added
 
+* Added route to get saved search on workspace
 * Add map configuration UI with [`org.visallo.map.options`](http://docs.visallo.org/extension-points/front-end/mapOptions/) extension point
 * Graph and Map are now &#34;Case Work Products&#34; within a workspace. Multiple of each type can be created within one workspace.
+
 
 ## Changed
 
@@ -31,6 +33,10 @@ v3.0.0
 
 ## Fixed
 
+* Delete the product vertices when deleting the workspace vertex
+* Fix issue where decorations would not position correctly after vertex update
+* Fix SearchHelper switching after workspace search removed
+* GPW streaming value temp file creation with invalid path char
 * Added listeners to update the card locations on the server since there were certain instances in which the card locations were not updated and saved to the server.
 * After a successful logout, a &#39;Server is not available&#39; message would appear.
 * Find related properties missing
@@ -46,6 +52,8 @@ v3.0.0
 
 ## Removed
 
+* `active` property is no longer included in `workspace/all` response for easy change tracking
+* `pluginDevMode` is no longer available. Turn off compilation on a per-file basis with `registerCompiledJavaScript` or `skipCompile`
 * Add to Workspace URL scheme has been removed as entities can&#39;t be added to a workspace.
 * Statistics aggregation option in saved search dashboard cards. This aggregation type will be reworked in a future release.
 * Workspace search is removed since workspaces don&#39;t have entities
