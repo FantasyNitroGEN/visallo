@@ -412,7 +412,7 @@ define([
                             'workspaces/userAccount/userAccount'
                         ], function(modalTemplate, UserAccount) {
                             var modal = $(modalTemplate({
-                                displayName: visalloData.currentUser.displayName
+                                userName: visalloData.currentUser.userName
                             })).appendTo(document.body);
                             UserAccount.attachTo(modal);
                             modal.modal('show');
