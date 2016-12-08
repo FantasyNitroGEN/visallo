@@ -24,5 +24,6 @@
         <module>change-password</module>
         <module>graph-product</module>
         <module>map-product</module>
+        <module>table</module>
     </modules>
 </project>
