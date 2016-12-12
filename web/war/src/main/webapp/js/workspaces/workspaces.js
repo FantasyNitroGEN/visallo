@@ -83,7 +83,7 @@ define([
                 title = $.trim($input.val());
 
             if (!title) return;
-            if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, title.toLowerCase())) {
+            if (this.workspaceTitles && this.workspaceTitles.includes(title.toLowerCase())) {
                 this.select('addNewInputSelector').addClass('invalid');
                 this.select('titleErrorSelector').show();
                 return;
@@ -111,8 +111,8 @@ define([
         };
 
         this.onInputKeyUp = function(event) {
-            var $title = $(this.attr.addNewInputSelector).val();
-            if (this.workspaceTitlesLowercase && _.contains(this.workspaceTitlesLowercase, $title.toLowerCase())) {
+            var title = $(this.attr.addNewInputSelector).val();
+            if (this.workspaceTitles && this.workspaceTitles.includes(title.toLowerCase())) {
                 this.select('addNewInputSelector').addClass('invalid');
                 this.select('titleErrorSelector').show();
             } else {
@@ -156,7 +156,7 @@ define([
             var workspace = _.findWhere(self.workspaces, { workspaceId: data.workspaceId })
             WorkspaceForm.attachTo(form.empty(), {
                 data: workspace,
-                workspaceTitlesLowercase: self.workspaceTitlesLowercase || [],
+                workspaceTitles: self.workspaceTitles || [],
                 currentWorkspaceTitle: workspace.title
             });
 
@@ -254,14 +254,6 @@ define([
                     .unique()
                     .value(),
                 workspacesGrouped = _.chain(workspaces)
-                        .tap(function(workspaces) {
-                            self.workspaceTitlesLowercase = _.chain(workspaces)
-                                .where({ sharedToUser: false })
-                                .map(function(w) {
-                                    return w.title.toLowerCase();
-                                })
-                                .value();
-                        })
                         .sortBy('workspaceId')
                         .sortBy('createdBy')
                         .sortBy(function(w) {
@@ -334,6 +326,7 @@ define([
                     };
                 };
 
+            this.workspaceTitles = workspacesGrouped.mine.map((workspace) => workspace.title.toLowerCase());
             this.workspaces = workspaces;
 
             return Promise.all([

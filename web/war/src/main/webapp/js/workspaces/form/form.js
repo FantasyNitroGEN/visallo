@@ -223,7 +223,7 @@ define([
                 return;
             }
 
-            if (_.contains(this.attr.workspaceTitlesLowercase, val.toLowerCase()) &&
+            if (this.attr.workspaceTitles.includes(val.toLowerCase()) &&
                 val.toLowerCase() !== this.attr.currentWorkspaceTitle.toLowerCase()) {
                 this.select('titleSelector').addClass('invalid');
                 this.select('titleErrorSelector').show();
