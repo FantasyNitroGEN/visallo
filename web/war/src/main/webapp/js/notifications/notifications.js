@@ -171,7 +171,7 @@ define([
 
             this.stack = _.reject(this.stack, function(n) {
                 if (n.collapsedIds) {
-                    return _.contains(n.collapsedIds, n.id);
+                    return _.contains(n.collapsedIds, notification.id);
                 }
                 return n.id === notification.id;
             });
