@@ -1,11 +1,15 @@
 package org.visallo.web.product.graph;
 
 import com.v5analytics.webster.Handler;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
 import org.visallo.web.WebApp;
 import org.visallo.web.WebAppPlugin;
 
 import javax.servlet.ServletContext;
 
+@Name("Product: Graph")
+@Description("Graph visualization")
 public class GraphWebAppPlugin implements WebAppPlugin {
     @Override
     public void init(WebApp app, ServletContext servletContext, Handler authenticationHandler) {
