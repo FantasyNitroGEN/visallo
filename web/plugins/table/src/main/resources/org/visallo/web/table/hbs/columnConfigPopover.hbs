@@ -1,0 +1,36 @@
+<div class="com-visallo-table-columnconfig popover top">
+  <div class="arrow"></div>
+  <div class="popover-title">
+      <div class="tableOption">
+        <input type="checkbox" class="select-all">
+        {{ i18n 'com.visallo.table.config_columns.title' }}
+      </div>
+      <div class="tableOption">
+          <input type="checkbox" class="row-numbers" {{#if showRowNumbers}}checked{{/if}}>
+          {{ i18n 'com.visallo.table.config_columns.row.numbers' }}
+      </div>
+      {{#if sortConfig.isCompoundProperty}}
+      <div class="tableOption sort-config">
+          <strong>{{ sortConfig.property }}</strong>
+          <span>{{ i18n 'com.visallo.table.config_columns.sort.by' }}</span>
+          <select class="sort-property-select">
+              {{#each sortConfig.dependentProperties}}
+                  <option value="{{ this.displayName }}" {{#if this.active}}selected{{/if}}>{{ this.displayName }}</option>
+              {{/each}}
+          </select>
+      </div>
+      {{/if}}
+  </div>
+  <div class="popover-content">
+    <ul>
+      {{#each columns}}
+      <li title="{{ displayName }}">
+        <label>
+          <input type="checkbox" value="{{ title }}" {{#if visible}}checked{{/if}}>
+          {{ displayName }}
+        </label>
+      </li>
+      {{/each}}
+    </ul>
+  </div>
+</div>
