@@ -58,6 +58,19 @@ v3.0.0
 * Statistics aggregation option in saved search dashboard cards. This aggregation type will be reworked in a future release.
 * Workspace search is removed since workspaces don&#39;t have entities
 
+v2.2.2
+==================
+
+## Changed
+
+* User account management modal to use an user’s display name rather
+  than username
+
+## Fixed
+
+* Prevent notification groups to get dismissed inadvertently
+* Property info popover not opening when clicking on another user’s
+  comment.
 
 v2.2.1
 ==================
