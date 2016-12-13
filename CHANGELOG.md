@@ -5,6 +5,20 @@ v3.1.0
 v3.0.0
 ==================
 
+v2.2.2
+==================
+
+## Changed
+
+* User account management modal to use an user’s display name rather
+  than username
+
+## Fixed
+
+* Prevent notification groups to get dismissed inadvertently
+* Property info popover not opening when clicking on another user’s
+  comment.
+
 v2.2.1
 ==================
 
