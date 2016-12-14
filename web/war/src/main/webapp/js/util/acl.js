@@ -3,6 +3,12 @@ define([
 ], function(withDataRequest) {
     'use strict';
 
+    const ACL_ALLOW_ALL = {
+        addable: true,
+        updateable: true,
+        deleteable: true
+    };
+
     return {
         getPropertyAcls: function(element) {
             const elements = Array.isArray(element) ? element : [element];
@@ -66,7 +72,7 @@ define([
             if (props.length === 0) {
                 var propsByName = _.where(propertiesAcl, { name: propName, key: null });
                 if (propsByName.length === 0) {
-                    throw new Error('no ACL property defined "' + propName + ':' + propKey + '"');
+                    propsByName.push({ name: propName, key: propKey, ...ACL_ALLOW_ALL });
                 }
                 props = propsByName;
             }
