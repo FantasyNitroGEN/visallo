@@ -1,5 +1,15 @@
 
-#v2.1.2
+v2.1.3
+==================
+
+## Fixed
+
+* Admin user tools would show errors when trying to load a user's roles.
+* Property info popover not opening for a relationship's visibility property.
+* Graph Property Workers now pull workspace specific property to run when appropriate
+
+
+v2.1.2
 ==================
 
 ## Fixed
@@ -9,7 +19,7 @@
   comparing with triple equals.
 
 
-#v2.1.1
+v2.1.1
 ==================
 
 ## Changed
