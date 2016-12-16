@@ -340,9 +340,9 @@ public class FileImport {
             VisalloProperty prop = ontologyProperty.getVisalloProperty();
             VisibilityJson propertyVisibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, property.getVisibilitySource(), workspace == null ? null : workspace.getWorkspaceId());
             VisalloVisibility propertyVisibility = visibilityTranslator.toVisibility(propertyVisibilityJson);
-            PropertyMetadata propMetadata = new PropertyMetadata(user, visibilityJson, propertyVisibility.getVisibility());
+            PropertyMetadata propMetadata = new PropertyMetadata(user, visibilityJson, visibilityTranslator.getDefaultVisibility());
             for (Map.Entry<String, Object> metadataEntry : property.getMetadata().entrySet()) {
-                propMetadata.add(metadataEntry.getKey(), metadataEntry.getValue(), propertyVisibility.getVisibility());
+                propMetadata.add(metadataEntry.getKey(), metadataEntry.getValue(), visibilityTranslator.getDefaultVisibility());
             }
             //noinspection unchecked
             prop.updateProperty(changedProperties, null, vertexBuilder, property.getKey(), value, propMetadata);
