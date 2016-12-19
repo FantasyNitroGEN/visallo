@@ -149,7 +149,7 @@
         <plugin.sonar.version>4.0</plugin.sonar.version>
         <plugin.taglist.version>2.4</plugin.taglist.version>
         <plugin.template.resgen.version>0.11</plugin.template.resgen.version>
-        <plugin.frontend>1.2</plugin.frontend>
+        <plugin.frontend>1.3</plugin.frontend>
         <maven.plugin.gpg.version>1.6</maven.plugin.gpg.version>
 
         <!-- Node Properties -->
