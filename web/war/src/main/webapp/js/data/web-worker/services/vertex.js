@@ -36,6 +36,10 @@ define([
                 params.q = q;
             }
 
+            if (!_.isUndefined(options.includeChildNodes)) {
+                params.includeChildNodes = options.includeChildNodes;
+            }
+
             if (options.otherFilters) {
                 _.each(options.otherFilters, function(value, key, options) {
                     if (key === 'url') {

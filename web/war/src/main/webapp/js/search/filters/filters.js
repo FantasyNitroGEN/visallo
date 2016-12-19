@@ -38,6 +38,7 @@ define([
             removeEntityRowSelector: '.entity-filters button.remove',
             removeExtensionRowSelector: '.extension-filters button.remove',
             matchTypeSelector: '.match-types input',
+            childNodesSelector: '.child-nodes input',
             extensionsSelector: '.extension-filters',
             filterItemsSelector: '.prop-filters .filter',
             conceptDropdownSelector: '.concepts-dropdown',
@@ -63,7 +64,8 @@ define([
                 showMatchType: this.attr.supportsMatch !== false,
                 showConceptFilter: this.attr.match === 'vertex',
                 showEdgeFilter: this.attr.match === 'edge',
-                showSorting: this.attr.supportsSorting
+                showSorting: this.attr.supportsSorting,
+                includeChildNodes: true
             }));
 
             this.on('filterItemChanged', this.onFilterItemChanged);
@@ -83,7 +85,8 @@ define([
                 }
             })
             this.on('change', {
-                matchTypeSelector: this.onChangeMatchType
+                matchTypeSelector: this.onChangeMatchType,
+                childNodesSelector: this.onChangeIncludeChildNodes
             })
             this.on('conceptSelected', this.onConceptChange);
             this.on('relationshipSelected', this.onEdgeTypeChange);
@@ -299,6 +302,13 @@ define([
             }
         };
 
+        this.setIncludeChildNodes = function(include) {
+            include = include !== undefined ? include : true;
+            this.select('childNodesSelector').prop('checked', include);
+            this.includeChildNodes = include;
+            this.notifyOfFilters();
+        };
+
         this.setMatchType = function(type) {
             var self = this;
 
@@ -307,7 +317,8 @@ define([
             this.$node.find('.match-type-edge').closest('label').andSelf()
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
-            this.select('edgeLabelFilterSelector').toggle(type === 'edge' || self.otherFilters.relatedToVertexIds);
+            this.$node.find('.child-nodes').toggle(type === 'vertex');
+            this.select('edgeLabelFilterSelector').toggle(self.otherFilters.relatedToVertexIds || type === 'edge');
             if (this.matchType === 'vertex') {
                 this.setConceptFilter(this.conceptFilter);
             } else {
@@ -369,6 +380,10 @@ define([
         this.onChangeMatchType = function(event, data) {
             this.setMatchType($(event.target).val());
         };
+
+        this.onChangeIncludeChildNodes = function(event, data) {
+            this.setIncludeChildNodes(($(event.target).prop('checked')));
+        }
 
         this.onConceptChange = function(event, data) {
             this.setConceptFilter(data.concept && data.concept.id || '');
@@ -442,6 +457,7 @@ define([
                     edgeLabelFilter: this.edgeLabelFilter,
                     sortFields: this.currentSort,
                     matchType: this.matchType,
+                    includeChildNodes: this.includeChildNodes,
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
                             var ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
@@ -561,6 +577,9 @@ define([
                 })
                 .then(function() {
                     return self.setMatchType((/edge/).test(data.url) ? 'edge' : 'vertex');
+                })
+                .then(function() {
+                    return self.setIncludeChildNodes(data.parameters.includeChildNodes);
                 })
                 .then(function() {
                     return self.setConceptFilter(data.parameters.conceptType);
