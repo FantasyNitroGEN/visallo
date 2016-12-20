@@ -19,6 +19,7 @@ public class GraphPropertyWorkData {
     private final String workspaceId;
     private final String visibilitySource;
     private final Priority priority;
+    private final boolean traceEnabled;
     private File localFile;
     private long beforeActionTimestamp;
     private ElementOrPropertyStatus status;
@@ -29,7 +30,8 @@ public class GraphPropertyWorkData {
             Property property,
             String workspaceId,
             String visibilitySource,
-            Priority priority
+            Priority priority,
+            boolean traceEnabled
     ) {
         checkNotNull(priority, "priority cannot be null");
         this.visibilityTranslator = visibilityTranslator;
@@ -38,6 +40,7 @@ public class GraphPropertyWorkData {
         this.workspaceId = workspaceId;
         this.visibilitySource = visibilitySource;
         this.priority = priority;
+        this.traceEnabled = traceEnabled;
     }
 
     public GraphPropertyWorkData(
@@ -47,6 +50,7 @@ public class GraphPropertyWorkData {
             String workspaceId,
             String visibilitySource,
             Priority priority,
+            boolean traceEnabled,
             long beforeActionTimestamp,
             ElementOrPropertyStatus status
     ) {
@@ -59,6 +63,7 @@ public class GraphPropertyWorkData {
         this.priority = priority;
         this.beforeActionTimestamp = beforeActionTimestamp;
         this.status = status;
+        this.traceEnabled = traceEnabled;
     }
 
     public Element getElement() {
@@ -99,6 +104,10 @@ public class GraphPropertyWorkData {
 
     public ElementOrPropertyStatus getPropertyStatus() {
         return status;
+    }
+
+    public boolean isTraceEnabled() {
+        return traceEnabled;
     }
 
     // TODO this is a weird method. I'm not sure what this should be used for
@@ -153,6 +162,7 @@ public class GraphPropertyWorkData {
                 ", property=" + property +
                 ", workspaceId='" + workspaceId + '\'' +
                 ", priority=" + priority +
+                ", traceEnabled=" + traceEnabled +
                 ", status=" + status +
                 '}';
     }

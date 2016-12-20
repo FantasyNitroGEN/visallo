@@ -75,7 +75,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         InputStream in = new ByteArrayInputStream(data.getBytes());
         Vertex vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         Property property = vertex.getProperty(VisalloProperties.RAW.getPropertyName());
-        GraphPropertyWorkData workData = new GraphPropertyWorkData(getVisibilityTranslator(), vertex, property, null, null, Priority.NORMAL);
+        GraphPropertyWorkData workData = new GraphPropertyWorkData(getVisibilityTranslator(), vertex, property, null, null, Priority.NORMAL, false);
         gpw.execute(in, workData);
 
         vertex = getGraph().getVertex("v1", getGraphAuthorizations());

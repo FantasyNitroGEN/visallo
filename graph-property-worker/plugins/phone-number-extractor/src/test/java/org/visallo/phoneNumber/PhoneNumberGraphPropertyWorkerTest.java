@@ -45,7 +45,7 @@ public class PhoneNumberGraphPropertyWorkerTest extends GraphPropertyWorkerTestS
         Vertex vertex = vertexBuilder.save(authorizations);
 
         Property property = vertex.getProperty(VisalloProperties.TEXT.getPropertyName());
-        GraphPropertyWorkData workData = new GraphPropertyWorkData(visibilityTranslator, vertex, property, null, null, Priority.NORMAL);
+        GraphPropertyWorkData workData = new GraphPropertyWorkData(visibilityTranslator, vertex, property, null, null, Priority.NORMAL, false);
         in = asStream(PHONE_TEXT);
         worker.execute(in, workData);
 
@@ -82,7 +82,7 @@ public class PhoneNumberGraphPropertyWorkerTest extends GraphPropertyWorkerTestS
         Vertex vertex = vertexBuilder.save(authorizations);
 
         Property property = vertex.getProperty(VisalloProperties.TEXT.getPropertyName());
-        GraphPropertyWorkData workData = new GraphPropertyWorkData(visibilityTranslator, vertex, property, WORKSPACE_ID, VISIBILITY_SOURCE, Priority.NORMAL);
+        GraphPropertyWorkData workData = new GraphPropertyWorkData(visibilityTranslator, vertex, property, WORKSPACE_ID, VISIBILITY_SOURCE, Priority.NORMAL, false);
         in = asStream(PHONE_NEW_LINES);
         worker.execute(in, workData);
 
@@ -118,7 +118,7 @@ public class PhoneNumberGraphPropertyWorkerTest extends GraphPropertyWorkerTestS
         Vertex vertex = vertexBuilder.save(authorizations);
 
         Property property = vertex.getProperty(VisalloProperties.TEXT.getPropertyName());
-        GraphPropertyWorkData workData = new GraphPropertyWorkData(visibilityTranslator, vertex, property, null, null, Priority.NORMAL);
+        GraphPropertyWorkData workData = new GraphPropertyWorkData(visibilityTranslator, vertex, property, null, null, Priority.NORMAL, false);
         in = asStream(PHONE_MISSING);
         worker.execute(in, workData);
 

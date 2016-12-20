@@ -21,6 +21,7 @@ public class GraphPropertyMessageTest {
                 "  \"beforeActionTimestamp\": 123456789," +
                 "  \"visibilitySource\": \"visibilitySourceValue\"," +
                 "  \"priority\": \"HIGH\"," +
+                "  \"traceEnabled\": false," +
                 "  \"workspaceId\": \"wsTest\"," +
                 "  \"status\": \"UPDATE\"" +
                 "}";
@@ -50,6 +51,7 @@ public class GraphPropertyMessageTest {
                 "  \"beforeActionTimestamp\": 123456789," +
                 "  \"visibilitySource\": \"visibilitySourceValue\"," +
                 "  \"priority\": \"HIGH\"," +
+                "  \"traceEnabled\": false," +
                 "  \"workspaceId\": \"wsTest\"," +
                 "  \"status\": \"UPDATE\"" +
                 "}";
@@ -75,6 +77,7 @@ public class GraphPropertyMessageTest {
                 "  \"graphVertexId\": \"v1\"," +
                 "  \"visibilitySource\": \"visibilitySourceValue\"," +
                 "  \"priority\": \"HIGH\"," +
+                "  \"traceEnabled\": false," +
                 "  \"properties\": [" +
                 "    {" +
                 "      \"propertyKey\": \"key1\"," +
@@ -128,6 +131,7 @@ public class GraphPropertyMessageTest {
                 "  \"beforeActionTimestamp\": 123456789," +
                 "  \"visibilitySource\": \"visibilitySourceValue\"," +
                 "  \"priority\": \"HIGH\"," +
+                "  \"traceEnabled\": false," +
                 "  \"workspaceId\": \"wsTest\"," +
                 "  \"status\": \"UPDATE\"" +
                 "}";
@@ -157,6 +161,7 @@ public class GraphPropertyMessageTest {
                 "  \"beforeActionTimestamp\": 123456789," +
                 "  \"visibilitySource\": \"visibilitySourceValue\"," +
                 "  \"priority\": \"HIGH\"," +
+                "  \"traceEnabled\": false," +
                 "  \"workspaceId\": \"wsTest\"," +
                 "  \"status\": \"UPDATE\"" +
                 "}";

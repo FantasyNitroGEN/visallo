@@ -21,6 +21,7 @@
         <module>owl</module>
         <module>rdf-import</module>
         <module>reindex</module>
+        <module>run-gpw</module>
         <module>migrations</module>
     </modules>
 </project>

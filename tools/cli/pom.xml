@@ -32,6 +32,11 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
+            <artifactId>visallo-tools-run-gpw</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
             <artifactId>visallo-tools-migration-workspace-to-workproduct</artifactId>
             <version>${project.version}</version>
         </dependency>

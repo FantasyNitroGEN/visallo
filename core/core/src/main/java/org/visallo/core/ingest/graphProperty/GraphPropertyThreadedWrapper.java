@@ -11,14 +11,14 @@ import org.visallo.core.status.PausableTimerContextAware;
 import org.visallo.core.status.StatusServer;
 import org.visallo.core.status.model.GraphPropertyRunnerStatus;
 import org.visallo.core.status.model.Status;
+import org.visallo.core.trace.Trace;
+import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class GraphPropertyThreadedWrapper implements Runnable {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyThreadedWrapper.class);
@@ -67,9 +67,11 @@ public class GraphPropertyThreadedWrapper implements Runnable {
                     }
                     processingCounter.inc();
                     long startTime = System.currentTimeMillis();
+                    TraceSpan traceSpan = startTraceIfEnabled(work, elementId);
                     try {
                         this.worker.execute(in, work.getData());
                     } finally {
+                        stopTraceIfEnabled(work, traceSpan);
                         long endTime = System.currentTimeMillis();
                         long time = endTime - startTime;
                         LOGGER.debug("END doWork (%s): %s (%dms)", workerClassName, elementId, time);
@@ -104,6 +106,25 @@ public class GraphPropertyThreadedWrapper implements Runnable {
         } catch (InterruptedException ex) {
             LOGGER.error("thread was interrupted", ex);
         }
+    }
+
+    private void stopTraceIfEnabled(Work work, TraceSpan traceSpan) {
+        if (work.getData().isTraceEnabled()) {
+            if (traceSpan != null) {
+                traceSpan.close();
+            }
+            Trace.off();
+        }
+    }
+
+    private TraceSpan startTraceIfEnabled(Work work, String elementId) {
+        TraceSpan traceSpan = null;
+        if (work.getData().isTraceEnabled()) {
+            Map<String, String> parameters = new HashMap<>();
+            parameters.put("elementId", elementId);
+            traceSpan = Trace.on("GPW: " + this.worker.getClass().getName(), parameters);
+        }
+        return traceSpan;
     }
 
     private void ensureMetricsInitialized() {

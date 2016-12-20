@@ -2,7 +2,6 @@ package org.visallo.core.ingest.graphProperty;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
 import com.google.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -30,7 +29,10 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.*;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vertexium.util.IterableUtils.toList;
@@ -298,6 +300,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
                         message.getWorkspaceId(),
                         message.getVisibilitySource(),
                         message.getPriority(),
+                        message.isTraceEnabled(),
                         propertyMessage.getStatus(),
                         propertyMessage.getBeforeActionTimestampOrDefault()
                 );
@@ -358,6 +361,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
                 message.getWorkspaceId(),
                 message.getVisibilitySource(),
                 message.getPriority(),
+                message.isTraceEnabled(),
                 message.getStatus(),
                 message.getBeforeActionTimestampOrDefault()
         );
@@ -369,6 +373,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
             String workspaceId,
             String visibilitySource,
             Priority priority,
+            boolean traceEnabled,
             ElementOrPropertyStatus status,
             long beforeActionTimestamp
     ) throws Exception {
@@ -405,6 +410,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
                 workspaceId,
                 visibilitySource,
                 priority,
+                traceEnabled,
                 beforeActionTimestamp,
                 status
         );

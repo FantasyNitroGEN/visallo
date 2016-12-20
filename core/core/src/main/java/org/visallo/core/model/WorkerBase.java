@@ -163,7 +163,9 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
             tupleQueue.notifyAll();
         }
         try {
-            processThread.join(10000);
+            if (processThread != null) {
+                processThread.join(10000);
+            }
         } catch (InterruptedException e) {
             throw new VisalloException("Could not stop process thread: " + processThread.getName());
         }
