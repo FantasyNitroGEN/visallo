@@ -1,9 +1,11 @@
 - [ ] @joeferner
 - [ ] @kunklejr @sfeng88 @diegogrz
-- [ ] @mwizeman @EvanOxfeld 
-- [ ] @joeybrk372 @rygim @jharwig 
+- [ ] @mwizeman
+- [ ] @joeybrk372 @rygim @jharwig @EvanOxfeld
 
+Testing Instructions:
 
+Points of Regression:
 
 CHANGELOG
 Added: 
