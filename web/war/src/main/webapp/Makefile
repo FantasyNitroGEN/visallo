@@ -4,12 +4,13 @@ NODE_VERSION=$(shell grep '<node.version>' ../../../../../root/pom.xml | awk -F 
 NODEDIR=~/.m2/repository/node/$(NODE_VERSION)/node/
 NODE=$(NODEDIR)node
 NPM=$(NODEDIR)node $(NODEDIR)node_modules/npm/cli.js
+YARN=$(NODEDIR)yarn/dist/bin/yarn
 
 all: node_modules/npm-install
 	$(NODE) node_modules/.bin/grunt
 
 node_modules/npm-install: package.json
-	$(NPM) install
+	$(YARN) install
 	touch node_modules/npm-install
 
 clean:
@@ -21,3 +22,4 @@ test:
 version:
 	$(NODE) --version
 	$(NPM) --version
+	$(YARN) --version
