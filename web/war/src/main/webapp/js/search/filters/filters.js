@@ -98,16 +98,20 @@ define([
                 return this.dataRequest('ontology', 'propertiesByDomainType', this.matchType);
             };
 
-            Promise.resolve(this.addSearchFilterExtensions())
-                .then(function() {
-                    return self.loadPropertyFilters();
-                })
-                .done(function() {
-                    self.loadConcepts();
-                    self.loadEdgeTypes();
-                    self.loadSorting();
-                    self.trigger('filtersLoaded');
-                });
+            this.dataRequest('ontology', 'concepts').then((concepts) => {
+                this.conceptsByParent = _.groupBy(concepts.byTitle, 'parentConcept');
+
+                return Promise.resolve(this.addSearchFilterExtensions())
+                    .then(() => {
+                        return self.loadPropertyFilters();
+                    })
+                    .done(function() {
+                        self.loadConcepts();
+                        self.loadEdgeTypes();
+                        self.loadSorting();
+                        self.trigger('filtersLoaded');
+                    });
+            });
         });
 
         this.onFilterItemChanged = function(event, data) {
@@ -302,9 +306,16 @@ define([
             }
         };
 
-        this.setIncludeChildNodes = function(include) {
-            include = include !== undefined ? include : true;
-            this.select('childNodesSelector').prop('checked', include);
+        this.setIncludeChildNodes = function(include = true) {
+            const title = include ?
+                i18n('search.filters.child.nodes.title.selected')
+                : i18n('search.filters.child.nodes.title.unselected');
+
+            this.select('childNodesSelector')
+                .prop({
+                    checked: include,
+                    title: title
+                });
             this.includeChildNodes = include;
             this.notifyOfFilters();
         };
@@ -317,11 +328,11 @@ define([
             this.$node.find('.match-type-edge').closest('label').andSelf()
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
-            this.$node.find('.child-nodes').toggle(type === 'vertex');
             this.select('edgeLabelFilterSelector').toggle(self.otherFilters.relatedToVertexIds || type === 'edge');
             if (this.matchType === 'vertex') {
                 this.setConceptFilter(this.conceptFilter);
             } else {
+                this.$node.find('.child-nodes').hide();
                 this.setEdgeTypeFilter(this.edgeLabelFilter);
             }
             this.select('filterItemsSelector').each(function() {
@@ -344,7 +355,7 @@ define([
         };
 
         this.setConceptFilter = function(conceptId) {
-            var self = this;
+            const self = this;
 
             this.conceptFilter = conceptId || '';
             this.trigger(this.select('conceptDropdownSelector'), 'selectConceptId', { conceptId: conceptId });
@@ -352,6 +363,11 @@ define([
             if (this.matchType === 'edge') {
                 return;
             }
+
+            const hasChildren = this.conceptsByParent[this.conceptFilter] ?
+                this.conceptsByParent[this.conceptFilter].length > 0 : false;
+            this.$node.find('.child-nodes')
+                .toggle(!!this.conceptFilter && hasChildren);
 
             if (this.conceptFilter) {
                 return this.dataRequest('ontology', 'propertiesByConceptId', this.conceptFilter)
