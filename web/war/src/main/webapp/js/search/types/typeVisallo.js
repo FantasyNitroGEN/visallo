@@ -80,7 +80,8 @@ define([
                     otherFilters: data.filters.otherFilters,
                     edgeLabelFilter: data.filters.edgeLabelFilter,
                     sort: data.filters.sortFields,
-                    matchType: data.filters.matchType
+                    matchType: data.filters.matchType,
+                    includeChildNodes: data.filters.includeChildNodes
                 };
                 self.triggerUpdatedSavedSearchQuery(options);
             })
@@ -116,6 +117,7 @@ define([
                     query,
                     self.currentFilters.propertyFilters,
                     self.currentFilters.matchType,
+                    self.currentFilters.includeChildNodes,
                     self.currentFilters.conceptFilter,
                     self.currentFilters.edgeLabelFilter,
                     self.currentFilters.otherFilters,
@@ -159,7 +161,17 @@ define([
             });
         };
 
-        this.triggerRequest = function(query, propertyFilters, matchType, conceptFilter, edgeLabelFilter, otherFilters, sortFields, paging) {
+        this.triggerRequest = function(
+            query,
+            propertyFilters,
+            matchType,
+            includeChildNodes,
+            conceptFilter,
+            edgeLabelFilter,
+            otherFilters,
+            sortFields,
+            paging
+        ) {
             if (this.currentRequest && this.currentRequest.cancel) {
                 this.currentRequest.cancel();
                 this.currentRequest = null;
@@ -177,6 +189,7 @@ define([
                     conceptFilter: conceptFilter,
                     edgeLabelFilter: edgeLabelFilter,
                     otherFilters: otherFilters,
+                    includeChildNodes: includeChildNodes,
                     paging: paging,
                     sort: sortFields,
                     matchType: matchType
@@ -200,6 +213,7 @@ define([
                 query,
                 this.currentFilters.propertyFilters,
                 this.currentFilters.matchType,
+                this.currentFilters.includeChildNodes,
                 this.currentFilters.conceptFilter,
                 this.currentFilters.edgeLabelFilter,
                 this.currentFilters.otherFilters,

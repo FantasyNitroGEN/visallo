@@ -218,21 +218,19 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
 
     protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
         final String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
-        final String includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", String.class);
+        final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
         Query query = queryAndData.getQuery();
         if (conceptType != null) {
-            boolean includeChildNodesBoolean = includeChildNodes == null || !includeChildNodes.equals("false");
-            ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, includeChildNodesBoolean);
+            ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
         }
     }
 
     protected void applyEdgeLabelFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
         final String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
-        final String includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", String.class);
+        final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
         Query query = queryAndData.getQuery();
         if (edgeLabel != null) {
-            boolean includeChildNodesBoolean = includeChildNodes == null || !includeChildNodes.equals("false");
-            ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, includeChildNodesBoolean);
+            ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
         }
     }
 

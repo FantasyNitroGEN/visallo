@@ -63,6 +63,9 @@ public class SearchOptions {
         if (resultType == JSONArray.class && obj instanceof String[]) {
             return resultType.cast(new JSONArray(obj));
         }
+        if (resultType == Boolean.class && obj instanceof String) {
+            return resultType.cast(Boolean.parseBoolean((String) obj));
+        }
         return resultType.cast(obj);
     }
 

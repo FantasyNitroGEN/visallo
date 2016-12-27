@@ -277,7 +277,8 @@ define([
                 if (report.endpoint === '/search/run') {
                     this.popupSearch(report.endpoint, {
                         id: report.endpointParameters.id,
-                        filter: JSON.stringify(filters)
+                        filter: JSON.stringify(filters),
+                        includeChildNodes: true
                     })
                 } else {
                     var params = _.omit(report.endpointParameters, 'size', 'aggregations');
@@ -306,6 +307,11 @@ define([
 
         this.popupSearch = function(url, search, target) {
             target = target || d3.event.target;
+
+            if (_.isUndefined(search.includeChildNodes)) {
+                search.includeChildNodes = false;
+            }
+
             require(['./resultsPopover'], function(ResultsPopover) {
                 ResultsPopover.attachTo(target, {
                     searchUrl: url,
