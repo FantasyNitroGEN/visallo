@@ -309,7 +309,7 @@ define([
                                     if (self.isHorizontal) {
                                         var genClipPath = function(rowPart) {
                                                 return function(d, col, row) {
-                                                    return 'clip-path-' + row + '-' + rowPart;
+                                                    return 'clip-path-' + self.attr.item.id + '-' + row + '-' + rowPart;
                                                 }
                                             },
                                             genClipPathRef = function(rowPart) {
