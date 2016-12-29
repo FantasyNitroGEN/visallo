@@ -94,12 +94,14 @@ define([
                 self.$node.off('.actionbar')
 
                 if ($target.hasClass('resolved')) {
+                    const unresolve = Privileges.canEDIT &&
+                        self.attr.model.sandboxStatus !== 'PUBLIC';
 
                     ActionBar.attachTo($target, {
                         alignTo: 'node',
                         actions: $.extend({
                             Open: 'open.actionbar'
-                        }, Privileges.canEDIT ? {
+                        }, unresolve ? {
                             Unresolve: 'unresolve.actionbar'
                         } : {})
                     });

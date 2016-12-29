@@ -533,7 +533,10 @@ define([
                     $textOffset = $text.closest('.nav-with-background').offset();
 
                 if ($target.hasClass('resolved')) {
-                    var info = $target.data('info');
+                    const info = $target.data('info');
+                    const unresolve = Privileges.canEDIT &&
+                        info.termMentionFor === 'VERTEX' &&
+                        info.sandboxStatus !== 'PUBLIC';
 
                     ActionBar.attachTo($target, {
                         alignTo: 'node',
@@ -542,7 +545,7 @@ define([
                         actions: $.extend({
                             Open: 'open',
                             Fullscreen: 'fullscreen'
-                        }, Privileges.canEDIT && info.termMentionFor === 'VERTEX' ? {
+                        }, unresolve ? {
                             Unresolve: 'unresolve'
                         } : {})
                     });
