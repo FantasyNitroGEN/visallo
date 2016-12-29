@@ -39,15 +39,27 @@ define([
                         undefined;
             },
 
+            getVertexAndEdgeIdsFromDataEventOrCurrentSelection: function(data) {
+                return Promise.all([
+                    V.getVertexIdsFromDataEventOrCurrentSelection(data, {async: true}),
+                    V.getEdgeIdsFromDataEventOrCurrentSelection(data)
+                ]).spread(function (vertexIds, edgeIds) {
+                   return {
+                       vertexIds: vertexIds,
+                       edgeIds: edgeIds
+                   };
+                });
+            },
+
             getVertexIdsFromDataEventOrCurrentSelection: function(data, opts) {
                 // Normalize the vertexIds sent from a vertex menu event,
                 // also checking the current object selection
                 var vertexIds = [],
                     options = opts || {},
                     // Return a promise (will return more accurate list that
-                    // isn't suseptible to selectObjects -> objectsSelected
+                    // isn't susceptible to selectObjects -> objectsSelected
                     // race condition
-                    async = options.async
+                    async = options.async;
 
                 if (data && data.vertexId) {
                     vertexIds = [data.vertexId];
@@ -77,6 +89,37 @@ define([
                         }
                     }
                     return _.unique(vertexIds);
+                }
+            },
+
+            getEdgeIdsFromDataEventOrCurrentSelection: function(data) {
+                // Normalize the edgeIds sent from a edge menu event,
+                // also checking the current object selection
+                var edgeIds = [];
+
+                if (data && data.edgeId) {
+                    edgeIds = [data.edgeId];
+                } else if (data && data.edgeIds) {
+                    edgeIds = data.edgeIds;
+                }
+
+                if (typeof window.visalloData !== 'undefined') {
+                    return visalloData.selectedObjectsPromise()
+                        .then(edgeIdsUsingSelectedObjects);
+                }
+
+                return edgeIdsUsingSelectedObjects();
+
+                function edgeIdsUsingSelectedObjects(selectedObjects) {
+                    if (selectedObjects && selectedObjects.edges.length > 0) {
+                        var selectedEdgeIds = _.pluck(selectedObjects.edges, 'id');
+                        if (_.intersection(edgeIds, selectedEdgeIds).length) {
+                            edgeIds = edgeIds.concat(selectedEdgeIds);
+                        } else if (!edgeIds.length) {
+                            edgeIds = selectedEdgeIds;
+                        }
+                    }
+                    return _.unique(edgeIds);
                 }
             },
 
