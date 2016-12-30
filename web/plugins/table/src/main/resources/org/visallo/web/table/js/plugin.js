@@ -4,9 +4,9 @@ require(['public/v1/api'], function(visallo) {
     visallo.registry.registerExtension('org.visallo.web.dashboard.item', {
         title: 'Saved Search Table',
         description: 'Display tabular saved search results',
-        identifier: 'com-visallo-saved-search-table',
-        componentPath: 'com/visallo/table/dist/card',
-        configurationPath: 'com/visallo/table/js/card/Config',
+        identifier: 'org-visallo-saved-search-table',
+        componentPath: 'org/visallo/web/table/dist/card',
+        configurationPath: 'org/visallo/web/table/js/card/Config',
         grid: {
             width: 8,
             height: 4
@@ -17,7 +17,7 @@ require(['public/v1/api'], function(visallo) {
             className: 'com.visallo.export.transformers.SavedSearchTransform',
             canHandle: function(json) {
                 if (json.extension) {
-                    if (json.extension.identifier === 'com-visallo-saved-search-table') {
+                    if (json.extension.identifier === 'org-visallo-saved-search-table') {
                         return Boolean(json.item &&
                             json.item.configuration &&
                             json.item.configuration.searchId &&
