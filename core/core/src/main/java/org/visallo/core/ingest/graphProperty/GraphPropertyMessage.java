@@ -26,6 +26,7 @@ public class GraphPropertyMessage {
     private String workspaceId;
     private String visibilitySource;
     private Priority priority;
+    private boolean traceEnabled;
     private Property[] properties;
     private String[] graphVertexId;
     private String[] graphEdgeId;
@@ -60,6 +61,14 @@ public class GraphPropertyMessage {
         checkNotNull(priority, "priority cannot be null");
         this.priority = priority;
         return this;
+    }
+
+    public boolean isTraceEnabled() {
+        return traceEnabled;
+    }
+
+    public void setTraceEnabled(boolean traceEnabled) {
+        this.traceEnabled = traceEnabled;
     }
 
     public String getPropertyKey() {

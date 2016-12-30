@@ -246,6 +246,7 @@ public abstract class GraphPropertyWorkerTestBase {
                     workspaceId,
                     visibilitySource,
                     Priority.NORMAL,
+                    false,
                     (prop == null ? e.getTimestamp() : prop.getTimestamp()) - 1,
                     status
             );
