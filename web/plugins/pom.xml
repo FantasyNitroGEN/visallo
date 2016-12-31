@@ -22,8 +22,10 @@
         <module>auth-username-password</module>
         <module>change-email</module>
         <module>change-password</module>
+        <module>ingest-cloud-s3</module>
         <module>graph-product</module>
         <module>map-product</module>
+        <module>structured-ingest</module>
         <module>table</module>
     </modules>
 </project>

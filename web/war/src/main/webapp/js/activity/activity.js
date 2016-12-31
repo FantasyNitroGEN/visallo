@@ -5,6 +5,7 @@ define([
     './handlers',
     'd3',
     'configuration/plugins/registry',
+    'util/component/attacher',
     'util/formatters',
     'util/withCollapsibleSections',
     'util/withDataRequest'
@@ -14,6 +15,7 @@ define([
     builtinHandlers,
     d3,
     registry,
+    Attacher,
     F,
     withCollapsibleSections,
     withDataRequest) {
@@ -42,7 +44,7 @@ define([
 
     function processAllowCancel(process) {
         var handler = handlersByType[process.type];
-        return handler && (handler.kind === 'longRunningProcess' || handler.allowCancel === true);
+        return !handler || (handler.kind === 'longRunningProcess' || handler.allowCancel === true);
     }
 
     function Activity() {
@@ -187,7 +189,7 @@ define([
             var task = this.tasksById[taskId];
             var handler = handlersByType[task.type];
 
-            if (handler.onRemove) {
+            if (handler && handler.onRemove) {
                 if (_.isFunction(handler.onRemove)) {
                     handler.onRemove.call(this);
                 } else {
@@ -429,17 +431,25 @@ define([
 
                             this.select('.actions-plugin').each(function() {
                                 var datum = d3.select(this).datum(),
-                                    handler = handlersByType[datum.type],
-                                    componentPath = handler.finishedComponentPath,
-                                    Component = componentPath && finishedComponents[componentPath];
+                                    handler = handlersByType[datum.type];
 
-                                if (Component && datum.endTime) {
-                                    Component.attachTo(this, {
-                                        process: datum
-                                    });
-                                } else {
-                                    $(this).teardownAllComponents();
+                                if (handler) {
+                                    var componentPath = handler.finishedComponentPath,
+                                        Component = componentPath && finishedComponents[componentPath];
+
+                                    if (Component && datum.endTime) {
+                                        Attacher()
+                                            .node(this)
+                                            .component(Component)
+                                            .params({
+                                                process: datum
+                                            })
+                                            .attach()
+                                        return;
+                                    }
                                 }
+
+                                Attacher().node(this).teardown();
                             });
 
                             this.select('.type-container').each(function() {

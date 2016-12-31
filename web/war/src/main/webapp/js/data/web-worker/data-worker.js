@@ -12,7 +12,15 @@ this.importScripts('../../../libs/babel-polyfill/dist/polyfill.min.js');
 var BASE_URL = '../../..',
     self = this,
     needsInitialSetup = true,
-    publicData = {};
+    publicData = {},
+    pluginsLoaded = (function() {
+        var _resolve, _isFinished = false;
+        return {
+            promise: new Promise(r => {_resolve = r}),
+            isFinished() { return _isFinished; },
+            resolve() { _isFinished = true; _resolve() }
+        }
+    })();
 
 var timer, todo = [], setupInProgress = true;
 onmessage = function(event) {
@@ -45,23 +53,30 @@ function setupComplete() {
 function setupAll(data) {
     setupConsole();
     setupWebsocket(data);
+    var resolveStore;
+    publicData.storePromise = new Promise(f => {resolveStore = f});
     setupRequireJs(data, () => {
+        pluginsLoaded.resolve();
         documentExtensionPoints();
-        setupRedux(data);
+        setupRedux(data).then(resolveStore);
         setupComplete();
     });
 }
 
 function setupRedux(data) {
-    require(['data/web-worker/store'], function(store) {
-        try {
-            var state = store.getStore().getState()
-            dispatchMain('reduxStoreInit', { state });
-        } catch(e) {
-            console.error(e)
-            throw e;
-        }
-    });
+    return new Promise(resolve => {
+        require(['data/web-worker/store'], function(_store) {
+            try {
+                const store = _store.getStore();
+                const state = store.getState();
+                dispatchMain('reduxStoreInit', { state });
+                resolve(store);
+            } catch(e) {
+                console.error(e)
+                throw e;
+            }
+        });
+    })
 }
 
 function setupConsole() {

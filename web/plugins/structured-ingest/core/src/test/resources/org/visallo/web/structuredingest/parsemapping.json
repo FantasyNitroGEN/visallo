@@ -1,0 +1,20 @@
+{
+  "vertices": [
+    {
+      "properties":[
+        { "name": "http://visallo.org#conceptType", "value": "http://visallo.org/structured-file-test#person" },
+        { "name":"http://visallo.org/structured-file-test#name", "key":0 }
+      ]
+    },
+    {
+      "properties":[
+        { "name":"http://visallo.org#conceptType", "value":"http://visallo.org/structured-file-test#transaction" },
+        { "name":"http://visallo.org/structured-file-test#transactionDate", "key":1, "format":"M/d/yyyy", "timezone":"America/New_York" },
+        { "name":"http://visallo.org/structured-file-test#suspectedFraud", "key":2, "trueValues":["yes"], "falseValues":["no"] }
+      ]
+    }
+  ],
+  "edges":[
+    { "inVertex":0, "outVertex":1, "label":"http://visallo.org/structured-file-test#personHasTransaction" }
+  ]
+}

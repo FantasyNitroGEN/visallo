@@ -1,0 +1,14 @@
+{{#if didTruncate}}<div class="truncated-info">{{ i18n 'csv.file_import.preview.truncated' processedRows }}</div>{{/if}}
+<table>
+  <tr>
+    <th>&nbsp;</th><th>{{ i18n 'csv.file_import.preview.table.header.type' }}</th><th>{{ i18n 'csv.file_import.preview.table.header.count' }}</th>
+  </tr>
+  {{#each elements}}
+  <tr>
+      <th>{{#if showElementType}}{{elementType}}{{else}}&nbsp;{{/if}}</th>
+      <td>{{type}}</td>
+      <td>{{count}}</td>
+  </tr>
+  {{/each}}
+</table>
+<label class="shouldPublish requires-PUBLISH"><input type="checkbox" name="isPublish" style="margin:0" /> {{ i18n 'csv.file_import.preview.publish'}}</label>

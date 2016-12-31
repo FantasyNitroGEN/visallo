@@ -1,0 +1,13 @@
+<label class="half">
+  <a target="_blank" href="http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">Format</a>
+  <select>
+    {{#each formats}}
+    <option value="{{ format }}"{{#if selected}} selected{{/if}}>{{ example }}</option>
+    {{/each}}
+  </select>
+  <input type="text" class="format" placeholder="Date Format" value="{{ format }}">
+</label>
+<label class="half">
+  Timezone
+  <input type="text" placeholder="timezone" class="timezone" value="{{ timezone }}">
+</label>

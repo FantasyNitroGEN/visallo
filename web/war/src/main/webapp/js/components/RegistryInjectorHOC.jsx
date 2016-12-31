@@ -30,5 +30,7 @@ define([
         })
     };
 
+    RegistryInjectorHOC.registry = registry;
+
     return RegistryInjectorHOC;
 });

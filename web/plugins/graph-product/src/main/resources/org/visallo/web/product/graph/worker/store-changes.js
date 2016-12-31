@@ -1,14 +1,15 @@
 define([
-    'data/web-worker/store',
     'data/web-worker/store/product/selectors'
-], function({ getStore }, productSelectors) {
+], function(productSelectors) {
 
-    _.defer(checkUpdatedEdgesForProductInclusion);
+    publicData.storePromise.then(store => {
+        checkUpdatedEdgesForProductInclusion(store);
+    })
 
-    function checkUpdatedEdgesForProductInclusion() {
+    function checkUpdatedEdgesForProductInclusion(store) {
         var prevEdges;
-        getStore().subscribe(function() {
-            const state = getStore().getState();
+        store.subscribe(function() {
+            const state = store.getState();
             const workspaceId = state.workspace.currentId;
 
             if (workspaceId && state.element[workspaceId]) {
@@ -32,7 +33,7 @@ define([
                             })
                             if (addEdges.length) {
                                 _.defer(() => {
-                                    getStore().dispatch({
+                                    store.dispatch({
                                         type: 'PRODUCT_ADD_EDGE_IDS',
                                         payload: { workspaceId, productId: item.id, edges: addEdges }
                                     })

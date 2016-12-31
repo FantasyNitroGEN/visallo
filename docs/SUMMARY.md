@@ -29,6 +29,8 @@
         * [Activity](extension-points/front-end/activity/index.md)
         * [Admin](extension-points/front-end/admin/index.md)
         * [Authentication](extension-points/front-end/authentication/index.md)
+        * [Cloud Ingest](extension-points/front-end/cloudIngest/index.md)
+            * [Amazon S3](extension-points/front-end/cloudIngest/s3.md)
         * [Dashboard Item](extension-points/front-end/dashboard/item.md)
         * [Dashboard Layout](extension-points/front-end/dashboard/layout.md)
         * [Dashboard Report](extension-points/front-end/dashboard/report.md)

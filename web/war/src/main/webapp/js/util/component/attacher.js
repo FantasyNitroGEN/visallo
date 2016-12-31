@@ -18,11 +18,11 @@ define([
     /**
      * Abstracts the attachment of flight and react nodes
      */
-    function Attacher() {
-        return this === self ? new Attacher() : this;
+    function Attacher(options = {}) {
+        return (this === self ? new Attacher() : this).options(options)
     }
 
-    ['path', 'component', 'params', 'behavior', 'legacyMapping'].forEach(createSetter);
+    ['path', 'component', 'params', 'behavior', 'legacyMapping', 'options'].forEach(createSetter);
 
     Attacher.prototype.node = function(node) {
         if (arguments.length === 0) return this._node;
@@ -30,10 +30,8 @@ define([
         return this;
     };
 
-    Attacher.prototype._mapLegacyBehaviors = function() { };
-
     Attacher.prototype._verifyState = function() {
-        if (!_.isElement(this._node)) {
+        if (!this._options.preferDirectReactChildren && !_.isElement(this._node)) {
             throw new Error('Node is not an Element')
         }
         if (!_.isString(this._path) && !this._component) {
@@ -49,14 +47,17 @@ define([
         }
     };
 
-    Attacher.prototype.teardown = function() {
-        if (!this._node) throw new Error('No node specified');
-        ReactDOM.unmountComponentAtNode(this._node);
-        $(this._node).teardownAllComponents();
+    Attacher.prototype.teardown = function(options = {}) {
+        if (!this._options.preferDirectReactChildren) {
+            const { flight = true, react = true } = options;
+            if (!this._node) throw new Error('No node specified');
+            if (react) ReactDOM.unmountComponentAtNode(this._node);
+            if (flight) $(this._node).teardownAllComponents();
+        }
         return this;
     };
 
-    Attacher.prototype.attach = function(options) {
+    Attacher.prototype.attach = function(options = {}) {
         var self = this,
             params = _.extend({}, this._params) || {};
 
@@ -70,14 +71,16 @@ define([
             })
             .spread(function(Component, api, store) {
                 params.visalloApi = api;
+                const flight = isFlight(Component);
 
-                if (options && options.teardown) {
-                    self.teardown();
+                if (options.teardown) {
+                    self.teardown(options.teardownOptions || {});
                 }
-                if (options && options.empty) {
+                if (options.empty || (flight && options.emptyFlight) || (!flight && options.emptyReact)) {
                     self._node.textContent = '';
                 }
-                if (isFlight(Component)) {
+
+                if (flight) {
                     var eventNode = options && options.legacyFlightEventsNode,
                         addedEvents = addLegacyListeners(self, eventNode);
                     Component.attachTo(self._node, params);
@@ -85,9 +88,13 @@ define([
                     self._flightComponent = Component;
                 } else {
                     var reactElement = React.createElement(Component, _.extend(params, wrapBehavior(self)));
-                    var provider = React.createElement(Provider, { store }, reactElement);
-                    ReactDOM.render(provider, self._node);
-                    self._reactElement = provider;
+                    if (self._options.preferDirectReactChildren) {
+                        self._reactElement = reactElement;
+                    } else {
+                        var provider = React.createElement(Provider, { store }, reactElement);
+                        ReactDOM.render(provider, self._node);
+                        self._reactElement = provider;
+                    }
                 }
                 return self;
             })

@@ -1,0 +1,95 @@
+.import-s3-credentials {
+  .help {
+    text-align: center;
+    margin: -0.5em 0 0.5em 0;
+    font-style: italic;
+    font-size: 90%;
+    padding: 0;
+  }
+}
+
+.ingest-s3-browser {
+  width: 325px;
+  & > h1 {
+    font-size: 85%;
+    font-weight: normal;
+    margin: 0;
+    padding: 0;
+    line-height: 1.4em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+.ingest-s3-browser ul {
+    list-style: none;
+    margin: 0.5em 0 0 0;
+    height: 200px;
+    width: 100%;
+    padding: 0;
+    overflow: auto;
+    border: 1px solid #ccc;
+    
+    li {
+      cursor: pointer;
+      display: flex;
+      padding: 0 0.5em;
+      white-space: nowrap;
+      &:hover {
+        background-color: #eee;
+      }
+      &.dir, &.bucket {
+        background-image: url(../../../../../../../img/glyphicons/glyphicons-441-folder-closed.png);
+        background-repeat: no-repeat;
+        background-size: 11px;
+        background-position: 0.5em center;
+        padding-left: 25px;
+      }
+      .name {
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .size {
+        flex: 0 0 auto;
+      }
+    }
+
+    .active {
+      background-color: #0088cc;
+      color: white;
+      &:hover {
+        background-color: #0088cc;
+      }
+      span {
+        color: inherit;
+      }
+      &.dir, &.bucket {
+        background-image: url(../../../../../../../img/glyphicons/white/glyphicons-441-folder-closed.png);
+      }
+    }
+}
+
+.ingest-s3-browser .refresh {
+  background-image: url(../../../../../../../img/glyphicons/glyphicons_081_refresh@2x.png);
+  background-color: transparent;
+  background-size: 50%;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 25px;
+  height: 25px;
+  border: 0;
+  opacity: 0.2;
+  display: inline-block;
+  font-size: 0;
+}
+
+.ingest-s3-browser > .buttons {
+  display: flex;
+  justify-content: space-between;
+  margin: -1em;
+  margin-top: -0.5em;
+  padding: 0.5em 1em 0.5em 1em;
+  margin-bottom: -0.7em;
+}

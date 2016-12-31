@@ -1,36 +1,45 @@
 <div class="fileImportPopover popover top collapseVisibility">
   <div class="popover-title">{{ title }}</div>
   <div class="arrow"></div>
-  <div class="popover-content">
+  <div class="popover-content show-create-form">
+    <div class="import-cloud-form"></div>
+    <div class="create-form">
+      <div class="errors"></div>
 
-    <div class="errors"></div>
-
-    {{#unless hasFile}}
-    <div class="file-select-wrapper">
-        <button class="file-select btn btn-link btn-small">
-          {{ i18n 'popovers.file_import.attachfile' }}
+      {{#unless hasFile}}
+      <div class="import-buttons">
+        <div class="file-select-wrapper">
+            <button class="file-select btn btn-link btn-small">
+              {{ i18n 'popovers.file_import.attachfile' }}
+            </button>
+            <input type="file" name="files" class="file" multiple>
+        </div>
+        {{#if hasCloudExtensions}}
+        <button class="cloud-select btn btn-link btn-small">
+          {{ i18n 'popovers.file_import.importcloud' }}
         </button>
-        <input type="file" name="files" class="file" multiple>
-    </div>
-    {{/unless}}
+        {{/if}}
+      </div>
+      {{/unless}}
 
-    <div class="single"></div>
+      <div class="single"></div>
 
-    <label class="checkbox toggle-collapsed" style="{{#unless multipleFiles}}display:none{{/unless}}">
-      <input class="copyVisibility" type="checkbox" checked> {{ i18n 'popovers.file_import.visibility.apply_to_all' }}
-    </label>
+      <label class="checkbox toggle-collapsed" style="{{#unless multipleFiles}}display:none{{/unless}}">
+        <input class="copyVisibility" type="checkbox" checked> {{ i18n 'popovers.file_import.visibility.apply_to_all' }}
+      </label>
 
-    <div class="individual-visibility"></div>
+      <div class="individual-visibility"></div>
 
-    <div>
-      <button class="btn btn-primary">
-        {{~#if hasFile~}}
-        {{ i18n 'popovers.file_import.button.import' }}
-        {{~else~}}
-        {{ i18n 'popovers.file_import.button.nofile.import' }}
-        {{~/if~}}
-      </button>
-      <button style="display:none" class="btn btn-default">{{ i18n 'popovers.file_import.button.cancel' }}</button>
+      <div>
+        <button class="fileimport btn btn-primary">
+          {{~#if hasFile~}}
+          {{ i18n 'popovers.file_import.button.import' }}
+          {{~else~}}
+          {{ i18n 'popovers.file_import.button.nofile.import' }}
+          {{~/if~}}
+        </button>
+        <button style="display:none" class="filecancel btn btn-default">{{ i18n 'popovers.file_import.button.cancel' }}</button>
+      </div>
     </div>
   </div>
 </div>

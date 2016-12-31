@@ -1,0 +1,24 @@
+<span class="mapping-buttons">
+  <button class="btn btn-link btn-small cancel-mapping">Cancel</button>
+  <button class="btn btn-primary btn-small add-mapping" disabled>Save</button>
+</span>
+Map Column <code>{{ key }}</code> to
+<select class="entity">
+  <option value="">New Entity</option>
+  {{#each vertices }}
+
+  <option value="{{ id }}" {{#if @last}}selected{{/if}}>{{ displayName }}</option>
+  {{/each}}
+</select>
+
+<div class="form-row">
+  <div class="concept"></div>
+  <div class="entity-visibility"></div>
+</div>
+<div class="form-row">
+  <div class="field"></div>
+  <div class="field-visibility"></div>
+</div>
+<div class="aux_fields"></div>
+<label class="identifier"><input type="checkbox" name="isIdentifier" style="margin:0" /> Use this column as unique identifier for this entity</label>
+

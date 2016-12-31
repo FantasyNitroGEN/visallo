@@ -1,0 +1,2 @@
+org.visallo.web.structuredingest.spreadsheet.CsvParser
+org.visallo.web.structuredingest.spreadsheet.ExcelParser

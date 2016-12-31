@@ -1,0 +1,24 @@
+<table>
+  <thead>
+    <tr data-index="{{ headerIndex }}">
+      {{~#each headers~}}
+      <th title="{{.}}">{{.}}</th>
+      {{~/each~}}
+    </tr>
+  <thead>
+  <tbody>
+    {{~#each rows~}}
+    <tr data-index="{{ index }}" {{#if isBlankLastRow}}class="blank"{{/if}}>
+        {{~#if isBlankLastRow~}}
+          {{~#each columns~}}
+            <td>&hellip;</td>
+          {{~/each~}}
+        {{~else~}}
+          {{~#each columns~}}
+          <td title="{{.}}">{{.}}</td>
+          {{~/each~}}
+        {{~/if~}}
+      </tr>
+    {{~/each~}}
+  </tbody>
+</table>

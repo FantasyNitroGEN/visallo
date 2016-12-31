@@ -1,0 +1,42 @@
+<div class="modal-header">
+  <div class="segmented-control">
+    <button data-visible="entities" class="entities active">{{ i18n 'csv.file_import.mapping.segmented.create_entities' }}</button>
+    <button data-visible="relationships" class="relationships" disabled>{{ i18n 'csv.file_import.mapping.segmented.create_relationships' }}</button>
+    <button data-visible="preview" class="preview" disabled>{{ i18n 'csv.file_import.mapping.segmented.preview' }}</button>
+  </div>
+  <h1>{{ i18n 'csv.file_import.title' }}
+    <span>{{ title }}</span>
+  </h1>
+</div>
+<div class="modal-body">
+
+  <ul class="created"></ul>
+
+  <section class="entities">
+    <div class="tableview"><span style="padding: 0 1em;">{{ i18n 'csv.file_import.mapping.analyzing' }}</span></div>
+    <div class="form-container" style="background-color: white">
+      <h1 class="help"></h1>
+      <div style="display:none"></div>
+    </div>
+  </section>
+
+  <section class="relationships" style="display:none;">
+    <div class="form-container" style="background-color: white">
+      <h1 class="help">{{ i18n 'csv.file_import.relationships.placeholder.no-selection' }}</h1>
+      <div style="display:none"></div>
+    </div>
+  </section>
+
+  <section class="preview" style="display:none;">
+    <div class="form-container" style="background-color: white">
+      <h1 class="help">{{ i18n 'csv.file_import.preview.help' }}</h1>
+      <div></div>
+    </div>
+  </section>
+</div>
+
+<div class="modal-footer">
+    <button href="#" style="float:left" class="btn btn-default cancel">{{ i18n 'csv.file_import.mapping.cancel' }}</button>
+    <span class="importMessage"></span>
+    <button href="#" class="btn btn-primary import" disabled>{{ i18n 'csv.file_import.mapping.import.preview' }}</button>
+</div>

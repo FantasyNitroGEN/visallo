@@ -266,27 +266,28 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
     }
 
     private String extractText(InputStream in, String mimeType, Metadata metadata) throws IOException, SAXException, TikaException, BoilerpipeProcessingException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        IOUtils.copy(in, out);
-        byte[] textBytes = out.toByteArray();
+        metadata.set(Metadata.CONTENT_TYPE, mimeType);
+
         String text;
 
-        metadata.set(Metadata.CONTENT_TYPE, mimeType);
-        String bodyContent = extractTextWithTika(textBytes, metadata);
-
         if (isHtml(mimeType)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            IOUtils.copy(in, out);
+            byte[] textBytes = out.toByteArray();
+            String bodyContent = extractTextWithTika(new ByteArrayInputStream(textBytes), metadata);
+
             text = extractTextFromHtml(IOUtils.toString(textBytes, "UTF-8"));
             if (text == null || text.length() == 0) {
                 text = cleanExtractedText(bodyContent);
             }
         } else {
-            text = cleanExtractedText(bodyContent);
+            text = cleanExtractedText(extractTextWithTika(in, metadata));
         }
 
         return Normalizer.normalize(text, Normalizer.Form.NFC);
     }
 
-    private static String extractTextWithTika(byte[] textBytes, Metadata metadata) throws TikaException, SAXException, IOException {
+    private static String extractTextWithTika(InputStream stream, Metadata metadata) throws TikaException, SAXException, IOException {
         TikaConfig tikaConfig = TikaConfig.getDefaultConfig();
         CompositeParser compositeParser = new CompositeParser(tikaConfig.getMediaTypeRegistry(), tikaConfig.getParser());
         ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -294,7 +295,6 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
         ContentHandler handler = new BodyContentHandler(writer);
         ParseContext context = new ParseContext();
         context.set(PDFParserConfig.class, new VisalloParserConfig());
-        ByteArrayInputStream stream = new ByteArrayInputStream(textBytes);
 
         TemporaryResources tmp = new TemporaryResources();
         try {

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.visallo</groupId>
+        <artifactId>visallo-web-plugin-base</artifactId>
+        <version>3.1-SNAPSHOT</version>
+        <relativePath>../../../web-plugin-base</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <parquet.version>1.7.0</parquet.version>
+    </properties>
+
+    <artifactId>visallo-web-structured-ingest-parquet</artifactId>
+    <name>Visallo: Core: Plugin: Structured Ingest: Parquet</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-structured-ingest-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd-core</artifactId>
+            <version>3.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+
+
+
+        <!--<dependency>-->
+            <!--<groupId>org.apache.tika</groupId>-->
+            <!--<artifactId>tika-core</artifactId>-->
+            <!--<version>${tika.version}</version>-->
+        <!--</dependency>-->
+
+        <!-- for parquet -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-hadoop</artifactId>
+            <version>${parquet.version}</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.parquet</groupId>-->
+            <!--<artifactId>parquet-common</artifactId>-->
+            <!--<version>${parquet.version}</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-tools</artifactId>
+            <version>${parquet.version}</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.parquet</groupId>-->
+            <!--<artifactId>parquet-avro</artifactId>-->
+            <!--<version>${parquet.version}</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>org.vertexium</groupId>
+            <artifactId>vertexium-inmemory</artifactId>
+            <version>${vertexium.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

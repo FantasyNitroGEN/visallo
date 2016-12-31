@@ -15,7 +15,6 @@ var VisalloAmdExternals = [
     'data/web-worker/store/element/actions-impl',
     'data/web-worker/store/selection/actions-impl',
     'data/web-worker/util/ajax',
-    'data/web-worker/store',
     'public/v1/api',
     'util/formatters',
     'util/vertex/formatters',
@@ -34,15 +33,7 @@ var VisalloAmdExternals = [
     'colorjs'
 ].map(path => ({ [path]: { amd: path }}));
 
-module.exports = {
-  entry: {
-    Graph: './GraphContainer.jsx',
-    'actions-impl': './worker/actions-impl.js',
-    'plugin-worker': './worker/plugin.js',
-    'store-changes': './worker/store-changes.js',
-    EdgeLabel: './options/EdgeLabel.jsx',
-    SnapToGrid: './options/SnapToGrid.jsx'
-  },
+var baseConfig = {
   output: {
     path: './dist',
     filename: '[name].js',
@@ -103,4 +94,23 @@ module.exports = {
         }
     })
   ]
-};
+}
+
+module.exports = [
+    Object.assign({}, baseConfig, {
+        entry: {
+            'store-changes': './worker/store-changes.js',
+            'actions-impl': './worker/actions-impl.js',
+            'plugin-worker': './worker/plugin.js'
+        },
+        target: 'webworker'
+    }),
+    Object.assign({}, baseConfig, {
+        entry: {
+            Graph: './GraphContainer.jsx',
+            EdgeLabel: './options/EdgeLabel.jsx',
+            SnapToGrid: './options/SnapToGrid.jsx'
+        },
+        target: 'web'
+    })
+];

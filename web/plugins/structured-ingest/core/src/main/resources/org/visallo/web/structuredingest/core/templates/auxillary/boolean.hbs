@@ -1,0 +1,15 @@
+<label>True
+  <input class="true" value="{{ trueValues }}" type="text" style="display:inline;margin-bottom:0;">
+</label>
+
+<label>False
+  <input class="false" value="{{ falseValues }}" type="text" style="display:inline;margin-bottom:0;">
+</label>
+
+<label>Blank
+  <select class="blank">
+    {{#each blank}}
+    <option value="{{ value }}"{{#if selected}} selected{{/if}}>{{ display }}</option>
+    {{/each}}
+  </select>
+</label>

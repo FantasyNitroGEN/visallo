@@ -2,6 +2,9 @@
 
 Plugin to configure the user interface for activity items.
 
+
+TODO: Add react example
+
 To register an activity item:
 
 ```js

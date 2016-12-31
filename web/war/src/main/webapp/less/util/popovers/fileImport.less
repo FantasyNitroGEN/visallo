@@ -2,94 +2,127 @@
 .fileImportPopover {
 
   min-width: 17em;
-
-  h1, h2 {
-    font-size: 85%;
-    font-weight: normal;
-    margin: 0;
-    padding: 0;
-    line-height: 1.4em;
-    float: left;
-    width: 70%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  h2 {
-    font-size: 80%; 
-    float: right;  
-    text-align: right;
-    width: 30%;
-    color: #888;
-  }
-
-  .concept-container {
-    clear: left;
-  }
-
-  .errors button {
-    display: none;
-  }
+  max-width: none;
   
-  .checkbox {
-    margin-bottom: 1em;
-  }
-
-  .visibility {
-    clear: left;
-    input {
-      &.invalid {
-        color: #b94a48;
-        border-color: #ee5f5b;
-        &:focus {
-          border-color: darken(#ee5f5b, 10%);
-          @shadow: 0 0 6px lighten(#ee5f5b, 20%);
-          .box-shadow(@shadow);
-        }
+  .popover-content {
+    .import-cloud-form {
+      display: block;
+    }
+    .create-form {
+      display: none;
+    }
+    &.show-create-form {
+      .import-cloud-form {
+        display: none;
+      }
+      .create-form {
+        display: block;
       }
     }
   }
 
-  .single {
-    display: none;
-  }
-  .individual-visibility {
-    max-height: 200px;
-    overflow: auto;
-    margin: 0 -1em 1em;
-    padding: 0 1em;
-  }
-
-  .file-select-wrapper {
-    margin: 0;
-    padding: 0 0 0.5em 0;
-    position: relative;
-    width: 100px;
-    overflow: hidden;
-
-    .file-select {
-      padding: 0;
-      text-align: left;
-    }
-
-    input {
-      opacity: 0;
-      position: absolute;
-      z-index: 1;
-      top: 0;
-      right: 0;
-      padding: 0;
+  .create-form {
+    h1, h2 {
+      font-size: 85%;
+      font-weight: normal;
       margin: 0;
-      cursor: pointer;
+      padding: 0;
+      line-height: 1.4em;
+      float: left;
+      width: 70%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-  }
+    h2 {
+      font-size: 80%; 
+      float: right;  
+      text-align: right;
+      width: 30%;
+      color: #888;
+    }
 
-  &.collapseVisibility {
+    .concept-container {
+      clear: left;
+    }
+
+    .errors button {
+      display: none;
+    }
+    
+    .checkbox {
+      margin-bottom: 1em;
+    }
+
+    .visibility {
+      clear: left;
+      input {
+        &.invalid {
+          color: #b94a48;
+          border-color: #ee5f5b;
+          &:focus {
+            border-color: darken(#ee5f5b, 10%);
+            @shadow: 0 0 6px lighten(#ee5f5b, 20%);
+            .box-shadow(@shadow);
+          }
+        }
+      }
+    }
+
     .single {
-      display: block;
+      display: none;
     }
     .individual-visibility {
-      display: none;
+      max-height: 200px;
+      overflow: auto;
+      margin: 0 -1em 1em;
+      padding: 0 1em;
+    }
+
+    .import-buttons {
+      display: flex;
+      justify-content: space-between;
+      & > button {
+        flex: 0 0 auto;
+        width: auto;
+        padding: 0;
+        margin: 0 0 0.5em 0;
+      }
+    }
+
+    .file-select-wrapper {
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 0 0 0.5em 0;
+      position: relative;
+      width: auto;
+      overflow: hidden;
+
+      .file-select {
+        padding: 0;
+        text-align: left;
+        width: 100%;
+      }
+
+      input {
+        opacity: 0;
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        right: 0;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+      }
+    }
+
+    &.collapseVisibility {
+      .single {
+        display: block;
+      }
+      .individual-visibility {
+        display: none;
+      }
     }
   }
 }

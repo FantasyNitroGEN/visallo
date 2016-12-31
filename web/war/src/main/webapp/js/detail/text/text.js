@@ -88,6 +88,9 @@ define([
             if (this.scrollNode) {
                 this.scrollNode.off('scrollstop scroll');
             }
+            if (this.textExtension) {
+                this.textExtension.teardown();
+            }
         });
 
         this.after('initialize', function() {
@@ -419,17 +422,31 @@ define([
             }
 
             if (extensions.length) {
-                textPromise = Promise.require(extensions[0].componentPath)
-                    .then(function(Text) {
-                        Text.attachTo($section.find('.text'), {
-                            vertex: self.model,
-                            propertyName: propertyName,
-                            propertyKey: propertyKey
-                        });
+                textPromise = Promise.require('util/component/attacher')
+                    .then(function(Attacher) {
+                        self.textExtension = Attacher()
+                            .node($section.find('.text'))
+                            .path(extensions[0].componentPath)
+                            .params({
+                                vertex: self.model,
+                                propertyName: propertyName,
+                                propertyKey: propertyKey
+                            })
+                        return self.textExtension.attach();
                     })
-                    .catch(function() {
-                        $section.find('.text').text('Error loading text');
-                    })
+
+
+                //textPromise = Promise.require(extensions[0].componentPath)
+                    //.then(function(Text) {
+                        //Text.attachTo($section.find('.text'), {
+                            //vertex: self.model,
+                            //propertyName: propertyName,
+                            //propertyKey: propertyKey
+                        //});
+                    //})
+                    //.catch(function() {
+                        //$section.find('.text').text('Error loading text');
+                    //})
             } else {
                 this.openTextRequest = this.dataRequest(
                     'vertex',

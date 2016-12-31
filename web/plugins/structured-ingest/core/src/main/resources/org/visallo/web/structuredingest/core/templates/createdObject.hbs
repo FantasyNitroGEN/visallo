@@ -1,0 +1,17 @@
+<div class="com-visallo-structuredFile-created popover bottom">
+  <div class="arrow"></div>
+  <div class="popover-content">
+    <div class="visibility"></div>
+    <ul {{#if isEdge}}style="display:none;"{{/if}}>
+    {{#each properties }}
+      <li style="{{#if hide}}display:none{{/if}}">{{#if isIdentifier}}<code>ID</code> {{/if}}<code>{{ headerName }}</code> → <code>{{ propertyName }}</code>
+    <button class="btn btn-link deleteProperty">×</button>
+    </li>
+    {{/each}}
+    </ul>
+  </div>
+  <div class="popover-footer">
+    <button class="deleteEntity btn btn-danger">Remove {{ type }}</button>
+  </div>
+</div>
+

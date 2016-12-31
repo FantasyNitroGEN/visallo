@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.util.ConvertingIterable;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -124,6 +125,14 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
                 getVisibility(),
                 authorizations
         );
+
+        VertexBuilder vb = graph.prepareVertex(longRunningProcessGraphVertexId, vertex.getVisibility());
+        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
+                vb,
+                longRunningProcessQueueItem,
+                getVisibility()
+        );
+        vb.save(authorizations);
         this.graph.flush();
     }
 
@@ -166,12 +175,14 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
         json.put("canceled", true);
         json.put("id", longRunningProcessId);
+
+        VertexBuilder vb = graph.prepareVertex(longRunningProcessId, vertex.getVisibility());
         LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
-                vertex,
+                vb,
                 json,
-                getVisibility(),
-                getAuthorizations(user)
+                getVisibility()
         );
+        vb.save(getAuthorizations(user));
         this.graph.flush();
 
         workQueueRepository.broadcastLongRunningProcessChange(json);
@@ -183,16 +194,23 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         Vertex vertex = this.graph.getVertex(longRunningProcessGraphVertexId, authorizations);
         checkNotNull(vertex, "Could not find long running process vertex: " + longRunningProcessGraphVertexId);
 
+        JSONObject object = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
+        if (object.optBoolean("canceled", false)) {
+            throw new VisalloException("Unable to update progress of cancelled process");
+        }
+
         JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
         json.put("progress", progressPercent);
         json.put("progressMessage", message);
         json.put("id", longRunningProcessGraphVertexId);
+
+        VertexBuilder vb = graph.prepareVertex(longRunningProcessGraphVertexId, vertex.getVisibility());
         LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
-                vertex,
+                vb,
                 json,
-                getVisibility(),
-                authorizations
+                getVisibility()
         );
+        vb.save(authorizations);
         this.graph.flush();
 
         workQueueRepository.broadcastLongRunningProcessChange(json);

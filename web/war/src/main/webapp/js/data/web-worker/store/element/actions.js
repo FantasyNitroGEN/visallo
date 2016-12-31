@@ -6,7 +6,8 @@ define(['../actions'], function(actions) {
         actions: {
             get: ({ workspaceId, vertices, edges }) => ({ workspaceId, vertices, edges }),
             setFocus: ({ vertexIds, edgeIds, elementIds }) => ({ vertexIds, edgeIds, elementIds }),
-            updateElement: (workspaceId, vertex) => ({ workspaceId, vertex })
+            updateElement: (workspaceId, vertex) => ({ workspaceId, vertex }),
+            refreshElement: ({ workspaceId, vertexId, edgeId }) => ({ workspaceId, vertexId, edgeId })
         }
     })
 })

@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY visallo "http://visallo.org#" >
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://visallo.org/structured-file#"
+     xml:base="http://visallo.org/structured-file"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:visallo="http://visallo.org#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://visallo.org/structured-file">
+        <owl:imports rdf:resource="http://visallo.org"/>
+        <owl:imports rdf:resource="http://visallo.org/user"/>
+    </owl:Ontology>
+
+
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/structured-file#elementHasSource">
+        <rdfs:label xml:lang="en">Has Source</rdfs:label>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&owl;Thing"/>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+    </owl:ObjectProperty>
+
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/structured-file#structuredFileParsingError">
+        <rdfs:label xml:lang="en">Parsing Error</rdfs:label>
+        <visallo:displayFormula>
+          _.compact([dependentProp(&apos;http://visallo.org/structured-file#targetPropertyName&apos;),
+                     dependentProp(&apos;http://visallo.org/structured-file#errorMessage&apos;)]).join(&apos;, &apos;)
+        </visallo:displayFormula>
+
+        <visallo:dependentPropertyIri xml:lang="en">http://visallo.org/structured-file#errorMessage</visallo:dependentPropertyIri>
+        <visallo:dependentPropertyIri xml:lang="en">http://visallo.org/structured-file#targetPropertyName</visallo:dependentPropertyIri>
+        <visallo:dependentPropertyIri xml:lang="en">http://visallo.org/structured-file#rawCellValue</visallo:dependentPropertyIri>
+        <visallo:dependentPropertyIri xml:lang="en">http://visallo.org/structured-file#sheet</visallo:dependentPropertyIri>
+        <visallo:dependentPropertyIri xml:lang="en">http://visallo.org/structured-file#row</visallo:dependentPropertyIri>
+
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/structured-file#errorMessage">
+        <rdfs:label xml:lang="en">Error Message</rdfs:label>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/structured-file#targetPropertyName">
+        <rdfs:label xml:lang="en">Target Property</rdfs:label>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/structured-file#rawCellValue">
+        <rdfs:label xml:lang="en">Raw Value</rdfs:label>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/structured-file#sheet">
+        <rdfs:label xml:lang="en">Sheet</rdfs:label>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/structured-file#row">
+        <rdfs:label xml:lang="en">Row</rdfs:label>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
+        <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/structured-file#mapping">
+        <rdfs:label xml:lang="en">Mapping</rdfs:label>
+        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
+    </owl:DatatypeProperty>
+</rdf:RDF>

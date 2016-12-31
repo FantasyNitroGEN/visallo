@@ -76,6 +76,26 @@
             <artifactId>visallo-web-product-map</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-ingest-cloud-s3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-structured-ingest-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-structured-ingest-spreadsheet</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-web-structured-ingest-parquet</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Graph Property Workers -->
         <dependency>

@@ -1,0 +1,52 @@
+{
+  "vertices": [
+    {
+      "properties": [
+        {
+          "name": "http://visallo.org#conceptType",
+          "value": "http://visallo.org/sample#person"
+        },
+        {
+          "name": "http://visallo.org/sample#firstName",
+          "key": "csvImport1",
+          "column": 0,
+          "errorStrategy": "SKIP_ROW"
+        },
+        {
+          "name": "http://visallo.org/sample#lastName",
+          "column": 1,
+          "errorStrategy": "SKIP_CELL"
+        }
+      ]
+    },
+    {
+      "properties": [
+        {
+          "name": "http://visallo.org#conceptType",
+          "value": "http://visallo.org/sample#address"
+        },
+        {
+          "name": "http://visallo.org/sample#street1",
+          "column": 2
+        },
+        {
+          "name": "http://visallo.org/sample#zipCode",
+          "column": 3
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "label": "http://visallo.org/sample#hasAddress",
+      "outVertex": 0,
+      "inVertex": 1,
+      "properties": [
+        {
+          "name": "http://visallo.org/sample#purchaceDate",
+          "column": 4
+        }
+      ]
+    }
+  ]
+}

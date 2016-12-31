@@ -33,7 +33,7 @@
 
         <json.version>20131018</json.version>
         <jersey.version>1.19</jersey.version>
-        <jackson.version>2.4.3</jackson.version>
+        <jackson.version>2.6.6</jackson.version>
     </properties>
 
     <profiles>

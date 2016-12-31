@@ -9,6 +9,8 @@ define([
 
         propTypes: {
             componentPath: PropTypes.string.isRequired,
+            behavior: PropTypes.object,
+            legacyMapping: PropTypes.object,
             nodeType: PropTypes.string
         },
 
@@ -16,12 +18,16 @@ define([
             return { nodeType: 'div' };
         },
 
+        getInitialState() {
+            return { element: null }
+        },
+
         componentDidMount() {
             this.reattach(this.props);
         },
 
         componentWillReceiveProps(nextProps) {
-            if (nextProps.componentPath !== this.props.componentPath) {
+            if (nextProps !== this.props) {
                 this.reattach(nextProps);
             }
         },
@@ -32,19 +38,38 @@ define([
 
         render() {
             const { nodeType } = this.props;
+            const { element } = this.state;
 
-            return React.createElement(nodeType, { ref: 'node' });
+            return element ? element : React.createElement(nodeType, { ref: 'node' });
         },
 
         reattach(props) {
-            this.attacher = attacher()
-                .node(this.refs.node)
-                .path(props.componentPath)
-                .params(props);
+            const { componentPath, legacyMapping, behavior, nodeType, ...rest } = props;
+
+            this.attacher = attacher({ preferDirectReactChildren: true })
+                .path(componentPath)
+                .params(rest);
+
+            if (this.refs.node) {
+                this.attacher.node(this.refs.node)
+            }
+
+            if (behavior) {
+                this.attacher.behavior(behavior)
+            }
+
+            if (legacyMapping) {
+                this.attacher.legacyMapping(legacyMapping)
+            }
 
             this.attacher.attach({
                 teardown: true,
-                empty: true
+                teardownOptions: { react: false },
+                emptyFlight: true
+            }).then(attach => {
+                if (attach._reactElement) {
+                    this.setState({ element: attach._reactElement })
+                }
             })
         }
     });

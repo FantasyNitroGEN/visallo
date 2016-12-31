@@ -1,5 +1,6 @@
-(function() {
+(function(global) {
     'use strict';
+
 
     define([
         'configuration/plugins/registry',
@@ -78,4 +79,4 @@
             }
         }
     })
-})()
+})(this)

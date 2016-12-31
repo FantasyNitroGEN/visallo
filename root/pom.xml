@@ -68,9 +68,9 @@
         <visallo.closure.compiler.version>1.0.0</visallo.closure.compiler.version>
         <hadoop.version>2.6.0-cdh5.9.0</hadoop.version>
         <twill.version>0.4.0-incubating</twill.version>
-        <httpcomponents.httpclient.version>4.4.1</httpcomponents.httpclient.version>
+        <httpcomponents.httpclient.version>4.5.2</httpcomponents.httpclient.version>
         <inflector.version>0.7.0</inflector.version>
-        <jackson.version>2.4.3</jackson.version>
+        <jackson.version>2.6.6</jackson.version>
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <jetty.version>9.2.9.v20150224</jetty.version>
         <jetty.javaee.version>3.0.0.v201112011016</jetty.javaee.version>
@@ -111,6 +111,7 @@
         <tika.version>1.13</tika.version>
         <pdfbox.version>2.0.1</pdfbox.version>
         <apache.poi.version>3.15-beta1</apache.poi.version>
+        <aws-java-sdk.version>1.11.63</aws-java-sdk.version>
 
         <!-- Test Dependency Versions -->
         <junit.version>4.11</junit.version>
@@ -631,6 +632,12 @@
                 <artifactId>handlebars</artifactId>
                 <version>${handlebars.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk</artifactId>
+                <version>${aws-java-sdk.version}</version>
+            </dependency>
+
 
             <!-- Provided Dependencies -->
             <dependency>

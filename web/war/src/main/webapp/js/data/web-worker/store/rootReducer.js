@@ -1,7 +1,31 @@
 /*eslint strict:0 */
+(function(global) {
+define('wait-for-webworker-plugins', [], function() {
+    return global.pluginsLoaded.promise;
+})
+
+if (!global.pluginsLoaded.isFinished()) {
+    console.error(
+`Web worker plugins should not require the store using requirejs.  Please check any plugins that require "data/web-worker/store" and replace with "publicData.storePromise"
+
+For example:
+
+    define([
+        'data/web-worker/store' //Remove this
+    ], function(store) {
+
+        // Add this
+        publicData.storePromise.then(store => {
+            ...
+        })
+    })`);
+    console.error('Visallo is deadlocked until circular dependency is resolved.')
+}
+
 define([
     'configuration/plugins/registry',
     'redux',
+    'util/requirejs/promise!wait-for-webworker-plugins',
 
     // Reducers
     './configuration/reducer',
@@ -15,7 +39,7 @@ define([
     './workspace/reducer'
 
     // Add reducers above, the name of the function will be used as the key
-], function(registry, redux, ...reducers) {
+], function(registry, redux, pluginsFinished, ...reducers) {
 
     registry.markUndocumentedExtensionPoint('org.visallo.store');
 
@@ -53,7 +77,14 @@ define([
     const rootReducerExtensions = rootExtensions ? _.pluck(rootExtensions, 'reducer') : [];
     delete reducersByKey[undefined];
 
-    const reducerMap = redux.combineReducers({ ...baseReducers, ...reducersByKey });
+    const reducerMap = redux.combineReducers({
+        ...baseReducers,
+        ..._.mapObject(reducersByKey, extensions => {
+            const reducers = extensions.map(e => e.reducer)
+            return reducers.length === 1 ? reducers[0] : composeReducers(reducers)
+        })
+    });
 
     return composeReducers([reducerMap, ...rootReducerExtensions]);
 });
+})(this);

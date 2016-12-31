@@ -15,7 +15,7 @@ define(['../actions'], function(actions) {
             var { workerImpl, name } = meta;
 
             if (workerImpl && name) {
-                require([meta.workerImpl], function(worker) {
+                require([workerImpl], function(worker) {
                     if (name in worker) {
                         var impl = worker[name];
                         if (_.isFunction(impl)) {
@@ -29,6 +29,9 @@ define(['../actions'], function(actions) {
                     } else {
                         throw new Error('Action dispatched with no matching worker impl: ' + name + ', worker = ' + workerImpl)
                     }
+                }, function(error) {
+                    console.error('Action dispatched with worker that got error: ', error);
+                    throw error;
                 })
             } else {
                 throw new Error('workerImpl and name required in meta for type = ' + type)

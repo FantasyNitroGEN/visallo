@@ -4,33 +4,46 @@ define([
     '../withPopover',
     'hbs!./formattedFile',
     'detail/dropdowns/propertyForm/justification',
+    'configuration/plugins/registry',
     'util/visibility/edit',
     'util/ontology/conceptSelect',
     'util/formatters',
     'util/withFormFieldErrors',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    'util/component/attacher'
 ], function(
     defineComponent,
     withPopover,
     fileTemplate,
     Justification,
+    registry,
     VisibilityEditor,
     ConceptSelector,
     F,
     withFormFieldErrors,
-    withDataRequest) {
+    withDataRequest,
+    Attacher) {
     'use strict';
+
+    registry.documentExtensionPoint('org.visallo.ingest.cloud',
+        'Specify cloud destinations for ingestion',
+        function(e) {
+            return _.isString(e.identifier) && _.isString(e.componentPath)
+        }
+    );
 
     return defineComponent(FileImport, withPopover, withFormFieldErrors, withDataRequest);
 
     function FileImport() {
 
         this.defaultAttrs({
-            importSelector: '.btn-primary',
-            cancelSelector: '.btn-default',
+            importSelector: '.fileimport',
+            cancelSelector: '.filecancel',
             toggleCheckboxSelector: '.toggle-collapsed',
             importFileButtonSelector: 'button.file-select',
-            importFileSelector: 'input.file',
+            importFileSelector: '.create-form input.file',
+            importCloudSelector: 'button.cloud-select',
+            cloudExtensionsSelector: '.cloud-extensions li',
             visibilityInputSelector: '.visibility',
             justificationSelector: '.justification',
             conceptSelector: '.concept-container',
@@ -61,6 +74,8 @@ define([
             if (!config.files) config.files = [];
 
             config.hasFile = config.files.length > 0;
+            config.cloudExtensions = registry.extensionsForPoint('org.visallo.ingest.cloud');
+            config.hasCloudExtensions = config.cloudExtensions.length > 0;
             config.multipleFiles = config.files.length > 1;
             config.title = this.getTitle(config.files, config.stringType);
 
@@ -79,7 +94,9 @@ define([
 
                 this.on(this.popover, 'click', {
                     importSelector: this.onImport,
-                    cancelSelector: this.onCancel
+                    cancelSelector: this.onCancel,
+                    importCloudSelector: this.onImportCloud,
+                    cloudExtensionsSelector: this.onCloudExtension
                 });
 
                 this.on(this.popover, 'change', {
@@ -91,6 +108,47 @@ define([
                 this.checkValid();
             })
         });
+
+        this.onImportCloud = function(event) {
+            this.popover.find('.import-cloud-form')
+                .html($('<ul>').addClass('nav nav-list cloud-extensions')
+                    .html(
+                        this.attr.cloudExtensions.map(e =>
+                            $('<li><a>')
+                                .attr('data-path', e.componentPath)
+                                .attr('data-identifier', e.identifier)
+                                .find('a').text(i18n(e.identifier + '.title'))
+                                .end()
+                        )
+                    )
+                );
+            this.popover.find('.show-create-form').removeClass('show-create-form');
+        };
+
+        this.onCloudExtension = function(event) {
+            var self = this,
+                $li = $(event.target).closest('li'),
+                path = $li.attr('data-path'),
+                identifier = $li.attr('data-identifier'),
+                attacher = Attacher()
+                    .node(this.popover.find('.import-cloud-form').empty())
+                    .path(path)
+                    .behavior({
+                        onImport: function(attacher, importConfig) {
+                            self.dataRequest('vertex', 'cloudImport', identifier, importConfig)
+                                .then(() => {
+                                    self.trigger('showActivityDisplay');
+                                })
+                            self.teardown();
+                        }
+                    })
+                    .legacyMapping({
+                        onImport: 'cloudImported'
+                    })
+
+            self.before('teardown', () => attacher.teardown())
+            attacher.attach();
+        };
 
         this.onFileChange = function(event) {
             var files = event.target.files;

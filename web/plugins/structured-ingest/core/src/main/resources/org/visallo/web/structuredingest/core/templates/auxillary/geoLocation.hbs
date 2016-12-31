@@ -1,0 +1,24 @@
+<label class="half">
+  Contains
+  <select class="contains">
+    {{#each contains}}
+    <option value="{{ value }}"{{#if selected}}selected{{/if}}>{{ display }}</option>
+    {{/each}}
+  </select>
+  <div style="display:none" class="otherSection">
+    <span class="otherType"></span> Column
+    <select class="otherColumn">
+      {{#each otherColumn}}
+      <option value="{{ value }}"{{#if selected}} selected{{/if}}{{#if disabled}} disabled{{/if}}>{{ display }}</option>
+      {{/each}}
+    </select>
+  </div>
+</label>
+<label class="half">
+  Format
+  <select class="format">
+    {{#each formats}}
+    <option value="{{ value }}"{{#if selected}}selected{{/if}}>{{ display }}</option>
+    {{/each}}
+  </select>
+</label>

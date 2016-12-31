@@ -165,18 +165,45 @@ public class FileImport {
         );
     }
 
+    @Deprecated
     public Vertex importFile(
-            File f,
-            boolean queueDuplicates,
-            String conceptId,
-            ClientApiImportProperty[] properties,
-            String visibilitySource,
-            Workspace workspace,
-            boolean addToWorkspace,
-            boolean findExistingByFileHash,
-            Priority priority,
-            User user,
-            Authorizations authorizations
+        File f,
+        boolean queueDuplicates,
+        String conceptId,
+        ClientApiImportProperty[] properties,
+        String visibilitySource,
+        Workspace workspace,
+        boolean addToWorkspace,
+        boolean findExistingByFileHash,
+        Priority priority,
+        User user,
+        Authorizations authorizations
+    ) throws Exception {
+        return importFile(
+            f,
+            queueDuplicates,
+            conceptId,
+            properties,
+            visibilitySource,
+            workspace,
+            findExistingByFileHash,
+            priority,
+            user,
+            authorizations
+        );
+    }
+
+    public Vertex importFile(
+        File f,
+        boolean queueDuplicates,
+        String conceptId,
+        ClientApiImportProperty[] properties,
+        String visibilitySource,
+        Workspace workspace,
+        boolean findExistingByFileHash,
+        Priority priority,
+        User user,
+        Authorizations authorizations
     ) throws Exception {
         Vertex vertex;
         ensureInitialized();
@@ -375,7 +402,6 @@ public class FileImport {
                     file.getProperties(),
                     file.getVisibilitySource(),
                     workspace,
-                    addToWorkspace,
                     findExistingByFileHash,
                     priority,
                     user,

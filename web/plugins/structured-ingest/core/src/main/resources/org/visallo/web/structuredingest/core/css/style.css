@@ -1,0 +1,475 @@
+
+.com-visallo-csv table {
+  font-size: 90%;
+  border-color: #ccc;
+  background: none;
+  text-align: left;
+  margin: 0 0 1em 0;
+  overflow: hidden;
+}
+.com-visallo-csv.mode-header .modal-header .segmented-control,
+.com-visallo-csv.mode-header .created,
+.com-visallo-csv.mode-map .modal-header h1 {
+  display: none;
+}
+.com-visallo-csv.mode-header .modal-header h1 {
+  font-size: 110%;
+  line-height: 1.6em;
+  margin: 0;
+  padding: 0;
+  color: #636060;
+}
+.com-visallo-csv.mode-header .modal-header h1 span {
+  font-style: italic;
+}
+.com-visallo-csv.mode-header .modal-header h1 span select {
+  margin: 0;
+}
+.com-visallo-csv table td,
+.com-visallo-csv table th {    
+  max-width: 10em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.com-visallo-csv.mode-map table thead th {    
+  color: #959595;
+  background-color: #eaeaea;
+  font-variant: small-caps;
+  font-size: 90%;
+  font-weight: bold;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  vertical-align: top;
+  text-align: center;
+}
+.com-visallo-csv.mode-map table thead th.checked {
+  color: #0088cc;
+}
+.com-visallo-csv.mode-map table thead th.checked:after {
+  content: '✓';
+  color: #0088cc;
+  margin-left: 0.25em;
+}
+.com-visallo-csv.mode-map table thead th.error {
+  color: #B94A48;
+}
+.com-visallo-csv.mode-map table thead th.error:after {
+  display: none;
+}
+.com-visallo-csv.mode-map table thead th .badge {    
+  float: right;
+  font-size: 100%;
+  padding: 0 0.6em;
+  margin-left: 0.5em;
+  margin-top: 0.3em;
+  cursor: pointer;
+  position: relative;
+}
+.com-visallo-csv table tbody tr.isBlank td {    
+  font-style: italic;
+  color: #999;
+}
+.com-visallo-csv .modal-header .segmented-control {
+  margin-bottom: 0;
+}
+.com-visallo-csv .modal-header .segmented-control button {
+  width: 33%;
+}
+.com-visallo-csv .modal-header .segmented-control button {
+  border-width: 1px 0 1px 1px;
+}
+.com-visallo-csv .modal-header .segmented-control button:last-child {
+  border-width: 1px;
+}
+.com-visallo-csv .modal-body {
+  overflow: visible;
+  padding: 1em 0 0 0;
+  max-height: none;
+}
+.com-visallo-csv .modal-body .mapping-buttons {
+  float:right;
+  margin-bottom: 0.5em;
+}
+.com-visallo-csv .modal-body .relationships .form-container .mapping-buttons {
+  text-align: right;
+  float: none;
+  display: block;
+}
+.com-visallo-csv .modal-body .mapping-buttons button {
+  float: none;
+  vertical-align: baseline;
+}
+.com-visallo-csv .modal-body > * {
+  margin: 1em;
+  width: auto;
+}
+.com-visallo-csv .modal-body > *:first-child {
+  margin-top: 0;
+}
+
+.com-visallo-csv section.preview .form-container > h1.help {
+  margin: 0;
+  padding: 0;
+  line-height: 1em;
+}
+.com-visallo-csv section.preview .form-container table {
+    width: 100%;
+    color: #777;
+}
+
+.com-visallo-csv section.preview .form-container table th {
+    text-transform: uppercase;
+    font-style: italic;
+}
+ 
+.com-visallo-csv section.preview .form-container table tr:first-child {
+    font-size: 90%;
+    color: #ccc;
+}
+.com-visallo-csv section.preview .form-container table tr:first-child th {
+    border-bottom: 1px solid #ccc;      
+}
+.com-visallo-csv section.preview .form-container table tr th:first-child {
+    text-align: right;    
+    padding-right: 1em;
+    width: 20%;    
+    font-weight: normal;
+    text-transform: none;
+}
+.com-visallo-csv section.preview .form-container table tr *:last-child {
+    width: 20%;
+    text-align: right;
+}
+.com-visallo-csv section.preview .shouldPublish {
+    text-align: right;
+    margin: 1em 0 0 0;
+    color: #797979;
+}
+.com-visallo-csv section.preview .truncated-info {
+    text-align: center;
+    font-style: italic;
+    color: #cc9e10;
+    margin: 0 0 1em 0;
+    font-size: 95%;
+}
+.com-visallo-csv .modal-body section.relationships svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.com-visallo-csv .modal-body section.relationships svg path {
+  stroke-width: 3px;
+  stroke: #0088cc;
+  fill: none;
+  stroke-linecap: round;
+}
+.com-visallo-csv .tableview {
+  margin-bottom: 0;
+  overflow: auto;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ie-user-select: none;
+  user-select: none;
+}
+.com-visallo-csv .tableview table {
+  margin-bottom: 0;
+  width: 100%;
+}
+.com-visallo-csv .relationships,
+.com-visallo-csv .entities {
+  margin: 0;
+}
+.com-visallo-csv section .form-container {
+  background-color: #eee;
+}
+.com-visallo-csv section .form-container > h1.help,
+.com-visallo-csv section .form-container > div {
+  padding: 1em;
+}
+.com-visallo-csv section .form-container .form-row {
+  display: flex;
+  width: 100%;
+}
+.com-visallo-csv section .form-container .form-row > * {
+  flex: 1 1 auto;
+}
+.com-visallo-csv section .form-container .form-row > *:last-child {
+  margin-left: 0.5em;
+}
+.com-visallo-csv .modal-footer .importMessage {
+  color: #B94A48;
+  margin-right: 0.5em;
+}
+.com-visallo-csv .modal-footer .importMessage.info {
+  font-style: italic;
+  color: #777;
+}
+
+.com-visallo-csv .modal-footer .importMessage a {
+    color: #B94A48;
+}
+
+.com-visallo-csv .modal-footer .importMessage span {
+    cursor: pointer;
+}
+
+.com-visallo-csv .tableview td, 
+.com-visallo-csv .tableview th {
+  cursor: pointer;
+  padding: 0.2em 0.5em;
+  border-left: 1px solid white;
+  border-right: 1px solid white;
+}
+.com-visallo-csv.mode-header th {
+  font-weight: normal;
+}
+
+.com-visallo-csv.mode-header th.hover-highlight,
+.com-visallo-csv td.hover-highlight {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.com-visallo-csv td.highlight,
+.com-visallo-csv th.highlight,
+.com-visallo-csv td.highlight:hover,
+.com-visallo-csv th.highlight:hover {
+  background-color: #eee;
+  cursor: default;
+}
+
+.com-visallo-csv .aux_fields:after {
+  content: '';
+  clear: left;
+  display: block;
+}
+
+.com-visallo-csv .aux_fields label.half {
+  float: left;
+  width: 50%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ie-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.com-visallo-csv .aux_fields label.half:first-child {
+  padding-right: 0.5em;
+}
+.com-visallo-csv .aux_fields label.half:last-child {
+  padding-left: 0.5em;
+}
+.com-visallo-csv .aux_fields label select {
+  display: block;
+  margin-bottom: 0.5em;
+  width: 100%;
+}
+
+.com-visallo-csv .aux_fields.type-boolean {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+       -moz-box-orient: horizontal;
+       -moz-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+}
+.com-visallo-csv .aux_fields.type-boolean label {
+    -webkit-box-flex: 3;
+    -webkit-flex: 3;
+       -moz-box-flex: 3;
+        -ms-flex: 3;
+            flex: 3;
+    margin-right: 1em;
+}
+.com-visallo-csv .aux_fields.type-boolean label:last-child {
+    margin-right: 0;
+}
+.com-visallo-csv .aux_fields.type-boolean label input,
+.com-visallo-csv .aux_fields.type-boolean label select {
+    width: 100%;
+}
+
+.com-visallo-csv h1.help {
+  font-size: 140%;
+  color: #999;
+  font-weight: normal;
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ie-user-select: none;
+  user-select: none;
+}
+
+.com-visallo-csv .entities select {
+  margin-bottom: 0;
+  width: auto;
+}
+
+.com-visallo-csv .entities .form-container > div > .field,
+.com-visallo-csv .entities .form-container > div > .entity-visibility,
+.com-visallo-csv .entities .form-container > div > .concept {
+  margin-top: 0.5em;
+}
+
+.com-visallo-csv .created {
+  list-style: none;
+  margin: 1em;
+  font-size: 85%; 
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ie-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+.com-visallo-csv .created li {
+  display: inline-block;
+  background: #888;    
+  color: white;
+  padding: 0 0.5em;
+  border-radius: 3px;
+  margin: 0.25em;
+  cursor: pointer;
+}
+.com-visallo-csv .created li:hover {
+  cursor: pointer;
+}
+.com-visallo-csv .created li.active {
+  background: #0088cc;
+}
+.com-visallo-csv .created li:first-child {
+  margin-left: 0;
+}
+.com-visallo-csv .created li:last-child {
+  margin-right: 0;
+}
+.com-visallo-csv .created .badge {    
+  margin-left: 0.5em;
+}
+
+.com-visallo-structuredFile-text-table {
+  font-size: 80%;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ie-user-select: none;
+  user-select: none;
+}
+.com-visallo-structuredFile-text-table .buttons {
+  padding: 1em;
+}
+.com-visallo-structuredFile-text-table .buttons button {
+  width: 100%;
+}
+.com-visallo-structuredFile-text-table .table {
+  overflow: auto;
+}
+.com-visallo-structuredFile-text-table table {
+  margin: 0 1em;
+}
+.com-visallo-structuredFile-text-table td,
+.com-visallo-structuredFile-text-table th {
+  padding: 0 0.5em;
+}
+
+.com-visallo-structuredFile-error .popover-content {
+    padding: 0;
+    margin: 0;
+    width: 17em;
+}
+.com-visallo-structuredFile-error ul {
+    list-style: none;
+    margin: 0;        
+    max-height: 10em;
+    overflow: auto;
+}
+.com-visallo-structuredFile-error ul li {
+    padding: 0.5em;
+    font-size: 85%;
+    color: #B94A48;
+}
+.com-visallo-structuredFile-error ul li dl {
+    margin: 0 0 0 0.5em;
+    text-align: right;
+    float: right;
+}
+.com-visallo-structuredFile-error ul li dt,
+.com-visallo-structuredFile-error ul li dd {
+    font-weight: normal;
+    font-variant: small-caps;
+    text-transform: uppercase;   
+    color: #777; 
+    font-size: 80%;
+    display: inline;
+    margin: 0;
+}
+.com-visallo-structuredFile-error ul li dt {
+    margin-right: 0.5em;
+}
+
+.com-visallo-structuredFile-error ul li:nth-child(2n) {
+    background: rgb(255, 240, 242);    
+    border: 1px solid rgb(255, 221, 226);
+    border-width: 1px 0;
+}
+
+.com-visallo-structuredFile-created .popover-content {
+    padding: 0;
+    width: 18em;        
+}
+.com-visallo-structuredFile-created .popover-content .visibility {
+    padding: 0.6em 0.5em 0 0.5em;
+}
+.com-visallo-structuredFile-created ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 10em;
+    overflow: auto;
+}
+.com-visallo-structuredFile-created ul li {
+    padding: 1em;    
+    margin: 0;
+    position: relative;
+    padding-right: 1.5em;
+    overflow: hidden;
+}
+.com-visallo-structuredFile-created ul li code {
+    white-space: normal;
+}
+.com-visallo-structuredFile-created ul li:nth-child(2n) {
+    border-top: 1px solid #eee;
+}
+.com-visallo-structuredFile-created.popover ul li button.btn-link {
+    width: auto;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    margin-top: -0.8em;
+    color: #777;   
+    font-size: 140%; 
+}
+.com-visallo-structuredFile-created.popover ul li button.btn-link:hover {
+    color: #B94A48;
+}
+.com-visallo-structuredFile-created .popover-footer {
+    padding: 0.25em 0.5em;
+    border-top: 1px solid #ddd;
+    background: #F5F5F5;
+}

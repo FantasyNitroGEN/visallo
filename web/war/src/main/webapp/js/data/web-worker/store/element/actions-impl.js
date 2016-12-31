@@ -97,6 +97,25 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             }
         }),
 
+        refreshElement: ({ workspaceId, vertexId, edgeId }) => (dispatch, getState) => {
+            if (!workspaceId) {
+                workspaceId = getState().workspace.currentId;
+            }
+
+            var params = {}, type;
+            if (vertexId) {
+                params.graphVertexId = vertexId;
+                type = 'vertex';
+            } else if (edgeId) {
+                params.graphEdgeId = edgeId;
+                type = 'edge';
+            }
+
+            ajax('GET', `/${type}/properties`, params).then(element => {
+                dispatch(api.updateElement(workspaceId, element));
+            });
+        },
+
         propertyChange: (change) => (dispatch, getState) => {
             const { graphEdgeId, graphVertexId } = change;
             const isEdge = 'graphEdgeId' in change;

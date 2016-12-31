@@ -1,0 +1,25 @@
+<div class="com-visallo-structuredFile-error popover bottom">
+  <div class="arrow"></div>
+  <div class="popover-content">
+    <ul>
+      {{#each errors.uniqueMessages }}
+      <li>
+        {{#if hasRow}}
+        <dl><dt>Row</dt><dd>{{ rowIndex }}</dd></dl>
+        {{/if}}
+        {{ message }}
+      </li>
+      {{/each}}
+    </ul>
+  </div>
+  {{#unless hideStrategy}}
+  <div class="popover-footer" style="padding: 0.5em; ">
+    <select style="margin: 0; width: 100%; font-size: 90%; ">
+      {{#each errorStrategies}}
+      <option value="{{ value }}"{{#if selected}} selected{{/if}}>{{ display }}</option>
+      {{/each}}
+  </select>   
+  </div>
+  {{/unless}}
+</div>
+

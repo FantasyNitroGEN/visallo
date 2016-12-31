@@ -13,6 +13,22 @@ define([], function() {
             autoDismiss: true
         },
         {
+            type: 'org-visallo-ingest-cloud',
+            kind: 'longRunningProcesses',
+            titleRenderer: function(el, task) {
+                const type = i18n(`${task.destination}.title`);
+                const config = _.isString(task.configuration) ? JSON.parse(task.configuration) : task.configuration;
+                const number = config.paths.length;
+                const plural = number === 1 ? '' : 's';
+                const titleKey = 'activity.tasks.type.org-visallo-ingest-cloud.title';
+
+                el.textContent = i18n(titleKey, number, plural, type);
+            },
+            autoDismiss: false,
+            allowCancel: true,
+            finishedComponentPath: 'activity/builtin/CloudImport'
+        },
+        {
             type: 'findPath',
             kind: 'longRunningProcess',
             titleRenderer: function(el, process) {
