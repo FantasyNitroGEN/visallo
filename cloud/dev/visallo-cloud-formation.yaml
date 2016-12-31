@@ -1,0 +1,248 @@
+Parameters:
+  KeyName:
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+
+  SubnetId:
+    Description: Subnet to run the EC2 instance within
+    Type: AWS::EC2::Subnet::Id
+
+  SecurityGroupId:
+    Description: Security group allowing inbound access to port 22
+    Type: AWS::EC2::SecurityGroup::Id
+
+  HttpProxy:
+    Description: URL of the HTTP proxy required to access the Internet (optional)
+    Type: String
+
+  HttpsProxy:
+    Description: URL of the HTTPS proxy required to access the Internet (optional)
+    Type: String
+
+  InstanceType:
+    AllowedValues:
+    - t2.micro
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - t2.xlarge
+    - t2.2xlarge
+    - c4.2xlarge
+    - c4.4xlarge
+    - c4.8xlarge
+    ConstraintDescription: must be a valid EC2 instance type.
+    Default: m4.2xlarge
+    Description: EC2 instance type
+    Type: String
+
+  CustomAmiId:
+    Description: Custom AMI ID (optional, use only if you really know what you're doing)
+    Type: String
+
+  UserPassword:
+    Type: String
+    NoEcho: true
+    Description: Password for the 'visallo' user that will be created
+    ConstraintDescription: must be 8 or more characters in length
+    MinLength: 8
+
+  IntelliJEdition:
+    Type: String
+    AllowedValues:
+    - community
+    - ultimate
+    Default: community
+    Description: Edition of IntelliJ IDEA to install
+
+  VolumeSize:
+    Type: Number
+    MinValue: 100
+    Description: Size of the home directory (in GB) for the visallo user
+    Default: 100
+    ConstraintDescription: must be greater than or equal to 100
+
+  IamInstanceProfile:
+    Type: String
+    Description: Physical ID of an instance profile to associate with the EC2 instance (optional)
+
+  SetupScriptUrl:
+    Type: String
+    Description: URL to the setup-centos.sh script used to configure the EC2 instance
+    AllowedPattern: '^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]'
+    ConstraintDescription: Must be a valid HTTP or HTTPS URL
+    Default: 'https://raw.githubusercontent.com/v5analytics/visallo/master/cloud/dev/setup-centos.sh'
+
+  VolumeSnapshotId:
+    Type: String
+    Description: Snapshot from which to create the new volume (optional)
+
+  VolumeType:
+    Type: String
+    AllowedValues:
+    - gp2
+    - standard
+    - st1
+    - sc2
+    Default: gp2
+    Description: Type of EBS volume to create
+
+  PublicIpAddress:
+    Type: String
+    AllowedValues:
+    - true
+    - false
+    Default: true
+    Description: Associate a public IP address with the created EC2 instance?
+
+Conditions:
+  UseIamInstanceProfile: !Not [!Equals [!Ref IamInstanceProfile, ""]]
+  UseVolumeSnapshot: !Not [!Equals [!Ref VolumeSnapshotId, ""]]
+  AddPublicIpAddress: !Equals [!Ref PublicIpAddress, "true"]
+  UseCustomAmi: !Not [!Equals [!Ref CustomAmiId, ""]]
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      hvm: ami-6d1c2007
+    us-east-2:
+      hvm: ami-6a2d760f
+    us-west-1:
+      hvm: ami-af4333cf
+    us-west-2:
+      hvm: ami-d2c924b2
+    ca-central-1:
+      hvm: ami-af62d0cb
+    eu-west-1:
+      hvm: ami-7abd0209
+    eu-central-1:
+      hvm: ami-9bf712f4
+    eu-west-2:
+      hvm: ami-bb373ddf
+    ap-northeast-1:
+      hvm: ami-eec1c380
+    ap-northeast-2:
+      hvm: ami-c74789a9
+    ap-southeast-1:
+      hvm: ami-f068a193
+    ap-southeast-2:
+      hvm: ami-fedafc9d
+    ap-south-1:
+      hvm: ami-95cda6fa
+    sa-east-1:
+      hvm: ami-26b93b4a
+
+Resources:
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !If [UseCustomAmi, !Ref CustomAmiId, !FindInMap [RegionMap, !Ref "AWS::Region", "hvm"]]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !If [UseIamInstanceProfile, !Ref IamInstanceProfile, !Ref "AWS::NoValue"]
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+      NetworkInterfaces:
+      - AssociatePublicIpAddress: !If [AddPublicIpAddress, true, false]
+        DeleteOnTermination: true
+        DeviceIndex: "0"
+        GroupSet:
+        - !Ref SecurityGroupId
+        SubnetId:
+          Ref: SubnetId
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          export http_proxy=${HttpProxy}
+          export https_proxy=${HttpsProxy}
+          curl -o /opt/setup-centos.sh -fsSL ${SetupScriptUrl}
+          chmod u+x /opt/setup-centos.sh
+          cd /opt
+          . ./setup-centos.sh -p ${UserPassword} -i ${IntelliJEdition}
+
+  NewVolume:
+      Type: AWS::EC2::Volume
+      Properties:
+        Size: !Ref VolumeSize
+        AvailabilityZone: !GetAtt Ec2Instance.AvailabilityZone
+        SnapshotId: !If [UseVolumeSnapshot, !Ref VolumeSnapshotId, !Ref "AWS::NoValue"]
+        VolumeType: !Ref VolumeType
+        Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+  MountPoint:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      InstanceId: !Ref Ec2Instance
+      VolumeId: !Ref NewVolume
+      Device: /dev/sdh
+
+Outputs:
+  InstancePublicIp:
+    Description: public IP address of the Visallo development instance
+    Value: !If [AddPublicIpAddress, !GetAtt Ec2Instance.PublicIp, "none"]
+  InstancePrivateIp:
+    Description: private IP address of the Visallo development instance
+    Value: !GetAtt Ec2Instance.PrivateIp
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network Settings
+      Parameters:
+        - KeyName
+        - SubnetId
+        - SecurityGroupId
+        - HttpProxy
+        - HttpsProxy
+    - Label:
+        default: Instance Settings
+      Parameters:
+        - InstanceType
+        - CustomAmiId
+        - IamInstanceProfile
+        - PublicIpAddress
+        - SetupScriptUrl
+        - UserPassword
+        - IntelliJEdition
+    - Label:
+        default: Volume Settings
+      Parameters:
+        - VolumeType
+        - VolumeSize
+        - VolumeSnapshotId
+    ParameterLabels:
+      KeyName:
+        default: Key Name
+      SubnetId:
+        default: Subnet ID
+      SecurityGroupId:
+        default: Security Group ID
+      HttpProxy:
+        default: HTTP Proxy URL
+      HttpsProxy:
+        default: HTTPS Proxy URL
+      InstanceType:
+        default: Instance Type
+      CustomAmiId:
+        default: Custom AMI ID
+      UserPassword:
+        default: User Password
+      PublicIpAddress:
+        default: Add Public IP Address
+      SetupScriptUrl:
+        default: URL to Setup Script
+      IntelliJEdition:
+        default: IntelliJ IDEA Edition
+      IamInstanceProfile:
+        default: IAM Instance Profile
+      VolumeType:
+        default: Volume Type
+      VolumeSize:
+        default: Volume Size
+      VolumeSnapshotId:
+        default: Volume Snapshot ID

@@ -10,6 +10,7 @@
     * [Ontology](getting-started/ontology.md)
     * [Getting Help](getting-started/help.md)
     * [Contributing](getting-started/contributing.md)
+* [Cloud Development Environment](cloud-dev-env.md)
 * [IDE Setup](ide-setup/index.md)
     * [IntelliJ IDEA](ide-setup/intellij.md)
 * [Features](features.md)
