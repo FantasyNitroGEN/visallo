@@ -2,11 +2,11 @@
 
 ## Prerequisites
 
-Ensure that you have the [dependencies](../getting-started/dependencies.md) installed.  Since subsequent tutorials will have some software development involved, I recommend that you have a Java IDE like Intellij.  For this tutorial, you should be somewhat familiar with the command line and maven.  That being said, we will do our best to make the instructions as clear as possible for someone who isn't adept with either of those.
+Ensure that you have the [dependencies](../getting-started/dependencies.md) installed.  Since subsequent tutorials will have some software development involved, we recommend that you have a Java IDE like Intellij.  For this tutorial, you should be somewhat familiar with the command line and maven.  That being said, we will do our best to make the instructions as clear as possible for someone who isn't adept with either of those.
 
 ## Background
 
-One of the major components of Visallo is the system of Graph Property Workers that enhance and do analytics on top of the data.  Since most organizations will have different use-cases for their own data, the graph property workers are designed to be as extensible as possible.  For more information on graph property workers, I recommend [reading the documentation about Graph Property Workers](../extension-points/back-end/graphpropertyworkers.md) before beginning this tutorial, but it is not required.  
+One of the major components of Visallo is the system of Graph Property Workers that enhance and do analytics on top of the data.  Since most organizations will have different use-cases for their own data, the graph property workers are designed to be as extensible as possible.  For more information on graph property workers, we recommend [reading the documentation about Graph Property Workers](../extension-points/back-end/graphpropertyworkers.md) before beginning this tutorial, but it is not required.  
 
 ## Getting Started
 
