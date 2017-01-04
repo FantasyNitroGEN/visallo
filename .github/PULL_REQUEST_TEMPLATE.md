@@ -1,6 +1,6 @@
 - [ ] @joeferner
-- [ ] @kunklejr @sfeng88 @diegogrz
-- [ ] @mwizeman
+- [ ] @kunklejr @diegogrz
+- [ ] @mwizeman @sfeng88
 - [ ] @joeybrk372 @rygim @jharwig @EvanOxfeld
 
 Testing Instructions:
