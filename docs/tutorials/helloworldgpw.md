@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Ensure that you have gone through the [starting](starting.md) instructions.  There will be some development in this tutorial so I recommend that you at least be familiar with the command line, maven and a java IDE that works with maven (e.g. Intellij).  
+Ensure that you have gone through the [starting](starting.md) instructions.  There will be some development in this tutorial so we recommend that you at least be familiar with the command line, maven and a java IDE that works with maven (e.g. Intellij).  
 
 ## Background
 
