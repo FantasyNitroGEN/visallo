@@ -21,7 +21,7 @@ Select "Import project from external model" and be sure to choose Maven. Click t
 There are a lot of settings to choose from here. Just make your selections match the screenshot and click Next.
 ![IntelliJ Project Import Step 4](intellij-import-4.png)
 
-The "build-docline-none" profile should already be selected. Leave it as is and click the Next button.
+The "build-doclint-none" profile should already be selected. Leave it as is and click the Next button.
 ![IntelliJ Project Import Step 5](intellij-import-5.png)
 
 There should only be one Maven project to import and it should already be selected. If not, choose visallo and click Next.
