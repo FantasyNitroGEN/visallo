@@ -1,4 +1,4 @@
-# Ingest 
+# Code Generation 
 
 Visallo has a module that will interact with your Visallo instance to generate code that will let you write customized code to ingest your data. By using the generated code, you can use any software that runs on the JVM to import data into Visallo.
 
@@ -19,7 +19,7 @@ To connect to the webserver you will also need to have the command line paramete
 * -u *username*
 * -p *password*
 
-and you will possibly need *--includeVisalloClasses* if your ontology has a url that starts with http://visallo.org since those are filtered out by default. If your ontology does not and you do not need to interact with Visallos built in ontology, you can skip that command line parameter.
+and you will possibly need *--includeVisalloClasses* if your ontology has a url that starts with http://visallo.org since those are filtered out by default. If your ontology does not and you do not need to interact with Visallo's built-in ontology, you can skip that command line parameter.
 
 For example, in intellij, your run configuration may look something like the following and will automatically generate the ontology java code in the directory that you specify:
 
