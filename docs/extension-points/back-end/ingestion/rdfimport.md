@@ -222,11 +222,11 @@ It is possible to import data into Visallo using a RDF in an XML Format. Followi
 </rdf:RDF>
 ```
 
-It should be notes that even though it is possible to import some data through the XML API, it is not fully featured at this point and cannot handle adding edges, edge properties, or entity visibilities.
+It should be noted that even though it is possible to import some data through the XML API, it is not fully featured at this point and cannot handle adding edges, edge properties, or entity visibilities.
 
 #### Vertex
 
-Importing a single vertex required the following format (The surrounding tags are omitted for brevity):
+Importing a single vertex requires the following format (The surrounding tags are omitted for brevity):
 
 ```xml
 <rdf:Description rdf:about="&visallo;*Entity Id*">
