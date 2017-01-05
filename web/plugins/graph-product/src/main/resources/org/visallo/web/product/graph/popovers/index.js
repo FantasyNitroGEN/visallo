@@ -1,6 +1,6 @@
 define([
     './controlDragPopover',
-    './findPathPopover',
+    './findPathPopoverShim',
     './createConnectionPopover',
     './controlDragPopoverTpl',
     './createConnectionPopoverTpl',

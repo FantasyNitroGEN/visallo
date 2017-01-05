@@ -9,6 +9,8 @@ var VisalloAmdExternals = [
     'data/web-worker/store/actions',
     'data/web-worker/store/product/actions-impl',
     'data/web-worker/store/product/actions',
+    'data/web-worker/store/user/actions-impl',
+    'data/web-worker/store/user/actions',
     'data/web-worker/store/product/selectors',
     'data/web-worker/store/selection/actions',
     'data/web-worker/store/user/actions-impl',
@@ -16,6 +18,7 @@ var VisalloAmdExternals = [
     'data/web-worker/store/selection/actions-impl',
     'data/web-worker/util/ajax',
     'public/v1/api',
+    'util/component/attacher',
     'util/formatters',
     'util/vertex/formatters',
     'util/retina',
@@ -109,7 +112,8 @@ module.exports = [
         entry: {
             Graph: './GraphContainer.jsx',
             EdgeLabel: './options/EdgeLabel.jsx',
-            SnapToGrid: './options/SnapToGrid.jsx'
+            SnapToGrid: './options/SnapToGrid.jsx',
+            FindPathPopoverContainer: './popovers/FindPathPopoverContainer.jsx'
         },
         target: 'web'
     })

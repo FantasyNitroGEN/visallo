@@ -6,7 +6,7 @@ define(['../actions'], function(actions) {
         actions: {
             putUser: (user) => ({ user }),
             putUserPreferences: (preferences) => ({ preferences }),
-            setPreference: (name, value) => ({ name, value })
+            setUserPreference: (name, value) => ({ name, value })
         }
     })
 })

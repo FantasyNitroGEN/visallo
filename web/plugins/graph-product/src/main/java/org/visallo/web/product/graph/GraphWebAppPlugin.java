@@ -19,6 +19,7 @@ public class GraphWebAppPlugin implements WebAppPlugin {
         app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/Graph.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/EdgeLabel.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/SnapToGrid.js");
+        app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/FindPathPopoverContainer.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/actions-impl.js");
 
         app.registerCompiledWebWorkerJavaScript("/org/visallo/web/product/graph/dist/plugin-worker.js");
@@ -26,5 +27,6 @@ public class GraphWebAppPlugin implements WebAppPlugin {
 
         app.registerLess("/org/visallo/web/product/graph/css.less");
         app.registerResourceBundle("/org/visallo/web/product/graph/messages.properties");
+        app.registerFile("/org/visallo/web/product/graph/select-arrow.png", "image/png");
     }
 }

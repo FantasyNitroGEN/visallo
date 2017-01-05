@@ -2,9 +2,9 @@ define([
     'data/web-worker/store/product/selectors'
 ], function(productSelectors) {
 
-    publicData.storePromise.then(store => {
-        checkUpdatedEdgesForProductInclusion(store);
-    })
+    // publicData.storePromise.then(store => {
+    //     checkUpdatedEdgesForProductInclusion(store);
+    // })
 
     function checkUpdatedEdgesForProductInclusion(store) {
         var prevEdges;

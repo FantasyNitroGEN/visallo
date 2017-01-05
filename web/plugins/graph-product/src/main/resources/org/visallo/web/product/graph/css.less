@@ -27,4 +27,154 @@
       pointer-events: all;
     }
   }
+
+  .find-path-config {
+    width: 250px;
+    height: 315px;
+
+    .field-title {
+      text-transform: uppercase;
+      font-weight: bold;
+      color: #999;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+    }
+
+    svg {
+      display: block;
+    }
+
+    .field-title-value {
+      display: flex;
+    }
+
+    .field-title {
+      flex-grow: 1;
+    }
+
+    .value {
+      color: #08c;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+
+      .select-wrapper {
+        overflow: hidden;
+        width: 32px;
+        background: url(../../../../../../org/visallo/web/product/graph/select-arrow.png) no-repeat right center;
+        background-size: 8px 4px;
+
+        select {
+          color: #08c;
+          background-color: transparent;
+          outline: none;
+          text-shadow: 0 0 0 #08c;
+          font-weight: bold;
+          width: 50px;
+          border: 0;
+          margin-top: -5px;
+          margin-bottom: -5px;
+        }
+      }
+    }
+
+    .subtitle {
+      color: #999;
+      font-style: italic;
+      font-size: 90%;
+    }
+  }
+
+  .find-path-edges-config {
+    width: 250px;
+    height: 315px;
+    display: flex;
+    flex-direction: column;
+
+    .header {
+      display: flex;
+      margin-bottom: 7px;
+      flex-shrink: 0;
+
+      .title {
+        flex-grow: 1;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #999;
+      }
+
+      .actions {
+        button {
+          margin: 0;
+          padding: 0;
+          font-weight: bold;
+          font-size: 90%;
+        }
+      }
+    }
+
+    .selection {
+      flex-grow: 1;
+      border: 1px solid #ccc;
+      min-height: 50px;
+      display: flex;
+      flex-direction: column;
+
+      .edge-list-header {
+        flex-shrink: 0;
+        background-color: #eee;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-bottom: 1px solid #ccc;
+
+        .buttons {
+          flex-grow: 1;
+          white-space: nowrap;
+          margin-left: 5px;
+
+          button {
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #999;
+            font-size: 90%;
+            font-weight: bold;
+            outline: 0 none;
+            height: 20px;
+            border-radius: 0;
+            padding-top: 0;
+            padding-left: 6px;
+            padding-right: 6px;
+            margin: 1px;
+            width: auto;
+          }
+        }
+
+        input {
+          border: 1px solid #ccc;
+          outline: 0 none;
+          height: 18px;
+          border-radius: 9px;
+          padding-left: 9px;
+          margin: 5px;
+          min-width: 80px;
+        }
+      }
+
+      .edge-list {
+        overflow-y: scroll;
+        overflow-x: hidden;
+        flex-grow: 1;
+
+        input {
+          margin: 0 3px 0 5px;
+          outline: 0;
+        }
+      }
+    }
+  }
 }

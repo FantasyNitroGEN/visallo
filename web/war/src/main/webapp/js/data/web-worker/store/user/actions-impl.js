@@ -17,7 +17,7 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             payload: { name, value }
         }),
 
-        setUserPreference: (name, value) => (dispatch, getState) => {
+        setUserPreference: ({ name, value }) => (dispatch, getState) => {
             dispatch(api.putUserPreference(name, value));
             return ajax('POST', '/user/ui-preferences', { name, value });
         }
