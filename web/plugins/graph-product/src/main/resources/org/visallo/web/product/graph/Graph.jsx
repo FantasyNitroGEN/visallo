@@ -665,6 +665,8 @@ define([
                     const edges = Object.keys(this._queuedSelection.add.edges);
                     if (vertices.length || edges.length) {
                         this.props.onSetSelection({ vertices, edges })
+                    } else {
+                        this.props.onClearSelection();
                     }
                 }, 100);
             }
