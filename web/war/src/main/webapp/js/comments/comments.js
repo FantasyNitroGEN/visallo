@@ -116,21 +116,24 @@ define([
         });
 
         this.after('initialize', function() {
-            this.on('editComment', this.onEditComment);
+            this.dataRequest('config', 'properties').then((config) => {
+                this.showVisibility = config['showVisibilityInDetailsPane'];
+                this.on('editComment', this.onEditComment);
 
-            this.type = F.vertex.isEdge(this.attr.data) ? 'edge' : 'vertex';
-            if (this.type === 'vertex') {
-                this.on(document, 'verticesUpdated', this.onVerticesUpdated);
-            } else if (this.type === 'edge') {
-                this.on(document, 'edgesUpdated', this.onEdgesUpdated);
-            }
+                this.type = F.vertex.isEdge(this.attr.data) ? 'edge' : 'vertex';
+                if (this.type === 'vertex') {
+                    this.on(document, 'verticesUpdated', this.onVerticesUpdated);
+                } else if (this.type === 'edge') {
+                    this.on(document, 'edgesUpdated', this.onEdgesUpdated);
+                }
 
-            this.on('commentOnSelection', this.onCommentOnSelection);
-            this.on('editProperty', this.onEditProperty);
-            this.on('deleteProperty', this.onDeleteProperty);
+                this.on('commentOnSelection', this.onCommentOnSelection);
+                this.on('editProperty', this.onEditProperty);
+                this.on('deleteProperty', this.onDeleteProperty);
 
-            this.$node.html(template({}));
-            this.update();
+                this.$node.html(template({}));
+                this.update();
+            });
         });
 
         this.onCommentOnSelection = function(event, data) {
@@ -155,7 +158,7 @@ define([
             }
         };
 
-        this.renderCommentLevel = function(maxDepth, level, selection, config) {
+        this.renderCommentLevel = function(maxDepth, level, selection) {
             var self = this;
 
             if (level > maxDepth) {
@@ -168,7 +171,7 @@ define([
                     this.append('div').attr('class', 'wrap')
                         .call(function() {
                             this.append('div').attr('class', 'comment-text');
-                            if (config['showVisibilityInDetailsPane'] !== 'false') {
+                            if (self.showVisibility !== 'false') {
                                 this.append('span').attr('class', 'visibility');
                             }
                             this.append('span').attr('class', 'user');
@@ -197,7 +200,7 @@ define([
                         $(this).html(_.escape('\n' + p[0].value).replace(/\r?\n+/g, '<p>'));
                     }
                 });
-            if (config['showVisibilityInDetailsPane'] !== 'false') {
+            if (self.showVisibility !== 'false') {
                 selection.select('.visibility').each(function(p) {
                     this.textContent = '';
                     if (p[0].redacted) {
@@ -304,33 +307,29 @@ define([
                         return p[1] || [];
                     });
 
-            this.renderCommentLevel(maxDepth, nextLevel, subselection, config);
+            this.renderCommentLevel(maxDepth, nextLevel, subselection);
         };
 
         this.update = function() {
-            var self = this,
-                commentsTreeResponse = toCommentTree(this.attr.data.properties),
+            var commentsTreeResponse = toCommentTree(this.attr.data.properties),
                 commentsTree = commentsTreeResponse.roots,
                 selection = d3.select(this.$node.find('.comment-content ul').get(0))
                     .selectAll('.comment-0')
                     .data(commentsTree);
 
-            this.dataRequest('config', 'properties')
-                .then(function(config) {
-                    self.renderCommentLevel(commentsTreeResponse.maxDepth, 0, selection, config);
-                    self.dataRequest('user', 'getUserNames', commentsTreeResponse.userIds)
-                        .done(function(users) {
-                            var usersById = _.object(commentsTreeResponse.userIds, users);
-                            self.$node.find('.user').each(function() {
-                                $(this).text(usersById[$(this).data('userId')]);
-                            })
-                        });
-
-                    self.$node.find('.badge').text(
-                        F.number.pretty(commentsTreeResponse.total)
-                    );
-                    self.$node.find('.collapsible-header').toggle(commentsTreeResponse.total > 0);
+            this.renderCommentLevel(commentsTreeResponse.maxDepth, 0, selection);
+            this.dataRequest('user', 'getUserNames', commentsTreeResponse.userIds)
+                .done((users) => {
+                    var usersById = _.object(commentsTreeResponse.userIds, users);
+                    this.$node.find('.user').each(function() {
+                        $(this).text(usersById[$(this).data('userId')]);
+                    })
                 });
+
+            this.$node.find('.badge').text(
+                F.number.pretty(commentsTreeResponse.total)
+            );
+            this.$node.find('.collapsible-header').toggle(commentsTreeResponse.total > 0);
         };
 
         this.onEditProperty = function(event, data) {
