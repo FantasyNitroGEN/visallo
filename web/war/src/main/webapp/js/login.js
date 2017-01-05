@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!loginTpl',
+    'loginTpl.hbs',
     'configuration/plugins/registry',
     'util/withDataRequest',
     'tpl!util/alert',

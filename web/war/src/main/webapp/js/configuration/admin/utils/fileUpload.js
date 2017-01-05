@@ -33,7 +33,7 @@ define([
             });
             this.on('reset', this.onRemove);
 
-            require(['hbs!./fileUploadTemplate'], function(tpl) {
+            require(['./fileUploadTemplate.hbs'], function(tpl) {
                 self.$node.html(tpl(self.attr));
             });
         });
@@ -62,7 +62,7 @@ define([
                 return this.select('selectedFileSelector').empty();
             }
 
-            require(['hbs!./fileUploadItemTemplate'], function(tpl) {
+            require(['./fileUploadItemTemplate.hbs'], function(tpl) {
                 self.select('uploadSelector').hide();
                 self.select('removeSelector').show();
                 self.select('selectedFileSelector').html(tpl({ file: file }));

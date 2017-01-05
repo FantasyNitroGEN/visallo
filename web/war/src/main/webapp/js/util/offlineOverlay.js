@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./offlineOverlayTpl',
+    './offlineOverlayTpl.hbs',
     'util/formatters'
 ], function(
     defineComponent,

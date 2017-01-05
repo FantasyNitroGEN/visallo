@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'configuration/plugins/registry',
-    'hbs!./welcomeTpl'
+    './welcomeTpl.hbs'
 ], function(
     defineComponent,
     registry,
@@ -15,13 +15,13 @@ define([
     function Welcome() {
 
         var builtIn = {
-                activity: 'hbs!dashboard/items/welcome/activity',
-                admin: 'hbs!dashboard/items/welcome/admin',
-                dashboard: 'hbs!dashboard/items/welcome/dashboard',
-                logout: 'hbs!dashboard/items/welcome/logout',
-                products: 'hbs!dashboard/items/welcome/products',
-                search: 'hbs!dashboard/items/welcome/search',
-                workspaces: 'hbs!dashboard/items/welcome/workspaces'
+                activity: 'dashboard/items/welcome/activity.hbs',
+                admin: 'dashboard/items/welcome/admin.hbs',
+                dashboard: 'dashboard/items/welcome/dashboard.hbs',
+                logout: 'dashboard/items/welcome/logout.hbs',
+                products: 'dashboard/items/welcome/products.hbs',
+                search: 'dashboard/items/welcome/search.hbs',
+                workspaces: 'dashboard/items/welcome/workspaces.hbs'
             },
             icons = {
                 activity: 'img/glyphicons/white/glyphicons_023_cogwheels@2x.png',

@@ -95,6 +95,18 @@ module.exports = function(grunt) {
             },
         },
 
+        handlebars: {
+            compile: {
+                options: {
+                    amd: true,
+                    namespace: false
+                },
+                files: [
+                    { expand: true, cwd: 'js', src: ['**/*.hbs'], dest: 'jsc/', ext: '.hbs.js' }
+                ]
+            }
+        },
+
         amdwrap: {
             wrapNodeModules: {
                 expand: true,
@@ -166,7 +178,7 @@ module.exports = function(grunt) {
                     'js/**/*.vsh',
                     'js/**/*.fsh'
                 ],
-                tasks: ['babel:js', 'copy:templates', 'notify:js'],
+                tasks: ['babel:js', 'copy:templates', 'handlebars:compile', 'notify:js'],
                 options: {
                     livereload: {
                         port: 35729,
@@ -247,7 +259,7 @@ module.exports = function(grunt) {
          ['clean:libs', 'copy-frontend', 'amdwrap']);
 
       grunt.registerTask('test:unit', 'Run JavaScript Unit Tests',
-         ['karma:unit']);
+         ['babel:js', 'copy:templates', 'handlebars:compile', 'karma:unit']);
       grunt.registerTask('test:style', 'Run JavaScript CodeStyle reports',
          ['eslint:ci', 'plato:ci']);
 
@@ -255,9 +267,9 @@ module.exports = function(grunt) {
          ['deps', 'test:style', 'karma:ci']);
 
       grunt.registerTask('development', 'Build js/less for development',
-         ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates']);
+         ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates', 'handlebars:compile']);
       grunt.registerTask('production', 'Build js/less for production',
-         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'uglify:js']);
+         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'handlebars:compile', 'uglify:js']);
 
       grunt.registerTask('default', ['development', 'watch']);
 };

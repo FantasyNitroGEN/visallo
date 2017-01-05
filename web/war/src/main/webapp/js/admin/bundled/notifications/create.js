@@ -3,7 +3,7 @@ define([
     'configuration/admin/utils/withFormHelpers',
     'util/withDataRequest',
     'util/formatters',
-    'hbs!admin/bundled/notifications/template'
+    'admin/bundled/notifications/template.hbs'
 ], function(
     defineComponent,
     withFormHelpers,

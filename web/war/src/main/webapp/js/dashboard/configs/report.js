@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'configuration/plugins/registry',
-    'hbs!./reportTpl'
+    './reportTpl.hbs'
 ], function(
     defineComponent,
     registry,

@@ -1,4 +1,4 @@
-define(['hbs!./withFaceboxTpl'], function(tpl) {
+define(['./withFaceboxTpl.hbs'], function(tpl) {
     'use strict';
 
     return withFacebox;

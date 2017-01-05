@@ -2,7 +2,7 @@
 define([
     'flight/lib/component',
     'flight/lib/registry',
-    'hbs!./filtersTpl',
+    './filtersTpl.hbs',
     './filterItem',
     'tpl!./entityItem',
     'search/sort',
@@ -146,7 +146,7 @@ define([
                 });
 
             if (componentPromises.length) {
-                componentPromises.splice(0, 0, Promise.require('hbs!search/filters/extensionItem'))
+                componentPromises.splice(0, 0, Promise.require('search/filters/extensionItem.hbs'))
                 return Promise.all(componentPromises)
                     .then(function(components) {
                         var template = components.shift();

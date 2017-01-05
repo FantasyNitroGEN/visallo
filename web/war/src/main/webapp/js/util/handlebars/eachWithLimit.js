@@ -1,4 +1,4 @@
-define(['hbs/handlebars'], function(Handlebars) {
+define(['handlebars'], function(Handlebars) {
     'use strict';
 
     // Modified version of handlebars `each`

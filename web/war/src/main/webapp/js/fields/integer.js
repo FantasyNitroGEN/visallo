@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./integerTpl',
+    './integerTpl.hbs',
     'util/parsers',
     'util/vertex/formatters',
     './withPropertyField',

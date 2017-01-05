@@ -3,7 +3,7 @@ define([
     'd3',
     'util/withDataRequest',
     'util/requirejs/promise!util/service/ontologyPromise',
-    'hbs!./aggregationTpl'
+    './aggregationTpl.hbs'
 ], function(
     defineComponent,
     d3,

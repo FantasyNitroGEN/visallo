@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./form-tpl',
+    './form-tpl.hbs',
     'tpl!./shareRow',
     'tpl!./permissions',
     'util/users/userSelect',

@@ -10,7 +10,7 @@ define([
     'util/popovers/propertyInfo/withPropertyInfo',
     'util/dnd',
     'colorjs',
-    'hbs!./transcriptEntries',
+    './transcriptEntries.hbs',
     'tpl!util/alert',
     'require',
     'sf'

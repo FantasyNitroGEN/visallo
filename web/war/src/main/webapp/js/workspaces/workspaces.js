@@ -3,7 +3,7 @@ define([
     'flight/lib/component',
     './form/form',
     'tpl!./workspaces',
-    'hbs!./list-tpl',
+    './list-tpl.hbs',
     'tpl!./item',
     'util/withDataRequest',
     'util/formatters'

@@ -1,8 +1,8 @@
 
 define([
     'flight/lib/component',
-    'hbs!./dateTpl',
-    'hbs!./dateTimezone',
+    './dateTpl.hbs',
+    './dateTimezone.hbs',
     'util/vertex/formatters',
     './withPropertyField',
     './withHistogram',

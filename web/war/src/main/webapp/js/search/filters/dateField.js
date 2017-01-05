@@ -1,7 +1,7 @@
 define([ 'flight/lib/component',
     'fields/date',
     'fields/dateRelative',
-    'hbs!./dateFieldTpl'
+    './dateFieldTpl.hbs'
 ], function(
     defineComponent,
     DateField,

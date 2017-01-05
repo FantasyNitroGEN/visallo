@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./template',
+    './template.hbs',
     './dropdowns/commentForm/commentForm',
     'util/withCollapsibleSections',
     'util/vertex/formatters',

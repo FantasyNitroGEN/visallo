@@ -1,6 +1,6 @@
 define([
     './histogram/histogram',
-    'hbs!./withHistogramToggle'
+    './withHistogramToggle.hbs'
 ], function(
     Histogram,
     template) {

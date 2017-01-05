@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./histogramTpl',
+    './histogramTpl.hbs',
     'd3',
     'util/withDataRequest',
     'colorjs',

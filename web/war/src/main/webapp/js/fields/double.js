@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./doubleTpl',
+    './doubleTpl.hbs',
     'util/parsers',
     'util/vertex/formatters',
     './withPropertyField',

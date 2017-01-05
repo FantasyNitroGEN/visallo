@@ -1,7 +1,7 @@
 define([
     'require',
     'flight/lib/component',
-    'hbs!./searchTpl',
+    './searchTpl.hbs',
     'tpl!util/alert',
     'util/withDataRequest',
     'util/formatters',

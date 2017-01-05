@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./entityTpl',
+    './entityTpl.hbs',
     '../withPropertyField',
     'util/jquery/typeAheadUtil',
     'util/withDataRequest',

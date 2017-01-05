@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./pageList'
+    './pageList.hbs'
 ], function(
     defineComponent,
     listTemplate) {

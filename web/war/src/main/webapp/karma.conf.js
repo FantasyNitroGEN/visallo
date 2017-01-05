@@ -20,12 +20,12 @@ module.exports = function(config) {
                 'libs/babel-polyfill/dist/polyfill.min.js',
 
                 // Source
-                {pattern: 'js/**/*.js', included: false},
-                {pattern: 'js/**/*.jsx', included: false},
+                {pattern: 'jsc/**/*.js', included: false},
 
                 // Templates
-                {pattern: 'js/**/*.ejs', included: false},
-                {pattern: 'js/**/*.hbs', included: false},
+                {pattern: 'jsc/**/*.ejs', included: false},
+                {pattern: 'jsc/**/*.hbs', included: false},
+                {pattern: 'jsc/**/*.hbs.js', included: false},
 
                 // Images
                 //{pattern: 'img/**/*.png', included: false},
@@ -103,8 +103,6 @@ module.exports = function(config) {
             singleRun: false,
 
             preprocessors: {
-                'js/**/*.js': ['babel'],
-                'js/**/*.jsx': ['babel'],
                 'test/unit/spec/**/*.js': ['babel'],
                 'test/**/*.jsx': ['babel']
             },

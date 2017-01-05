@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./booleanTpl',
+    './booleanTpl.hbs',
     './withPropertyField',
     'util/formatters'
 ], function(defineComponent, template, withPropertyField, F) {

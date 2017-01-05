@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./template',
+    './template.hbs',
     'configuration/plugins/registry',
     'util/vertex/formatters',
     'util/withDataRequest',

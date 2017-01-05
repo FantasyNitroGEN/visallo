@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'util/withDataRequest',
-    'hbs!./configureTpl',
+    './configureTpl.hbs',
     'require'
 ], function(
     defineComponent,

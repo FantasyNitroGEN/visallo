@@ -1,7 +1,7 @@
 define([
     'flight/lib/registry',
     '../filters/filters',
-    'hbs!./templates/type',
+    './templates/type.hbs',
     'util/withDataRequest',
     'util/formatters',
     'util/element/list'

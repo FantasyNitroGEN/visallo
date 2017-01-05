@@ -6,16 +6,16 @@ var tests = Object.keys(global.__karma__.files).filter(function(file) {
 
 requirejs.config({
     shim: {
-        '/base/js/require.config.js': { exports: 'require' }
+        '/base/jsc/require.config.js': { exports: 'require' }
     }
 });
 
-requirejs(['/base/js/require.config.js'], function(cfg) {
+requirejs(['/base/jsc/require.config.js'], function(cfg) {
 
     var requireConfig = $.extend(true, {}, cfg, {
 
         // Karma serves files from '/base'
-        baseUrl: '/base/js',
+        baseUrl: '/base/jsc',
 
         paths: {
             chai: '../node_modules/chai/chai',

@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./viewerTpl',
+    './viewerTpl.hbs',
     'util/withDataRequest',
     'util/vertex/formatters'
 ], function(defineComponent, template, withDataRequest, F) {

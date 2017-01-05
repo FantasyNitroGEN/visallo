@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
-    'hbs!./relationships',
-    'hbs!./relationship',
+    './relationships.hbs',
+    './relationship.hbs',
     'util/withDataRequest',
     'util/requirejs/promise!util/service/ontologyPromise',
     './withSelect'

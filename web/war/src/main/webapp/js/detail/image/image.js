@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./image-tpl',
+    './image-tpl.hbs',
     'util/vertex/formatters',
     'util/privileges',
     'util/detectedObjects/withFacebox',

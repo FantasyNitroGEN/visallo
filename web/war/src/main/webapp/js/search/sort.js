@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'util/ontology/propertySelect',
-    'hbs!./sortTpl',
+    './sortTpl.hbs',
     'util/requirejs/promise!util/service/ontologyPromise',
     'd3',
     'jquery-ui'

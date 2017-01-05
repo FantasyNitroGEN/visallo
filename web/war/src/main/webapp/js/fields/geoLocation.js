@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./geoLocationTpl',
+    './geoLocationTpl.hbs',
     'util/parsers',
     'util/vertex/formatters',
     './withPropertyField',

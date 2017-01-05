@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'configuration/plugins/registry',
-    'hbs!./template',
+    './template.hbs',
     'util/component/attacher',
     './bundled/index'
 ], function(

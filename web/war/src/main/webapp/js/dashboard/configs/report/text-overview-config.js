@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'd3',
-    'hbs!./text-overview-config-tpl'
+    './text-overview-config-tpl.hbs'
 ], function(
     defineComponent,
     d3,

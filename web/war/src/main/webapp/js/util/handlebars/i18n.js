@@ -1,5 +1,5 @@
 define([
-    'hbs/handlebars',
+    'handlebars',
     'util/messages'
 ], function(Handlebars, i18n) {
     'use strict';
@@ -7,5 +7,4 @@ define([
     Handlebars.registerHelper('i18n', function(str) {
         return i18n.apply(null, arguments);
     });
-
 });

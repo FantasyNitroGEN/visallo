@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./currencyTpl',
+    './currencyTpl.hbs',
     'util/parsers',
     'util/vertex/formatters',
     './withHistogram',

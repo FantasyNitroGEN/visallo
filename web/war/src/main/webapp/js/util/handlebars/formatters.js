@@ -1,5 +1,5 @@
 define([
-    'hbs/handlebars',
+    'handlebars',
     'util/formatters'
 ], function(Handlebars, F) {
     'use strict';

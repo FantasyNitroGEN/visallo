@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./timeline-tpl',
+    './timeline-tpl.hbs',
     'util/withDataRequest',
     'util/popovers/withElementScrollingPositionUpdates',
     'require'

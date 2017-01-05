@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./properties',
+    './properties.hbs',
     'util/service/propertiesPromise',
     './withSelect'
 ], function(

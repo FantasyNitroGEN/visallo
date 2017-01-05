@@ -4,7 +4,7 @@ define([
     'util/vertex/formatters',
     'util/withDataRequest',
     'util/requirejs/promise!util/service/propertiesPromise',
-    'hbs!./transcriptEntry',
+    './transcriptEntry.hbs',
     'sf'
 ], function(
     defineComponent,

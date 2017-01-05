@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./selectTemplate',
+    './selectTemplate.hbs',
     'tpl!./vertexSelectEntity',
     'util/withDataRequest',
     'util/vertex/formatters'

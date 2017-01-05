@@ -3,7 +3,7 @@ define([
     './restrictValues',
     'util/vertex/formatters',
     './withPropertyField',
-    'hbs!./restrictValuesMultiTpl'
+    './restrictValuesMultiTpl.hbs'
 ], function(defineComponent, RestrictValues, F, withPropertyField, template) {
     'use strict';
 

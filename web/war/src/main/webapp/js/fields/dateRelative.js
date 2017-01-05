@@ -2,7 +2,7 @@ define([
     'flight/lib/component',
     'util/formatters',
     './withPropertyField',
-    'hbs!./dateRelativeTpl'
+    './dateRelativeTpl.hbs'
 ], function(
     defineComponent,
     F,

@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./stringTpl',
+    './stringTpl.hbs',
     'util/vertex/formatters',
     './withPropertyField'
 ], function(defineComponent, template, F, withPropertyField) {

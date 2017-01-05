@@ -1,6 +1,6 @@
 define([
     // We mock store.js so have to use absolute path here
-    '/base/js/data/web-worker/store/product/reducer'
+    '/base/jsc/data/web-worker/store/product/reducer'
 ], function(reducer) {
 
     const workspaceId = 'w1';

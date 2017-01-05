@@ -408,7 +408,7 @@ define([
                     .css({ cursor: 'pointer' })
                     .on('click', function() {
                         require([
-                            'hbs!workspaces/userAccount/modal',
+                            'workspaces/userAccount/modal.hbs',
                             'workspaces/userAccount/userAccount'
                         ], function(modalTemplate, UserAccount) {
                             var modal = $(modalTemplate({

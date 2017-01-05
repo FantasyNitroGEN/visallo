@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     './withPropertyField',
-    'hbs!./restrictValuesTpl'
+    './restrictValuesTpl.hbs'
 ], function(defineComponent, withPropertyField, template) {
     'use strict';
 

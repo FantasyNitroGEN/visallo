@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./doubleTpl',
+    './doubleTpl.hbs',
     'duration-js',
     'util/parsers',
     'util/vertex/formatters',

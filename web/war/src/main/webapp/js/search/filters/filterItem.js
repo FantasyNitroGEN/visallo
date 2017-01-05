@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'util/ontology/propertySelect',
-    'hbs!./filterItemTpl'
+    './filterItemTpl.hbs'
 ], function(
     defineComponent,
     FieldSelection,

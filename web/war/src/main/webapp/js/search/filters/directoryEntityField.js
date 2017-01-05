@@ -2,7 +2,7 @@ define([
     'flight/lib/component',
     'fields/directory/entity',
     'fields/directory/currentUser',
-    'hbs!./directoryEntityFieldTpl'
+    './directoryEntityFieldTpl.hbs'
 ], function(
     defineComponent,
     DirectoryEntityField,

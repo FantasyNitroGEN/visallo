@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'hbs!./template',
+    './template.hbs',
     './handlers',
     'd3',
     'configuration/plugins/registry',
