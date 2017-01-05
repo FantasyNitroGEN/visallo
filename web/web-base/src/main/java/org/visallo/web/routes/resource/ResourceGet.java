@@ -24,14 +24,7 @@ public class ResourceGet implements ParameterizedHandler {
             @Optional(name = "state") String state,
             VisalloResponse response
     ) throws Exception {
-        Concept concept = ontologyRepository.getConceptByIRI(id);
-
-        byte[] rawImg;
-        if ("selected".equals(state) && concept.hasGlyphIconSelectedResource()) {
-            rawImg = concept.getGlyphIconSelected();
-        } else {
-            rawImg = concept.getGlyphIcon();
-        }
+        byte[] rawImg = getConceptImage(id, state);
 
         if (rawImg == null || rawImg.length <= 0) {
             throw new VisalloResourceNotFoundException("Could not find resource with id: " + id);
@@ -41,5 +34,30 @@ public class ResourceGet implements ParameterizedHandler {
         response.setContentType("image/png");
         response.setHeader("Cache-Control", "max-age=" + (5 * 60));
         response.write(rawImg);
+    }
+
+    private byte[] getConceptImage(String conceptIri, String state) {
+        Concept concept = ontologyRepository.getConceptByIRI(conceptIri);
+        if (concept == null) {
+            return null;
+        }
+
+        byte[] rawImg;
+        if ("selected".equals(state) && concept.hasGlyphIconSelectedResource()) {
+            rawImg = concept.getGlyphIconSelected();
+        } else {
+            rawImg = concept.getGlyphIcon();
+        }
+
+        if (rawImg != null && rawImg.length > 0) {
+            return rawImg;
+        }
+
+        String parentConceptIri = concept.getParentConceptIRI();
+        if (parentConceptIri == null) {
+            return null;
+        }
+
+        return getConceptImage(parentConceptIri, state);
     }
 }
