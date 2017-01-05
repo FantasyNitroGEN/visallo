@@ -175,7 +175,7 @@ define([
 
             dispatch(selectionActions.set({
                 selection: {
-                    vertices: _.pluck(vertices, 'id')
+                    vertices: Object.keys(updateVertices)
                 }
             }));
         }
