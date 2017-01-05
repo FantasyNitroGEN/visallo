@@ -58,6 +58,8 @@ define([
         tapend: 'onTapEnd',
         taphold: 'onTapHold',
         cxttap: 'onContextTap',
+        cxttapstart: 'onCxtTapStart',
+        cxttapend: 'onCxtTapEnd',
         pan: 'onPan',
         zoom: 'onZoom',
         fit: 'onFit',
@@ -96,15 +98,18 @@ define([
         },
 
         getInitialState() {
-            return { showGraphMenu: false };
+            return {
+                showGraphMenu: false,
+                controlDragSelection: null
+            };
         },
 
         componentDidMount() {
             this.moving = {};
-            this.updatePreview = _.debounce(this._updatePreview, PREVIEW_DEBOUNCE_SECONDS * 1000)
+            this.updatePreview = _.debounce(this._updatePreview, PREVIEW_DEBOUNCE_SECONDS * 1000);
             this.previousConfig = this.prepareConfig();
             const cy = cytoscape(this.previousConfig);
-
+            const updateControlDragSelection = (nodeId = null) => this.setState({ controlDragSelection: nodeId });
             fixCytoscapeCorsHandling(cy);
             cytoscape('layout', 'bettergrid', betterGrid);
 
@@ -120,20 +125,35 @@ define([
                 }
             })
             cy.on('mousemove', (event) => {
+                const { controlDragSelection } = this.state;
                 const { drawEdgeToMouseFrom } = this.props;
-                if (drawEdgeToMouseFrom && !drawEdgeToMouseFrom.toVertexId) {
-                    const { pageX, pageY } = event.originalEvent;
-                    const { left, top } = this.clientRect;
-                    const { cyTarget, cy } = event;
-                    const node = cy.getElementById(DrawEdgeNodeId);
+                const { cyTarget, cy } = event;
+                const targetIsNode = cyTarget !== cy && cyTarget.is('node.v');
 
-                    if (cyTarget !== cy && cyTarget.is('node.v')) {
-                        node.position(cyTarget.position());
-                    } else {
-                        node.renderedPosition({ x: pageX - left, y: pageY - top });
+                if (drawEdgeToMouseFrom) {
+                    if (targetIsNode && !drawEdgeToMouseFrom.toVertexId) {
+                        if (cyTarget.data().id !== controlDragSelection) {
+                            updateControlDragSelection(cyTarget.id());
+                        }
+                    } else if (controlDragSelection) {
+                        updateControlDragSelection();
                     }
+
+                    if (!drawEdgeToMouseFrom.toVertexId) {
+                        const { pageX, pageY } = event.originalEvent;
+                        const { left, top } = this.clientRect;
+                        const node = cy.getElementById(DrawEdgeNodeId);
+
+                        if (targetIsNode) {
+                            node.position(cyTarget.position());
+                        } else {
+                            node.renderedPosition({ x: pageX - left, y: pageY - top });
+                        }
+                    }
+                } else if (!drawEdgeToMouseFrom && controlDragSelection) {
+                    updateControlDragSelection();
                 }
-            })
+            });
         },
 
         componentWillUnmount() {
@@ -144,7 +164,7 @@ define([
         },
 
         componentDidUpdate() {
-            const { cy } = this.state;
+            const { cy, controlDragSelection } = this.state;
             const { elements, drawEdgeToMouseFrom, initialProductDisplay, hasPreview } = this.props;
             const newData = { elements };
             const oldData = cy.json()
@@ -152,6 +172,7 @@ define([
 
             this.drawEdgeToMouseFrom(newData);
             this.drawPaths(newData);
+            this.drawControlDragSelection(newData);
 
             // Create copies of objects because cytoscape mutates :(
             const getAllData = nodes => nodes.map(({data, selected, grabbable, selectable, locked, position, renderedPosition, classes}) => ({
@@ -735,18 +756,27 @@ define([
                             y: window.lastMousePositionY - top
                         }
                     };
-                newData.elements.nodes.push({
-                    data: { id: DrawEdgeNodeId },
-                    classes: 'drawEdgeToMouse',
-                    ...position
-                })
-                newData.elements.edges.push({
-                    data: {
-                        source: vertexId,
-                        target: DrawEdgeNodeId,
-                    },
-                    classes: 'drawEdgeToMouse'
-                })
+                const nodeIndex = newData.elements.nodes.findIndex((node) => node.data.id === DrawEdgeNodeId);
+
+                if (nodeIndex > -1) {
+                    newData.elements.nodes[nodeIndex] = {
+                        ...newData.elements.nodes[nodeIndex],
+                        ...position
+                    };
+                } else {
+                    newData.elements.nodes.push({
+                        data: { id: DrawEdgeNodeId },
+                        classes: 'drawEdgeToMouse',
+                        ...position
+                    })
+                    newData.elements.edges.push({
+                        data: {
+                            source: vertexId,
+                            target: DrawEdgeNodeId,
+                        },
+                        classes: 'drawEdgeToMouse'
+                    })
+                }
             }
         },
 
@@ -759,6 +789,19 @@ define([
                 }))
             }
             return [];
+        },
+
+        drawControlDragSelection(newData) {
+            const { controlDragSelection } = this.state;
+            const select = (node) => {
+                if (node.data.id === controlDragSelection) {
+                    node.classes += ' controlDragSelection';
+                } else {
+                    node.classes = node.classes.replace(/controlDragSelection/g, '');
+                }
+            };
+
+            newData.elements.nodes.forEach((node) => select(node));
         }
     })
 

@@ -165,6 +165,8 @@ define([
                     onTap: this.onTap,
                     onTapHold: this.onTapHold,
                     onTapStart: this.onTapStart,
+                    onCxtTapStart: this.onTapStart,
+                    onCxtTapEnd: this.onCxtTapEnd,
                     onContextTap: this.onContextTap,
                     onPan: this.onViewport,
                     onZoom: this.onViewport
@@ -470,6 +472,13 @@ define([
                     this.coalesceSelection('clear');
                     this.props.onClearSelection();
                 }
+            }
+        },
+
+        onCxtTapEnd(event) {
+            const { cy, cyTarget } = event;
+            if (cy !== cyTarget && event.originalEvent.ctrlKey) {
+                this.onTap(event);
             }
         },
 
