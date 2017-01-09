@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.visallo</groupId>
         <artifactId>visallo-web-group</artifactId>
-        <version>3.1-SNAPSHOT</version>
+        <version>3.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>visallo-web</artifactId>
