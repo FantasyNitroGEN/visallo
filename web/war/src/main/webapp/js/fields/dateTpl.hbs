@@ -1,6 +1,17 @@
 {{#if displayTime}}
   <div class="input-append dateField">
-    {{> fields/dateTimeTpl }}
+    <input type="text"
+      data-provide="datepicker"
+      placeholder="{{today}}"
+      value="{{dateString}}"
+      pattern="\d{4}-\d+-\d+"
+      required="required" 
+      class="date">
+    <input type="text"
+      placeholder="{{todayTime}}"
+      pattern="\d+:\d+"
+      required="required" 
+      class="timepicker">
     <span class="add-on timezone"></span>
   </div>
 {{else}}
