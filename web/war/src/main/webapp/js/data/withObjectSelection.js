@@ -310,9 +310,7 @@ define([
                     return F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true });
                 })
                 .then(function(vertexIds) {
-                    if (vertexIds.length === 1) {
-                        self.trigger('searchByRelatedEntity', { vertexIds: vertexIds });
-                    }
+                    self.trigger('searchByRelatedEntity', { vertexIds: vertexIds });
                 })
         };
 

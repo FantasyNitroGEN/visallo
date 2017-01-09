@@ -47,10 +47,7 @@ define([
                                 subtitle: i18n('graph.contextmenu.search.related.subtitle'),
                                 shortcut: 'alt+s',
                                 event: 'searchRelated',
-                                selection: 1,
-                                shouldDisable: function(currentSelection) {
-                                    return Object.keys(currentSelection).length > 1;
-                                }
+                                selection: 1
                             }
                         ]
                     },
