@@ -1108,6 +1108,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
 
         getGraph().flush();
+        userWorkspaceVertexCache.invalidateAll();
 
         Workspace ws = findById(workspaceId, user);
         ClientApiWorkspace userWorkspace = toClientApi(ws, user, authorizations);
