@@ -10,16 +10,7 @@ import org.visallo.web.clientapi.model.ClientApiObject;
 
 import java.util.Date;
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = ExternalResourceRunnerStatus.class, name = "externalResourceRunner"),
-        @JsonSubTypes.Type(value = GraphPropertyRunnerStatus.class, name = "graphPropertyRunner"),
-        @JsonSubTypes.Type(value = LongRunningProcessRunnerStatus.class, name = "longRunningProcessRunner"),
-        @JsonSubTypes.Type(value = QueueStatus.class, name = "queue")
-})
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public abstract class Status implements ClientApiObject {
     private String className;
     private String name;

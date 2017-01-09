@@ -1,6 +1,5 @@
 package org.visallo.core.status.model;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.ArrayList;
@@ -15,15 +14,7 @@ public abstract class WorkerRunnerStatus extends ProcessStatus {
         return runningWorkers;
     }
 
-    @JsonTypeInfo(
-            use = JsonTypeInfo.Id.NAME,
-            include = JsonTypeInfo.As.PROPERTY,
-            property = "type")
-    @JsonSubTypes({
-            @JsonSubTypes.Type(value = ExternalResourceRunnerStatus.ExternalResourceWorkerStatus.class, name = "externalResourceWorkerStatus"),
-            @JsonSubTypes.Type(value = GraphPropertyRunnerStatus.GraphPropertyWorkerStatus.class, name = "graphPropertyWorkerStatus"),
-            @JsonSubTypes.Type(value = LongRunningProcessRunnerStatus.LongRunningProcessWorkerStatus.class, name = "longRunningProcessWorkerStatus")
-    })
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
     public static abstract class WorkerStatus extends Status {
         private Map<String, Metric> metrics = new HashMap<>();
 
