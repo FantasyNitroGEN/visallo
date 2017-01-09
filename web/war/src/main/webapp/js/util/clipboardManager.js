@@ -71,14 +71,28 @@ define([
         this.onPaste = function(event) {
             var self = this;
             _.defer(function() {
-                var textarea = self.textarea,
-                    val = textarea.val();
+                require(['util/vertex/urlFormatters'], function(F) {
+                    var textarea = self.textarea,
+                        val = textarea.val(),
+                        parameters = F.vertexUrl.parametersInUrl(val),
+                        vertices = parameters && parameters.vertexIds && parameters.vertexIds.length || 0,
+                        edges = parameters && parameters.edgeIds && parameters.edgeIds.length || 0,
+                        total = vertices + edges;
 
-                console.debug('Clipboard: Paste', val);
+                    console.debug('Clipboard: Paste', val);
 
-                self.trigger('clipboardPaste', { data: val });
-                self.lastSetData = null;
-                textarea.val('').focus();
+                    self.trigger('clipboardPaste', {data: val});
+                    self.lastSetData = null;
+                    textarea.val('').focus();
+
+                    if (total === 1) {
+                        self.trigger('displayInformation', {message: i18n('element.clipboard.paste.one')});
+                    } else if (total > 1) {
+                        self.trigger('displayInformation', {
+                            message: i18n('element.clipboard.paste.some', total)
+                        });
+                    }
+                });
             });
         };
 
