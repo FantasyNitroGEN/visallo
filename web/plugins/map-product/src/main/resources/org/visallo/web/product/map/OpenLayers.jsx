@@ -94,6 +94,7 @@ define([
                 if (newFeatures.length) {
                     changed = true
                     source.addFeatures(newFeatures);
+                    this.fit({ limitToFeatures: newFeatures });
                 }
                 if (!_.isEmpty(existingFeatures)) {
                     changed = true
@@ -274,20 +275,36 @@ define([
             }
         },
 
+        extentFromFeatures(features) {
+            const extent = ol.extent.createEmpty();
+            features.forEach(feature => {
+                const fExtent = feature.getGeometry().getExtent();
+                if (!ol.extent.isEmpty(fExtent)) {
+                    ol.extent.extend(extent, fExtent);
+                }
+            });
+            return extent;
+        },
+
         fit(options = {}) {
-            const { animate = true } = options;
+            const { animate = true, limitToFeatures = [] } = options;
             const { map, cluster } = this.state;
-            const extent = cluster.source.getExtent();
             const view = map.getView();
+            const extent = limitToFeatures.length ?
+                this.extentFromFeatures(limitToFeatures) :
+                cluster.source.getExtent();
+            const changeZoom = limitToFeatures.length !== 1;
 
             if (!ol.extent.isEmpty(extent)) {
                 var resolution = view.getResolution(),
                     extentWithPadding = extent,
                     { left, right, top, bottom } = this.props.panelPadding,
                     clientBox = this.refs.map.getBoundingClientRect(),
-                    viewportWidth = clientBox.width - left - right - 20 * 2,
-                    viewportHeight = clientBox.height - top - bottom - 20 * 2,
+                    padding = 20,
+                    viewportWidth = clientBox.width - left - right - padding * 2,
+                    viewportHeight = clientBox.height - top - bottom - padding * 2,
                     extentWithPaddingSize = ol.extent.getSize(extentWithPadding),
+                    currentExtent = view.calculateExtent([viewportWidth, viewportHeight]),
 
                     // Figure out ideal resolution based on available realestate
                     idealResolution = Math.max(
@@ -295,20 +312,39 @@ define([
                         extentWithPaddingSize[1] / viewportHeight
                     );
 
+
+                if (limitToFeatures.length) {
+                    const horizontalSync = ((left + padding) / 2 - (right + padding) / 2) * resolution;
+                    const verticalSync = ((top + padding) / 2 - (bottom + padding) / 2) * resolution;
+                    currentExtent[0] += horizontalSync;
+                    currentExtent[1] += verticalSync;
+                    currentExtent[2] += horizontalSync;
+                    currentExtent[3] += verticalSync;
+
+                    var insideCurrentView = ol.extent.containsExtent(currentExtent, extent);
+                    if (insideCurrentView) {
+                        return;
+                    }
+                }
+
                 if (animate) {
                     map.beforeRender(ol.animation.pan({
                         source: view.getCenter(),
                         duration: ANIMATION_DURATION
                     }))
-                    map.beforeRender(ol.animation.zoom({
-                        resolution: resolution,
-                        duration: ANIMATION_DURATION
-                    }));
+                    if (changeZoom) {
+                        map.beforeRender(ol.animation.zoom({
+                            resolution: resolution,
+                            duration: ANIMATION_DURATION
+                        }));
+                    }
                 }
 
-                view.setResolution(view.constrainResolution(
-                    Math.min(MAX_FIT_ZOOM_RESOLUTION, Math.max(idealResolution, MIN_FIT_ZOOM_RESOLUTION)), -1
-                ));
+                if (changeZoom) {
+                    view.setResolution(view.constrainResolution(
+                        Math.min(MAX_FIT_ZOOM_RESOLUTION, Math.max(idealResolution, MIN_FIT_ZOOM_RESOLUTION)), -1
+                    ));
+                }
 
                 var center = ol.extent.getCenter(extentWithPadding),
                     offsetX = left - right,
