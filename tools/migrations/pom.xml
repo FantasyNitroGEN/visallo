@@ -15,5 +15,6 @@
 
     <modules>
         <module>workspace-to-workproduct</module>
+        <module>graph-version-bump</module>
     </modules>
 </project>
