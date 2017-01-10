@@ -7,7 +7,7 @@ define([
 
     const Browser = React.createClass({
         render() {
-            const { contentsByDir, cwd, onOpenDirectory, onRefreshDirectories, onSelectItem, selected } = this.props;
+            const { contentsByDir, cwd, onChangeCredentials, onOpenDirectory, onRefreshDirectories, onSelectItem, selected } = this.props;
             const path = cwd.join('/')
             const contents = contentsByDir[path];
 
@@ -24,7 +24,14 @@ define([
                         selected={selected}
                         contents={contents} />
                 
-                    <button className="btn btn-primary" disabled={selected.length === 0} onClick={this.onImport}>Import</button>
+                    <div className="buttons">
+                        <button className="btn change-credentials" onClick={onChangeCredentials}>
+                            Change Credentials
+                        </button>
+                        <button className="btn btn-primary" disabled={selected.length === 0} onClick={this.onImport}>
+                            Import
+                        </button>
+                    </div>
                 </div>
             );
         },

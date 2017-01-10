@@ -17,6 +17,9 @@ define([
                 case 'INGEST_CLOUD_S3_SET_CREDENTIALS':
                     return u({
                         auth: u.constant(payload),
+                        cwd: u.constant([]),
+                        selected: u.constant([]),
+                        contentsByDir: u.constant({}),
                         loading: true
                     }, state);
 
