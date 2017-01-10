@@ -3,10 +3,7 @@ package org.visallo.core.formula;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
 import org.apache.commons.io.IOUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 import org.vertexium.Authorizations;
 import org.vertexium.Element;
 import org.visallo.core.config.Configuration;
@@ -128,7 +125,8 @@ public class FormulaEvaluator {
 
     private Scriptable setupContext(String ontologyJson, String configurationJson, String timeZone) {
         Context context = Context.enter();
-        context.setLanguageVersion(Context.VERSION_1_6);
+        context.setLanguageVersion(Context.VERSION_1_8);
+        context.setOptimizationLevel(-1);
 
         RequireJsSupport browserSupport = new RequireJsSupport();
 
@@ -242,16 +240,18 @@ public class FormulaEvaluator {
         @Override
         public String call() throws Exception {
             Scriptable scope = getScriptable(userContext);
+            Context context = Context.getCurrentContext();
             String json = toJson(element, userContext.getWorkspaceId(), authorizations);
             Function function = (Function) scope.get("evaluate" + fieldName + "FormulaJson", scope);
             Object result = function.call(
-                    Context.getCurrentContext(),
+                    context,
                     scope,
                     scope,
                     new Object[]{json, propertyKey, propertyName}
             );
 
-            return (String) Context.jsToJava(result, String.class);
+            String strResult = (String) context.jsToJava(result, String.class);
+            return strResult;
         }
     }
 }

@@ -28,6 +28,7 @@ define([
     withPositionUpdates) {
     'use strict';
 
+    var MAX_ITEMS_BEFORE_FORCE_LOADING = 10;
     var EXTENSION_POINT_NAME = 'org.visallo.entity.listItemRenderer';
     registry.documentExtensionPoint(EXTENSION_POINT_NAME,
         'Implement custom implementations for rendering items into element lists. ' +
@@ -81,16 +82,24 @@ define([
                 });
 
             Promise.all(rendererPromises).done(function(promiseResults) {
+                    self.localScrolling = !self.attr.infiniteScrolling && self.attr.items.length > MAX_ITEMS_BEFORE_FORCE_LOADING;
                     self.$node
                         .addClass('element-list')
                         .html(template({
+                            localScrolling: self.localScrolling,
                             infiniteScrolling: self.attr.infiniteScrolling &&
                                                self.attr.total !== self.attr.items.length
                         }));
 
                     self.attachEvents();
 
-                    self.addItems(self.attr.items);
+                    if (self.localScrolling) {
+                        self.offset = 0;
+                        self.allItems = self.attr.items;
+                        self.addItems(self.allItems.slice(0, MAX_ITEMS_BEFORE_FORCE_LOADING));
+                    } else {
+                        self.addItems(self.attr.items);
+                    }
 
                     self.loadVisibleResultPreviews();
                     self.loadVisibleResultPreviews = _.debounce(self.loadVisibleResultPreviews.bind(self), 1000);
@@ -261,13 +270,13 @@ define([
 
             this.loadVisibleResultPreviews();
 
-            if (this.attr.infiniteScrolling) {
+            if (this.localScrolling || this.attr.infiniteScrolling) {
                 this.triggerInfiniteScrollRequest();
             }
         };
 
         this.triggerInfiniteScrollRequest = function() {
-            if (!this.attr.infiniteScrolling) return;
+            if (!this.attr.infiniteScrolling && !this.localScrolling) return;
 
             var loadingListElement = this.$node.find('.infinite-loading');
 
@@ -276,13 +285,19 @@ define([
             }
 
             if (loadingListElement.length) {
-                /** TODO: is the concept type attr needed here? */
-                var data = { conceptType: this.attr.verticesConceptId };
-                if (!this.offset) this.offset = this.attr.nextOffset;
-                data.paging = {
-                    offset: this.offset
-                };
-                this.trigger('infiniteScrollRequest', data);
+
+                if (this.localScrolling) {
+                    this.offset += MAX_ITEMS_BEFORE_FORCE_LOADING;
+                    this.addItems(this.attr.items.slice(this.offset, this.offset + MAX_ITEMS_BEFORE_FORCE_LOADING));
+                } else {
+                    /** TODO: is the concept type attr needed here? */
+                    var data = { conceptType: this.attr.verticesConceptId };
+                    if (!this.offset) this.offset = this.attr.nextOffset;
+                    data.paging = {
+                        offset: this.offset
+                    };
+                    this.trigger('infiniteScrollRequest', data);
+                }
             }
         };
 
@@ -303,6 +318,9 @@ define([
         };
 
         this.addItems = function(items) {
+            if (this.localScrolling && (this.offset + MAX_ITEMS_BEFORE_FORCE_LOADING) >= this.allItems.length) {
+                this.$node.find('.infinite-loading').remove();
+            }
             if (items.length && 'vertex' in items[0]) {
                 this._items = {
                     ...(this._items || {}),

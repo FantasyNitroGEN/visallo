@@ -803,13 +803,12 @@ define([
 
                     return _.map(dependentIris, _.partial(V.propRaw, vertex, _, optionalKey, options));
                 } else {
-                    var foundProperties = hasKey ?
-                            _.where(properties, { key: optionalKey }) :
-                            properties,
+                    var firstFoundProp = properties[0];
+                    if (hasKey) {
+                        firstFoundProp = _.findWhere(properties, { key: optionalKey });
+                    }
 
-                        hasValue = foundProperties &&
-                            foundProperties.length &&
-                            !_.isUndefined(foundProperties[0].value);
+                    var hasValue = firstFoundProp && !_.isUndefined(firstFoundProp.value);
 
                     if (!hasValue &&
                         name !== 'http://visallo.org#title' &&
@@ -817,7 +816,7 @@ define([
                         return undefined;
                     }
 
-                    return hasValue ? foundProperties[0].value :
+                    return hasValue ? firstFoundProp.value :
                         (
                             options.defaultValue ||
                             i18n('vertex.property.not_available',
@@ -928,28 +927,32 @@ define([
     }
 
     function transformMatchingVertexProperties(vertex, propertyNames) {
-        var CONFIDENCE = 'http://visallo.org#confidence',
-            sorted = _.chain(vertex.properties)
-                .filter(function(p) {
-                    return ~propertyNames.indexOf(p.name);
-                })
-                .sortBy(function(p) {
-                    var value = V.propDisplay(p.name, p.value);
-                    if (_.isString(value)) {
-                        return value.toLowerCase();
-                    }
-                    return 0;
-                })
-                .sortBy(function(p) {
-                    var confidence = p.metadata && p.metadata[CONFIDENCE]
-                    if (confidence) {
-                        return confidence * -1;
-                    }
-                    return 0;
-                })
-                .value()
+        var CONFIDENCE = 'http://visallo.org#confidence';
 
-        return sorted;
+        return vertex.properties.filter(function(p) {
+            return _.contains(propertyNames, p.name);
+        })
+            // Use native sort for performance
+            .sort(function(p1, p2) {
+                const c1 = p1.metadata && p1.metadata[CONFIDENCE];
+                const c2 = p2.metadata && p2.metadata[CONFIDENCE];
+                const p1HasCon = !_.isUndefined(c1);
+                const p2HasCon = !_.isUndefined(c2);
+                const compareConf = (p1HasCon && p2HasCon) ? (c2 - c1) :
+                    p1HasCon ? -1 :
+                    p2HasCon ? 1 : 0;
+
+                if (compareConf === 0) {
+                    var v1 = V.propDisplay(p1.name, p1.value);
+                    var v2 = V.propDisplay(p2.name, p2.value);
+                    if (_.isString(v1) && _.isString(v2)) {
+                        return v1.toLowerCase().localeCompare(v2.toLowerCase());
+                    }
+                    return 0;
+                }
+
+                return compareConf;
+            })
     }
 
     function checkVertexAndPropertyNameArguments(vertex, propertyName) {
