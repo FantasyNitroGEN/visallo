@@ -150,7 +150,7 @@ define([
                     objects: { vertices: vertices, edges: edges }
                 }
             } else {
-                acl.getPropertyAcls(model).then(propertyAcls => {
+                return acl.getPropertyAcls(model).then(propertyAcls => {
                     return {
                         items: [
                             {
