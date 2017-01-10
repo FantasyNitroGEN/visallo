@@ -84,14 +84,12 @@ define([
         this.after('initialize', function() {
             var model = this.attr.model;
 
-            acl.getPropertyAcls(model).then((propertyAcls) => {
-                this.initializeToolbar(model, propertyAcls);
-            });
+            Promise.resolve(this.calculateConfigForModel(model))
+                .then(items => this.initializeToolbar(items));
         });
 
-        this.initializeToolbar = function(model, propertyAcls) {
-            var config = this.calculateItemsForModel(model, propertyAcls),
-                toolbarItems = config.items,
+        this.initializeToolbar = function(config) {
+            var toolbarItems = config.items,
                 objects = config.objects,
                 toolbarExtensions = _.sortBy(registry.extensionsForPoint('org.visallo.detail.toolbar'), 'title');
 
@@ -128,7 +126,7 @@ define([
             }
         };
 
-        this.calculateItemsForModel = function(model, propertyAcls) {
+        this.calculateConfigForModel = function(model) {
             var isArray = _.isArray(model),
                 vertices = isArray ? _.where(model, { type: 'vertex' }) : (model.type === 'vertex' ? [model] : []),
                 edges = isArray ? _.where(model, { type: 'edge' }) : (model.type === 'edge' ? [model] : []);
@@ -151,37 +149,39 @@ define([
                     ],
                     objects: { vertices: vertices, edges: edges }
                 }
+            } else {
+                acl.getPropertyAcls(model).then(propertyAcls => {
+                    return {
+                        items: [
+                            {
+                                title: i18n('detail.toolbar.open'),
+                                submenu: _.compact([
+                                    ToolbarComponent.ITEMS.FULLSCREEN,
+                                    this.sourceUrlToolbarItem(model),
+                                    this.openToolbarItem(model),
+                                    this.downloadToolbarItem(model)
+                                ]).concat(this.selectionHistory())
+                            },
+                            {
+                                title: i18n('detail.toolbar.add'),
+                                submenu: _.compact([
+                                    this.addPropertyToolbarItem(model, propertyAcls),
+                                    this.addImageToolbarItem(model),
+                                    this.addCommentToolbarItem(model, propertyAcls)
+                                ])
+                            },
+                            {
+                                icon: 'img/glyphicons/white/glyphicons_157_show_lines@2x.png',
+                                right: true,
+                                submenu: _.compact([
+                                    this.deleteToolbarItem(model)
+                                ])
+                            }
+                        ],
+                        objects: { vertices: vertices, edges: edges }
+                    };
+                });
             }
-
-            return {
-                items: [
-                    {
-                        title: i18n('detail.toolbar.open'),
-                        submenu: _.compact([
-                            ToolbarComponent.ITEMS.FULLSCREEN,
-                            this.sourceUrlToolbarItem(model),
-                            this.openToolbarItem(model),
-                            this.downloadToolbarItem(model)
-                        ]).concat(this.selectionHistory())
-                    },
-                    {
-                        title: i18n('detail.toolbar.add'),
-                        submenu: _.compact([
-                            this.addPropertyToolbarItem(model, propertyAcls),
-                            this.addImageToolbarItem(model),
-                            this.addCommentToolbarItem(model, propertyAcls)
-                        ])
-                    },
-                    {
-                        icon: 'img/glyphicons/white/glyphicons_157_show_lines@2x.png',
-                        right: true,
-                        submenu: _.compact([
-                            this.deleteToolbarItem(model)
-                        ])
-                    }
-                ],
-                objects: { vertices: vertices, edges: edges }
-            };
         };
 
         this.onToolbarItem = function(event) {

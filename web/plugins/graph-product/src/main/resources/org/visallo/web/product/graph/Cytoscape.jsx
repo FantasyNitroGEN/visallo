@@ -21,6 +21,7 @@ define([
     const { PropTypes } = React;
     const ANIMATION = { duration: 400, easing: 'spring(250, 20)' };
     const PanelPaddingBorder = 20;
+    const MAX_ELEMENTS_BEFORE_NO_ANIMATE_LAYOUT = 50;
     const DEFAULT_PNG = Object.freeze({
         bg: 'white',
         full: true,
@@ -30,7 +31,12 @@ define([
     const LAYOUT_OPTIONS = {
         // Customize layout options
         random: { padding: 10 },
-        cose: { animate: true, edgeElasticity: 10 },
+        cose: {
+            animate: function(els) {
+                return els.length < MAX_ELEMENTS_BEFORE_NO_ANIMATE_LAYOUT;
+            },
+            edgeElasticity: 10
+        },
         breadthfirst: {
             roots: function(nodes, options) {
                 if (options && options.onlySelected) {
@@ -410,6 +416,7 @@ define([
             const { cy } = this.state;
             const onlySelected = options && options.onlySelected;
             const elements = onlySelected ? cy.collection(cy.nodes().filter(':selected')) : cy.nodes();
+            const defaultOptions = {...LAYOUT_OPTIONS[layout] };
 
             var opts = {
                 name: layout,
@@ -420,9 +427,9 @@ define([
                         this.fit();
                     }
                 },
-                ..._.each(LAYOUT_OPTIONS[layout] || {}, function(optionValue, optionName) {
+                ..._.each(defaultOptions || {}, function(optionValue, optionName) {
                     if (_.isFunction(optionValue)) {
-                        LAYOUT_OPTIONS[layout][optionName] = optionValue(elements, options);
+                        defaultOptions[optionName] = optionValue(elements, options);
                     }
                 }),
                 ...options

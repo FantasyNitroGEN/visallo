@@ -874,29 +874,33 @@ define([
         }
         return cls.join(' ')
     };
-    const mapVertexToData = (id, vertices, transformers, hovering) => {
-        const vertexToCyNode = (vertex) => {
-            const title = F.vertex.title(vertex);
-            const truncatedTitle = F.string.truncate(title, 3);
-            return transformers.reduce((data, t) => {
-                t(vertex, data)
-                return data;
-            }, {
-                id: vertex.id,
-                isTruncated: title !== truncatedTitle,
-                truncatedTitle: hovering === vertex.id ? title : truncatedTitle,
-                conceptType: F.vertex.prop(vertex, 'conceptType'),
-                imageSrc: F.vertex.image(vertex, null, 150),
-                selectedImageSrc: F.vertex.selectedImage(vertex, null, 150)
-            })
-        }
+    const vertexToCyNode = (vertex, transformers, hovering) => {
+        const title = F.vertex.title(vertex);
+        const truncatedTitle = F.string.truncate(title, 3);
+        const conceptType = F.vertex.prop(vertex, 'conceptType');
+        const imageSrc = F.vertex.image(vertex, null, 150);
+        const selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
+        const startingData = {
+            id: vertex.id,
+            isTruncated: title !== truncatedTitle,
+            truncatedTitle: hovering === vertex.id ? title : truncatedTitle,
+            conceptType,
+            imageSrc,
+            selectedImageSrc
+        };
 
+        return transformers.reduce((data, t) => {
+            t(vertex, data)
+            return data;
+        }, startingData);
+    }
+    const mapVertexToData = (id, vertices, transformers, hovering) => {
         if (id in vertices) {
             if (vertices[id] === null) {
                 return;
             } else {
                 const vertex = vertices[id];
-                return vertexToCyNode(vertex);
+                return vertexToCyNode(vertex, transformers, hovering);
             }
         } else {
             return { id }
