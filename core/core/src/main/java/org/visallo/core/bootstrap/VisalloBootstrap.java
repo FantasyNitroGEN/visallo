@@ -55,7 +55,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class VisalloBootstrap extends AbstractModule {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VisalloBootstrap.class);
     private static final String GRAPH_METADATA_VISALLO_GRAPH_VERSION_KEY = "visallo.graph.version";
-    private static final Integer GRAPH_METADATA_VISALLO_GRAPH_VERSION = 2;
+    private static final Integer GRAPH_METADATA_VISALLO_GRAPH_VERSION = 3;
 
     private static VisalloBootstrap visalloBootstrap;
 
