@@ -20,29 +20,33 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
     public static final String WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
+    private static boolean addProductToEntityRelationshipToOntologyComplete = false;
 
     protected WorkProductElements(OntologyRepository ontologyRepository) {
         addProductToEntityRelationshipToOntology(ontologyRepository);
     }
 
     private void addProductToEntityRelationshipToOntology(OntologyRepository ontologyRepository) {
-        Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI);
-        checkNotNull(productConcept, "Could not find " + WorkspaceProperties.PRODUCT_CONCEPT_IRI);
+        if (!addProductToEntityRelationshipToOntologyComplete) {
+            Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI);
+            checkNotNull(productConcept, "Could not find " + WorkspaceProperties.PRODUCT_CONCEPT_IRI);
 
-        Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING);
-        checkNotNull(thingConcept, "Could not find " + VisalloProperties.CONCEPT_TYPE_THING);
+            Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING);
+            checkNotNull(thingConcept, "Could not find " + VisalloProperties.CONCEPT_TYPE_THING);
 
-        List<Concept> domainConcepts = new ArrayList<>();
-        domainConcepts.add(productConcept);
-        List<Concept> rangeConcepts = new ArrayList<>();
-        rangeConcepts.add(thingConcept);
-        ontologyRepository.getOrCreateRelationshipType(
-                null,
-                domainConcepts,
-                rangeConcepts,
-                WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI
-        );
-        ontologyRepository.clearCache();
+            List<Concept> domainConcepts = new ArrayList<>();
+            domainConcepts.add(productConcept);
+            List<Concept> rangeConcepts = new ArrayList<>();
+            rangeConcepts.add(thingConcept);
+            ontologyRepository.getOrCreateRelationshipType(
+                    null,
+                    domainConcepts,
+                    rangeConcepts,
+                    WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI
+            );
+            ontologyRepository.clearCache();
+            addProductToEntityRelationshipToOntologyComplete = true;
+        }
     }
 
     @Override
