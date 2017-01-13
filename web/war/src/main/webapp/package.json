@@ -98,7 +98,7 @@
   },
   "scripts": {
     "test": "karma start --single-run",
-    "postinstall": "node_modules/.bin/grunt deps"
+    "postinstall": "node_modules/grunt-cli/bin/grunt deps"
   },
   "author": "V5 Analytics LLC",
   "license": "Apache-2.0"
