@@ -7,6 +7,7 @@ define(['data/web-worker/store/actions'], function(actions) {
             snapToGrid: (snap) => ({ snap }),
             updatePositions: (productId, updateVertices) => ({ productId, updateVertices }),
             dropElements: (productId, elements, position) => ({ productId, elements, position }),
+            removeGhost: (id) => ({ id }),
             addRelated: (productId, vertices) => ({ productId, vertices })
         }
     })

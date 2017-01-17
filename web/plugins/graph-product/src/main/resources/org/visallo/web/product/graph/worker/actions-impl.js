@@ -42,6 +42,11 @@ define([
             }
         },
 
+        removeGhost: ({ id }) => ({
+            type: 'PRODUCT_GRAPH_REMOVE_GHOST',
+            payload: { id }
+        }),
+
         setPositions: ({ productId, updateVertices, snapToGrid }) => (dispatch, getState) => {
             const state = getState();
             if (workspaceReadonly(state)) {
@@ -101,7 +106,7 @@ define([
             });
         },
 
-        updatePositions: ({ productId, updateVertices }) => (dispatch, getState) => {
+        updatePositions: ({ productId, updateVertices, existingVertices }) => (dispatch, getState) => {
             if (workspaceReadonly(getState())) {
                 return;
             }
@@ -109,8 +114,13 @@ define([
             if (!_.isEmpty(updateVertices)) {
                 const state = getState();
                 const snapToGrid = state.user.current.uiPreferences.snapToGrid === 'true';
-                const params = { updateVertices };
-                dispatch(api.setPositions({ productId, updateVertices: params.updateVertices, snapToGrid }));
+                dispatch(api.setPositions({ productId, snapToGrid, updateVertices }));
+            }
+            if (!_.isEmpty(existingVertices)) {
+                dispatch({
+                    type: 'PRODUCT_GRAPH_ADD_GHOSTS',
+                    payload: { ids: existingVertices.vertices, position: existingVertices.position }
+                })
             }
         },
 
@@ -132,14 +142,16 @@ define([
                 const state = getState();
                 const workspaceId = state.workspace.currentId;
                 const product = state.product.workspaces[workspaceId].products[productId];
+                const existingById = _.indexBy(product.extendedData ? product.extendedData.vertices : [], 'id');
+                const [existingVertices, newVertices] = _.partition(_.uniq(edgeVertexIds.concat(vertexIds)), id => id in existingById);
 
-                const existing = product.extendedData ? product.extendedData.vertices : [];
-                const combined = _.without(_.uniq(edgeVertexIds.concat(vertexIds)), ..._.pluck(existing, 'id'));
-                if (!combined.length) return;
-                const nextPosition = positionGeneratorFrom(position, combined.length, product);
+                if (!newVertices.length && (!position || !existingVertices.length)) return;
+
+                const nextPosition = positionGeneratorFrom(position, newVertices.length, product);
                 dispatch(api.updatePositions({
                     productId,
-                    updateVertices: _.object(combined.map(id => [id, nextPosition()]))
+                    updateVertices: _.object(newVertices.map(id => [id, nextPosition()])),
+                    existingVertices: { position, vertices: existingVertices }
                 }))
                 dispatch(productActions.select({ productId }));
             })

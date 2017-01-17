@@ -5,7 +5,7 @@ define(['../actions'], function(actions) {
         workerImpl: 'data/web-worker/store/element/actions-impl',
         actions: {
             get: ({ workspaceId, vertices, edges }) => ({ workspaceId, vertices, edges }),
-            setFocus: ({ vertexIds, edgeIds, elementIds }) => ({ vertexIds, edgeIds, elementIds }),
+            setFocus: ({ vertexIds = [], edgeIds = [], elementIds = [] }) => ({ vertexIds, edgeIds, elementIds }),
             updateElement: (workspaceId, vertex) => ({ workspaceId, vertex }),
             refreshElement: ({ workspaceId, vertexId, edgeId }) => ({ workspaceId, vertexId, edgeId })
         }

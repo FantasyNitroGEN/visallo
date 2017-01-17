@@ -28,7 +28,9 @@ define([
     const PropTypes = React.PropTypes;
     const noop = function() {};
     const generateCompoundEdgeId = edge => edge.outVertexId + edge.inVertexId + edge.label;
-    const isValidElement = (cyElement) => cyElement && cyElement.is('.v,.e,.partial');
+    const isGhost = cyElement => cyElement && cyElement._private && cyElement._private.data && cyElement._private.data.animateTo;
+    const isValidElement = cyElement => cyElement && cyElement.is('.v,.e,.partial') && !isGhost(cyElement);
+    const isValidNode = cyElement => cyElement && cyElement.is('node.v,node.partial') && !isGhost(cyElement);
     const edgeDisplay = (label, ontology, edges) => {
         const display = label in ontology.relationships ? ontology.relationships[label].displayName : '';
         const showNum = edges.length > 1;
@@ -51,6 +53,7 @@ define([
         getInitialState() {
             return {
                 viewport: this.props.viewport || {},
+                animatingGhosts: {},
                 initialProductDisplay: true,
                 draw: null,
                 paths: null,
@@ -196,6 +199,7 @@ define([
                         elements={cyElements}
                         drawEdgeToMouseFrom={draw ? _.pick(draw, 'vertexId', 'toVertexId') : null }
                         drawPaths={paths ? _.pick(paths, 'paths', 'sourceId', 'targetId') : null }
+                        onGhostFinished={this.props.onGhostFinished}
                         onUpdatePreview={this.onUpdatePreview}></Cytoscape>
 
                     {cyElements.nodes.length === 0 ? (
@@ -531,7 +535,7 @@ define([
         },
 
         onPosition({ cyTarget }) {
-            if (cyTarget.is('node.v,node.partial')) {
+            if (isValidNode(cyTarget)) {
                 var id = cyTarget.id();
                 this.cyNodeIdsWithPositionChanges[id] = cyTarget;
             }
@@ -555,104 +559,124 @@ define([
         },
 
         mapPropsToElements(editable) {
-            var { selection, product, elements, ontology, registry, focusing } = this.props,
-                { hovering } = this.state,
-                elementVertices = elements.vertices,
-                elementEdges = elements.edges,
-                verticesSelectedById = selection.vertices,
-                edgesSelectedById = selection.edges,
-                data = product.extendedData,
-                { vertices, edges } = data;
-                const nodeIds = {};
-                const cyNodes = _.compact(_.flatten(
-                    vertices.map(({ id, pos }) => {
-                        const data = mapVertexToData(id, elementVertices,
-                            registry['org.visallo.graph.node.transformer'],
-                            hovering
-                        );
-                        const cyNodeConfig = () => {
-                            if (data) {
-                                nodeIds[id] = true;
-                                return {
-                                    group: 'nodes',
-                                    data,
-                                    classes: mapVertexToClasses(id, elementVertices, focusing, registry['org.visallo.graph.node.class']),
-                                    position: retina.pointsToPixels(pos),
-                                    selected: (id in verticesSelectedById),
-                                    grabbable: editable
-                                }
-                            }
+            const { selection, product, ghosts, elements, ontology, registry, focusing } = this.props;
+            const { hovering } = this.state;
+            const { extendedData } = product;
+            const { vertices: productVertices, edges: productEdges } = extendedData;
+            const { vertices, edges } = elements;
+            const { vertices: verticesSelectedById, edges: edgesSelectedById } = selection;
+            const nodeIds = {};
+            const cyNodeConfig = (id, pos, data) => {
+                if (data) {
+                    nodeIds[id] = true;
+                    return {
+                        group: 'nodes',
+                        data,
+                        classes: mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']),
+                        position: retina.pointsToPixels(pos),
+                        selected: (id in verticesSelectedById),
+                        grabbable: editable
+                    }
+                }
+            };
+            const cyNodes = productVertices.reduce((nodes, { id, pos }) => {
+                const data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
+                const cyNode = cyNodeConfig(id, pos, data);
+
+                if (cyNode && ghosts && id in ghosts) {
+                    const ghostData = {
+                        ...cyNode.data,
+                        id: `${cyNode.data.id}-ANIMATING`,
+                        animateTo: {
+                            id: data.id,
+                            pos: { ...cyNode.position }
                         }
-                        if (id in elementVertices) {
-                            const markedAsDeleted = elementVertices[id] === null;
-                            if (markedAsDeleted) {
+                    };
+                    delete ghostData.parent;
+                    nodes.push({
+                        ...cyNode,
+                        data: ghostData,
+                        position: retina.pointsToPixels(ghosts[id]),
+                        grabbable: false,
+                        selectable: false
+                    });
+                }
+
+                if (id in vertices) {
+                    const markedAsDeleted = vertices[id] === null;
+                    if (markedAsDeleted) {
+                        return nodes;
+                    }
+                    const vertex = vertices[id];
+                    const applyDecorations = _.filter(registry['org.visallo.graph.node.decoration'], function(e) {
+                        return !_.isFunction(e.applyTo) || e.applyTo(vertex);
+                    });
+                    if (applyDecorations.length) {
+                        const parentId = 'decP' + id;
+                        cyNode.data.parent = parentId;
+                        const decorations = applyDecorations.map(dec => {
+                            const data = mapDecorationToData(dec, vertex, () => this.forceUpdate());
+                            if (!data) {
                                 return;
                             }
-                            const vertex = elementVertices[id];
-                            const applyDecorations = _.filter(registry['org.visallo.graph.node.decoration'], function(e) {
-                                return !_.isFunction(e.applyTo) || e.applyTo(vertex);
-                            });
-                            if (applyDecorations.length) {
-                                const cyNode = cyNodeConfig();
-                                const parentId = 'decP' + id;
-                                cyNode.data.parent = parentId;
-                                const decorations = applyDecorations.map(dec => {
-                                    const data = mapDecorationToData(dec, vertex, () => this.forceUpdate());
-                                    if (!data) {
-                                        return;
-                                    }
-                                    var { padding } = dec;
-                                    return {
-                                        group: 'nodes',
-                                        classes: mapDecorationToClasses(dec, vertex),
-                                        data: {
-                                            ...data,
-                                            id: idForDecoration(dec, vertex.id),
-                                            alignment: dec.alignment,
-                                            padding,
-                                            parent: parentId,
-                                            vertex
-                                        },
-                                        position: { x: -1, y: -1 },
-                                        grabbable: false,
-                                        selectable: false
-                                    }
-                                })
-                                return [
-                                    {
-                                        group: 'nodes',
-                                        data: { id: parentId },
-                                        classes: 'decorationParent',
-                                        selectable: false,
-                                        grabbable: false
-                                    },
-                                    cyNode,
-                                    ..._.compact(decorations)]
+                            var { padding } = dec;
+                            return {
+                                group: 'nodes',
+                                classes: mapDecorationToClasses(dec, vertex),
+                                data: {
+                                    ...data,
+                                    id: idForDecoration(dec, vertex.id),
+                                    alignment: dec.alignment,
+                                    padding,
+                                    parent: parentId,
+                                    vertex
+                                },
+                                position: { x: -1, y: -1 },
+                                grabbable: false,
+                                selectable: false
                             }
-                        }
+                        })
 
-                        return cyNodeConfig();
-                    }), true)
-                );
-                const cyEdges = _.chain(edges)
-                    .filter(edgeInfo => {
-                        const elementMarkedAsDeletedInStore =
-                            edgeInfo.edgeId in elementEdges &&
-                            elementEdges[edgeInfo.edgeId] === null;
-                        const edgeNodesExist = edgeInfo.inVertexId in nodeIds && edgeInfo.outVertexId in nodeIds;
+                        nodes.push({
+                            group: 'nodes',
+                            data: { id: parentId },
+                            classes: 'decorationParent',
+                            selectable: false,
+                            grabbable: false
+                        });
+                        nodes.push(cyNode);
+                        decorations.forEach(d => {
+                            if (d) nodes.push(d);
+                        });
+                    } else if (cyNode) {
+                        nodes.push(cyNode);
+                    }
+                } else if (cyNode) {
+                    nodes.push(cyNode);
+                }
 
-                        return !elementMarkedAsDeletedInStore && edgeNodesExist;
-                    })
-                    .groupBy(generateCompoundEdgeId)
-                    .map((edgeInfos, id) => {
-                        const edges = Object.values(_.pick(elementEdges, _.pluck(edgeInfos, 'edgeId')));
-                        return {
-                            data: mapEdgeToData(id, edgeInfos, edges, ontology, registry['org.visallo.graph.edge.transformer']),
-                            classes: mapEdgeToClasses(edgeInfos, edges, focusing, registry['org.visallo.graph.edge.class']),
-                            selected: _.any(edgeInfos, e => e.edgeId in edgesSelectedById)
-                        }
-                    })
-                    .value()
+                return nodes
+            }, []);
+
+            const cyEdges = _.chain(productEdges)
+                .filter(edgeInfo => {
+                    const elementMarkedAsDeletedInStore =
+                        edgeInfo.edgeId in edges &&
+                        edges[edgeInfo.edgeId] === null;
+                    const edgeNodesExist = edgeInfo.inVertexId in nodeIds && edgeInfo.outVertexId in nodeIds;
+
+                    return !elementMarkedAsDeletedInStore && edgeNodesExist;
+                })
+                .groupBy(generateCompoundEdgeId)
+                .map((edgeInfos, id) => {
+                    const edgesForInfos = Object.values(_.pick(edges, _.pluck(edgeInfos, 'edgeId')));
+                    return {
+                        data: mapEdgeToData(id, edgeInfos, edgesForInfos, ontology, registry['org.visallo.graph.edge.transformer']),
+                        classes: mapEdgeToClasses(edgeInfos, edgesForInfos, focusing, registry['org.visallo.graph.edge.class']),
+                        selected: _.any(edgeInfos, e => e.edgeId in edgesSelectedById)
+                    }
+                })
+                .value()
 
             return { nodes: cyNodes, edges: cyEdges };
         },

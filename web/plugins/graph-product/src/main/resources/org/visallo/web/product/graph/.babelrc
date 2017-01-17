@@ -29,5 +29,15 @@
     "transform-es2015-typeof-symbol",
     "transform-es2015-unicode-regex",
     "transform-regenerator"
-  ]
+  ],
+  "env": {
+    "test": {
+      "presets": ["es2015", "react"],
+      "plugins": [
+        "add-module-exports",
+        "transform-amd-to-commonjs",
+        "transform-es2015-modules-commonjs",
+      ]
+    }
+  }
 }

@@ -35,6 +35,10 @@ define(['util/vertex/formatters'], function(F) {
             } else {
                 dataTransfer.setData('Text', FALLBACK_PREFIX + typeToData[VISALLO_MIMETYPES.ELEMENTS])
             }
+            Promise.all([
+                Promise.require('data/web-worker/store/element/actions'),
+                visalloData.storePromise
+            ]).spread((actions, store) => store.dispatch(actions.setFocus({ elementIds: [] })));
         },
         getElementsFromDataTransfer(dataTransfer) {
             var dataStr;

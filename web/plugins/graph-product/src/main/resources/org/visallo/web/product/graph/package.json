@@ -2,9 +2,6 @@
   "name": "visallo-web-product-graph",
   "description": "",
   "main": "plugin.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "V5 Analytics LLC",
   "repository": "v5analytics/visallo",
   "license": "Apache-2.0",
@@ -12,16 +9,39 @@
   "dependencies": {
     "cytoscape": "2.7.11"
   },
+  "scripts": {
+    "test": "./node_modules/jest/bin/jest.js"
+  },
   "devDependencies": {
-    "babel-core": "^6.14.0",
-    "babel-loader": "^6.2.5",
-    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-core": "^6.21.0",
+    "babel-jest": "^18.0.0",
+    "babel-loader": "^6.2.10",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-amd-to-commonjs": "^0.2.0",
+    "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "babel-plugin-transform-react-display-name": "^6.8.0",
     "babel-plugin-transform-react-jsx": "^6.8.0",
-    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-react": "^6.16.0",
     "ejs-compiled-loader": "^1.1.0",
-    "react": "15.3.0",
-    "react-dom": "15.3.0",
-    "webpack": "^1.13.2"
+    "jest": "^18.1.0",
+    "react": "15.4.2",
+    "react-addons-test-utils": "15.4.2",
+    "react-dom": "15.4.2",
+    "react-test-renderer": "15.4.2",
+    "webpack": "^1.14.0"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "components/NavigationControls": "<rootDir>/__mocks__/components/NavigationControls.jsx",
+      "components/RegistryInjectorHOC": "<rootDir>/__mocks__/components/RegistryInjectorHOC.jsx",
+      "util/retina": "<rootDir>/__mocks__/util/retina.js",
+      "util/vertex/formatters": "<rootDir>/__mocks__/util/vertexFormatters.js",
+      "util/withContextMenu": "<rootDir>/__mocks__/util/withContextMenu.js",
+      "util/formatters": "<rootDir>/__mocks__/util/formatters.js",
+      "colorjs": "<rootDir>/../../../../../../../../../../war/src/main/webapp/node_modules/color-js/color.js",
+      "fast-json-patch": "<rootDir>/../../../../../../../../../../war/src/main/webapp/node_modules/fast-json-patch/dist/json-patch-duplex.min.js",
+      "underscore": "<rootDir>/../../../../../../../../../../war/src/main/webapp/node_modules/underscore/underscore-min.js"
+    }
   }
 }

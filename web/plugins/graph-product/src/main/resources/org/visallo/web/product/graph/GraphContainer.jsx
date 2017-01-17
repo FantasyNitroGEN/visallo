@@ -216,6 +216,7 @@ define([
             var pixelRatio = state.screen.pixelRatio,
                 ontology = state.ontology,
                 panelPadding = state.panel.padding,
+                ghosts = state['org-visallo-graph'].animatingGhosts,
                 uiPreferences = state.user.current.uiPreferences,
                 focusing = productSelectors.getFocusedElementsInProduct(state);
 
@@ -224,6 +225,7 @@ define([
                 selection: productSelectors.getSelectedElementsInProduct(state),
                 viewport: productSelectors.getViewport(state),
                 focusing,
+                ghosts,
                 pixelRatio,
                 uiPreferences,
                 ontology,
@@ -252,6 +254,9 @@ define([
                     if (!$('.search-pane.visible').length) {
                         $(document).trigger('menubarToggleDisplay', { name: 'search' })
                     }
+                },
+                onGhostFinished(id) {
+                    dispatch(graphActions.removeGhost(id))
                 },
                 onDrop: (event, position) => {
                     const { dataTransfer } = event;

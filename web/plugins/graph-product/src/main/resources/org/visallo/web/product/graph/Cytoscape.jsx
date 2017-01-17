@@ -1,6 +1,7 @@
 define([
     'react',
-    './node_modules/cytoscape/src/index',
+    'underscore',
+    'cytoscape',
     'fast-json-patch',
     'components/NavigationControls',
     'colorjs',
@@ -10,6 +11,7 @@ define([
     'util/formatters'
 ], function(
     React,
+    _,
     cytoscape,
     jsonpatch,
     NavigationControls,
@@ -20,7 +22,8 @@ define([
     F) {
     const { PropTypes } = React;
     const ANIMATION = { duration: 400, easing: 'spring(250, 20)' };
-    const PanelPaddingBorder = 20;
+    const ANIMATION_SLOW = { ...ANIMATION, duration: 800 };
+    const PanelPaddingBorder = 35;
     const MAX_ELEMENTS_BEFORE_NO_ANIMATE_LAYOUT = 50;
     const DEFAULT_PNG = Object.freeze({
         bg: 'white',
@@ -94,12 +97,17 @@ define([
             const eventProps = _.mapObject(_.invert(EVENTS), () => () => {})
             return {
                 ...eventProps,
-                onReady() {},
-                initialProductDisplay: false,
-                fit: false,
                 animate: true,
                 config: {},
                 elements: { nodes: [], edges: [] },
+                fit: false,
+                hasPreview: false,
+                initialProductDisplay: false,
+                panelPadding: { left:0, right:0, top:0, bottom:0 },
+                tools: [],
+                onReady() {},
+                onGhostFinished() {},
+                onUpdatePreview() {}
             }
         },
 
@@ -112,7 +120,9 @@ define([
 
         componentDidMount() {
             this.moving = {};
-            this.updatePreview = _.debounce(this._updatePreview, PREVIEW_DEBOUNCE_SECONDS * 1000);
+            this.updatePreview = this.props._disablePreviewDelay ?
+                this._updatePreview :
+                _.debounce(this._updatePreview, PREVIEW_DEBOUNCE_SECONDS * 1000);
             this.previousConfig = this.prepareConfig();
             const cy = cytoscape(this.previousConfig);
             const updateControlDragSelection = (nodeId = null) => this.setState({ controlDragSelection: nodeId });
@@ -170,7 +180,7 @@ define([
         },
 
         componentDidUpdate() {
-            const { cy, controlDragSelection } = this.state;
+            const { cy } = this.state;
             const { elements, drawEdgeToMouseFrom, initialProductDisplay, hasPreview } = this.props;
             const newData = { elements };
             const oldData = cy.json()
@@ -194,10 +204,10 @@ define([
             const [oldEdges, newEdges] = getTypeData('edges')
 
             const viewport = this.updateConfiguration(this.previousConfig, this.props.config);
-            let deferredNodes = [], decorations = [];
+            let deferredNodes = [], decorations = [], ghostAnimations = [];
             let nodeChanges, edgeChanges;
             cy.batch(() => {
-                nodeChanges = this.makeChanges(oldNodes, newNodes, deferredNodes, decorations)
+                nodeChanges = this.makeChanges(oldNodes, newNodes, deferredNodes, decorations, ghostAnimations)
                 edgeChanges = this.makeChanges(oldEdges, newEdges, null, null);
             })
             deferredNodes.forEach(n => n());
@@ -205,13 +215,27 @@ define([
 
             cy.autounselectify(disableSelection)
 
-            this.adjustViewport(cy, viewport, initialProductDisplay);
+            this.adjustViewport(cy, viewport, shouldFit())
             if ((initialProductDisplay && !hasPreview) || nodeChanges || edgeChanges) {
                 this.updatePreview();
             }
+            ghostAnimations.forEach(a => a());
+
+            function shouldFit() {
+                if (initialProductDisplay) return true;
+                const wasEmpty = oldNodes.length === 0;
+                const hasNodes = newNodes.length
+                const positionIsEmpty = node => node.position.x === 0 && node.position.y === 0;
+
+                if (wasEmpty && hasNodes) {
+                    return _.every(newNodes, positionIsEmpty);
+                }
+
+                return false;
+            }
         },
 
-        adjustViewport(cy, viewport, initialProductDisplay) {
+        adjustViewport(cy, viewport, fit) {
             const { pan, zoom } = viewport || {};
             if (pan || zoom) {
                 var newViewport = { zoom, pan: {...pan} };
@@ -228,7 +252,7 @@ define([
                 } else {
                     this.disableEvent('pan zoom', () => cy.viewport(newViewport));
                 }
-            } else if (initialProductDisplay) {
+            } else if (fit) {
                 this.fit(null, { animate: false });
             }
         },
@@ -295,7 +319,6 @@ define([
                     {menu}
                 </div>
             )
-
         },
 
         updateDecorationPositions(cyNode, options = {}) {
@@ -565,7 +588,7 @@ define([
             return retViewport;
         },
 
-        makeChanges(older, newer, reparenting, decorations) {
+        makeChanges(older, newer, reparenting, decorations, ghostAnimations) {
             const cy = this.state.cy
             const add = [];
             const remove = [...older];
@@ -628,7 +651,7 @@ define([
 
                         case 'position':
                             if (!cyNode.grabbed() && !(cyNode.id() in this.moving)) {
-                                if (!item.data.alignment) {
+                                if (!item.data.alignment && !item.data.animateTo) {
                                     const positionChangedWithinTolerance = _.some(cyNode.position(), (oldV, key) => {
                                         const newV = item.position[key];
                                         return (Math.max(newV, oldV) - Math.min(newV, oldV)) >= 1
@@ -681,7 +704,32 @@ define([
                             dec.position(calculatePosition(data.padding, data.alignment, dec, specs));
                         })
                     } else {
-                        cy.add({ ...item, group: 'nodes' })
+                        var cyNode = cy.add({ ...item, group: 'nodes' })[0]
+                        if (cyNode && data.animateTo) {
+                            const animation = cyNode._private.animation;
+                            var beginAnimation = true;
+                            if (animation && animation.current.length === 1) {
+                                const toPos = animation.current[0]._private.position;
+                                if (toPos.x === data.animateTo.pos.x && toPos.y === data.animateTo.pos.y) {
+                                    beginAnimation = false;
+                                }
+                            }
+                            if (beginAnimation) {
+                                if (data.animateTo.pos.x !== item.position.x && data.animateTo.pos.y !== item.position.y) {
+                                    ghostAnimations.push(() => {
+                                        cyNode.stop(true)
+                                        _.delay(() => {
+                                            cyNode.animate({ position: data.animateTo.pos }, {
+                                                ...ANIMATION_SLOW,
+                                                complete: () => {
+                                                    this.props.onGhostFinished(data.animateTo.id)
+                                                }
+                                            })
+                                        }, 100)
+                                    })
+                                }
+                            }
+                        }
                     }
                 } else if (isEdge(data)) {
                     cy.add({ ...item, group: 'edges' })
