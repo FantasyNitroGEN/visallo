@@ -2,7 +2,7 @@ define([
     'configuration/plugins/registry',
     'updeep',
     './snap',
-], function(registry, updeep, snapPosition) {
+], function(registry, u, snapPosition) {
 
     registry.registerExtension('org.visallo.store', {
         key: 'product',
@@ -15,6 +15,27 @@ define([
             return state;
         }
     })
+    registry.registerExtension('org.visallo.store', {
+        key: 'org-visallo-graph',
+        reducer: function(state, { type, payload }) {
+            if (!state) return { animatingGhosts: {} }
+            switch (type) {
+                case 'PRODUCT_GRAPH_ADD_GHOSTS': return addGhosts(state, payload);
+                case 'PRODUCT_GRAPH_REMOVE_GHOST': return removeGhost(state, payload);
+            }
+
+            return state;
+        }
+    })
+
+    function addGhosts(state, { ids, position }) {
+        return u({
+            animatingGhosts: _.object(ids.map(id => [id, u.constant(position)]))
+        }, state)
+    }
+    function removeGhost(state, { id }) {
+        return u({ animatingGhosts: u.omit(id) }, state);
+    }
 
     function addEdges(state, { productId, edges, workspaceId }) {
         const product = state.workspaces[workspaceId].products[productId];
@@ -26,7 +47,7 @@ define([
                 return [newIndex++, edgeInfo];
             })));
 
-            return updeep.updateIn(`workspaces.${workspaceId}.products.${productId}.extendedData.edges`, update, state);
+            return u.updateIn(`workspaces.${workspaceId}.products.${productId}.extendedData.edges`, update, state);
         }
 
         return state;
@@ -37,7 +58,7 @@ define([
 
         if (product && product.extendedData && product.extendedData.vertices) {
             const updatedIds = [];
-            const updated = updeep.updateIn(
+            var updated = u.updateIn(
                 `workspaces.${workspaceId}.products.${productId}.extendedData.vertices.*`,
                 function(vertexPosition) {
                     if (vertexPosition.id in updateVertices) {
@@ -60,7 +81,7 @@ define([
                     return [nextIndex++, { id, pos }];
                 }));
 
-                return updeep.updateIn(
+                updated = u.updateIn(
                     `workspaces.${workspaceId}.products.${productId}.extendedData.vertices`,
                     additions,
                     updated

@@ -1,4 +1,4 @@
-define([], function() {
+define(['underscore'], function(_) {
 
     return function fixCytoscapeCorsHandling(cy) {
         const r = cy.renderer();

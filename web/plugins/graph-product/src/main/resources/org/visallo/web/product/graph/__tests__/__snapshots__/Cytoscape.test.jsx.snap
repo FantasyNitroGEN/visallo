@@ -1,0 +1,17 @@
+exports[`test Should start with no cyNodes 1`] = `
+<div
+  onMouseDown={[Function]}
+  style={
+    Object {
+      "height": "100%",
+    }
+  }>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    } />
+  <div />
+</div>
+`;
