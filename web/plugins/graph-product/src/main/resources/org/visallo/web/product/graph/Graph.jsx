@@ -80,10 +80,10 @@ define([
                 selectConnected: (event, data) => {
                     event.stopPropagation();
                     const cy = this.refs.cytoscape.state.cy;
-                    const selected = cy.nodes().filter(':selected');
-                    const other = selected.neighborhood('node');
+                    const selected = cy.elements().filter(':selected');
+                    selected.neighborhood('node').select();
+                    selected.connectedNodes().select();
 
-                    other.select();
                     selected.unselect();
                 },
                 startVertexConnection: (event, { vertexId, connectionType }) => {
