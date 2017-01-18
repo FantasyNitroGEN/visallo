@@ -121,7 +121,7 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             const isEdge = 'graphEdgeId' in change;
             const isVertex = 'graphVertexId' in change;
             const state = getState();
-            const workspaceIds = _.chain([change.workspaceId, state.workspace.currentId])
+            const workspaceIds = _.chain([change.workspaceId, ...Object.keys(state.workspace.byId)])
                 .uniq()
                 .compact()
                 .value();
