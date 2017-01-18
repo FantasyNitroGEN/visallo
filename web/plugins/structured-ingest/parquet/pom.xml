@@ -34,14 +34,6 @@
             <version>${tika.version}</version>
         </dependency>
 
-
-
-        <!--<dependency>-->
-            <!--<groupId>org.apache.tika</groupId>-->
-            <!--<artifactId>tika-core</artifactId>-->
-            <!--<version>${tika.version}</version>-->
-        <!--</dependency>-->
-
         <!-- for parquet -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -53,21 +45,11 @@
             <artifactId>parquet-hadoop</artifactId>
             <version>${parquet.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.parquet</groupId>-->
-            <!--<artifactId>parquet-common</artifactId>-->
-            <!--<version>${parquet.version}</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-tools</artifactId>
             <version>${parquet.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.parquet</groupId>-->
-            <!--<artifactId>parquet-avro</artifactId>-->
-            <!--<version>${parquet.version}</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.vertexium</groupId>
             <artifactId>vertexium-inmemory</artifactId>
