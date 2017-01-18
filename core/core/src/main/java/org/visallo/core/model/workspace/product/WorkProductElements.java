@@ -104,9 +104,12 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                     authorizations
             );
             for (Edge propertyVertexEdge : productVertexEdges) {
-                String other = propertyVertexEdge.getOtherVertexId(id);
+                Vertex otherVertex = propertyVertexEdge.getOtherVertex(id, authorizations);
                 JSONObject vertex = new JSONObject();
-                vertex.put("id", other);
+                vertex.put("id", propertyVertexEdge.getOtherVertexId(id));
+                if (otherVertex == null) {
+                    vertex.put("unauthorized", true);
+                }
                 setEdgeJson(propertyVertexEdge, vertex);
                 vertices.put(vertex);
             }

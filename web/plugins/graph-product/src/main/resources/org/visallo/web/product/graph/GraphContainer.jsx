@@ -230,6 +230,7 @@ define([
                 uiPreferences,
                 ontology,
                 panelPadding,
+                productElementIds: productSelectors.getElementIdsInProduct(state),
                 elements: productSelectors.getElementsInProduct(state),
                 workspace: state.workspace.byId[state.workspace.currentId],
                 mimeTypes,

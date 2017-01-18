@@ -28,6 +28,7 @@ define([
                 panelPadding: state.panel.padding,
                 selection: productSelectors.getSelectedElementsInProduct(state),
                 viewport: productSelectors.getViewport(state),
+                productElementIds: productSelectors.getElementIdsInProduct(state),
                 elements: productSelectors.getElementsInProduct(state),
                 pixelRatio,
                 mimeTypes,
