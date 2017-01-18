@@ -121,21 +121,28 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             const isEdge = 'graphEdgeId' in change;
             const isVertex = 'graphVertexId' in change;
             const state = getState();
-            const workspaceId = change.workspaceId || state.workspace.currentId;
-            const vertexInStore = (...ids) => {
-                return _.all(ids, id => workspaceId in state.element && (id in state.element[workspaceId].vertices));
-            }
+            const workspaceIds = _.chain([change.workspaceId, state.workspace.currentId])
+                .uniq()
+                .compact()
+                .value();
+            const updateOnWorkspace = (workspaceId) => {
+                const vertexInStore = (...ids) => {
+                    return _.all(ids, id => workspaceId in state.element && (id in state.element[workspaceId].vertices));
+                }
 
-            if (isVertex) {
-                if (vertexInStore(graphVertexId)) {
-                    dispatch(api.get({ workspaceId, vertexIds: [graphVertexId], invalidate: true }));
+                if (isVertex) {
+                    if (vertexInStore(graphVertexId)) {
+                        dispatch(api.get({ workspaceId, vertexIds: [graphVertexId], invalidate: true }));
+                    }
+                } else if (isEdge) {
+                    const { inVertexId, outVertexId } = change;
+                    if (!inVertexId || !outVertexId || vertexInStore(inVertexId, outVertexId)) {
+                        dispatch(api.get({ workspaceId, edgeIds: [graphEdgeId], invalidate: true }));
+                    }
                 }
-            } else if (isEdge) {
-                const { inVertexId, outVertexId } = change;
-                if (!inVertexId || !outVertexId || vertexInStore(inVertexId, outVertexId)) {
-                    dispatch(api.get({ workspaceId, edgeIds: [graphEdgeId], invalidate: true }));
-                }
-            }
+            };
+
+            workspaceIds.forEach(updateOnWorkspace);
         },
 
         deleteElements: ({ vertexIds, edgeIds }) => (dispatch, getState) => {
