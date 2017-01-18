@@ -638,6 +638,26 @@
                 <version>${aws-java-sdk.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parsers</artifactId>
+                <version>${tika.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.sis.core</groupId>
+                        <artifactId>sis-referencing</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.measure</groupId>
+                        <artifactId>jsr-275</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.opengis</groupId>
+                        <artifactId>geoapi</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
 
             <!-- Provided Dependencies -->
             <dependency>
