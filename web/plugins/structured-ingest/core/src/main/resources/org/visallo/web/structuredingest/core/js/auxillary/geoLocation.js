@@ -19,20 +19,20 @@ define([
 
         this.after('initialize', function() {
             var self = this,
-                column = this.attr.mapping.column,
+                key = this.attr.mapping.key,
                 hints = this.attr.mapping.hints;
 
             this.$node.html(template({
-                otherColumn: self.attr.allHeaders.map(function(header, i) {
+                otherColumn: self.attr.allHeaders.map(function(header, i, headers) {
                     return {
                         value: i,
                         display: header,
                         selected:
-                            column === hints.columnLatitude ?
-                                hints.columnLongitude === i :
-                            column === hints.columnLongitude ?
-                                hints.columnLatitude === i : false,
-                        disabled: i === column
+                            key === hints.columnLatitude ?
+                                hints.columnLongitude === header :
+                            key === hints.columnLongitude ?
+                                hints.columnLatitude === header : false,
+                        disabled: header === key
                     };
                 }),
                 contains: [
@@ -42,11 +42,11 @@ define([
                 ].map(function(c) {
                     if ('columnLatitude' in hints &&
                         c.value === 'latitude' &&
-                        column === hints.columnLatitude) {
+                        key === hints.columnLatitude) {
                         c.selected = true;
                     } else if ('columnLongitude' in hints &&
                         c.value === 'longitude' &&
-                        column === hints.columnLongitude) {
+                        key === hints.columnLongitude) {
                         c.selected = true;
                     } else if (c.value === 'both') {
                         c.selected = true;
@@ -57,8 +57,8 @@ define([
                     { value: 'DEGREES_MINUTES_SECONDS', display: '0° 0\' 00.0" (degrees, minutes, seconds)' },
                     { value: 'DEGREES_DECIMAL_MINUTES', display: '0° 00.000\'  (degrees, decimal minutes)' },
                     { value: 'DECIMAL', display: '00.000°     (decimal degrees)' }
-                ].map(function(f) {
-                    if (f.value === hints.format) {
+                ].map(function(f, i) {
+                    if (f.value === hints.format || (!hints.format && i === 2)) {
                         f.selected = true;
                     }
                     return f;
@@ -100,13 +100,13 @@ define([
                 format: this.select('formatSelector').val()
             }, function(data) {
                 if (contains === 'latitude') {
-                    data.columnLatitude = self.attr.mapping.column
-                    data.columnLongitude = otherColumnNumber;
+                    data.columnLatitude = self.attr.mapping.key
+                    data.columnLongitude = self.attr.allHeaders[otherColumnNumber];
                     self.$node.find('.otherType').text('Longitude')
                 }
                 if (contains === 'longitude') {
-                    data.columnLatitude = otherColumnNumber;
-                    data.columnLongitude = self.attr.mapping.column
+                    data.columnLatitude = self.attr.allHeaders[otherColumnNumber];
+                    data.columnLongitude = self.attr.mapping.key
                     self.$node.find('.otherType').text('Latitude')
                 }
                 self.select('otherSectionSelector').toggle(contains !== 'both');
