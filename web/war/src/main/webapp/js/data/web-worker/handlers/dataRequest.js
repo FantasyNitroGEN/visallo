@@ -26,7 +26,9 @@ define([], function() {
                 })
                 .catch(function(error) {
                     if (error && error instanceof Error) {
-                        error = error.message;
+                        if (!error.json) {
+                            error = error.message;
+                        }
                     }
                     dispatchMain('dataRequestCompleted', {
                         success: false,

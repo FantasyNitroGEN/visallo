@@ -78,6 +78,14 @@ public class Configuration {
     public static final String DEFAULT_STATUS_PORT_RANGE = "40000-41000";
     public static final String COMMENTS_AUTO_PUBLISH = "comments.autoPublish";
     public static final boolean DEFAULT_COMMENTS_AUTO_PUBLISH = false;
+    public static final String MULTIPART_LOCATION = "multipart.location";
+    public static final String DEFAULT_MULTIPART_LOCATION = System.getProperty("java.io.tmpdir");
+    public static final String MULTIPART_MAX_FILE_SIZE = "multipart.maxFileSize";
+    public static final long DEFAULT_MULTIPART_MAX_FILE_SIZE = 1024 * 1024 * 50;
+    public static final String MULTIPART_MAX_REQUEST_SIZE = "multipart.maxRequestSize";
+    public static final long DEFAULT_MULTIPART_MAX_REQUEST_SIZE = 1024 * 1024 * 100;
+    public static final String MULTIPART_FILE_SIZE_THRESHOLD = "multiPart.fileSizeThreshold";
+    public static final int DEFAULT_MULTIPART_FILE_SIZE_THRESHOLD = 0;
     public static final String STATUS_REFRESH_INTERVAL_SECONDS = "status.refreshIntervalSeconds";
     public static final int STATUS_REFRESH_INTERVAL_SECONDS_DEFAULT = 10;
     public static final String STATUS_ENABLED = "status.enabled";
@@ -142,6 +150,14 @@ public class Configuration {
 
     public Integer getInt(String propertyKey) {
         return getInt(propertyKey, null);
+    }
+
+    public Long getLong(String propertyKey, Long defaultValue) {
+        return Long.parseLong(get(propertyKey, defaultValue == null ? null : defaultValue.toString()));
+    }
+
+    public Long getLong(String propertyKey) {
+        return getLong(propertyKey, null);
     }
 
     public <T> Class<? extends T> getClass(String propertyKey) {
