@@ -866,6 +866,10 @@ code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
 
+color-js@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/color-js/-/color-js-1.0.3.tgz#efaeeb55f9adfb909bae43fd279b63e53b50caf1"
+
 colors@1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/colors/-/colors-1.0.3.tgz#0433f44d809680fdeb60ed260f1b0c262e82a40b"
@@ -1122,6 +1126,10 @@ extglob@^0.3.1:
 extsprintf@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.0.2.tgz#e1080e0658e300b06294990cc70e1502235fd550"
+
+fast-json-patch@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fast-json-patch/-/fast-json-patch-1.0.0.tgz#8d79b5b0966df0afdad5a6e9036baf9fc16b3038"
 
 fast-levenshtein@~2.0.4:
   version "2.0.6"
