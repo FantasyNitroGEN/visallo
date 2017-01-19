@@ -12,12 +12,12 @@ function(withDataRequest) {
 
         CONCEPT_TYPE: 'http://visallo.org#conceptType',
 
-        findPropertiesForColumnInObject: function(object, columnIndex) {
+        findPropertiesForColumnInObject: function(object, key) {
             return _.filter(object.properties, function(p) {
-                if (p.column === columnIndex) return true;
+                if (p.key === key) return true;
                 if (p.hints && (
-                    columnIndex === p.hints.columnLatitude ||
-                    columnIndex === p.hints.columnLongitude)) {
+                    key === p.hints.columnLatitude ||
+                    key === p.hints.columnLongitude)) {
                     return true;
                 }
             });

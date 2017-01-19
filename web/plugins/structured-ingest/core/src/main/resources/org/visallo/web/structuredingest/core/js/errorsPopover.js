@@ -23,7 +23,7 @@ define([
         })
 
         this.before('initialize', function(node, config) {
-            config.template = '/com/visallo/structuredFile/templates/error'
+            config.template = '/org/visallo/web/structuredingest/core/templates/error'
             config.hideStrategy = _.some(config.errors.list, function(e) {
                 return e.mappingError === true;
             });
@@ -45,7 +45,7 @@ define([
         this.onChange = function(event) {
             var type = $(event.target).val();
             this.trigger('errorHandlingUpdated', {
-                index: this.attr.index,
+                key: this.attr.key,
                 errorStrategy: type
             });
         }
