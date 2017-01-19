@@ -66,14 +66,6 @@ import static org.vertexium.util.IterableUtils.toList;
 public class Router extends HttpServlet {
     private static final long serialVersionUID = 4689515508877380905L;
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Router.class);
-
-    /**
-     * Copied from org.eclipse.jetty.server.Request.__MULTIPART_CONFIG_ELEMENT.
-     * TODO: Examine why this is necessary and how it can be abstracted to any servlet container.
-     */
-    private static final String JETTY_MULTIPART_CONFIG_ELEMENT8 = "org.eclipse.multipartConfig";
-    private static final String JETTY_MULTIPART_CONFIG_ELEMENT9 = "org.eclipse.jetty.multipartConfig";
-    private static final MultipartConfigElement MULTI_PART_CONFIG = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
     private static final String GRAPH_TRACE_ENABLE = "graphTraceEnable";
     private WebApp app;
     private Configuration configuration;
@@ -263,11 +255,6 @@ public class Router extends HttpServlet {
         TraceSpan trace = null;
         CurrentUser.setUserInLogMappedDiagnosticContexts(request);
         try {
-            if (request.getContentType() != null && request.getContentType().startsWith("multipart/form-data")) {
-                request.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT8, MULTI_PART_CONFIG);
-                request.setAttribute(JETTY_MULTIPART_CONFIG_ELEMENT9, MULTI_PART_CONFIG);
-            }
-
             if (isGraphTraceEnabled(request)) {
                 String traceDescription = request.getRequestURI();
                 Map<String, String> parameters = new HashMap<>();
@@ -306,6 +293,9 @@ public class Router extends HttpServlet {
             handleAccessDenied(response, (VisalloAccessDeniedException) e.getCause());
             return;
         }
+        if (handleIllegalState(request, response, e)) {
+            return;
+        }
 
         String message = String.format("Unhandled exception for %s %s", request.getMethod(), request.getRequestURI());
         if (app.isDevModeEnabled()) {
@@ -314,6 +304,22 @@ public class Router extends HttpServlet {
             LOGGER.warn(message, e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    private boolean handleIllegalState(HttpServletRequest request, HttpServletResponse response, Throwable e) throws IOException {
+        boolean isMultipart = request.getContentType() != null && request.getContentType().startsWith("multipart/");
+        if (isMultipart) {
+            long bytesToMB = 1024 * 1024;
+            String message = String.format(
+                    "Uploaded file(s) are too large. Limits are set to %dMB per file and %dMB total for all files",
+                    Configuration.DEFAULT_MULTIPART_MAX_FILE_SIZE / bytesToMB,
+                    Configuration.DEFAULT_MULTIPART_MAX_REQUEST_SIZE / bytesToMB
+            );
+            handleBadRequest(response, new BadRequestException("files", message));
+            return true;
+        }
+
+        return false;
     }
 
     private void handleAccessDenied(HttpServletResponse response, VisalloAccessDeniedException accessDenied) throws IOException {

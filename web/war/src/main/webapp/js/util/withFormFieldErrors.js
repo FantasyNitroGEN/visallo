@@ -21,6 +21,9 @@ define(['tpl!./alert'], function(alertTemplate) {
             if (!error) {
                 return;
             }
+            if (error.json) {
+                error = error.json;
+            }
 
             try {
                 if (_.isString(error)) {

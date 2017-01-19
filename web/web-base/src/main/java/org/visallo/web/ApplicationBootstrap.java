@@ -135,6 +135,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         servlet.addMapping("/*");
         servlet.setAsyncSupported(true);
         servlet.setInitParameter(ORG_ECLIPSE_JETTY_SERVLET_DEFAULT_DIR_ALLOWED, "false");
+        addMultiPartConfig(config, servlet);
         addSecurityConstraint(servlet, config);
         addAtmosphereServlet(context, config);
         addDebugFilter(context);
@@ -144,6 +145,17 @@ public class ApplicationBootstrap implements ServletContextListener {
         }
         LOGGER.info(
                 "JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
+    }
+
+    private void addMultiPartConfig(Configuration config, ServletRegistration.Dynamic servlet) {
+        String location = config.get(Configuration.MULTIPART_LOCATION, Configuration.DEFAULT_MULTIPART_LOCATION);
+        long maxFileSize = config.getLong(Configuration.MULTIPART_MAX_FILE_SIZE, Configuration.DEFAULT_MULTIPART_MAX_FILE_SIZE);
+        long maxRequestSize = config.getLong(Configuration.MULTIPART_MAX_REQUEST_SIZE, Configuration.DEFAULT_MULTIPART_MAX_REQUEST_SIZE);
+        int fileSizeThreshold = config.getInt(Configuration.MULTIPART_FILE_SIZE_THRESHOLD, Configuration.DEFAULT_MULTIPART_FILE_SIZE_THRESHOLD);
+
+        servlet.setMultipartConfig(
+                new MultipartConfigElement(location, maxFileSize, maxRequestSize, fileSizeThreshold)
+        );
     }
 
     private void addAtmosphereServlet(ServletContext context, Configuration config) {
