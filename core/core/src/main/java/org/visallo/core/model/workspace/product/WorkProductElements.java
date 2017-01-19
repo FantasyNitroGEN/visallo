@@ -12,9 +12,13 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.StreamUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -98,16 +102,23 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
         if (params.optBoolean("includeVertices")) {
             JSONArray vertices = new JSONArray();
-            Iterable<Edge> productVertexEdges = productVertex.getEdges(
+            List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
                     Direction.OUT,
                     WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                     authorizations
-            );
+            ));
+
+            List<String> ids = productVertexEdges.stream()
+                    .map(edge -> edge.getOtherVertexId(id))
+                    .collect(Collectors.toList());
+            Map<String, Vertex> othersById = StreamUtil.stream(graph.getVertices(ids, FetchHint.NONE, authorizations))
+                    .collect(Collectors.toMap(Vertex::getId, Function.identity()));
+
             for (Edge propertyVertexEdge : productVertexEdges) {
-                Vertex otherVertex = propertyVertexEdge.getOtherVertex(id, authorizations);
+                String otherId = propertyVertexEdge.getOtherVertexId(id);
                 JSONObject vertex = new JSONObject();
-                vertex.put("id", propertyVertexEdge.getOtherVertexId(id));
-                if (otherVertex == null) {
+                vertex.put("id", otherId);
+                if (!othersById.containsKey(otherId)) {
                     vertex.put("unauthorized", true);
                 }
                 setEdgeJson(propertyVertexEdge, vertex);

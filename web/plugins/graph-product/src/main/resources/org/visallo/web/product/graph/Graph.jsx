@@ -559,7 +559,7 @@ define([
         },
 
         mapPropsToElements(editable) {
-            const { selection, product, ghosts, productElementIds, elements, ontology, registry, focusing } = this.props;
+            const { selection, ghosts, productElementIds, elements, ontology, registry, focusing } = this.props;
             const { hovering } = this.state;
             const { vertices: productVertices, edges: productEdges } = productElementIds;
             const { vertices, edges } = elements;
