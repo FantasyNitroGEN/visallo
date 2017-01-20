@@ -44,12 +44,13 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
         return productId ? productsById[productId] : null;
     })
 
-    const getElementIdsInProduct = createSelector([getProduct], (product) => {
+    const getElementIdsInProduct = createSelector([getProduct, elementSelectors.getElements], (product, elements) => {
         if (!product || !product.extendedData) return { vertices: [], edges: [] };
 
         const { vertices, edges } = product.extendedData
+        const viewable = v => v.unauthorized !== true || (elements.vertices && elements.vertices[v.id])
 
-        return { vertices, edges }
+        return { vertices: vertices.filter(viewable), edges }
     });
 
     const getElementsInProduct = createSelector([getElementIdsInProduct, elementSelectors.getElements], (elementIds, elements) => {
@@ -95,6 +96,7 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
         getProducts,
         getProductsById,
         getProductTypes,
+        getElementIdsInProduct,
         getElementsInProduct,
         getSelectedElementsInProduct,
         getFocusedElementsInProduct

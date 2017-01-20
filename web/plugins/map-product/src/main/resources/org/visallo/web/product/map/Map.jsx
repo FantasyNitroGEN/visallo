@@ -121,8 +121,7 @@ define([
         },
 
         mapElementsToFeatures() {
-            const extended = this.props.product.extendedData;
-            const { vertices, edges } = extended;
+            const { vertices, edges } = this.props.productElementIds;
             const elementsSelectedById = { ..._.indexBy(this.props.selection.vertices), ..._.indexBy(this.props.selection.edges) };
             const productVertices = _.pick(this.props.elements.vertices, _.pluck(vertices, 'id'));
             const productEdges = _.pick(this.props.elements.edges, _.pluck(edges, 'id'));
