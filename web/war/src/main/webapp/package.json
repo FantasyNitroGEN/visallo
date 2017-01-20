@@ -97,8 +97,8 @@
     "redux-devtools": "^3.3.1"
   },
   "scripts": {
-    "test": "karma start --single-run",
-    "postinstall": "node_modules/grunt-cli/bin/grunt deps"
+    "test": "node ./node_modules/karma/bin/karma start --single-run",
+    "postinstall": "node ./node_modules/grunt-cli/bin/grunt deps"
   },
   "author": "V5 Analytics LLC",
   "license": "Apache-2.0"
