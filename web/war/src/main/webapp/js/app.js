@@ -20,7 +20,7 @@ define([
     'util/component/attacher',
     'util/mouseOverlay',
     'util/withFileDrop',
-    'util/vertex/menu',
+    'util/element/menu',
     'util/contextMenu',
     'util/privileges',
     'util/withDataRequest'
@@ -125,7 +125,16 @@ define([
                         ('event' in e || 'submenu' in e) && ('label' in e)
                     );
                 },
-                'http://docs.visallo.org/extension-points/front-end/vertexMenu'
+                'http://docs.visallo.org/extension-points/front-end/elementMenu'
+            );
+            registry.documentExtensionPoint('org.visallo.edge.menu',
+                'Add edge context menu items',
+                function(e) {
+                    return e === 'DIVIDER' || (
+                            ('event' in e || 'submenu' in e) && ('label' in e)
+                        );
+                },
+                'http://docs.visallo.org/extension-points/front-end/elementMenu'
             );
 
             fixMultipleBootstrapModals();
@@ -147,6 +156,7 @@ define([
             this.on(document, 'logout', this.logout);
             this.on(document, 'sessionExpiration', this.onSessionExpiration);
             this.on(document, 'showVertexContextMenu', this.onShowVertexContextMenu);
+            this.on(document, 'showEdgeContextMenu', this.onShowEdgeContextMenu);
             this.on(document, 'warnAboutContextMenuDisabled', this.onWarnAboutContextMenuDisabled);
             this.on(document, 'genericPaste', this.onGenericPaste);
             this.on(document, 'toggleTimeline', this.onToggleTimeline);
@@ -318,7 +328,6 @@ define([
 
         this.onOpenFullscreen = function(event, data) {
             var self = this,
-                req,
                 F;
 
             if (!data) return;
@@ -326,12 +335,16 @@ define([
             Promise.require('util/vertex/formatters')
                 .then(function(_F) {
                     F = _F;
-                    return F.vertex.getVertexIdsFromDataEventOrCurrentSelection(data, { async: true });
+                    return F.vertex.getVertexAndEdgeIdsFromDataEventOrCurrentSelection(data, { async: true });
                 })
                 .then(function(elementIds) {
-                    return self.dataRequest('vertex', 'store', { vertexIds: elementIds })
+                    return Promise.all([
+                        self.dataRequest('vertex', 'store', { vertexIds: elementIds.vertexIds }),
+                        self.dataRequest('edge', 'store', { edgeIds: elementIds.edgeIds })
+                    ]);
                 })
-                .then(function(elements) {
+                .spread(function(vertices, edges) {
+                    var elements = vertices.concat(edges);
                     var url = F.vertexUrl.url(
                             _.isArray(elements) ? elements : [elements],
                             visalloData.currentWorkspaceId
@@ -454,7 +467,7 @@ define([
             var self = this;
 
             // Close any context menus first
-            require(['util/vertex/menu'], function(VertexMenuComponent) {
+            require(['util/element/menu'], function(VertexMenuComponent) {
                 var contextMenu = $(document.body).lookupComponent(VertexMenuComponent);
                 if (contextMenu) {
                     contextMenu.teardown();
@@ -473,11 +486,11 @@ define([
             }
         };
 
-        this.onShowVertexContextMenu = function(event, data) {
+        this.onShowEdgeContextMenu = this.onShowVertexContextMenu = function(event, data) {
             data.element = event.target;
 
             VertexMenu.teardownAll();
-            if (data && data.vertexId) {
+            if (data && (data.vertexId || data.edgeIds)) {
                 VertexMenu.attachTo(document.body, data);
             }
         };

@@ -41,12 +41,14 @@ define([
 
         propTypes: {
             onUpdatePreview: PropTypes.func.isRequired,
-            onVertexMenu: PropTypes.func
+            onVertexMenu: PropTypes.func,
+            onEdgeMenu: PropTypes.func
         },
 
         getDefaultProps() {
             return {
-                onVertexMenu: noop
+                onVertexMenu: noop,
+                onEdgeMenu: noop
             }
         },
 
@@ -497,7 +499,12 @@ define([
             // TODO: show all selected objects if not on item
             if (cyTarget !== cy) {
                 const { pageX, pageY } = originalEvent;
-                this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
+                if (cyTarget.isNode()) {
+                    this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
+                } else {
+                    const edgeIds = _.pluck(cyTarget.data('edgeInfos'), 'edgeId');
+                    this.props.onEdgeMenu(originalEvent.target, edgeIds, { x: pageX, y: pageY });
+                }
             }
         },
 

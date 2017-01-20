@@ -180,10 +180,18 @@ define([
             evt.preventDefault();
             evt.stopPropagation();
 
-            var vertexId = $(evt.target).closest('.element-item').children('a').data('vertexId');
-            if (vertexId) {
+            const link = $(evt.target).closest('.element-item').children('a');
+            if (link.data('vertexId')) {
                 this.trigger(this.$node, 'showVertexContextMenu', {
-                    vertexId: vertexId,
+                    vertexId: link.data('vertexId'),
+                    position: {
+                        x: event.pageX,
+                        y: event.pageY
+                    }
+                });
+            } else if (link.data('edgeId')) {
+                this.trigger(this.$node, 'showEdgeContextMenu', {
+                    edgeIds: [link.data('edgeId')],
                     position: {
                         x: event.pageX,
                         y: event.pageY
