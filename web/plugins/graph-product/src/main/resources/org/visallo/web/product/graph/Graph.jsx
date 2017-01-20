@@ -124,6 +124,9 @@ define([
         },
 
         componentWillReceiveProps(nextProps) {
+            if (nextProps.selection !== this.props.selection) {
+                this.resetQueuedSelection(nextProps.selection);
+            }
             if (nextProps.product.id === this.props.product.id) {
                 this.setState({ viewport: {}, initialProductDisplay: false })
             } else {
@@ -680,9 +683,13 @@ define([
             return { nodes: cyNodes, edges: cyEdges };
         },
 
-        coalesceSelection(action, type, cyElementOrId) {
-            if (!this._queuedSelection) {
-                this._queuedSelection = { add: {vertices: {}, edges: {}}, remove: {vertices: {}, edges: {}} };
+        resetQueuedSelection(sel) {
+            this._queuedSelection = sel ? {
+                add: { vertices: sel.vertices, edges: sel.edges },
+                remove: {vertices: {}, edges: {}}
+            } : { add: {vertices: {}, edges: {}}, remove: {vertices: {}, edges: {}} };
+
+            if (!this._queuedSelectionTrigger) {
                 this._queuedSelectionTrigger = _.debounce(() => {
                     const vertices = Object.keys(this._queuedSelection.add.vertices);
                     const edges = Object.keys(this._queuedSelection.add.edges);
@@ -692,6 +699,12 @@ define([
                         this.props.onClearSelection();
                     }
                 }, 100);
+            }
+        },
+
+        coalesceSelection(action, type, cyElementOrId) {
+            if (!this._queuedSelection) {
+                this.resetQueuedSelection();
             }
             var id = cyElementOrId;
 
@@ -708,7 +721,7 @@ define([
 
 
             if (action !== 'clear') {
-                this._queuedSelection[action][type][id] = true;
+                this._queuedSelection[action][type][id] = id;
             }
 
             if (action === 'add') {
