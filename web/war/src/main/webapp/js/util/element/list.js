@@ -126,6 +126,7 @@ define([
 
         this.onClick = function(event) {
             event.preventDefault();
+            event.stopPropagation();
 
             const {vertexIds, edgeIds} = visalloData.selectedObjects;
             const $target = $(event.target).parents('li');
