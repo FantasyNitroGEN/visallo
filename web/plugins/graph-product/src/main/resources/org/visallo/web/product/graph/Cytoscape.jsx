@@ -287,6 +287,8 @@ define([
                             this.setState({ showGraphMenu: event })
                         }
                     })
+                    cy._private.originalMinZoom = cy._private.minZoom;
+                    cy._private.originalMaxZoom = cy._private.maxZoom;
                     this.props.onReady(event)
                 }
             }
@@ -521,8 +523,17 @@ define([
                         (h - (top + bottom)) / bb.h
                     ));
 
-                    if (zoom < cy._private.minZoom) zoom = cy._private.minZoom;
+                    // Set min and max zoom to fit all items
+                    if (zoom < cy._private.minZoom) {
+                        cy._private.minZoom = zoom;
+                        cy._private.maxZoom = 1 / zoom;
+                    } else {
+                        cy._private.minZoom = cy._private.originalMinZoom;
+                        cy._private.maxZoom = cy._private.originalMaxZoom;
+                    }
+
                     if (zoom > cy._private.maxZoom) zoom = cy._private.maxZoom;
+                    
 
                     var position = {
                             x: (w + left - right - zoom * (bb.x1 + bb.x2)) / 2,
