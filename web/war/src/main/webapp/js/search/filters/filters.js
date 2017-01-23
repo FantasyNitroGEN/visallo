@@ -200,10 +200,27 @@ define([
                 .done(function(ontologyProperties) {
                     var properties = data.properties || _.compact([data.property]);
 
-                    self.onClearFilters();
-                    self.disableNotify = true;
-
-                    Promise.resolve(properties)
+                    Promise.try(function() {
+                            return self.onClearFilters();
+                        })
+                        .then(function() {
+                            self.disableNotify = true;
+                            if (data.conceptId) {
+                                return self.setMatchType('vertex');
+                            } else if (data.edgeLabel) {
+                                return self.setMatchType('edge');
+                            }
+                        })
+                        .then(function() {
+                            if (data.conceptId) {
+                                return self.setConceptFilter(data.conceptId);
+                            } else if (data.edgeLabel) {
+                                return self.setEdgeTypeFilter(data.edgeLabel);
+                            }
+                        })
+                        .then(function() {
+                            return properties
+                        })
                         .each(function(property) {
                             var ontologyProperty = ontologyProperties.byTitle[property.name];
                             if (ontologyProperty &&
@@ -219,13 +236,13 @@ define([
                             }, { hide: true });
                         })
                         .then(function() {
-                            return self.setConceptFilter(data.conceptId);
-                        })
-                        .done(function() {
                             self.disableNotify = false;
                             self.$node.find('.filter').show();
                             self.notifyOfFilters();
-                        });
+                        })
+                        .catch(function(error) {
+                            console.error(error)
+                        })
                 });
         };
 
@@ -422,7 +439,7 @@ define([
 
         this.onClearFilters = function(event, data) {
             var self = this;
-            this.clearFilters().done(function() {
+            return this.clearFilters().then(function() {
                 self.trigger('filtersCleared');
             })
         };

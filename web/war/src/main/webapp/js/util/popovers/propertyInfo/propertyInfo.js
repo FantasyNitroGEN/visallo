@@ -361,11 +361,18 @@ define([
         };
 
         this.onSearch = function() {
-            var concept = F.vertex.concept(this.attr.data),
-                data = {
-                    conceptId: concept && concept.id
-                },
-                trim = function(p) {
+            var element = this.attr.data,
+                data = {};
+            if (element.type === 'vertex') {
+                var concept = F.vertex.concept(element);
+                data.conceptId = concept && concept.id;
+            } else if (element.type === 'edge') {
+                data.edgeLabel = element.label
+            } else {
+                throw new Error('Unknown type', this.attr.data)
+            }
+
+            var trim = function(p) {
                     return _.pick(p, 'name', 'value', 'values');
                 };
 
