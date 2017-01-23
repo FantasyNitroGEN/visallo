@@ -6,7 +6,7 @@ define(['/base/jsc/data/web-worker/store/selection/reducer'], function(reducer) 
         idsByType: { vertices, edges }
     })
 
-    describe.only('selectionReducer', () => {
+    describe('selectionReducer', () => {
 
         it('should initialize state', () => {
             reducer(null, {}).should.deep.equal(emptyState)
