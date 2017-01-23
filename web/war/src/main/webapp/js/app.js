@@ -564,6 +564,7 @@ define([
         this.toggleDisplay = function(e, data) {
             var self = this,
                 SLIDE_OUT = 'search workspaces products admin',
+                POPOVER = 'activity',
                 name = data && (data.nameFull || data.name),
                 pane = this.select(name + 'Selector'),
                 deferred = $.Deferred(),
@@ -633,7 +634,9 @@ define([
                 }
 
                 var type = 'full';
-                if (SLIDE_OUT.indexOf(name) >= 0) {
+                var isSlideOut = SLIDE_OUT.indexOf(name) >= 0;
+                var isPopover = POPOVER.indexOf(name) >= 0;
+                if (isSlideOut || isPopover) {
                     type = 'pane';
                     pane.one(TRANSITION_END, function() {
                         pane.off(TRANSITION_END);
