@@ -42,6 +42,8 @@ module.exports = function(config) {
                 {pattern: 'node_modules/chai-datetime/chai-datetime.js', included: false},
                 {pattern: 'node_modules/chai-spies/chai-spies.js', included: false},
                 {pattern: 'node_modules/chai-as-promised/lib/chai-as-promised.js', included: false},
+                {pattern: 'node_modules/sinon/pkg/sinon.js', included: false},
+                {pattern: 'node_modules/sinon-chai/lib/sinon-chai.js', included: false},
 
                 // Test Files
                 {pattern: 'test/unit/spec/**/*.js', included: false},

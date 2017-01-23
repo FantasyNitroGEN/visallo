@@ -9,7 +9,7 @@ define(['configuration/plugins/registry'], function(registry) {
         })
 
         beforeEach(function() {
-            console.warn = chai.spy()
+            console.warn = sinon.spy()
         })
 
         afterEach(function() {

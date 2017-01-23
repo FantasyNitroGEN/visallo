@@ -133,7 +133,7 @@ define([
             })
             it('accept behaviors', function() {
                 var called = calledDeferred(),
-                    addEventSpy = chai.spy.on(this.node, 'addEventListener')
+                    addEventSpy = sinon.spy(this.node, 'addEventListener')
                 return attacher()
                     .node(this.node)
                     .path('../test/unit/spec/util/component/attacherFlightBehavior')
@@ -146,8 +146,8 @@ define([
                     .attach()
                     .then(function(a) {
                         addEventSpy.should.be.spy;
-                        addEventSpy.should.have.been.called.with('customBehavior')
-                        addEventSpy.should.have.been.called.with('click')
+                        addEventSpy.should.have.been.calledWith('customBehavior')
+                        addEventSpy.should.have.been.calledWith('click')
                         addEventSpy.should.have.been.called.twice
                         $(a._node.querySelector('div')).trigger('click')
                         return called.promise.should.become(true);
@@ -155,7 +155,7 @@ define([
             })
             it('accept behaviors with custom mapping', function() {
                 var called = calledDeferred(),
-                    addEventSpy = chai.spy.on(this.node, 'addEventListener');
+                    addEventSpy = sinon.spy(this.node, 'addEventListener');
                 return attacher()
                     .node(this.node)
                     .path('../test/unit/spec/util/component/attacherFlightBehavior')
@@ -170,9 +170,9 @@ define([
                     })
                     .attach()
                     .then(function(a) {
-                        addEventSpy.should.not.have.been.called.with('customBehavior')
-                        addEventSpy.should.have.been.called.with('legacy')
-                        addEventSpy.should.have.been.called.with('click')
+                        addEventSpy.should.not.have.been.calledWith('customBehavior')
+                        addEventSpy.should.have.been.calledWith('legacy')
+                        addEventSpy.should.have.been.calledWith('click')
                         addEventSpy.should.have.been.called.twice
                         $(a._node.querySelector('span')).trigger('click')
                         return called.promise.should.become(true)
@@ -180,7 +180,7 @@ define([
             })
             it('should remove listeners on component teardown', function() {
                 var called = calledDeferred(),
-                    removeEventSpy = chai.spy.on(this.node, 'removeEventListener');
+                    removeEventSpy = sinon.spy(this.node, 'removeEventListener');
                 return attacher()
                     .node(this.node)
                     .path('../test/unit/spec/util/component/attacherFlightBehavior')
@@ -203,11 +203,11 @@ define([
                             comps.length.should.equal(1);
                             removeEventSpy.reset()
                             comps[0].teardown()
-                            removeEventSpy.should.have.not.have.been.called.with('needsMapping')
-                            removeEventSpy.should.have.been.called.with('customBehavior')
-                            removeEventSpy.should.have.been.called.with('mapped')
-                            removeEventSpy.should.have.been.called.with('click')
-                            removeEventSpy.should.have.been.called.exactly(3)
+                            removeEventSpy.should.have.not.been.calledWith('needsMapping')
+                            removeEventSpy.should.have.been.calledWith('customBehavior')
+                            removeEventSpy.should.have.been.calledWith('mapped')
+                            removeEventSpy.should.have.been.calledWith('click')
+                            removeEventSpy.should.have.callCount(3)
                             $node.lookupAllComponents().length.should.equal(0);
                         })
                     })
