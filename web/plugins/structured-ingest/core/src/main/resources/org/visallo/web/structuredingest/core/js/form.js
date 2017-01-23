@@ -400,18 +400,18 @@ define([
             }
         };
 
-        this.findPropertiesForColumn = function(index) {
+        this.findPropertiesForColumn = function(key) {
             return _.chain(this.mappedObjects.vertices.concat(this.mappedObjects.edges))
                 .map(function(o) {
-                    return util.findPropertiesForColumnInObject(o, index);
+                    return util.findPropertiesForColumnInObject(o, key);
                 })
                 .flatten(true)
                 .value();
         };
 
         this.onUpdateErrorHandling = function(event, data) {
-            var index = data.index,
-                properties = this.findPropertiesForColumn(index);
+            var key = data.key,
+                properties = this.findPropertiesForColumn(key);
 
             if (properties.length) {
                 properties.forEach(function(p) {
@@ -421,7 +421,7 @@ define([
                         delete p.errorStrategy;
                     }
                 })
-            } else console.error('Expected at least one property for column:' + index);
+            } else console.error('Expected at least one property for column:' + key);
         };
 
         this.removeObjectFromObjectInfo = function(objectInfo) {
@@ -582,10 +582,11 @@ define([
             this.$node.find('thead th').each(function(i) {
                 var hasColumn = _.some(allObjects, function(o) {
                     return _.find(o.properties, function(p) {
-                        if (p.key === self.headers[i]) return true;
+                        var key = self.headers[i];
+                        if (p.key === key) return true;
                         if (p.hints && (
-                            i === p.hints.columnLatitude ||
-                            i === p.hints.columnLongitude)) {
+                            key === p.hints.columnLatitude ||
+                            key === p.hints.columnLongitude)) {
                             return true;
                         }
                     });
@@ -609,25 +610,25 @@ define([
                             'column' : $target.closest('.vertex').length ?
                             'vertex' : 'edge',
                         attrs = { },
-                        index;
+                        key;
 
                     if (type === 'column') {
-                        index = $target.closest('th').index();
+                        key = self.headers[$target.closest('th').index()]
 
-                        var properties = self.findPropertiesForColumn(index),
+                        var properties = self.findPropertiesForColumn(key),
                             errorStrategy = properties.length ?
                                 properties[0].errorStrategy :
                                 '';
 
                         attrs.errorStrategy = errorStrategy;
                     } else if (type === 'vertex') {
-                        index = $target.closest('li').index();
+                        key = $target.closest('li').index();
                     } else {
-                        index = $target.closest('li').index() - self.mappedObjects.vertices.length;
+                        key = $target.closest('li').index() - self.mappedObjects.vertices.length;
                     }
 
-                    attrs.index = index;
-                    attrs.errors = self.errors[type][index];
+                    attrs.key = key;
+                    attrs.errors = self.errors[type][key];
 
                     ErrorsPopover.teardownAll();
                     ErrorsPopover.attachTo(event.target, attrs);
@@ -925,7 +926,9 @@ define([
                 },
                 columnErrors = transformErrors('propertyMapping')
                     .groupBy(function(e) {
-                        return e.propertyMapping.columnIndex
+                        return self.sendColumnIndices ?
+                            self.headers[parseInt(e.propertyMapping.key, 10)] :
+                            e.propertyMapping.key
                     })
                     .mapObject(mapObject)
                     .value(),
@@ -941,7 +944,7 @@ define([
                                     if ('value' in mapping) {
                                         predicate.value = mapping.value;
                                     } else {
-                                        predicate.key = mapping.columnIndex;
+                                        predicate.key = mapping.key;
                                         if ('visibilityJson' in mapping) {
                                             predicate.visibilitySource = (
                                                 mapping.visibilityJson &&
@@ -982,9 +985,10 @@ define([
                 markError = function(typeErrors, options) {
                     return function(i) {
                         var $el = $(this);
+                        var key = self.headers[i];
                         $el.removeClass('error').find('.badge').remove();
-                        if (i in typeErrors) {
-                            var errors = typeErrors[i];
+                        if (key in typeErrors) {
+                            var errors = typeErrors[key];
                             $el.addClass('error')[options && options.before ? 'prepend' : 'append'](
                                 $('<span>')
                                     .addClass('badge badge-important')
