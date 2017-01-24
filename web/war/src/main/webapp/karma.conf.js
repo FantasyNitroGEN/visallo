@@ -105,7 +105,7 @@ module.exports = function(config) {
             singleRun: false,
 
             preprocessors: {
-                'test/unit/spec/**/*.js': ['babel'],
+                'test/unit/**/*.js': ['babel'],
                 'test/**/*.jsx': ['babel']
             },
             babelPreprocessor: {
