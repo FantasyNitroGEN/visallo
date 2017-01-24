@@ -7,11 +7,10 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "cytoscape": "2.7.11",
-    "underscore": "1.8.3"
+    "cytoscape": "2.7.11"
   },
   "scripts": {
-    "test": "./node_modules/jest/bin/jest.js"
+    "test": "node ./node_modules/jest/bin/jest.js"
   },
   "devDependencies": {
     "babel-core": "^6.21.0",
@@ -32,6 +31,7 @@
     "react-addons-test-utils": "15.4.2",
     "react-dom": "15.4.2",
     "react-test-renderer": "15.4.2",
+    "underscore": "1.8.3",
     "webpack": "^1.14.0"
   },
   "jest": {
@@ -42,9 +42,9 @@
       "util/vertex/formatters": "<rootDir>/__mocks__/util/vertexFormatters.js",
       "util/withContextMenu": "<rootDir>/__mocks__/util/withContextMenu.js",
       "util/formatters": "<rootDir>/__mocks__/util/formatters.js",
-      "colorjs": "<rootDir>/../../../../../../../../../../war/src/main/webapp/node_modules/color-js/color.js",
-      "fast-json-patch": "<rootDir>/../../../../../../../../../../war/src/main/webapp/node_modules/fast-json-patch/dist/json-patch-duplex.min.js",
-      "underscore": "<rootDir>/../../../../../../../../../../war/src/main/webapp/node_modules/underscore/underscore-min.js"
+      "colorjs": "<rootDir>/node_modules/color-js/color.js",
+      "fast-json-patch": "<rootDir>/node_modules/fast-json-patch/dist/json-patch-duplex.min.js",
+      "underscore": "<rootDir>/node_modules/underscore/underscore-min.js"
     }
   }
 }
