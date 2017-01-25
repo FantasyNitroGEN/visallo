@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import jodd.datetime.JDateTime;
 import jodd.datetime.JulianDateStamp;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ColumnDescriptor;
@@ -20,7 +21,6 @@ import org.apache.parquet.schema.OriginalType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.tools.read.SimpleReadSupport;
 import org.apache.parquet.tools.read.SimpleRecord;
-import org.vertexium.util.StreamUtils;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -56,7 +56,7 @@ public class ParquetStructuredIngestParser implements StructuredIngestParser {
         File tempFile = null;
         try {
             tempFile = File.createTempFile("parquet", "tmp");
-            StreamUtils.copy(in, new FileOutputStream(tempFile));
+            IOUtils.copy(in, new FileOutputStream(tempFile));
 
             Configuration conf = new Configuration();
             Path path = new Path(tempFile.getAbsolutePath());
@@ -94,7 +94,7 @@ public class ParquetStructuredIngestParser implements StructuredIngestParser {
         File tempFile = null;
         try {
             tempFile = File.createTempFile("parquet", "tmp");
-            StreamUtils.copy(inputStream, new FileOutputStream(tempFile));
+            IOUtils.copy(inputStream, new FileOutputStream(tempFile));
 
             Configuration conf = new Configuration();
             Path path = new Path(tempFile.getAbsolutePath());
