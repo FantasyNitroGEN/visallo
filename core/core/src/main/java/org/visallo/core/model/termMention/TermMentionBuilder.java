@@ -227,7 +227,9 @@ public class TermMentionBuilder {
             VisalloProperties.TERM_MENTION_FOR_ELEMENT_ID.setProperty(vertexBuilder, resolvedToVertexId, visibility);
             VisalloProperties.TERM_MENTION_FOR_TYPE.setProperty(vertexBuilder, TermMentionFor.VERTEX, visibility);
         }
-        Vertex termMentionVertex = vertexBuilder.save(authorizations);
+
+        Authorizations termMentionAuthorizations = graph.createAuthorizations(authorizations, TermMentionRepository.VISIBILITY_STRING);
+        Vertex termMentionVertex = vertexBuilder.save(termMentionAuthorizations);
 
         String hasTermMentionId = vertexId + "_hasTermMention";
         EdgeBuilder termMentionEdgeBuilder = graph.prepareEdge(hasTermMentionId, this.outVertex, termMentionVertex, VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, visibility);
