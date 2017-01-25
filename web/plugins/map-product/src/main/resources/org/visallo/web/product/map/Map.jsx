@@ -125,7 +125,7 @@ define([
             const elementsSelectedById = { ..._.indexBy(this.props.selection.vertices), ..._.indexBy(this.props.selection.edges) };
             const productVertices = _.pick(this.props.elements.vertices, _.pluck(vertices, 'id'));
             const productEdges = _.pick(this.props.elements.edges, _.pluck(edges, 'id'));
-            const elements = _.compact(Object.values(productVertices).concat(Object.values(productEdges)));
+            const elements = Object.values(productVertices).concat(Object.values(productEdges));
             const geoLocationProperties = _.groupBy(this.props.ontologyProperties, 'dataType').geoLocation;
 
             return elements.map(el => {
