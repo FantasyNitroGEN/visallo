@@ -60,9 +60,8 @@ define([
             this.renderers = registry.extensionsForPoint(EXTENSION_POINT_NAME).concat([
                 { canHandle: function(item, usageContext) {
                         return usageContext === 'detail/relationships' &&
-                                item && item.relationship && item.vertex &&
-                                F.vertex.isEdge(item.relationship) &&
-                                F.vertex.isVertex(item.vertex);
+                                item && item.relationship &&
+                                F.vertex.isEdge(item.relationship);
                     }, component: DetailRelationshipItem },
                 { canHandle: function(item) { return F.vertex.isEdge(item); }, component: EdgeItem },
                 { canHandle: function(item) { return F.vertex.isVertex(item); }, component: VertexItem }

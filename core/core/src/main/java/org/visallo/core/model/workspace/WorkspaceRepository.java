@@ -33,10 +33,7 @@ import org.visallo.web.clientapi.model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -677,14 +674,9 @@ public abstract class WorkspaceRepository {
                             authorizations
                     );
                 } else {
-                    termMentions = termMentionRepository.findByEdgeIdAndProperty(
-                            (Edge) element,
-                            property.getKey(),
-                            property.getName(),
-                            propertyVisibility,
-                            authorizations
-                    );
+                    termMentions = Collections.emptyList();
                 }
+
                 for (Vertex termMention : termMentions) {
                     termMentionRepository.updateVisibility(termMention, property.getVisibility(), authorizations);
                 }
@@ -879,15 +871,21 @@ public abstract class WorkspaceRepository {
             boolean includeHidden,
             User user
     ) {
+
+        Authorizations systemAuthorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VisalloVisibility.SUPER_USER_VISIBILITY_STRING,
+                workspace.getWorkspaceId()
+        );
+        Iterable<Vertex> vertices = stream(WorkspaceEntity.toVertices(workspaceEntities, getGraph(), systemAuthorizations))
+                .filter(vertex -> vertex != null)
+                .collect(Collectors.toList());
+
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
                 user,
                 VISIBILITY_STRING,
                 workspace.getWorkspaceId()
         );
-
-        Iterable<Vertex> vertices = stream(WorkspaceEntity.toVertices(workspaceEntities, getGraph(), authorizations))
-                .filter(vertex -> vertex != null)
-                .collect(Collectors.toList());
         Iterable<String> edgeIds = getGraph().findRelatedEdgeIdsForVertices(vertices, authorizations);
 
         return getGraph().getEdges(

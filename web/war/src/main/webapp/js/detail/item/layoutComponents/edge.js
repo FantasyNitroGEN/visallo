@@ -18,10 +18,10 @@ define([
         outVertexDisplay = _.compose(vertexDisplayId, _.property('outVertexId')),
         inVertexDisplay = _.compose(vertexDisplayId, _.property('inVertexId')),
         outVertexConceptDisplay = function(edge) {
-            return vertexStore(edge.outVertexId).then(conceptDisplay)
+            return vertexStore(edge.outVertexId).then((vertex) => vertex && !_.isArray(vertex) ? conceptDisplay(vertex) : '');
         },
         inVertexConceptDisplay = function(edge) {
-            return vertexStore(edge.inVertexId).then(conceptDisplay)
+            return vertexStore(edge.inVertexId).then((vertex) => vertex && !_.isArray(vertex) ? conceptDisplay(vertex) : '');
         };
 
     return [

@@ -30,8 +30,8 @@ define([
                     preview = this.preview = this.$node.find('.preview'),
                     activePreview = this.activePreview = this.$node.find('.active-preview'),
                     vertex = this.vertex,
-                    image = F.vertex.image(vertex, null, 80, 80),
-                    videoPreview = F.vertex.imageFrames(vertex),
+                    image = vertex && F.vertex.image(vertex, null, 80, 80),
+                    videoPreview = vertex && F.vertex.imageFrames(vertex),
                     nonConceptClsName = 'non_concept_preview';
 
                 if (videoPreview) {
@@ -67,15 +67,16 @@ define([
                         activePreview.css('background-image', 'url(' + activeConceptImage + ')')
                     })
                     .done(function() {
-                        if (conceptImage === image) {
-                            self.$node.toggleClass(nonConceptClsName, !F.vertex.imageIsFromConcept(vertex))
+                        let imageIsFromConcept = !vertex || F.vertex.imageIsFromConcept(vertex);
+                        if (!image || conceptImage === image) {
+                            self.$node.toggleClass(nonConceptClsName, !imageIsFromConcept)
                             .removeClass('loading');
                         } else {
                             _.delay(function() {
                                 deferredImage(image).always(function() {
                                     preview.css('background-image', 'url(' + image + ')');
                                     activePreview.css('background-image', 'url(' + image + ')');
-                                    self.$node.toggleClass(nonConceptClsName, !F.vertex.imageIsFromConcept(vertex))
+                                    self.$node.toggleClass(nonConceptClsName, !imageIsFromConcept)
                                     .removeClass('loading');
                                 })
                             }, 500);

@@ -650,6 +650,9 @@ public class TermMentionRepository {
     ) {
         Authorizations authorizationsWithTermMentions = getAuthorizations(authorizations);
         Vertex vertex = graph.getVertex(vertexId, authorizationsWithTermMentions);
+
+        if (vertex == null) { return null; }
+
         Iterable<Vertex> termMentions = vertex.getVertices(
                 Direction.IN,
                 VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO,
