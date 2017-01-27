@@ -58,7 +58,7 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             const { vertices } = elementState;
             const updates = {};
             const addToUpdates = (vertexId, label) => {
-                if (vertexId in vertices) {
+                if (vertices[vertexId]) {
                     const vertex = vertices[vertexId];
                     const labels = vertex.edgeLabels || [];
                     if (!labels.includes(label)) {

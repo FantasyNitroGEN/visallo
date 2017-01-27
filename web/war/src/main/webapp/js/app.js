@@ -384,7 +384,9 @@ define([
         };
 
         this.handleDropped = function(type, thing, event) {
-            var config = {
+            event.preventDefault();
+            var self = this,
+                config = {
                     anchorTo: {
                         page: event.pageX && event.pageY ? {
                             x: event.pageX,
@@ -432,13 +434,12 @@ define([
                 extension = fileImportExtensionsByMimeType[mimeType];
                 extension.handler(thing[0], event);
             } else {
-                // Just allow drop in graph for now.
+                // If graph is open use that node for custom product behavior
+                // TODO: generalize this for other products
                 var $graph = $('.visible .org-visallo-graph');
-                if ($graph.length) {
-                    require(['util/popovers/fileImport/fileImport'], function(FileImport) {
-                        FileImport.attachTo($graph, config);
-                    });
-                }
+                require(['util/popovers/fileImport/fileImport'], function(FileImport) {
+                    FileImport.attachTo($graph.length ? $graph : self.node, config);
+                });
             }
         };
 

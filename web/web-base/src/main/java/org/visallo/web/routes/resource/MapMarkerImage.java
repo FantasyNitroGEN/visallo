@@ -54,7 +54,7 @@ public class MapMarkerImage implements ParameterizedHandler {
             User user
     ) throws Exception {
         int heading = roundHeadingAngle(headingParam);
-
+        typeStr = typeStr.isEmpty() ? "http://www.w3.org/2002/07/owl#Thing" : typeStr;
         String cacheKey = typeStr + scale + heading + (selected ? "selected" : "unselected");
         byte[] imageData = imageCache.getIfPresent(cacheKey);
         if (imageData == null) {

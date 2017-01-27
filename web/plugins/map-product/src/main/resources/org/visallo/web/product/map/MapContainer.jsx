@@ -38,6 +38,7 @@ define([
 
         (dispatch, props) => {
             return {
+                onClearSelection: () => dispatch(selectionActions.clear()),
                 onSelectElements: (selection) => dispatch(selectionActions.set(selection)),
                 onSelectAll: (id) => dispatch(productActions.selectAll(id)),
 

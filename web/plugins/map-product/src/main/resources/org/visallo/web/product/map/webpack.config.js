@@ -7,6 +7,7 @@ var VisalloAmdExternals = [
     'configuration/plugins/registry',
     'data/web-worker/store/actions',
     'data/web-worker/store/product/actions',
+    'data/web-worker/store/product/actions-impl',
     'data/web-worker/store/product/selectors',
     'data/web-worker/store/selection/actions',
     'data/web-worker/store/user/actions-impl',

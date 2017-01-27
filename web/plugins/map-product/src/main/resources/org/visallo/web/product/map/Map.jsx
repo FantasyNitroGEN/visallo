@@ -40,6 +40,7 @@ define([
                     tools={this.getTools()}
                     generatePreview={generatePreview}
                     panelPadding={this.props.panelPadding}
+                    onTap={this.onTap}
                     onPan={this.onViewport}
                     onZoom={this.onViewport}
                     onContextTap={this.onContextTap}
@@ -76,6 +77,12 @@ define([
             $(this.refs.wrap).off('selectAll');
             $(document).off('.org-visallo-map');
             this.saveViewport(this.props)
+        },
+
+        onTap({map, pixel}) {
+            if (!map.hasFeatureAtPixel(pixel)) {
+                this.props.onClearSelection();
+            }
         },
 
         onContextTap({map, pixel, originalEvent}) {
