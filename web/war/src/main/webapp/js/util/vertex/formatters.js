@@ -868,18 +868,9 @@ define([
                 }
             },
 
-            isVertex: function(vertex) {
-                return vertex && vertex.id && _.isArray(vertex.properties) && !V.isEdge(vertex);
-            },
+            isVertex: function(vertex) { return vertex && vertex.type && vertex.type === 'vertex'; },
 
-            isEdge: function(vertex) {
-                var propsIsObjectNotArray = _.isObject(vertex && vertex.properties) &&
-                    vertex.properties['http://visallo.org#conceptType'] === 'relationship';
-                return propsIsObjectNotArray ||
-                    V.prop(vertex, 'conceptType') === 'relationship' ||
-                    vertex.type === 'edge' ||
-                    (_.has(vertex, 'outVertexId') && _.has(vertex, 'inVertexId'));
-            },
+            isEdge: function(vertex) { return vertex && vertex.type && vertex.type === 'edge'; },
 
             isArtifact: function(vertex) {
                 return _.contains(_.pluck(vertex.properties, 'name'), V.propName('raw'));
@@ -933,6 +924,7 @@ define([
 
     function formulaResultForElement(vertexOrEdge, formulaKey, defaultValue, accessedPropertyNames) {
         var isEdge = V.isEdge(vertexOrEdge),
+            isVertex = V.isVertex(vertexOrEdge),
             result = defaultValue,
             formulaString,
             additionalScope = {};
@@ -943,10 +935,16 @@ define([
                 label = ontologyRelation.displayName;
             additionalScope.label = label;
             formulaString = ontologyRelation[formulaKey];
-        } else {
+        } else if (isVertex) {
             var vertex = vertexOrEdge,
                 conceptId = V.prop(vertex, 'conceptType');
             formulaString = treeLookupForConceptProperty(conceptId, formulaKey);
+        } else {
+            if (formulaKey === 'titleFormula') {
+                return i18n('element.unauthorized').toUpperCase();
+            } else {
+                return '';
+            }
         }
 
         if (formulaString) {

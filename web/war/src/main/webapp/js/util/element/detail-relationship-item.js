@@ -15,22 +15,23 @@ define([
     function DetailRelationshipItem() {
 
         this.after('initialize', function() {
-            this.vertex = this.attr.item.vertex;
+            const { vertex, relationship } = this.attr.item;
+            const vertexId = vertex && vertex.id;
+            const title = F.vertex.title(vertex);
+            const timeSubtitle = F.vertex.time(vertex);
+            const subtitle = F.vertex.subtitle(vertex);
 
-            var timeSubtitle = F.vertex.time(this.vertex),
-                subtitle = F.vertex.subtitle(this.vertex);
+            this.vertex = vertex;
 
             this.$node
                 .addClass(timeSubtitle ? 'has-timeSubtitle' : '')
                 .addClass(subtitle ? 'has-subtitle' : '')
-                .addClass(this.attr.item.relationship.inVertexId === this.vertex.id ? 'relation-to' : 'relation-from')
-                .html(template({
-                    title: F.vertex.title(this.vertex),
-                    timeSubtitle: timeSubtitle,
-                    subtitle: subtitle
-                }));
+                .addClass(relationship.inVertexId === vertexId ? 'relation-to' : 'relation-from')
+                .html(template({ title, timeSubtitle, subtitle }));
 
-            this.$node.data('vertexId', this.vertex.id);
+            if (vertexId) {
+                this.$node.data('vertexId', vertexId);
+            }
         });
 
         this.before('teardown', function() {
