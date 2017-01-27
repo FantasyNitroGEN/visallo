@@ -1,8 +1,9 @@
 define([
     'data/web-worker/store/actions',
+    'data/web-worker/store/product/actions-impl',
     'data/web-worker/store/product/selectors',
     'data/web-worker/util/ajax'
-], function(actions, productSelectors, ajax) {
+], function(actions, productActions, productSelectors, ajax) {
     actions.protectFromMain();
 
     const api = {
@@ -28,6 +29,7 @@ define([
                         updateVertices: _.object(combined.map(id => [id, {}]))
                     }
                 })
+                dispatch(productActions.select({ productId }));
             })
         },
     };

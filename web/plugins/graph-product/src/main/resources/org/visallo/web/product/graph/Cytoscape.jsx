@@ -222,7 +222,8 @@ define([
             ghostAnimations.forEach(a => a());
 
             function shouldFit() {
-                if (initialProductDisplay) return true;
+                const hasViewport = viewport && (viewport.pan || viewport.zoom)
+                if (initialProductDisplay && !hasViewport) return true;
                 const wasEmpty = oldNodes.length === 0;
                 const hasNodes = newNodes.length
                 const positionIsEmpty = node => node.position.x === 0 && node.position.y === 0;
@@ -246,6 +247,9 @@ define([
                         queue: false,
                         complete: () => {
                             this.panDisabled = this.zoomDisabled = false;
+                            if (fit) {
+                                this.fit(null, { animate: false });
+                            }
                         }
                     })
                     return true

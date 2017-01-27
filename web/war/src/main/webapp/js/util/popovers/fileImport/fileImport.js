@@ -368,6 +368,7 @@ define([
                 var page = self.attr.anchorTo.page;
 
                 self.trigger('fileImportSuccess', { vertexIds, position: page });
+                self.trigger('selectObjects', { vertexIds })
 
                 _.defer(function() {
                     self.teardown();
