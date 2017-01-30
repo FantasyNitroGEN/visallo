@@ -6,6 +6,7 @@ import org.vertexium.Edge;
 import org.vertexium.TextIndexHint;
 import org.vertexium.Visibility;
 import org.visallo.core.model.graph.ElementUpdateContext;
+import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyPropertyDefinition;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
@@ -19,7 +20,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class GraphWorkProduct extends WorkProductElements {
     public static final JsonSingleValueVisalloProperty ENTITY_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");
-    private static boolean addEdgePositionToOntologyComplete;
 
     @Inject
     public GraphWorkProduct(OntologyRepository ontologyRepository) {
@@ -28,20 +28,23 @@ public class GraphWorkProduct extends WorkProductElements {
     }
 
     private void addEdgePositionToOntology(OntologyRepository ontologyRepository) {
-        if (!addEdgePositionToOntologyComplete) {
-            Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
-            checkNotNull(productToEntityRelationship, "Cannot find relationship: " + WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
-            OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
-                    new ArrayList<>(),
-                    ENTITY_POSITION.getPropertyName(),
-                    "Entity Position",
-                    PropertyType.STRING
-            );
-            propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
-            propertyDefinition.getRelationships().add(productToEntityRelationship);
-            ontologyRepository.getOrCreateProperty(propertyDefinition);
-            addEdgePositionToOntologyComplete = true;
+        OntologyProperty property = ontologyRepository.getPropertyByIRI(ENTITY_POSITION.getPropertyName());
+        if (property != null) {
+            return;
         }
+
+        Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
+        checkNotNull(productToEntityRelationship, "Cannot find relationship: " + WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
+        OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
+                new ArrayList<>(),
+                ENTITY_POSITION.getPropertyName(),
+                "Entity Position",
+                PropertyType.STRING
+        );
+        propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
+        propertyDefinition.getRelationships().add(productToEntityRelationship);
+        ontologyRepository.getOrCreateProperty(propertyDefinition);
+        ontologyRepository.clearCache();
     }
 
     @Override

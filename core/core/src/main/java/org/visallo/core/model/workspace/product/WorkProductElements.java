@@ -8,6 +8,7 @@ import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.user.User;
@@ -24,33 +25,34 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
     public static final String WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
-    private static boolean addProductToEntityRelationshipToOntologyComplete = false;
 
     protected WorkProductElements(OntologyRepository ontologyRepository) {
         addProductToEntityRelationshipToOntology(ontologyRepository);
     }
 
     private void addProductToEntityRelationshipToOntology(OntologyRepository ontologyRepository) {
-        if (!addProductToEntityRelationshipToOntologyComplete) {
-            Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI);
-            checkNotNull(productConcept, "Could not find " + WorkspaceProperties.PRODUCT_CONCEPT_IRI);
-
-            Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING);
-            checkNotNull(thingConcept, "Could not find " + VisalloProperties.CONCEPT_TYPE_THING);
-
-            List<Concept> domainConcepts = new ArrayList<>();
-            domainConcepts.add(productConcept);
-            List<Concept> rangeConcepts = new ArrayList<>();
-            rangeConcepts.add(thingConcept);
-            ontologyRepository.getOrCreateRelationshipType(
-                    null,
-                    domainConcepts,
-                    rangeConcepts,
-                    WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI
-            );
-            ontologyRepository.clearCache();
-            addProductToEntityRelationshipToOntologyComplete = true;
+        Relationship relationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
+        if (relationship != null) {
+            return;
         }
+
+        Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI);
+        checkNotNull(productConcept, "Could not find " + WorkspaceProperties.PRODUCT_CONCEPT_IRI);
+
+        Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING);
+        checkNotNull(thingConcept, "Could not find " + VisalloProperties.CONCEPT_TYPE_THING);
+
+        List<Concept> domainConcepts = new ArrayList<>();
+        domainConcepts.add(productConcept);
+        List<Concept> rangeConcepts = new ArrayList<>();
+        rangeConcepts.add(thingConcept);
+        ontologyRepository.getOrCreateRelationshipType(
+                null,
+                domainConcepts,
+                rangeConcepts,
+                WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI
+        );
+        ontologyRepository.clearCache();
     }
 
     @Override
