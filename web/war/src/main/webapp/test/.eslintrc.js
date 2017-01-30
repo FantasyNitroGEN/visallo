@@ -15,6 +15,7 @@ module.exports = {
         Mocha: false,
         requirejs: false,
         setupComponent: false,
+        sinon: false,
         xdescribe: false,
         xit: false
     },

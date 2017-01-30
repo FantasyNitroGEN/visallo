@@ -1,4 +1,4 @@
-/*globals chai:true, assert:true, expect: true, i18n: true */
+/*globals chai:true, assert:true, expect: true, i18n: true, sinon:true*/
 (function(global) {
 var tests = Object.keys(global.__karma__.files).filter(function(file) {
     return (/^\/base\/test\/unit\/spec\/.*\.js$/).test(file);
@@ -23,6 +23,9 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
             'chai-spies': '../node_modules/chai-spies/chai-spies',
             'chai-as-promised': '../node_modules/chai-as-promised/lib/chai-as-promised',
             'mocha-flight': '../test/unit/utils/mocha-flight',
+            'sinon': '../node_modules/sinon/pkg/sinon',
+            'sinon-chai': '../node_modules/sinon-chai/lib/sinon-chai',
+
 
             // MOCKS
             'util/service/dataPromise': '../test/unit/mocks/dataPromise',
@@ -81,17 +84,19 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
                 'chai-datetime',
                 'chai-spies',
                 'chai-as-promised',
+                'sinon',
+                'sinon-chai',
                 'util/handlebars/before_auth_helpers',
                 'util/handlebars/after_auth_helpers',
                 'util/jquery.flight',
                 'util/jquery.removePrefixedClasses',
                 'mocha-flight'
-            ], function(chaiDateTime, chaiSpies, chaiAsPromised) {
+            ], function(chaiDateTime, chaiSpies, chaiAsPromised, _sinon, sinonChai) {
 
                 chai.should();
                 chai.use(chaiDateTime);
-                chai.use(chaiSpies);
                 chai.use(chaiAsPromised);
+                chai.use(sinonChai);
 
                 var originalError = console.error.bind(console);
                 console.error = function() {
@@ -103,6 +108,8 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
                         originalError.apply(null, arguments);
                     }
                 };
+
+                sinon = _sinon;
 
                 // Globals for assertions
                 assert = chai.assert;

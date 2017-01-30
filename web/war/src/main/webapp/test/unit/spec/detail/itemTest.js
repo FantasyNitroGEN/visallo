@@ -153,13 +153,13 @@ require(['configuration/plugins/registry'], function(registry) {
                     el.textContent = model.name;
                 }
                 var originalError = console.error,
-                    catchCheck = chai.spy();
-                console.error = chai.spy()
+                    catchCheck = sinon.spy();
+                console.error = sinon.spy()
                 return setupItemComponent.call(this, collectionItemExample, vertexGen([propGen(), propGen()]))
                     .catch(catchCheck)
                     .then(function() {
-                        catchCheck.should.have.been.called.once
-                        console.error.should.have.been.called.at.least(1)
+                        catchCheck.should.have.been.calledOnce
+                        assert(console.error.callCount > 0)
                         console.error = originalError
                     })
             })
@@ -280,7 +280,7 @@ require(['configuration/plugins/registry'], function(registry) {
         describe('Components should register updateModel event', function() {
             var warn = console.warn;
             beforeEach(function() {
-                console.warn = chai.spy('console.warn')
+                console.warn = sinon.spy(console.warn)
             })
             afterEach(function() {
                 console.warn = warn
@@ -289,7 +289,7 @@ require(['configuration/plugins/registry'], function(registry) {
                 collectionItemExample[2].children = [{ componentPath: PATH_PREFIX + '/itemTestCollectionItemComponentNoEvent' }]
                 return setupItemComponent.call(this, collectionItemExample, vertexGen([propGen('a')]))
                     .then(function() {
-                        console.warn.should.have.been.called.once
+                        console.warn.should.have.been.calledOnce
                     })
             })
 
@@ -297,7 +297,7 @@ require(['configuration/plugins/registry'], function(registry) {
                 collectionItemExample[2].children = [{ componentPath: PATH_PREFIX + '/itemTestCollectionItemComponentNoEventSuppress' }]
                 return setupItemComponent.call(this, collectionItemExample, vertexGen([propGen('a')]))
                     .then(function() {
-                        console.warn.should.not.have.been.called();
+                        console.warn.should.have.not.been.called;
                     })
             })
         })
@@ -333,7 +333,7 @@ require(['configuration/plugins/registry'], function(registry) {
             it('should update once', function(done) {
                 var $node = this.component.$node,
                     $list = $node.find('.my-list'),
-                    spy = chai.spy(),
+                    spy = sinon.spy(),
                     comps = $list.children().eq(0).find('div').lookupAllComponents(),
                     div = $list.children().eq(0).find('div').on('updateModel', spy)
                     
@@ -735,7 +735,7 @@ require(['configuration/plugins/registry'], function(registry) {
                 setup = _.bind(_setup, this)
             })
             beforeEach(function() {
-                console.warn = chai.spy('console.warn')
+                console.warn = sinon.spy(console.warn)
             })
             afterEach(function() {
                 console.warn = warn
