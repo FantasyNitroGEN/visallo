@@ -1,4 +1,4 @@
-define(['../actions', '../../util/ajax'], function(actions, ajax) {
+define(['../actions', 'data/web-worker/util/ajax'], function(actions, ajax) {
     actions.protectFromMain();
 
 
@@ -8,6 +8,11 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             payload: elementIds
         })
     }, 250);
+    const getWorkspaceIds = ({ element }) => {
+        const { focusing, ...workspaces } = element;
+        return Object.keys(workspaces);
+    };
+
 
     const api = {
         get: ({ workspaceId, vertexIds, edgeIds, invalidate }) => (dispatch, getState) => {
@@ -121,53 +126,62 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             const isEdge = 'graphEdgeId' in change;
             const isVertex = 'graphVertexId' in change;
             const state = getState();
-            const workspaceId = change.workspaceId || state.workspace.currentId;
-            const vertexInStore = (...ids) => {
-                return _.all(ids, id => workspaceId in state.element && (id in state.element[workspaceId].vertices));
-            }
+            const workspaceIds = getWorkspaceIds(state);
+            const updateOnWorkspace = (workspaceId) => {
+                const vertexInStore = (...ids) => {
+                    return _.all(ids, id => workspaceId in state.element && (id in state.element[workspaceId].vertices));
+                }
 
-            if (isVertex) {
-                if (vertexInStore(graphVertexId)) {
-                    dispatch(api.get({ workspaceId, vertexIds: [graphVertexId], invalidate: true }));
+                if (isVertex) {
+                    if (vertexInStore(graphVertexId)) {
+                        dispatch(api.get({ workspaceId, vertexIds: [graphVertexId], invalidate: true }));
+                    }
+                } else if (isEdge) {
+                    const { inVertexId, outVertexId } = change;
+                    if (!inVertexId || !outVertexId || vertexInStore(inVertexId, outVertexId)) {
+                        dispatch(api.get({ workspaceId, edgeIds: [graphEdgeId], invalidate: true }));
+                    }
                 }
-            } else if (isEdge) {
-                const { inVertexId, outVertexId } = change;
-                if (!inVertexId || !outVertexId || vertexInStore(inVertexId, outVertexId)) {
-                    dispatch(api.get({ workspaceId, edgeIds: [graphEdgeId], invalidate: true }));
-                }
-            }
+            };
+
+            workspaceIds.forEach(updateOnWorkspace);
         },
 
         deleteElements: ({ vertexIds, edgeIds }) => (dispatch, getState) => {
             const state = getState();
-            const workspaceId = state.workspace.currentId;
-            if (!state.element[workspaceId]) {
-                return;
-            }
-            const elementStore = state.element[workspaceId];
-            const { vertices, edges } = elementStore;
-            const update = (key, list, type, storeKey, otherStoreKey) => {
-                const inStore = list.filter(id => elementStore[storeKey][id]);
-                if (inStore.length) {
-                    ajax('POST', `/${type}/exists`, { [key]: inStore })
-                        .then(({ exists }) => {
-                            const elements = [];
-                            _.map(exists, (exists, id) => {
-                                if (!exists) {
-                                    elements.push({ id, _DELETED: true })
-                                }
-                            })
-                            dispatch(api.update({ [storeKey]: elements, [otherStoreKey]: [], workspaceId }));
-                        })
-                }
-            };
 
-            if (vertices && vertexIds && vertexIds.length) {
-                update('vertexIds', vertexIds, 'vertex', 'vertices', 'edges');
-            }
-            if (edges && edgeIds && edgeIds.length) {
-                update('edgeIds', edgeIds, 'edge', 'edges', 'vertices');
-            }
+            return Promise.map(getWorkspaceIds(state), (workspaceId) => {
+                if (!state.element[workspaceId]) {
+                    return Promise.resolve();
+                }
+                const elementStore = state.element[workspaceId];
+                const { vertices, edges } = elementStore;
+                const update = (key, list, type, storeKey, otherStoreKey) => {
+                    const inStore = list.filter(id => elementStore[storeKey][id]);
+                    if (inStore.length) {
+                        return ajax('POST', `/${type}/exists`, { [key]: inStore })
+                            .then(({ exists }) => {
+                                const elements = [];
+                                _.map(exists, (exists, id) => {
+                                    if (!exists) {
+                                        elements.push({ id, _DELETED: true })
+                                    }
+                                })
+                                dispatch(api.update({ [storeKey]: elements, [otherStoreKey]: [], workspaceId }));
+                            })
+                    }
+                };
+
+                const updates = [];
+                if (vertices && vertexIds && vertexIds.length) {
+                    updates.push(update('vertexIds', vertexIds, 'vertex', 'vertices', 'edges'));
+                }
+                if (edges && edgeIds && edgeIds.length) {
+                    updates.push(update('edgeIds', edgeIds, 'edge', 'edges', 'vertices'));
+                }
+
+                return Promise.all(updates);
+            });
         },
 
         putSearchResults: (elements) => (dispatch, getState) => {
