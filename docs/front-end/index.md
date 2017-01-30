@@ -40,11 +40,10 @@ Visallo has a built-in set of routing using the URLs fragment identifier.
 * **Open Visallo Menubar Tools**
 
         Fragment: #tools=[menubar name, [menubar name]]
-        Example: https://visallo.com/#tools=graph      // Open Graph
-                 https://visallo.com/#tools=map,search // Open Map and Search Pane
+        Example: https://visallo.com/#tools=products      // Open Work Products (and first product)
                  https://visallo.com/#tools=dashboard,workspaces,activity // Open Dashboard, Cases, and Activity Pane
 
-    Opens Visallo to the specified menubar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behevior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
+    Opens Visallo to the specified menubar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behavior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
 
 ## Helpful Global Functions
 
@@ -152,9 +151,9 @@ require(['util/vertex/formatters'], function(F) {
 });
 ```
 
-### Ontology Property Data Types
+### Ontology Property Display Types
 
-Allows custom DOM per ontology displayType.
+Allows custom DOM per ontology [`displayType`](../getting-started/ontology.md).
 
 1. Create a web plugin and extend / override formatters.
 

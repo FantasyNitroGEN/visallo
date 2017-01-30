@@ -10,7 +10,7 @@ check: build
 	@find _book -name '*.md' | sed 's|^_book/||'
 
 install:
-	@npm install
+	@yarn
 	@./node_modules/.bin/gitbook install .
 
 javadoc:
