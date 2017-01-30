@@ -49,7 +49,6 @@ import org.visallo.web.routes.user.*;
 import org.visallo.web.routes.vertex.*;
 import org.visallo.web.routes.workspace.*;
 
-import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -309,16 +308,28 @@ public class Router extends HttpServlet {
     private boolean handleIllegalState(HttpServletRequest request, HttpServletResponse response, Throwable e) throws IOException {
         boolean isMultipart = request.getContentType() != null && request.getContentType().startsWith("multipart/");
         if (isMultipart) {
-            long bytesToMB = 1024 * 1024;
-            String message = String.format(
-                    "Uploaded file(s) are too large. Limits are set to %dMB per file and %dMB total for all files",
-                    Configuration.DEFAULT_MULTIPART_MAX_FILE_SIZE / bytesToMB,
-                    Configuration.DEFAULT_MULTIPART_MAX_REQUEST_SIZE / bytesToMB
-            );
-            handleBadRequest(response, new BadRequestException("files", message));
-            return true;
-        }
+            String TOMCAT_MAX_REQUEST_MESSAGE = "$SizeLimitExceededException";
+            String TOMCAT_MAX_FILE_MESSAGE = "$FileSizeLimitExceededException";
+            String JETTY_MAX_REQUEST_MESSAGE = "Request exceeds maxRequestSize";
+            String JETTY_MAX_FILE_MESSAGE = "exceeds max filesize";
+            Throwable cause = e.getCause() == null ? e : e.getCause();
+            String message = cause == null ? null : cause.getMessage();
 
+            if (message != null && (
+                    message.contains(TOMCAT_MAX_FILE_MESSAGE) || message.contains(TOMCAT_MAX_REQUEST_MESSAGE) ||
+                    message.contains(JETTY_MAX_FILE_MESSAGE) || message.contains(JETTY_MAX_REQUEST_MESSAGE))) {
+                long bytesToMB = 1024 * 1024;
+                String errorMessage = String.format(
+                        "Uploaded file(s) are too large. " +
+                        "Limits are set to %dMB per file and %dMB total for all files",
+                        Configuration.DEFAULT_MULTIPART_MAX_FILE_SIZE / bytesToMB,
+                        Configuration.DEFAULT_MULTIPART_MAX_REQUEST_SIZE / bytesToMB
+                );
+                LOGGER.error(message, cause);
+                handleBadRequest(response, new BadRequestException("files", errorMessage));
+                return true;
+            }
+        }
         return false;
     }
 
