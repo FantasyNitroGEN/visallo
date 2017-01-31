@@ -17,6 +17,7 @@ import org.visallo.core.model.FlushFlag;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.notification.SystemNotification;
 import org.visallo.core.model.notification.UserNotification;
+import org.visallo.core.model.properties.MediaVisalloProperties;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdate;
 import org.visallo.core.model.properties.types.VisalloPropertyUpdateRemove;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -487,7 +488,8 @@ public abstract class WorkQueueRepository {
             String workspaceId,
             Priority priority
     ) {
-        return shouldBroadcast(priority);
+        return shouldBroadcast(priority) &&
+                !MediaVisalloProperties.VIDEO_FRAME.getPropertyName().equals(propertyName);
     }
 
     protected boolean shouldBroadcastTextUpdate(String vertexId, Priority priority) {
