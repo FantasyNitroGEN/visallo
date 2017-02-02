@@ -15,7 +15,7 @@
     </properties>
 
     <artifactId>visallo-web-structured-ingest-parquet</artifactId>
-    <name>Visallo: Core: Plugin: Structured Ingest: Parquet</name>
+    <name>Visallo: Web: Structured Ingest: Parquet</name>
 
     <dependencies>
         <dependency>
@@ -34,14 +34,6 @@
             <version>${tika.version}</version>
         </dependency>
 
-
-
-        <!--<dependency>-->
-            <!--<groupId>org.apache.tika</groupId>-->
-            <!--<artifactId>tika-core</artifactId>-->
-            <!--<version>${tika.version}</version>-->
-        <!--</dependency>-->
-
         <!-- for parquet -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -53,21 +45,13 @@
             <artifactId>parquet-hadoop</artifactId>
             <version>${parquet.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.parquet</groupId>-->
-            <!--<artifactId>parquet-common</artifactId>-->
-            <!--<version>${parquet.version}</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-tools</artifactId>
             <version>${parquet.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.parquet</groupId>-->
-            <!--<artifactId>parquet-avro</artifactId>-->
-            <!--<version>${parquet.version}</version>-->
-        <!--</dependency>-->
+
+        <!-- Test Dependencies -->
         <dependency>
             <groupId>org.vertexium</groupId>
             <artifactId>vertexium-inmemory</artifactId>
@@ -75,4 +59,63 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${plugin.maven.shade.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.apache.parquet:parquet-tools</include>
+                                    <include>org.xerial.snappy:snappy-java</include>
+                                </includes>
+                                <excludes>
+                                    <exclude>org.visallo:visallo-web-structured-ingest-core</exclude>
+                                    <exclude>org.apache.tika:tika-parsers</exclude>
+                                    <exclude>org.apache.hadoop:hadoop-client</exclude>
+                                    <exclude>org.visallo:visallo-web-structured-ingest-core</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.xerial.snappy</pattern>
+                                    <shadedPattern>org.apache.parquet.shaded.org.xerial.snappy</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.apache.parquet.shaded.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons</pattern>
+                                    <shadedPattern>org.apache.parquet.shaded.org.apache.commons</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/maven/**</exclude>
+                                        <exclude>META-INF/*</exclude>
+                                        <exclude>javax/annotation/**</exclude>
+                                        <exclude>shaded/**</exclude>
+                                        <exclude>parquet/**</exclude>
+                                        <exclude>parquet.thrift</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

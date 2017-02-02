@@ -1,7 +1,6 @@
 package org.visallo.web.structuredingest.parquet;
 
 import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.ParameterizedHandler;
 import org.visallo.web.WebApp;
 import org.visallo.web.WebAppPlugin;
 
