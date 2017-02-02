@@ -65,5 +65,6 @@
   * [Starting Development](tutorials/starting.md)
   * [Your First Graph Property Worker](tutorials/helloworldgpw.md)
   * [Making a Web Plugin](tutorials/webplugin.md)
+      * [React Web Plugin](tutorials/webplugin-react.md)
 * [Troubleshooting](troubleshooting/index.md)
 * [Glossary](GLOSSARY.md)
