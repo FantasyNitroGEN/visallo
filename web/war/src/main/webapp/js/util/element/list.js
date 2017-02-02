@@ -127,6 +127,7 @@ define([
         this.onClick = function(event) {
             event.preventDefault();
             event.stopPropagation();
+            this.trigger('focusComponent');
 
             const {vertexIds, edgeIds} = visalloData.selectedObjects;
             const $target = $(event.target).parents('li');
