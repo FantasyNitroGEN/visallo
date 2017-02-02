@@ -113,16 +113,16 @@ public abstract class ConfigurationLoader {
     public abstract Configuration createConfiguration();
 
     protected void doConfigureLog4j() {
+        String fileName = System.getProperty("logQuiet") == null ? "log4j.xml" : "log4j-quiet.xml";
         File log4jFile = null;
         String log4jLocation = null;
         try {
-            log4jFile = resolveFileName("log4j.xml");
+            log4jFile = resolveFileName(fileName);
         } catch (VisalloResourceNotFoundException e) {
             // OK, try classpath
         }
         if (log4jFile == null || !log4jFile.exists()) {
             try {
-                String fileName = System.getProperty("logQuiet") == null ? "log4j.xml" : "log4j-quiet.xml";
                 URL log4jResource = getClass().getResource(fileName);
                 System.err.println("Could not resolve log4j.xml, using the fallback: " + log4jResource);
                 if (log4jResource != null) {
