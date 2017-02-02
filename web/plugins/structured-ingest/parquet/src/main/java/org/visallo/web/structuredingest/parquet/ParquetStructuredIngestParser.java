@@ -39,6 +39,7 @@ import java.nio.ByteOrder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.ToLongFunction;
 
 public class ParquetStructuredIngestParser implements StructuredIngestParser {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ParquetStructuredIngestParser.class);
@@ -62,8 +63,7 @@ public class ParquetStructuredIngestParser implements StructuredIngestParser {
             Path path = new Path(tempFile.getAbsolutePath());
             ParquetMetadata metaData = ParquetFileReader.readFooter(conf, path, ParquetMetadataConverter.NO_FILTER);
             MessageType schema = metaData.getFileMetaData().getSchema();
-            long rowCount = metaData.getBlocks().stream().mapToLong(BlockMetaData::getRowCount).sum();
-            parserHandler.setTotalRows(rowCount);
+            parserHandler.setTotalRows(getRowCount(metaData));
 
             try (ParquetReader<SimpleRecord> reader = ParquetReader.builder(new SimpleReadSupport(), new Path(tempFile.getAbsolutePath())).build()) {
                 parserHandler.newSheet("");
@@ -87,6 +87,16 @@ public class ParquetStructuredIngestParser implements StructuredIngestParser {
         } finally {
             if (tempFile != null) tempFile.delete();
         }
+    }
+
+    private long getRowCount(ParquetMetadata metaData) {
+        // maven shade isn't working with lambdas, so use anon class
+        return metaData.getBlocks().stream().mapToLong(new ToLongFunction<BlockMetaData>() {
+                    @Override
+                    public long applyAsLong(BlockMetaData value) {
+                        return value.getRowCount();
+                    }
+                }).sum();
     }
 
     @Override
@@ -147,9 +157,7 @@ public class ParquetStructuredIngestParser implements StructuredIngestParser {
                     if (!parserHandler.addRow(row, rowNum++)) break;
                 }
 
-
-                long rowCount = metaData.getBlocks().stream().mapToLong(BlockMetaData::getRowCount).sum();
-                parserHandler.setTotalRows(rowCount);
+                parserHandler.setTotalRows(getRowCount(metaData));
                 return parserHandler.getResult();
             }
         } finally {
