@@ -10,6 +10,8 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.file.ClassPathFileSystemRepository;
+import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.lock.NonLockingLockRepository;
@@ -54,6 +56,7 @@ public abstract class VisalloInMemoryTestBase {
     private UserSessionCounterRepository userSessionCounterRepository;
     private TimeRepository timeRepository;
     private PrivilegeRepository privilegeRepository;
+    private FileSystemRepository fileSystemRepository;
 
     @Before
     public void before() {
@@ -76,6 +79,7 @@ public abstract class VisalloInMemoryTestBase {
         userSessionCounterRepository = null;
         timeRepository = null;
         privilegeRepository = null;
+        fileSystemRepository = null;
     }
 
     protected WorkspaceRepository getWorkspaceRepository() {
@@ -306,6 +310,14 @@ public abstract class VisalloInMemoryTestBase {
         }
         timeRepository = new TimeRepository();
         return timeRepository;
+    }
+
+    protected FileSystemRepository getFileSystemRepository() {
+        if (fileSystemRepository != null) {
+            return fileSystemRepository;
+        }
+        fileSystemRepository = new ClassPathFileSystemRepository("");
+        return fileSystemRepository;
     }
 
     protected Configuration getConfiguration() {
