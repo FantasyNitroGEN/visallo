@@ -1,4 +1,4 @@
-define(['../actions', '../../util/ajax'], function(actions, ajax) {
+define(['../actions', 'data/web-worker/util/ajax'], function(actions, ajax) {
     actions.protectFromMain();
 
     const api = {
@@ -12,13 +12,13 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             payload: { preferences }
         }),
 
-        putUserPreference: (name, value) => ({
+        putUserPreference: ({ name, value }) => ({
             type: 'USER_PUT_PREF',
             payload: { name, value }
         }),
 
         setUserPreference: ({ name, value }) => (dispatch, getState) => {
-            dispatch(api.putUserPreference(name, value));
+            dispatch(api.putUserPreference({ name, value }));
             return ajax('POST', '/user/ui-preferences', { name, value });
         }
 

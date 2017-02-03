@@ -4,9 +4,9 @@ define(['../actions'], function(actions) {
     return actions.createActions({
         workerImpl: 'data/web-worker/store/user/actions-impl',
         actions: {
-            putUser: (user) => ({ user }),
-            putUserPreferences: (preferences) => ({ preferences }),
-            setUserPreference: (name, value) => ({ name, value })
+            putUser: ({ user }) => ({ user }),
+            putUserPreferences: ({ preferences }) => ({ preferences }),
+            setUserPreference: ({ name, value }) => ({ name, value })
         }
     })
 })
