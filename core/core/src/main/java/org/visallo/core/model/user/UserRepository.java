@@ -23,6 +23,7 @@ import org.visallo.web.clientapi.model.UserStatus;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.function.Predicate;
 
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -262,9 +263,7 @@ public abstract class UserRepository {
 
     protected abstract void internalDelete(User user);
 
-    public Iterable<User> find(String query) {
-        final String lowerCaseQuery = query == null ? null : query.toLowerCase();
-
+    public Iterable<User> filter(Predicate<User> match) {
         int skip = 0;
         int limit = 100;
         List<User> foundUsers = new ArrayList<>();
@@ -274,15 +273,20 @@ public abstract class UserRepository {
                 break;
             }
             for (User user : users) {
-                if (lowerCaseQuery == null
-                        || user.getDisplayName().toLowerCase().contains(lowerCaseQuery)
-                        || user.getUsername().toLowerCase().contains(lowerCaseQuery)) {
+                if (match.test(user)) {
                     foundUsers.add(user);
                 }
             }
             skip += limit;
         }
         return foundUsers;
+    }
+
+    public Iterable<User> find(String query) {
+        final String lowerCaseQuery = query == null ? null : query.toLowerCase();
+        return filter(user -> lowerCaseQuery == null
+                || user.getDisplayName().toLowerCase().contains(lowerCaseQuery)
+                || user.getUsername().toLowerCase().contains(lowerCaseQuery));
     }
 
     public static String createRandomPassword() {
