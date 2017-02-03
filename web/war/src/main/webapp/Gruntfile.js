@@ -16,6 +16,13 @@ module.exports = function(grunt) {
             libs: ['libs']
         },
 
+        run: {
+            jest: {
+                cmd: 'node',
+                args: ['./node_modules/jest/bin/jest.js']
+            }
+        },
+
         less: {
             options: {
                 paths: ['less'],
@@ -259,12 +266,12 @@ module.exports = function(grunt) {
          ['clean:libs', 'copy-frontend', 'amdwrap']);
 
       grunt.registerTask('test:unit', 'Run JavaScript Unit Tests',
-         ['babel:js', 'copy:templates', 'handlebars:compile', 'karma:unit']);
+         ['babel:js', 'copy:templates', 'handlebars:compile', 'karma:unit', 'run:jest']);
       grunt.registerTask('test:style', 'Run JavaScript CodeStyle reports',
          ['eslint:ci', 'plato:ci']);
 
       grunt.registerTask('jenkins', 'Run tests and style reports for jenkins CI',
-         ['deps', 'test:style', 'karma:ci']);
+         ['deps', 'test:style', 'karma:ci', 'run:jest']);
 
       grunt.registerTask('development', 'Build js/less for development',
          ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates', 'handlebars:compile']);

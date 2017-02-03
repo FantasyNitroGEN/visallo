@@ -29,7 +29,7 @@ module.exports = function(config) {
 
                 // Images
                 //{pattern: 'img/**/*.png', included: false},
-                {pattern: 'test/assets/*', included: false},
+                {pattern: 'test/unit/assets/*', included: false},
 
                 // Included libs
                 'libs/jquery/dist/jquery.js',
@@ -62,8 +62,8 @@ module.exports = function(config) {
             exclude: [ ],
 
             proxies: {
-                '/resource': '/base/test/assets/resource',
-                '/vertex/thumbnail': '/base/test/assets/resource'
+                '/resource': '/base/test/unit/assets/resource',
+                '/vertex/thumbnail': '/base/test/unit/assets/resource'
             },
 
             osxReporter: {

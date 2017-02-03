@@ -1,0 +1,30 @@
+exports[`test should have a product list 1`] = `
+<div
+  className=""
+  style={
+    Object {
+      "position": "relative",
+    }
+  }>
+  <div
+    className="products-list-item active"
+    onClick={[Function]}
+    onMouseLeave={[Function]}
+    title="a">
+    <div
+      className="buttons" />
+    <div
+      className="no-preview"
+      style={Object {}} />
+    <div
+      className="content">
+      <h1>
+        a
+      </h1>
+      <h2>
+        g.name
+      </h2>
+    </div>
+  </div>
+</div>
+`;
