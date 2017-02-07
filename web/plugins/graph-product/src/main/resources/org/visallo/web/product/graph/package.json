@@ -31,6 +31,9 @@
     "react-addons-test-utils": "15.4.2",
     "react-dom": "15.4.2",
     "react-test-renderer": "15.4.2",
+    "redux": "^3.6.0",
+    "redux-mock-store": "^1.2.2",
+    "redux-thunk": "^2.2.0",
     "underscore": "1.8.3",
     "webpack": "^1.14.0"
   },
@@ -38,6 +41,13 @@
     "moduleNameMapper": {
       "components/NavigationControls": "<rootDir>/__mocks__/components/NavigationControls.jsx",
       "components/RegistryInjectorHOC": "<rootDir>/__mocks__/components/RegistryInjectorHOC.jsx",
+      "data/web-worker/store/actions": "<rootDir>/__mocks__/data/web-worker/store/actions.js",
+      "data/web-worker/store/element/actions-impl": "<rootDir>/__mocks__/data/web-worker/store/element/actions-impl.js",
+      "data/web-worker/store/product/actions-impl": "<rootDir>/__mocks__/data/web-worker/store/product/actions-impl.js",
+      "data/web-worker/store/product/selectors": "<rootDir>/__mocks__/data/web-worker/store/product/selectors.js",
+      "data/web-worker/store/selection/actions-impl": "<rootDir>/__mocks__/data/web-worker/store/selection/actions-impl.js",
+      "data/web-worker/store/user/actions-impl": "<rootDir>/__mocks__/data/web-worker/store/user/actions-impl.js",
+      "data/web-worker/util/ajax": "<rootDir>/__mocks__/data/web-worker/util/ajax.js",
       "util/retina": "<rootDir>/__mocks__/util/retina.js",
       "util/vertex/formatters": "<rootDir>/__mocks__/util/vertexFormatters.js",
       "util/withContextMenu": "<rootDir>/__mocks__/util/withContextMenu.js",

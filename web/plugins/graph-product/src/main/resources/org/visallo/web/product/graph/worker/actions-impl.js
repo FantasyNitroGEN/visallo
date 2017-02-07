@@ -1,4 +1,5 @@
 define([
+    'underscore',
     'data/web-worker/store/actions',
     'data/web-worker/util/ajax',
     'data/web-worker/store/product/actions-impl',
@@ -8,6 +9,7 @@ define([
     'data/web-worker/store/selection/actions-impl',
     './snap'
 ], function(
+    _,
     actions,
     ajax,
     productActions,
@@ -61,35 +63,39 @@ define([
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
             const byId = _.indexBy(product.extendedData.vertices, 'id');
-            const addingNewVertices = _.any(Object.keys(updateVertices), id => {
-                return !(id in byId)
-            });
+            const addingNewVertices = Object.keys(updateVertices)
+                .some(id => !(id in byId));
 
-            updateVertices = _.mapObject(updateVertices, pos => {
-                return _.mapObject(pos, v => Math.round(v));
-            });
+            updateVertices = _.mapObject(updateVertices, pos =>
+                _.mapObject(pos, v => Math.round(v))
+            );
             dispatch({
                 type: 'PRODUCT_GRAPH_SET_POSITIONS',
                 payload: {
                     productId,
                     updateVertices,
-                    snapToGrid,
                     workspaceId
                 }
-            })
+            });
             if (snapToGrid) {
-                updateVertices = _.mapObject(updateVertices, (pos, id) => {
-                    return byId[id].pos;
+                updateVertices = _.mapObject(updateVertices, pos => snapPosition(pos));
+                dispatch({
+                    type: 'PRODUCT_GRAPH_SET_POSITIONS',
+                    payload: {
+                        productId,
+                        updateVertices,
+                        workspaceId
+                    }
                 });
             }
 
-            ajax('POST', '/product', {
+            return ajax('POST', '/product', {
                 productId,
                 params: {
                     updateVertices,
                     broadcastOptions: {
                         preventBroadcastToSourceGuid: true
-                    } 
+                    }
                 },
             }).then(() => {
                 if (addingNewVertices) {
@@ -105,7 +111,7 @@ define([
                         const { edges } = product.extendedData;
                         const vertexIds = Object.keys(updateVertices);
                         const edgeIds = _.pluck(edges, 'edgeId');
-                        dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
+                        return dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
                     });
                 }
             });
