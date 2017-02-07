@@ -35,6 +35,7 @@ define([
                     extension.options.preventDefaultConfig !== true;
 
             this.extension = extension;
+            this.components = [];
 
             if (extension.configurationPath) {
                 paths.push(extension.configurationPath);
@@ -50,10 +51,6 @@ define([
 
             config.empty = paths.length === 0;
 
-            var configPathPromises = paths.map(function(path) {
-                return Promise.all([path, Promise.require(path)]);
-            });
-
             this.after('setupWithTemplate', function() {
                 var self = this,
                     item = this.attr.item;
@@ -66,7 +63,7 @@ define([
                     this.popover.find('.popover-content > div').trigger(data.name, data.data);
                 })
                 this.on(this.popover, 'configurationChanged', this.onConfigurationChanged);
-                this.renderConfigurations(configPathPromises);
+                this.renderConfigurations(paths);
             });
         });
 
@@ -76,59 +73,70 @@ define([
             var extension = this.extension,
                 reportAdded = data.item.configuration.report || extension.report,
                 reportRemoved = !data.item.configuration.report && !extension.report;
+
+            this.attr.item = data.item;
+
             if (reportAdded) {
                 this.teardownConfigPath(reportConfigurationPath)
-                this.renderConfigurations([
-                    Promise.all([reportConfigurationPath, Promise.require(reportConfigurationPath)])
-                ]);
+                this.renderConfigurations([reportConfigurationPath]).then(() => this.updateComponents(data));
             } else if (reportRemoved) {
                 this.teardownConfigPath(reportConfigurationPath)
+                this.updateComponents(data);
+            } else {
+                this.updateComponents(data);
             }
         };
 
-        this.teardownConfigPath = function(path) {
-            return this.popover.find('.popover-content > div').filter(function() {
-                return ($(this).data('path') === path);
-            }).each(function() {
-                Attacher().node(this).teardown();
-                $(this).empty();
+        this.updateComponents = function(data) {
+            this.components.forEach((attacher) => {
+                attacher.params(data).attach({
+                   teardown: true,
+                   teardownOptions: {
+                      react: false
+                   }
+                });
             });
+        };
+
+        this.teardownConfigPath = function(path) {
+            this.components = _.chain(this.components)
+                .map((attacher) => {
+                    if (attacher.path() === path) {
+                        attacher.teardown();
+                        attacher.node().remove()
+                        return null;
+                    } else {
+                        return attacher;
+                    }
+                })
+                .compact()
+                .value();
         }
 
-        this.renderConfigurations = function(promises) {
-            var self = this,
-                item = this.attr.item;
+        this.renderConfigurations = function(paths) {
+            const item = this.attr.item;
+            const root = this.popover.find('.popover-content');
 
-            Promise.all(promises).done(function(loaded) {
-                var root = self.popover.find('.popover-content');
+            return Promise.map(paths, (path) => {
+                const node = $('<div>').data('path', path).appendTo(root);
 
-                Promise.all(loaded.map(function(promise) {
-                    var path = promise.shift(),
-                        Component = promise.shift(),
-                        node = $('<div>').data('path', path).appendTo(root);
-
-                    return Attacher().node(node)
-                        .component(Component)
-                        .params({
-                            extension: self.extension,
-                            report: item.configuration.report || self.extension.report,
-                            item: item
-                        })
-                        .behavior({
-                            configurationChanged: function(attacher, data) {
-                                self.onConfigurationChanged(null, data);
-                                // Only if react, update props
-                                if (attacher._reactElement) {
-                                    attacher.params(data).attach();
-                                }
-                                self.attr.item = data.item;
-                            }
-                        })
-                        .attach();
-                })).then(function() {
-                    self.positionDialog();
-                })
-            })
+                return Attacher().node(node)
+                    .path(path)
+                    .params({
+                        extension: this.extension,
+                        report: item.configuration.report || this.extension.report,
+                        item: item
+                    })
+                    .behavior({
+                        configurationChanged: (attacher, data) => {
+                            this.onConfigurationChanged(null, data);
+                        }
+                    })
+                    .attach();
+            }).then((components) => {
+               this.components.push(...components);
+               this.positionDialog();
+            });
         };
 
     }

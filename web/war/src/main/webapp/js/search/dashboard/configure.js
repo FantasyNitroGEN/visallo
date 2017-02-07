@@ -87,6 +87,9 @@ define([
         };
 
         this.onAggregationsUpdated = function(event, data) {
+            let previousAggregations = this.aggregations;
+            if (_.isEqual(previousAggregations, data.aggregations)) return;
+
             this.aggregations = data.aggregations;
             this.$node.find('.sort,.limit').toggle(this.aggregations.length === 0);
 
@@ -107,7 +110,8 @@ define([
                             .map(JSON.stringify)
                     }
                 }
-            }
+            } else if (!previousAggregations) return;
+
             this.checkToTrigger(true);
         };
 
