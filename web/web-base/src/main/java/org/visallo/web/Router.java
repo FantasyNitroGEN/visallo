@@ -251,6 +251,9 @@ public class Router extends HttpServlet {
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         LOGGER.debug("servicing %s", request.getRequestURI());
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
         TraceSpan trace = null;
         CurrentUser.setUserInLogMappedDiagnosticContexts(request);
         try {
