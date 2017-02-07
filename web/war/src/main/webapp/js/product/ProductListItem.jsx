@@ -24,6 +24,7 @@ define([
             return {
                 confirmDelete: true,
                 editing: false,
+                invalid: false,
                 loading: false
             };
         },
@@ -33,15 +34,15 @@ define([
                 this.setState({ editing: false, loading: false })
             }
         },
-        componentDidUpdate() {
-            if (this.state.editing && this.refs.titleField) {
+        componentDidUpdate(prevProps, prevState) {
+            if (!prevState.editing && this.state.editing && this.refs.titleField) {
                 this.refs.titleField.focus();
                 this.refs.titleField.select();
             }
         },
         render() {
             const { product, selected, registry, editable } = this.props;
-            const { confirmDelete, editing, loading } = this.state;
+            const { confirmDelete, editing, invalid, loading } = this.state;
             const { previewMD5, id, kind, title, workspaceId } = product;
             const isSelected = selected === id;
             const previewStyle = previewMD5 ? {
@@ -54,7 +55,7 @@ define([
                 editing ?
                 ([
                     <button key="cancel" onClick={this.onCancel} className="cancel btn btn-link btn-default btn-mini">{i18n('product.item.edit.cancel')}</button>,
-                    <button key="save" onClick={this.onSave} className="btn btn-primary btn-mini">{i18n('product.item.edit.save')}</button>
+                    <button key="save" onClick={this.onSave} disabled={invalid} className="btn btn-primary btn-mini">{i18n('product.item.edit.save')}</button>
                 ]) :
                 ([
                     <button key="edit" onClick={this.onEdit} className="btn btn-default btn-mini">{i18n('product.item.edit')}</button>,
@@ -78,7 +79,7 @@ define([
                     <div className={previewMD5 ? 'preview' : 'no-preview'} style={previewStyle}/>
                     <div className="content">
                         <h1>{ editing ? (
-                            <input maxLength={MaxTitleLength}
+                            <input maxLength={MaxTitleLength} required pattern="^[\S]+$"
                                 onKeyUp={this.onTitleKeyUp}
                                 ref="titleField"
                                 type="text" defaultValue={title} {...inputAttrs} />
@@ -112,6 +113,7 @@ define([
         },
         onSave(event) {
             event.stopPropagation();
+            if (this.state.invalid) return;
             this.setState({ loading: true })
             this.props.onUpdateTitle(this.props.product.id, this.refs.titleField.value);
         },
@@ -120,10 +122,14 @@ define([
             this.setState({ editing: false })
         },
         onTitleKeyUp(event) {
-            if (event.keyCode === 13) {
+            const { invalid } = this.state;
+            const nowInvalid = event.target.value.trim().length === 0;
+            if (nowInvalid !== invalid) {
+                this.setState({ invalid: nowInvalid })
+            } else if (event.keyCode === 13) {
                 this.onSave(event);
             } else if (event.keyCode === 27) {
-                this.setState({ editing: false })
+                this.setState({ editing: false, invalid: false })
             }
         }
     });
