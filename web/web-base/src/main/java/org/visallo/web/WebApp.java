@@ -103,7 +103,6 @@ public class WebApp extends App {
         if (request.getRequestURI().endsWith("ejs")) {
             response.setContentType("text/plain");
         }
-        response.setCharacterEncoding("UTF-8");
         super.handle(request, response);
     }
 
