@@ -12,5 +12,5 @@ Change directories to the checked out code. This is your `$PROJECT_DIR` director
 
 Run the web application.
 
-      mvn -am -pl dev/jetty-server -P dev-jetty-run compile
+      mvn -am -pl dev/tomcat-server -P dev-tomcat-run compile
 

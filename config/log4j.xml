@@ -13,6 +13,14 @@
         </layout>
     </appender>
 
+    <logger name="org.apache.catalina.webresources.Cache" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="console" />
+     </logger>
+    <logger name="org.apache.tomcat.util.scan.StandardJarScanner" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="console" />
+    </logger>
     <logger name="org.semanticweb.owlapi.util.SAXParsers" additivity="false">
         <level value="ERROR" />
         <appender-ref ref="console" />

@@ -166,6 +166,6 @@ public class ExampleGraphPropertyWorkerTest {
 
     private GraphPropertyWorkData createWorkData() {
         return new GraphPropertyWorkData(
-                visibilityTranslator, archiveVertex, null, WORKSPACE_ID, VISIBILITY_SOURCE, Priority.NORMAL);
+                visibilityTranslator, archiveVertex, null, WORKSPACE_ID, VISIBILITY_SOURCE, Priority.NORMAL, false);
     }
 }

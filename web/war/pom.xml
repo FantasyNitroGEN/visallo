@@ -15,11 +15,6 @@
     <name>Visallo: Web: War</name>
 
     <properties>
-        <!-- Default Jetty Configuration Properties -->
-        <jetty.port>8080</jetty.port>
-        <jetty.ssl.port>8443</jetty.ssl.port>
-        <jetty.maxIdleTime>60000</jetty.maxIdleTime>
-
         <!-- Maven Plugin Versions -->
         <plugin.maven.exec.version>1.2.1</plugin.maven.exec.version>
         <plugin.maven.war.version>2.4</plugin.maven.war.version>
@@ -180,12 +175,12 @@
             <dependencies>
                 <dependency>
                     <groupId>org.visallo</groupId>
-                    <artifactId>visallo-dev-jetty-server</artifactId>
+                    <artifactId>visallo-dev-tomcat-server</artifactId>
                     <version>${project.version}</version>
                     <exclusions>
                         <exclusion>
                             <groupId>org.visallo</groupId>
-                            <artifactId>visallo-jetty-server</artifactId>
+                            <artifactId>visallo-tomcat-server</artifactId>
                         </exclusion>
                     </exclusions>
                 </dependency>

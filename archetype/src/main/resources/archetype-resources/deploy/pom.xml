@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-dev-jetty-server</artifactId>
+            <artifactId>visallo-dev-tomcat-server</artifactId>
         </dependency>
         <!-- javax.servlet is included here for IDE classpaths, but is excluded in the 'copy-libs' execution, below. -->
         <dependency>
@@ -61,10 +61,11 @@
                             </artifactItems>
                             <useBaseVersion>true</useBaseVersion>
                             <overWriteSnapshots>true</overWriteSnapshots>
+                            <excludes>WEB-INF/lib/**,WEB-INF/classes/**</excludes>
                         </configuration>
                         <phase>compile</phase>
                         <goals>
-                            <goal>copy</goal>
+                            <goal>unpack</goal>
                         </goals>
                     </execution>
                     <execution>
@@ -153,6 +154,18 @@
     </build>
     <profiles>
         <profile>
+            <id>debug</id>
+            <activation>
+                <property>
+                    <name>debug</name>
+                </property>
+            </activation>
+            <properties>
+                <debug.flag>-Xdebug</debug.flag>
+                <debug.options>-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y</debug.options>
+            </properties>
+        </profile>
+        <profile>
             <id>run</id>
             <build>
                 <plugins>
@@ -160,30 +173,41 @@
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>${plugin.maven.exec.version}</version>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>${debug.flag}</argument>
+                                <argument>${debug.options}</argument>
+                                <argument>-DVISALLO_DIR=${visallo.dir}</argument>
+                                <argument>-Dvisallo.VISALLO_DIR=${visallo.dir}</argument>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>org.visallo.web.TomcatWebServer</argument>
+                                <argument>--webAppDir</argument>
+                                <argument>${visallo.dir}/war</argument>
+                                <argument>--port</argument>
+                                <argument>${visallo.http.port}</argument>
+                                <argument>--httpsPort</argument>
+                                <argument>${visallo.https.port}</argument>
+                                <argument>--keyStorePath</argument>
+                                <argument>${visallo.dir}/config/keystore.jks</argument>
+                                <argument>--keyStorePassword</argument>
+                                <argument>password</argument>
+                                <argument>--trustStorePath</argument>
+                                <argument>${visallo.dir}/config/truststore.jks</argument>
+                                <argument>--trustStorePassword</argument>
+                                <argument>password</argument>
+                            </arguments>
+                            <workingDirectory>${project.build.directory}</workingDirectory>
+                        </configuration>
                         <executions>
                             <execution>
-                                <goals>
-                                    <goal>java</goal>
-                                </goals>
                                 <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <mainClass>org.visallo.web.JettyWebServer</mainClass>
-                            <systemProperties>
-                                <systemProperty>
-                                    <key>VISALLO_DIR</key>
-                                    <value>${visallo.dir}</value>
-                                </systemProperty>
-                            </systemProperties>
-                            <commandlineArgs>
-                                --webAppDir ${visallo.dir}/war/visallo-web-war-${visallo.version}.war
-                                --port ${visallo.http.port}
-                                --httpsPort ${visallo.https.port}
-                                --keyStorePath ${visallo.dir}/config/visallo.jks
-                                --keyStorePassword password
-                            </commandlineArgs>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
