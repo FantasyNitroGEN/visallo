@@ -123,7 +123,11 @@ define([
                 <div className="actions">
                     <button onClick={this.handleLimitClick}
                             disabled={this.state.selectedEdgeIris.length === 0}
-                            className="btn">{i18n('org.visallo.web.product.graph.findPath.edges.ok', this.state.selectedEdgeIris.length)}</button>
+                            className="btn">{
+                                this.state.selectedEdgeIris.length === 1 ?
+                                i18n('org.visallo.web.product.graph.findPath.edges.ok.single') :
+                                i18n('org.visallo.web.product.graph.findPath.edges.ok', this.state.selectedEdgeIris.length)
+                            }</button>
                 </div>
             </div>);
         }

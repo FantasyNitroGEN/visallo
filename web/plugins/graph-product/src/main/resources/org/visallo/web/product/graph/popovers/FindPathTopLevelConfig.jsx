@@ -30,11 +30,14 @@ define([
         },
 
         render(){
-            const edgesLabel = this.props.availableEdges.length === this.props.selectedEdgeIris.length
+            const count = this.props.selectedEdgeIris.length;
+            const edgesLabel = this.props.availableEdges.length === count
                 ? i18n('org.visallo.web.product.graph.findPath.edgesAll')
                 : arraysContainsSameItems(this.props.selectedEdgeIris, this.props.defaultSelectedEdgeIris)
                     ? i18n('org.visallo.web.product.graph.findPath.edgesDefault')
-                    : i18n('org.visallo.web.product.graph.findPath.edgesCount', this.props.selectedEdgeIris.length);
+                    : count === 1
+                    ? i18n('org.visallo.web.product.graph.findPath.edgesCount.single', count)
+                    : i18n('org.visallo.web.product.graph.findPath.edgesCount', count);
 
             return (<div className="find-path-config">
                 <div className="field">
