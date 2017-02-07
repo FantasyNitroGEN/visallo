@@ -36,12 +36,10 @@ public class ApplicationBootstrap implements ServletContextListener {
 
     public static final String CONFIG_HTTP_TRANSPORT_GUARANTEE = "http.transportGuarantee";
     public static final String APP_CONFIG_LOADER = "application.config.loader";
-    public static final String ORG_ECLIPSE_JETTY_SERVLET_DEFAULT_DIR_ALLOWED = "org.eclipse.jetty.servlet.Default.dirAllowed";
     public static final String VISALLO_SERVLET_NAME = "visallo";
     public static final String ATMOSPHERE_SERVLET_NAME = "atmosphere";
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
-    public static final String GZIP_FILTER_NAME = "gzip";
     private volatile boolean isStopped = false;
     private Configuration config;
     private List<ApplicationBootstrapInitializer> applicationBootstrapInitializers = new ArrayList<>();
@@ -134,15 +132,12 @@ public class ApplicationBootstrap implements ServletContextListener {
         ServletRegistration.Dynamic servlet = context.addServlet(VISALLO_SERVLET_NAME, router);
         servlet.addMapping("/*");
         servlet.setAsyncSupported(true);
-        servlet.setInitParameter(ORG_ECLIPSE_JETTY_SERVLET_DEFAULT_DIR_ALLOWED, "false");
         addMultiPartConfig(config, servlet);
         addSecurityConstraint(servlet, config);
         addAtmosphereServlet(context, config);
         addDebugFilter(context);
         addCacheFilter(context);
-        if (shouldAddGzipFilter(context, config)) {
-            addGzipFilter(context);
-        }
+
         LOGGER.info(
                 "JavaScript / Less modifications will not be reflected on server. Run `grunt` from webapp directory in development");
     }
@@ -189,34 +184,6 @@ public class ApplicationBootstrap implements ServletContextListener {
         FilterRegistration.Dynamic filter = context.addFilter(CACHE_FILTER_NAME, CacheServletFilter.class);
         filter.setAsyncSupported(true);
         String[] mappings = new String[]{"/", "*.html", "*.css", "*.js", "*.ejs", "*.less", "*.hbs", "*.map"};
-        for (String mapping : mappings) {
-            filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, mapping);
-        }
-    }
-
-    private boolean shouldAddGzipFilter(ServletContext context, Configuration config) {
-        return config.getBoolean(Configuration.HTTP_GZIP_ENABLED, getGzipEnabledDefault(context));
-    }
-
-    private boolean getGzipEnabledDefault(ServletContext context) {
-        if (isJetty(context)) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isJetty(ServletContext context) {
-        return context.getServerInfo() != null && context.getServerInfo().toLowerCase().contains("jetty");
-    }
-
-    private void addGzipFilter(ServletContext context) {
-        FilterRegistration.Dynamic filter = context.addFilter(GZIP_FILTER_NAME, ApplicationGzipFilter.class);
-        filter.setInitParameter(
-                "mimeTypes",
-                "application/json,text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml"
-        );
-        filter.setAsyncSupported(true);
-        String[] mappings = new String[]{"/*"};
         for (String mapping : mappings) {
             filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, mapping);
         }

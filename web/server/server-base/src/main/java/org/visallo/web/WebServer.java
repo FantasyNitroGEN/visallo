@@ -9,7 +9,7 @@ import java.io.File;
 public abstract class WebServer extends CommandLineTool {
     public static final int DEFAULT_SERVER_PORT = 8080;
     public static final int DEFAULT_HTTPS_SERVER_PORT = 8443;
-    public static final String DEFAULT_CONTEXT_PATH = "/";
+    public static final String DEFAULT_CONTEXT_PATH = "";
     public static final int DEFAULT_SESSION_TIMEOUT = 30;
     public static final String DEFAULT_KEYSTORE_TYPE = "JKS";
 
@@ -29,7 +29,7 @@ public abstract class WebServer extends CommandLineTool {
     private String keyStorePassword;
 
     @Parameter(names = {"--trustStoreType"}, arity = 1, description = "Truststore type (JKS, PKCS12)")
-    private String trustStoreType = DEFAULT_KEYSTORE_TYPE;
+    private String trustStoreType;
 
     @Parameter(names = {"--trustStorePath"}, arity = 1, converter = FileConverter.class, description = "Path to the truststore used for SSL")
     private File trustStorePath;
@@ -64,6 +64,10 @@ public abstract class WebServer extends CommandLineTool {
         return keyStoreType;
     }
 
+    public String getTrustStoreType() {
+        return trustStoreType != null ? trustStoreType : keyStoreType;
+    }
+
     public File getKeyStorePath() {
         return keyStorePath;
     }
@@ -72,24 +76,12 @@ public abstract class WebServer extends CommandLineTool {
         return keyStorePassword;
     }
 
-    public String getTrustStoreType() {
-        return trustStoreType;
-    }
-
     public File getTrustStorePath() {
-        if (trustStorePath != null) {
-            return trustStorePath;
-        } else {
-            return keyStorePath;
-        }
+        return trustStorePath != null ? trustStorePath : keyStorePath;
     }
 
     public String getTrustStorePassword() {
-        if (trustStorePassword != null) {
-            return trustStorePassword;
-        } else {
-            return keyStorePassword;
-        }
+        return trustStorePassword != null ? trustStorePassword : keyStorePassword;
     }
 
     public boolean getRequireClientCert() {

@@ -313,14 +313,11 @@ public class Router extends HttpServlet {
         if (isMultipart) {
             String TOMCAT_MAX_REQUEST_MESSAGE = "$SizeLimitExceededException";
             String TOMCAT_MAX_FILE_MESSAGE = "$FileSizeLimitExceededException";
-            String JETTY_MAX_REQUEST_MESSAGE = "Request exceeds maxRequestSize";
-            String JETTY_MAX_FILE_MESSAGE = "exceeds max filesize";
             Throwable cause = e.getCause() == null ? e : e.getCause();
             String message = cause == null ? null : cause.getMessage();
 
             if (message != null && (
-                    message.contains(TOMCAT_MAX_FILE_MESSAGE) || message.contains(TOMCAT_MAX_REQUEST_MESSAGE) ||
-                    message.contains(JETTY_MAX_FILE_MESSAGE) || message.contains(JETTY_MAX_REQUEST_MESSAGE))) {
+                    message.contains(TOMCAT_MAX_FILE_MESSAGE) || message.contains(TOMCAT_MAX_REQUEST_MESSAGE))) {
                 long bytesToMB = 1024 * 1024;
                 String errorMessage = String.format(
                         "Uploaded file(s) are too large. " +

@@ -9,23 +9,23 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>visallo-dev-jetty-server</artifactId>
+    <artifactId>visallo-dev-tomcat-server</artifactId>
     <packaging>jar</packaging>
-    <name>Visallo: Dev: Jetty Server</name>
+    <name>Visallo: Dev: Tomcat Server</name>
     <description>This project is only here to create a good classpath with the plugins for your IDE</description>
 
     <properties>
-        <!-- Default Jetty Configuration Properties -->
-        <jetty.port>8888</jetty.port>
-        <jetty.ssl.port>8889</jetty.ssl.port>
-        <jetty.maxIdleTime>60000</jetty.maxIdleTime>
-        <jetty.basedir>${basedir}/../../web/war</jetty.basedir>
+        <!-- Default Tomcat Configuration Properties -->
+        <http.port>8888</http.port>
+        <https.port>8889</https.port>
+        <server.maxIdleTime>60000</server.maxIdleTime>
+        <web.basedir>${basedir}/../../web/war</web.basedir>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-jetty-server</artifactId>
+            <artifactId>visallo-tomcat-server</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -132,15 +132,7 @@
 
     <profiles>
         <profile>
-            <id>dev-jetty-run</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.visallo</groupId>
-                    <artifactId>visallo-web-war</artifactId>
-                    <scope>provided</scope>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
+            <id>dev-tomcat-run</id>
             <build>
                 <plugins>
                     <plugin>
@@ -148,35 +140,35 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>${plugin.maven.exec.version}</version>
                         <configuration>
-                            <mainClass>org.visallo.web.JettyWebServer</mainClass>
+                            <executable>java</executable>
                             <arguments>
+                                <argument>-DVISALLO_DIR=${basedir}/../..</argument>
+                                <argument>-Dvisallo.VISALLO_DIR=${basedir}/../..</argument>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>org.visallo.web.TomcatWebServer</argument>
                                 <argument>--webAppDir</argument>
-                                <argument>${jetty.basedir}/src/main/webapp</argument>
+                                <argument>${web.basedir}/src/main/webapp</argument>
                                 <argument>--port</argument>
-                                <argument>${jetty.port}</argument>
+                                <argument>${http.port}</argument>
                                 <argument>--httpsPort</argument>
-                                <argument>${jetty.ssl.port}</argument>
+                                <argument>${https.port}</argument>
                                 <argument>--keyStorePath</argument>
                                 <argument>${basedir}/config/visallo-vm.visallo.org.jks</argument>
                                 <argument>--keyStorePassword</argument>
                                 <argument>password</argument>
+                                <argument>--trustStorePath</argument>
+                                <argument>${basedir}/config/truststore.jks</argument>
+                                <argument>--trustStorePassword</argument>
+                                <argument>password</argument>
                             </arguments>
-                            <systemProperties>
-                                <systemProperty>
-                                    <key>VISALLO_DIR</key>
-                                    <value>${basedir}/../..</value>
-                                </systemProperty>
-                                <systemProperty>
-                                    <key>visallo.VISALLO_DIR</key>
-                                    <value>${basedir}/../..</value>
-                                </systemProperty>
-                            </systemProperties>
+                            <workingDirectory>${project.build.directory}</workingDirectory>
                         </configuration>
                         <executions>
                             <execution>
                                 <phase>compile</phase>
                                 <goals>
-                                    <goal>java</goal>
+                                    <goal>exec</goal>
                                 </goals>
                             </execution>
                         </executions>

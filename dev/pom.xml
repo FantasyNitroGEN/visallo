@@ -16,7 +16,7 @@
 
     <modules>
         <module>cli</module>
-        <module>jetty-server</module>
+        <module>tomcat-server</module>
     </modules>
 
     <dependencies>

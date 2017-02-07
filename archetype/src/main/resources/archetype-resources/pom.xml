@@ -76,7 +76,7 @@
             </dependency>
             <dependency>
                 <groupId>org.visallo</groupId>
-                <artifactId>visallo-dev-jetty-server</artifactId>
+                <artifactId>visallo-dev-tomcat-server</artifactId>
                 <version>${visallo.version}</version>
             </dependency>
         </dependencies>

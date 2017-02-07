@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-mvnDebug -Prun package
+mvn -Ddebug -Prun package
