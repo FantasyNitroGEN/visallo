@@ -65,9 +65,11 @@ define(['../actions', 'data/web-worker/util/ajax'], function(actions, ajax) {
             const addToUpdates = (vertexId, label) => {
                 if (vertices[vertexId]) {
                     const vertex = vertices[vertexId];
-                    const labels = vertex.edgeLabels || [];
-                    if (!labels.includes(label)) {
-                        updates[vertexId] = [...labels, label];
+                    if (vertex) {
+                        const labels = vertex.edgeLabels || [];
+                        if (!labels.includes(label)) {
+                            updates[vertexId] = [...labels, label];
+                        }
                     }
                 }
             };

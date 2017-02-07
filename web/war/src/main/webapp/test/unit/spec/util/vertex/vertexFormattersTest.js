@@ -70,7 +70,8 @@ define([
             }
             return {
                 id: id || ('testVertex' + vertexIdent++),
-                properties: properties || []
+                properties: properties || [],
+                type: 'vertex'
             }
         }
 
@@ -883,10 +884,8 @@ define([
                 expect(V.displayType(vertex)).to.equal('entity');
             })
             it('should return \'edge\' if the passed in entity is an edge', function() {
-                var vertex = vertexFactory('v1', [
-                    propertyFactory(PROPERTY_NAME_CONCEPT, 'relationship')
-                ]);
-                expect(V.displayType(vertex)).to.equal('edge');
+                var edge = { id: 'e1', type: 'edge'};
+                expect(V.displayType(edge)).to.equal('edge');
             })
             it('should return \'video\' if the vertex has transcoded mp4 video', function() {
                 var vertex = vertexFactory('v1', [

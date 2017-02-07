@@ -252,9 +252,9 @@ define([
                 }
             } else {
                 this.renderJustification(justification);
-                if (!justificationMetadata || !('justificationText' in justificationMetadata)) {
+                if ((!justificationMetadata || !('justificationText' in justificationMetadata))) {
                     this.dataRequest(
-                        'vertex',
+                        F.vertex.isVertex(element) ? 'vertex' : 'edge',
                         'propertyDetails',
                         this.attr.data.id,
                         property.name,
