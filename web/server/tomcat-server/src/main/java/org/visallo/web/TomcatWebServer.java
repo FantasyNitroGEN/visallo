@@ -15,8 +15,10 @@ import java.io.File;
 
 public class TomcatWebServer extends WebServer {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TomcatWebServer.class);
-    private static final String COMPRESSABLE_MIME_TYPES = String.join(
-            "application/json,text/html,text/plain",
+    private static final String COMPRESSABLE_MIME_TYPES = String.join(",",
+            "application/json",
+            "text/html",
+            "text/plain",
             "text/xml",
             "application/xhtml+xml",
             "text/css",
