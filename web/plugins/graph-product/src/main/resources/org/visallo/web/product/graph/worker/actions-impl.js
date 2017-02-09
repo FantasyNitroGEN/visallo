@@ -38,7 +38,12 @@ define([
                     dispatch(api.setPositions({ productId, updateVertices, snapToGrid: snap }));
                 }
 
-                dispatch(userActions.setUserPreference('snapToGrid', String(snap)));
+                dispatch(
+                  userActions.setUserPreference({
+                      name: 'snapToGrid',
+                      value: String(snap)
+                  })
+                );
             }
         },
 
