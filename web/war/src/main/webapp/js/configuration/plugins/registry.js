@@ -1,3 +1,10 @@
+/**
+ * View all available extensions and registrations in the _Admin_ panel inside
+ * Visallo under _UI Extensions_.  Documentation with examples is available at {@link http://docs.visallo.org/extension-points/front-end docs.visallo.org}.
+ *
+ * @module registry
+ * @classdesc Registry for adding and removing extensions given documentated extension points
+ */
 define(['underscore'], function(_) {
     'use strict';
 
@@ -28,6 +35,9 @@ define(['underscore'], function(_) {
             alreadyWarnedAboutDocsByExtensionPoint[extensionPoint] = true;
             return true;
         },
+        /**
+         * @alias module:registry
+         */
         api = {
             debug: function() {
                 console.log(extensions);
@@ -38,6 +48,26 @@ define(['underscore'], function(_) {
                 uuidToExtensionPoint = {};
                 uuidGen = 0;
             },
+
+            /**
+             * Register new functionality at the given `extensionPoint`. View the {@link http://docs.visallo.org/extension-points/front-end docs} for available extension points, or in Visallo, open the Admin panel, then UI Extensions.
+             *
+             * @param {String} extensionPoint string that designates the
+             * extension to extend.
+             * @param {Object} extension configuration object based on the
+             * extension requirements.
+             * @returns {String} extensionUuid used to {@link module:configuration/plugins/registry.unregisterExtension unregister an extension}
+             * @example
+             * registry.registerExtension('org.visallo.menubar', {
+             *     title: 'New'
+             *     identifier: 'org-visallo-example-new',
+             *     action: {
+             *         type: 'full',
+             *         componentPath: 'example-new-page'
+             *     },
+             *     icon: '../img/new.png'
+             * });
+             */
             registerExtension: function(extensionPoint, extension) {
                 verifyArguments.apply(null, arguments);
 
@@ -65,6 +95,11 @@ define(['underscore'], function(_) {
                 delete extensions[extensionPoint]
                 delete extensionDocumentation[extensionPoint]
             },
+
+            /**
+             * Remove a given extension using the value returned from {@link module:configuration/plugins/registry.registerExtension registerExtension}
+             * @param {String} extensionUuid The extension registration to remove
+             */
             unregisterExtension: function(extensionUuid) {
                 if (!extensionUuid) {
                     throw new Error('extension uuid required to unregister')
@@ -87,6 +122,15 @@ define(['underscore'], function(_) {
                     undocumented: true
                 }
             },
+
+            /**
+             * Adds information in the Admin Panel -> UI Extensions list about this extension point.
+             *
+             * @param {String} extensionPoint The extension point to document
+             * @param {String} description About this extension point / what it does
+             * @param {function} validator Gets any registered extensions and returns if it's valid
+             * @param {String} [externalDocumentationUrl] External URL to documentation if available
+             */
             documentExtensionPoint: function(extensionPoint, description, validator, externalDocumentationUrl) {
                 if (!description) {
                     throw new Error('Description required for documentation')
@@ -129,6 +173,12 @@ define(['underscore'], function(_) {
                 }
             },
 
+            /**
+             * Get all the currently registered extensions for a given `extensionPoint`.
+             *
+             * @param {String} extensionPoint The extension point to get extensions
+             * @returns {Array.<Object>} List of all registered (and valid if validator exists) extension configuration values
+             */
             extensionsForPoint: function(extensionPoint) {
                 var documentation = extensionDocumentation[extensionPoint],
                     byId = extensions[extensionPoint];

@@ -1714,6 +1714,10 @@ diffie-hellman@^5.0.0:
     miller-rabin "^4.0.0"
     randombytes "^2.0.0"
 
+docdash@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/docdash/-/docdash-0.4.0.tgz#05c3a50d83189981699ee0c076d3a3950db7ec00"
+
 doctrine@^1.2.2:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-1.5.0.tgz#379dce730f6166f76cefa4e6707a159b02c5a6fa"
@@ -3424,6 +3428,23 @@ jsbn@~0.1.0:
 jsdoc@3.4.2:
   version "3.4.2"
   resolved "https://registry.yarnpkg.com/jsdoc/-/jsdoc-3.4.2.tgz#b43ca03e54a575dfff4448a3825e11c4db8f87a1"
+  dependencies:
+    bluebird "~3.4.6"
+    catharsis "~0.8.8"
+    escape-string-regexp "~1.0.5"
+    espree "~3.1.7"
+    js2xmlparser "~1.0.0"
+    klaw "~1.3.0"
+    marked "~0.3.6"
+    mkdirp "~0.5.1"
+    requizzle "~0.2.1"
+    strip-json-comments "~2.0.1"
+    taffydb "2.6.2"
+    underscore "~1.8.3"
+
+jsdoc@^3.4.3:
+  version "3.4.3"
+  resolved "https://registry.yarnpkg.com/jsdoc/-/jsdoc-3.4.3.tgz#e5740d6145c681f6679e6c17783a88dbdd97ccd3"
   dependencies:
     bluebird "~3.4.6"
     catharsis "~0.8.8"
@@ -5876,6 +5897,10 @@ videojs-swf@5.0.1:
 videojs-vtt.js@^0.12.1:
   version "0.12.1"
   resolved "https://registry.yarnpkg.com/videojs-vtt.js/-/videojs-vtt.js-0.12.1.tgz#e313896ca8e838c1b2e16df8775c56981ae19f3a"
+
+visallo-jsdoc-template@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/visallo-jsdoc-template/-/visallo-jsdoc-template-1.0.0.tgz#20f35dfe9b46599ed02b9c71ee9d2c5860a6e9e6"
 
 vm-browserify@~0.0.1:
   version "0.0.4"

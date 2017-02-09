@@ -4,7 +4,8 @@ module.exports = {
   gitbook: '3.x.x',
   language: 'en',
   direction: 'ltr',
-  plugins: [ 'ga', 'theme-default' ],
+  // UPDATE Makefile "plugins=" variable if changing
+  plugins: [ 'ga', 'theme-visallo' ],
   styles: {
       website: 'styles/website.css'
   },

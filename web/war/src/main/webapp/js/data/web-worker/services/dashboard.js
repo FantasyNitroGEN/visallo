@@ -1,7 +1,17 @@
+/**
+ * Routes for dashboards and dashboard cards/items
+ *
+ * @module services/dashboard
+ * @see module:util/withDataRequest
+ */
 define(['../util/ajax'], function(ajax) {
     'use strict';
 
+    /**
+     * @alias module:services/dashboard
+     */
     return {
+
         requestData: function(endpoint, params) {
             return ajax('GET', endpoint, params);
         },
@@ -10,6 +20,9 @@ define(['../util/ajax'], function(ajax) {
             return ajax('POST', endpoint, params);
         },
 
+        /**
+         * Get list of all dashboards (without extendedData)
+         */
         dashboards: function() {
             return ajax('GET', '/dashboard/all')
                 .then(function(result) {
@@ -29,12 +42,25 @@ define(['../util/ajax'], function(ajax) {
                 })
         },
 
+        /**
+         * Remove an item from a dashboard
+         *
+         * @param {string} itemId
+         */
         dashboardItemDelete: function(itemId) {
             return ajax('DELETE', '/dashboard/item', {
                 dashboardItemId: itemId
             });
         },
 
+        /**
+         * Create a new dashboard
+         *
+         * @param {object} [options]
+         * @param {string} [options.title='Untitled'] The title of the new dashboard
+         * @param {Array.<object>} [options.items=[]] List of item configurations
+         * to add to new dashboard
+         */
         dashboardNew: function(options) {
             var params = {};
             if (options && options.title) {
@@ -52,10 +78,24 @@ define(['../util/ajax'], function(ajax) {
             return ajax('POST', '/dashboard', params);
         },
 
+        /**
+         * Update dashboard
+         *
+         * @param {object} params
+         */
         dashboardUpdate: function(params) {
             return ajax('POST', '/dashboard', params);
         },
 
+        /**
+         * Update item on dashboard
+         *
+         * @param {object} item The configuration to update
+         * @param {string} item.id
+         * @param {string} item.extensionId
+         * @param {string} item.title
+         * @param {object} [item.configuration={}]
+         */
         dashboardItemUpdate: function(item) {
             return ajax('POST', '/dashboard/item', {
                 dashboardItemId: item.id,
@@ -65,6 +105,16 @@ define(['../util/ajax'], function(ajax) {
             });
         },
 
+        /**
+         * Create new dashboard item
+         *
+         * @param {string} dashboardId
+         * @param {object} item The new item configuration
+         * @param {string} item.id
+         * @param {string} item.extensionId
+         * @param {string} [item.title]
+         * @param {object} [item.configuration={}]
+         */
         dashboardItemNew: function(dashboardId, item) {
             if (!dashboardId) throw new Error('dashboardId required if new item');
 

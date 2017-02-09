@@ -6,7 +6,7 @@ Ensure that you have gone through the [starting](starting.md) instructions.  The
 
 ## Background
 
-One of the major parts of Visallo is the system of Graph Property Workers that enhance and analyze the data.  Since most organizations are going to have different use-cases and needs for working with the data, we designed the graph property workers we designed to be as pluggable as possible.  For more information on graph property workers, please [read the documentation](../extension-points/analytics/graph-property-workers) about graph property workers before beginning this tutorial.
+One of the major parts of Visallo is the system of Graph Property Workers that enhance and analyze the data.  Since most organizations are going to have different use-cases and needs for working with the data, we designed the graph property workers we designed to be as pluggable as possible.  For more information on graph property workers, please [read the documentation](../extension-points/back-end/graphpropertyworkers.md) about graph property workers before beginning this tutorial.
 
 [After the last section](starting.md), we have created our own visallo project to run Visallo, but haven't customized it.  We will be working in the same directory to add our own functionality to that app.
 

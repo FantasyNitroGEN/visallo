@@ -148,6 +148,22 @@ define([
             });
         };
 
+        /**
+         * Trigger this event to select edges or vertices. This will show blue selected
+         * background on these elements and open the element inspector.
+         *
+         * @global
+         * @event selectObjects
+         * @property {object} [data]
+         * @property {Array.<string>} [data.vertexIds=[]] The vertexIds to select
+         * @property {Array.<string>} [data.edgeIds=[]] The edgeIds to select
+         * @property {Array.<object>} [data.vertices=[]] The vertices to select
+         * @property {Array.<object>} [data.edges=[]] The edges to select
+         * @example <caption>From Flight component</caption>
+         * this.trigger('selectObjects', { vertexIds: ['v1'] })
+         * @example <caption>From anywhere</caption>
+         * $(document).trigger('selectObjects', { edgeIds: ['e1'] })
+         */
         this.onSelectObjects = function(event, data) {
             if (!data || data.dispatch !== false) {
                 visalloData.storePromise.then(store => {
@@ -252,6 +268,26 @@ define([
                                     if (data && 'options' in data) {
                                         postData.options = data.options;
                                     }
+
+                                    /**
+                                     * Listen for this event to be notified of selection changes
+                                     *
+                                     * @global
+                                     * @event objectsSelected
+                                     * @property {object} data
+                                     * @property {Array.<object>} data.vertices
+                                     * @property {Array.<object>} data.edges
+                                     * @property {object} data.options
+                                     * @property {object} data.focus
+                                     * @example <caption>From Flight</caption>
+                                     * this.on(document, 'objectsSelected', function(event, data) {
+                                     *     console.log('Selection:', data.vertices, data.edges);
+                                     * })
+                                     * @example <caption>Anywhere</caption>
+                                     * $(document).on('objectsSelected', function(e, data) {
+                                     *     console.log('Selection:', data.vertices, data.edges);
+                                     * })
+                                     */
                                     self.trigger(event.target, 'objectsSelected', postData);
                                     f();
                                 });

@@ -1,4 +1,11 @@
-
+/**
+ * These functions assist in formatting different raw datatypes to user
+ * displayable strings. These utilities are split into their sections by data
+ * type, see the *Namespaces* section below.
+ *
+ * @classdesc Utility functions for the display of data to users
+ * @module util/vertex/formatters
+ */
 define([
     'sf',
     'chrono',
@@ -85,9 +92,25 @@ define([
 		return parseFloat(value[0] + 'e' + (value[1] ? (parseFloat(value[1]) + exp) : exp));
 	}
 
+    /**
+     * @alias module:util/vertex/formatters
+     */
     var FORMATTERS = {
 
+        /**
+         * Utilities for transforming numbers
+         *
+         * @namespace
+         */
         number: {
+
+            /**
+             * Format a number by truncated decimals to 2 digits and adding
+             * thousands separators
+             *
+             * @param {number|string} number
+             * @returns {string} formatted string for empty string if not a valid number
+             */
             pretty: function(number) {
                 if (_.isString(number)) {
                     number = parseFloat(number);
@@ -101,6 +124,17 @@ define([
 
                 return '';
             },
+
+            /**
+             * Format a number to an approximate number.
+             * * 1000 => 1K
+             * * 1000000 => 1M
+             * * 1000000000 => 1B
+             * * 1000000000000 => 1T
+             *
+             * @param {number} number The value to transform
+             * @return Formatted number
+             */
             prettyApproximate: function(number) {
                 var isNegative = number < 0.0,
                     abs = Math.abs(number),
@@ -118,13 +152,21 @@ define([
 
                 return (isNegative ? '-' : '') + result;
             },
+
+            /**
+             * Transform the input decimal (0-1) into a percentage
+             *
+             * @param {number|string} number
+             * @returns {string} rounded number as percentage
+             */
             percent: function(number) {
                 if (_.isString(number)) {
                     number = parseFloat(number);
                 }
                 return Math.round(number * 100) + '%';
             },
-            /**
+
+            /*
              * Split 32-bit integers into 12-bit index, 20-bit offset
              */
             offsetValues: function(value) {
@@ -135,12 +177,22 @@ define([
                     offset: value & offsetMask
                 };
             },
-            /**
+
+            /*
              * Combine 12-bit index, 20-bit offset into 32-bit integer
              */
             compactOffsetValues: function(index, offset) {
                 return (index << BITS_FOR_OFFSET) | offset;
             },
+
+            /**
+             * Convert a number in degrees to a heading string.
+             * * 5.2 => North 5º
+             *
+             * @param {number} value
+             * @returns {string} One of eight heading strings followed by
+             * degrees
+             */
             heading: function(value) {
                 if (_.isUndefined(value)) {
                     return;
@@ -158,6 +210,14 @@ define([
                     'northwest'
                 ][Math.round(inRange / 45) % 8]) + ' ' + FORMATTERS.number.pretty(inRange) + '°';
             },
+
+            /**
+             * Format a number of seconds into a readable duration.
+             * * 64 => 1m 4s
+             *
+             * @param {number|string} value Number of seconds to transform
+             * @returns {string} formatted duration string
+             */
             duration: function(value) {
                 if (!_.isNumber(value) && !$.trim(value).length) {
                     return '';
@@ -172,7 +232,17 @@ define([
             }
         },
 
+        /**
+         * @namespace
+         */
         boolean: {
+
+            /**
+             * Converts boolean or string with 'T/F/true/false' into string true/false
+             *
+             * @param {boolean|string} bool input
+             * @returns {string} true or false
+             */
             pretty: function(bool) {
                 if (_.isUndefined(bool) || (_.isString(bool) && _.isEmpty(bool))) return '';
                 if (bool === 'T') bool = true;
@@ -183,7 +253,21 @@ define([
             }
         },
 
+        /**
+         * @namespace
+         */
         bytes: {
+
+            /**
+             * Converts bytes to human-readable format
+             * * 1024 => 1K
+             *
+             * Terrabyte is largest unit outputted.
+             *
+             * @param {number} bytes The bytes to format
+             * @param {number} [precision=1] The significant digits to round
+             * @returns Human readable bytes format
+             */
             pretty: function(bytes, precision) {
                 var k = 1024,
                     m = k * 1024,
@@ -212,6 +296,7 @@ define([
                 }
             }
         },
+
         className: {
             from: function(className) {
                 var original = fromClassNameMap[className];
@@ -229,6 +314,7 @@ define([
                 return className;
             }
         },
+
         directoryEntity: {
             pretty: function(directoryEntity) {
                 if (directoryEntity && directoryEntity.type) {
@@ -251,6 +337,10 @@ define([
                       });
             }
         },
+
+        /**
+         * @namespace
+         */
         geoLocation: {
             parse: function(str) {
                 var m = str && str.match(/\s*point(?:\[|\()(.*?),(.*?)(?:\]|\))\s*/i);
@@ -262,6 +352,20 @@ define([
                     };
                 }
             },
+
+            /**
+             * Format a geolocation object or string in format
+             * `point[lat,lon]` into a geolocation string.
+             *
+             * Will also use description if available
+             *
+             * @param {object|string} geo The geolocation json object or point string
+             * @param {number} [geo.latitude] The latitude in decimal format
+             * @param {number} [geo.longitude] The longitude in decimal format
+             * @param {string} [geo.description] The description of geolocation
+             * @param {boolean} [withholdDescription=false] Try to disable description display
+             * @returns {string} The geolocation display
+             */
             pretty: function(geo, withholdDescription) {
 
                 if (_.isString(geo)) {
@@ -290,6 +394,7 @@ define([
                 }
             }
         },
+
         object: {
             shortcut: function(key) {
                 var normalized = key.replace(/\+/g, '-').toUpperCase(),
@@ -317,6 +422,10 @@ define([
                 return shortcut;
             }
         },
+
+        /**
+         * @namespace
+         */
         string: {
             normalizeAccents: function(str) {
                 return str
@@ -328,6 +437,19 @@ define([
                     .replace(/[ç]/gi, 'c')
                     .replace(/[ñ]/gi, 'n');
             },
+
+            /**
+             * Convert a character and metaKeys to human-readable and
+             * OS-specific keyboard shortcut display.
+             *
+             * @param {string} key The shortcut
+             * @param {object} [metaKeys] The meta keys to include in shortcut
+             * @param {boolean} [metaKeys.metaKey=false]
+             * @param {boolean} [metaKeys.ctrlKey=false]
+             * @param {boolean} [metaKeys.altKey=false]
+             * @param {boolean} [metaKeys.shiftKey=false]
+             * @returns {string} Transformed shortcut with OS-specific glyphs
+             */
             shortcut: function(character, metaKeys) {
                 if (!metaKeys) {
                     metaKeys = FORMATTERS.object.shortcut(character);
@@ -356,6 +478,17 @@ define([
 
                 return result;
             },
+
+            /**
+             * Displays a count of objects with correct plural.
+             * * 0, 'person', 'people' => No people
+             * * 2, 'ball' => 2 balls
+             *
+             * @param {number} count The number of objects
+             * @param {string} singular The singular version of noun
+             * @param {string} [plural=singular+'s'] The plural version of noun
+             * @returns {string} The count of objects with correct noun
+             */
             plural: function(count, singular, plural) {
                 plural = plural || (singular + 's');
 
@@ -365,6 +498,15 @@ define([
                     default: return FORMATTERS.number.pretty(count) + ' ' + plural;
                 }
             },
+
+            /**
+             * Truncate the string to given number of works and adds an
+             * ellipsis.
+             *
+             * @param {string} str The input string
+             * @param {number} words The number of words
+             * @returns {string} Truncated string
+             */
             truncate: function(str, words) {
                 var maxChars = 7 * words,
                     string = $.trim(str),
@@ -381,6 +523,17 @@ define([
 
                 return truncated
             },
+
+            /**
+             * Formats US phone numbers
+             * * 1234567890 => 123-456-7890
+             * * 123.456.7890 => 123-456-7890
+             *
+             * If it doesn't match the format it returns the input.
+             *
+             * @param {string} str Phone number string to parse
+             * @returns {string} formatted phone number
+             */
             phoneNumber: function(str) {
                 str = (_.isNumber(str) ? ('' + str) : str) || '';
                 var match = str.match(/^([0-9]{3})?[-. ]?([0-9]{3})?[-. ]?([0-9]{4})$/);
@@ -390,6 +543,21 @@ define([
                 }
                 return str;
             },
+
+            /**
+             * Tries to match strings that look like SSN and format
+             * consistently.
+             * * 123 45 6789 => 123-45-6789
+             * * 123456789 => 123-45-6789
+             * * 123.45.6789 => 123-45-6789
+             * * 123-45-6789 => 123-45-6789
+             *
+             * If input doesn't match SSN-like string, the input is returned as
+             * is.
+             *
+             * @param {string} str Social Security number to parse
+             * @returns {string} The formatted SSN
+             */
             ssn: function(str) {
                 str = (_.isNumber(str) ? ('' + str) : str) || '';
                 var match = str.match(/^([0-9]{3})?[-. ]?([0-9]{2})?[-. ]?([0-9]{4})$/);
@@ -400,19 +568,50 @@ define([
                 }
                 return str;
             },
+
+            /**
+             * @param {string} [str=''] String to uppercase
+             * @returns uppercase string
+             */
             uppercase: function(str) {
                 return (str || '').toUpperCase();
             },
+
+            /**
+             * @param {string} [str=''] String to lowercase
+             * @returns lowercase string
+             */
             lowercase: function(str) {
                 return (str || '').toLowerCase();
             },
+
+            /**
+             * @param {string} [str=''] String to pretty print
+             * @returns string with first letter of words uppercased
+             */
             prettyPrint: function(str) {
                 return (str || '').replace(/\w[^-\s]*/g, function(txt) {
                     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
                 });
             }
         },
+
+        /**
+         * @namespace
+         */
         date: {
+
+            /**
+             * Try to parse the input as a date.
+             *
+             *  Accepts partial formats like:
+             *  * 2015
+             *  * feb 2015
+             *  * 2015 February
+             *
+             * @param {string} str String with date to parse
+             * @return {date} parsed date
+             */
             looslyParseDate: function(str) {
                 str = $.trim(str);
                 var date = chrono.parseDate(str),
@@ -457,6 +656,13 @@ define([
 
                 return date;
             },
+
+            /**
+             * Convert a date string to date object offset by local time.
+             *
+             * @param {string|number} str Input string to convert
+             * @return {date} Date offset by locale.
+             */
             local: function(str) {
                 if (_.isUndefined(str)) return '';
                 var numberOrString = _.isString(str) && !isNaN(Number(str)) ? Number(str) : str,
@@ -490,6 +696,13 @@ define([
 
                 return dateInLocale;
             },
+
+            /**
+             * Convert a date string to date object ignoring local timezone
+             *
+             * @param {string|number} str Input string to convert
+             * @return {date} Date offset in UTC
+             */
             utc: function(str) {
                 if (_.isUndefined(str)) return '';
 
@@ -501,10 +714,26 @@ define([
                     dateInUTC = new Date(dateInLocale.getTime() + millisFromLocaleToUTC);
                 return dateInUTC;
             },
+
+            /**
+             * Convert date to date string (no time)
+             *
+             * @param {string|number} millisStr milliseconds
+             * @returns {string} Date string (no time) based on milliseconds
+             */
             dateString: function(millisStr) {
                 if (_.isUndefined(millisStr)) return '';
                 return sf('{0:yyyy-MM-dd}', FORMATTERS.date.local(millisStr));
             },
+
+            /**
+             * Convert date to date time string, optionally to different
+             * timezone.
+             *
+             * @param {string|number} millisStr milliseconds
+             * @param {string} [overrideTzInfo=Users Timezone] Specify different TZ (UTC, etc.)
+             * @returns {string} Date string (with time)
+             */
             dateTimeString: function(millisStr, overrideTzInfo) {
                 if (_.isUndefined(millisStr)) return '';
                 var timezoneAbbreviation = overrideTzInfo;
@@ -519,25 +748,72 @@ define([
                     timezoneAbbreviation ? (' ' + timezoneAbbreviation) : ''
                 );
             },
+
+            /**
+             * Convert date to utc date string (no time)
+             *
+             * @param {string|number} millisStr milliseconds
+             * @returns {string} Date string (no time) based on milliseconds
+             */
             dateStringUtc: function(millisStr) {
                 if (_.isUndefined(millisStr)) return '';
                 return FORMATTERS.date.dateString(FORMATTERS.date.utc(millisStr));
             },
+
+            /**
+             * Convert date to UTC date time string
+             *
+             * @param {string|number} millisStr milliseconds
+             * @returns {string} Date string (with time)
+             */
             dateTimeStringUtc: function(millisStr) {
                 if (_.isUndefined(millisStr)) return '';
                 return FORMATTERS.date.dateTimeString(FORMATTERS.date.utc(millisStr), 'UTC');
             },
+
+            /**
+             * Convert date to time string
+             *
+             * @param {string|number} millisStr milliseconds
+             * @returns {string} Time string (hours/minutes)
+             */
             timeString: function(millisStr) {
                 if (_.isUndefined(millisStr)) return '';
                 return sf('{0:HH:mm}', FORMATTERS.date.local(millisStr));
             },
+
+            /**
+             * Convert date to UTC time string
+             *
+             * @param {string|number} millisStr milliseconds
+             * @returns {string} Time string (hours/minutes)
+             */
             timeStringUtc: function(millisStr) {
                 if (_.isUndefined(millisStr)) return '';
                 return FORMATTERS.date.timeString(FORMATTERS.date.utc(millisStr));
             },
+
+            /**
+             * Returns relative time with "ago" suffix.
+             * * moments ago
+             * * 5 minutes ago
+             *
+             * @param {number} date in milliseconds
+             * @returns {string} Relative time string from now to input
+             */
             relativeToNow: function(date) {
                 return FORMATTERS.date.relativeToDate(date, FORMATTERS.date.utc(Date.now())) + ' ' + i18n('time.ago');
             },
+
+            /**
+             * Returns relative time
+             * * moments
+             * * 5 minutes
+             * * 4 years
+             *
+             * @param {number} date in milliseconds
+             * @returns {string} Relative time string from now to input
+             */
             relativeToDate: function(date, fromDate) {
                 if (_.isUndefined(date)) return '';
                 var span = new sf.TimeSpan(fromDate - date),
@@ -569,18 +845,29 @@ define([
 
                 return time;
             },
+
+            /**
+             * Add / Decrement days from initial date.
+             *
+             * @param {date} date Initial date
+             * @param {number} numDays Increment days by this
+             * @return {date} date offset by numDays
+             */
             addDaysToDate: function(date, numDays) {
                 var newDate = new Date(date.valueOf());
                 newDate.setDate(newDate.getDate() + numDays);
                 return newDate;
             },
+
             dateToDateString: function(date) {
                 return date.toISOString().replace(/T.*$/, '');
             },
+
             addDaysToDateString: function(dateString, numDays) {
                 return FORMATTERS.date.dateToDateString(FORMATTERS.date.addDaysToDate(new Date(dateString), numDays));
             }
         },
+
         timezone: {
             dateTimeStringToTimezone: function(dateStr, srcTimezone, destTimezone) {
                 var dateTz = FORMATTERS.timezone.date(dateStr, srcTimezone);
