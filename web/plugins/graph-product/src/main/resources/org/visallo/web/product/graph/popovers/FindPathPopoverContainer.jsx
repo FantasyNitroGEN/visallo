@@ -19,7 +19,12 @@ define([
         },
         (dispatch, props) => {
             return {
-                setUserPreferences: (value) => dispatch(userActions.setUserPreference(PREFERENCE_NAME, JSON.stringify(value)))
+                setUserPreferences: (value) => dispatch(
+                    userActions.setUserPreference({
+                      name: PREFERENCE_NAME,
+                      value: JSON.stringify(value)
+                    })
+                )
             }
         }
     )(FindPathPopover);
