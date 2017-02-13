@@ -14,3 +14,5 @@ Run the web application.
 
       mvn -am -pl dev/tomcat-server -P dev-tomcat-run compile
 
+Once the log output stops, your server will be available at [http://localhost:8888](http://localhost:8888).
+
