@@ -12,7 +12,7 @@ define(['/base/jsc/data/web-worker/store/selection/reducer'], function(reducer) 
             reducer(null, {}).should.deep.equal(emptyState)
         })
 
-        it('should should add selection to empty', () => {
+        it('should add selection to empty', () => {
             var result = reducer(emptyState, {
                 type: 'SELECTION_ADD',
                 payload: { selection: { vertices: ['a'], edges: [] }} 
@@ -30,7 +30,7 @@ define(['/base/jsc/data/web-worker/store/selection/reducer'], function(reducer) 
             })
         })
         
-        it('should should add selection to existing', () => {
+        it('should add selection to existing', () => {
             const vertices = ['a'], edges = ['b']
             var result = reducer(genState({ vertices, edges }), {
                 type: 'SELECTION_ADD',
@@ -41,7 +41,7 @@ define(['/base/jsc/data/web-worker/store/selection/reducer'], function(reducer) 
             })
         })
 
-        it('should should remove selection from existing', () => {
+        it('should remove selection from existing', () => {
             const vertices = ['a'], edges = ['b', 'b3']
             var result = reducer(genState({ vertices, edges }), {
                 type: 'SELECTION_REMOVE',
@@ -52,7 +52,7 @@ define(['/base/jsc/data/web-worker/store/selection/reducer'], function(reducer) 
             })
         })
 
-        it('should should clear selection', () => {
+        it('should clear selection', () => {
             const vertices = ['a'], edges = ['b', 'b3']
             var result = reducer(genState({ vertices, edges }), {
                 type: 'SELECTION_CLEAR'
@@ -62,7 +62,7 @@ define(['/base/jsc/data/web-worker/store/selection/reducer'], function(reducer) 
             })
         })
 
-        it('should should set selection', () => {
+        it('should set selection', () => {
             const vertices = ['a'], edges = ['b', 'b3']
             var result = reducer(genState({ vertices, edges }), {
                 type: 'SELECTION_SET',
@@ -73,7 +73,7 @@ define(['/base/jsc/data/web-worker/store/selection/reducer'], function(reducer) 
             })
         })
 
-        it('should should not create new objects if not updating', () => {
+        it('should not create new objects if not updating', () => {
             const edges = [];
             var result = reducer(genState({ edges }), {
                 type: 'SELECTION_ADD',

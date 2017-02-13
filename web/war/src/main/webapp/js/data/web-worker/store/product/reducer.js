@@ -16,6 +16,8 @@ define(['updeep'], function(u) {
             case 'PRODUCT_REMOVE_ELEMENTS': return removeElements(state, payload);
             case 'PRODUCT_UPDATE_DATA': return updateData(state, payload);
             case 'PRODUCT_UPDATE_EXTENDED_DATA': return updateExtendedData(state, payload);
+
+            case 'ELEMENT_UPDATE': return updateViewable(state, payload);
         }
 
         return state;
@@ -162,6 +164,41 @@ define(['updeep'], function(u) {
                             }
                         }
                     }
+                }
+            }
+        }, state);
+    }
+
+    function updateViewable(state, {workspaceId, vertices}) {
+        const updateExtendedDataViewable = (product) => {
+            if (!product.extendedData || !product.extendedData.vertices) return product;
+
+            return u({
+                extendedData: {
+                    vertices: transformVertexData
+                }
+            }, product);
+        };
+        const transformVertexData = (vertexIds) => {
+            return vertexIds.map((vertexId) => {
+                const { id, unauthorized, ...rest } = vertexId;
+                const update = vertices.find((vertex) => vertex.id === id);
+                if (update !== undefined) {
+                    if (update._DELETED !== true) {
+                        return { id, ...rest }
+                    } else {
+                        return { id, unauthorized: true, ...rest };
+                    }
+                } else {
+                    return vertexId;
+                }
+            });
+        };
+
+        return u({
+            workspaces: {
+                [workspaceId]: {
+                    products: u.map(updateExtendedDataViewable)
                 }
             }
         }, state);
