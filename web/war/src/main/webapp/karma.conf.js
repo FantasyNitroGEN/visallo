@@ -74,6 +74,10 @@ module.exports = function(config) {
             // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
             reporters: ['mocha'],
 
+            mochaReporter: {
+                showDiff: 'inline'
+            },
+
             // web server port
             port: 9876,
 

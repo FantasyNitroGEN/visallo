@@ -10,7 +10,9 @@ import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workspace.WorkspaceProperties;
+import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.StreamUtil;
@@ -25,8 +27,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
     public static final String WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
+    private final OntologyRepository ontologyRepository;
+    private final AuthorizationRepository authorizationRepository;
 
-    protected WorkProductElements(OntologyRepository ontologyRepository) {
+    protected WorkProductElements(OntologyRepository ontologyRepository, AuthorizationRepository authorizationRepository) {
+        this.ontologyRepository = ontologyRepository;
+        this.authorizationRepository = authorizationRepository;
+
         addProductToEntityRelationshipToOntology(ontologyRepository);
     }
 
@@ -135,12 +142,16 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
         if (params.optBoolean("includeEdges")) {
             JSONArray edges = new JSONArray();
-            List<String> vertexIds = Lists.newArrayList(productVertex.getVertexIds(
+            Authorizations systemAuthorizations = authorizationRepository.getGraphAuthorizations(
+                    user,
+                    VisalloVisibility.SUPER_USER_VISIBILITY_STRING
+            );
+            Iterable<Vertex> productVertices = Lists.newArrayList(productVertex.getVertices(
                     Direction.OUT,
                     WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    authorizations
+                    systemAuthorizations
             ));
-            Iterable<RelatedEdge> relatedEdges = graph.findRelatedEdgeSummary(vertexIds, authorizations);
+            Iterable<RelatedEdge> relatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
             for (RelatedEdge relatedEdge : relatedEdges) {
                 JSONObject edge = new JSONObject();
                 edge.put("edgeId", relatedEdge.getEdgeId());
