@@ -677,12 +677,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         checkNotNull(label, "label cannot be null or empty for " + iri);
         LOGGER.info("Importing ontology object property " + iri + " (label: " + label + ")");
 
+        boolean isDeclaredInOntology = o.isDeclared(objectProperty);
+
         Relationship parent = getParentObjectProperty(o, objectProperty, authorizations);
         Relationship relationship = getOrCreateRelationshipType(
                 parent,
                 getDomainsConcepts(o, objectProperty),
                 getRangesConcepts(o, objectProperty),
-                iri
+                iri,
+                isDeclaredInOntology
         );
 
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(objectProperty, o)) {
