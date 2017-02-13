@@ -505,9 +505,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean isDeclaredInOntology) {
         Concept concept = getConceptByIRI(conceptIRI);
         if (concept != null) {
-            Vertex vertex = ((VertexiumConcept) concept).getVertex();
             if (isDeclaredInOntology) {
-                deleteChangeableProperties(vertex, authorizations);
+                deleteChangeableProperties(((VertexiumConcept) concept).getVertex(), authorizations);
             }
             return concept;
         }
@@ -664,9 +663,22 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Iterable<Concept> rangeConcepts,
             String relationshipIRI
     ) {
+        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, true);
+    }
+
+    @Override
+    public Relationship getOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            boolean isDeclaredInOntology
+    ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
-            deleteChangeableProperties(((VertexiumRelationship) relationship).getVertex(), authorizations);
+            if (isDeclaredInOntology) {
+                deleteChangeableProperties(((VertexiumRelationship) relationship).getVertex(), authorizations);
+            }
             return relationship;
         }
 

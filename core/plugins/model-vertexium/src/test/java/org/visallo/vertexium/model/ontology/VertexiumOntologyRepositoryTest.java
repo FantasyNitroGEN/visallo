@@ -83,7 +83,7 @@ public class VertexiumOntologyRepositoryTest {
         File testOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(TEST_OWL).toURI());
         ontologyRepository.importFile(testOwl, IRI.create(TEST_IRI), authorizations);
         validateTestOwlRelationship();
-        validateTestOwlConcepts(2, 2);
+        validateTestOwlConcepts(1, 2);
         validateTestOwlProperties();
     }
 
@@ -104,7 +104,7 @@ public class VertexiumOntologyRepositoryTest {
 
         ontologyRepository.importFile(changedOwl, IRI.create(TEST01_IRI), authorizations);
         validateTestOwlRelationship();
-        validateTestOwlConcepts(2, 3);
+        validateTestOwlConcepts(1, 3);
         validateTestOwlProperties();
 
         OntologyProperty aliasProperty = ontologyRepository.getPropertyByIRI(TEST01_IRI + "#alias");
@@ -119,6 +119,14 @@ public class VertexiumOntologyRepositoryTest {
         Relationship relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertEquals("Knows", relationship.getDisplayName());
         assertEquals("prop('http://visallo.org/test#firstMet') || ''", relationship.getTimeFormula());
+        assertTrue(relationship.getRangeConceptIRIs().contains("http://visallo.org/test#person"));
+        assertTrue(relationship.getDomainConceptIRIs().contains("http://visallo.org/test#person"));
+
+        relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personIsRelatedToPerson");
+        assertEquals("Is Related To", relationship.getDisplayName());
+        String[] intents = relationship.getIntents();
+        assertTrue(intents.length == 1);
+        assertEquals("test", intents[0]);
         assertTrue(relationship.getRangeConceptIRIs().contains("http://visallo.org/test#person"));
         assertTrue(relationship.getDomainConceptIRIs().contains("http://visallo.org/test#person"));
     }
@@ -176,13 +184,15 @@ public class VertexiumOntologyRepositoryTest {
         assertEquals("Contact", contact.getDisplayName());
         assertEquals("rgb(149, 138, 218)", contact.getColor());
         assertEquals("test", contact.getDisplayType());
+        List<String> intents = Arrays.asList(contact.getIntents());
+        assertEquals(expectedIntentSize, intents.size());
+        assertTrue(intents.contains("face"));
 
         Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person");
         assertEquals("Person", person.getDisplayName());
-        List<String> intents = Arrays.asList(person.getIntents());
+        intents = Arrays.asList(person.getIntents());
         assertEquals(expectedIntentSize, intents.size());
         assertTrue(intents.contains("person"));
-        assertTrue(intents.contains("face"));
         assertEquals("prop('http://visallo.org/test#birthDate') || ''", person.getTimeFormula());
         assertEquals("prop('http://visallo.org/test#name') || ''", person.getTitleFormula());
 
