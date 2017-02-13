@@ -21,6 +21,15 @@
         <owl:imports rdf:resource="http://visallo.org/test"/>
     </owl:Ontology>
 
+    <!-- http://visallo.org/test01#personIsBrotherOfPerson -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/test01#personIsBrotherOfPerson">
+        <rdfs:label xml:lang="en">Is Brother Of</rdfs:label>
+        <rdfs:subPropertyOf rdf:resource="http://visallo.org/test#personIsRelatedToPerson"/>
+        <rdfs:range rdf:resource="http://visallo.org/test#person"/>
+        <rdfs:domain rdf:resource="http://visallo.org/test#person"/>
+    </owl:ObjectProperty>
+
     <!-- http://visallo.org/test01#alias -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/test01#alias">

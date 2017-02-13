@@ -435,6 +435,17 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             Iterable<Concept> rangeConcepts,
             String relationshipIRI
     ) {
+        return getOrCreateRelationshipType(parent,domainConcepts, rangeConcepts, relationshipIRI, true);
+    }
+
+    @Override
+    public Relationship getOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            boolean isDeclaredInOntology
+    ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
             return relationship;
