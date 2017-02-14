@@ -1,8 +1,7 @@
 define([
     'configuration/plugins/registry',
-    'updeep',
-    './snap',
-], function(registry, u, snapPosition) {
+    'updeep'
+], function(registry, u) {
 
     registry.registerExtension('org.visallo.store', {
         key: 'product',
@@ -53,7 +52,7 @@ define([
         return state;
     }
 
-    function updatePositions(state, { workspaceId, productId, updateVertices, snapToGrid }) {
+    function updatePositions(state, { workspaceId, productId, updateVertices }) {
         const product = state.workspaces[workspaceId].products[productId];
 
         if (product && product.extendedData && product.extendedData.vertices) {
@@ -66,7 +65,7 @@ define([
                         updatedIds.push([vertexPosition.id]);
                         return {
                             id: vertexPosition.id,
-                            pos: snapToGrid ? snapPosition(pos) : pos
+                            pos
                         }
                     }
                     return vertexPosition;
