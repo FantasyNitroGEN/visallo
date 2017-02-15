@@ -1,7 +1,8 @@
 define([
     'configuration/plugins/registry',
-    'updeep'
-], function(registry, u) {
+    'updeep',
+    'org/visallo/web/product/graph/dist/actions-impl'
+], function(registry, u, actions) {
 
     registry.registerExtension('org.visallo.store', {
         key: 'product',
@@ -12,6 +13,16 @@ define([
             }
 
             return state;
+        },
+        undoActions: {
+            PRODUCT_GRAPH_SET_POSITIONS: {
+                undo: (undo) => actions.undoSetPositions(undo),
+                redo: (redo) => actions.redoSetPositions(redo)
+            },
+            PRODUCT_REMOVE_ELEMENTS: {
+                undo: (undo) => actions.undoRemoveElements(undo),
+                redo: (redo) => actions.redoRemoveElements(redo)
+            }
         }
     })
     registry.registerExtension('org.visallo.store', {
