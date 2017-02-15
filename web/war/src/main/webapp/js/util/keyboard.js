@@ -81,7 +81,11 @@ define([
             require(['util/formatters'], function(F) {
                 scopes.forEach(function(scope) {
                     Object.keys(data.shortcuts).forEach(function(key) {
-                        var shortcut = $.extend({}, data.shortcuts[key], F.object.shortcut(key), { enabled: true });
+                        const shortcut = {
+                            ...data.shortcuts[key],
+                            ...F.object.shortcut(key),
+                            enabled: true
+                        };
 
                         if (!shortcutsByScope[scope]) shortcutsByScope[scope] = {};
                         shortcuts[shortcut.forEventLookup] = shortcutsByScope[scope][shortcut.normalized] = shortcut;
@@ -128,6 +132,9 @@ define([
             if (this.currentMetaKeyState) {
                 if ((this.currentMetaKeyState.metaKey || this.currentMetaKeyState.ctrlKey) && this.currentMetaKeyState.altKey) {
                     return this.shortcuts['CTRL-ALT-' + w] || this.shortcuts['META-ALT-' + w];
+                }
+                if (this.currentMetaKeyState.metaKey && this.currentMetaKeyState.shiftKey) {
+                    return this.shortcuts['SHIFT-META-' + w];
                 }
                 if (this.currentMetaKeyState.metaKey || this.currentMetaKeyState.ctrlKey) {
                     return this.shortcuts['CTRL-' + w] || this.shortcuts['META-' + w];

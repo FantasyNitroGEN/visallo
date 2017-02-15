@@ -15,7 +15,7 @@ define(['../actions'], function(actions) {
 
             updatePreview: (productId, dataUrl) => ({ productId, dataUrl }),
             updateViewport: (productId, { pan, zoom }) => ({ productId, pan, zoom }),
-            removeElements: (productId, elements) => ({ productId, elements }),
+            removeElements: (productId, elements, { undoable } = {}) => ({ productId, elements, undoable }),
             selectAll: (productId) => ({ productId })
         }
     })

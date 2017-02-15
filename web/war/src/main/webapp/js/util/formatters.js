@@ -292,10 +292,18 @@ define([
         },
         object: {
             shortcut: function(key) {
-                var normalized = key.replace(/\+/g, '-').toUpperCase(),
-                    forLookup = normalized,
-                    parts = normalized !== '-' ? normalized.split('-') : ['-'],
-                    shortcut = {normalized: normalized, forEventLookup: normalized};
+                let normalized = key.replace(/\+/g, '-').toUpperCase();
+                if (normalized === 'UNDO') {
+                    normalized = 'META-Z';
+                } else if (normalized === 'REDO') {
+                    normalized = isMac ? 'SHIFT-META-Z' : 'META-Y';
+                }
+                const forLookup = normalized;
+                const parts = normalized !== '-' ? normalized.split('-') : ['-'];
+                const shortcut = {
+                    normalized: normalized,
+                    forEventLookup: normalized
+                };
 
                 if (parts.length === 1) {
                     shortcut.keyCode = codeForCharacter(parts[0]);
