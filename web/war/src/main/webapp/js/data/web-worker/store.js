@@ -12,6 +12,7 @@
         './store/middleware/actionRouter',
         './store/middleware/thunk',
         './store/middleware/promise',
+        './store/middleware/undo',
         './store/middleware/dataRequest',
         //'./store/middleware/logger'
     ], function(registry, jsonpatch, redux, rootReducer, ...middleware) {
