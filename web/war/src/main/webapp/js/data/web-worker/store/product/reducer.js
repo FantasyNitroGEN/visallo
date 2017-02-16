@@ -171,9 +171,7 @@ define(['updeep'], function(u) {
 
     function updateViewable(state, {workspaceId, vertices}) {
         const updateExtendedDataViewable = (product) => {
-            if (!product.extendedData || !product.extendedData.vertices) return product;
-
-            return u({
+            return u.if(product.extendedData && product.extendedData.vertices, {
                 extendedData: {
                     vertices: transformVertexData
                 }
@@ -195,7 +193,7 @@ define(['updeep'], function(u) {
             });
         };
 
-        return u({
+        return u.if(vertices, {
             workspaces: {
                 [workspaceId]: {
                     products: u.map(updateExtendedDataViewable)
