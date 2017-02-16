@@ -25,7 +25,6 @@
         * [Long Running Processes](extension-points/back-end/longrunningprocesses.md)
         * [External Resource Worker](extension-points/back-end/externalresourceworker.md)
         * [Web Plugins](extension-points/back-end/webplugins.md)
-        * [Complete Dataset Analytics](extension-points/back-end/completedataset.md)
     * [Front End](extension-points/front-end/index.md)
         * [Activity](extension-points/front-end/activity/index.md)
         * [Admin](extension-points/front-end/admin/index.md)
