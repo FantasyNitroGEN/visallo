@@ -499,7 +499,9 @@ define([
             // TODO: show all selected objects if not on item
             if (cyTarget !== cy) {
                 const { pageX, pageY } = originalEvent;
-                this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
+                if (cyTarget.isNode()) {
+                    this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
+                }
             }
         },
 
