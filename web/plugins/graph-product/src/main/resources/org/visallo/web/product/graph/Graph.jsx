@@ -471,6 +471,8 @@ define([
                     if (ctrlKey && upElement) {
                         this.onContextTap(event);
                     }
+                } else if (!upElement.isNode()) {
+                    this.cancelDraw();
                 } else {
                     this.setState({ draw: {...draw, toVertexId: upElement.id() } });
                     this.showConnectionPopover();
