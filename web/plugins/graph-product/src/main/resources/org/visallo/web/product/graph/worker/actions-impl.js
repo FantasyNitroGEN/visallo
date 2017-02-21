@@ -7,6 +7,7 @@ define([
     'data/web-worker/store/user/actions-impl',
     'data/web-worker/store/element/actions-impl',
     'data/web-worker/store/selection/actions-impl',
+    'data/web-worker/store/workspace/actions-impl',
     './snap'
 ], function(
     _,
@@ -17,6 +18,7 @@ define([
     userActions,
     elementActions,
     selectionActions,
+    workspaceActions,
     snapPosition) {
     actions.protectFromMain();
 
@@ -54,7 +56,7 @@ define([
             payload: { id }
         }),
 
-        setPositions: ({ productId, updateVertices, snapToGrid }) => (dispatch, getState) => {
+        setPositions: ({ productId, updateVertices, snapToGrid, undoable }) => (dispatch, getState) => {
             const state = getState();
             if (workspaceReadonly(state)) {
                 return;
@@ -63,18 +65,46 @@ define([
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
             const byId = _.indexBy(product.extendedData.vertices, 'id');
-            const addingNewVertices = Object.keys(updateVertices)
-                .some(id => !(id in byId));
+            const newVertices = Object.keys(updateVertices)
+                .filter(id => !(id in byId));
+            const addingNewVertices = newVertices.length > 0;
 
             updateVertices = _.mapObject(updateVertices, pos =>
                 _.mapObject(pos, v => Math.round(v))
             );
+
+            let undoPayload = {};
+            if (undoable) {
+                undoPayload = {
+                    undoScope: productId,
+                    undo: {
+                        productId,
+                    },
+                    redo: {
+                        productId,
+                        updateVertices
+                    }
+                };
+                if (Object.keys(updateVertices).length !== newVertices.length) {
+                    undoPayload.undo.updateVertices = _.chain(updateVertices)
+                                                        .mapObject((pos, id) => byId[id] && byId[id].pos)
+                                                        .pick((pos, id) => !!pos)
+                                                        .value();
+                }
+                if (addingNewVertices) {
+                    undoPayload.undo.removeElements = {
+                        vertexIds: newVertices
+                    };
+                }
+            }
+
             dispatch({
                 type: 'PRODUCT_GRAPH_SET_POSITIONS',
                 payload: {
                     productId,
                     updateVertices,
-                    workspaceId
+                    workspaceId,
+                    ...undoPayload
                 }
             });
             if (snapToGrid) {
@@ -117,7 +147,19 @@ define([
             });
         },
 
-        updatePositions: ({ productId, updateVertices, existingVertices }) => (dispatch, getState) => {
+        undoSetPositions: ({ productId, updateVertices, removeElements }) => (dispatch, getState) => {
+            if (updateVertices) {
+                dispatch(api.updatePositions({ productId, updateVertices }));
+            }
+            if (removeElements) {
+                dispatch(productActions.removeElements({ productId, elements: removeElements }));
+            }
+        },
+
+        redoSetPositions: ({ productId, updateVertices }) =>
+            api.updatePositions({ productId, updateVertices }),
+
+        updatePositions: ({ productId, updateVertices, existingVertices, undoable }) => (dispatch, getState) => {
             if (workspaceReadonly(getState())) {
                 return;
             }
@@ -125,7 +167,7 @@ define([
             if (!_.isEmpty(updateVertices)) {
                 const state = getState();
                 const snapToGrid = state.user.current.uiPreferences.snapToGrid === 'true';
-                dispatch(api.setPositions({ productId, snapToGrid, updateVertices }));
+                dispatch(api.setPositions({ productId, snapToGrid, updateVertices, undoable }));
             }
             if (!_.isEmpty(existingVertices)) {
                 dispatch({
@@ -162,7 +204,8 @@ define([
                 dispatch(api.updatePositions({
                     productId,
                     updateVertices: _.object(newVertices.map(id => [id, nextPosition()])),
-                    existingVertices: { position, vertices: existingVertices }
+                    existingVertices: { position, vertices: existingVertices },
+                    undoable: true
                 }))
                 dispatch(productActions.select({ productId }));
             })
@@ -201,7 +244,11 @@ define([
                     vertices: Object.keys(updateVertices)
                 }
             }));
-        }
+        },
+
+        undoRemoveElements: ({ productId, updateVertices }) => api.updatePositions({ productId, updateVertices }),
+
+        redoRemoveElements: ({ productId, removeElements }) => productActions.removeElements({ productId, elements: removeElements })
     };
 
     return api;

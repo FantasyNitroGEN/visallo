@@ -1,4 +1,4 @@
-define(['util/undoManager'], function(UndoManager) {
+define([], function() {
     'use strict';
 
     return withWorkspaces;
@@ -15,6 +15,8 @@ define(['util/undoManager'], function(UndoManager) {
             this.on('loadCurrentWorkspace', this.onLoadCurrentWorkspace);
             this.on('switchWorkspace', this.onSwitchWorkspace);
             this.on('updateWorkspace', this.onUpdateWorkspace);
+            this.on('undo', this.onUndo);
+            this.on('redo', this.onRedo);
 
             visalloData.storePromise.then(store => {
                 const selectId = (s) => s.workspace.currentId || null;
@@ -109,6 +111,26 @@ define(['util/undoManager'], function(UndoManager) {
                         })
                 });
             }
+        };
+
+        this.onUndo = function() {
+            Promise.all([
+                visalloData.storePromise,
+                Promise.require('data/web-worker/store/undo/actions')
+            ]).spread((store, actions) => {
+                const scope = this.visalloData.currentWorkspaceId;
+                store.dispatch(actions.undoForProduct());
+            });
+        };
+
+        this.onRedo = function() {
+            Promise.all([
+                visalloData.storePromise,
+                Promise.require('data/web-worker/store/undo/actions')
+            ]).spread((store, actions) => {
+                const scope = this.visalloData.currentWorkspaceId;
+                store.dispatch(actions.redoForProduct());
+            });
         };
     }
 });

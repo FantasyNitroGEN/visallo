@@ -131,7 +131,7 @@ define([
                     } else if (selectedObjects && selectedObjects.vertices.length) {
                         vertexIds = _.pluck(selectedObjects.vertices, 'id')
                     }
-                    store.dispatch(productActions.removeElements(productId, { vertexIds }))
+                    store.dispatch(productActions.removeElements(productId, { vertexIds }, { undoable: true }));
                 }
             })
         };

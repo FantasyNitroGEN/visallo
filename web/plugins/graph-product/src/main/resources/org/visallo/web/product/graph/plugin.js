@@ -25,7 +25,9 @@ require(['configuration/plugins/registry'], function(registry) {
                 'delete': { fire: 'deleteSelected', desc: i18n('visallo.help.delete') },
                 'alt-r': { fire: 'addRelatedItems', desc: i18n('visallo.help.add_related') },
                 'alt-t': { fire: 'searchTitle', desc: i18n('visallo.help.search_title') },
-                'alt-s': { fire: 'searchRelated', desc: i18n('visallo.help.search_related') }
+                'alt-s': { fire: 'searchRelated', desc: i18n('visallo.help.search_related') },
+                'undo': { fire: 'undo', desc: i18n('visallo.help.undo') },
+                'redo': { fire: 'redo', desc: i18n('visallo.help.redo') }
             }
         });
     });

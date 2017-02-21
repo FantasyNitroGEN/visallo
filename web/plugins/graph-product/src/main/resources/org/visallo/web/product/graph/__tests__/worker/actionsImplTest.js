@@ -46,21 +46,43 @@ describe('graph plugin actions', () => {
             expect(
                store.dispatch(
                 actions.setPositions({
-                    productId: 'PRODUCT1'
+                    productId: 'PRODUCT1',
+                    updateVertices: {
+                        VERTEX1: {
+                            x: 4.5,
+                            y: 10.1
+                        }
+                    },
+                    undoable: true
                 })
                )
             ).toBeUndefined();
         });
 
         it('should dispatch PRODUCT_GRAPH_SET_POSITIONS on an existing vertex', () => {
+            const workspaceId = 'WORKSPACE1';
+            const productId = 'PRODUCT1';
             const expectedActions = [
                 {
                     type: 'PRODUCT_GRAPH_SET_POSITIONS',
                     payload: {
-                        productId: 'PRODUCT1',
-                        workspaceId: 'WORKSPACE1',
+                        productId,
+                        workspaceId,
                         updateVertices: {
                             VERTEX1: { x: 5, y: 10 }
+                        },
+                        undoScope: productId,
+                        undo: {
+                            productId,
+                            updateVertices: {
+                                VERTEX1: { x: 0, y: 0 }
+                            }
+                        },
+                        redo: {
+                            productId,
+                            updateVertices: {
+                                VERTEX1: { x: 5, y: 10 }
+                            }
                         }
                     }
                 }
@@ -105,7 +127,8 @@ describe('graph plugin actions', () => {
                             x: 4.5,
                             y: 10.1
                         }
-                    }
+                    },
+                    undoable: true
                 })
             ).then(() => {
                 expect(store.getActions()).toEqual(expectedActions);
@@ -113,14 +136,29 @@ describe('graph plugin actions', () => {
         });
 
         it('should dispatch PRODUCT_GRAPH_SET_POSITIONS on a new vertex',  () => {
+            const workspaceId = 'WORKSPACE1';
+            const productId = 'PRODUCT1';
             const expectedActions = [
                 {
                     type: 'PRODUCT_GRAPH_SET_POSITIONS',
                     payload: {
-                        productId: 'PRODUCT1',
-                        workspaceId: 'WORKSPACE1',
+                        productId,
+                        workspaceId,
                         updateVertices: {
                             VERTEX1: { x: 5, y: 10 }
+                        },
+                        undoScope: productId,
+                        undo: {
+                            productId,
+                            removeElements: {
+                                vertexIds: [ 'VERTEX1' ]
+                            }
+                        },
+                        redo: {
+                            productId,
+                            updateVertices: {
+                                VERTEX1: { x: 5, y: 10 }
+                            }
                         }
                     }
                 },
@@ -161,7 +199,8 @@ describe('graph plugin actions', () => {
                             x: 4.5,
                             y: 10.1
                         }
-                    }
+                    },
+                    undoable: true
                 })
             ).then(() => {
                 expect(store.getActions()).toEqual(expectedActions);
@@ -169,14 +208,29 @@ describe('graph plugin actions', () => {
         });
 
         it('should dispatch PRODUCT_GRAPH_SET_POSITIONS twice when snap to grid is enabled', () => {
+            const workspaceId = 'WORKSPACE1';
+            const productId = 'PRODUCT1';
             const expectedActions = [
                 {
                     type: 'PRODUCT_GRAPH_SET_POSITIONS',
                     payload: {
-                        productId: 'PRODUCT1',
-                        workspaceId: 'WORKSPACE1',
+                        productId,
+                        workspaceId,
                         updateVertices: {
                             VERTEX1: { x: 5, y: 10 }
+                        },
+                        undoScope: productId,
+                        undo: {
+                            productId,
+                            updateVertices: {
+                                VERTEX1: { x: 0, y: 0 }
+                            }
+                        },
+                        redo: {
+                            productId,
+                            updateVertices: {
+                                VERTEX1: { x: 5, y: 10 }
+                            }
                         }
                     }
                 },
@@ -232,6 +286,7 @@ describe('graph plugin actions', () => {
                             y: 10.1
                         }
                     },
+                    undoable: true,
                     snapToGrid: true
                 })
             ).then(() => {
@@ -240,21 +295,35 @@ describe('graph plugin actions', () => {
         });
 
         it('should dispatch PRODUCT_GRAPH_SET_POSITIONS twice on a new vertex when snap to grid is enabled',  () => {
+            const productId = 'PRODUCT1';
             const expectedActions = [
                 {
                     type: 'PRODUCT_GRAPH_SET_POSITIONS',
                     payload: {
-                        productId: 'PRODUCT1',
+                        productId,
                         workspaceId: 'WORKSPACE1',
                         updateVertices: {
                             VERTEX1: { x: 5, y: 10 }
+                        },
+                        undoScope: productId,
+                        undo: {
+                            productId,
+                            removeElements: {
+                                vertexIds: [ 'VERTEX1' ]
+                            }
+                        },
+                        redo: {
+                            productId,
+                            updateVertices: {
+                                VERTEX1: { x: 5, y: 10 }
+                            }
                         }
                     }
                 },
                 {
                     type: 'PRODUCT_GRAPH_SET_POSITIONS',
                     payload: {
-                        productId: 'PRODUCT1',
+                        productId,
                         workspaceId: 'WORKSPACE1',
                         updateVertices: {
                             VERTEX1: { x: 0, y: -12.5 }
@@ -281,7 +350,7 @@ describe('graph plugin actions', () => {
                     workspaces: {
                         WORKSPACE1: {
                             products: {
-                                PRODUCT1: {
+                                [productId]: {
                                     extendedData: { }
                                 }
                             }
@@ -292,13 +361,14 @@ describe('graph plugin actions', () => {
 
             return store.dispatch(
                 actions.setPositions({
-                    productId: 'PRODUCT1',
+                    productId,
                     updateVertices: {
                         VERTEX1: {
                             x: 4.5,
                             y: 10.1
                         }
                     },
+                    undoable: true,
                     snapToGrid: true
                 })
             ).then(() => {
