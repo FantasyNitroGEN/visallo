@@ -38,6 +38,9 @@ define([
             this.on('clearSelectedConcept', this.onClearConcept);
             this.on('selectConceptId', this.onSelectConceptId);
             this.on('enableConcept', this.onEnableConcept);
+            this.on('change', {
+                fieldSelector: this.onChange
+            });
 
             this.setupTypeahead();
         });
@@ -76,6 +79,15 @@ define([
                 this.select('conceptSelector').attr('disabled', true);
             } else {
                 this.select('conceptSelector').removeAttr('disabled');
+            }
+        };
+
+        this.onChange = function(event, data) {
+            const value = $.trim(this.select('fieldSelector').val());
+            if (!value) {
+                this.trigger('conceptSelected', {
+                    concept: null
+                });
             }
         };
 

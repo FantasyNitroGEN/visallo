@@ -377,10 +377,8 @@ define([
                         }
                     }
 
-                    var queryIsStarSearch = query === '*',
-                        hasQuery = query && query.length,
-                        validSearch = hasFilters ? hasQuery :
-                            (hadFilters && hasQuery && !queryIsStarSearch);
+                    const hasQuery = query && query.length;
+                    const validSearch = hasQuery && (hasFilters || hadFilters);
 
                     if (data.options && data.options.isScrubbing) {
                         self.triggerQueryUpdatedThrottled();
