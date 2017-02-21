@@ -56,7 +56,7 @@ define([
         },
         ADD_COMMENT: {
             title: i18n('detail.toolbar.add.comment'),
-            subtitle: i18n('detail.toolbar.add.comment.subtitle'), // 'Add New Comment to Entity',
+            subtitle: i18n('detail.toolbar.add.comment.entity.subtitle'), // 'Add New Comment to Entity',
             cls: 'requires-COMMENT',
             event: 'addNewComment'
         },
@@ -323,7 +323,10 @@ define([
                 disableAdd = (model.hasOwnProperty('updateable') && !model.updateable) || !hasAddableCommentProperty;
 
             if (!disableAdd) {
-                return ToolbarComponent.ITEMS.ADD_COMMENT;
+                return {
+                    ...ToolbarComponent.ITEMS.ADD_COMMENT,
+                    subtitle: model.type === 'vertex' ? i18n('detail.toolbar.add.comment.entity.subtitle') : i18n('detail.toolbar.add.comment.relationship.subtitle')
+                };
             }
         };
 
