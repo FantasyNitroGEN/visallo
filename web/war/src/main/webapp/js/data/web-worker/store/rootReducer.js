@@ -35,6 +35,7 @@ define([
     './product/reducer',
     './screen/reducer',
     './selection/reducer',
+    './undo/reducer',
     './user/reducer',
     './workspace/reducer'
 

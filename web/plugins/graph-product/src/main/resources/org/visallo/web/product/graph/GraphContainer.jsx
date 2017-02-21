@@ -248,7 +248,7 @@ define([
                 onUpdatePreview: (id, dataUrl) => dispatch(productActions.updatePreview(id, dataUrl)),
 
                 onAddRelated: (id, vertices) => dispatch(graphActions.addRelated(id, vertices)),
-                onUpdatePositions: (id, positions) => dispatch(graphActions.updatePositions(id, positions)),
+                onUpdatePositions: (id, positions) => dispatch(graphActions.updatePositions(id, positions, { undoable: true })),
                 onSaveViewport: (id, { pan, zoom }) => dispatch(productActions.updateViewport(id, { pan, zoom })),
                 onSearch(event) {
                     event.preventDefault();
@@ -272,7 +272,7 @@ define([
                     dispatch(graphActions.dropElements(props.product.id, elementIds, position))
                 },
                 onRemoveElementIds: (elementIds) => {
-                    dispatch(productActions.removeElements(props.product.id, elementIds))
+                    dispatch(productActions.removeElements(props.product.id, elementIds, { undoable: true }));
                 },
                 onVertexMenu: (element, vertexId, position) => {
                     $(element).trigger('showVertexContextMenu', { vertexId, position });

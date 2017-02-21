@@ -72,7 +72,7 @@ define([
                 });
         },
 
-        updateExtendedData: ({productId, key, value}) => (dispatch, getState) => {
+        updateExtendedData: ({ productId, key, value, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
             const params = {
@@ -94,15 +94,46 @@ define([
             }
         }),
 
-        removeElements: ({ productId, elements }) => (dispatch, getState) => {
+        removeElements: ({ productId, elements, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
             const workspace = state.workspace.byId[workspaceId];
             if (workspace.editable && elements && elements.vertexIds && elements.vertexIds.length) {
                 const removeVertices = elements.vertexIds;
+                const product = state.product.workspaces[workspaceId].products[productId];
+                const byId = _.indexBy(product.extendedData.vertices, 'id');
+
+                let undoPayload = {};
+                if (undoable) {
+                    const updateVertices = removeVertices
+                        .map(id => byId[id])
+                        .reduce(
+                            (vertices, {id, pos}) => ({
+                                [id]: pos,
+                                ...vertices
+                            }),
+                            {}
+                        );
+                    undoPayload = {
+                        undoScope: productId,
+                        undo: {
+                            productId,
+                            updateVertices
+                        },
+                        redo: {
+                            productId,
+                            removeElements: elements
+                        }
+                    };
+                }
                 dispatch({
                     type: 'PRODUCT_REMOVE_ELEMENTS',
-                    payload: { elements: { vertexIds: removeVertices }, productId, workspaceId }
+                    payload: {
+                        elements: { vertexIds: removeVertices },
+                        productId,
+                        workspaceId,
+                        ...undoPayload
+                    }
                 });
                 dispatch(selectionActions.remove({
                     selection: { vertices: removeVertices }
