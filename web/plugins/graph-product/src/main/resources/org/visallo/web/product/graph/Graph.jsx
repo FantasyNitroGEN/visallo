@@ -471,6 +471,8 @@ define([
                     if (ctrlKey && upElement) {
                         this.onContextTap(event);
                     }
+                } else if (!upElement.isNode()) {
+                    this.cancelDraw();
                 } else {
                     this.setState({ draw: {...draw, toVertexId: upElement.id() } });
                     this.showConnectionPopover();
@@ -497,7 +499,9 @@ define([
             // TODO: show all selected objects if not on item
             if (cyTarget !== cy) {
                 const { pageX, pageY } = originalEvent;
-                this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
+                if (cyTarget.isNode()) {
+                    this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
+                }
             }
         },
 
