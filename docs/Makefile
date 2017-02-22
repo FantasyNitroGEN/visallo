@@ -86,7 +86,7 @@ clean:
 
 clone:
 	@rm -rf docs.visallo.org
-	@git clone -n git@github.com:v5analytics/docs.visallo.org
+	@git clone -n https://github.com/visallo/docs.visallo.org.git
 
 push: build clone
 	@mv docs.visallo.org/.git _book
