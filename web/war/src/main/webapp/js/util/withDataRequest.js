@@ -1,13 +1,39 @@
 /**
- * Make data requests using events, but wrapped in promise interface
- * Depends on document level component to respond, or times out
+ * Make data requests using events, but wrapped in Promise interface.
+ * These requests get routed to the web worker thread where one of
+ * the service interfaces will handle the AJAX request and process the
+ * response.
+ *
+ * The service name maps to a module defined in `data/web-worker/services/*`,
+ * and the service method is the method to invoke in that modules exported
+ * object.
+ *
+ * See the documented **Services** in the navigation menu on the left.
+ *
+ * To create custom services in plugins refer to the
+ * {@link http://docs.visallo.org/tutorials/webplugin.html|Web Plugin Tutorial}.
+ *
+ * @module
+ * @classdesc Invoke service requests on Web Worker
+ * @example
+ * // Invoke the "me" function in "data/web-worker/services/user.js" module
+ * dataRequest('user', 'me')
+ *  .then(function(user) {
+ *      // The current logged in user info
+ *  }).catch(function(err) {
+ *    // handle error
+ *  }
  */
 define([
     'util/promise',
     'underscore',
     'jquery',
     'util/requirejs/promise!util/service/dataPromise'
-], function(Promise, _, $) {
+], function(Promise, _, $)
+    /**
+     * @alias module:util/withDataRequest
+     */
+{
     'use strict';
 
     var NO_DATA_RESPONSE_TIMEOUT_SECONDS = 4,
@@ -51,6 +77,17 @@ define([
         }
     }
 
+
+    /**
+     * Make a data request
+     *
+     * @name module:util/withDataRequest.dataRequest
+     * @function
+     * @param {string} service The name of service
+     * @param {string} method The method to invoke in service
+     * @param {...object} [args] arguments to pass to service
+     * @returns {Promise} The service request promise
+     */
     function dataRequestFromNode(node, service, method /*, args */) {
         if (!service || !method) {
             throw new Error('Service and method parameters required for dataRequest');
@@ -97,10 +134,10 @@ define([
 
         return promise;
     }
-
     withDataRequest.dataRequest = _.partial(dataRequestFromNode, document);
 
     return withDataRequest;
+
 
     function withDataRequest() {
 

@@ -19,3 +19,4 @@ logs/
 dependency-reduced-pom.xml
 datastore/
 docs/java
+docs/javascript

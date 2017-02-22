@@ -1,0 +1,52 @@
+/**
+ * @mixin FlightComponent
+ */
+
+/**
+ * @constructor
+ * @method FlightComponent.attachTo
+ */
+
+/**
+ * @method FlightComponent.teardownAll
+ */
+
+/**
+ * @method FlightComponent#teardown
+ */
+
+/**
+ * @method FlightComponent#before
+ */
+
+/**
+ * @method FlightComponent#after
+ */
+
+/**
+ * @method FlightComponent#around
+ */
+
+/**
+ * @type JQueryElement
+ * @name FlightComponent#$node
+ * @instance
+ */
+
+/**
+ * @type HtmlElement
+ * @name FlightComponent#node
+ * @instance
+ */
+
+/**
+ * @method FlightComponent#on
+ */
+
+/**
+ * @method FlightComponent#off
+ */
+
+/**
+ * @method FlightComponent#trigger
+ */
