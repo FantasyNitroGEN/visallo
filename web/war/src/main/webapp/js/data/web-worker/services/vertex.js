@@ -1,9 +1,18 @@
+/**
+ * Routes for vertices
+ *
+ * @module services/vertex
+ * @see module:util/withDataRequest
+ */
 define([
     '../util/ajax',
     './storeHelper'
 ], function(ajax, storeHelper) {
     'use strict';
 
+    /**
+     * @alias module:services/vertex
+     */
     var api = {
 
         queryForOptions: function(options) {
@@ -82,12 +91,26 @@ define([
             return ajax('GET', '/vertex/find-path', options);
         },
 
+        /**
+         * Get history of vertex (property changes, etc)
+         *
+         * @param {string} vertexId
+         */
         history: function(vertexId) {
             return ajax('GET', '/vertex/history', {
                 graphVertexId: vertexId
             });
         },
 
+        /**
+         * Get history for single property
+         *
+         * @param {string} vertexId
+         * @param {object} property
+         * @param {string} property.name
+         * @param {string} property.key
+         * @param {object} [options]
+         */
         propertyHistory: function(vertexId, property, options) {
             return ajax('GET', '/vertex/property/history', _.extend(
                 {},
@@ -104,8 +127,17 @@ define([
             return ajax('GET', '/vertex/details', { vertexId: vertexId });
         },
 
+        /**
+         * @see module:services/vertex.store
+         * @function
+         */
         multiple: storeHelper.createStoreAccessorOrDownloader('vertex'),
 
+        /**
+         * Get vertex properties
+         *
+         * @param {string} vertexId
+         */
         properties: function(vertexId) {
             return ajax('GET', '/vertex/properties', {
                 graphVertexId: vertexId
@@ -129,6 +161,16 @@ define([
             });
         },
 
+        /**
+         * Get connected edges to vertex
+         *
+         * @param {string} id
+         * @param {object} [options]
+         * @param {object} [options.offset]
+         * @param {object} [options.size]
+         * @param {object} [options.edgeLabel]
+         * @param {object} [options.direction]
+         */
         edges: function(vertexId, options) {
             var parameters = {
                 graphVertexId: vertexId
@@ -143,18 +185,36 @@ define([
             return ajax('GET', '/vertex/edges', parameters);
         },
 
+        /**
+         * Delete a vertex (sandboxed)
+         *
+         * @param {string} vertexId
+         */
         'delete': function(vertexId) {
             return ajax('DELETE', '/vertex', {
                 graphVertexId: vertexId
             })
         },
 
+        /**
+         * Check if the vertices exist (in current workspace)
+         *
+         * @param {Array.<string>} vertexIds
+         */
         exists: function(vertexIds) {
             return ajax(vertexIds.length > 1 ? 'POST' : 'GET', '/vertex/exists', {
                 vertexIds: vertexIds
             });
         },
 
+        /**
+         * Delete a property
+         *
+         * @param {string} vertexId
+         * @param {object} property
+         * @param {string} property.name
+         * @param {string} property.key
+         */
         deleteProperty: function(vertexId, property) {
             var url = storeHelper.vertexPropertyUrl(property);
             return ajax('DELETE', url, {
@@ -164,6 +224,13 @@ define([
             })
         },
 
+        /**
+         * Get text property in HTML format
+         *
+         * @param {string} vertexId
+         * @param {string} propertyKey
+         * @param {string} propertyName
+         */
         'highlighted-text': function(vertexId, propertyKey, propertyName) {
             return ajax('GET->HTML', '/vertex/highlighted-text', {
                 graphVertexId: vertexId,
@@ -180,6 +247,20 @@ define([
             });
         },
 
+        /**
+         * Get the vertexIds from the cache or request multiple vertices if they aren't yet cached.
+         *
+         * @function
+         * @param {object} obj
+         * @param {Array.<string>} obj.vertexIds
+         * @return {Array.<object>} vertices
+         * @example
+         * dataRequest('vertex', 'store', {
+         *    vertexIds: ['v1', 'v2']
+         * }).then(function(vertices) {
+         *     // ...
+         * })
+         */
         store: function(options) {
             return api.multiple(options);
         },
@@ -189,6 +270,15 @@ define([
                 'graphVertexId=' + encodeURIComponent(vertexId), file);
         },
 
+        /**
+         * Create new vertex
+         *
+         * @param {object} justification
+         * @param {string} [justification.justificationText]
+         * @param {string} [justification.sourceInfo]
+         * @param {string} conceptType
+         * @param {string} visibilitySource
+         */
         create: function(justification, conceptType, visibilitySource) {
             return ajax('POST', '/vertex/new', _.tap({
                 conceptType: conceptType,
@@ -246,6 +336,12 @@ define([
             return ajax('POST', '/vertex/import', formData);
         },
 
+        /**
+         * Set visibility on an vertex
+         *
+         * @param {string} vertexId
+         * @param {string} visibilitySource
+         */
         setVisibility: function(vertexId, visibilitySource) {
             return ajax('POST', '/vertex/visibility', {
                 graphVertexId: vertexId,
@@ -253,6 +349,16 @@ define([
             }).tap(storeHelper.updateElement);
         },
 
+        /**
+         * Set visibility on a property
+         *
+         * @param {string} vertexId
+         * @param {object} property
+         * @param {string} property.visibilitySource
+         * @param {string} property.oldVisibilitySource
+         * @param {string} property.key
+         * @param {string} property.name
+         */
         setPropertyVisibility: function(vertexId, property) {
             return ajax('POST', '/vertex/property/visibility', {
                 graphVertexId: vertexId,
@@ -263,6 +369,20 @@ define([
             })
         },
 
+        /**
+         * Change/add property
+         *
+         * @param {string} vertexId
+         * @param {object} property
+         * @param {string} property.visibilitySource
+         * @param {string} property.justificationText
+         * @param {string} property.value
+         * @param {string} property.name
+         * @param {string} [property.key]
+         * @param {object} [property.metadata]
+         * @param {object} [property.sourceInfo]
+         * @param {string} [workspaceId]
+         */
         setProperty: function(vertexId, property, optionalWorkspaceId) {
             var url = storeHelper.vertexPropertyUrl(property);
             return ajax('POST', url, _.tap({

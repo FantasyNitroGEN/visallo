@@ -1,4 +1,31 @@
-
+/**
+ * The list could be a static list or a infinite loading list of elements. The
+ * container component is responsible for listening for events to request more
+ * elements and fulfilling that request.
+ *
+ * @module
+ * @flight Render lists of entities and relationships (vertices/edges)
+ * @attr {Array.<Object>} items Elements (vertices/edges) to render
+ * @attr {boolean} singleSelection Whether the user can use keyboard shift/alt to select multiple
+ * @attr {boolean} infiniteScrolling Whether the component should request more elements after scrolling
+ * @attr {number} total The total count of items. Required when `infiniteScrolling` enabled.
+ * @attr {number} nextOffset When `infiniteScrolling` is enabled, specifies where the next request should start
+ * @attr {string|undefined} usageContext Describes the context this component is used so ListItemRenderers can determine if they should override behavior.
+ * @fires module:util/element/list#infiniteScrollRequest
+ * @listens module:util/element/list#addInfiniteItems
+ * @extensionpoint {module:util/element/list~ListItemRenderer} org.visallo.entity.listItemRenderer Customize the rendering of elements in list
+ * @example <caption>Static list</caption>
+ * List.attachTo(node, {
+ *     items: [vertices]
+ * })
+ * @example <caption>Infinite Scroll</caption>
+ * // See example below for listening for infiniteScrollRequest
+ * List.attachTo(node, {
+ *     items: [page1Elements]
+ *     nextOffset: 10,
+ *     total: 100
+ * })
+ */
 define([
     'flight/lib/component',
     'configuration/plugins/registry',
@@ -30,6 +57,13 @@ define([
 
     var MAX_ITEMS_BEFORE_FORCE_LOADING = 10;
     var EXTENSION_POINT_NAME = 'org.visallo.entity.listItemRenderer';
+
+    /**
+     * @typedef {object} module:util/element/list~ListItemRenderer
+     * @property {module:util/element/list~ListItemRendererCanHandle|undefined} canHandle Whether the extension should run given an item and usageContext
+     * @property {string|undefined} component The FlightJS component to handle rendering
+     * @property {string|undefined} componentPath Path to FlightJS component
+     */
     registry.documentExtensionPoint(EXTENSION_POINT_NAME,
         'Implement custom implementations for rendering items into element lists. ' +
         'This allows plugins to adjust how list items are displayed in search results, details panels, ' +
@@ -305,6 +339,17 @@ define([
                     data.paging = {
                         offset: this.offset
                     };
+
+                    /**
+                     * Fired when the user scrolls to the end of a list that has `infiniteScrolling` enabled.
+                     * The controlling component should listen and trigger
+                     * {@link module:util/element/list#event:addInfiniteItems addInfiniteItems} events.
+                     *
+                     * @event module:util/element/list#infiniteScrollRequest
+                     * @property {object} data
+                     * @property {object} data.paging
+                     * @property {number} data.paging.offset Paging offset
+                     */
                     this.trigger('infiniteScrollRequest', data);
                 }
             }
@@ -314,6 +359,16 @@ define([
             var self = this,
                 usageContext = self.attr.usageContext,
                 itemRenderer = _.find(this.renderers, function(renderer) {
+
+                    /**
+                     * Defines whether the given extension should be used give
+                     * the item + usageContext pair.
+                     *
+                     * @callback ListItemRendererCanHandle
+                     * @param {object} item Element/Edge object
+                     * @param {string|undefined} usageContext The context this list is running. 'search, detail/relationships', etc.
+                     * @returns {boolean} If the extension renderer should be invoked
+                     */
                     return renderer.component && renderer.canHandle(item, usageContext);
                 }).component;
 
@@ -356,6 +411,32 @@ define([
             this.loadVisibleResultPreviews();
         };
 
+        /**
+         * The Element List component registers a listener for this event that
+         * should be fired by the consuming component in response to `infiniteScrollRequest` events.
+         *
+         * @event module:util/element/list#addInfiniteItems
+         * @property {object} data
+         * @property {boolean} data.success Whether the request succeeded or not
+         * @property {Array.<object>} data.items The new items to place
+         * @property {number} data.nextOffset The next offset to request
+         * @property {number|undefined} data.total The new total (optional)
+         * @example
+         * $node.on('infiniteScrollRequest', function(event, data) {
+         *     makeRequestStartingAtOffset(data.paging.offset)
+         *     .then(function(results) {
+         *         $(event.target).trigger('addInfiniteItems', {
+         *             items: results,
+         *             nextOffset: data.paging.offset + results.length
+         *         })
+         *     })
+         * });
+         * List.attachTo($node, {
+         *     items: [],
+         *     infiniteScrolling: true,
+         *     nextOffset: 10
+         * })
+         */
         this.onAddInfiniteItems = function(evt, data) {
             var loading = this.$node.find('.infinite-loading');
 

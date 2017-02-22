@@ -1,15 +1,43 @@
 # Front End
 
-## Setup
+## Getting Started
 
-    # From root project directory (installs node, npm, and all dependencies the first time)
+* [Building a Web Plugin](../tutorials/webplugin.md) describes creating a Web Plugin.
+* [Building a React Web Plugin](../tutorials/webplugin-react.md) dives deeper into React specific components in Visallo.
+* The [Visallo Front-End Public API](../javascript/module-public_v1_api.html) are documents the front-end API for plugin authors to extend Visallo.
+* View the [Extension Point Documentation](../extension-points/front-end/index.md) for information on extending Visallo components.
+
+## Compiling Front-End
+
+    # From root project directory (installs node, yarn, and all front-end dependencies the first time)
     > mvn -pl web/war -am clean compile
 
-    # Go to webapp
-    > cd web/war/src/main/webapp
+### Localization
 
-    # Compile less, js and watch directory
-    > ./grunt
+All strings are loaded from `MessageBundle.properties` property files. Extend / replace strings using a web plugin that defines / overrides strings in another bundle using a web plugin. Use the `registerMessageBundle` Java API.
+
+For example:
+
+    visibility.label=Classification
+    visibility.blank=Unclassified
+
+Translate message keys to current locale value using `i18n` JavaScript function in global scope.
+
+```js
+i18n("visibility.label")
+// returns "Classification"
+```
+
+The translation function also supports interpolation
+
+    // MessageBundle.properties
+    my.property=The {0} brown fox {1} over the lazy dog
+
+```js
+// JavaScript plugin
+i18n("my.property", "quick", "jumps");
+// returns "The quick brown fox jumps over the lazy dog"
+```
 
 ## Routing with Fragment URLs
 
@@ -45,6 +73,72 @@ Visallo has a built-in set of routing using the URLs fragment identifier.
 
     Opens Visallo to the specified menubar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behavior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
 
+## Configuration
+
+### Property Info Metadata
+
+Properties have an *info* icon that opens a metadata popover. The metadata displayed can be configured with configuration property files.
+
+    properties.metadata.propertyNames: Lists metadata properties to display in popover
+    properties.metadata.propertyNameDisplay: Lists metadata display name keys (MessageBundle.properties)
+    properties.metadata.propertyNamesType: Lists metadata types to format values.
+
+Metadata Types: `timezone`, `datetime`, `user`, `sandboxStatus`, `percent`
+
+To add a new type:
+
+1. Create a web plugin.
+2. Extend the formatter with custom type(s). For example, pluralize and translate. 
+
+```js
+require(['public/v1/api'], function(api) {
+    api.connect().then(function(connected) {
+            Object.assign(connected.formatters.vertex.metadata, {
+                pluralize: function(el, value) {
+                    el.textContent = value + 's';
+                },
+
+                // Suffix name with "Async" and return a promise
+                translateAsync: function(el, value) {
+                    return $.get('/translateService', { string:value })
+                        .then(function(result) {
+                            el.textContent = result;
+                        })
+                }
+            })
+        })
+});
+```
+
+### Ontology Property Display Types
+
+Allows custom DOM per ontology [`displayType`](../getting-started/ontology.md).
+
+1. Create a web plugin and extend / override formatters.
+
+```js
+require(['public/v1/api'], function(api) {
+    api.connect().then(function(connected) {
+        Object.assign(connected.formatters.vertex.properties, {
+
+            // Will be executed for properties that have displayType='link'
+            link: function(domElement, property, vertexId) {
+                $('<a>')
+                    .attr('href', property.value)
+                    .text(i18n('properties.link.label'))
+                    .appendTo(domElement);
+            },
+
+            visibility: function(el, property) {
+                $('<i>')
+                    .text(property.value || i18n('visibility.blank'))
+                    .appendTo(el);
+            }
+        });
+    })
+});
+```
+
 ## Helpful Global Functions
 
 These are some developer helper functions. Run these commands in the browser console.
@@ -73,108 +167,5 @@ Overlays component name using mouseover events. Useful for checking what compone
 ```js
 enableComponentHighlighting(true); // Display component overlays
 enableComponentHighlighting(false); // Disable component overlays
-```
-
-### Gremlins
-
-Randomly click in the UI for some period of time. Useful for checking to see if UI can break with errant and excessive clicking.
-
-```js
-gremlins();
-```
-
-## Extensibility
-
-View the [Extension Point Documentation](../extension-points/front-end/index.md) for information on extending Visallo components.
-
-### Localization
-
-All strings are loaded from `MessageBundle.properties`. Extend / replace strings using a web plugin that defines / overrides strings in another bundle using a web plugin.
-
-For example:
-
-    visibility.label=Classification
-    visibility.blank=Unclassified
-
-Translate message keys to current locale value using `i18n` JavaScript function in global scope.
-
-```js
-i18n("visibility.label")
-// returns "Classification"
-```
-
-The translation function also supports interpolation
-
-    // MessageBundle.properties
-    my.property=The {0} brown fox {1} over the lazy dog
-
-```js
-// JavaScript plugin
-i18n("my.property", "quick", "jumps");
-// returns "The quick brown fox jumps over the lazy dog"
-```
-
-### Property Info Metadata
-
-Properties have an *info* icon that opens a metadata popover. The metadata displayed can be configured with configuration property files.
-
-    properties.metadata.propertyNames: Lists metadata properties to display in popover
-    properties.metadata.propertyNameDisplay: Lists metadata display name keys (MessageBundle.properties)
-    properties.metadata.propertyNamesType: Lists metadata types to format values.
-
-Metadata Types: `timezone`, `datetime`, `user`, `sandboxStatus`, `percent`
-
-To add a new type:
-
-1. Create a web plugin.
-2. Extend the formatter with custom type(s). For example, pluralize and translate. 
-
-```js
-require(['util/vertex/formatters'], function(F) {
-    $.extend(F.vertex.metadata, {
-        pluralize: function(el, value) {
-            el.textContent = value + 's';
-        },
-
-        // Suffix name with "Async" and return a promise
-        translateAsync: function(el, value) {
-            var translationPromise = $.Deferred();
-            $.get('/translateService', { string:value })
-                .done(function(result) {
-                    el.textContent = result;
-                    translationPromise.resolve();
-                })
-
-            return translationPromise.promise();
-        }
-    })
-});
-```
-
-### Ontology Property Display Types
-
-Allows custom DOM per ontology [`displayType`](../getting-started/ontology.md).
-
-1. Create a web plugin and extend / override formatters.
-
-```js
-require(['util/vertex/formatters'], function(F) {
-    $.extend(F.vertex.properties, {
-
-        // Will be executed for properties that have displayType='link'
-        link: function(domElement, property, vertexId) {
-            $('<a>')
-                .attr('href', property.value)
-                .text(i18n('properties.link.label'))
-                .appendTo(domElement);
-        },
-
-        visibility: function(el, property) {
-            $('<i>')
-                .text(property.value || i18n('visibility.blank'))
-                .appendTo(el);
-        }
-    });
-});
 ```
 

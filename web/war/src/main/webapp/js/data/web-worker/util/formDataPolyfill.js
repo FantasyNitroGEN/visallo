@@ -33,10 +33,6 @@
         // Generate a random boundary - This must be unique with respect to the form's contents.
         this.boundary = '------RWWorkerFormDataBoundary' + Math.random().toString(36);
         var internalData = this.data = [];
-        /**
-        * Internal method.
-        * @param inp String | ArrayBuffer | Uint8Array  Input
-        */
         this.__append = function(inp) {
             var i = 0, len;
             if (typeof inp == 'string') {

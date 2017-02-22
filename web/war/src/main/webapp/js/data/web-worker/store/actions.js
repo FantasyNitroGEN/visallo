@@ -16,7 +16,7 @@ define([], function() {
             function isValidKey(key) { return validActionKeys.indexOf(key) > -1; }
         },
 
-        /**
+        /*
          * Create FSA compatible actions which include the worker action
          * mapper.
          *
