@@ -57,6 +57,7 @@ define([], function() {
                         'background-color': '#ccc',
                         'background-fit': 'contain',
                         'border-color': 'white',
+                        'background-image-crossorigin': 'use-credentials',
                         'font-family': 'helvetica',
                         'font-size': 18 * pixelRatio,
                         'min-zoomed-font-size': 4,
