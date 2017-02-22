@@ -20,29 +20,6 @@ define([
             });
         },
 
-        dictionary: function() {
-            return ajax('GET', '/admin/dictionary');
-        },
-
-        dictionaryDelete: function(rowKey) {
-            return ajax('POST', '/admin/dictionary/delete', {
-                entryRowKey: rowKey
-            });
-        },
-
-        dictionaryAdd: function(concept, tokens, resolvedName) {
-            var data = {
-                concept: concept,
-                tokens: tokens
-            };
-
-            if (resolvedName) {
-                data.resolvedName = resolvedName;
-            }
-
-            return ajax('POST', '/admin/dictionary', data);
-        },
-
         plugins: function() {
             return ajax('GET', '/admin/plugins');
         },
