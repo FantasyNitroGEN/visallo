@@ -47,7 +47,6 @@ define([
             }));
 
             this.updateTimezone();
-            this.disableEvents = false;
 
             this.select('timeFieldSelector').timepicker({
                 template: false,
@@ -58,79 +57,21 @@ define([
                 defaultTime: timeString || false,
                 showMeridian: false,
                 disableMousewheel: true
-            }).on('changeTime.timepicker', function() {
-                if (self.disableEvents) return;
-                self.triggerFieldUpdated();
-            });
-
-            this.on('keydown', function(event) {
-                if (event.which === $.ui.keyCode.BACKSPACE) {
-                    this.preventDefaultChange = true;
-                }
-            });
-
-            this.on('change keyup', {
-                inputSelector: function(event) {
-                    if (this.disableEvents) return;
-                    if (event.type === 'keyup' && event.which === $.ui.keyCode.BACKSPACE) {
-                        this.preventDefaultChange = false;
-                    }
-                    if (!this.preventDefaultChange) {
-                        if (event.type === 'change' || event.which === $.ui.keyCode.ENTER) {
-                            if (this.displayTime) {
-                                if ($(event.target).is('.date')) {
-                                    this.triggerFieldUpdated();
-                                } else if (event.type === 'keyup') {
-                                    $(event.target).blur();
-                                }
-                            } else {
-                                this.triggerFieldUpdated();
-                            }
-                        }
-                    }
-                }
-            });
-
-            this.select('inputSelector').on('blur', self.triggerFieldUpdated.bind(self));
-
-            this.$node.find('input').on('paste', function(event) {
-                var $this = $(this);
-
-                $this.datepicker('hide');
-                $this[0].select();
-
-                _.delay(function() {
-                    var pasted = $this.val();
-
-                    if (pasted) {
-                        var date = F.date.looslyParseDate(pasted);
-                        if (date) {
-                            $this.val(F.date.dateString(date));
-                            $this.datepicker('setDate', date);
-                            $this.next('input.timepicker').timepicker('setTime', date);
-                            $this.datepicker('update');
-                            $this.blur();
-                        }
-                    }
-                }, 500)
-            });
+            })
 
             this.on('click', {
                 timezoneSelector: this.onTimezoneOpen
             });
             this.on('selectTimezone', this.onSelectTimezone);
             this.updateTimezone();
+            this.select('inputSelector').eq(0).datepicker().on('changeDate', () => {
+                this.triggerFieldUpdated();
+            });
         });
 
         this.getValue = function() {
-            var input = this.select('inputSelector').eq(0),
-                val = input.val(),
-                date = val.length && input.datepicker('getDate'),
-                dateStr;
-
-            if (_.isDate(date) && !isNaN(date.getTime())) {
-                dateStr = F.date.dateString(date.getTime());
-            }
+            const input = this.select('inputSelector').eq(0);
+            const dateStr = input.val();
 
             if (this.displayTime) {
                 var timeField = input.next('input.timepicker'),
@@ -149,59 +90,56 @@ define([
         }
 
         this.setValue = function(value) {
-            var dateString, timeString;
+            let dateString, timeString;
 
-            this.disableEvents = true;
-            try {
-                if (value) {
-                    var millis = _.isNumber(value) ? value : undefined,
-                        date;
+            if (value) {
+                var millis = _.isNumber(value) ? value : undefined,
+                    date;
 
-                    if (_.isUndefined(millis) && _.isString(value) && value.length) {
-                        if ((/^-?[0-9]+$/).test(value)) {
-                            millis = parseInt(value, 10);
+                if (_.isUndefined(millis) && _.isString(value) && value.length) {
+                    if ((/^-?[0-9]+$/).test(value)) {
+                        millis = parseInt(value, 10);
+                    } else {
+                        var looksLikeCorrectFormat = (/^\d+-\d+-\d+ \d+:\d+$/).test(value);
+                        if (looksLikeCorrectFormat) {
+                            var parsed = F.timezone.date(value, 'Etc/UTC');
+                            if (parsed) {
+                                date = parsed.toDate();
+                            }
                         } else {
-                            var looksLikeCorrectFormat = (/^\d+-\d+-\d+ \d+:\d+$/).test(value);
-                            if (looksLikeCorrectFormat) {
-                                var parsed = F.timezone.date(value, 'Etc/UTC');
-                                if (parsed) {
-                                    date = parsed.toDate();
-                                }
-                            } else {
-                                date = F.date.looslyParseDate(value);
-                            }
-                            if (date) {
-                                millis = date.getTime();
-                            }
+                            date = F.date.looslyParseDate(value);
                         }
-                    } else if (isNaN(new Date(millis).getTime())) {
-                        millis = null;
-                    }
-
-                    if (millis) {
-                        if (this.displayTime) {
-                            var fromZoneName = F.timezone.currentTimezone().name,
-                                toZoneName = this.currentTimezone ?
-                                    this.currentTimezone.name :
-                                    fromZoneName;
-
-                            if (fromZoneName !== toZoneName) {
-                                millis = F.timezone.dateTimeStringToTimezone(millis, fromZoneName, toZoneName);
-                            }
-                            dateString = F.date.dateString(millis);
-                            timeString = F.date.timeString(millis);
-                        } else {
-                            dateString = F.date.dateStringUtc(millis);
+                        if (date) {
+                            millis = date.getTime();
                         }
                     }
+                } else if (value instanceof Date) {
+                    dateString = F.date.dateString(value.getTime());
+                } else if (isNaN(new Date(millis).getTime())) {
+                    millis = null;
+                }
 
+                if (millis) {
+                    if (this.displayTime) {
+                        var fromZoneName = F.timezone.currentTimezone().name,
+                            toZoneName = this.currentTimezone ?
+                                this.currentTimezone.name :
+                                fromZoneName;
+
+                        if (fromZoneName !== toZoneName) {
+                            millis = F.timezone.dateTimeStringToTimezone(millis, fromZoneName, toZoneName);
+                        }
+                        dateString = F.date.dateString(millis);
+                        timeString = F.date.timeString(millis);
+                    } else {
+                        dateString = F.date.dateStringUtc(millis);
+                    }
                 }
-                this.select('inputSelector').eq(0).val(dateString).datepicker('update');
-                if (this.displayTime) {
-                    this.select('inputSelector').eq(1).timepicker('setTime', timeString);
-                }
-            } finally {
-                this.disableEvents = false;
+
+            }
+            this.select('inputSelector').eq(0).val(dateString);
+            if (this.displayTime) {
+                this.select('timeFieldSelector').val(timeString);
             }
         };
 
