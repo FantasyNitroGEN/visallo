@@ -271,7 +271,7 @@ define([
                     self.trigger('termCreated', data);
                     self.trigger(document, 'loadEdges');
                     self.trigger('closeDropdown');
-                    _.defer(self.teardown.bind(self));
+                    self.teardown.bind(self);
                 })
                 .catch(this.requestFailure.bind(this))
         };
@@ -282,7 +282,7 @@ define([
                 .then(function(data) {
                     self.trigger(document, 'loadEdges');
                     self.trigger('closeDropdown');
-                    _.defer(self.teardown.bind(self));
+                    self.teardown.bind(self);
                 })
                 .catch(this.requestFailure.bind(this))
         };
