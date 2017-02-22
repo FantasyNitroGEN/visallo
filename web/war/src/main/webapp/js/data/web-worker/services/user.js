@@ -1,8 +1,20 @@
-
+/**
+ * Services for users
+ *
+ * @module services/user
+ * @see module:util/withDataRequest
+ */
 define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax, store, userActions) {
     'use strict';
 
+    /**
+     * @alias module:services/user
+     */
     var api = {
+
+        /**
+         * Get the current user
+         */
         me: function(options) {
             return ajax('GET', '/user/me')
                 .then(function(user) {
@@ -12,12 +24,21 @@ define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax
                 })
         },
 
+        /**
+         * Get user info
+         * @param {string} userName
+         */
         get: function(userName) {
             return ajax('GET', '/user', {
                 'user-name': userName
             });
         },
 
+        /**
+         * Set user preference
+         * @param {string} name
+         * @param {object} value
+         */
         preference: function(name, value) {
             store.getStore().dispatch(userActions.putUserPreference({ name, value }))
             return ajax('POST', '/user/ui-preferences', {
@@ -26,6 +47,11 @@ define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax
             });
         },
 
+        /**
+         * Get user names for ids
+         * @function
+         * @param {Array.<string>} userIds
+         */
         getUserNames: (function() {
             var cachedNames = {};
             return function getUserNames(userIds) {
@@ -55,6 +81,12 @@ define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax
             };
         })(),
 
+        /**
+         * Search for user
+         * @param {object} options
+         * @param {object} [options.query]
+         * @param {Array.<string>} [options.userIds]
+         */
         search: function(options) {
             var data = {},
                 returnSingular = false;
@@ -79,6 +111,9 @@ define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax
                 })
         },
 
+        /**
+         * Logout
+         */
         logout: function(options) {
             return ajax('POST', '/logout');
         }

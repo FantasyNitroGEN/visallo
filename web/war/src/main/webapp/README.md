@@ -1,14 +1,28 @@
-Information about the Visallo web application and extension points can be
-found in the [Front End](http://docs.visallo.org/front-end) section of the
-documentation at [http://docs.visallo.org](http://docs.visallo.org)
+# Visallo Front-End
 
-# JavaScript and React Style Guide
+This directory contains all front-end code for the Visallo web application. [Yarn](https://yarnpkg.com) manages dependencies and [Grunt](http://gruntjs.com) builds the project. The project is built using maven, in the `visallo/web/war` module.
+
+## Visallo Plugin Developers
+
+Visallo can be extended using several different [plugin types](http://docs.visallo.org/extension-points/back-end/). One such type, _Web Plugins_, can extend the user interface using numerous [extension points](http://docs.visallo.org/extension-points/front-end). Visallo provides a [public API](http://docs.visallo/org/front-end/api) to register extensions and provide some helpful interface components.
+
+### Documentation Links
+
+**[Creating a Web Plugin](http://docs.visallo.org/tutorials/webplugin.html)** will walk through creating a web plugin.
+
+**[Creating a React Web Plugin](http://docs.visallo.org/tutorials/webplugin-react.html)** Focuses on adding React components to the web plugin.
+
+**[Visallo Public API](http://docs.visallo.org/javascript/module-public_v1_api.html)** is the [JSDoc](http://usejsdoc.org) for the top-level API for Visallo which includes shared components and utilities for use by plugins
+
+**[Front End Extensions](http://docs.visallo.org/extension-points/front-end/)** describes all available extension points which the built-in components expose for extending behavior
+
+--- 
+
+## JavaScript and React Style Guide
 
 Visallo's style for JavaScript and React. Inspired by / forked from the [Airbnb Style Guide](https://github.com/airbnb/javascript).
 
 React JSX is transpiled using [Babel](https://babeljs.io). The in-browser [Babel repl](https://babeljs.io/repl/) is a great option for viewing the transpiled output.
-
-## Table of Contents
 
 ### JavaScript
   1. [Basic Rules](#basic-rules)

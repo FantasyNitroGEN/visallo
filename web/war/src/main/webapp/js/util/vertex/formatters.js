@@ -1,4 +1,3 @@
-
 define([
     '../formatters',
     './urlFormatters',
@@ -17,12 +16,33 @@ define([
 
     var propertiesByTitle = ontology.properties.byTitle,
         propertiesByDependentToCompound = ontology.properties.byDependentToCompound,
+
+        /**
+         * Utilities that assist in transforming vertices and edges.
+         *
+         * @alias module:util/vertex/formatters.vertex
+         * @namespace
+         */
         V = {
 
+            /**
+             * Check if the passed object is currently published from a case
+             *
+             * @param {Object} element The vertex/edge json to check
+             * @returns {boolean} Whether the element is published
+             */
             isPublished: function(vertex) {
                 return V.sandboxStatus.apply(null, arguments) === undefined;
             },
 
+            /**
+             * Get the state of the vertex or property
+             * * `published`: Unpublished in case or Published but changed in case
+             * * `undefined`: Published and not changed in case
+             *
+             * @param {object} Vertex or property json
+             * @returns {string|undefined} result
+             */
             sandboxStatus: function(vertexOrProperty) {
                 if (arguments.length === 3) {
                     var props = V.props.apply(null, arguments);
@@ -51,6 +71,18 @@ define([
                 });
             },
 
+            /**
+             * Helper to get vertexIds from either an events data or the
+             * current selection.
+             *
+             * Useful to get the vertexIds that should be transformed based on
+             * context menus.
+             *
+             * @param {object} data Some event data
+             * @param {object} [opts={}] Options
+             * @param {object} [opts.async=false] Returns a promise if true
+             * @returns {Array.<string>} the vertex ids
+             */
             getVertexIdsFromDataEventOrCurrentSelection: function(data, opts) {
                 // Normalize the vertexIds sent from a vertex menu event,
                 // also checking the current object selection
@@ -122,30 +154,60 @@ define([
                     return _.unique(edgeIds);
                 }
             },
+            /**
+             * Transformers for display of property metadata
+             *
+             * Define/override metadata dataType specific
 
+             * displayTransformers here, based on values set in
+             * configuration: `properties.metadata.propertyNamesType`
+             * {@link http://docs.visallo.org/front-end/#property-info-metadata}
+             *
+             * All functions receive: function(el, value, property, vertexId)
+             * set the value synchronously
+             * - or -
+             * append "Async" to function name and return a Promise
+                }
+
+             *
+
+             * @namespace
+             * @example
+             * require(['util/vertex/formatters'], function(F) {
+             *     F.vertex.metadata.customMetadataType = function(el, val) {
+             *         el.textContent = transform(val)
+             *     }
+             * })
+             */
             metadata: {
-                // Define/override metadata dataType specific displayTransformers here
-                //
-                // All functions receive: function(el, value, property, vertexId)
-                // set the value synchronously
-                // - or -
-                // append "Async" to function name and return a $.Deferred().promise()
 
+                /**
+                 * Transform to date time string
+                 */
                 datetime: function(el, value) {
                     el.textContent = F.date.dateTimeString(value);
                     return el;
                 },
 
+                /**
+                 * Transform to sandbox display
+                 */
                 sandboxStatus: function(el, value) {
                     el.textContent = V.sandboxStatus({ sandboxStatus: value }) || '';
                     return el;
                 },
 
+                /**
+                 * Transform to percent display
+                 */
                 percent: function(el, value) {
                     el.textContent = F.number.percent(value);
                     return el;
                 },
 
+                /**
+                 * Transform user id to display name
+                 */
                 userAsync: function(el, userId) {
                     return Promise.require('util/withDataRequest')
                         .then(function(withDataRequest) {
@@ -158,14 +220,42 @@ define([
                 }
             },
 
+            /**
+             * Define/override specific displayTransformers for
+             * properties. These are used to transform property json into
+             * displayed versions in the element inspector.
+             *
+             * All functions receive: `function(HtmlElement, property, element)` and
+             * should populate the dom element with a value.
+             *
+             * The function name matches the `displayType` value in the ontology for the property.
+             * Those defined below are built-in.
+             *
+             * @namespace
+             * @example <caption>Add new displayType</caption>
+             * // Add new displayType formatter
+             * require(['util/vertex/formatters'], function(F) {
+             *     F.vertex.properties.customDisplayType = function(htmlElement, property, element) {
+             *         htmlElement.textContent = processValue(p.value)
+             *     }
+             * })
+             *
+             * // In ontology.owl
+             * <visallo:displayType>customDisplayType</visallo:displayType>
+             * @example <caption>Add multiple displayTypes</caption>
+             * require(['util/vertex/formatters'], function(F) {
+             *     Object.assign(F.vertex.properties, {
+             *         streetAddress: function(el, prop) { },
+             *         internationalPhone: function(el, prop) { }
+             *     })
+             * })
+             */
             properties: {
-                // Define/override dataType specific displayTransformers here
-                //
-                // All functions receive: function(HtmlElement, property, vertex)
-                // Must populate the dom element with value
-                //
-                // for example: geoLocation: function(...) { el.textContent = 'coords'; }
 
+                /**
+                 * Visibility can be customized with the
+                 * {@link http://docs.visallo.org/extension-points/front-end/visibility/ |visibility extension point}
+                 */
                 visibility: function(el, property, element) {
                     visibilityUtil.attachComponent('viewer', el, {
                         property: property,
@@ -184,6 +274,12 @@ define([
                       });
                 },
 
+                /**
+                 * Display geolocation, with description if available
+                 *
+                 * @example
+                 * <visallo:displayType>geoLocation</visallo:displayType>
+                 */
                 geoLocation: function(el, property) {
                     var wrap = $('<span>'),
                         displayValue = F.geoLocation.pretty(property.value, true);
@@ -202,11 +298,28 @@ define([
                     return el;
                 },
 
+                /**
+                 * For property values with number of bytes, formats to human
+                 * readable
+                 *
+                 * @example
+                 * <visallo:displayType>bytes</visallo:displayType>
+                 */
                 bytes: function(el, property) {
                     el.textContent = F.bytes.pretty(property.value);
                     return el;
                 },
 
+                /**
+                 * For property values that contain URLs, render as a link.
+                 * If the metadata property `http://visallo.org#linkTitle`
+                 * exists for property, display that as link text.
+                 *
+                 * Opens in a new window
+                 *
+                 * @example
+                 * <visallo:displayType>link</visallo:displayType>
+                 */
                 link: function(el, property, vertex) {
                     var anchor = document.createElement('a'),
                         value = V.prop(vertex, property.name, property.key),
@@ -226,11 +339,24 @@ define([
                     return el;
                 },
 
+                /**
+                 * Render the property value with whitespace preserving
+                 *
+                 * @example
+                 * <visallo:displayType>textarea</visallo:displayType>
+                 */
                 textarea: function(el, property) {
                     $(el).html(_.escape(property.value || '').replace(/\r?\n+/g, '<br>'));
                     return el;
                 },
 
+                /**
+                 * For property values containing degrees, will
+                 * render an arrow and show human readable heading.
+                 *
+                 * @example
+                 * <visallo:displayType>heading</visallo:displayType>
+                 */
                 heading: function(el, property) {
                     var div = document.createElement('div'),
                         dim = 12,
@@ -288,6 +414,14 @@ define([
 
             },
 
+            /**
+             * Check if the property has any of the given metadata values
+             *
+             * @param {object} property The property to check
+             * @param {Array.<string>} metadataPropertyNames The metadata names
+             * to check if there are values
+             * @returns {boolean} True if any of the metadata exists
+             */
             hasMetadata: function(property, metadataPropertyNames) {
                 return (V.sandboxStatus(property) && metadataPropertyNames.indexOf('sandboxStatus') > -1) ||
                     _.some(metadataPropertyNames, function(name) {
@@ -295,6 +429,14 @@ define([
                     });
             },
 
+            /**
+             * Given a vertex, get the ontology concept object.
+             *
+             * If not found in ontology returns the root concept
+             *
+             * @param {object} vertex
+             * @returns {object} concept
+             */
             concept: function(vertex) {
                 var conceptType = vertex && V.prop(vertex, 'conceptType'), concept;
 
@@ -310,6 +452,13 @@ define([
                 return concept;
             },
 
+            /**
+             * Given a vertex get all valid properties for that vertex
+             * concept and all parent concepts
+             *
+             * @param {object} vertex
+             * @return {Array.<object>} Valid properties for concept
+             */
             conceptProperties: function(vertex) {
                 var concept = V.concept(vertex),
                     properties = [];
@@ -320,6 +469,17 @@ define([
                 return properties;
             },
 
+            /**
+             * Check if the vertex concept has the property.
+             *
+             * _Does not check if the vertex has the property, just
+             * that the concept (or ancestors) lists it as valid in
+             * ontology._
+             *
+             * @param {object} vertex
+             * @param {string} propertyName
+             * @returns {boolean} if the vertex has the property
+             */
             hasProperty: function(vertex, propertyName) {
                 var concept = V.concept(vertex);
                 do {
@@ -331,6 +491,14 @@ define([
                 return false;
             },
 
+            /**
+             * Check if the vertex concept (or concept ancestors) matches
+             * the filter.
+             *
+             * @param {object} vertex
+             * @param {string} conceptTypeFilter IRI of concept
+             * @returns {boolean} if the vertex concept matches the filter
+             */
             isKindOfConcept: function(vertex, conceptTypeFilter) {
                 var conceptType = V.prop(vertex, 'conceptType');
 
@@ -360,6 +528,14 @@ define([
                 }) + $.param(params);
             },
 
+            /**
+             * Get the image representing this vertex
+             *
+             * @param {object} vertex
+             * @param {object} [optionalWorkspaceId=]
+             * @param {number} [width=400]
+             * @returns {string} url to image
+             */
             image: function(vertex, optionalWorkspaceId, width) {
                 var entityImageUrl = V.prop(vertex, 'entityImageUrl');
                 if (entityImageUrl) {
@@ -410,6 +586,15 @@ define([
                 return concept.glyphIconHref;
             },
 
+            /**
+             * Get the vertex image when selected (if available).
+             * Otherwise just return main image.
+             *
+             * @param {object} vertex
+             * @param {object} [optionalWorkspaceId=]
+             * @param {number} [width=400]
+             * @returns {string} url to image
+             */
             selectedImage: function(vertex, optionalWorkspaceId, width) {
                 var concept = V.concept(vertex),
                     conceptImage = V.image(vertex, optionalWorkspaceId, width);
@@ -420,6 +605,15 @@ define([
                 return V.image(vertex, optionalWorkspaceId) === V.concept(vertex).glyphIconHref;
             },
 
+            /**
+             * Larger version of vertex image. 800 pixels.
+             *
+             * Used in the element inspector.
+             *
+             * @param {object} vertex
+             * @param {object} [optionalWorkspaceId=]
+             * @returns {string} url to image
+             */
             imageDetail: function(vertex, optionalWorkspaceId) {
                 return V.image(vertex, optionalWorkspaceId, 800);
             },
@@ -505,6 +699,14 @@ define([
                 return resolvedName;
             },
 
+            /**
+             * Get the longest property value, optionally for
+             * given propertyName only.
+             *
+             * @param {object} vertex
+             * @param {string} [optionalName=] Property name
+             * @returns {object} The property
+             */
             longestProp: function(vertex, optionalName) {
                 var properties = vertex.properties
                     .filter(function(a) {
@@ -566,6 +768,24 @@ define([
                 return {};
             },
 
+            /**
+             * Given a property name and value, convert to a displayable
+             * value for a user.
+             *
+             * For the raw property value use
+             * {@link module:util/vertex/formatters.vertex.propRaw|propRaw}.
+             *
+             * @param {string} name The property name IRI
+             * @param {object} value The value
+             * @param {object} [options=] Additional string transforms. Any
+             * function defined in {@link module:util/vertex/formatters.string}
+             * as the key and boolean if active
+             * @returns {string} display value
+             * @example
+             * F.vertex.propDisplay(name, value, {
+             *     prettyPrint: true
+             * })
+             */
             propDisplay: function(name, value, options) {
                 name = V.propName(name);
                 var ontologyProperty = propertiesByTitle[name];
@@ -626,6 +846,18 @@ define([
                 }
             },
 
+            /**
+             * Get the first property value transformed for display
+             * using {@link module:util/vertex/formatters.vertex.propDisplay|propDisplay}
+             *
+             * @param {object} vertex
+             * @param {string} name Property IRI
+             * @param {string} [key=] Property key, if not given the first is
+             * returned
+             * @param {object} [optionalOpts=] Options
+             * @param {object} [optionalOpts.ignoreDisplayFormula] Ignore any
+             * formula defined in ontology
+             */
             prop: function(vertex, name, optionalKey, optionalOpts) {
                 checkVertexAndPropertyNameArguments(vertex, name);
 
@@ -673,6 +905,14 @@ define([
                 return V.propDisplay(name, value, optionalOpts);
             },
 
+            /**
+             * Return list of all matching properties.
+             *
+             * @param {object} element
+             * @param {string} name Property IRI
+             * @param {string} [key=] Property key
+             * @returns {Array.<object>} All properties matching
+             */
             props: function(vertex, name, optionalKey) {
                 checkVertexAndPropertyNameArguments(vertex, name);
 
@@ -782,6 +1022,15 @@ define([
                 return Boolean(result);
             },
 
+            /**
+             * Get the `title` of the element, using order:
+             *
+             * 1. Use the title formula in the ontology
+             * 2. Use the `title` property
+             *
+             * @param {object} vertex
+             * @returns {string} The display title for vertex
+             */
             title: function(vertex, accessedPropertyNames) {
                 var title = formulaResultForElement(vertex, 'titleFormula', undefined, accessedPropertyNames)
 
@@ -794,8 +1043,25 @@ define([
                 return title;
             },
 
+            /**
+             * Get the `subtitle` of the element, using subtitle formula
+             *
+             * @function
+             * @param {object} vertex
+             * @returns {string} The display subtitle for vertex
+             */
             subtitle: _.partial(formulaResultForElement, _, 'subtitleFormula', ''),
 
+            /**
+             * Get the `time` of the element, using subtitle formula.
+             *
+             * Nothing enforces that this is time value. Just returns
+             * a string.
+             *
+             * @function
+             * @param {object} vertex
+             * @returns {string} The display time for vertex
+             */
             time: _.partial(formulaResultForElement, _, 'timeFormula', ''),
 
             heading: function(vertex) {
@@ -808,6 +1074,17 @@ define([
                 return 0;
             },
 
+            /**
+             * Get the first property value as raw value. For a transformed
+             * value use {@link module:util/vertex/formatters.vertex.prop|prop}
+             *
+             * @param {object} vertex
+             * @param {string} name Property IRI
+             * @param {string} [key=] Property key, if not given the first is returned
+             * @param {object} [options=] Options
+             * @param {object} options.defaultValue=undefined] If no value
+             * @returns {object} The raw property value
+             */
             propRaw: function(vertex, name, optionalKey, optionalOpts) {
                 checkVertexAndPropertyNameArguments(vertex, name);
 
@@ -868,8 +1145,20 @@ define([
                 }
             },
 
+            /**
+             * Check if the element is vertex
+             *
+             * @param {object} element
+             * @returns {boolean} If element is a vertex
+             */
             isVertex: function(vertex) { return vertex && vertex.type && vertex.type === 'vertex'; },
 
+            /**
+             * Check if the element is edge
+             *
+             * @param {object} element
+             * @returns {boolean} If element is a edge
+             */
             isEdge: function(vertex) { return vertex && vertex.type && vertex.type === 'edge'; },
 
             isArtifact: function(vertex) {

@@ -1,4 +1,7 @@
-
+/**
+ * @module services/workspace
+ * @see module:util/withDataRequest
+ */
 define([
     '../util/ajax',
     '../store',
@@ -9,7 +12,16 @@ define([
 
     const { getStore } = storeHelper;
 
+    /**
+     * @alias module:services/workspace
+     */
     var api = {
+
+        /**
+         * Get the current sandboxed unpublished changes in workspace
+         *
+         * @param {string} [workspaceId]
+         */
         diff: function(workspaceId) {
             var workspaces = getStore().getState().workspace;
             return ajax('GET', '/workspace/diff', {

@@ -1,3 +1,26 @@
+/**
+ * Allows a user to select an ontology property from a searchable dropdown component.
+ *
+ * @module
+ * @flight Dropdown selection component for selecting properties from the ontology
+ * @attr {Array.<object>} properties The ontology properties to populate the list with
+ * @attr {string} [placeholder=Select Property] the placeholder text to display
+ * @attr {boolean} [showAdminConcepts=false] Whether concepts that aren't user visible should be displayed
+ * @attr {boolean} [onlySearchable=false] Only show properties that have searchable attribute equal to true in ontology
+ * @attr {boolean} [rollupCompound=true] Hide all dependant properties and only show the compound/parent fields
+ * @attr {boolean} [focus=false] Activate the field for focus when finished rendering
+ * @attr {number} [maxItems=-1] Limit the maximum items that are shown in search list (-1 signifies no limit)
+ * @attr {string} [selectedProperty=''] Default the selection to this property IRI
+ * @attr {Array.<string>} [unsupportedProperties=[]] Remove these property IRIs from the list
+ * @fires module:util/ontology/propertySelect#propertyselected
+ * @listens module:util/ontology/propertySelect#filterProperties
+ * @example
+ * dataRequest('ontology', 'properties').then(function(properties) {
+ *     PropertySelect.attachTo(node, {
+ *         properties: properties
+ *     })
+ * })
+ */
 define([
     'flight/lib/component',
     './properties.hbs',
@@ -28,6 +51,17 @@ define([
         this.after('initialize', function() {
             var self = this;
 
+            /**
+             * Trigger to change the list of properties the component works with.
+             *
+             * @event module:util/ontology/propertySelect#filterProperties
+             * @property {object} data
+             * @property {Array.<object>} data.properties The properties array to use
+             * @example
+             * PropertySelect.attachTo($node)
+             * //...
+             * $node.trigger('filterProperties', { properties: newList })
+             */
             this.on('filterProperties', this.onFilterProperties);
 
             if (this.attr.selectedProperty) {
@@ -219,6 +253,20 @@ define([
 
             if (property) {
                 this.currentProperty = property;
+
+                /**
+                 * When the user selects a property, this event will be
+                 * triggered
+                 *
+                 * @event module:util/ontology/propertySelect#propertyselected
+                 * @property {object} data
+                 * @property {object} data.property The property object that was selected
+                 * @example
+                 * $node.on('propertyselected', function(event, data) {
+                 *     console.log(data.property)
+                 * })
+                 * PropertySelect.attachTo($node)
+                 */
                 this.trigger('propertyselected', { property: property });
                 _.defer(function() {
                     this.select('findPropertySelection').blur();

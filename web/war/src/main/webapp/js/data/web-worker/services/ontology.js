@@ -1,4 +1,14 @@
 
+/**
+ * Get the current ontology. Includes:
+ *
+ * * Concepts: Vertex types
+ * * Properties: Properties for elements
+ * * Relationships: Edges
+ *
+ * @module services/ontology
+ * @see module:util/withDataRequest
+ */
 define([
     '../util/ajax',
     '../util/memoize',
@@ -29,8 +39,19 @@ define([
         }, ontologyReady)
     }
     var extensions = registry.extensionsForPoint('org.visallo.ontology');
+
+    /**
+     * @alias module:services/ontology
+     */
     var api = {
 
+            /**
+             * All ontology objects: concepts, properties, relationships
+             *
+             * The result is cached so only first call makes a request to server.
+             *
+             * @function
+             */
             ontology: memoize(function() {
                 return Promise.all([
                     api.concepts(),
@@ -49,6 +70,11 @@ define([
                 })
             }),
 
+            /**
+             * Ontology properties
+             *
+             * @function
+             */
             properties: memoize(function() {
 
                 return getOntology()
@@ -73,6 +99,13 @@ define([
                     })
             }),
 
+            /**
+             * Return properties by element type
+             *
+             * @function
+             * @param {string} type Either 'vertex' or 'edge'
+             * @returns {Array.<object>}
+             */
             propertiesByDomainType: memoize(function(type) {
                 return getOntology()
                     .then(function(ontology) {
@@ -90,6 +123,12 @@ define([
                     });
             }),
 
+            /**
+             * Properties given edgeId
+             *
+             * @function
+             * @param {string} id
+             */
             propertiesByRelationship: memoize(function(relationshipId) {
                 return api.ontology()
                     .then(function(ontology) {
@@ -123,6 +162,12 @@ define([
                     });
             }),
 
+            /**
+             * Properties given conceptId
+             *
+             * @function
+             * @param {string} id
+             */
             propertiesByConceptId: memoize(function(conceptId) {
                 return getOntology()
                     .then(function(ontology) {
@@ -156,6 +201,11 @@ define([
                     });
             }),
 
+            /**
+             * Ontology concepts
+             *
+             * @function
+             */
             concepts: memoize(function() {
                 var clsIndex = 0;
 
@@ -274,6 +324,11 @@ define([
                 }
             }),
 
+            /**
+             * Ontology relationships
+             *
+             * @function
+             */
             relationships: memoize(function() {
                 return Promise.all([api.concepts(), getOntology()])
                     .then(function(results) {
@@ -354,6 +409,13 @@ define([
                 }
             }),
 
+            /**
+             * Get the valid relationships between concepts
+             *
+             * @function
+             * @param {string} source Source concept IRI
+             * @param {string} target Target concept IRI
+             */
             relationshipsBetween: memoize(function(source, dest) {
                 return api.relationships()
                     .then(function(relationships) {
