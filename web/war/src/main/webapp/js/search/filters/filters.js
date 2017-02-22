@@ -545,6 +545,7 @@ define([
             })
             this.disableMatchEdges = false;
             this.setMatchType(this.matchType);
+            this.notifyOfFilters();
         };
 
         this.createNewRowIfNeeded = function() {
