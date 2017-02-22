@@ -953,9 +953,9 @@ cssom@0.3.x, "cssom@>= 0.3.0 < 0.4.0":
   dependencies:
     cssom "0.3.x"
 
-cytoscape@2.7.11:
-  version "2.7.11"
-  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-2.7.11.tgz#64739074cec00820841266ce4611582ebb9bea31"
+cytoscape@2.7.14:
+  version "2.7.14"
+  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-2.7.14.tgz#a7795db9d507465bee0c7f42b0a05724847aa9bf"
 
 dashdash@^1.12.0:
   version "1.14.0"
