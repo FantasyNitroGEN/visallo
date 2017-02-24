@@ -74,6 +74,9 @@ define([
              * $node.trigger('selectRelationshipId')
              */
             this.on('selectRelationshipId', this.onSetRelationshipId);
+            this.on('change', {
+                fieldSelector: this.onChange
+            });
 
             this.setupTypeahead();
         });
@@ -90,6 +93,15 @@ define([
         this.onLimitParentConceptId = function(event, data) {
             this.attr.limitParentConceptId = data.conceptId;
             this.transformRelationships();
+        };
+
+        this.onChange = function(event, data) {
+            const value = $.trim(this.select('fieldSelector').val());
+            if (!value) {
+                this.trigger('relationshipSelected', {
+                    relationship: null
+                });
+            }
         };
 
         this.setupTypeahead = function() {
