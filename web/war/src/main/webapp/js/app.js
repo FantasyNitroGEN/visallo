@@ -21,7 +21,6 @@ define([
     'util/mouseOverlay',
     'util/withFileDrop',
     'util/vertex/menu',
-    'util/contextMenu',
     'util/privileges',
     'util/withDataRequest'
 ], function(
@@ -46,7 +45,6 @@ define([
     MouseOverlay,
     withFileDrop,
     VertexMenu,
-    ContextMenu,
     Privileges,
     withDataRequest) {
     'use strict';
@@ -207,7 +205,6 @@ define([
             resizable(adminPane, 'e', 190, 250, this.onPaneResize.bind(this), this.onResizeCreateLoad.bind(this));
             resizable(detailPane, 'w', 225, 500, this.onPaneResize.bind(this), this.onResizeCreateLoad.bind(this));
 
-            ContextMenu.attachTo(document);
             WorkspaceOverlay.attachTo(content.filter('.workspace-overlay'));
             MouseOverlay.attachTo(document);
             Menubar.attachTo(menubarPane.find('.content'));
