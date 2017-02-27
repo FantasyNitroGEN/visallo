@@ -1,6 +1,6 @@
 # Build Instructions
 
-In the majority of cases, most Visallo components can be built by simply opening a terminal to the component root directory and running `mvn package`. More specific instructions for both can be found below.
+In the majority of cases, most Visallo components can be built by simply opening a terminal to the component directory and running `mvn package`. More specific instructions for both can be found below.
 
 <a name="root-module"/>
 ## Root Module Installation
@@ -26,7 +26,7 @@ It is a known issue that some unit tests fail on Windows. The following are expe
 
 ## Web Application
 
-Building the Visallo web application is very similar to running it. From the root directory of the Visallo project, run
+Building the Visallo web application is very similar to running it. From the `$PROJECT_DIR` directory of the Visallo project, run
 
     mvn package -pl web/war -am -Pdefault-webapp -DskipTests -Dsource.skip=true
 
@@ -58,10 +58,10 @@ Each graph property worker can be built independently using the following Maven 
 
 Once the plugin JAR file is created, copy it to `$VISALLO_DIR/lib`, which should be accessible on all of your servers.
 
-As an example, to build and deploy the `tika-mime-type-plugin` one would run the following commands from the root of
-the Visallo project:
+As an example, to build and deploy the `tika-mime-type-plugin` one would run the following commands from the `$PROJECT_DIR` 
+directory of the Visallo project:
 
     mvn package -pl graph-property-worker/plugins/tika-mime-type -am
     cp graph-property-worker/plugins/tika-mime-type/target/visallo-tika-mime-*-jar-with-dependencies.jar $VISALLO_DIR/lib
 
-Visallo's will automatically detect graph property workers found within the classpath.
+Visallo will automatically detect graph property workers found on the classpath.
