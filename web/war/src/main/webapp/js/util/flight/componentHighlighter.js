@@ -37,14 +37,11 @@ define(['flight/lib/registry'], function(registry) {
     }
 
     function nameFromComponent(component) {
-        var name = component.toString(),
-            nameMatch = name.match(/^([^,]+)/)
-
-        if (nameMatch) {
-            name = $.trim(nameMatch[1]);
-        }
-
-        return name;
+        return component.toString()
+            .split(/\s*,\s*/)
+            .filter(n => !/^with/.test(n))
+            .sort()
+            .join(',')
     }
 
     function logComponent(name, closestComponent) {

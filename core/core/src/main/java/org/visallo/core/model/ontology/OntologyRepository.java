@@ -133,7 +133,11 @@ public interface OntologyRepository {
 
     void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes);
 
+    void addConceptTypeFilterToQuery(Query query, String[] conceptTypeIri, boolean[] includeChildNodes);
+
     void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes);
+
+    void addEdgeLabelFilterToQuery(Query query, String[] edgeLabel, boolean[] includeChildNodes);
 
     void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris);
 

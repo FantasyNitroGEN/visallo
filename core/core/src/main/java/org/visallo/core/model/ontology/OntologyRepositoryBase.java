@@ -51,7 +51,9 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class OntologyRepositoryBase implements OntologyRepository {
@@ -1266,46 +1268,63 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     @Override
     public void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes) {
-        checkNotNull(query, "query cannot be null");
         checkNotNull(conceptTypeIri, "conceptTypeIri cannot be null");
+        addConceptTypeFilterToQuery(query, new String[] { conceptTypeIri }, new boolean[] { includeChildNodes });
+    }
 
-        Concept concept = getConceptByIRI(conceptTypeIri);
-        checkNotNull(concept, "Could not find concept with IRI: " + conceptTypeIri);
-        if (includeChildNodes) {
-            Set<Concept> childConcepts = getConceptAndAllChildren(concept);
-            if (childConcepts.size() > 0) {
-                String[] conceptIds = new String[childConcepts.size()];
-                int count = 0;
-                for (Concept c : childConcepts) {
-                    conceptIds[count] = c.getIRI();
-                    count++;
-                }
-                query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Contains.IN, conceptIds);
+    @Override
+    public void addConceptTypeFilterToQuery(Query query, String[] conceptTypeIri, boolean[] includeChildNodes) {
+        checkNotNull(query, "query cannot be null");
+        checkArgument(conceptTypeIri.length == includeChildNodes.length, "Must include same size arrays");
+        if (conceptTypeIri.length == 0) return;
+        Set<String> conceptIds = new HashSet<>(conceptTypeIri.length);
+
+        int index = 0;
+        for (String iri : conceptTypeIri) {
+            Concept concept = getConceptByIRI(iri);
+            checkNotNull(concept, "Could not find concept with IRI: " + conceptTypeIri);
+
+            conceptIds.add(concept.getIRI());
+
+            if (includeChildNodes[index]) {
+                Set<Concept> childConcepts = getConceptAndAllChildren(concept);
+                conceptIds.addAll(childConcepts.stream().map(Concept::getIRI).collect(Collectors.toSet()));
             }
-        } else {
-            query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), conceptTypeIri);
+
+            index++;
         }
+
+        query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Contains.IN, conceptIds);
     }
 
     @Override
     public void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes) {
-        checkNotNull(query, "query cannot be null");
         checkNotNull(edgeLabel, "edgeLabel cannot be null");
+        addEdgeLabelFilterToQuery(query, new String[] { edgeLabel }, new boolean[] { includeChildNodes });
+    }
 
-        Relationship relationship = getRelationshipByIRI(edgeLabel);
-        if (includeChildNodes) {
-            Set<Relationship> childRelationships = getRelationshipAndAllChildren(relationship);
-            if (childRelationships.size() > 0) {
-                String[] relationshipIds = new String[childRelationships.size()];
-                int count = 0;
-                for (Relationship r : childRelationships) {
-                    relationshipIds[count] = r.getIRI();
-                    count++;
-                }
-                query.hasEdgeLabel(relationshipIds);
+    @Override
+    public void addEdgeLabelFilterToQuery(Query query, String[] edgeLabel, boolean[] includeChildNodes) {
+        checkNotNull(query, "query cannot be null");
+        checkArgument(edgeLabel.length == includeChildNodes.length, "Must include same size arrays");
+        if (edgeLabel.length == 0) return;
+        Set<String> edgeIds = new HashSet<>(edgeLabel.length);
+
+        int index = 0;
+        for (String iri : edgeLabel) {
+            Relationship relationship = getRelationshipByIRI(iri);
+            checkNotNull(relationship, "Could not find edge with IRI: " + edgeLabel);
+
+            edgeIds.add(relationship.getIRI());
+
+            if (includeChildNodes[index]) {
+                Set<Relationship> childRelations = getRelationshipAndAllChildren(relationship);
+                edgeIds.addAll(childRelations.stream().map(Relationship::getIRI).collect(Collectors.toSet()));
             }
-        } else {
-            query.hasEdgeLabel(edgeLabel);
+
+            index++;
         }
+
+        query.hasEdgeLabel(edgeIds);
     }
 }

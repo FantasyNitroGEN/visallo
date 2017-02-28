@@ -80,8 +80,7 @@ define([
                     otherFilters: data.filters.otherFilters,
                     edgeLabelFilter: data.filters.edgeLabelFilter,
                     sort: data.filters.sortFields,
-                    matchType: data.filters.matchType,
-                    includeChildNodes: data.filters.includeChildNodes
+                    matchType: data.filters.matchType
                 };
                 self.triggerUpdatedSavedSearchQuery(options);
             })
@@ -117,7 +116,6 @@ define([
                     query,
                     self.currentFilters.propertyFilters,
                     self.currentFilters.matchType,
-                    self.currentFilters.includeChildNodes,
                     self.currentFilters.conceptFilter,
                     self.currentFilters.edgeLabelFilter,
                     self.currentFilters.otherFilters,
@@ -165,7 +163,6 @@ define([
             query,
             propertyFilters,
             matchType,
-            includeChildNodes,
             conceptFilter,
             edgeLabelFilter,
             otherFilters,
@@ -189,7 +186,6 @@ define([
                     conceptFilter: conceptFilter,
                     edgeLabelFilter: edgeLabelFilter,
                     otherFilters: otherFilters,
-                    includeChildNodes: includeChildNodes,
                     paging: paging,
                     sort: sortFields,
                     matchType: matchType
@@ -213,7 +209,6 @@ define([
                 query,
                 this.currentFilters.propertyFilters,
                 this.currentFilters.matchType,
-                this.currentFilters.includeChildNodes,
                 this.currentFilters.conceptFilter,
                 this.currentFilters.edgeLabelFilter,
                 this.currentFilters.otherFilters,

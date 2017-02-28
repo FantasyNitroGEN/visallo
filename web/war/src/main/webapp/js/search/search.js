@@ -428,7 +428,7 @@ define([
 
             $clear.hide();
             _.defer($query.focus.bind($query));
-            this.trigger(node, 'clearSearch')
+            this.trigger(node, 'clearSearch', { clearMatch: false })
         };
 
         this.onAdvancedSearchTypeClick = function(event) {

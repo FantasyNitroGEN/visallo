@@ -25,11 +25,19 @@ define([
                 originalUrl = url;
 
             if (options.conceptFilter && matchType === 'vertex') {
-                params.conceptType = options.conceptFilter;
+                if (_.isArray(options.conceptFilter)) {
+                    params.conceptTypes = JSON.stringify(options.conceptFilter);
+                } else {
+                    params.conceptType = options.conceptFilter
+                }
             }
             if (options.edgeLabelFilter
                 && (matchType === 'edge' || (options.otherFilters && options.otherFilters.relatedToVertexIds))) {
-                params.edgeLabel = options.edgeLabelFilter;
+                if (_.isArray(options.edgeLabelFilter)) {
+                    params.edgeLabels = JSON.stringify(options.edgeLabelFilter);
+                } else {
+                    params.edgeLabel = options.edgeLabelFilter
+                }
             }
             if (options.paging) {
                 if (options.paging.offset) params.offset = options.paging.offset;
@@ -43,10 +51,6 @@ define([
 
             if (q) {
                 params.q = q;
-            }
-
-            if (!_.isUndefined(options.includeChildNodes)) {
-                params.includeChildNodes = options.includeChildNodes;
             }
 
             if (options.otherFilters) {
