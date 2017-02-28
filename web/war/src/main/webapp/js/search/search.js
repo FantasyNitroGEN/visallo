@@ -116,7 +116,13 @@ define([
         });
 
         this.onSavedQuerySelected = function(event, data) {
-            this.trigger('searchByParameters', data.query);
+            this.trigger(
+                'searchByParameters',
+                {
+                    ...data.query,
+                    submit: true
+                }
+            );
         };
 
         this.onSearchByParameters = function(event, data) {
