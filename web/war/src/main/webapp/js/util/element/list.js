@@ -162,15 +162,17 @@ define([
             event.stopPropagation();
             this.trigger('focusComponent');
 
-            const {vertexIds, edgeIds} = visalloData.selectedObjects;
+            let {vertexIds, edgeIds} = visalloData.selectedObjects;
             const $target = $(event.target).parents('li');
             const pushData = (data) => {
                 if (data.vertexId) selectVertexIds.push(data.vertexId)
                 if (data.edgeId) selectEdgeIds.push(data.edgeId)
             };
 
-            var data = $(event.target).closest('a.draggable').data();
-            var [selectVertexIds, selectEdgeIds] = [[], []];
+            let data = $(event.target).closest('a.draggable').data();
+            const isSelected = vertexIds[data.vertexId] || edgeIds[data.edgeId];
+            let deselect = false;
+            let [selectVertexIds, selectEdgeIds] = [[], []];
 
             if (!this.attr.singleSelection) {
                 const targetIndex = $target.index();
@@ -184,6 +186,12 @@ define([
                         pushData($items.eq(i).find('a.draggable').data());
                     }
                 } else if (event.metaKey || event.ctrlKey) {
+                    if (isSelected) {
+                        deselect = true;
+                        if (data.vertexId) vertexIds = _.omit(vertexIds, data.vertexId);
+                        if (data.edgeId) edgeIds = _.omit(edgeIds, data.edgeId);
+                    }
+
                     selectVertexIds = Object.keys(vertexIds);
                     selectEdgeIds = Object.keys(edgeIds);
                 } else {
@@ -202,7 +210,9 @@ define([
                 }
             }
 
-            pushData(data);
+            if (!deselect) {
+                pushData(data);
+            }
 
             this.trigger('selectObjects', {
                 vertexIds: selectVertexIds,
