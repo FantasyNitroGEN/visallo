@@ -37,62 +37,91 @@
   flex-direction: column;
 
   .tabs {
-    white-space: nowrap;
-    list-style: none;
-    margin: 0;
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: space-between;
     border-bottom: 3px solid #0088cc;
-    padding: 0 1em;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 
-    .active {
-       background: #0088cc;
-       color: white;
-       text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
+    .tabScrollButtons {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
 
-       &:hover {
-         background: #0088cc;
-       }
-    }
+      .scrollButton {
+        cursor: pointer;
+        color: #666;
+        margin: 0 0.5em;
+        display: inline-block;
 
-    li {
-      display: inline-block;
-      padding: 0.25em 0.5em;
-      margin: 0;
-      background: #999;
-      color: white;
-      margin-right: 1px;
-      text-shadow: 0 -1px 0 rgba(0,0,0,0.3);
-      cursor: pointer;
-
-      .name {
-        margin: 5px;
-      }
-
-      .count {
-        color: #ccc;
-        font-weight: bold;
-        font-size: 85%;
-        opacity: 0.6;
-      }
-
-      &:hover {
-        background: #aaa;
+        &.disabled {
+            color: #eee;
+            pointer-events: none;
+        }
       }
     }
 
-    li:first-child {
-      border-top-left-radius: 3px;
-    }
+    .list-container {
+      overflow: hidden;
+      margin-left: 10px;
 
-    li:last-child {
-      border-top-right-radius: 3px;
+      .tab-list {
+        white-space: nowrap;
+        list-style: none;
+        margin: 0;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
+        .active {
+           background: #0088cc;
+           color: white;
+           text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
+
+           &:hover {
+             background: #0088cc;
+           }
+        }
+
+        li {
+          display: inline-block;
+          padding: 0.25em 0.5em;
+          margin: 0;
+          background: #999;
+          color: white;
+          margin-right: 1px;
+          text-shadow: 0 -1px 0 rgba(0,0,0,0.3);
+          cursor: pointer;
+
+          .name {
+            margin: 5px;
+          }
+
+          .count {
+            color: #ccc;
+            font-weight: bold;
+            font-size: 85%;
+            opacity: 0.6;
+          }
+
+          &:hover {
+            background: #aaa;
+          }
+        }
+
+        li:first-child {
+          border-top-left-radius: 3px;
+        }
+
+        li:last-child {
+          border-top-right-radius: 3px;
+        }
+      }
     }
   }
+
   .table {
-    height: 100%;
+    flex: 1 1 auto;
 
       .FlexTable {
         overflow-x: auto;
