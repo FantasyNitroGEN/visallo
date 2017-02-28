@@ -553,29 +553,20 @@ define([
 
                 selectedObjects[type] = getIdsFromRows(tabData, selectedIndicesForType);
             } else if (event.shiftKey) {
-                const previousIndex = previousRowClickIndex;
-                const delta = index - previousIndex;
-                let lower, upper;
+                const min = Math.min(index, previousRowClickIndex);
+                const max = Math.max(index, previousRowClickIndex);
 
-                if (delta < 0) {
-                    lower = index;
-                    upper = previousIndex + 1;
-                } else if (delta === 0) {
-                    lower = index;
-                    upper = index + 1;
-                } else {
-                    lower = previousIndex;
-                    upper = index + 1;
-                }
-
-                selectedIndicesForType = _.range(lower, upper);
+                selectedIndicesForType = _.range(min, max + 1);
                 selectedObjects[type] = getIdsFromRows(tabData, selectedIndicesForType);
             } else {
                 const id = tabData[index].id;
                 selectedObjects[type] = [id];
             }
 
-            this.setState({ previousRowClickIndex: index });
+            if (!event.shiftKey)  {
+                this.setState({ previousRowClickIndex: index });
+            }
+
             $(this.cardRef).trigger('selectObjects', selectedObjects);
 
 
