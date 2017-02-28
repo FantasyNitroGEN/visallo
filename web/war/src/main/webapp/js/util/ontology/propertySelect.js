@@ -84,6 +84,7 @@ define([
                     .on('focus', function(e) {
                         var target = $(e.target);
                         target.attr('placeholder', PLACEHOLDER)
+                        self.focused = true;
                     })
                     .on('click', function(e) {
                         var target = $(e.target);
@@ -104,6 +105,9 @@ define([
                             target.val('');
                         }
                         target.attr('placeholder', self.attr.placeholder);
+                        if (e.type === 'blur') {
+                            self.focused = false;
+                        }
                     })
                     .typeahead({
                         minLength: 0,
@@ -286,10 +290,14 @@ define([
                 .value();
 
             var hasProperties = this.filterSourceProperties(this.propertiesForSource).length > 0;
-            var placeholderMessage = hasProperties ? 'field.selection.placeholder' : 'field.selection.no_valid';
+            var placeholderMessage = this.focused && hasProperties ?
+                i18n('field.selection.placeholder') :
+                hasProperties ?
+                this.attr.placeholder :
+                i18n('field.selection.no_valid');
 
             this.select('findPropertySelection')
-                .attr('placeholder', i18n(placeholderMessage))
+                .attr('placeholder', placeholderMessage)
                 .attr('disabled', !hasProperties);
         };
 

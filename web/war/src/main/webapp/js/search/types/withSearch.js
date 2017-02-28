@@ -68,11 +68,12 @@ define([
                     this.trigger($searchResults, 'paneResized');
                 }
             });
-            this.on('clearSearch', function() {
+            this.on('clearSearch', function(event, data) {
                 this.hideSearchResults();
+                console.log(event.target, data)
 
                 var filters = this.select('filtersSelector').find('.content')
-                this.trigger(filters, 'clearfilters');
+                this.trigger(filters, 'clearfilters', data);
             });
             this.on('searchtypeloaded', function(event, data) {
                 var filters = this.select('filtersSelector').find('.content')

@@ -29,7 +29,7 @@ define([
             fieldSelector: '.configuration',
             propertySelectionSelector: '.property-selector',
             currentPropertySelector: '.current-property',
-            removeSelector: '.header button.remove',
+            removeSelector: '.header button.remove-icon',
             predicateSelector: '.current-property .header .dropdown .dropdown-menu li a'
         });
 
@@ -198,7 +198,7 @@ define([
             this.select('propertySelectionSelector')
                 .toggle(!hasProperty);
             this.select('currentPropertySelector')
-                .find('label')
+                .find('label span')
                     .text(property.displayName)
                 .end()
                 .find('.dropdown-menu')

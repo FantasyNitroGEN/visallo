@@ -176,11 +176,9 @@ define([
         this.setupTypeahead = function() {
             var self = this;
 
-            Promise.resolve(ontology.concepts)
+            return Promise.resolve(ontology.concepts)
                 .then(this.transformConcepts.bind(this))
-                .done(function(concepts) {
-                    concepts.splice(0, 0, self.attr.defaultText);
-
+                .then(function(concepts) {
                     var field = self.select('fieldSelector')
                         .attr('placeholder', self.attr.defaultText),
                         selectedConcept;
@@ -253,6 +251,13 @@ define([
                         })
                     }
 
+                    self.on(self.select('fieldSelector'), 'blur focus', function(event) {
+                        $(event.target).attr('placeholder',
+                            event.type === 'focus' ?
+                                i18n('search.filters.all_concepts.focus') :
+                                self.attr.defaultText
+                        );
+                    })
                     self.allowEmptyLookup(field);
                 });
         }
