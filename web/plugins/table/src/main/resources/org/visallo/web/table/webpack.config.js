@@ -1,5 +1,11 @@
 var path = require('path');
 var webpack = require('webpack');
+var VisalloAmdExternals = [
+ 'classnames',
+ 'public/v1/api',
+ 'util/popovers/withPopover',
+ 'org/visallo/web/table/hbs/columnConfigPopover'
+].map(path => ({ [path]: { amd: path }}));
 
 module.exports = {
   entry: {
@@ -11,22 +17,7 @@ module.exports = {
     library: '[name]',
     libraryTarget: 'umd',
   },
-  externals: [
-    {
-      'public/v1/api': {
-        amd: 'public/v1/api'
-      }
-    },
-    {
-      'util/popovers/withPopover': {
-        amd: 'util/popovers/withPopover'
-      }
-    },
-    {
-      'org/visallo/web/table/hbs/columnConfigPopover': {
-        amd: 'org/visallo/web/table/hbs/columnConfigPopover'
-      }
-    },
+  externals: VisalloAmdExternals.concat([
     {
       react: {
         root: 'React',
@@ -43,7 +34,7 @@ module.exports = {
         amd: 'react-dom'
       }
     }
-  ],
+  ]),
   resolve: {
     extensions: ['', '.js', '.jsx', '.hbs']
   },
