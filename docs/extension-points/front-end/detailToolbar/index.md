@@ -1,57 +1,30 @@
-# Detail Toolbar
+# Element Inspector Toolbar
 
-Plugin to add toolbar items to the detail pane.
+* [Element Inspector Toolbar JavaScript API `org.visallo.detail.toolbar`](../../../javascript/org.visallo.detail.toolbar.html)
+* [Element Inspector Toolbar Example Code](https://github.com/visallo/doc-examples/tree/master/extension-detail-toolbar)
 
-## Configuration
+Allows additional toolbar items to be added to the Element Inspector.
 
-* `title` _(required)_ `[String]`: The text to display.
-* `event` _(required)_ `[String]`: The event to trigger on click of toolbar item.
-* `subtitle` _(optional)_ `[String]`: The text to display underneath the title.
-* `cls` _(optional)_ `[String]`: A CSS classname to add to the items element. Add `disabled` to prevent events from firing.
-* `canHandle` _(optional)_ `[Function]`: Whether this item should be added based on what's in the detail pane. If not provided, it assumes it can handle all inputs. Passed one argument `objects`, which is a list of all objects displayed in detail pane.
-* `divider` _(optional)_ `[Boolean]`: Specify `true` for a toolbar menu divider instead of an actionable item.
-* `submenu` _(optional)_ `[Array]`: Specify list of submenu toolbar items. Only one level supported.
-* `right` _(optional)_ `[Boolean]`: Specify `true` to float item to the right.
-* `options` _(optional)_ `[Object]`:
-    * `insertIntoMenuItems` _(optional)_ `[Function]`: function to place the item in a specific location/order.
+<div style="text-align:center">
+<img src="./item.png" width="100%" style="max-width: 335px;">
+</div>
 
-    ```js
-    insertIntoMenuItems: function(item, items) {
-        // Insert item into specific position in items list
-        items.splice(3, 0, item);
-    }
-    ```
+## Tutorial
 
+### Web Plugin
 
-## Example
+Register the resources needed.
 
-To register an item:
+{% github_embed "https://github.com/visallo/doc-examples/blob/ac5f5428/extension-detail-toolbar/src/main/java/org/visallo/examples/detail_toolbar/DetailToolbarWebAppPlugin.java#L17-L18" %}{% endgithub_embed %}
 
-```js
-require([
-    'configuration/plugins/registry',
-    'util/messages'
-], function(registry, i18n) {
+### Register Extension
 
-    registry.registerExtension('org.visallo.detail.toolbar', {
-        title: i18n('com.myplugin.toolbar.title'),
-        subtitle: i18n('com.myplugin.toolbar.subtitle'),
-        event: 'mypluginClick',
-        canHandle: function(objects) {
-            return objects.length === 1 && objects[0].properties > 10;
-        },
-        options: {
-            insertIntoMenuItems: function(item, items) {
-                // Add item as fourth in list
-                items.splice(3, 0, item);
-            }
-        }
-    });
-});
-```
+Now, register the toolbar item.
 
-To add a divider:
+{% github_embed "https://github.com/visallo/doc-examples/blob/ac5f5428/extension-detail-toolbar/src/main/resources/org/visallo/examples/detail_toolbar/plugin.js#L3-L10" %}{% endgithub_embed %}
 
-```js
-registry.registerExtension('org.visallo.detail.toolbar', { divider: true });
-```
+### Listen
+
+Register a document-level listener for the event specified in the extension. The [`formatters.vertex.title`](../../../javascript/module-formatters.vertex.html#.title) function transforms an element into a title string using the ontology title formula.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/ac5f5428/extension-detail-toolbar/src/main/resources/org/visallo/examples/detail_toolbar/plugin.js#L12-L19" %}{% endgithub_embed %}

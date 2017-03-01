@@ -1,7 +1,7 @@
 define(['configuration/plugins/registry'], function(registry) {
     'use strict';
 
-    registry.registerExtension('org.visallo.web.dashboard.item', {
+    registry.registerExtension('org.visallo.dashboard.item', {
         title: 'Saved Search',
         description: 'Run a saved search',
         identifier: 'org-visallo-web-saved-search',
@@ -13,7 +13,7 @@ define(['configuration/plugins/registry'], function(registry) {
         }
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.item', {
+    registry.registerExtension('org.visallo.dashboard.item', {
         title: 'Notifications',
         description: 'List of system and user notifications',
         identifier: 'org-visallo-web-notifications',
@@ -24,7 +24,7 @@ define(['configuration/plugins/registry'], function(registry) {
         }
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.item', {
+    registry.registerExtension('org.visallo.dashboard.item', {
         title: 'Entity Counts',
         description: 'Show total counts for entity types',
         identifier: 'org-visallo-web-dashboard-concept-counts',
@@ -50,7 +50,7 @@ define(['configuration/plugins/registry'], function(registry) {
         }
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.item', {
+    registry.registerExtension('org.visallo.dashboard.item', {
         title: 'Relationship Counts',
         description: 'Show total counts for relationship types',
         identifier: 'org-visallo-web-dashboard-edge-counts',
@@ -76,7 +76,7 @@ define(['configuration/plugins/registry'], function(registry) {
         }
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.item', {
+    registry.registerExtension('org.visallo.dashboard.item', {
         title: 'Welcome to Visallo',
         description: 'Learn how to work in Visallo',
         identifier: 'org-visallo-web-dashboard-welcome',

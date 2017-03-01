@@ -10,9 +10,9 @@
     "dictionaries": ["jsdoc","closure"]
   },
   "source": {
-    "include": [ "js/" ],
+    "include": [ "js/", "../../../../plugins" ],
     "includePattern": ".+\\.js(doc|x)?$",
-    "excludePattern": "(^|\\/|\\\\)_"
+    "excludePattern": "(^|\\/|\\\\)_|dist|node_modules|target"
   },
   "plugins": [
     "plugins/markdown",

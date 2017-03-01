@@ -31,7 +31,7 @@ define([
     /**
      * Maps from the available Apis to what the component gets as props.
      *
-     * @callback mapApiToProps
+     * @callback module:public/connectReact~mapApiToProps
      * @param {object} availableApis
      * @param {object} availableApis.v1
      * @returns {object} Api requested
@@ -75,7 +75,7 @@ define([
      *
      * @memberof module:public/connectReact
      * @see module:public/v1/api.connected
-     * @param {mapApiToProps} [mapApiToProps] Passes the latest API to
+     * @param {module:public/connectReact~mapApiToProps} [mapApiToProps] Passes the latest API to
      * component by default
      * @returns {function} Connect HOC function
      * @example

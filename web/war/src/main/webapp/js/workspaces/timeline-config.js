@@ -21,7 +21,7 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-            config.template = '/workspaces/timeline-config-tpl';
+            config.template = '/workspaces/timeline-config-tpl.hbs';
         });
 
         this.after('initialize', function() {

@@ -18,7 +18,7 @@ define([], function() {
             titleRenderer: function(el, task) {
                 const type = i18n(`${task.destination}.title`);
                 const config = _.isString(task.configuration) ? JSON.parse(task.configuration) : task.configuration;
-                const number = config.paths.length;
+                const number = config.itemsCount;
                 const plural = number === 1 ? '' : 's';
                 const titleKey = 'activity.tasks.type.org-visallo-ingest-cloud.title';
 

@@ -250,9 +250,15 @@ define([
         },
 
         getTools() {
+            /**
+             * @typedef org.visallo.graph.options~Component
+             * @property {object} cy The cytoscape instance
+             * @property {object} product The graph product
+             */
             return this.props.registry['org.visallo.graph.options'].map(e => ({
                 identifier: e.identifier,
-                componentPath: e.optionComponentPath
+                componentPath: e.optionComponentPath,
+                product: this.props.product
             }));
         },
 
@@ -265,8 +271,35 @@ define([
             const decoration = decorationForId(cyTarget.id());
             if (decoration) {
                 const handlerName = {
+                    /**
+                     * @callback org.visallo.graph.node.decoration~onClick
+                     * @this The decoration cytoscape node
+                     * @param {object} event The {@link http://js.cytoscape.org/#events/event-object|Cytoscape event} object
+                     * @param {object} data
+                     * @param {object} data.vertex The vertex this decoration
+                     * is attached
+                     * @param {object} data.cy The cytoscape instance
+                     */
                     tap: 'onClick',
+                    /**
+                     * @callback org.visallo.graph.node.decoration~onMouseOver
+                     * @this The decoration cytoscape node
+                     * @param {object} event The {@link http://js.cytoscape.org/#events/event-object|Cytoscape event} object
+                     * @param {object} data
+                     * @param {object} data.vertex The vertex this decoration
+                     * is attached
+                     * @param {object} data.cy The cytoscape instance
+                     */
                     mouseover: 'onMouseOver',
+                    /**
+                     * @callback org.visallo.graph.node.decoration~onMouseOut
+                     * @this The decoration cytoscape node
+                     * @param {object} event The {@link http://js.cytoscape.org/#events/event-object|Cytoscape event} object
+                     * @param {object} data
+                     * @param {object} data.vertex The vertex this decoration
+                     * is attached
+                     * @param {object} data.cy The cytoscape instance
+                     */
                     mouseout: 'onMouseOut'
                 }[event.type];
                 if (_.isFunction(decoration[handlerName])) {
@@ -615,6 +648,12 @@ define([
                     }
                     const vertex = vertices[id];
                     const applyDecorations = _.filter(registry['org.visallo.graph.node.decoration'], function(e) {
+                        /**
+                         * @callback org.visallo.graph.node.decoration~applyTo
+                         * @param {object} vertex
+                         * @returns {boolean} Whether the decoration should be
+                         * added to the node representing the vertex
+                         */
                         return !_.isFunction(e.applyTo) || e.applyTo(vertex);
                     });
                     if (applyDecorations.length) {
@@ -791,6 +830,23 @@ define([
 
         if (edges.length) {
             return transformers.reduce((data, fn) => {
+
+                /**
+                 * Mutate the object to change the edge data.
+                 *
+                 * @callback org.visallo.graph.edge.transformer~transformerFn
+                 * @param {object} data The cytoscape data object
+                 * @param {string} data.source The source vertex id
+                 * @param {string} data.target The target vertex id
+                 * @param {string} data.type The edge label IRI
+                 * @param {string} data.label The edge label display value
+                 * @param {array.<object>} data.edgeInfos
+                 * @param {array.<object>} data.edges
+                 * @example
+                 * function transformer(data) {
+                 *     data.myCustomAttr = '';
+                 * }
+                 */
                 fn(data)
                 return data;
             }, base)
@@ -801,6 +857,19 @@ define([
     const mapEdgeToClasses = (edgeInfos, edges, focusing, classers) => {
         const cls = [];
         if (edges.length) {
+
+            /**
+             * Mutate the classes array to adjust the classes.
+             *
+             * @callback org.visallo.graph.edge.class~classFn
+             * @param {array.<object>} edges List of edges that are collapsed into the drawn line. `length >= 1`.
+             * @param {string} type EdgeLabel of the collapsed edges.
+             * @param {array.<string>} classes List of classes that will be added to cytoscape edge.
+             * @example
+             * function(edges, type, cls) {
+             *     cls.push('org-example-cls');
+             * }
+             */
             classers.forEach(fn => fn(edges, edgeInfos.label, cls));
             cls.push('e');
         } else cls.push('partial')
@@ -852,6 +921,15 @@ define([
             const vertexChanged = cache.previous && vertex !== cache.previous;
             const getData = () => {
                 var data;
+                /**
+                 * _**Note:** This will be called for every vertex change event
+                 * (`verticesUpdated`). Cache/memoize the result if possible._
+                 *
+                 * @callback org.visallo.graph.node.decoration~data
+                 * @param {object} vertex
+                 * @returns {object} The cytoscape data object for a decoration
+                 * given a vertex
+                 */
                 if (_.isFunction(decoration.data)) {
                     data = decoration.data(vertex);
                 } else if (decoration.data) {
@@ -892,6 +970,14 @@ define([
         if (_.isString(decoration.classes)) {
             cls = cls.concat(decoration.classes.trim().split(/\s+/));
         } else if (_.isFunction(decoration.classes)) {
+
+            /**
+             * @callback org.visallo.graph.node.decoration~classes
+             * @param {object} vertex
+             * @returns {array.<string>|string} The classnames to add to the
+             * node, either an array of classname strings, or space-separated
+             * string
+             */
             var newClasses = decoration.classes(vertex);
             if (!_.isArray(newClasses) && _.isString(newClasses)) {
                 newClasses = newClasses.trim().split(/\s+/);
@@ -906,6 +992,18 @@ define([
         const cls = [];
         if (id in vertices) {
             const vertex = vertices[id];
+
+            /**
+             * Mutate the classes array to adjust the classes.
+             *
+             * @callback org.visallo.graph.node.class~classFn
+             * @param {object} vertex The vertex that represents the node
+             * @param {array.<string>} classes List of classes that will be added to cytoscape node.
+             * @example
+             * function(vertex, cls) {
+             *     cls.push('org-example-cls');
+             * }
+             */
             classers.forEach(fn => fn(vertex, cls));
             cls.push('v');
         } else cls.push('partial')
@@ -930,6 +1028,17 @@ define([
         };
 
         return transformers.reduce((data, t) => {
+            /**
+             * Mutate the data object that gets passed to Cytoscape.
+             *
+             * @callback org.visallo.graph.node.transformer~transformerFn
+             * @param {object} vertex The vertex representing this node
+             * @param {object} data The cytoscape data object
+             * @example
+             * function transformer(vertex, data) {
+             *     data.myCustomAttr = '...';
+             * }
+             */
             t(vertex, data)
             return data;
         }, startingData);

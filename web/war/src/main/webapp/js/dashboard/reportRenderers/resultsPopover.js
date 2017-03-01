@@ -19,7 +19,7 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-            config.template = '/dashboard/reportRenderers/resultsPopoverTpl';
+            config.template = '/dashboard/reportRenderers/resultsPopoverTpl.hbs';
             config.hideDialog = true;
         });
 

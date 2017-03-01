@@ -6,22 +6,26 @@ define([
 
     var adminExtensionPoint = 'org.visallo.admin';
 
+    /**
+     * @undocumented
+     */
     registry.documentExtensionPoint(
         'org.visallo.admin.user.privileges',
         "Displays editor for user's privileges.",
         function() {
             return true;
-        },
-        'http://docs.visallo.org/extension-points/front-end/admin'
+        }
     );
 
+    /**
+     * @undocumented
+     */
     registry.documentExtensionPoint(
         'org.visallo.admin.user.authorizations',
         "Displays editor for user's authorizations.",
         function() {
             return true;
-        },
-        'http://docs.visallo.org/extension-points/front-end/admin'
+        }
     );
 
     registry.registerExtension(adminExtensionPoint, {

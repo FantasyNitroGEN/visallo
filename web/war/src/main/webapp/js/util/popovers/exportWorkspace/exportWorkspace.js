@@ -48,6 +48,18 @@ define([
                     if (_.isFunction(exporter.attributes)) {
                         attrs = exporter.attributes(attrs);
                     }
+
+                    /**
+                     * If the exporter extension configuration includes an
+                     * `attributes` function, all those attributes will be
+                     * available as well.
+                     *
+                     * @typedef org.visallo.graph.export~Exporter
+                     * @property {string} workspaceId
+                     * @property {string} productId
+                     * @property {object} exporter
+                     * @property {object} cy The cytoscape object
+                     */
                     C.attachTo(node, attrs);
                     self.dialog.show();
                     self.positionDialog();

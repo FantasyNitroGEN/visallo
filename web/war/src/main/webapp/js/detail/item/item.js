@@ -20,25 +20,62 @@ define([
     layoutTypes) {
     'use strict';
 
-    registry.documentExtensionPoint('org.visallo.layout.component', 'Layout Component', function(e) {
-        if (!_.isFunction(e.applyTo) && _.isObject(e.applyTo)) {
-            var optionalApplyToIsValid = null;
-            if (e.applyTo.constraints) {
-                optionalApplyToIsValid = _.isArray(e.applyTo.constraints) && e.applyTo.constraints.length;
-            }
-            if (e.applyTo.contexts) {
-                optionalApplyToIsValid = optionalApplyToIsValid && _.isArray(e.applyTo.contexts) && e.applyTo.contexts.length;
-            }
-            if (optionalApplyToIsValid !== null) {
-                return optionalApplyToIsValid;
-            }
-            return (e.applyTo.type || e.applyTo.conceptIri || e.applyTo.edgeLabel || e.applyTo.displayType);
+    /**
+     * The detail pane is rendered using a custom layout engine consisting of a tree of layout components.
+     *
+     * *Layout Components* are nodes in the layout tree that define the type of layout
+     * and what children are included in the layout.
+     *
+     * The `children` defined in a layout component can be references (`ref`) to other
+     * components, or FlightJS components specified with a `componentPath`. Layout
+     * components can also specify a flight component to be attached to the node for implementing behavior.
+     *
+     * _Exactly one of the following is required: `render`, `collectionItem` or `children` (i.e., you cannot supply both render and collectionItem)._
+     *
+     * @param {org.visallo.layout.component~applyTo|org.visallo.layout.component~applyToFn} [applyTo] When does this component get used
+     * @param {string} identifier Identifier of this component for use in other components in package syntax. Also transforms into css class – replacing package periods with dashes
+     * @param {object} [layout]
+     * @param {string} [layout.type] Which {@link org.visallo.layout.type|layout type} to render `children`.
+     * @param {object} [layout.options] Layout-specific options
+     * @param {string} [componentPath] Additional FlightJS component to attach to this node for behavior
+     * @param {string} [className] Additional css classname to add to DOM
+     * @param {function} [render] Function that renders the content, is passed the `model`, and `match` configuration.
+     * @param {org.visallo.layout.component~child} [collectionItem] Reference to layout component to render for each item in model (requires model to be array).
+     * @param {array.<org.visallo.layout.component~child>} [children] Children items to render
+     */
+    registry.documentExtensionPoint('org.visallo.layout.component',
+        'Define the layout of the Element Inspector based on content',
+        function(e) {
+            if (!_.isFunction(e.applyTo) && _.isObject(e.applyTo)) {
+                var optionalApplyToIsValid = null;
+                if (e.applyTo.constraints) {
+                    optionalApplyToIsValid = _.isArray(e.applyTo.constraints) && e.applyTo.constraints.length;
+                }
+                if (e.applyTo.contexts) {
+                    optionalApplyToIsValid = optionalApplyToIsValid && _.isArray(e.applyTo.contexts) && e.applyTo.contexts.length;
+                }
+                if (optionalApplyToIsValid !== null) {
+                    return optionalApplyToIsValid;
+                }
+                return (e.applyTo.type || e.applyTo.conceptIri || e.applyTo.edgeLabel || e.applyTo.displayType);
         }
         return _.isArray(e.children) || _.isFunction(e.render) || _.isObject(e.collectionItem);
     }, 'http://docs.visallo.org/extension-points/front-end/layout/component.html')
-    registry.documentExtensionPoint('org.visallo.layout.type', 'Layout Type', function(e) {
-        return _.isString(e.type) && _.isString(e.componentPath);
-    }, 'http://docs.visallo.org/extension-points/front-end/layout/type.html')
+
+    /**
+     * Visallo includes the [Flex](https://github.com/v5analytics/visallo/blob/master/web/war/src/main/webapp/js/detail/item/types/flex.js) layout type.
+     *
+     * Layout components are passed properties: `layoutConfig` and `children`
+     *
+     * @param {string} type The identifier for this layout type (used by layout components)
+     * @param {string} componentPath
+     */
+    registry.documentExtensionPoint('org.visallo.layout.type',
+        'Handles the layout of children within a component',
+        function(e) {
+            return _.isString(e.type) && _.isString(e.componentPath);
+        }
+    );
 
     return defineComponent(Item);
 
@@ -155,6 +192,19 @@ define([
                 }
             });
         }
+        /**
+         * _Exactly one of the following is required: `ref`, or `componentPath`._
+         *
+         * @typedef org.visallo.layout.component~child
+         * @property {object} [style] CSS attributes to set on DOM
+         * @property {string} [modelAttribute] Use this attribute name instead of `model` when attaching FlightJS component.
+         * @property {function} [attributes] Transform attributes using function when attaching FlightJS component.
+         * @property {function|object} [model] Change the model passed to this child, either a function or object.
+         * * `function`: Transforms the state of the model at this level in the tree to the child. Return either the transformed model or a `Promise`.
+         * * `object`: Static object to pass as the model.
+         * @property {string} [ref] Reference to identifier of layout component to render.
+         * @property {string} [componentPath] RequireJS path to FlightJS component to render.
+         */
         return layoutComponent.children.map(function(child) {
             var transform;
             if (_.isFunction(child.model)) {
@@ -503,6 +553,30 @@ define([
         if (!_.isArray(match.constraints)) {
             throw new Error('Contraints must be array: ' + match.constraints);
         }
+
+        /**
+         * _Only one of these allowed: conceptIri, edgeLabel, displayType, type*_
+         *
+         * @typedef org.visallo.layout.component~applyTo
+         * @property {string} [conceptIri] Implies vertices, only those whose concept (or ancestor) matches this Iri.
+         * @property {string} [edgeLabel] Implies edges, only those whose edgeLabel matches this Iri.
+         * @property {string} [displayType] Match ontological `displayType` option.
+         * @property {string} [type] Possible values: `vertex`, `edge`, `element`, `element[]`.
+         * @property {array.<string>} [constraints] Possible values: `width`, `height`.
+         * Match based on the view container, instead of matching model data.
+         * Constraints control the layout selection for views that are width, and/or height constrained.
+         * The detail pane is set to be width constrained, whereas the full screen view has no constraints.
+         * @property {array.<string>} [contexts] For named templates. `popup` is defined by default for graph previews
+         */
+
+        /**
+         * @callback org.visallo.layout.component~applyToFn
+         * @param {object} model
+         * @param {object} match
+         * @param {array.<string>} match.contexts
+         * @param {array.<string>} match.constraints
+         * @returns {boolean} If this component should apply given the `model` and `match`
+         */
 
         var components = registry.extensionsForPoint('org.visallo.layout.component'),
             possible = _.filter(components, function(comp) {

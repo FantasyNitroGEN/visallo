@@ -46,7 +46,7 @@ define([
         });
 
         this.before('initialize', function(node, config) {
-            config.template = '/search/save/template';
+            config.template = '/search/save/template.hbs';
             config.canSaveGlobal = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
             config.maxHeight = $(window).height() / 2;
             config.name = config.update && config.update.name || '';

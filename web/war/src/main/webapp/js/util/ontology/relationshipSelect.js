@@ -1,7 +1,7 @@
 /**
  * Allows a user to select an ontology relationship from a searchable dropdown component.
  *
- * @module
+ * @module components/RelationshipSelect
  * @flight Dropdown selection component for selecting relationships from the ontology
  * @attr {string} [defaultText=Choose a Relationship...] the placeholder text to display
  * @attr {string} [limitParentConceptId=''] Limit edges that contain this concept IRI on one side of the edge

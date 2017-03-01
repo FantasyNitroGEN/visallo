@@ -1,45 +1,34 @@
-Menubar Plugin
-=================
+# Menubar
 
-Plugin to add new menubar items.
+* [Menubar JavaScript API `org.visallo.menubar`](../../../javascript/org.visallo.menubar.html)
+* [Menubar Example Code](https://github.com/visallo/doc-examples/tree/master/extension-menubar)
 
-## Required parameters:
+Add additional icons into the menubar that can open a slide out panel or display a component in the content area like the built in dashboard.
 
-* title: The text under icon
-* identifier: Identifier of this menubar icon (must be valid css class)
-* action: (object)
-    * type: either `pane`, `fullscreen`, or `url`
-    * componentPath: path to component to initialize on activation (valid for `pane` or `fullscreen` action types)
-    * url: the url to open when clicked (valid for `url` action type)
-* icon: path to icon
+The icon can refer to an existing icon [bundled with Visallo](https://github.com/visallo/visallo/tree/master/web/war/src/main/webapp/img/glyphicons/white), or one registered with `registerFile` in a plugin. For best results, use a white mono-chromatic icon.
 
-## Optional parameters:
+<div style="text-align:center">
+<img src="./menubar.png" width="100%" style="max-width: 250px;">
+<img src="./welcome.png" width="100%" style="max-width: 450px;">
+</div>
 
-* welcomeTemplatePath: (string) Path to template to render in **Welcome to Visallo** dashboard card. 
-* options: (object)
-    * placementHint: either `top` or `bottom`
-    * placementHintBefore: class of menubar icon to position before
-    * placementHintAfter: class of menubar icon to position after
+## Tutorial
 
-## Example
+### Web Plugin
 
-To register an item:
+Register the plugin, a component for the pane, and a template for the _Welcome to Visallo_ card.
 
-```js
-require(['configuration/plugins/registry', 'util/messages'], function(registry, i18n) {
-    registry.registerExtension('org.visallo.menubar', {
-        title: i18n('com.mypluginpackage.myplugin.menubar.title'),
-        identifier: 'com-mypluginpackage-myplugin',
-        action: {
-            type: 'pane',
-            componentPath: 'com/mypluginpackage/myplugin/component'
-        },
-        welcomeTemplatePath: 'hbs!com/mypluginpackage/myplugin/templates/welcome',
-        icon: '../img/glyphicons/white/glyphicons_066_tags@2x.png',
-        options: {
-            placementHint: 'top',
-            placementHintAfter: 'search',
-        }
-    })
-});
-```
+{% github_embed "https://github.com/visallo/doc-examples/blob/3b6ac03e/extension-menubar/src/main/java/org/visallo/examples/menubar/MenubarWebAppPlugin.java#L17-L19" %}{% endgithub_embed %}
+
+### Register Extension
+
+Register the menubar extension by pointing to the component and template. This one will use a bundled icon.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/3b6ac03e/extension-menubar/src/main/resources/org/visallo/examples/menubar/plugin.js#L3-L16" %}{% endgithub_embed %}
+
+### Component
+
+Create a basic React component that displays some text and a button. Add some padding around the panel to match other panes.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/3b6ac03e/extension-menubar/src/main/resources/org/visallo/examples/menubar/Pane.jsx" %}{% endgithub_embed %}
+

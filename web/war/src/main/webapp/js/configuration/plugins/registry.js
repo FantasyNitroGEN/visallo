@@ -11,8 +11,10 @@ define(['underscore'], function(_) {
     var extensions = {},
         extensionDocumentation = {},
         uuidToExtensionPoint = {},
+        legacyMappingToNew = {},
         uuidGen = 0,
         alreadyWarnedAboutDocsByExtensionPoint = {},
+        alreadyWarnedAboutLegacyByExtensionPoint = {},
         verifyArguments = function(extensionPoint, extension) {
             if (!_.isString(extensionPoint) && extensionPoint) {
                 throw new Error('extensionPoint must be string');
@@ -28,13 +30,26 @@ define(['underscore'], function(_) {
                 })
             }
         },
-        shouldWarn = function(extensionPoint) {
-            if (extensionPoint in alreadyWarnedAboutDocsByExtensionPoint) {
+        shouldWarn = function(map, extensionPoint) {
+            if (extensionPoint in map) {
                 return;
             }
-            alreadyWarnedAboutDocsByExtensionPoint[extensionPoint] = true;
+            map[extensionPoint] = true;
             return true;
         },
+        shouldWarnAboutMissingDocs = _.partial(shouldWarn, alreadyWarnedAboutDocsByExtensionPoint),
+        shouldWarnAboutLegacyUse = _.partial(shouldWarn, alreadyWarnedAboutLegacyByExtensionPoint),
+        moveExistingLegacyExtensions = function(old, extensionPoint) {
+            if (extensions[old]) {
+                if (!extensions[extensionPoint]) {
+                    extensions[extensionPoint] = {};
+                }
+                _.each(extensions[old], function(config, uuid) {
+                    extensions[extensionPoint][uuid] = config
+                });
+            }
+        },
+
         /**
          * @alias module:registry
          */
@@ -45,8 +60,31 @@ define(['underscore'], function(_) {
             clear: function() {
                 extensions = {};
                 extensionDocumentation = {};
+                legacyMappingToNew = {};
                 uuidToExtensionPoint = {};
                 uuidGen = 0;
+            },
+
+            /**
+             * Get the canonical name for an extension point.
+             * Some extension points have been renamed, so we translate to
+             * the current.
+             *
+             * @param {String} point The extension point to transform
+             * @returns {String} The canonical name
+             */
+            canonicalName: function(point) {
+                if (!point) return;
+                if (point in legacyMappingToNew) {
+                    var canonical = legacyMappingToNew[point];
+                    if (shouldWarnAboutLegacyUse(point)) {
+                        console.warn(`This extension point has been renamed from ${point} to ${canonical},
+The extension will continue to work, but the old name will be removed in future releases`)
+                    }
+                    return canonical;
+                }
+
+                return point;
             },
 
             /**
@@ -68,7 +106,8 @@ define(['underscore'], function(_) {
              *     icon: '../img/new.png'
              * });
              */
-            registerExtension: function(extensionPoint, extension) {
+            registerExtension: function(point, extension) {
+                const extensionPoint = api.canonicalName(point);
                 verifyArguments.apply(null, arguments);
 
                 var byId = extensions[extensionPoint],
@@ -85,7 +124,8 @@ define(['underscore'], function(_) {
 
                 return uuid;
             },
-            unregisterAllExtensions: function(extensionPoint) {
+            unregisterAllExtensions: function(point) {
+                const extensionPoint = api.canonicalName(point);
                 if (!extensionPoint) {
                     throw new Error('extension point required to unregister')
                 }
@@ -105,7 +145,7 @@ define(['underscore'], function(_) {
                     throw new Error('extension uuid required to unregister')
                 }
 
-                var extensionPoint = uuidToExtensionPoint[extensionUuid];
+                var extensionPoint = api.canonicalName(uuidToExtensionPoint[extensionUuid]);
                 if (!extensionPoint) {
                     throw new Error('extension uuid not found in registry')
                 }
@@ -117,7 +157,8 @@ define(['underscore'], function(_) {
 
                 triggerChange(extensionPoint);
             },
-            markUndocumentedExtensionPoint: function(extensionPoint) {
+            markUndocumentedExtensionPoint: function(point) {
+                const extensionPoint = api.canonicalName(point);
                 extensionDocumentation[extensionPoint] = {
                     undocumented: true
                 }
@@ -129,15 +170,30 @@ define(['underscore'], function(_) {
              * @param {String} extensionPoint The extension point to document
              * @param {String} description About this extension point / what it does
              * @param {function} validator Gets any registered extensions and returns if it's valid
-             * @param {String} [externalDocumentationUrl] External URL to documentation if available
+             * @param {String|Object} [options] External URL to documentation if string, or options
+             * @param {String} [url] External documentation url
+             * @param {String} [legacyName] Previous extension point name to include with this. Will warn when used
              */
-            documentExtensionPoint: function(extensionPoint, description, validator, externalDocumentationUrl) {
+            documentExtensionPoint: function(point, description, validator, options) {
+                const extensionPoint = api.canonicalName(point);
                 if (!description) {
                     throw new Error('Description required for documentation')
                 }
 
                 if (!_.isFunction(validator)) {
                     throw new Error('Validator required for documentation')
+                }
+
+                var externalDocumentationUrl = _.isString(options) ? options : null;
+
+                if (options) {
+                    if (options.legacyName) {
+                        legacyMappingToNew[options.legacyName] = extensionPoint
+                        moveExistingLegacyExtensions(options.legacyName, extensionPoint)
+                    }
+                    if (options.url) {
+                        externalDocumentationUrl = options.url;
+                    }
                 }
 
                 extensionDocumentation[extensionPoint] = {
@@ -179,11 +235,12 @@ define(['underscore'], function(_) {
              * @param {String} extensionPoint The extension point to get extensions
              * @returns {Array.<Object>} List of all registered (and valid if validator exists) extension configuration values
              */
-            extensionsForPoint: function(extensionPoint) {
+            extensionsForPoint: function(point) {
+                const extensionPoint = api.canonicalName(point);
                 var documentation = extensionDocumentation[extensionPoint],
                     byId = extensions[extensionPoint];
 
-                if (!documentation && shouldWarn(extensionPoint)) {
+                if (!documentation && shouldWarnAboutMissingDocs(extensionPoint)) {
                     console.warn('Consider adding documentation for ' +
                         extensionPoint +
                         '\n\tUsage: registry.documentExtensionPoint(\'' + extensionPoint + '\', desc, validator)'

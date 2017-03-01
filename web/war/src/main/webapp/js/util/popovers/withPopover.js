@@ -43,8 +43,12 @@ define([], function() {
                 let path;
 
                 if (/^\//.test(t)) {
-                    // Use legacy requirejs plugin since plugins may relay on it
-                    path = 'hbs!' + t.substring(1);
+                    if (/\.hbs$/.test(t)) {
+                        path = t.substring(1);
+                    } else {
+                        // Use legacy requirejs plugin since plugins may relay on it
+                        path = 'hbs!' + t.substring(1);
+                    }
                 } else {
                     path = 'util/popovers/' + t + '.hbs';
                 }

@@ -11,6 +11,30 @@ define([
     attacher) {
     'use strict';
 
+    /**
+     * Renders a new link to an admin form in the admin list (opened from
+     * menubar icon.)
+     *
+     * The component is placed in a pane next to the admin list and
+     * automatically will scroll if the height is larger than window.
+     *
+     * One of `Component`, `componentPath`, or `url` is required.
+     *
+     * @param {org.visallo.admin~Component} [Component]
+     * @param {string} [componentPath] Path to {@link org.visallo.admin~Component}
+     * @param {string} [url] Open a url in a new window instead of rendering a
+     * form
+     * @param {string} section The section to place new admin link. Either
+     * existing or new group
+     * @param {string} name The title of the admin link
+     * @param {string} subtitle The subtitle of the admin link displayed below
+     * `name`
+     * @param {string|org.visallo.admin~requiredPrivilege} [requiredPrivilege] Only show link if user has the given
+     * privilege
+     * @param {object} [options]
+     * @param {number} [options.sortHint] A number indicating the admin tool's position within the section. If not
+    included, admin items will be sorted within a section by `name`.
+     */
     registry.documentExtensionPoint('org.visallo.admin',
         'Add admin tools to admin pane',
         function(e) {
@@ -26,6 +50,12 @@ define([
         var userPrivileges = visalloData.currentUser.privileges;
         return registry.extensionsForPoint('org.visallo.admin')
             .filter(function(extension) {
+                /**
+                 * @callback org.visallo.admin~requiredPrivilege
+                 * @param {Array.<object>} userPrivileges The current users
+                 * privileges
+                 * @return {boolean} If the admin tool should be shown to user
+                 */
                 if (_.isFunction(extension.requiredPrivilege)) {
                     if (!extension.requiredPrivilege(userPrivileges)) {
                         return false;
@@ -127,6 +157,14 @@ define([
                     }, 100)
                 } else {
                     $adminListItem.addClass('loading');
+
+                    /**
+                     * FlightJS or React component displaying the admin
+                     * interface.
+                     *
+                     * @typedef org.visallo.admin~Component
+                     * @property {object} data Admin-tool specific data passed from router
+                     */
                     var promise = attacher()
                         .node(form)
                         .component(extension.component)

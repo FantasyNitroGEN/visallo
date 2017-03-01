@@ -20,7 +20,7 @@ define([
         /**
          * Utilities that assist in transforming vertices and edges.
          *
-         * @alias module:util/vertex/formatters.vertex
+         * @alias module:formatters.vertex
          * @namespace
          */
         V = {
@@ -177,7 +177,7 @@ define([
             /**
              * Define/override specific displayTransformers for
              * properties. These are used to transform property json into
-             * displayed versions in the element inspector.
+             * displayed versions in the Element Inspector.
              *
              * All functions receive: `function(HtmlElement, property, element)` and
              * should populate the dom element with a value.
@@ -562,7 +562,7 @@ define([
             /**
              * Larger version of vertex image. 800 pixels.
              *
-             * Used in the element inspector.
+             * Used in the Element Inspector.
              *
              * @param {object} vertex
              * @param {object} [optionalWorkspaceId=]

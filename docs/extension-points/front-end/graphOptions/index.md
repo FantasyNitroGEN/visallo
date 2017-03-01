@@ -1,69 +1,39 @@
-Graph Options Plugin
-=================
+# Graph Options
 
-Plugin to add custom options components (Flight or React) which display in the graph options menu (next to Fit).
+* [Graph Options JavaScript API `org.visallo.graph.options`](../../../javascript/org.visallo.graph.options.html)
+* [Graph Options Example Code](https://github.com/visallo/doc-examples/tree/master/extension-graph-options)
 
-To register an option:
+Plugin to add custom options components (Flight or React) which display in the graph options menu (next to Fit) when the menu is opened.
 
-## React
+<div style="text-align:center">
+<img src="./options.png" width="100%" style="max-width: 400px;">
+</div>
 
-```js
-// Create a MyOption.jsx and use registerJavaScriptComponent in your WebAppPlugin.
-require(['react', 'public/v1/api'], function(React, visalloApi) {
-    const MyOption = React.createClass({
-        render() {
-            // cytoscape instance is available as prop
-            const { cy } = this.props;
+## Tutorial
 
-            const myOptionDefault = visalloData.currentUser.uiPreferences['my-option-value'];
-            return (
-                <label>My Setting
-                    <input onChange={this.onChange} type="checkbox" defaultChecked={myOptionDefault} />
-                </label>
-            );
-        },
-        onChange(event) {
-            visalloData.currentUser.uiPreferences['my-option-value'] = event.target.checked;
-            // Save
-            visalloApi.dataRequest('user', 'preference', 'my-option-value', event.target.checked);
-        }
-    })
-    return MyOption;
-});
+For this tutorial we'll create a new options extension that adds a preferenced-backed checkbox. This could be used for toggling some built-in graph styles, for example.
 
-// Create plugin.js and use registerJavaScript("plugin.js", true) in your WebAppPlugin
-require(['configuration/plugins/registry'], function(registry) {
+### Web Plugin
 
-    // Register the component path,
-    registry.registerExtension('org.visallo.graph.options', {
-        identifier: 'myOption',
-        optionComponentPath: 'myplugins/MyOption'
-    });
-});
-```
+Register the plugin script and React component in a web plugin.
 
-## Flight
+{% github_embed "https://github.com/visallo/doc-examples/blob/23baf73/extension-graph-options/src/main/java/org/visallo/examples/graph_options/GraphOptionsWebAppPlugin.java#L17-L18" %}{% endgithub_embed %}
 
-```js
-require(['configuration/plugins/registry'], function(registry) {
+### Register Extension
 
-    // Define a custom Flight component
-    define('myplugins/hello_world', ['flight/lib/component'], function(defineComponent) {
-        return defineComponent(HelloWorld);
+Register the options extension pointing to the React component.
 
-        function HelloWorld() {
-            this.after('initialize', function() {
-                this.$node.html('Hello World!!');
-            })
-        }
-    });
+{% github_embed "https://github.com/visallo/doc-examples/blob/23baf73/extension-graph-options/src/main/resources/org/visallo/examples/graph_options/plugin.js#L3-L6" %}{% endgithub_embed %}
 
-    // Register the component path,
-    registry.registerExtension('org.visallo.graph.options', {
-        identifier: 'helloWorld',
-        optionComponentPath: 'myplugins/hello_world'
-    });
-});
-```
+### Component
 
-Graph options can access the `cy` (cytoscape) object using `this.attr.cy`
+Create the component that renders a checkbox, and looks up user preferences.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/23baf73/extension-graph-options/src/main/resources/org/visallo/examples/graph_options/React.jsx#L1-L17" %}{% endgithub_embed %}
+
+Implement the saving of the preference when the user clicks the checkbox. This updates the in memory user object, and updates the server.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/23baf73/extension-graph-options/src/main/resources/org/visallo/examples/graph_options/React.jsx#L18-L24" %}{% endgithub_embed %}
+
+* [`dataRequest API`](../../../javascript/module-dataRequest.html)
+* [`User Service -> Set Preference API`](../../../javascript/module-services_user.html#.preference)

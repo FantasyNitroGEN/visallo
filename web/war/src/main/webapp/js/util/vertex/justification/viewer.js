@@ -5,7 +5,7 @@
  * One of `justificationMetadata` or `sourceMetadata` must be provided.
  * If both justificationMetadata and sourceMetadata are given, only justificationMetadata is used.
  *
- * @module
+ * @module components/JustificationViewer
  * @flight Displays justification information
  * @attr {boolean} [linkToSource=true] Show the source link if available
  * @attr {object} [justificationMetadata]

@@ -3,7 +3,7 @@
  * container component is responsible for listening for events to request more
  * elements and fulfilling that request.
  *
- * @module
+ * @module components/List
  * @flight Render lists of entities and relationships (vertices/edges)
  * @attr {Array.<Object>} items Elements (vertices/edges) to render
  * @attr {boolean} singleSelection Whether the user can use keyboard shift/alt to select multiple
@@ -11,9 +11,9 @@
  * @attr {number} total The total count of items. Required when `infiniteScrolling` enabled.
  * @attr {number} nextOffset When `infiniteScrolling` is enabled, specifies where the next request should start
  * @attr {string|undefined} usageContext Describes the context this component is used so ListItemRenderers can determine if they should override behavior.
+ * @see org.visallo.entity.listItemRenderer
  * @fires module:util/element/list#infiniteScrollRequest
  * @listens module:util/element/list#addInfiniteItems
- * @extensionpoint {module:util/element/list~ListItemRenderer} org.visallo.entity.listItemRenderer Customize the rendering of elements in list
  * @example <caption>Static list</caption>
  * List.attachTo(node, {
  *     items: [vertices]
@@ -56,21 +56,31 @@ define([
     'use strict';
 
     var MAX_ITEMS_BEFORE_FORCE_LOADING = 10;
-    var EXTENSION_POINT_NAME = 'org.visallo.entity.listItemRenderer';
 
     /**
-     * @typedef {object} module:util/element/list~ListItemRenderer
-     * @property {module:util/element/list~ListItemRendererCanHandle|undefined} canHandle Whether the extension should run given an item and usageContext
-     * @property {string|undefined} component The FlightJS component to handle rendering
-     * @property {string|undefined} componentPath Path to FlightJS component
+     * This allows plugins to adjust how list items are displayed in search results,
+     * details panels, or anywhere else the lists are used.
+     *
+     * Requires either `component` or `componentPath`.
+     *
+     * <div class="warning">
+     * **The `item` property passed to {@link org.visallo.entity.listItemRenderer~Component|Component}
+     * can differ depending on `usageContext`.**
+     * <p>
+     * `usageContext == 'detail/relationships'` => `{ vertex, relationship }`<br>
+     * `usageContext == 'searchresults'` => The element
+     * </div>
+     *
+     * @param {org.visallo.entity.listItemRenderer~canHandle} canHandle Whether the extension should run given an item and usageContext
+     * @param {org.visallo.entity.listItemRenderer~Component} [component] The FlightJS component to handle rendering
+     * @param {string} [componentPath] Path to {@link org.visallo.entity.listItemRenderer~Component}
      */
-    registry.documentExtensionPoint(EXTENSION_POINT_NAME,
-        'Implement custom implementations for rendering items into element lists. ' +
-        'This allows plugins to adjust how list items are displayed in search results, details panels, ' +
-        'or anywhere else the lists are used.',
+    registry.documentExtensionPoint('org.visallo.entity.listItemRenderer',
+        'Implement custom implementations for rendering items into element lists',
         function(e) {
             return _.isFunction(e.canHandle) && (e.component || e.componentPath);
-        }
+        },
+        'http://docs.visallo.org/extension-points/front-end/entityListItemRenderer/'
     );
 
     return defineComponent(List, withPositionUpdates, withDataRequest);
@@ -91,7 +101,7 @@ define([
             // deprecated vertex/list and edge/list components
             this.attr.items = this.attr.items || this.attr.edges || this.attr.vertices;
 
-            this.renderers = registry.extensionsForPoint(EXTENSION_POINT_NAME).concat([
+            this.renderers = registry.extensionsForPoint('org.visallo.entity.listItemRenderer').concat([
                 { canHandle: function(item, usageContext) {
                         return usageContext === 'detail/relationships' &&
                                 item && item.relationship &&
@@ -366,7 +376,7 @@ define([
                      * Defines whether the given extension should be used give
                      * the item + usageContext pair.
                      *
-                     * @callback ListItemRendererCanHandle
+                     * @callback org.visallo.entity.listItemRenderer~canHandle
                      * @param {object} item Element/Edge object
                      * @param {string|undefined} usageContext The context this list is running. 'search, detail/relationships', etc.
                      * @returns {boolean} If the extension renderer should be invoked
@@ -376,6 +386,15 @@ define([
 
             el.children('a').teardownAllComponents();
             el.empty();
+
+            /**
+             * Flight Component that handles row rendering for a given
+             * `item` and `usageContext`.
+             *
+             * @typedef org.visallo.entity.listItemRenderer~Component
+             * @property {object} item The rows item value
+             * @property {string} usageContext The context of this element list
+             */
             itemRenderer.attachTo($('<a class="draggable"/>').appendTo(el), { item: item, usageContext: usageContext });
 
             this.applyDraggable(el[0]);

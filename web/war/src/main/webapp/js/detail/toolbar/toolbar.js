@@ -14,12 +14,34 @@ define([
     acl) {
     'use strict';
 
+
+    /**
+     * These items can be added to single entity/edge inspectors, or the
+     * multiple selection inspector (or both). Use `canHandle` to specify
+     * what inspectors to apply to.
+     *
+     * @param {string} event The event to fire when clicked
+     * @param {string} title The text to display in the toolbar
+     * @param {string} [subtitle] The text to display underneath the title
+     * @param {string} [cls] A CSS classname to add to the items element. Add `disabled` to prevent events from firing
+     * @param {org.visallo.detail.toolbar~canHandle} [canHandle] Whether this item should be added based on what's in the detail pane.
+     * @param {boolean} [divider=false] Specify `true` for a toolbar menu divider instead of an actionable item
+     * @param {Array.<object>} [submenu] Specify list of submenu toolbar items. Only one level supported
+     * @param {boolean} [right=false] Specify `true` to float item to the right
+     * @param {object} [options]
+     * @param {org.visallo.detail.toolbar~insertIntoMenuItems} [options.insertIntoMenuItems] function to place the item in a specific location/order
+     * @example <caption>Add Button</caption>
+     * registry.registerExtension('org.visallo.detail.toolbar', {
+     *     event: 'myEvent',
+     *     title: 'Test Button'
+     * })
+     * @example <caption>Add Divider</caption>
+     * registry.registerExtension('org.visallo.detail.toolbar', { divider: true })
+     */
     registry.documentExtensionPoint('org.visallo.detail.toolbar',
-        'Add detail pane toolbar items',
+        'Add Element Inspector toolbar items',
         function(e) {
-            return e === 'DIVIDER' || (
-                ('event' in e) && ('title' in e)
-                );
+            return e.divider || (('event' in e) && ('title' in e));
         },
         'http://docs.visallo.org/extension-points/front-end/detailToolbar'
     );
@@ -94,9 +116,32 @@ define([
                 toolbarExtensions = _.sortBy(registry.extensionsForPoint('org.visallo.detail.toolbar'), 'title');
 
             toolbarExtensions.forEach(function(item) {
+
+                /**
+                 * @callback org.visallo.detail.toolbar~canHandle
+                 * @param {Array.<object>} objects List of all objects displayed in detail pane
+                 * @returns {boolean} Whether this extension should display for `objects`
+                 */
                 if (!_.isFunction(item.canHandle) || item.canHandle(objects)) {
                     item.eventData = objects;
                     if (item.options && _.isFunction(item.options.insertIntoMenuItems)) {
+                        /**
+                         * Function that is responsible for inserting `item`
+                         * into `items`.
+                         *
+                         * The `items` array should be mutated, placing the
+                         * `item` into the list, or into a submenu of an item
+                         * in the list.
+                         *
+                         * @callback org.visallo.detail.toolbar~insertIntoMenuItems
+                         * @param {object} item the toolbar item to insert
+                         * @param {Array.<object>} items The existing toolbar items
+                         * @example
+                         * insertIntoMenuItems: function(item, items) {
+                         *     // Insert item into specific position in items list
+                         *     items.splice(3, 0, item);
+                         * }
+                         */
                         item.options.insertIntoMenuItems(item, toolbarItems);
                     } else {
                         toolbarItems.push(item);

@@ -2,7 +2,7 @@
  * Plugins should `require` this module for access to Visallo components and
  * helpers.
  *
- * @module
+ * @module public/v1/api
  * @classdesc Visallo Top-Level API
  * @example
  * require(['public/v1/api'], function(visalloApi) {
@@ -113,45 +113,46 @@ define([
                     /**
                      * Display justification values
                      *
-                     * Reference to {@link module:util/vertex/justification/viewer|JustificationViewer}
+                     * Reference to {@link module:components/JustificationViewer|JustificationViewer}
                      *
-                     * @see module:util/vertex/justification/viewer
+                     * @see module:components/JustificationViewer
                      */
                     JustificationViewer: JustificationViewer,
 
                     /**
                      * Render lists of elements
                      *
-                     * Reference to {@link module:util/element/list|ElementList}
+                     * Reference to {@link module:components/List|List}
                      *
-                     * @see module:util/element/list
+                     * @see module:components/List
                      */
                     List: List,
 
                     /**
                      * Concept select dropdown
                      *
-                     * Reference to {@link module:util/ontology/conceptSelect|ConceptSelect}
+                     * Reference to {@link
+                     * module:components/ConceptSelect|ConceptSelect}
                      *
-                     * @see module:util/ontology/conceptSelect
+                     * @see module:components/ConceptSelect
                      */
                     OntologyConceptSelector: ConceptSelector,
 
                     /**
                      * Property select dropdown
                      *
-                     * Reference to {@link module:util/ontology/propertySelect|PropertySelect}
+                     * Reference to {@link module:components/PropertySelect|PropertySelect}
                      *
-                     * @see module:util/ontology/propertySelect
+                     * @see module:components/PropertySelect
                      */
                     OntologyPropertySelector: PropertySelector,
 
                     /**
                      * Relationship select dropdown
                      *
-                     * Reference to {@link module:util/ontology/relationshipSelect|RelationshipSelect}
+                     * Reference to {@link module:components/RelationshipSelect|RelationshipSelect}
                      *
-                     * @see module:util/ontology/relationshipSelect
+                     * @see module:components/RelationshipSelect
                      */
                     OntologyRelationshipSelector: RelationshipSelector
                 },
@@ -160,18 +161,18 @@ define([
                  * Helpful utities for formatting datatypes to user
                  * displayable values
                  *
-                 * Reference to {@link module:util/vertex/formatters|Formatters}
+                 * Reference to {@link module:formatters|Formatters}
                  *
-                 * @see module:util/vertex/formatters
+                 * @see module:formatters
                  */
                 formatters: F,
 
                 /**
                  * Make service requests on web worker thread
                  *
-                 * Reference to {@link module:util/withDataRequest|DataRequest}
+                 * Reference to {@link module:dataRequest}
                  *
-                 * @see module:util/withDataRequest
+                 * @see module:dataRequest
                  */
                 dataRequest: withDataRequest.dataRequest
             };

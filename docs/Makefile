@@ -7,7 +7,7 @@
 
 .DEFAULT_GOAL: serve
 
-PLUGINS=ga theme-visallo # Should match plugins in book.js
+PLUGINS=ga theme-visallo github-embed # Should match plugins in book.js
 
 WEBAPP=../web/war/src/main/webapp
 GITBOOK=node_modules/gitbook-cli/bin/gitbook.js
@@ -86,7 +86,7 @@ clean:
 
 clone:
 	@rm -rf docs.visallo.org
-	@git clone -n git@github.com:v5analytics/docs.visallo.org
+	@git clone -n git@github.com:visallo/docs.visallo.org
 
 push: build clone
 	@mv docs.visallo.org/.git _book
