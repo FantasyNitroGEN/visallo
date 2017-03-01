@@ -70,7 +70,6 @@ define([
             });
             this.on('clearSearch', function(event, data) {
                 this.hideSearchResults();
-                console.log(event.target, data)
 
                 var filters = this.select('filtersSelector').find('.content')
                 this.trigger(filters, 'clearfilters', data);
