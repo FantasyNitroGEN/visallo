@@ -156,7 +156,7 @@ define([
                  * @property {function} onImport Trigger the upload given the
                  * configuration provided by the user and configuration
                  * component.
-                 * @fires org.visallo.ingest.cloud~cloudImported
+                 * @fires org.visallo.ingest.cloud#cloudImported
                  */
                 attacher = Attacher()
                     .node(this.popover.find('.import-cloud-form').empty())
@@ -174,7 +174,7 @@ define([
                         /**
                          * Flight event to fire when upload should be triggered
                          *
-                         * @event org.visallo.ingest.cloud~cloudImported
+                         * @event org.visallo.ingest.cloud#cloudImported
                          */
                         onImport: 'cloudImported'
                     })

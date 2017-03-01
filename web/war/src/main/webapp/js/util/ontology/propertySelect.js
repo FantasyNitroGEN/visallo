@@ -12,8 +12,8 @@
  * @attr {number} [maxItems=-1] Limit the maximum items that are shown in search list (-1 signifies no limit)
  * @attr {string} [selectedProperty=''] Default the selection to this property IRI
  * @attr {Array.<string>} [unsupportedProperties=[]] Remove these property IRIs from the list
- * @fires module:util/ontology/propertySelect#propertyselected
- * @listens module:util/ontology/propertySelect#filterProperties
+ * @fires module:components/PropertySelect#propertyselected
+ * @listens module:components/PropertySelect#filterProperties
  * @example
  * dataRequest('ontology', 'properties').then(function(properties) {
  *     PropertySelect.attachTo(node, {
@@ -54,7 +54,7 @@ define([
             /**
              * Trigger to change the list of properties the component works with.
              *
-             * @event module:util/ontology/propertySelect#filterProperties
+             * @event module:components/PropertySelect#filterProperties
              * @property {object} data
              * @property {Array.<object>} data.properties The properties array to use
              * @example
@@ -258,7 +258,7 @@ define([
                  * When the user selects a property, this event will be
                  * triggered
                  *
-                 * @event module:util/ontology/propertySelect#propertyselected
+                 * @event module:components/PropertySelect#propertyselected
                  * @property {object} data
                  * @property {object} data.property The property object that was selected
                  * @example

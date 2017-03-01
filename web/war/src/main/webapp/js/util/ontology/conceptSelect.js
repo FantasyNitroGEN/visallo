@@ -12,10 +12,10 @@
  * @attr {string} [selectedConceptIntent=''] Default the selection to this the first concept with this intent defined in ontology
  * @attr {boolean} [focus=false] Activate the field for focus when finished rendering
  * @attr {number} [maxItems=-1] Limit the maximum items that are shown in search list (-1 signifies no limit)
- * @fires module:util/ontology/conceptSelect#conceptSelected
- * @listens module:util/ontology/conceptSelect#clearSelectedConcept
- * @listens module:util/ontology/conceptSelect#selectConceptId
- * @listens module:util/ontology/conceptSelect#enableConcept
+ * @fires module:components/ConceptSelect#conceptSelected
+ * @listens module:components/ConceptSelect#clearSelectedConcept
+ * @listens module:components/ConceptSelect#selectConceptId
+ * @listens module:components/ConceptSelect#enableConcept
  * @example <caption>Use default component</caption>
  * ConceptSelect.attachTo(node)
  * @example <caption>Select a concept</caption>
@@ -64,7 +64,7 @@ define([
              * Clears the selected concept from the component. Will not fire
              * conceptSelected.
              *
-             * @event module:util/ontology/conceptSelect#clearSelectedConcept
+             * @event module:components/ConceptSelect#clearSelectedConcept
              * @example
              * ConceptSelect.attachTo($node)
              * //...
@@ -78,7 +78,7 @@ define([
              * If no conceptId is passed or it's empty it'll clear the
              * selection.
              *
-             * @event module:util/ontology/conceptSelect#selectConceptId
+             * @event module:components/ConceptSelect#selectConceptId
              * @property {object} data
              * @property {string} [data.conceptId=''] The concept IRI to select
              * @example
@@ -94,7 +94,7 @@ define([
              * Enable / Disable the component. Only pass one property (enable
              * or disable)
              *
-             * @event module:util/ontology/conceptSelect#enableConcept
+             * @event module:components/ConceptSelect#enableConcept
              * @property {object} data
              * @property {boolean} data.enable Enable this component and allow user entry
              * @property {boolean} data.disable Disable this component from user entry
@@ -138,7 +138,7 @@ define([
             /**
              * Triggered when the user selects a concept from the list.
              *
-             * @event module:util/ontology/conceptSelect#conceptSelected
+             * @event module:components/ConceptSelect#conceptSelected
              * @property {object} data
              * @property {object} data.concept The concept object that was selected
              * @example

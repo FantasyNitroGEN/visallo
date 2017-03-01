@@ -9,7 +9,9 @@
  * @attr {string} [targetConcept=''] Limit relationships to those that have this concept IRI as the target
  * @attr {boolean} [focus=false] Activate the field for focus when finished rendering
  * @attr {number} [maxItems=-1] Limit the maximum items that are shown in search list (-1 signifies no limit)
- * @fires module:util/ontology/relationshipSelect#relationshipSelected
+ * @fires module:components/RelationshipSelect#relationshipSelected
+ * @listens module:components/RelationshipSelect#limitParentConceptId
+ * @listens module:components/RelationshipSelect#selectRelationshipId
  * @example
  * RelationshipSelect.attachTo(node)
  */
@@ -50,7 +52,7 @@ define([
             /**
              * Trigger to change the list of relationships to filter with this concept.
              *
-             * @event module:util/ontology/relationshipSelect#limitParentConceptId
+             * @event module:components/RelationshipSelect#limitParentConceptId
              * @property {object} data
              * @property {string} [data.conceptId=''] The concept IRI to limit by
              * @example
@@ -63,7 +65,7 @@ define([
             /**
              * Trigger to change the list of properties the component works with.
              *
-             * @event module:util/ontology/relationshipSelect#selectRelationshipId
+             * @event module:components/RelationshipSelect#selectRelationshipId
              * @property {object} data
              * @property {string} [data.relationshipId=''] The relationship IRI to select or nothing to clear
              * @example
@@ -168,7 +170,7 @@ define([
                             /**
                              * Triggered when the user selects a relationship from the list.
                              *
-                             * @event module:util/ontology/relationshipSelect#relationshipSelected
+                             * @event module:components/RelationshipSelect#relationshipSelected
                              * @property {object} data
                              * @property {object} data.relationship The ontology relationship object that was selected
                              * @example
