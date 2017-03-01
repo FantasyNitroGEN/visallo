@@ -230,18 +230,7 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
                 ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
             }
         } else {
-            JSONArray types = new JSONArray(conceptTypes);
-            if (types.length() > 0) {
-                String[] iris = new String[types.length()];
-                boolean[] includes = new boolean[types.length()];
-
-                for (int i = 0; i < types.length(); i++) {
-                    JSONObject type = (JSONObject) types.get(i);
-                    iris[i] = type.getString("iri");
-                    includes[i] = type.optBoolean("includeChildNodes", false);
-                }
-                ontologyRepository.addConceptTypeFilterToQuery(query, iris, includes);
-            }
+            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes));
         }
     }
 
@@ -258,18 +247,7 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
                 ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
             }
         } else {
-            JSONArray types = new JSONArray(labels);
-            if (types.length() > 0) {
-                String[] iris = new String[types.length()];
-                boolean[] includes = new boolean[types.length()];
-
-                for (int i = 0; i < types.length(); i++) {
-                    JSONObject type = (JSONObject) types.get(i);
-                    iris[i] = type.getString("iri");
-                    includes[i] = type.optBoolean("includeChildNodes", false);
-                }
-                ontologyRepository.addEdgeLabelFilterToQuery(query, iris, includes);
-            }
+            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels));
         }
     }
 
@@ -286,6 +264,19 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         JSONArray filterJson = searchOptions.getRequiredParameter("filter", JSONArray.class);
         ontologyRepository.resolvePropertyIds(filterJson);
         return filterJson;
+    }
+
+    private Collection<OntologyRepository.ElementTypeFilter> getTypeFilters(String typesStr) {
+        List<OntologyRepository.ElementTypeFilter> filters = new ArrayList<>(typesStr.length());
+        JSONArray types = new JSONArray(typesStr);
+        if (types.length() > 0) {
+            for (int i = 0; i < types.length(); i++) {
+                JSONObject type = (JSONObject) types.get(i);
+                OntologyRepository.ElementTypeFilter filter = ClientApiConverter.toClientApi(type, OntologyRepository.ElementTypeFilter.class);
+                filters.add(filter);
+            }
+        }
+        return filters;
     }
 
     private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user) {

@@ -9,6 +9,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.query.Query;
 import org.visallo.core.model.properties.types.VisalloProperty;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 
 import java.io.File;
@@ -133,13 +134,27 @@ public interface OntologyRepository {
 
     void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes);
 
-    void addConceptTypeFilterToQuery(Query query, String[] conceptTypeIri, boolean[] includeChildNodes);
+    void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters);
 
     void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes);
 
-    void addEdgeLabelFilterToQuery(Query query, String[] edgeLabel, boolean[] includeChildNodes);
+    void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters);
 
     void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris);
 
     void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris);
+
+    class ElementTypeFilter implements ClientApiObject {
+        public String iri;
+        public boolean includeChildNodes;
+
+        public ElementTypeFilter() {
+
+        }
+
+        public ElementTypeFilter(String iri, boolean includeChildNodes) {
+            this.iri = iri;
+            this.includeChildNodes = includeChildNodes;
+        }
+    }
 }
