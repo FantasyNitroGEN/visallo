@@ -59,7 +59,6 @@ define([
                         shortcut: 'delete',
                         subtitle: i18n('vertex.contextmenu.remove.subtitle'),
                         event: 'deleteSelected',
-                        selection: 2,
                         shouldDisable: function(selection, vertexId, target) {
                             return !visalloData.currentWorkspaceEditable || false;
                             // TODO:  !inWorkspace(vertexId);
@@ -111,15 +110,32 @@ define([
         };
 
         this.appendMenuExtensions = function(vertex, items) {
-            var self = this,
-                menuExtensions = registry.extensionsForPoint('org.visallo.vertex.menu');
+            const self = this;
+            const filterBySelectionAmount = (items, selection) => {
+                return items.filter((item) => {
+                    if (item.selection) {
+                        if (!selection[vertex.id] && item.selection === 1) {
+                            return true;
+                        } else {
+                            const amount = Object.keys(selection).length;
+                            return amount ? item.selection === amount : item.selection === 1;
+                        }
+                    } else {
+                        return true
+                    }
+                })
+            };
+            const currentSelection = visalloData.selectedObjects.vertexIds;
+            const menuExtensions = filterBySelectionAmount(registry.extensionsForPoint('org.visallo.vertex.menu'), currentSelection);
+
+            items = filterBySelectionAmount(items, currentSelection);
+
             if (!menuExtensions.length) {
                 return items;
             }
 
             menuExtensions.forEach(function(item) {
-                var currentSelection = visalloData.selectedObjects.vertexIds,
-                    canHandle = _.isFunction(item.canHandle) ? item.canHandle(currentSelection, vertex) : true;
+                const canHandle = _.isFunction(item.canHandle) ? item.canHandle(currentSelection, vertex) : true;
 
                 if (!canHandle) {
                     return;
