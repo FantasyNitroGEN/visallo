@@ -12,8 +12,8 @@
  * @attr {number} nextOffset When `infiniteScrolling` is enabled, specifies where the next request should start
  * @attr {string|undefined} usageContext Describes the context this component is used so ListItemRenderers can determine if they should override behavior.
  * @see org.visallo.entity.listItemRenderer
- * @fires module:util/element/list#infiniteScrollRequest
- * @listens module:util/element/list#addInfiniteItems
+ * @fires module:components/List#infiniteScrollRequest
+ * @listens module:components/List#addInfiniteItems
  * @example <caption>Static list</caption>
  * List.attachTo(node, {
  *     items: [vertices]
@@ -355,9 +355,9 @@ define([
                     /**
                      * Fired when the user scrolls to the end of a list that has `infiniteScrolling` enabled.
                      * The controlling component should listen and trigger
-                     * {@link module:util/element/list#event:addInfiniteItems addInfiniteItems} events.
+                     * {@link module:components/List#event:addInfiniteItems addInfiniteItems} events.
                      *
-                     * @event module:util/element/list#infiniteScrollRequest
+                     * @event module:components/List#infiniteScrollRequest
                      * @property {object} data
                      * @property {object} data.paging
                      * @property {number} data.paging.offset Paging offset
@@ -436,7 +436,7 @@ define([
          * The Element List component registers a listener for this event that
          * should be fired by the consuming component in response to `infiniteScrollRequest` events.
          *
-         * @event module:util/element/list#addInfiniteItems
+         * @event module:components/List#addInfiniteItems
          * @property {object} data
          * @property {boolean} data.success Whether the request succeeded or not
          * @property {Array.<object>} data.items The new items to place
