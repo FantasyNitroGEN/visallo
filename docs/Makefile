@@ -18,7 +18,7 @@ JAVA_FILES=$(shell find ../ -type f -name '*.java')
 
 # All js, jsdoc, and jsx files
 JS_DIR=$(WEBAPP)/js
-JS_FILES=$(shell find \$(WEBAPP)/js -type f -type f \( \( -iname "*.js" -o -iname "*.jsdoc" \) -o -iname "*.jsx" \))
+JS_FILES=$(shell find $(JS_DIR) -type f \( \( -iname "*.js" -o -iname "*.jsdoc" \) -o -iname "*.jsx" \))
 
 # All files except the output _book and node_modules
 BOOK_FILES=$(shell find . \( -path ./node_modules -o -path ./_book \) -prune -o -print)

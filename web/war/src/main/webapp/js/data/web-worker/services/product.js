@@ -2,7 +2,7 @@
  * Get details about work products
  *
  * @module services/product
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define(['../util/ajax', '../store'], function(ajax, store) {
     'use strict';

@@ -1,6 +1,8 @@
 /**
+ * Routes for workspace (case)
+ *
  * @module services/workspace
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define([
     '../util/ajax',

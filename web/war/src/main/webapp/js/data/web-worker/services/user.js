@@ -2,7 +2,7 @@
  * Services for users
  *
  * @module services/user
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax, store, userActions) {
     'use strict';

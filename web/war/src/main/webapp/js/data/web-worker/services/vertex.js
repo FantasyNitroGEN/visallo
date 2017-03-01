@@ -2,7 +2,7 @@
  * Routes for vertices
  *
  * @module services/vertex
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define([
     '../util/ajax',
