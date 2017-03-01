@@ -119,6 +119,7 @@ li {
   .badge {
     cursor: pointer;
     margin: 0.25em 0 0 0.5em;
+    flex: 0 0 auto;
   }
 
   .popover {
@@ -182,13 +183,17 @@ li {
   }
 
   .share-list li.user-row {
+    display: flex;
     margin: 0.5em 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     .subtitle {
       font-size: 90%;
       color: #555;
+    }
+    .user-displayname {
+      flex: 1 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .user-status {
       top: 1.5ex;
