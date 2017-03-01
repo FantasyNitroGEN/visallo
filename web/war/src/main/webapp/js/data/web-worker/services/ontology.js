@@ -17,6 +17,9 @@ define([
 ], function(ajax, memoize, store, registry) {
     'use strict';
 
+    /**
+     * @undocumented
+     */
     registry.documentExtensionPoint('org.visallo.ontology',
         'Ignore some ontology warnings',
         function(e) {

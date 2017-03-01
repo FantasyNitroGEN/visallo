@@ -1,87 +1,30 @@
-Map Options Plugin
-=================
+# Map Options
 
-Plugin to add custom options components (Flight or React) which display in the map options menu (next to Fit).
+* [Map Options JavaScript API `org.visallo.map.options`](../../../javascript/org.visallo.map.options.html)
+* [Map Options Example Code](https://github.com/visallo/doc-examples/tree/master/extension-map-options)
 
-All registered components will be passed:
+Add custom options components (Flight or React) which display in the map options menu (next to Fit).
 
-* `ol` `[Object]`: [Openlayers Api](http://openlayers.org/en/latest/apidoc/)
-* `map` [`[ol.Map]`](http://openlayers.org/en/latest/apidoc/ol.Map.html): Openlayers map instance
-* `cluster` `[Object]`: Object with keys:
-    * `clusterSource` [`[MultiPointCluster]`](https://github.com/v5analytics/visallo/blob/master/web/plugins/map-product/src/main/resources/org/visallo/web/product/map/multiPointCluster.js): Implements the [`ol.source.Cluster`](http://openlayers.org/en/latest/apidoc/ol.source.Cluster.html) interface to cluster the `source` features.
-    * `source` [`[ol.source.Vector]`](http://openlayers.org/en/latest/apidoc/ol.source.Vector.html): The source of all map pins before clustering. 
-    * `layer` [`[ol.layer.Vector]`](http://openlayers.org/en/latest/apidoc/ol.layer.Vector.html): The pin vector layer
-* `product` `[Object]`: Work Product json details
-    * `data` `[Object]`: Data for product (loaded when all products loaded)
-    * `extendedData` `[Object]`: Extended data for product (vertices/edges, loaded only when product opened)
-    * `id` `[String]`: Product identifier
-    * `kind` `[String]`: Work product class name: `org.visallo.web.product.map.MapWorkProduct`.
-    * `previewMD5` `[String]`: Preview image hash
-    * `title` `[String]`: Work product title
-    * `workspaceId` `[String]`: Workspace of the work product
+<div style="text-align:center">
+<img src="./options.png" width="100%" style="max-width: 450px;">
+</div>
 
-To register an option:
+## Tutorial
 
-## React
+### Web Plugin
 
-```js
-// Create a MyOption.jsx and use registerJavaScriptComponent in your WebAppPlugin.
-require(['react', 'public/v1/api'], function(React, visalloApi) {
-    const MyOption = React.createClass({
-        render() {
-            const { ol, map, cluster } = this.props;
+Register the plugin, and component scripts. Then register a file reference to the [geojson](https://github.com/visallo/doc-examples/blob/6e8b6766/extension-map-options/src/main/resources/org/visallo/examples/map_options/countries.geojson) of countries.
 
-            const myOptionDefault = visalloData.currentUser.uiPreferences['my-option-value'];
-            return (
-                <label>My Setting
-                    <input onChange={this.onChange} type="checkbox" defaultChecked={myOptionDefault} />
-                </label>
-            );
-        },
-        onChange(event) {
-            visalloData.currentUser.uiPreferences['my-option-value'] = event.target.checked;
-            // Save
-            visalloApi.dataRequest('user', 'preference', 'my-option-value', event.target.checked);
-        }
-    })
-    return MyOption;
-});
+{% github_embed "https://github.com/visallo/doc-examples/blob/6e8b6766/extension-map-options/src/main/java/org/visallo/examples/map_options/MapOptionsWebAppPlugin.java#L17-L19" %}{% endgithub_embed %}
 
-// Create plugin.js and use registerJavaScript("plugin.js", true) in your WebAppPlugin
-require(['configuration/plugins/registry'], function(registry) {
+### Register Extension
 
-    // Register the component path,
-    registry.registerExtension('org.visallo.map.options', {
-        identifier: 'myOption',
-        optionComponentPath: 'myplugins/MyOption'
-    });
-});
-```
+Register the map options extension and point the path the the React component.
 
-## Flight
+{% github_embed "https://github.com/visallo/doc-examples/blob/6e8b6766/extension-map-options/src/main/resources/org/visallo/examples/map_options/plugin.js#L3-L6" %}{% endgithub_embed %}
 
-```js
-require(['configuration/plugins/registry'], function(registry) {
+### Component
 
-    // Define a custom Flight component
-    define('myplugins/hello_world', ['flight/lib/component'], function(defineComponent) {
-        return defineComponent(HelloWorld);
+The react component manages the state of the geojson layer (visible/hidden) using a user preference, and uses the OpenLayers API to add/remove the vector layer.
 
-        function HelloWorld() {
-            this.after('initialize', function() {
-                // this.attr.ol
-                // this.attr.map
-                // this.attr.cluster
-                this.$node.html('Hello World!!');
-            })
-        }
-    });
-
-    // Register the component path,
-    registry.registerExtension('org.visallo.map.options', {
-        identifier: 'helloWorld',
-        optionComponentPath: 'myplugins/hello_world'
-    });
-});
-```
-
+{% github_embed "https://github.com/visallo/doc-examples/blob/6e8b6766/extension-map-options/src/main/resources/org/visallo/examples/map_options/CountryBorders.jsx" %}{% endgithub_embed %}

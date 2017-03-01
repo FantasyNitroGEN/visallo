@@ -10,7 +10,7 @@ define([
 
         return (
             <div className="graph-views"
-                 style={{ left, right, top, bottom, backgroundColor: 'rgba(255,0,0,0.1)' }}>
+                 style={{ left, right, top, bottom }}>
                 {
                     views.map(({ componentPath, className }) => {
                         return (

@@ -1,37 +1,29 @@
-Graph Selector Plugin
-=====================
+# Graph Selection
 
-Plugin to add custom node selection menu items. Graph provides select all, none, and invert by default.
+* [Graph Selection JavaScript API `org.visallo.graph.selection`](../../../javascript/org.visallo.graph.selection.html)
+* [Graph Selection Example Code](https://github.com/visallo/doc-examples/tree/master/extension-graph-selection)
 
-To register a selector:
+Add custom [Cytoscape](http://js.cytoscape.org/) selection menu items. Graph provides select all, none, and invert by default.
 
-```js
-require(['configuration/plugins/registry'], function(registry) {
+<div style="text-align:center">
+<img src="./selection.png" width="100%" style="max-width: 400px;">
+</div>
 
-    doRandomLayout.identifier = 'myRandomSelector';
-    // optionally
-    // doRandomLayout.visibility = 'always';
+## Tutorial
 
-    registry.registerExtension('org.visallo.graph.selection', doRandomLayout);
+This tutorial will create a selection menu item to select a random node or edge.
 
-    // Randomly select a node
-    function doRandomLayout(cy) {
-        var nodes = cy.nodes().unselect(),
-            randomIndex = Math.floor(Math.random() * nodes.length);
+### Web Plugin
 
-        nodes[randomIndex].select();
-    });
-});
-```
+Register the plugin script in a web plugin.
 
-Optional configuration:
+{% github_embed "https://github.com/visallo/doc-examples/blob/ba76f66a/extension-graph-selection/src/main/java/org/visallo/examples/graph_selection/GraphSelectionWebAppPlugin.java#L17" %}{% endgithub_embed %}
 
-`visibility`: (String) Specifies when selector should display. One of: always, selected, none-selected.
+### Register Extension
 
-Remember to add a i18n value in a MessageBundle.properties. This will be displayed in the graph context menu.
+Register the selection extension to find a random element and select it.
 
-    graph.selector.[Selector Identifier Name].displayName=[String to display]
+{% github_embed "https://github.com/visallo/doc-examples/blob/ba76f66a/extension-graph-selection/src/main/resources/org/visallo/examples/graph_selection/plugin.js" %}{% endgithub_embed %}
 
-For example:
+The `elements` function in cytoscape will return all nodes and edges. This includes decorations on nodes, and temporary edges used for find path, etc. Filter by `.v,.e` to include only _real_ vertices and edges.
 
-    graph.selector.myRandomSelector.displayName=Random Node

@@ -1,62 +1,35 @@
-## Detail Text
+# Element Inspector Text
 
-Create extensions for `org.visallo.detail.text` to replace the default text collapsible section content in the detail pane. 
+* [Element Inspector Text JavaScript API `org.visallo.detail.text`](../../../javascript/org.visallo.detail.text.html)
+* [Element Inspector Text Example Code](https://github.com/visallo/doc-examples/tree/master/extension-detail-text)
+
+Replace the default text collapsible section content in the Element Inspector.
 
 <div class="alert alert-warning">
 The console will show a warning if multiple extensions are found for a given vertex, name, and key. The extension used is non-deterministic.
 </div>
 
-### Configuration Options
+## Tutorial
 
-* `shouldReplaceTextSectionForVertex` _(required)_ `[Function]`
+<div style="text-align:center">
+<img src="./section.png" width="100%" style="max-width: 385px;">
+</div>
 
-    Set a function to determine if this extension should replace a particular text section for a vertex. Return `true` to replace the text section content with the component referenced by `componentPath`.
-    
-    Called with 3 arguments:
+### Web Plugin
 
-    * `vertex` `[Object]`
-    * `propertyName` `[String]`
-    * `propertyKey` `[String]`
+Register the resources needed.
 
+{% github_embed "https://github.com/visallo/doc-examples/blob/ac5f5428/extension-detail-text/src/main/java/org/visallo/examples/detail_text/DetailTextWebAppPlugin.java#L17-L19" %}{% endgithub_embed %}
 
-* `componentPath` _(required)_ `[String]`
-    
-    Specifies the path to a component that will be attached to the content of the text section when it's expanded.
+### Register Extension
 
-    The component is passed 3 attributes:
+Now, register the text extension for all text properties.
 
-    * `vertex` `[Object]`
-    * `propertyName` `[String]`
-    * `propertyKey` `[String]`
+{% github_embed "https://github.com/visallo/doc-examples/blob/ac5f5428/extension-detail-text/src/main/resources/org/visallo/examples/detail_text/plugin.js#L3-L8" %}{% endgithub_embed %}
 
-### Example
+### Component
 
-Override all text sections and just display the name and key of the property.
+The component can be React or Flight, here is a React example that prints the name, key pair.
 
-```js
-registry.registerExtension('org.visallo.detail.text', {
-    shouldReplaceTextSectionForVertex: function(vertex, name, key) {
-        return true;
-    },
-    componentPath: 'com-example-text-plugin'
-});
+{% github_embed "https://github.com/visallo/doc-examples/blob/ac5f5428/extension-detail-text/src/main/resources/org/visallo/examples/detail_text/Example.jsx#L7-L17" %}{% endgithub_embed %}
 
-define('com-example-text-plugin', ['flight/lib/component'],
-function(defineComponent) {
-    return defineComponent(ExampleTextPlugin);
-
-    function ExampleTextPlugin() {
-        this.after('initialize', function() {
-            var { vertex, propertyName, propertyKey } = this.attr;
-            console.log(vertex);
-            this.$node.html(`
-                name: <code>${propertyName}</code>
-                <br>
-                key: <code>${propertyKey}</code>
-            `);
-        })
-    }
-});
-```
-
-<img width="385" src="section.png">

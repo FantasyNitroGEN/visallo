@@ -21,7 +21,6 @@ define([
     'util/mouseOverlay',
     'util/withFileDrop',
     'util/element/menu',
-    'util/contextMenu',
     'util/privileges',
     'util/withDataRequest'
 ], function(
@@ -104,12 +103,20 @@ define([
 
             this.triggerPaneResized = _.debounce(this.triggerPaneResized.bind(this), 10);
 
-            registry.documentExtensionPoint('org.visallo.fileImport',
-                'Override file import based on mime/type',
-                function(e) {
-                    return ('mimeType' in e) && _.isFunction(e.handler);
-                }
-            );
+            /**
+             * Register a handler that is notified of logout. Happens before
+             * the request to logout.
+             *
+             * If the handler returns `false` all other logout handlers are skipped and the default logout process is cancelled.
+             *
+             * @param {function} config The function to call during logout.
+             * @returns {boolean} To cancel logout return `false`
+             * @example
+             * registry.registerExtension('org.visallo.logout', function() {
+             *     window.location.href = '/logout';
+             *     return false;
+             * });
+             */
             registry.documentExtensionPoint('org.visallo.logout',
                 'Override logout',
                 function(e) {
@@ -117,6 +124,31 @@ define([
                 },
                 'http://docs.visallo.org/extension-points/front-end/logout'
             );
+            /**
+             * Add menu items to the context menu of vertices.
+             *
+             * Pass the string `DIVIDER` to place a divider in the menu
+             *
+             * @param {string} label The menu text to display
+             * @param {string} event The event to trigger on click, not
+             * required if `submenu` is provided
+             * @param {string} [shortcut] string of shortcut to show in menu.
+             * Doesn't actually listen for shortcut, just places the text in
+             * the label. For example, `alt+p`
+             * @param {object} [args] Additional arguments passed to handler
+             * @param {string} [cls] CSS classname added to item
+             * @param {function} [shouldDisable] Given the `selection`,
+             * `vertexId`, `DomElement`, and `vertex` as parameters
+             * @param {array.<object>} [submenu] The submenu to open on hover
+             * @param {function} [canHandle] Should the item be place given
+             * `currentSelection` and `vertex` parameters.
+             * @param {number} [selection] Automatically enable based on the
+             * selection count `0`, `1`, `2`.
+             * @param {object} [options]
+             * @param {function} [options.insertIntoMenuItems] function to place the item in a specific location/order, given `item` and `items`.
+             *
+             * Syntax similar to {@link org.visallo.detail.toolbar~insertIntoMenuItems}
+             */
             registry.documentExtensionPoint('org.visallo.vertex.menu',
                 'Add vertex context menu items',
                 function(e) {
@@ -436,22 +468,12 @@ define([
                 }
             }
 
-            var mimeType = thing.length === 1 && thing[0].type,
-                fileImportExtensions = registry.extensionsForPoint('org.visallo.fileImport'),
-                fileImportExtensionsByMimeType = _.indexBy(fileImportExtensions, 'mimeType'),
-                extension;
-
-            if (mimeType in fileImportExtensionsByMimeType) {
-                extension = fileImportExtensionsByMimeType[mimeType];
-                extension.handler(thing[0], event);
-            } else {
-                // If graph is open use that node for custom product behavior
-                // TODO: generalize this for other products
-                var $graph = $('.visible .org-visallo-graph');
-                require(['util/popovers/fileImport/fileImport'], function(FileImport) {
-                    FileImport.attachTo($graph.length ? $graph : self.node, config);
-                });
-            }
+            // If graph is open use that node for custom product behavior
+            // TODO: generalize this for other products
+            var $graph = $('.visible .org-visallo-graph');
+            require(['util/popovers/fileImport/fileImport'], function(FileImport) {
+                FileImport.attachTo($graph.length ? $graph : self.node, config);
+            });
         };
 
         this.toggleActivityPane = function() {
@@ -622,7 +644,8 @@ define([
                     attacher()
                         .node(node)
                         .path(data.action.componentPath)
-                        .attach(options)
+                        .params(options)
+                        .attach()
                         .then(function() {
                             deferred.resolve();
                         });

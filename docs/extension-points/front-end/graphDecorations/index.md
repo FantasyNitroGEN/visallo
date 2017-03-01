@@ -1,84 +1,17 @@
-## Graph Decorations
+# Graph Node Decoration
 
-Graph decorations are additional detail to display around a vertex when displayed in a graph. These decorations are implemented as [cytoscape.js](http://js.cytoscape.org) nodes inside of compound nodes. That allows them to be styled just like vertices using [`org.visallo.graph.style`](../graphStyle) extensions.
+* [Graph Node Decoration JavaScript API `org.visallo.graph.node.decoration`](../../../javascript/org.visallo.graph.node.decoration.html)
+* [Graph Node Decoration Example Code](https://github.com/visallo/doc-examples/tree/master/extension-graph-node-decoration)
 
-### Configuration Options
+Graph node decorations are additional detail to display around a vertex when displayed in a graph. These decorations are implemented as [Cytoscape](http://js.cytoscape.org/) nodes inside of compound nodes. That allows them to be styled just like vertices using `org.visallo.graph.style` extensions.
 
-* `applyTo` _(optional)_ `[Function]`
+<div class="alert alert-warning">
+<p>Decorations can have performance impact on the graph.
 
-    Set a function to determine the if this decorator should apply to a vertex. If function is not provided, this decoration will apply to all vertices.
-    
-    Called with one argument: `vertex` `[Object]`.
+<p>Once a node displays a decoration, another container node is created that is never removed. Also each decoration is a full cytoscape node.
+</div>
 
-* `alignment` _(required)_ `[Object]`
-    
-    Specifies the position that the decoration is placed relative to vertex. It must contain 2 keys: `h`, and `v`.
-
-    * `h`: Horizontal alignment must be one of: `left`, `center`, `right`.
-    * `v`: Vertical alignment must be one of: `top`, `center`, `bottom`.
-
-* `padding` _(optional)_ `[Object]`
-    
-    Specifies the padding between the decoration and the vertex.
-
-    * `x`: Horizontal padding.
-    * `y`: Vertical padding.
-
-* `classes` _(optional)_ `[String|Array|Function]`
-
-    Class names to add to cytoscape node. This is most used with an [`org.visallo.graph.style`](../graphStyle) extension.
-
-    * `String`: Whitespace-separated string of class names.
-    * `Array`: Array of strings of class names.
-    * `Function`: Function that returns an array or string of classes.
-        Arguments:
-        * `vertex`: The vertex object that this decoration is applied to.
-
-* `data` _(optional)_ `[Object|Function]`
-
-    Provides the `data` object for cytoscape decoration node. The `label` key is by default the text string, but can be changed using custom classes/stylesheets.
-
-    * `Object`: The data object.
-    * `Function`: Passed a `vertex` object as first argument. Can return either a `data` object or a `Promise`
-
-    _**Note:** This will be called for every vertex change event (`verticesUpdated`). Cache the result if possible._
-
-* `onCreate` _(optional)_ `[Function]`
-
-    This function is called after the cytoscape decoration node is created.
-
-    * Arguments: _none_
-    * Context: Cytoscape node
-
-* `onClick` _(optional)_ `[Function]`
-
-    This function is called on click events.
-
-    * Arguments: `event`, `data`
-        * `event` `[Event]`: Actual DOM event (with cytoscape additions)
-        * `data` `[Object]`: Object with `vertex`, and `cy`
-    * Context: Cytoscape node
-
-* `onMouseOver` _(optional)_ `[Function]`
-
-    This function is called on mouseover events.
-
-    * Arguments: `event`, `data`
-        * `event` `[Event]`: Actual DOM event (with cytoscape additions)
-        * `data` `[Object]`: Object with `vertex`, and `cy`
-    * Context: Cytoscape node
-
-* `onMouseOut` _(optional)_ `[Function]`
-
-    This function is called on mouseout events.
-
-    * Arguments: `event`, `data`
-        * `event` `[Event]`: Actual DOM event (with cytoscape additions)
-        * `data` `[Object]`: Object with `vertex`, and `cy`
-    * Context: Cytoscape node
-
-
-### Alignment Positions
+## Alignment Positions
 
 The figure below shows the available positions. The alignment locations are automatically adjusted based on the placement of the text in a node.
 
@@ -98,57 +31,62 @@ Annotated positions and `alignment` configuration value:
 
 _**Note:** There is no collision detection on decorations with equal alignments_.
 
-### Example
+## Tutorial
 
-Create a decoration that applies to all nodes that shows the number of properties in the top left corner. Add a style extension to change the default shape and color of the decoration.
+<div style="text-align:center">
+<img src="./decorations.png" width="100%" style="max-width: 400px;">
+</div>
 
-<img width=200 src="example.png">
+### Web Plugin
 
-```js
-registry.registerExtension('org.visallo.graph.node.decoration', {
-    applyTo: function(v) { return true; },
-    alignment: { h: 'left', v: 'top' },
-    classes: 'custom',
-    data: function(vertex) {
-        return {
-            label: vertex.properties.length
-        }
-    }
-});
+Register the plugin script in a web plugin.
 
-registry.registerExtension('org.visallo.graph.style', function(style) {
-    style
-        .selector('.decoration.custom')
-        .css({
-            shape: 'octagon',
-            'background-color': 'red',
-            'border-color': 'darkred',
-            'padding-left': 10,
-            'padding-right': 10
-        })
-});
-```
+{% github_embed "https://github.com/visallo/doc-examples/blob/888381f7/extension-graph-node-decoration/src/main/java/org/visallo/examples/graph_node_decoration/GraphNodeDecorationWebAppPlugin.java#L17" %}{% endgithub_embed %}
 
-### Decoration with Custom Popover
+### Register Extension
 
-Popovers can be attached to decorations using a `decorationId` as the anchor.
+Register the decoration extension for a new decoration in the top-left corner of nodes. This decoration will apply to all vertices that have a comment, and display the number of comments in the decoration.
 
-<img width=350 src="popover.png">
+{% github_embed "https://github.com/visallo/doc-examples/blob/d26ee807/extension-graph-node-decoration/src/main/resources/org/visallo/examples/graph_node_decoration/plugin.js#L34-L54" %}{% endgithub_embed %}
 
-```js
-registry.registerExtension('org.visallo.graph.node.decoration', {
-    alignment: { h: 'left', v: 'top' },
-    onClick: function(event, data) {
-        var id = this.id();
-        // CustomPopover should mixin util/popovers/withPopover
-        // See examples in util/popovers...
-        CustomPopover.attachTo(data.cy.container(), {
-            anchorTo: {
-                decorationId: id
-            }
-        });
-    },
-    data: { label: 'Click Me' }
-});
-```
+The default graph stylesheet defines `label` as the content of the node.
 
+{% github_embed "https://github.com/visallo/visallo/blob/3709844f/web/plugins/graph-product/src/main/resources/org/visallo/web/product/graph/styles.js#L147" %}{% endgithub_embed %}
+
+Register a style extension to format the decoration. All decorations have the `decoration` class, so append that to the selector to avoid conflicts with node classes.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/888381f7/extension-graph-node-decoration/src/main/resources/org/visallo/examples/graph_node_decoration/plugin.js#L71-L83" %}{% endgithub_embed %}
+
+## Popover Tutorial
+
+Decorations can have popovers that are opened when the user clicks on the decoration using the `onClick` handler.
+
+<div style="text-align:center">
+<img src="./popover.png" width="100%" style="max-width: 325px;">
+</div>
+
+### Web Plugin
+
+Register the popover component and template.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/888381f7/extension-graph-node-decoration/src/main/java/org/visallo/examples/graph_node_decoration/GraphNodeDecorationWebAppPlugin.java#L18-L19" %}{% endgithub_embed %}
+
+### Register Extension
+
+Register the decoration with an `onClick` handler.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/888381f7/extension-graph-node-decoration/src/main/resources/org/visallo/examples/graph_node_decoration/plugin.js#L59-L68" %}{% endgithub_embed %}
+
+### Popover Component
+
+Create the Flight component to render the popover.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/888381f7/extension-graph-node-decoration/src/main/resources/org/visallo/examples/graph_node_decoration/popover.js" %}{% endgithub_embed %}
+
+The `withPopover` mixin provides the popover specific handling to attach to the decoration.
+
+Add the template with the necessary markup for the popover.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/888381f7/extension-graph-node-decoration/src/main/resources/org/visallo/examples/graph_node_decoration/template.hbs" %}{% endgithub_embed %}
+
+The popover mixin calls `setupWithTemplate` to initialize the popover, so if extra work is needed to be done after the template has rendered, use `after('setupWithTemplate')`. `this.dialog` and `this.popover` are instance variables for the popover and the content.

@@ -101,13 +101,13 @@ public class CloudImportLongRunningProcessWorker extends LongRunningProcessWorke
         try {
             Collection<CloudResourceSourceItem> items = destination.getItems(new JSONObject(item.getConfiguration()));
             Long allItemsSize = 0L;
+            itemJson.put("itemsCount", items.size());
             for (CloudResourceSourceItem cloudResourceSourceItem : items) {
                 Long size = cloudResourceSourceItem.getSize();
                 if (size != null) {
                     allItemsSize += size;
                 }
             }
-
 
             long noSizeProgress = 0;
             long cumulativeSize = 0;

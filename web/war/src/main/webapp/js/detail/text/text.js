@@ -51,9 +51,19 @@ define([
             video: '.org-visallo-video'
         };
 
+    /**
+     * Replaces the content of a collapsible text section in the element
+     * inspector.
+     *
+     * Only one extension can replace a given text section, the first one will
+     * win.
+     *
+     * @param {string} componentPath The component to render instead of the text
+     * @param {org.visallo.detail.text~shouldReplaceTextSectionForVertex} shouldReplaceTextSectionForVertex Whether the component should be rendered instead of the default
+     */
     registry.documentExtensionPoint('org.visallo.detail.text', 'Replace Extracted Text with custom component', function(e) {
         return _.isFunction(e.shouldReplaceTextSectionForVertex) && _.isString(e.componentPath);
-    })
+    }, 'http://docs.visallo.org/extension-points/front-end/detailText')
 
     return defineComponent(Text, withDataRequest, withCollapsibleSections, withPropertyInfo);
 
@@ -413,6 +423,12 @@ define([
             }
 
             var extensions = _.filter(registry.extensionsForPoint('org.visallo.detail.text'), function(e) {
+                    /**
+                     * @callback org.visallo.detail.text~shouldReplaceTextSectionForVertex
+                     * @param {object} model The vertex/edge
+                     * @param {string} propertyName
+                     * @param {string} propertyKey
+                     */
                     return e.shouldReplaceTextSectionForVertex(self.model, propertyName, propertyKey);
                 }),
                 textPromise;
@@ -424,29 +440,23 @@ define([
             if (extensions.length) {
                 textPromise = Promise.require('util/component/attacher')
                     .then(function(Attacher) {
+                        /**
+                         * @typedef org.visallo.detail.text~Component
+                         * @property {object} model The vertex/edge
+                         * @property {string} propertyName
+                         * @property {string} propertyKey
+                         */
                         self.textExtension = Attacher()
                             .node($section.find('.text'))
                             .path(extensions[0].componentPath)
                             .params({
                                 vertex: self.model,
+                                model: self.model,
                                 propertyName: propertyName,
                                 propertyKey: propertyKey
                             })
                         return self.textExtension.attach();
                     })
-
-
-                //textPromise = Promise.require(extensions[0].componentPath)
-                    //.then(function(Text) {
-                        //Text.attachTo($section.find('.text'), {
-                            //vertex: self.model,
-                            //propertyName: propertyName,
-                            //propertyKey: propertyKey
-                        //});
-                    //})
-                    //.catch(function() {
-                        //$section.find('.text').text('Error loading text');
-                    //})
             } else {
                 this.openTextRequest = this.dataRequest(
                     'vertex',

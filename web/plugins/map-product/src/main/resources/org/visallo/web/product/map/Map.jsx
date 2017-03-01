@@ -8,6 +8,18 @@ define([
 ], function(React, OpenLayers, RegistryInjectorHOC, registry, F, mapConfig) {
     'use strict';
 
+    /**
+     * Plugin to add custom options components (Flight or React) which display in the map options menu (next to Fit)
+     * when its opened.
+     *
+     * This could be used to:
+     * * Add new overlay layers to the map
+     * * Zoom to specific area
+     * * ... or custom interface controls that use anything available in the [OpenLayers API](http://openlayers.org/en/latest/apidoc)
+     *
+     * @param {string} identifier Unique id for this option item
+     * @param {string} optionComponentPath Path to {@link org.visallo.map.options~Component} to render
+     */
     registry.documentExtensionPoint('org.visallo.map.options',
         'Add components to map options dropdown',
         function(e) {

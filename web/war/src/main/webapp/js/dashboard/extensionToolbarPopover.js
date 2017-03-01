@@ -22,7 +22,7 @@ define([
         })
 
         this.before('initialize', function(node, config) {
-            config.template = '/dashboard/extensionToolbarPopoverTpl';
+            config.template = '/dashboard/extensionToolbarPopoverTpl.hbs';
             this.after('setupWithTemplate', function() {
                 this.$node.closest('.card-toolbar').addClass('active');
                 var $element = this.$node.closest('.grid-stack-item');

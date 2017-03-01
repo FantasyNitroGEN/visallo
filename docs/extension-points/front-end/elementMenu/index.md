@@ -1,5 +1,6 @@
 Element Menu Plugin
 ===================
+Plugin to add new items to vertex context menu.
 
 Plugin to add new items to vertex or edge context menu.
 

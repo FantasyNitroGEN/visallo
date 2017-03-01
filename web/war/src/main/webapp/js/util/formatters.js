@@ -4,7 +4,7 @@
  * type, see the *Namespaces* section below.
  *
  * @classdesc Utility functions for the display of data to users
- * @module util/vertex/formatters
+ * @module formatters
  */
 define([
     'sf',
@@ -93,7 +93,7 @@ define([
 	}
 
     /**
-     * @alias module:util/vertex/formatters
+     * @alias module:formatters
      */
     var FORMATTERS = {
 

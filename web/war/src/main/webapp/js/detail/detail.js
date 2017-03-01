@@ -7,13 +7,6 @@ define([
 ], function(defineComponent, template, F, withDataRequest, registry) {
     'use strict';
 
-    registry.documentExtensionPoint('org.visallo.detail.extensions',
-        'Add custom views to entity detail pane',
-        function(e) {
-            return e.componentPath;
-        }
-    );
-
     return defineComponent(DetailPane, withDataRequest);
 
     function DetailPane() {

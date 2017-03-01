@@ -1,35 +1,36 @@
-# Admin Plugin
+# Admin
 
-Allows plugins to add items to the admin pane in existing or new sections.
+* [Admin JavaScript API `org.visallo.admin`](../../../javascript/org.visallo.admin.html)
+* [Admin Example Code](https://github.com/visallo/doc-examples/tree/master/extension-admin)
 
-To register an admin item:
+Admin extensions allow sections to be placed in the admin pane that when clicked, open a custom component.
 
-```js
-require(['configuration/plugins/registry'], function(registry) {
-    registry.registerExtension('org.visallo.admin', {
-        section: 'My New Section',
-        name: 'My Admin Tool',
-        subtitle: 'Some custom tools for administration',
-        componentPath: 'com/example/admin/tool',
-        requiredPrivilege: 'ADMIN'
-    });
-});
-```
+<div style="text-align:center">
+<img src="./admin.png" width="100%" style="max-width: 461px;">
+</div>
 
-# Properties
+## Tutorial
 
-* `section`: _(required)_ `[String]` Existing or new section to place this item.
-* `name`: _(required)_ `[String]` Name of the admin tool, to be displayed under the section.
-* `subtitle`: _(optional)_ `[String]` Text to describe admin tool.
-* `requiredPrivilege`: _(optional)_ `[String|function]` A string containing the privilege required to view
-   this extension. Or, a function which will be executed, if function returns true the extension will be
-   visible. The default for this property is `'ADMIN'`.
-* `options`: _(optional)_ `[Object]`
-  * `sortHint`: `[Number]` A number indicating the admin tool's position within the section. If not
-    included, admin items will be sorted within a section by name.
-* Exactly one of: `componentPath` or `Component`, or `url` _(required)_
+This tutorial registers three admin extensions that show React, Flight, and an admin extension that opens a link.
 
-    * `componentPath`: `[String]` requirejs or react component path
-    * `Component`: `[Object]` FlightJS or react component
-    * `url`: `[String]` Open new window to this url
+### Create a web plugin
+
+First, create the web plugin that registers the resources.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/e2e737b/extension-admin/src/main/java/org/visallo/examples/admin/AdminWebAppPlugin.java#L17-L23" %}{% endgithub_embed %}
+
+### Register Extension
+
+Register the admin extensions in the `plugin.js` file.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/e2e737b/extension-admin/src/main/resources/org/visallo/examples/admin/plugin.js#L3-L8" %}{% endgithub_embed %}
+
+The other two are very similar except we had `sortHint` to "Open URL" so it is first.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/e2e737b/extension-admin/src/main/resources/org/visallo/examples/admin/plugin.js#L22-L24" %}{% endgithub_embed %}
+
+Notice we use the globally available [`i18n`](../../../javascript/global.html#i18n) function to display strings. These are defined in `messages.properties`.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/e2e737b/extension-admin/src/main/resources/org/visallo/examples/admin/messages.properties#L2-L4" %}{% endgithub_embed %}
+
 

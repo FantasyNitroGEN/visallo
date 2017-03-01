@@ -1,7 +1,7 @@
 /**
  * Allows a user to select an ontology concept from a searchable dropdown component.
  *
- * @module
+ * @module components/ConceptSelect
  * @flight Dropdown selection component for selecting concepts from the ontology
  * @attr {string} [defaultText=Choose a Concept...] the placeholder text to display
  * @attr {boolean} [showAdminConcepts=false] Whether concepts that aren't user visible should be displayed

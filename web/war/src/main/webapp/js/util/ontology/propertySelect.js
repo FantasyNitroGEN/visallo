@@ -1,7 +1,7 @@
 /**
  * Allows a user to select an ontology property from a searchable dropdown component.
  *
- * @module
+ * @module components/PropertySelect
  * @flight Dropdown selection component for selecting properties from the ontology
  * @attr {Array.<object>} properties The ontology properties to populate the list with
  * @attr {string} [placeholder=Select Property] the placeholder text to display

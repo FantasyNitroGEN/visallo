@@ -15,6 +15,27 @@ define([
     registry) {
     'use strict';
 
+    /**
+     * Create new clickable sections in the user account dialog accessed when
+     * clicking the username in the case overlay.
+     *
+     * Create a key in a message bundle for the name of the section:
+     *
+     *      useraccount.page.[Identifier].displayName=[String to display]
+     *
+     * @param {string} identifier The unique identifier for this page
+     * @param {string} pageComponentPath The path to component to render in the
+     * content area of the modal.
+     */
+    registry.documentExtensionPoint('org.visallo.user.account.page',
+        'Add new tabs to user account modal dialog',
+        function(e) {
+            return ('identifier' in e) && ('pageComponentPath' in e);
+        },
+        'http://docs.visallo.org/extension-points/front-end/userAccount'
+    );
+
+
     var LAST_SAVED_UPDATE_FREQUENCY_SECONDS = 30,
         MENUBAR_WIDTH = 30,
         UPDATE_WORKSPACE_DIFF_SECONDS = 5,
@@ -43,14 +64,6 @@ define([
             requestAnimationFrame(function() {
                 MENUBAR_WIDTH = $('.menubar-pane').width();
             })
-
-            registry.documentExtensionPoint('org.visallo.user.account.page',
-                'Add new tabs to user account modal dialog',
-                function(e) {
-                    return ('identifier' in e) && ('pageComponentPath' in e);
-                },
-                'http://docs.visallo.org/extension-points/front-end/userAccount'
-            );
 
             this.updateDiffBadgeImmediate = this.updateDiffBadge;
             this.updateDiffBadge = _.throttle(this.updateDiffBadge.bind(this), UPDATE_WORKSPACE_DIFF_SECONDS * 1000)

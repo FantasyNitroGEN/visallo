@@ -15,6 +15,15 @@ define([], function() {
         function getExtensionStyles() {
             // Mock the cytoscape style fn api to the json style
             const collector = styleCollector();
+
+            /**
+             * @callback org.visallo.graph.style~StyleFn
+             * @param {object} cytoscapeStyle
+             * @param {function} cytoscapeStyle.selector Switch to adjusting the passed in selector string
+             * @param {function} cytoscapeStyle.style Add styles to the current selector. Accepts one parameter,
+             * the `object` of styles to add
+             * @param {function} cytoscapeStyle.css Alias of `style`
+             */
             styleExtensions.forEach(fn => fn(collector.mock));
             return collector.styles;
 
@@ -152,7 +161,8 @@ define([], function() {
                         'padding-top': 3,
                         'padding-bottom': 3,
                         width: 'label',
-                        height: 'label'
+                        height: 'label',
+                        'z-index': 1
                     }
                 },
                 {

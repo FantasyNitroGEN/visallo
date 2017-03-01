@@ -179,11 +179,20 @@ function processMainMessage(data) {
 
 function documentExtensionPoints() {
     require(['configuration/plugins/registry'], function(registry) {
+        /**
+         * Extension to register new listeners for websocket messages. Must be registered in JavaScript file registered with `app.registerWebWorkerJavaScript` in web app plugin.
+         *
+         * @param {string} name The message name to listen for. Matches the
+         * `type` parameter in message json
+         * @param {function} handler The function to invoke when messages
+         * arrive. Accepts one parameter: `data`
+         */
         registry.documentExtensionPoint('org.visallo.websocket.message',
             'Add custom websocket message handlers',
             function(e) {
                 return ('name' in e) && _.isFunction(e.handler)
-            }
+            },
+            'http://docs.visallo.org/extension-points/front-end/websocket'
         );
     })
 }

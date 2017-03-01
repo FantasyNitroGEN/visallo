@@ -13,7 +13,7 @@
  * To create custom services in plugins refer to the
  * {@link http://docs.visallo.org/tutorials/webplugin.html|Web Plugin Tutorial}.
  *
- * @module
+ * @module dataRequest
  * @classdesc Invoke service requests on Web Worker
  * @example
  * // Invoke the "me" function in "data/web-worker/services/user.js" module

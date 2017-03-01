@@ -1,40 +1,36 @@
-## Dashboard Toolbar Items
+# Dashboard Toolbar Item
 
-The `org.visallo.dashboard.toolbar.item` extension allows custom buttons to be rendered next to the cards configuration button. These buttons (displayed as icons) can send an event on click, or specify content to be rendered in a popover.
+* [Dashboard Toolbar Item JavaScript API `org.visallo.dashboard.toolbar.item`](../../../javascript/org.visallo.dashboard.toolbar.item.html)
+* [Dashboard Toolbar Item Example Code](https://github.com/visallo/doc-examples/tree/master/extension-dashboard-toolbaritem)
 
-### Configuration Options
+Allows custom buttons to be rendered next to the cards configuration button. These buttons (displayed as icons) can send an event on click, or specify content to be rendered in a popover.
 
-* `identifier` _(required)_ `[String]` Unique identifier for this type of toolbar item. Only used internally, not exposed to user.
-* `icon` _(required)_ `[String]` Path to icon to render in button
-* `action` _(required)_ `[Object]` The type of action when clicked
-    * `type` _(required)_ `[String]` Must be either `popover`, or `event`
-        * When type is `popover`
-            * `componentPath` _(required)_ `[String]` Component path for content to render in popover
-        * When type is `event`
-            * `name` _(required)_ `[String]` Event to trigger
-* `tooltip` _(optional)_ `[String]` Help text to display when user hovers over button
-* `canHandle` _(optional)_ `[Function]` Function to decide if this item should be added to this card
-    * The `canHandle` function is called with one `options` parameter with these keys:
-        * `item` `[Object]` The dashboard item json
-        * `extension` `[Object]` The dashboard extension json
-        * `element`: `[Element]` The cards dom element
+<div style="text-align:center">
+<img src="./toolbar.png" width="100%" style="max-width: 230px;">
+</div>
 
-### Example
+## Tutorial
+
+### Web Plugin
+
+Register resources for the plugin, the component, and the toolbar icon.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/dcaee913/extension-dashboard-toolbaritem/src/main/java/org/visallo/examples/dashboard_toolbaritem/DashboardToolbaritemWebAppPlugin.java#L17-L20" %}{% endgithub_embed %}
+
+### Register Extension
+
+Register the toolbar extension, specifying the component that will be rendered in a popover on click, and icon.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/dcaee913/extension-dashboard-toolbaritem/src/main/resources/org/visallo/examples/dashboard_toolbaritem/plugin.js#L3-L14" %}{% endgithub_embed %}
+
+### Create Popover Component
+
+The popover component must be flight component, this one just renders some text. The dashbord handles the creation of the popover and simply renders this component in the content area.
+
+{% github_embed "https://github.com/visallo/doc-examples/blob/dcaee913/extension-dashboard-toolbaritem/src/main/resources/org/visallo/examples/dashboard_toolbaritem/popover.js#L8-L14" %}{% endgithub_embed %}
+
+If content is updated in the popover and the size changes, the component should trigger an event to notify the popover parent component. This will adjust the anchor point to match the size change.
 
 ```js
-registry.registerExtension('org.visallo.dashboard.toolbar.item', {
-    identifier: 'com-example-toolbar',
-
-    // Only add toolbar to my other custom card
-    canHandle: function(options) {
-        return options.extension.identifier === 'com-example-my-card'
-    },
-    tooltip: 'My Example Action',
-    icon: 'myIcon.png',
-    action: {
-        type: 'popover',
-        componentPath: 'com/example/toolbar/configComponent'
-    }
-});
+this.trigger('positionDialog');
 ```
-

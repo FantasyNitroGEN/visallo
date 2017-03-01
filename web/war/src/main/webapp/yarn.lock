@@ -828,7 +828,7 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-bluebird@3.4.1, bluebird@^3.3.0:
+bluebird@3.4.1:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.1.tgz#b731ddf48e2dd3bedac2e75e1215a11bcb91fa07"
 
@@ -836,7 +836,7 @@ bluebird@^2.9.30:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-2.11.0.tgz#534b9033c022c9579c56ba3b3e5a5caafbb650e1"
 
-bluebird@^3.1.1, bluebird@~3.4.6:
+bluebird@^3.1.1, bluebird@^3.3.0, bluebird@~3.4.6:
   version "3.4.6"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.6.tgz#01da8d821d87813d158967e743d5fe6c62cf8c0f"
 
@@ -1998,7 +1998,7 @@ escape-string-regexp@1.0.5, escape-string-regexp@^1.0.0, escape-string-regexp@^1
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
 
-escodegen@1.8.x:
+escodegen@1.8.x, escodegen@^1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/escodegen/-/escodegen-1.8.1.tgz#5a5b53af4693110bebb0867aa3430dd3b70a1018"
   dependencies:
@@ -5898,9 +5898,11 @@ videojs-vtt.js@^0.12.1:
   version "0.12.1"
   resolved "https://registry.yarnpkg.com/videojs-vtt.js/-/videojs-vtt.js-0.12.1.tgz#e313896ca8e838c1b2e16df8775c56981ae19f3a"
 
-visallo-jsdoc-template@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/visallo-jsdoc-template/-/visallo-jsdoc-template-1.0.0.tgz#20f35dfe9b46599ed02b9c71ee9d2c5860a6e9e6"
+visallo-jsdoc-template@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/visallo-jsdoc-template/-/visallo-jsdoc-template-1.1.3.tgz#0ace736483624a31cf8dc8b26fbe1355eb48166b"
+  dependencies:
+    escodegen "^1.8.1"
 
 vm-browserify@~0.0.1:
   version "0.0.4"

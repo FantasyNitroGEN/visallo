@@ -125,6 +125,40 @@ define([
         var self = this,
             extensions = {};
 
+        /**
+         * Add additional icons into the menubar that can open a slide out
+         * panel or display a component in the content area like the built in
+         * dashboard.
+         *
+         * For placement hints options, these are the built-in identifiers:
+         * `dashboard`, `search`, `workspaces` (cases), `products`, `admin`,
+         * `activity`, `logout`.
+         *
+         * All `pane` type extensions will automatically save/restore pane
+         * size as a user preference.
+         *
+         * @param {string} title The text to display under the icon
+         * @param {string} identifier The unique identifier for this item.
+         * Should be valid CSS classname.
+         * @param {string} icon Url to the icon to display
+         * @param {object} action The unique identifier for this item
+         * @param {string} action.componentPath The path to a Flight or React
+         * component
+         * @param {string} action.type The type of action when clicked:
+         * * `pane` Slide out pane
+         * * `full` Use the full content (behind panes)
+         * * `url` Open url
+         * @param {string} [welcomeTemplatePath] Path to handlebars template file for use in dashboard welcome card.
+         * @param {string} [options]
+         * @param {string} [options.tooltip] Different text to display on hover
+         * in a tooltip, otherwise displays the `title`
+         * @param {string} [options.placementHint=top] If the item is added to
+         * `top` or `bottom` of menubar
+         * @param {string} [placementHintBefore] identifier of another menubar
+         * item that this item should be placed before
+         * @param {string} [placementHintAfter] identifier of another menubar
+         * item that this item should be placed after
+         */
         registry.documentExtensionPoint('org.visallo.menubar',
             'Add items to menubar',
             function(e) {

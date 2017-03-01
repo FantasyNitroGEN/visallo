@@ -7,7 +7,7 @@
 
 .DEFAULT_GOAL: serve
 
-PLUGINS=ga theme-visallo # Should match plugins in book.js
+PLUGINS=ga theme-visallo github-embed # Should match plugins in book.js
 
 WEBAPP=../web/war/src/main/webapp
 GITBOOK=node_modules/gitbook-cli/bin/gitbook.js

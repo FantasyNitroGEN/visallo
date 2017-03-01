@@ -67,11 +67,29 @@ define([
         };
 
         this.after('initialize', function() {
+
+            /**
+             * Activity items display in the floating panel accessed from the
+             * menubar gears icon.
+             *
+             * @param {string} type Type identifier for this kind of activity. There can be more than one activity of this type in progress, and the display will group by this value.
+             *
+             * Define `activity.tasks.type.[MY_ACTIVITY_TYPE]` message bundle string for localized display.
+             * @param {string} kind Either `eventWatcher` or `longRunningProcess`
+             * @param {org.visallo.activity~titleRenderer} titleRenderer Render the title for row
+             * @param {Array.<string>} [eventNames] Required if `eventWatcher`. Start event name, end event name.
+             * @param {string} [finishedComponentPath] Path to {@link org.visallo.activity~FinishedComponent} to render when task is complete.
+             * @param {org.visallo.activity~onRemove} [onRemove] Invoked when row is removed
+             * @param {boolean} [indeterminateProgress=false] If determinate progress is not available, will render indeterminate progress bar.
+             * @param {boolean} [autoDismiss=false] Remove this activity row when complete
+             * @param {boolean} [allowCancel=false] Whether the activity supports cancelling (will render cancel button if true).
+             */
             registry.documentExtensionPoint(
-                ACTIVITY_EXTENSTION_POINT,
-                'Custom activity rows based on events or long running processes.',
+                'org.visallo.activity',
+                'Custom activity rows based on events or long running processes',
                 function(e) {
-                    return ('type' in e) && ('kind' in e);
+                    return ('type' in e) && ('kind' in e) && _.isFunction(e.titleRenderer) &&
+                        (e.kind !== 'eventWatcher' || (_.isArray(e.eventNames) && e.eventNames.length === 2));
                 },
                 'http://docs.visallo.org/extension-points/front-end/activity'
             );
@@ -191,6 +209,16 @@ define([
 
             if (handler && handler.onRemove) {
                 if (_.isFunction(handler.onRemove)) {
+                    /**
+                     * Invoked when the row is removed by user or `autoDismiss`
+                     *
+                     * @callback org.visallo.activity~onRemove
+                     * @example
+                     * onRemove() {
+                     *     // "this" is the flight activity component
+                     *     this.trigger(...);
+                     * }
+                     */
                     handler.onRemove.call(this);
                 } else {
                     console.error('handler.onRemove expected a function, instead got: ', handler.onRemove);
@@ -438,6 +466,12 @@ define([
                                         Component = componentPath && finishedComponents[componentPath];
 
                                     if (Component && datum.endTime) {
+                                        /**
+                                         * FlightJS or React Component to render when activity is completed
+                                         *
+                                         * @typedef org.visallo.activity~FinishedComponent
+                                         * @property {object} activityItem The activity item
+                                         */
                                         Attacher()
                                             .node(this)
                                             .component(Component)
@@ -456,6 +490,13 @@ define([
                                 var datum = d3.select(this).datum();
 
                                 if (datum.type && datum.type in handlersByType) {
+                                    /**
+                                     * Function that is responsible for populating the text of the activity row.
+                                     *
+                                     * @callback org.visallo.activity~titleRenderer
+                                     * @param {Element} el Html element to render title in
+                                     * @param {object} activity The activity object. Either long running process json, or object with eventData.
+                                     */
                                     handlersByType[datum.type].titleRenderer(this, datum);
                                 } else if (datum.type) {
                                     console.warn('No activity formatter for ', datum.type);

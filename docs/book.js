@@ -1,20 +1,20 @@
 module.exports = {
   title: 'Visallo',
   description: 'Visallo, a big data analysis and visualization platform to help analysts and investigators solve ambiguous problems.',
-  gitbook: '3.x.x',
+  gitbook: '3.2.x',
   language: 'en',
   direction: 'ltr',
   // UPDATE Makefile "plugins=" variable if changing
-  plugins: [ 'ga', 'theme-visallo' ],
+  plugins: [ 'ga', 'theme-visallo', 'github-embed' ],
   styles: {
       website: 'styles/website.css'
   },
   pluginsConfig: {
     ga: {
-      token: 'UA-63006144-4'
+        token: 'UA-63006144-4'
+    },
+    lunr: {
+        maxIndexSize: 1000000000
     }
-  },
-  search: {
-    maxIndexSize: 1000000000
   }
 };
