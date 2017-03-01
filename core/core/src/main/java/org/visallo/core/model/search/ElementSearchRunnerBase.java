@@ -267,14 +267,12 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
     }
 
     private Collection<OntologyRepository.ElementTypeFilter> getTypeFilters(String typesStr) {
-        List<OntologyRepository.ElementTypeFilter> filters = new ArrayList<>(typesStr.length());
         JSONArray types = new JSONArray(typesStr);
-        if (types.length() > 0) {
-            for (int i = 0; i < types.length(); i++) {
-                JSONObject type = (JSONObject) types.get(i);
-                OntologyRepository.ElementTypeFilter filter = ClientApiConverter.toClientApi(type, OntologyRepository.ElementTypeFilter.class);
-                filters.add(filter);
-            }
+        List<OntologyRepository.ElementTypeFilter> filters = new ArrayList<>(types.length());
+        for (int i = 0; i < types.length(); i++) {
+            JSONObject type = (JSONObject) types.get(i);
+            OntologyRepository.ElementTypeFilter filter = ClientApiConverter.toClientApi(type, OntologyRepository.ElementTypeFilter.class);
+            filters.add(filter);
         }
         return filters;
     }
