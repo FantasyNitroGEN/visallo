@@ -327,6 +327,24 @@
   margin-top: 0.5em;
 }
 
+.com-visallo-csv .entities .form-container > div > .form-row > .field input.invalid {
+  color: #b94a48;
+  border-color: #b94a48;
+}
+
+.com-visallo-csv .entities .form-container > div > .form-row > .field input.invalid:focus {
+  border-color: #b94a48;
+  -webkit-box-shadow: 0 0 6px #f8b9b7;
+  -moz-box-shadow: 0 0 6px #f8b9b7;
+  box-shadow: 0 0 6px #f8b9b7;
+}
+
+.com-visallo-csv .entities .form-container > div > .field-error {
+  color: #b94a48;
+  margin: -10px 0 6px 7px;
+  font-size: 12px;
+}
+
 .com-visallo-csv .created {
   list-style: none;
   margin: 1em;

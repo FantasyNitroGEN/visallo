@@ -137,6 +137,9 @@ define([
 
             this.cleanupUnusedEntities();
 
+            this.$node.find('.field input').removeClass('invalid');
+            this.$node.find('.field-error').hide()
+
             if (selectedId) {
                 this.selectedVertex = _.findWhere(this.attr.vertices, { id: selectedId });
                 this.$node.find('.concept,.entity-visibility').hide();
@@ -264,7 +267,15 @@ define([
         }
 
         this.onPropertySelected = function(event, data) {
-            this.setOntologyProperty(data.property);
+            if (this.selectedVertex.properties.some((property) => property.name === data.property.title)) {
+                this.$node.find('.field input').addClass('invalid');
+                this.$node.find('.field-error').show()
+                    .text(i18n('csv.file_import.mapping.error.duplicate.property', this.selectedVertex.displayName));
+            } else {
+                this.$node.find('.field input').removeClass('invalid');
+                this.$node.find('.field-error').hide()
+                this.setOntologyProperty(data.property);
+            }
         };
 
         this.setOntologyProperty = function(property, previousMapping) {
