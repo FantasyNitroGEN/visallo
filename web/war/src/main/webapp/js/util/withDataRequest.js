@@ -31,7 +31,7 @@ define([
     'util/requirejs/promise!util/service/dataPromise'
 ], function(Promise, _, $)
     /**
-     * @alias module:util/withDataRequest
+     * @alias module:dataRequest
      */
 {
     'use strict';
@@ -81,7 +81,7 @@ define([
     /**
      * Make a data request
      *
-     * @name module:util/withDataRequest.dataRequest
+     * @name module:dataRequest.dataRequest
      * @function
      * @param {string} service The name of service
      * @param {string} method The method to invoke in service

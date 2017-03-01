@@ -2,7 +2,7 @@
  * Routes for running searches, and saved searches.
  *
  * @module services/search
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define(['../util/ajax'], function(ajax) {
     'use strict';

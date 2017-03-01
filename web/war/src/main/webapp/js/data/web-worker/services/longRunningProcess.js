@@ -2,7 +2,7 @@
  * Information regarding long-running processes.
  *
  * @module services/longRunningProcess
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define([
     '../util/ajax'

@@ -2,7 +2,7 @@
  * Get message bundles and configuration strings
  *
  * @module services/config
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define([
     '../util/ajax',

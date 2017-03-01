@@ -7,7 +7,7 @@
  * * Relationships: Edges
  *
  * @module services/ontology
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define([
     '../util/ajax',

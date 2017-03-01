@@ -1,6 +1,8 @@
 /**
+ * Routes for edges
+ *
  * @module services/edge
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define([
     '../util/ajax',

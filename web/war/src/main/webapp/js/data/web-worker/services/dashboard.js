@@ -2,7 +2,7 @@
  * Routes for dashboards and dashboard cards/items
  *
  * @module services/dashboard
- * @see module:util/withDataRequest
+ * @see module:dataRequest
  */
 define(['../util/ajax'], function(ajax) {
     'use strict';
