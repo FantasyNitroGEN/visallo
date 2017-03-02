@@ -10,7 +10,8 @@ define([
     'util/ontology/conceptSelect',
     'util/ontology/relationshipSelect',
     'util/withDataRequest',
-    'configuration/plugins/registry'
+    'configuration/plugins/registry',
+    'd3'
 ], function(
     defineComponent,
     flightRegistry,
@@ -22,7 +23,8 @@ define([
     ConceptSelector,
     RelationshipSelector,
     withDataRequest,
-    registry) {
+    registry,
+    d3) {
     'use strict';
 
     var FILTER_SEARCH_DELAY_SECONDS = 0.5;
@@ -35,17 +37,18 @@ define([
         this.filterId = 0;
 
         this.attributes({
-            removeEntityRowSelector: '.entity-filters button.remove',
-            removeExtensionRowSelector: '.extension-filters button.remove',
+            removeEntityRowSelector: '.entity-filters button.remove-icon',
+            removeExtensionRowSelector: '.extension-filters button.remove-icon',
             matchTypeSelector: '.match-types input',
-            childNodesSelector: '.child-nodes input',
             extensionsSelector: '.extension-filters',
             filterItemsSelector: '.prop-filters .filter',
             conceptDropdownSelector: '.concepts-dropdown',
+            conceptListSelector: '.concepts-list',
+            relationshipListSelector: '.edgetype-list',
             edgeLabelDropdownSelector: '.edgetype-dropdown',
             sortContentSelector: '.sort-content',
-            conceptFilterSelector: '.concepts-dropdown,.concept-filter-header',
-            edgeLabelFilterSelector: '.edgetype-dropdown,.edgetype-filter-header',
+            conceptFilterSelector: '.concepts-dropdown,.concepts-list,.concept-filter-header',
+            edgeLabelFilterSelector: '.edgetype-dropdown,.edgetype-list,.edgetype-filter-header',
             match: 'vertex',
             supportsMatch: true,
             supportsSorting: true,
@@ -64,8 +67,7 @@ define([
                 showMatchType: this.attr.supportsMatch !== false,
                 showConceptFilter: this.attr.match === 'vertex',
                 showEdgeFilter: this.attr.match === 'edge',
-                showSorting: this.attr.supportsSorting,
-                includeChildNodes: true
+                showSorting: this.attr.supportsSorting
             }));
 
             this.on('filterItemChanged', this.onFilterItemChanged);
@@ -85,8 +87,7 @@ define([
                 }
             })
             this.on('change', {
-                matchTypeSelector: this.onChangeMatchType,
-                childNodesSelector: this.onChangeIncludeChildNodes
+                matchTypeSelector: this.onChangeMatchType
             })
             this.on('conceptSelected', this.onConceptChange);
             this.on('relationshipSelected', this.onEdgeTypeChange);
@@ -98,8 +99,11 @@ define([
                 return this.dataRequest('ontology', 'propertiesByDomainType', this.matchType);
             };
 
-            this.dataRequest('ontology', 'concepts').then((concepts) => {
+            this.dataRequest('ontology', 'ontology').then(({ relationships, concepts }) => {
+                this.conceptsById = concepts.byId;
+                this.relationshipsById = relationships.byId;
                 this.conceptsByParent = _.groupBy(concepts.byTitle, 'parentConcept');
+                this.relationshipsByParent = _.groupBy(relationships.list, 'parentIri');
 
                 return Promise.resolve(this.addSearchFilterExtensions())
                     .then(() => {
@@ -273,8 +277,7 @@ define([
 
                     self.select('edgeLabelFilterSelector').show();
                     self.otherFilters.relatedToVertexIds = _.pluck(vertices, 'id');
-                    self.$node.find('.entity-filters')
-                        .append(entityItemTemplate({title: title})).show();
+                    self.$node.find('.entity-filters').html(entityItemTemplate({title: title})).show();
                     self.notifyOfFilters();
                 });
         };
@@ -292,50 +295,77 @@ define([
         this.setEdgeTypeFilter = function(edgeId) {
             var self = this;
 
-            this.edgeLabelFilter = edgeId || '';
-            this.trigger(this.select('edgeLabelDropdownSelector'), 'selectRelationshipId', { relationshipId: edgeId });
+            if (arguments.length === 0) {
+                this.edgeLabelFilter = [];
+            }
+            if (_.isArray(edgeId)) {
+                this.edgeLabelFilter = edgeId;
+                edgeId = null;
+            }
+            if (!this.edgeLabelFilter) this.edgeLabelFilter = [];
+            if (edgeId) {
+                if (!_.findWhere(this.edgeLabelFilter, { iri: edgeId })) {
+                    this.edgeLabelFilter.push({ iri: edgeId, includeChildNodes: true });
+                }
+                _.defer(() => {
+                    this.select('edgeLabelDropdownSelector').find('input').blur();
+                    this.trigger(this.select('edgeLabelDropdownSelector'), 'selectRelationshipId')
+                })
+            }
 
-            if (this.matchType === 'vertex') {
+            if (!this.otherFilters.relatedToVertexIds && this.matchType !== 'edge') {
                 return;
             }
 
-            if (this.edgeLabelFilter) {
-                return this.dataRequest('ontology', 'propertiesByRelationship', this.edgeLabelFilter)
-                    .then(function(properties) {
-                        self.filteredPropertiesList = _.reject(properties && properties.list || [], function(property) {
-                            return !_.isEmpty(property.dependentPropertyIris);
-                        });
-                        self.select('filterItemsSelector')
-                            .add(self.select('sortContentSelector'))
-                            .trigger('filterProperties', {
-                                properties: self.filteredPropertiesList
-                            })
-                        self.notifyOfFilters();
+            this.renderList('relationshipListSelector', this.edgeLabelFilter, {
+                setter(v) { self.setEdgeTypeFilter(v) },
+                displayName(filter) { return self.relationshipsById[filter.iri].displayName; },
+                hasChildren(iri) { return self.relationshipsByParent[iri] && self.relationshipsByParent[iri].length; }
+            });
+
+            if (this.matchType === 'edge') {
+                if (this.edgeLabelFilter.length) {
+                    Promise.map(this.edgeLabelFilter, item =>
+                        this.dataRequest('ontology', 'propertiesByRelationship', item.iri)
+                    ).then(properties => {
+                        this.filterPropertyList(properties);
                     })
-            } else {
-                this.filteredPropertiesList = null;
-                this.select('filterItemsSelector')
-                    .add(self.select('sortContentSelector'))
-                    .trigger('filterProperties', {
-                        properties: this.propertiesByDomainType[this.matchType]
-                    })
-                this.notifyOfFilters();
+                } else {
+                    this.filterPropertyList();
+                }
             }
         };
 
-        this.setIncludeChildNodes = function(include = true) {
-            const title = include ?
-                i18n('search.filters.child.nodes.title.selected')
-                : i18n('search.filters.child.nodes.title.unselected');
+        this.filterPropertyList = function(properties) {
+            let addedTitles = {};
+            this.filteredPropertiesList = (
+                properties ?
+                    properties.reduce((filtered, props) => {
+                        if (props && props.list) {
+                            props.list.forEach(property => {
+                                const alreadyAdded = property.title in addedTitles;
+                                const noDependents = _.isEmpty(property.dependentPropertyIris);
 
-            this.select('childNodesSelector')
-                .prop({
-                    checked: include,
-                    title: title
-                });
-            this.includeChildNodes = include;
+                                if (!alreadyAdded && noDependents) {
+                                    addedTitles[property.title] = true;
+                                    filtered.push(property);
+                                }
+                            })
+                        }
+                        return filtered;
+                    }, []) :
+                    null
+            );
+
+            this.select('filterItemsSelector')
+                .add(this.select('sortContentSelector'))
+                .trigger('filterProperties', {
+                    properties: properties ?
+                        this.filteredPropertiesList :
+                        this.propertiesByDomainType[this.matchType]
+                })
             this.notifyOfFilters();
-        };
+        }
 
         this.setMatchType = function(type) {
             var self = this;
@@ -345,11 +375,10 @@ define([
             this.$node.find('.match-type-edge').closest('label').andSelf()
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
-            this.select('edgeLabelFilterSelector').toggle(self.otherFilters.relatedToVertexIds || type === 'edge');
+            this.select('edgeLabelFilterSelector').toggle(Boolean(self.otherFilters.relatedToVertexIds || type === 'edge'));
             if (this.matchType === 'vertex') {
                 this.setConceptFilter(this.conceptFilter);
             } else {
-                this.$node.find('.child-nodes').hide();
                 this.setEdgeTypeFilter(this.edgeLabelFilter);
             }
             this.select('filterItemsSelector').each(function() {
@@ -371,52 +400,110 @@ define([
                 });
         };
 
-        this.setConceptFilter = function(conceptId) {
+        this.setConceptFilter = function(conceptId, includeChildNodes) {
             const self = this;
 
-            this.conceptFilter = conceptId || '';
-            this.trigger(this.select('conceptDropdownSelector'), 'selectConceptId', { conceptId: conceptId });
+            if (arguments.length === 0) {
+                this.conceptFilter = [];
+            }
+            if (_.isArray(conceptId)) {
+                this.conceptFilter = conceptId;
+                conceptId = null;
+            }
+            if (!this.conceptFilter) this.conceptFilter = [];
+            if (conceptId) {
+                if (!_.findWhere(this.conceptFilter, { iri: conceptId })) {
+                    this.conceptFilter.push({
+                        iri: conceptId,
+                        includeChildNodes: _.isBoolean(includeChildNodes) ? includeChildNodes : true
+                    });
+                }
+                _.defer(() => {
+                    this.select('conceptDropdownSelector').find('input').blur();
+                    this.trigger(this.select('conceptDropdownSelector'), 'clearSelectedConcept');
+                })
+            }
 
             if (this.matchType === 'edge') {
                 return;
             }
 
-            const hasChildren = this.conceptsByParent[this.conceptFilter] ?
-                this.conceptsByParent[this.conceptFilter].length > 0 : false;
-            this.$node.find('.child-nodes')
-                .toggle(!!this.conceptFilter && hasChildren);
+            this.renderList('conceptListSelector', this.conceptFilter, {
+                setter(v) { self.setConceptFilter(v) },
+                displayName(filter) { return self.conceptsById[filter.iri].displayName; },
+                hasChildren(iri) { return self.conceptsByParent[iri] && self.conceptsByParent[iri].length; }
+            });
 
-            if (this.conceptFilter) {
-                return this.dataRequest('ontology', 'propertiesByConceptId', this.conceptFilter)
-                    .then(function(properties) {
-                        self.filteredPropertiesList = _.reject(properties && properties.list || [], function(property) {
-                            return !_.isEmpty(property.dependentPropertyIris);
-                        });
-                        self.select('filterItemsSelector')
-                            .add(self.select('sortContentSelector'))
-                            .trigger('filterProperties', {
-                                properties: self.filteredPropertiesList
-                            })
-                        self.notifyOfFilters();
-                    })
+            if (this.conceptFilter.length) {
+                Promise.map(this.conceptFilter, item =>
+                    this.dataRequest('ontology', 'propertiesByConceptId', item.iri)
+                ).then(properties => {
+                    this.filterPropertyList(properties);
+                })
             } else {
-                this.filteredPropertiesList = null;
-                this.select('filterItemsSelector')
-                    .add(self.select('sortContentSelector'))
-                    .trigger('filterProperties', {
-                        properties: this.propertiesByDomainType[this.matchType]
-                    })
-                this.notifyOfFilters();
+                this.filterPropertyList();
             }
+        };
+
+        this.renderList = function(selector, list, { setter, displayName, hasChildren }) {
+            var self = this,
+                $list = this.select(selector).find('.fields');
+
+            d3.select($list.get(0))
+                .selectAll('li')
+                .data(list)
+                .call(function() {
+                    this.enter().append('li').call(function() {
+                        this.append('div').attr('class', 'content').call(function() {
+                            this.append('span').attr('class', 'display')
+                            this.append('label').attr('class', 'descendants').call(function() {
+                                this.append('input').attr('type', 'checkbox');
+                                this.append('span')
+                                    .text(i18n('search.filters.include.child.nodes'))
+                            })
+                        })
+                        this.append('button').attr('class', 'remove-icon').html('&times');
+                    })
+                    this.exit().remove();
+                })
+                .order()
+                .call(function() {
+                    this.select('.display').text(displayName)
+                    this.select('.remove-icon').on('click', function(d, index) {
+                        list.splice(index, 1);
+                        setter(list);
+                    })
+                    this.select('.descendants')
+                        .style('display', function(d) {
+                            var children = hasChildren(d.iri);
+                            if (children) {
+                                return null;
+                            }
+
+                            var filter = _.findWhere(list, { iri: d.iri });
+                            filter.includeChildNodes = false;
+                            return 'none'
+                        })
+                        .on('change', function(d) {
+                            var checked = this.querySelector('input').checked;
+                            d3.select(this).attr('title', checked ?
+                                i18n('search.filters.child.nodes.title.selected') :
+                                i18n('search.filters.child.nodes.title.unselected')
+                            );
+                            var filter = _.findWhere(list, { iri: d.iri });
+                            if (filter) {
+                                filter.includeChildNodes = checked;
+                                self.notifyOfFilters();
+                            }
+                        })
+                        .attr('title', i18n('search.filters.child.nodes.title.unselected'))
+                        .select('input').property('checked', d => d.includeChildNodes)
+                })
         };
 
         this.onChangeMatchType = function(event, data) {
             this.setMatchType($(event.target).val());
         };
-
-        this.onChangeIncludeChildNodes = function(event, data) {
-            this.setIncludeChildNodes(($(event.target).prop('checked')));
-        }
 
         this.onConceptChange = function(event, data) {
             this.setConceptFilter(data.concept && data.concept.id || '');
@@ -439,12 +526,12 @@ define([
 
         this.onClearFilters = function(event, data) {
             var self = this;
-            return this.clearFilters().then(function() {
+            return this.clearFilters(data).then(function() {
                 self.trigger('filtersCleared');
             })
         };
 
-        this.clearFilters = function(options) {
+        this.clearFilters = function(options = {}) {
             var self = this,
                 filterItems = this.$node.find('.prop-filters .filter');
 
@@ -452,9 +539,10 @@ define([
 
             this.disableNotify = true;
 
-            return Promise.resolve(this.setConceptFilter())
-                .then(this.setMatchType.bind(this, 'vertex'))
-                .then(this.setEdgeTypeFilter.bind(this))
+            return Promise.resolve()
+                .then(() => options.clearMatch !== false ? this.setMatchType('vertex') : null)
+                .then(() => this.setConceptFilter())
+                .then(() => this.setEdgeTypeFilter())
                 .then(this.setSort.bind(this))
                 .then(this.createNewRowIfNeeded.bind(this))
                 .then(function() {
@@ -463,7 +551,7 @@ define([
                     self.$node.find('.entity-filters').hide().empty();
                     self.$node.find('.extension-filter-row').hide();
                     self.disableNotify = false;
-                    if (!options || options.triggerUpdates !== false) {
+                    if (options.triggerUpdates !== false) {
                         self.notifyOfFilters();
                     }
                 });
@@ -490,7 +578,6 @@ define([
                     edgeLabelFilter: this.edgeLabelFilter,
                     sortFields: this.currentSort,
                     matchType: this.matchType,
-                    includeChildNodes: this.includeChildNodes,
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
                             var ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
@@ -613,13 +700,35 @@ define([
                     return self.setMatchType((/edge/).test(data.url) ? 'edge' : 'vertex');
                 })
                 .then(function() {
-                    return self.setIncludeChildNodes(data.parameters.includeChildNodes);
+                    // Legacy
+                    if (data.parameters.conceptType) {
+                        return self.setConceptFilter(
+                            data.parameters.conceptType,
+                            data.parameters.includeChildNodes
+                        );
+                    }
+                    if (data.parameters.conceptTypes) {
+                        var types = data.parameters.conceptTypes;
+                        if (_.isString(types)) {
+                            types = JSON.parse(types)
+                        }
+                        return self.setConceptFilter(types);
+                    }
+                    return self.setConceptFilter();
                 })
                 .then(function() {
-                    return self.setConceptFilter(data.parameters.conceptType);
-                })
-                .then(function() {
-                    return self.setEdgeTypeFilter(data.parameters.edgeLabel);
+                    // Legacy
+                    if (data.parameters.edgeLabel) {
+                        return self.setEdgeTypeFilter(data.parameters.edgeLabel);
+                    }
+                    if (data.parameters.edgeLabels) {
+                        var types = data.parameters.edgeLabels;
+                        if (_.isString(types)) {
+                            types = JSON.parse(types)
+                        }
+                        return self.setEdgeTypeFilter(types);
+                    }
+                    return self.setEdgeTypeFilter();
                 })
                 .then(function() {
                     var sortRaw = data.parameters['sort[]'],
@@ -718,7 +827,7 @@ define([
 
             if (filter) {
                 $li.addClass('filter')
-                    .toggle(!options || !options.hide)
+                    .toggle(Boolean(!options || !options.hide))
 
                 if ($newRow.length) {
                     $li.insertBefore($newRow);

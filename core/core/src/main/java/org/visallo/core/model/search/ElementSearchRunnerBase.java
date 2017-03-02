@@ -17,6 +17,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.PropertyType;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.*;
@@ -217,20 +218,36 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
     protected abstract QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations);
 
     protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
-        final String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
-        final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
         Query query = queryAndData.getQuery();
-        if (conceptType != null) {
-            ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
+
+        String conceptTypes = searchOptions.getOptionalParameter("conceptTypes", String.class);
+
+        if (conceptTypes == null) {
+            // Try legacy conceptType parameter
+            String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
+            if (conceptType != null) {
+                final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
+                ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
+            }
+        } else {
+            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes));
         }
     }
 
     protected void applyEdgeLabelFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
-        final String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
-        final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
         Query query = queryAndData.getQuery();
-        if (edgeLabel != null) {
-            ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
+
+        String labels = searchOptions.getOptionalParameter("edgeLabels", String.class);
+
+        if (labels == null) {
+            // Try legacy edgeLabel parameter
+            String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
+            if (edgeLabel != null) {
+                final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
+                ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
+            }
+        } else {
+            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels));
         }
     }
 
@@ -247,6 +264,17 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         JSONArray filterJson = searchOptions.getRequiredParameter("filter", JSONArray.class);
         ontologyRepository.resolvePropertyIds(filterJson);
         return filterJson;
+    }
+
+    private Collection<OntologyRepository.ElementTypeFilter> getTypeFilters(String typesStr) {
+        JSONArray types = new JSONArray(typesStr);
+        List<OntologyRepository.ElementTypeFilter> filters = new ArrayList<>(types.length());
+        for (int i = 0; i < types.length(); i++) {
+            JSONObject type = (JSONObject) types.get(i);
+            OntologyRepository.ElementTypeFilter filter = ClientApiConverter.toClientApi(type, OntologyRepository.ElementTypeFilter.class);
+            filters.add(filter);
+        }
+        return filters;
     }
 
     private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user) {

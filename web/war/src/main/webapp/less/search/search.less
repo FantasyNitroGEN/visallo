@@ -233,7 +233,7 @@ width: 215px;
     overflow: auto;
     overflow-x: hidden;
   }
-  
+
   .concepts-dropdown select {
     width: 100%;
     font-size: 90%;
@@ -320,6 +320,52 @@ width: 215px;
     li { margin-bottom: 0; }
   }
 
+    
+  .edgetype-list,
+  .concepts-list {
+    .fields {
+      list-style: none;
+      margin: 0 0 0.5em 0;
+
+      li {
+        display: flex;
+        &:hover {
+          background-color: #ececec;
+          border-radius: 3px;
+        }
+        .content {
+          flex: 1 1 auto;
+          color: #777;
+          flex-wrap: wrap;
+          display: flex;
+          min-width: 0;
+          margin-left: 0.5em;
+        }
+        button { flex: 0 0 auto; }
+        .display {
+          font-size: 95%;
+          flex: 1 0 auto;
+        }
+
+        .descendants {
+          font-size: 85%;
+          color: #7b7b7b;
+          text-shadow: 0 1px 0 white;
+          white-space: nowrap;
+          margin: 0 0.3em;
+          padding: 0 0.25em;
+          input {
+            margin-right: 0.3em;
+            vertical-align: top;
+          }
+        }
+      }
+    }
+  }
+
+  .concept-selection,
+  .relationship-selection,
+  .property-select,
   .property-selector {
     input {
       @color: #0088cc;
@@ -328,7 +374,7 @@ width: 215px;
       .box-shadow(none);
       outline: none;
       border: 0;
-      background: inherit;
+      background: @pane-background;
       color: @color;
       font-size: 11px;
       font-weight: bold;
@@ -338,13 +384,28 @@ width: 215px;
       padding-left: 0;
       margin: 0;
       cursor: pointer;
+      font-style: italic;
       &::-webkit-input-placeholder { color: @color; }
       &::-moz-placeholder { color: @color; }
       &:-moz-placeholder { color: @color; }
+      &:disabled {
+        cursor: default;
+        @color: #bbb;
+        color: @color;
+        &::-webkit-input-placeholder { color: @color; }
+        &::-moz-placeholder { color: @color; }
+        &:-moz-placeholder { color: @color; }
+      }
     }
   }
   
   .entity-filter-row, .extension-filter-row {
+    .current-property {
+      display: flex;
+      & > label { flex: 1 1 auto; }
+      & > button { flex: 0 0 auto; }
+      button { margin-top: 13px; }
+    }
     .current-property label {
       font-size: 11px;
       font-weight: bold;
@@ -353,10 +414,10 @@ width: 215px;
       color: #999999;
       float: left;
       display: inline;
-      padding: 1.2ex 0.5em 0 0;
-      margin: 0;
+      padding: 0em 0.5em 0 0;
+      margin: 1.5em 0 0 0;
       cursor: default;
-      line-height: 1.5em;
+      line-height: 1em;
     }
   }
 
@@ -381,33 +442,35 @@ width: 215px;
     .clearfix;
 
     .header {
-      position: relative;
-      .clearfix;
+      display: flex;
+
+      & > label { flex: 1 1 auto;  }
+      & > .remove-icon { flex: 0 0 auto;  }
+      & > .dropdown { flex: 0 0 auto;  }
+
+      label {
+        cursor: default;
+        font-size: 95%;
+        color: #777;
+        position: relative;
+        flex: 1 1 auto;
+        display: flex;
+        flex-wrap: wrap;
+        margin-left: 0.5em;
+        & > span {
+          flex: 1 0 auto;
+          margin-right: 0.5em;
+        }
+        .dropdown {
+          position: static;
+          display: inline;
+          margin-right: 0.25em;
+        }
+        .caret { margin-top: 9px; }
+      }
     }
   }
 
-  .current-property .header label {
-    cursor: default;
-  }
-
-  .current-property .header label,
-  .current-property .header button.remove,
-  .current-property .header .dropdown {
-    line-height: 1em;
-    display: inline;
-    margin-bottom: 0.5em;
-  }
-
-  .current-property .header label,
-  .current-property .header .dropdown {
-    float: left;    
-  }
-  .current-property .header label {
-    margin-right: 0.5em;
-  }
-  .current-property .header .dropdown {
-    position: static;
-  }
   .current-property .header .dropdown .dropdown-menu {
     left: 0;
     right: 0;
@@ -535,6 +598,14 @@ width: 215px;
  
   & > li { margin-bottom: 0.5em; position: relative; }
   li.nav-header { margin-bottom: 0; margin-top: 0; }
+
+  li.concept-filter-header,
+  li.edgetype-filter-header,
+  li.sort-filter-header,
+  li.prop-filter-header {
+    margin-top: 2em;
+    line-height: 0.7em;
+  }
 
   .property-filters {
     .appearance(none);
