@@ -82,12 +82,14 @@ define([
         };
 
         this.updateSelectAllCheckbox = function() {
+            const selectAllCheckbox = $(this.attr.selectAllSelector, this.popover);
             if (this.selectedColumnIris.length === 0) {
-                $(this.attr.selectAllSelector, this.popover).prop('checked', false).prop('indeterminate', false);
+                selectAllCheckbox.prop('checked', false).prop('indeterminate', false);
             } else if (this.selectedColumnIris.length === $(this.attr.inputSelector, this.popover).size()) {
-                $(this.attr.selectAllSelector, this.popover).prop('checked', true).prop('indeterminate', false);
+                selectAllCheckbox.prop('checked', true).prop('indeterminate', false);
             } else {
-                $(this.attr.selectAllSelector, this.popover).prop('checked', true).prop('indeterminate', true);
+                selectAllCheckbox.prop('checked', true).prop('indeterminate', true)
+                    .off('click').one('click', (event) => { this.onSelectAllChange(event) });
             }
         }
     }
