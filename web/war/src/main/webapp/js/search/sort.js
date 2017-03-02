@@ -96,7 +96,7 @@ define([
                     return p.searchable === false || p.sortable === false;
                 }),
                 onlySearchable: true,
-                placeholder: 'Add Sort...'
+                placeholder: i18n('search.sort.placeholder')
             });
         };
 
