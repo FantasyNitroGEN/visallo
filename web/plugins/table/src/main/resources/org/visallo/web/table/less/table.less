@@ -122,6 +122,10 @@
 
   .table {
     flex: 1 1 auto;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
 
       .FlexTable {
         overflow-x: auto;
@@ -136,11 +140,6 @@
               display: flex;
 
               .FlexTable__headerTruncatedText {
-                -moz-user-select: none;
-                -ms-user-select: none;
-                -webkit-user-select: none;
-                user-select: none;
-
                 &:after {
                   content: ' ';
                   display: inline-block;
