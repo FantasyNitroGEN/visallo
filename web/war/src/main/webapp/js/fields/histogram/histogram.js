@@ -318,11 +318,11 @@ define([
                 data = this.data = this.binValues(),
 
                 yScale = this.yScale = d3.scale.linear()
-                    .domain([0, d3.max(data, function(layer) {
+                    .domain([0, data.length ? d3.max(data, function(layer) {
                         return d3.max(layer.values, function(d) {
                             return d.y0 + d.y;
                         });
-                    })])
+                    }) : 0])
                     .range([height, 0]),
 
                 xAxis = this.xAxis = d3.svg.axis()
