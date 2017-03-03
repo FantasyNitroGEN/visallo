@@ -203,7 +203,9 @@ define([
                         drawEdgeToMouseFrom={draw ? _.pick(draw, 'vertexId', 'toVertexId') : null }
                         drawPaths={paths ? _.pick(paths, 'paths', 'sourceId', 'targetId') : null }
                         onGhostFinished={this.props.onGhostFinished}
-                        onUpdatePreview={this.onUpdatePreview}></Cytoscape>
+                        onUpdatePreview={this.onUpdatePreview}
+                        editable={editable}
+                    ></Cytoscape>
 
                     {cyElements.nodes.length === 0 ? (
                         <GraphEmpty editable={editable} panelPadding={panelPadding} onSearch={this.props.onSearch} onCreate={this.onCreate} />
