@@ -8,7 +8,7 @@ Visallo can import CSVs and extract entities from the data. There is a custom wi
 
 <img src='./drag-csv-into-visallo.gif' />
 
-<span>2. Once the file shows a button that says "Map Structured Data" in the [detail panel](../detail-pane.md), click that button and the csv/excel import wizard will appear.</span>
+<span>2. Once the file shows a button that says "Map Structured Data" in the [Element Inspector](../element-inspector.md), click that button and the csv/excel import wizard will appear.</span>
 
 <img src='./open-wizard.gif' />
 

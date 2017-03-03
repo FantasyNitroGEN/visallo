@@ -20,7 +20,7 @@ The login page is shown when the users session is expired or missing. It renders
 
 File: `app.js`
 
-The case view of Visallo is the default view. It contains the main application, with a graph, map, detail pane, and ancillary panes.
+The case view of Visallo is the default view. It contains the main application, with a graph, map, Element Inspector, and ancillary panes.
 
 If the fragment identifier contains `#w=`, the user is prompted to add entities to their case after load.
 

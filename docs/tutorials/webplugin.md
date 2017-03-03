@@ -2,7 +2,7 @@
 
 ## Introduction
 
-If you went through the [last tutorial](./helloworldgpw.md), you already have your own customized graph property worker that will change the titles of every new entity on the graph to "Hello World".  Continuing with the hello world theme, we want to make sure that we can communicate between both our front end and our back end.  To discover how to add an item to the menu bar of the details pane, we recommend taking a look at the web plugin example that is already loaded in your ```web``` folder.  For this tutorial, we will be adding an item to the right-click context menu so that we can send information about the vertex back to the server.
+If you went through the [last tutorial](./helloworldgpw.md), you already have your own customized graph property worker that will change the titles of every new entity on the graph to "Hello World".  Continuing with the hello world theme, we want to make sure that we can communicate between both our front end and our back end.  To discover how to add an item to the menu bar of the Element Inspector, we recommend taking a look at the web plugin example that is already loaded in your ```web``` folder.  For this tutorial, we will be adding an item to the right-click context menu so that we can send information about the vertex back to the server.
 
 ## Scaffolding the project
 
