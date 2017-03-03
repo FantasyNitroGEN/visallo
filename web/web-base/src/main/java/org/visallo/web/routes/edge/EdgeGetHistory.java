@@ -29,6 +29,7 @@ public class EdgeGetHistory implements ParameterizedHandler {
             @Required(name = "graphEdgeId") String graphEdgeId,
             @Optional(name = "startTime") Long startTime,
             @Optional(name = "endTime") Long endTime,
+            @Optional(name = "withVisibility") Boolean withVisibility,
             Locale locale,
             ResourceBundle resourceBundle,
             Authorizations authorizations
@@ -43,6 +44,6 @@ public class EdgeGetHistory implements ParameterizedHandler {
                 endTime,
                 authorizations
         );
-        return ClientApiConverter.toClientApi(historicalPropertyValues, locale, resourceBundle);
+        return ClientApiConverter.toClientApi(historicalPropertyValues, locale, resourceBundle, withVisibility);
     }
 }
