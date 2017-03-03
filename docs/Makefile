@@ -108,6 +108,19 @@ link-check: build
 			--recursive \
 			--ordered \
 			--exclude-external \
+			--exclude "java/"; \
+		EXIT="$$?"; \
+		kill "$$PID"; \
+		exit "$$EXIT"
+
+link-check-external: build
+	@cd _book; \
+		python -m SimpleHTTPServer $(LINK_CHECK_PORT) > /dev/null & \
+		PID="$$!"; \
+		../node_modules/.bin/blc \
+			http://localhost:$(LINK_CHECK_PORT)/index.html \
+			--recursive \
+			--ordered \
 			--exclude "java/" \
 			--exclude "https://myvisalloinstance/" \
 			--exclude "http://localhost:8888/" \
@@ -116,4 +129,3 @@ link-check: build
 		EXIT="$$?"; \
 		kill "$$PID"; \
 		exit "$$EXIT"
-
