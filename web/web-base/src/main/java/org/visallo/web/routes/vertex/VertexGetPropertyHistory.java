@@ -30,6 +30,7 @@ public class VertexGetPropertyHistory implements ParameterizedHandler {
             @Required(name = "propertyName") String propertyName,
             @Optional(name = "startTime") Long startTime,
             @Optional(name = "endTime") Long endTime,
+            @Optional(name = "withVisibility") Boolean withVisibility,
             Locale locale,
             ResourceBundle resourceBundle,
             Authorizations authorizations
@@ -52,6 +53,6 @@ public class VertexGetPropertyHistory implements ParameterizedHandler {
                 endTime,
                 authorizations
         );
-        return ClientApiConverter.toClientApi(historicalPropertyValues, locale, resourceBundle);
+        return ClientApiConverter.toClientApi(historicalPropertyValues, locale, resourceBundle, withVisibility);
     }
 }
