@@ -141,10 +141,12 @@ define([
          * Get history of edge (property changes, etc)
          *
          * @param {string} edgeId
+         * @param {boolean} withVisibility
          */
-        history: function(edgeId) {
+        history: function(edgeId, withVisibility) {
             return ajax('GET', '/edge/history', {
-                graphEdgeId: edgeId
+                graphEdgeId: edgeId,
+                withVisibility: withVisibility
             });
         },
 
