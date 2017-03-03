@@ -208,7 +208,7 @@ define([
 
                 /**
                  * Visibility can be customized with the
-                 * {@link http://docs.visallo.org/extension-points/front-end/visibility/ |visibility extension point}
+                 * {@link http://docs.visallo.org/extension-points/front-end/visibility/|visibility extension point}
                  */
                 visibility: function(el, property, element) {
                     visibilityUtil.attachComponent('viewer', el, {
