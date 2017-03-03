@@ -9,6 +9,8 @@
 
 PLUGINS=ga theme-visallo github-embed # Should match plugins in book.js
 
+LINK_CHECK_PORT := 9988
+
 WEBAPP=../web/war/src/main/webapp
 GITBOOK=node_modules/gitbook-cli/bin/gitbook.js
 GITBOOK_PLUGINS:=$(patsubst %,node_modules/gitbook-plugin-%/package.json, $(PLUGINS))
@@ -88,7 +90,7 @@ clone:
 	@rm -rf docs.visallo.org
 	@git clone -n https://github.com/visallo/docs.visallo.org.git
 
-push: build clone
+push: build link-check clone
 	@mv docs.visallo.org/.git _book
 	@read -p "Enter commit message: " message && \
 		pushd _book && \
@@ -97,5 +99,21 @@ push: build clone
 		git push && \
 		popd
 
-link-check:
-	./node_modules/.bin/blc http://localhost:4000/index.html -roe --exclude "java/"
+link-check: build
+	@cd _book; \
+		python -m SimpleHTTPServer $(LINK_CHECK_PORT) > /dev/null & \
+		PID="$$!"; \
+		../node_modules/.bin/blc \
+			http://localhost:$(LINK_CHECK_PORT)/index.html \
+			--recursive \
+			--ordered \
+			--exclude-external \
+			--exclude "java/" \
+			--exclude "https://myvisalloinstance/" \
+			--exclude "http://localhost:8888/" \
+			--exclude "http://visallo.org/sample#" \
+			--exclude "http://visallo.org/#" ; \
+		EXIT="$$?"; \
+		kill "$$PID"; \
+		exit "$$EXIT"
+

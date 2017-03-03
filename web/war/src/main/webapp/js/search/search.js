@@ -60,7 +60,7 @@ define([
                     (e.action.type === 'event' && e.action.name)
                 )
         },
-        'http://docs.visallo.com/extension-points/front-end/searchToolbar'
+        'http://docs.visallo.org/extension-points/front-end/searchToolbar'
     );
 
     /**
@@ -78,7 +78,7 @@ define([
         function(e) {
             return (e.componentPath && e.displayName && e.savedSearchUrl);
         },
-        'http://docs.visallo.com/extension-points/front-end/searchAdvanced'
+        'http://docs.visallo.org/extension-points/front-end/searchAdvanced'
     );
 
     /**
