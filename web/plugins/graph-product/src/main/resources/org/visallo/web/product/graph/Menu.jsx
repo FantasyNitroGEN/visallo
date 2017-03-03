@@ -19,7 +19,8 @@ define([
                     pageX: PropTypes.number,
                     pageY: PropTypes.number
                 })
-            })
+            }),
+            editable: PropTypes.bool
         },
         componentDidMount() {
             const menu = this.refs.menu;
@@ -34,7 +35,7 @@ define([
             this.mixin.toggleMenu({ positionUsingEvent: nextProps.event }, $(this.refs.dropdownMenu));
         },
         render() {
-            const { cy, registry } = this.props;
+            const { cy, registry, editable } = this.props;
             const hasSelection = cy.nodes().filter(':selected').length > 0;
 
             return (
@@ -72,8 +73,8 @@ define([
                     </ul>
                     </li>
 
-                    {/* TODO: disable all layouts if workspace not editable */}
-                    <li className="dropdown-submenu layouts">
+                    {editable ? (
+                    <li className="dropdown-submenu layouts requires-EDIT">
                     <a onMouseUp={this.props.onEvent} tabIndex="-1" href="#">{i18n('graph.contextmenu.layout')}</a>
                     <ul className="dropdown-menu">
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["circle", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.circle')}</a></li>
@@ -83,15 +84,14 @@ define([
                         {this.renderLayoutExtensions(false)}
                     </ul>
                     </li>
+                    ) : null}
 
-
-                    {hasSelection ? (
-                    <li className="dropdown-submenu layouts-multi">
+                    {editable && hasSelection ? (
+                    <li className="dropdown-submenu layouts-multi requires-EDIT">
                     <a onMouseUp={this.props.onEvent} tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.selection')}</a>
                     <ul className="dropdown-menu">
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["circle",{"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.circle')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["bettergrid", {"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.grid')}</a></li>
-                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["breadthfirst", {"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.hierarchical')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["cose", {"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.force_directed')}</a></li>
                         {this.renderLayoutExtensions(true)}
                     </ul>

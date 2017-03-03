@@ -90,6 +90,7 @@ define([
         propTypes: {
             initialProductDisplay: PropTypes.bool,
             hasPreview: PropTypes.bool,
+            editable: PropTypes.bool,
             ...eventPropTypes
         },
 
@@ -305,8 +306,11 @@ define([
 
         render() {
             const { showGraphMenu } = this.state;
+            const { editable } = this.props;
+
             const menu = showGraphMenu ? (
                 <Menu event={showGraphMenu}
+                    editable={editable}
                     onEvent={this.onMenu}
                     cy={this.state.cy}/>
             ) : null;
