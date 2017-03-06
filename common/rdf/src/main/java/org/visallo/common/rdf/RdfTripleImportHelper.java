@@ -8,6 +8,7 @@ import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -215,7 +216,7 @@ public class RdfTripleImportHelper {
         }
 
         if (triple instanceof AddEdgeVisalloRdfTriple) {
-            // handled by ImportContext
+            setEdgeType(ctx, sourceFileName, (AddEdgeVisalloRdfTriple) triple, user);
             return ctx;
         }
 
@@ -280,6 +281,27 @@ public class RdfTripleImportHelper {
         VisalloProperties.CONCEPT_TYPE.setProperty(m, triple.getConceptType(), defaultVisibility);
         if (!isLiteralVisibilityString(triple.getElementVisibilitySource())) {
             VisibilityJson visibilityJson = new VisibilityJson(triple.getElementVisibilitySource());
+            VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
+        }
+        VisalloProperties.MODIFIED_BY.setProperty(m, user.getUserId(), defaultVisibility);
+        VisalloProperties.MODIFIED_DATE.setProperty(m, now, defaultVisibility);
+        VisalloProperties.SOURCE.addPropertyValue(m, MULTIVALUE_KEY, sourceFileName, elementVisibility);
+    }
+
+    private void setEdgeType(
+            ImportContext ctx,
+            String sourceFileName,
+            AddEdgeVisalloRdfTriple triple,
+            User user
+    ) {
+        Date now = new Date();
+        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+
+        Visibility elementVisibility = getVisibility(triple.getEdgeVisibilitySource());
+        ElementMutation m = ctx.getElementMutation();
+        VisalloProperties.CONCEPT_TYPE.setProperty(m, OntologyRepository.TYPE_RELATIONSHIP, defaultVisibility);
+        if (!isLiteralVisibilityString(triple.getEdgeVisibilitySource())) {
+            VisibilityJson visibilityJson = new VisibilityJson(triple.getEdgeVisibilitySource());
             VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
         }
         VisalloProperties.MODIFIED_BY.setProperty(m, user.getUserId(), defaultVisibility);
