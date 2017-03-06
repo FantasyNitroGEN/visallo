@@ -207,7 +207,7 @@ define([
                 if (advancedSearch) {
                     self.currentSearchNode.trigger('savedQuerySelected', { query: data });
                 } else {
-                    var node = self.getSearchTypeNode().find('.search-filters .content');
+                    var node = self.getSearchTypeNode().find('.search-filters > .content');
                     if ('q' in data.parameters) {
                         self.select('querySelector').filter(':visible')
                             .val(data.parameters.q)
@@ -464,6 +464,7 @@ define([
             this.filters = data;
 
             var query = this.getQueryVal(),
+                options = (data && data.options) || {},
                 hasFilters = this.hasFilters();
 
             this.dataRequest('config', 'properties')
@@ -479,14 +480,14 @@ define([
                     }
 
                     const hasQuery = query && query.length;
-                    const validSearch = hasQuery && (hasFilters || hadFilters);
+                    const validSearch = hasQuery && (hasFilters || hadFilters || options.matchChanged);
 
-                    if (data.options && data.options.isScrubbing) {
+                    if (options.isScrubbing) {
                         self.triggerQueryUpdatedThrottled();
                     } else {
                         self.triggerQueryUpdated();
                     }
-                    if (validSearch || (data.options && data.options.submit)) {
+                    if (validSearch || options.submit) {
                         self.triggerQuerySubmit();
                     }
 
