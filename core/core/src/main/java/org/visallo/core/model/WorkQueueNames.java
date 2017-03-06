@@ -9,6 +9,7 @@ public class WorkQueueNames {
     private static final String GRAPH_PROPERTY_QUEUE_NAME = "graphProperty";
     private static final String LONG_RUNNING_PROCESS_QUEUE_NAME = "longRunningProcess";
 
+
     private final String graphPropertyQueueName;
     private final String longRunningProcessQueueName;
 

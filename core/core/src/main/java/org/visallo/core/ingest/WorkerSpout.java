@@ -8,12 +8,28 @@ public abstract class WorkerSpout {
 
     }
 
-    public void ack(Object msgId) {
+    public void ack(WorkerTuple workerTuple) {
 
     }
 
-    public void fail(Object msgId) {
+    /**
+     * @deprecated  replaced by {@link #ack(WorkerTuple)} ()}
+     */
+    @Deprecated
+    public void ack(Object msgId) {
+        ack(new WorkerTuple(msgId, new byte[0]));
+    }
 
+    public void fail(WorkerTuple workerTuple) {
+
+    }
+
+    /**
+     * @deprecated  replaced by {@link #fail(WorkerTuple)} ()}
+     */
+    @Deprecated
+    public void fail(Object msgId) {
+        fail(new WorkerTuple(msgId, new byte[0]));
     }
 
     /**
