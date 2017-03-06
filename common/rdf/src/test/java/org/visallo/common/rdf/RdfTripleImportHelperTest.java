@@ -12,6 +12,7 @@ import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
@@ -404,6 +405,7 @@ public class RdfTripleImportHelperTest {
         assertEquals(1, edges.size());
         assertEquals("http://visallo.org/test#edgeLabel1", edges.get(0).getLabel());
         assertEquals("v2", edges.get(0).getOtherVertex("v1", authorizations).getId());
+        assertEquals(OntologyRepository.TYPE_RELATIONSHIP, VisalloProperties.CONCEPT_TYPE.getPropertyValue(edges.get(0)));
     }
 
     @Test
