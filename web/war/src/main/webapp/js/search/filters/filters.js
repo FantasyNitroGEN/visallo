@@ -256,9 +256,10 @@ define([
 
             this.disableNotify = true;
             Promise.resolve(this.clearFilters({ triggerUpdates: false }))
+                .then(this.setRelatedToEntityFilter.bind(this, data.vertexIds))
+                .then(this.setMatchType.bind(this, 'vertex'))
                 .then(this.setConceptFilter.bind(this, data.conceptId))
                 .then(this.setEdgeTypeFilter.bind(this, data.edgeLabel))
-                .then(this.setRelatedToEntityFilter.bind(this, data.vertexIds))
                 .then(function() {
                     self.disableNotify = false;
                     self.notifyOfFilters();
@@ -323,16 +324,22 @@ define([
                 hasChildren(iri) { return self.relationshipsByParent[iri] && self.relationshipsByParent[iri].length; }
             });
 
+            // Only filter the property list if edge search
+            // If related search just notify filters
             if (this.matchType === 'edge') {
                 if (this.edgeLabelFilter.length) {
                     Promise.map(this.edgeLabelFilter, item =>
                         this.dataRequest('ontology', 'propertiesByRelationship', item.iri)
                     ).then(properties => {
                         this.filterPropertyList(properties);
+                        this.notifyOfFilters();
                     })
                 } else {
                     this.filterPropertyList();
+                    this.notifyOfFilters();
                 }
+            } else {
+                this.notifyOfFilters();
             }
         };
 
@@ -364,7 +371,6 @@ define([
                         this.filteredPropertiesList :
                         this.propertiesByDomainType[this.matchType]
                 })
-            this.notifyOfFilters();
         }
 
         this.setMatchType = function(type) {
@@ -439,9 +445,11 @@ define([
                     this.dataRequest('ontology', 'propertiesByConceptId', item.iri)
                 ).then(properties => {
                     this.filterPropertyList(properties);
+                    this.notifyOfFilters();
                 })
             } else {
                 this.filterPropertyList();
+                this.notifyOfFilters();
             }
         };
 
