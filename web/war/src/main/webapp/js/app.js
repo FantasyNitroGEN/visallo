@@ -936,6 +936,7 @@ define([
             }
 
             if (key !== keyPrefix && !_.isUndefined(value)) {
+                visalloData.currentUser.uiPreferences[key] = String(value);
                 this.dataRequest('user', 'preference', key, value)
             }
         };

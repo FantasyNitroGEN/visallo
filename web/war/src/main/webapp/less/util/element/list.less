@@ -58,12 +58,6 @@ body > .vertex-dragging {
         .source, .date {
           color: #eee;
         }
-        .graph button {
-          background-image: url(../img/glyphicons/white/glyphicons_326_share@2x.png);
-        }
-        .map button {
-          background-image: url(../img/glyphicons/white/glyphicons_242_google_maps@2x.png);
-        }
         .active-preview {
           display: block;
         }
@@ -81,11 +75,8 @@ body > .vertex-dragging {
         }
       }
 
-      &.graph-displayed li.graph { display: block; }
-      &.map-displayed li.map { display: block;margin-top: -0.4em; }
-
       @preview-width: 35px;
-      a { 
+      a.default {
         padding-right: 1.3em;
         padding-top: 0.8em;
         line-height: 2.2em;
@@ -131,41 +122,6 @@ body > .vertex-dragging {
         display: none;
       }
 
-      ul {
-        position: absolute;
-        left: auto;
-        top: 0.5em;
-        right: -1em;
-        margin: 0;
-        padding: 0;
-        width: 16px;
-        overflow: hidden;        
-
-        li {
-          display: none;
-
-          button {
-            background-size: 48%;
-            background-repeat: no-repeat;
-            background-color: transparent;
-            background-position: center center;
-            height: 20px;
-            width: 100%;
-            font-size: 0;
-            border: 0;
-            .opacity(50);
-          }
-
-          &.graph button {
-            background-image: url(../img/glyphicons/glyphicons_326_share@2x.png);
-          }
-
-          &.map button {
-            background-image: url(../img/glyphicons/glyphicons_242_google_maps@2x.png);
-          }
-        }
-      }
-
       a.loading {
         background-image: url(../img/loading.gif);
         background-size: auto 12px;
@@ -180,51 +136,45 @@ body > .vertex-dragging {
 
 
   a {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    height: 3em;
+    &.default {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        height: 3em;
+    }
     cursor: pointer;
     border-bottom: 1px solid #eee;    
-    line-height: 1em;
+    line-height: 1.66;
     
     &.ui-selecting, &.ui-selected {
       .active-selection;
     }
 
-    div {      
+    &.default div {
       .clearfix;
       display: flex;
       flex-wrap: wrap;
       line-height: 1.5em;
       margin-top: 0.25em;
-    }
-    .source, .date {
-      color: #555;
-      font-size: x-small;      
-      line-height: 1.1em;
-      &:empty {
-        display: none;
+      .source, .date {
+        color: #555;
+        font-size: x-small;
+        line-height: 1.1em;
+        &:empty {
+          display: none;
+        }
+      }
+      .source {
+        flex: 1 1 auto;
+        order: 1;
+        text-align: left;
+        padding-right: 0.5em;
+      }
+      .date {
+        order: 2;
+        flex: 0 1 auto;
+        text-align: right;
       }
     }
-    
-    .source {
-      float: left;
-      flex: 1;
-      order: 1;
-      text-align: left;
-      padding-right: 0.5em;
-    }
-    .date {
-      order: 2;
-      text-align: right;
-    }
-  }
-
-  ul a.has-timeSubtitle .date {
-    float: left;
-  }
-  ul a.has-timeSubtitle.has-subtitle .date {
-    float: right;
   }
 }

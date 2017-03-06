@@ -24,6 +24,7 @@ define([
             this.vertex = vertex;
 
             this.$node
+                .addClass('default')
                 .addClass(timeSubtitle ? 'has-timeSubtitle' : '')
                 .addClass(subtitle ? 'has-subtitle' : '')
                 .addClass(relationship.inVertexId === vertexId ? 'relation-to' : 'relation-from')
