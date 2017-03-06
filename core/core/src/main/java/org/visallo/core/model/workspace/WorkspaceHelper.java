@@ -141,7 +141,7 @@ public class WorkspaceHelper {
 
         graph.flush();
 
-        workQueueRepository.pushGraphPropertyQueue(e, property, status, beforeActionTimestamp, priority);
+        workQueueRepository.pushGraphPropertyQueueHiddenOrDeleted(e, property, status, beforeActionTimestamp, workspaceId, priority);
     }
 
     public void deleteEdge(

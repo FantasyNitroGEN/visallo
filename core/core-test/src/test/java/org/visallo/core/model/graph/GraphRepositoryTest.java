@@ -258,6 +258,10 @@ public class GraphRepositoryTest {
         assertEquals(SECRET_VISALLO_VIZ, property.getVisibility());
         assertTrue(hiddenVisibilities.hasNext());
         assertEquals(WORKSPACE_VIZ, hiddenVisibilities.next());
+
+        List<byte[]> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
+        assertEquals(1, queue.size());
+        InMemoryWorkQueueRepository.clearQueue();
     }
 
     @Test

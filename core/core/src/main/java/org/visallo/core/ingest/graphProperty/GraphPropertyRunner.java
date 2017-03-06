@@ -661,23 +661,21 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
         return this.shouldRun();
     }
 
-    public boolean canHandle(Element element, String propertyKey, String propertyName) {
+    public boolean canHandle(Element element, Property property, ElementOrPropertyStatus status) {
         if (!this.isStarted()) {
             //we are probably on a server and want to submit it to the architecture
             return true;
         }
 
-        Property property = element.getProperty(propertyKey, propertyName);
-
         for (GraphPropertyWorker worker : this.getAllGraphPropertyWorkers()) {
             try {
-                if (worker.isHandled(element, property)) {
+                if (status == ElementOrPropertyStatus.DELETION && worker.isDeleteHandled(element, property)) {
                     return true;
-                } else if (worker.isDeleteHandled(element, property)) {
+                } else if (status == ElementOrPropertyStatus.HIDDEN && worker.isHiddenHandled(element, property)) {
                     return true;
-                } else if (worker.isHiddenHandled(element, property)) {
+                } else if (status == ElementOrPropertyStatus.UNHIDDEN && worker.isUnhiddenHandled(element, property)) {
                     return true;
-                } else if (worker.isUnhiddenHandled(element, property)) {
+                } else if (worker.isHandled(element, property)) {
                     return true;
                 }
             } catch (Throwable t) {
@@ -689,14 +687,32 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
             }
         }
 
-        LOGGER.debug(
-                "No interested workers for %s %s %s so did not queue it",
-                element.getId(),
-                propertyKey,
-                propertyName
-        );
+        if (property == null) {
+            LOGGER.debug(
+                    "No interested workers for %s so did not queue it",
+                    element.getId()
+            );
+        } else {
+            LOGGER.debug(
+                    "No interested workers for %s %s %s so did not queue it",
+                    element.getId(),
+                    property.getKey(),
+                    property.getValue()
+            );
+        }
 
         return false;
+    }
+
+    public boolean canHandle(Element element, String propertyKey, String propertyName, ElementOrPropertyStatus status) {
+        if (!this.isStarted()) {
+            //we are probably on a server and want to submit it to the architecture
+            return true;
+        }
+
+        Property property = element.getProperty(propertyKey, propertyName);
+
+        return canHandle(element, property, status);
     }
 
     private Collection<GraphPropertyWorker> getAllGraphPropertyWorkers() {

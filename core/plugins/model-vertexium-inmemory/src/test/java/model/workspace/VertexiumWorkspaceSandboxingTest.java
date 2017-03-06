@@ -583,11 +583,12 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 Priority.HIGH,
                 workspaceAuthorizations
         );
-        verify(workQueueRepository).pushGraphPropertyQueue(
+        verify(workQueueRepository).pushGraphPropertyQueueHiddenOrDeleted(
                 eq(entity1Vertex),
                 eq(property),
                 eq(ElementOrPropertyStatus.HIDDEN),
                 any(Long.class),
+                eq(WORKSPACE_ID),
                 eq(Priority.HIGH)
         );
     }
