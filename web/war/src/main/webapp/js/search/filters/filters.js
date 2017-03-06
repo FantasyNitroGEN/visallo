@@ -63,6 +63,7 @@ define([
             this.notifyOfFilters = _.debounce(this.notifyOfFilters.bind(this), FILTER_SEARCH_DELAY_SECONDS * 1000);
 
             this.matchType = this.attr.match;
+            this.previousMatchType = this.matchType;
             this.$node.html(template({
                 showMatchType: this.attr.supportsMatch !== false,
                 showConceptFilter: this.attr.match === 'vertex',
@@ -99,7 +100,7 @@ define([
                 return this.dataRequest('ontology', 'propertiesByDomainType', this.matchType);
             };
 
-            this.dataRequest('ontology', 'ontology').then(({ relationships, concepts }) => {
+            this.filtersLoaded = this.dataRequest('ontology', 'ontology').then(({ relationships, concepts }) => {
                 this.conceptsById = concepts.byId;
                 this.relationshipsById = relationships.byId;
                 this.conceptsByParent = _.groupBy(concepts.byTitle, 'parentConcept');
@@ -109,7 +110,7 @@ define([
                     .then(() => {
                         return self.loadPropertyFilters();
                     })
-                    .done(function() {
+                    .then(function() {
                         self.loadConcepts();
                         self.loadEdgeTypes();
                         self.loadSorting();
@@ -374,14 +375,12 @@ define([
         }
 
         this.setMatchType = function(type) {
-            var self = this;
-
             this.matchType = type;
             this.$node.find('.match-type-' + type).prop('checked', true);
             this.$node.find('.match-type-edge').closest('label').andSelf()
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
-            this.select('edgeLabelFilterSelector').toggle(Boolean(self.otherFilters.relatedToVertexIds || type === 'edge'));
+            this.select('edgeLabelFilterSelector').toggle(Boolean(this.otherFilters.relatedToVertexIds || type === 'edge'));
             if (this.matchType === 'vertex') {
                 this.setConceptFilter(this.conceptFilter);
             } else {
@@ -393,16 +392,16 @@ define([
                     $li.remove();
             });
             this.setSort();
-            Promise.resolve(!this.propertiesByDomainType[type] ? this.requestPropertiesByDomainType() : [])
-                .then(function(result) {
+            return Promise.resolve(this.propertiesByDomainType[type] || this.requestPropertiesByDomainType())
+                .then(result => {
                     if (result.length) {
-                        self.propertiesByDomainType[type] = result;
+                        this.propertiesByDomainType[type] = result;
                     }
-                    self.select('sortContentSelector').trigger('filterProperties', {
-                        properties: self.propertiesByDomainType[type]
+                    this.select('sortContentSelector').trigger('filterProperties', {
+                        properties: this.propertiesByDomainType[type]
                     });
-                    self.createNewRowIfNeeded();
-                    self.notifyOfFilters();
+                    this.createNewRowIfNeeded();
+                    this.notifyOfFilters();
                 });
         };
 
@@ -547,7 +546,7 @@ define([
 
             this.disableNotify = true;
 
-            return Promise.resolve()
+            return Promise.resolve(this.filtersLoaded)
                 .then(() => options.clearMatch !== false ? this.setMatchType('vertex') : null)
                 .then(() => this.setConceptFilter())
                 .then(() => this.setEdgeTypeFilter())
@@ -621,6 +620,11 @@ define([
 
             filters.hasSome = this.hasSomeFilters(filters);
             filters.options = options;
+            const matchTypeChanged = this.previousMatchType !== this.matchType;
+            if (!filters.hasSome && matchTypeChanged) {
+                filters.options = { matchChanged: true }
+            }
+            this.previousMatchType = this.matchType;
 
             this.trigger('filterschange', filters);
         };
@@ -808,14 +812,12 @@ define([
                 this.propertiesByDomainType = {};
             }
 
-            this.ontologyPromise = this.dataRequest('ontology', 'propertiesByDomainType', this.matchType)
-                .then(function(properties) {
-                    self.propertiesByDomainType[self.matchType] = properties;
-
+            return Promise.map(['vertex', 'edge'], type => this.dataRequest('ontology', 'propertiesByDomainType', type))
+                .spread((vertexProperties, edgeProperties) => {
+                    this.propertiesByDomainType['vertex'] = vertexProperties;
+                    this.propertiesByDomainType['edge'] = edgeProperties;
                     return self.addFilterItem();
-                });
-
-            return this.ontologyPromise;
+                })
         };
 
         this.addFilterItem = function(filter, options) {
