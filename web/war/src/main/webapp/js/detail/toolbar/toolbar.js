@@ -63,7 +63,7 @@ define([
         },
         ADD_PROPERTY: {
             title: i18n('detail.toolbar.add.property'),
-            subtitle: i18n('detail.toolbar.add.property.subtitle'), // 'Add New Property to Entity',
+            subtitle: i18n('detail.toolbar.add.property.entity.subtitle'), // 'Add New Property to Entity',
             cls: 'requires-EDIT',
             event: 'addNewProperty'
         },
@@ -350,7 +350,10 @@ define([
                 disableAdd = (model.hasOwnProperty('updateable') && !model.updateable) || !hasAddableProperties;
 
             if (!disableAdd) {
-                return ToolbarComponent.ITEMS.ADD_PROPERTY;
+                return {
+                    ...ToolbarComponent.ITEMS.ADD_PROPERTY,
+                    subtitle: model.type === 'vertex' ? i18n('detail.toolbar.add.property.entity.subtitle') : i18n('detail.toolbar.add.property.relationship.subtitle')
+                };
             }
         };
 
