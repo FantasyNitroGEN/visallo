@@ -79,8 +79,9 @@ define([
                     <div className={previewMD5 ? 'preview' : 'no-preview'} style={previewStyle}/>
                     <div className="content">
                         <h1>{ editing ? (
-                            <input maxLength={MaxTitleLength} required pattern="^[\S]+$"
+                            <input maxLength={MaxTitleLength} required
                                 onKeyUp={this.onTitleKeyUp}
+                                onChange={this.onChange}
                                 ref="titleField"
                                 type="text" defaultValue={title} {...inputAttrs} />
                         ) : title}</h1>
@@ -113,20 +114,30 @@ define([
         },
         onSave(event) {
             event.stopPropagation();
-            if (this.state.invalid) return;
-            this.setState({ loading: true })
-            this.props.onUpdateTitle(this.props.product.id, this.refs.titleField.value);
+            if (!this.checkInvalid()) {
+                const title = this.refs.titleField.value.trim();
+                this.setState({ loading: true })
+                this.props.onUpdateTitle(this.props.product.id, title);
+            }
         },
         onCancel(event) {
             event.stopPropagation();
             this.setState({ editing: false })
         },
-        onTitleKeyUp(event) {
+        checkInvalid() {
             const { invalid } = this.state;
-            const nowInvalid = event.target.value.trim().length === 0;
+            const nowInvalid = this.refs.titleField.value.trim().length === 0;
             if (nowInvalid !== invalid) {
                 this.setState({ invalid: nowInvalid })
-            } else if (event.keyCode === 13) {
+            }
+            return nowInvalid;
+        },
+        onChange(event) {
+            this.checkInvalid()
+        },
+        onTitleKeyUp(event) {
+            const invalid = this.checkInvalid()
+            if (!invalid && event.keyCode === 13) {
                 this.onSave(event);
             } else if (event.keyCode === 27) {
                 this.setState({ editing: false, invalid: false })
