@@ -555,6 +555,15 @@ define([
                 return (conceptImage === concept.glyphIconHref) ? (concept.glyphIconSelectedHref || conceptImage) : conceptImage;
             },
 
+            /**
+             * Check if this element has a custom image, or if it
+             * will just display the concepts icon.
+             *
+             * @param {object} vertex
+             * @param {object} [optionalWorkspaceId=]
+             * @returns {boolean} true if the image for `vertex` is just the
+             * concept icon.
+             */
             imageIsFromConcept: function(vertex, optionalWorkspaceId) {
                 return V.image(vertex, optionalWorkspaceId) === V.concept(vertex).glyphIconHref;
             },

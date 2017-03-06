@@ -392,6 +392,7 @@ define([
              * `item` and `usageContext`.
              *
              * @typedef org.visallo.entity.listItemRenderer~Component
+             * @listens org.visallo.entity.listItemRenderer#loadPreview
              * @property {object} item The rows item value
              * @property {string} usageContext The context of this element list
              */
@@ -492,6 +493,20 @@ define([
                 lisVisible = lisVisible.withinScrollable(this.scrollNode);
             }
 
+            /**
+             * Triggered on all {@link org.visallo.entity.listItemRenderer~Component}
+             * components when the user scrolls to make the row visible.
+             *
+             * The component should render any images, or make any auxillary
+             * requests.
+             *
+             * **This event might be triggered more than once, use `_.once`
+             * or another method to only take action once.**
+             *
+             * @event org.visallo.entity.listItemRenderer#loadPreview
+             * @example
+             * this.on('loadPreview', _.once(this.onLoadPreview.bind(this)));
+             */
             lisVisible.children('a').trigger('loadPreview');
         };
 

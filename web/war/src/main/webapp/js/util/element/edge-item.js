@@ -31,6 +31,7 @@ define([
             this.dataRequest('config', 'properties')
                 .done(function(properties) {
                     self.$node
+                        .addClass('default')
                         .addClass('edge-item')
                         .addClass(timeSubtitle ? 'has-timeSubtitle' : '')
                         .addClass(subtitle ? 'has-subtitle' : '')

@@ -25,32 +25,13 @@ define([
 
             var self = this,
                 $list = this.select('listSelector'),
-                tries = null,
-                renderedPromise = new Promise(function handler(resolve, reject) {
-                    var $navList = $list.find('.element-list > *'),
-                        height = $navList.outerHeight(true);
-                    if (height > 0) {
-                        resolve(height);
-                    } else if (tries !== null && (++tries) < 5) {
-                        _.delay(function() {
-                            handler(resolve, reject);
-                        }, 50)
-                    } else {
-                        var delay = 1000;
-                        _.delay(function() {
-                            throw new Error('Element not rendered after ' + delay + 'ms');
-                        }, delay);
-                        self.on('listRendered', function() {
-                            tries = 0;
-                            handler(resolve, reject);
-                        });
-                    }
-                }),
                 key = 'elements[].list',
                 heightPreference = visalloData.currentUser.uiPreferences['pane-' + key],
-                originalHeight = heightPreference ? parseInt(heightPreference, 10) : $list.height();
+                originalHeight = heightPreference ?
+                    parseInt(heightPreference, 10) :
+                    Math.round($(window).height() * 0.3);
 
-            $list.css({ height: 0, visibility: 'hidden' }).attr('data-height-preference', key);
+            $list.css({ height: originalHeight + 'px' }).attr('data-height-preference', key);
             createResizable($list);
 
             // Hack to support nested resizables, destroy and recreate child
@@ -67,18 +48,6 @@ define([
                     if (!$list.data('ui-resizable')) {
                         createResizable($list);
                     }
-                })
-
-            renderedPromise
-                .then(function(height) {
-                    var newHeight = originalHeight;
-                    if (height < $list.height()) {
-                        newHeight = height + 5;
-                    }
-                    $list.css({ visibility: 'visible', height: newHeight });
-                })
-                .catch(function() {
-                    $list.css({ height: originalHeight, visibility: 'visible' })
                 })
         });
 
