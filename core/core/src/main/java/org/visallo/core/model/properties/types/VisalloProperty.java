@@ -141,6 +141,18 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         }
     }
 
+    public void hideProperty(
+            List<VisalloPropertyUpdate> changedPropertiesOut,
+            Element element,
+            Property propertyToHide,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
+        long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
+        element.markPropertyHidden(propertyToHide, new Visibility(workspaceId), authorizations);
+        changedPropertiesOut.add(new VisalloPropertyUpdateRemove(this, propertyToHide.getKey(), beforeDeletionTimestamp, false, true));
+    }
+
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
      * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, String, Object, PropertyMetadata)}

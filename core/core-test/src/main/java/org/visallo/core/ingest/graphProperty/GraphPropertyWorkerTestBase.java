@@ -205,8 +205,8 @@ public abstract class GraphPropertyWorkerTestBase {
         return run(gpw, workerPrepareData, e, prop, in, null, null, null);
     }
 
-    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, ElementOrPropertyStatus status) {
-        return run(gpw, workerPrepareData, e, prop, in, null, status, null);
+    protected boolean run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element e, Property prop, InputStream in, String workspaceId, ElementOrPropertyStatus status) {
+        return run(gpw, workerPrepareData, e, prop, in, workspaceId, status, null);
     }
 
     protected boolean run(
@@ -231,7 +231,9 @@ public abstract class GraphPropertyWorkerTestBase {
         }
 
         try {
-            if (!gpw.isHandled(e, prop)) {
+            if (!(status == ElementOrPropertyStatus.HIDDEN && gpw.isHiddenHandled(e, prop))
+                    && !(status == ElementOrPropertyStatus.DELETION && gpw.isDeleteHandled(e, prop))
+                    && !gpw.isHandled(e, prop)) {
                 return false;
             }
         } catch (Exception ex) {
