@@ -102,6 +102,8 @@ public class VertexUploadImage implements ParameterizedHandler {
 
         Metadata metadata = new Metadata();
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibilityTranslator.getDefaultVisibility());
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), visibilityTranslator.getDefaultVisibility());
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibilityTranslator.getDefaultVisibility());
 
         String title = imageTitle(entityVertex);
         ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, user, visibility);
