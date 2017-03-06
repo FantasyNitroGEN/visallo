@@ -69,12 +69,12 @@ public abstract class QueueExternalResourceWorker extends ExternalResourceWorker
                 process(tuple.getMessageId(), json, authorizations);
                 long endTime = System.currentTimeMillis();
                 logger.debug("completed processing in (%dms)", endTime - startTime);
-                workerSpout.ack(tuple.getMessageId());
+                workerSpout.ack(tuple);
                 this.totalProcessedCounter.inc();
             } catch (Throwable ex) {
                 logger.error("Could not process tuple: %s", tuple, ex);
                 this.totalErrorCounter.inc();
-                workerSpout.fail(tuple.getMessageId());
+                workerSpout.fail(tuple);
             }
         }
         logger.debug("end runner");

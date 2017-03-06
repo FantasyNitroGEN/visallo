@@ -93,10 +93,10 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
                     process(workerItemWrapper.getWorkerItem());
                     long endTime = System.currentTimeMillis();
                     logger.debug("completed processing in (%dms)", endTime - startTime);
-                    workerSpout.ack(workerItemWrapper.getMessageId());
+                    workerSpout.ack(workerItemWrapper.getWorkerTuple());
                 } catch (Throwable ex) {
                     logger.error("Could not process tuple: %s", workerItemWrapper, ex);
-                    workerSpout.fail(workerItemWrapper.getMessageId());
+                    workerSpout.fail(workerItemWrapper.getWorkerTuple());
                 }
             }
         });
@@ -107,17 +107,24 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
     private void pollWorkerSpout(VisalloLogger logger, WorkerSpout workerSpout) throws InterruptedException {
         while (shouldRun) {
             WorkerItemWrapper workerItemWrapper;
+            WorkerTuple tuple = null;
             try {
-                WorkerTuple tuple = workerSpout.nextTuple();
+                tuple = workerSpout.nextTuple();
                 if (tuple == null) {
                     workerItemWrapper = null;
                 } else {
                     TWorkerItem workerItem = tupleDataToWorkerItem(tuple.getData());
-                    workerItemWrapper = new WorkerItemWrapper(tuple.getMessageId(), workerItem);
+                    workerItemWrapper = new WorkerItemWrapper(workerItem, tuple);
                 }
             } catch (InterruptedException ex) {
+                if (tuple != null) {
+                    workerSpout.fail(tuple);
+                }
                 throw ex;
             } catch (Exception ex) {
+                if (tuple != null) {
+                    workerSpout.fail(tuple);
+                }
                 handleNextTupleException(logger, ex);
                 continue;
             }
@@ -188,16 +195,20 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
     }
 
     private class WorkerItemWrapper {
-        private final Object messageId;
         private final TWorkerItem workerItem;
+        private final WorkerTuple workerTuple;
 
-        public WorkerItemWrapper(Object messageId, TWorkerItem workerItem) {
-            this.messageId = messageId;
+        public WorkerItemWrapper(TWorkerItem workerItem, WorkerTuple workerTuple) {
             this.workerItem = workerItem;
+            this.workerTuple = workerTuple;
+        }
+
+        public WorkerTuple getWorkerTuple() {
+            return workerTuple;
         }
 
         public Object getMessageId() {
-            return messageId;
+            return workerTuple.getMessageId();
         }
 
         public TWorkerItem getWorkerItem() {
@@ -207,7 +218,7 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
         @Override
         public String toString() {
             return "WorkerItemWrapper{" +
-                    "messageId=" + messageId +
+                    "messageId=" + getMessageId() +
                     ", workerItem=" + workerItem +
                     '}';
         }
