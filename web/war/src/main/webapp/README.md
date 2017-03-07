@@ -4,7 +4,7 @@ This directory contains all front-end code for the Visallo web application. [Yar
 
 ## Visallo Plugin Developers
 
-Visallo can be extended using several different [plugin types](http://docs.visallo.org/extension-points/back-end/). One such type, _Web Plugins_, can extend the user interface using numerous [extension points](http://docs.visallo.org/extension-points/front-end). Visallo provides a [public API](http://docs.visallo/org/front-end/api) to register extensions and provide some helpful interface components.
+Visallo can be extended using several different [plugin types](http://docs.visallo.org/extension-points/back-end/). One such type, _Web Plugins_, can extend the user interface using numerous [extension points](http://docs.visallo.org/extension-points/front-end). Visallo provides a [public API](http://docs.visallo.org/javascript/module-public_v1_api.html) to register extensions and provide some helpful interface components.
 
 ### Documentation Links
 

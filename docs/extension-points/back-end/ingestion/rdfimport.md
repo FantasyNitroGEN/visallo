@@ -29,7 +29,7 @@ In this file, two email entities are created and an edge is created between them
 
 #### Vertex
 
-A vertex is made implicity by creating a property on it. In Visallo, the minimal vertex that can be used inside of the application smoothly is one with a concept type. To create a vertex it is preferable to create one as the following by specifying both the id of the future vertex and the concept type of the vertex. In the following example, we are assuming that you are using the [sample ontology](https://github.com/v5analytics/visallo/config/ontology/sample.owl) with Visallo.
+A vertex is made implicity by creating a property on it. In Visallo, the minimal vertex that can be used inside of the application smoothly is one with a concept type. To create a vertex it is preferable to create one as the following by specifying both the id of the future vertex and the concept type of the vertex. In the following example, we are assuming that you are using the [sample ontology](https://github.com/visallo/visallo/tree/master/config/ontology-sample/sample.owl) with Visallo.
 
 ```xml
 <email1> <http://visallo.org#conceptType> "http://visallo.org/sample#emailAddress"
