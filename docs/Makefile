@@ -71,7 +71,7 @@ gitbook_install:
 
 gitbook: $(GITBOOK) $(GITBOOK_PLUGINS)
 
-build: _book/index.html javadoc jsdoc
+build: javadoc jsdoc _book/index.html
 
 serve: gitbook javadoc jsdoc
 	@rm -rf _book
