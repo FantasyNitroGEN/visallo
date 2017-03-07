@@ -34,6 +34,7 @@
         * [Dashboard Report](extension-points/front-end/dashboard/report.md)
         * [Dashboard Toolbar](extension-points/front-end/dashboard/toolbar.md)
         * [Element Inspector Text](extension-points/front-end/detailText/index.md)
+        * [Element Inspector Extended Data](extension-points/front-end/detailExtendedData/index.md)
         * [Element Inspector Toolbar](extension-points/front-end/detailToolbar/index.md)
         * [Element Menu](extension-points/front-end/elementMenu/index.md)
         * [Entity List Renderer](extension-points/front-end/entityListItemRenderer/index.md)

@@ -15,7 +15,8 @@ public enum PropertyType {
     DOUBLE("double"),
     BOOLEAN("boolean"),
     INTEGER("integer"),
-    DIRECTORY_ENTITY("directory/entity");
+    DIRECTORY_ENTITY("directory/entity"),
+    EXTENDED_DATA_TABLE("extendedDataTable");
 
     public static final String VERTEXIUM_TYPE_GEO_POINT = "org.vertexium.type.GeoPoint";
 
@@ -57,6 +58,8 @@ public enum PropertyType {
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException("Could not find class: " + VERTEXIUM_TYPE_GEO_POINT);
                 }
+            case EXTENDED_DATA_TABLE:
+                return Iterable.class;
             case IMAGE:
                 return byte[].class;
             case BINARY:

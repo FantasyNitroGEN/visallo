@@ -53,6 +53,8 @@ define([
                 params.q = q;
             }
 
+            params.fetchReferencedElements = options.fetchReferencedElements;
+
             if (options.otherFilters) {
                 _.each(options.otherFilters, function(value, key, options) {
                     if (key === 'url') {
@@ -78,8 +80,11 @@ define([
                 .then(function(query) {
                     return ajax('POST', query.url, query.parameters);
                 })
-                .tap(function({ elements }) {
+                .tap(function({ elements, referencedElements }) {
                     storeHelper.putSearchResults(elements)
+                    if (referencedElements) {
+                        storeHelper.putSearchResults(elements)
+                    }
                 })
         },
 

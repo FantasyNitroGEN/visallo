@@ -17,19 +17,18 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.PropertyType;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.*;
-import java.math.BigDecimal;
 
-public abstract class ElementSearchRunnerBase extends SearchRunner {
+public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
     private final Graph graph;
     private final DirectoryRepository directoryRepository;
     private final OntologyRepository ontologyRepository;
     private int defaultSearchResultCount;
 
-    protected ElementSearchRunnerBase(
+    protected VertexiumObjectSearchRunnerBase(
             OntologyRepository ontologyRepository,
             Graph graph,
             Configuration configuration,
@@ -55,6 +54,7 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         applyEdgeLabelFilterToQuery(queryAndData, searchOptions);
         applySortToQuery(queryAndData, searchOptions);
         applyAggregationsToQuery(queryAndData, searchOptions);
+        applyExtendedDataFilters(queryAndData, searchOptions);
 
         EnumSet<FetchHint> fetchHints = getFetchHints(searchOptions);
         final int offset = searchOptions.getOptionalParameter("offset", 0);
@@ -62,7 +62,7 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         queryAndData.getQuery().limit(size);
         queryAndData.getQuery().skip(offset);
 
-        QueryResultsIterable<? extends Element> searchResults = getSearchResults(queryAndData, fetchHints);
+        QueryResultsIterable<? extends VertexiumObject> searchResults = getSearchResults(queryAndData, fetchHints);
 
         return new QueryResultsIterableSearchResults(searchResults, queryAndData, offset, size);
     }
@@ -73,6 +73,25 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
             return ClientApiConverter.SEARCH_FETCH_HINTS;
         }
         return FetchHint.parse(fetchHintsString);
+    }
+
+    private void applyExtendedDataFilters(QueryAndData queryAndData, SearchOptions searchOptions) {
+        Query query = queryAndData.getQuery();
+        String[] filterStrings = searchOptions.getOptionalParameter("extendedDataFilters[]", String[].class);
+        if (filterStrings == null || filterStrings.length == 0) {
+            return;
+        }
+
+        List<HasExtendedDataFilter> filters = new ArrayList<>();
+        for (String filterString : filterStrings) {
+            JSONObject filterJson = new JSONObject(filterString);
+            String elementTypeString = filterJson.optString("elementType");
+            ElementType elementType = elementTypeString == null ? null : ElementType.valueOf(elementTypeString);
+            String elementId = filterJson.optString("elementId");
+            String tableName = filterJson.optString("tableName");
+            filters.add(new HasExtendedDataFilter(elementType, elementId, tableName));
+        }
+        query.hasExtendedData(filters);
     }
 
     private void applyAggregationsToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
@@ -89,7 +108,6 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
     }
 
     private Aggregation getAggregation(JSONObject aggregateJson) {
-        String field;
         String aggregationName = aggregateJson.getString("name");
         String type = aggregateJson.getString("type");
         Aggregation aggregation;
@@ -203,56 +221,32 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         }
     }
 
-    protected QueryResultsIterable<? extends Element> getSearchResults(QueryAndData queryAndData, EnumSet<FetchHint> fetchHints) {
+    protected QueryResultsIterable<? extends VertexiumObject> getSearchResults(QueryAndData queryAndData, EnumSet<FetchHint> fetchHints) {
         //noinspection unused
         try (TraceSpan trace = Trace.start("getSearchResults")) {
-            if (getResultType().contains(ElementType.VERTEX) && getResultType().contains(ElementType.EDGE)) {
-                return queryAndData.getQuery().elements(fetchHints);
-            } else if (getResultType().contains(ElementType.VERTEX)) {
-                return queryAndData.getQuery().vertices(fetchHints);
-            } else if (getResultType().contains(ElementType.EDGE)) {
-                return queryAndData.getQuery().edges(fetchHints);
-            } else {
-                throw new VisalloException("Unexpected result type: " + getResultType());
-            }
+            return queryAndData.getQuery().search(getResultType(), fetchHints);
         }
     }
 
-    protected abstract EnumSet<ElementType> getResultType();
+    protected abstract EnumSet<VertexiumObjectType> getResultType();
 
     protected abstract QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations);
 
     protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
+        final String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
+        final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
         Query query = queryAndData.getQuery();
-
-        String conceptTypes = searchOptions.getOptionalParameter("conceptTypes", String.class);
-
-        if (conceptTypes == null) {
-            // Try legacy conceptType parameter
-            String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
-            if (conceptType != null) {
-                final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
-            }
-        } else {
-            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes));
+        if (conceptType != null) {
+            ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
         }
     }
 
     protected void applyEdgeLabelFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
+        final String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
+        final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
         Query query = queryAndData.getQuery();
-
-        String labels = searchOptions.getOptionalParameter("edgeLabels", String.class);
-
-        if (labels == null) {
-            // Try legacy edgeLabel parameter
-            String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
-            if (edgeLabel != null) {
-                final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
-            }
-        } else {
-            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels));
+        if (edgeLabel != null) {
+            ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
         }
     }
 
@@ -269,17 +263,6 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
         JSONArray filterJson = searchOptions.getRequiredParameter("filter", JSONArray.class);
         ontologyRepository.resolvePropertyIds(filterJson);
         return filterJson;
-    }
-
-    private Collection<OntologyRepository.ElementTypeFilter> getTypeFilters(String typesStr) {
-        JSONArray types = new JSONArray(typesStr);
-        List<OntologyRepository.ElementTypeFilter> filters = new ArrayList<>(types.length());
-        for (int i = 0; i < types.length(); i++) {
-            JSONObject type = (JSONObject) types.get(i);
-            OntologyRepository.ElementTypeFilter filter = ClientApiConverter.toClientApi(type, OntologyRepository.ElementTypeFilter.class);
-            filters.add(filter);
-        }
-        return filters;
     }
 
     private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user) {

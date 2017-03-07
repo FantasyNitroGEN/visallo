@@ -7,10 +7,10 @@
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
     <owl:Ontology rdf:about="http://visallo.org"/>
-    
 
 
-    <!-- 
+
+    <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
     // Annotation properties
@@ -18,7 +18,7 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    
+
 
 
     <!-- http://visallo.org#addRelatedConceptWhiteList -->
@@ -29,7 +29,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#addable -->
@@ -40,7 +40,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#boost -->
@@ -51,7 +51,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#color -->
@@ -62,7 +62,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#deleteable -->
@@ -73,7 +73,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#dependentPropertyIri -->
@@ -84,7 +84,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#dependentPropertyIris -->
@@ -95,7 +95,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#displayFormula -->
@@ -106,7 +106,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#displayName -->
@@ -117,7 +117,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#displayType -->
@@ -128,7 +128,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#glyphIconFileName -->
@@ -139,7 +139,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#intent -->
@@ -150,7 +150,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#mapGlyphIconFileName -->
@@ -161,7 +161,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#objectPropertyDomain -->
@@ -172,8 +172,17 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
 
+
+
+    <!-- http://visallo.org#extendedDataTableDomain -->
+
+    <owl:AnnotationProperty rdf:about="http://visallo.org#extendedDataTableDomain">
+        <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    </owl:AnnotationProperty>
 
     <!-- http://visallo.org#possibleValues -->
 
@@ -183,7 +192,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#propertyGroup -->
@@ -193,7 +202,7 @@
         <userVisible>false</userVisible>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#searchable -->
@@ -204,7 +213,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#sortable -->
@@ -215,7 +224,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#subtitleFormula -->
@@ -226,7 +235,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#textIndexHints -->
@@ -237,7 +246,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#timeFormula -->
@@ -248,7 +257,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#titleFormula -->
@@ -259,7 +268,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#updateable -->
@@ -270,7 +279,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#userVisible -->
@@ -281,7 +290,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
+
 
 
     <!-- http://visallo.org#validationFormula -->
@@ -292,10 +301,10 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:AnnotationProperty>
-    
 
 
-    <!-- 
+
+    <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
     // Datatypes
@@ -303,34 +312,39 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    
+
 
 
     <!-- http://visallo.org#currency -->
 
     <rdfs:Datatype rdf:about="http://visallo.org#currency"/>
-    
+
 
 
     <!-- http://visallo.org#geolocation -->
 
     <rdfs:Datatype rdf:about="http://visallo.org#geolocation"/>
-    
+
+
+
+    <!-- http://visallo.org#extendedDataTable -->
+
+    <rdfs:Datatype rdf:about="http://visallo.org#extendedDataTable"/>
 
 
     <!-- http://visallo.org#image -->
 
     <rdfs:Datatype rdf:about="http://visallo.org#image"/>
-    
+
 
 
     <!-- http://visallo.org#directory/entity -->
 
     <rdfs:Datatype rdf:about="http://visallo.org#directory/entity"/>
-    
 
 
-    <!-- 
+
+    <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
     // Object Properties
@@ -338,7 +352,7 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    
+
 
 
     <!-- http://visallo.org#hasSource -->
@@ -348,10 +362,10 @@
         <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
         <userVisible>false</userVisible>
     </owl:ObjectProperty>
-    
 
 
-    <!-- 
+
+    <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
     // Data properties
@@ -359,7 +373,7 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    
+
 
 
     <!-- http://visallo.org#audio-mp3 -->
@@ -370,7 +384,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Audio MP3</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#audio-mp4 -->
@@ -381,7 +395,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Audio MP4</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#audio-ogg -->
@@ -392,7 +406,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Audio OGG</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#cached-image -->
@@ -403,7 +417,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Cached Image</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#conceptType -->
@@ -415,7 +429,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Concept Type</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#confidence -->
@@ -426,7 +440,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Confidence</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#contentHash -->
@@ -438,7 +452,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Content Hash</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#dataType -->
@@ -449,7 +463,7 @@
         <textIndexHints>EXACT_MATCH</textIndexHints>
         <userVisible>false</userVisible>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#detectedObject -->
@@ -461,7 +475,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Detected Object</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#entityImageUrl -->
@@ -473,7 +487,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Entity Image URL</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#entityImageVertexId -->
@@ -485,7 +499,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Entity Image Vertex ID</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#fileName -->
@@ -497,7 +511,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">File Name</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#graphPropertyWorkerBlackList -->
@@ -509,7 +523,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Graph Property Worker Black List</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#graphPropertyWorkerWhiteList -->
@@ -521,7 +535,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Graph Property Worker White List</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#justification -->
@@ -531,7 +545,7 @@
         <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#linkTitle -->
@@ -541,7 +555,7 @@
         <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#mappingJson -->
@@ -553,7 +567,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Mapping JSON</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#metadataJson -->
@@ -565,7 +579,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Metadata JSON</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#mimeType -->
@@ -577,7 +591,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Mime Type</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#modifiedBy -->
@@ -589,7 +603,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Modified By</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#modifiedDate -->
@@ -600,7 +614,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Modified Date</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#ontologyTitle -->
@@ -611,7 +625,7 @@
         <textIndexHints>EXACT_MATCH</textIndexHints>
         <userVisible>false</userVisible>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#process -->
@@ -623,7 +637,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Process</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#raw -->
@@ -634,7 +648,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Raw Data</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#rawPosterFrame -->
@@ -645,7 +659,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Raw Poster Frame</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#rowKey -->
@@ -657,7 +671,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Row Key</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#source -->
@@ -668,7 +682,7 @@
         <textIndexHints>FULL_TEXT,EXACT_MATCH</textIndexHints>
         <rdfs:label xml:lang="en">Source</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#sourceUrl -->
@@ -680,7 +694,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Source URL</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#text -->
@@ -693,7 +707,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Text</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#title -->
@@ -706,7 +720,7 @@
         <userVisible>true</userVisible>
         <rdfs:label xml:lang="en">Title</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#video-mp4 -->
@@ -718,7 +732,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Video MP4</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#video-webm -->
@@ -730,7 +744,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Video WebM</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#videoFrame -->
@@ -742,7 +756,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Video Frame</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#videoPreviewImage -->
@@ -754,7 +768,7 @@
         <userVisible xml:lang="en">false</userVisible>
         <rdfs:label xml:lang="en">Video Preview Image</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#videoTranscript -->
@@ -767,7 +781,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Video Transcript</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#visibilityJson -->
@@ -779,7 +793,7 @@
         <userVisible>false</userVisible>
         <rdfs:label xml:lang="en">Visibility JSON</rdfs:label>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org#visibilitySource -->

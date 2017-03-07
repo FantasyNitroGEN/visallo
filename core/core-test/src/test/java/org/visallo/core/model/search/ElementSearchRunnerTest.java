@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.Element;
 import org.vertexium.Vertex;
+import org.vertexium.VertexiumObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,7 +57,7 @@ public class ElementSearchRunnerTest extends SearchRunnerTestBase {
         SearchOptions searchOptions = new SearchOptions(parameters, "workspace1");
 
         QueryResultsIterableSearchResults results = elementSearchRunner.run(searchOptions, user, authorizations);
-        assertEquals(5, size(results.getElements()));
+        assertEquals(5, size(results.getVertexiumObjects()));
     }
 
     @Test
@@ -72,16 +73,16 @@ public class ElementSearchRunnerTest extends SearchRunnerTestBase {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("q", "*");
         parameters.put("filter", new JSONArray());
-        parameters.put("sort[]", new String[] { "name:ASCENDING" });
+        parameters.put("sort[]", new String[]{"name:ASCENDING"});
         SearchOptions searchOptions = new SearchOptions(parameters, "workspace1");
 
         QueryResultsIterableSearchResults results = elementSearchRunner.run(searchOptions, user, authorizations);
-        assertEquals(2, size(results.getElements()));
-        Iterator<? extends Element> elements = results.getElements().iterator();
+        assertEquals(2, size(results.getVertexiumObjects()));
+        Iterator<? extends VertexiumObject> elements = results.getVertexiumObjects().iterator();
 
-        Element first = elements.next();
+        VertexiumObject first = elements.next();
         assertEquals("A", first.getProperty("name").getValue());
-        Element second = elements.next();
+        VertexiumObject second = elements.next();
         assertEquals("B", second.getProperty("name").getValue());
     }
 
@@ -98,17 +99,17 @@ public class ElementSearchRunnerTest extends SearchRunnerTestBase {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("q", "*");
         parameters.put("filter", new JSONArray());
-        JSONArray sorts = new JSONArray(new String[] { "name:DESCENDING"});
+        JSONArray sorts = new JSONArray(new String[]{"name:DESCENDING"});
         parameters.put("sort", sorts);
         SearchOptions searchOptions = new SearchOptions(parameters, "workspace1");
 
         QueryResultsIterableSearchResults results = elementSearchRunner.run(searchOptions, user, authorizations);
-        assertEquals(2, size(results.getElements()));
-        Iterator<? extends Element> elements = results.getElements().iterator();
+        assertEquals(2, size(results.getVertexiumObjects()));
+        Iterator<? extends VertexiumObject> elements = results.getVertexiumObjects().iterator();
 
-        Element first = elements.next();
+        VertexiumObject first = elements.next();
         assertEquals("B", first.getProperty("name").getValue());
-        Element second = elements.next();
+        VertexiumObject second = elements.next();
         assertEquals("A", second.getProperty("name").getValue());
     }
 }

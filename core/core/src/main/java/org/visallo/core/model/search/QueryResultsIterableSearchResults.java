@@ -1,17 +1,17 @@
 package org.visallo.core.model.search;
 
-import org.vertexium.Element;
+import org.vertexium.VertexiumObject;
 import org.vertexium.query.QueryResultsIterable;
 
-public class QueryResultsIterableSearchResults extends ElementsSearchResults implements AutoCloseable {
-    private final QueryResultsIterable<? extends Element> searchResults;
-    private final ElementSearchRunnerBase.QueryAndData queryAndData;
+public class QueryResultsIterableSearchResults extends VertexiumObjectsSearchResults implements AutoCloseable {
+    private final QueryResultsIterable<? extends VertexiumObject> searchResults;
+    private final VertexiumObjectSearchRunnerBase.QueryAndData queryAndData;
     private final long offset;
     private final long size;
 
     public QueryResultsIterableSearchResults(
-            QueryResultsIterable<? extends Element> searchResults,
-            ElementSearchRunnerBase.QueryAndData queryAndData,
+            QueryResultsIterable<? extends VertexiumObject> searchResults,
+            VertexiumObjectSearchRunnerBase.QueryAndData queryAndData,
             long offset,
             long size
     ) {
@@ -21,11 +21,11 @@ public class QueryResultsIterableSearchResults extends ElementsSearchResults imp
         this.size = size;
     }
 
-    public QueryResultsIterable<? extends Element> getQueryResultsIterable() {
+    public QueryResultsIterable<? extends VertexiumObject> getQueryResultsIterable() {
         return searchResults;
     }
 
-    public ElementSearchRunnerBase.QueryAndData getQueryAndData() {
+    public VertexiumObjectSearchRunnerBase.QueryAndData getQueryAndData() {
         return queryAndData;
     }
 
@@ -43,7 +43,7 @@ public class QueryResultsIterableSearchResults extends ElementsSearchResults imp
     }
 
     @Override
-    public Iterable<? extends Element> getElements() {
+    public Iterable<? extends VertexiumObject> getVertexiumObjects() {
         return searchResults;
     }
 }

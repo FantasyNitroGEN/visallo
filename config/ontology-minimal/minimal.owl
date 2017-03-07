@@ -1,20 +1,10 @@
 <?xml version="1.0"?>
-
-
-<!DOCTYPE rdf:RDF [
-    <!ENTITY visallo "http://visallo.org#" >
-    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
-    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
-    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
-    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
-]>
-
-
 <rdf:RDF xmlns="http://visallo.org/minimal#"
      xml:base="http://visallo.org/minimal"
      xmlns:visallo="http://visallo.org#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
     <owl:Ontology rdf:about="http://visallo.org/minimal">
@@ -34,13 +24,25 @@
     
 
 
+    <!-- http://visallo.com/minimal#rawContainsImageOfEntity -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.com/minimal#rawContainsImageOfEntity">
+        <rdfs:domain rdf:resource="http://visallo.com/desktop/example#raw"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <visallo:intent>artifactContainsImage</visallo:intent>
+        <visallo:intent>artifactContainsImageOfEntity</visallo:intent>
+        <rdfs:label xml:lang="en">Contains Image of</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://visallo.org/minimal#entityHasMedia -->
 
     <owl:ObjectProperty rdf:about="http://visallo.org/minimal#entityHasMedia">
-        <rdfs:label xml:lang="en">Has Media</rdfs:label>
-        <visallo:intent>entityHasImage</visallo:intent>
+        <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
         <rdfs:range rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:domain rdf:resource="&owl;Thing"/>
+        <visallo:intent>entityHasImage</visallo:intent>
+        <rdfs:label xml:lang="en">Has Media</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -48,10 +50,10 @@
     <!-- http://visallo.org/minimal#hasEntity -->
 
     <owl:ObjectProperty rdf:about="http://visallo.org/minimal#hasEntity">
-        <rdfs:label xml:lang="en">Has Entity</rdfs:label>
-        <visallo:intent xml:lang="en">artifactHasEntity</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#document"/>
-        <rdfs:range rdf:resource="&owl;Thing"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <visallo:intent xml:lang="en">artifactHasEntity</visallo:intent>
+        <rdfs:label xml:lang="en">Has Entity</rdfs:label>
     </owl:ObjectProperty>
     
 
@@ -70,11 +72,11 @@
     <!-- http://visallo.org/minimal#clockwiseRotation -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#clockwiseRotation">
-        <rdfs:label>Clockwise Rotation</rdfs:label>
-        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
-        <visallo:intent>media.clockwiseRotation</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <visallo:intent>media.clockwiseRotation</visallo:intent>
+        <visallo:userVisible rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</visallo:userVisible>
+        <rdfs:label>Clockwise Rotation</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -82,10 +84,10 @@
     <!-- http://visallo.org/minimal#dateTaken -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#dateTaken">
-        <rdfs:label xml:lang="en">Date Taken</rdfs:label>
-        <visallo:intent xml:lang="en">media.dateTaken</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;dateTime"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <visallo:intent xml:lang="en">media.dateTaken</visallo:intent>
+        <rdfs:label xml:lang="en">Date Taken</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -93,10 +95,10 @@
     <!-- http://visallo.org/minimal#deviceMake -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#deviceMake">
-        <rdfs:label xml:lang="en">Device Make</rdfs:label>
-        <visallo:intent xml:lang="en">media.deviceMake</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <visallo:intent xml:lang="en">media.deviceMake</visallo:intent>
+        <rdfs:label xml:lang="en">Device Make</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -104,10 +106,10 @@
     <!-- http://visallo.org/minimal#deviceModel -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#deviceModel">
-        <rdfs:label xml:lang="en">Device Model</rdfs:label>
-        <visallo:intent xml:lang="en">media.deviceModel</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <visallo:intent xml:lang="en">media.deviceModel</visallo:intent>
+        <rdfs:label xml:lang="en">Device Model</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -115,12 +117,12 @@
     <!-- http://visallo.org/minimal#duration -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#duration">
-        <rdfs:label xml:lang="en">Duration</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
         <visallo:intent xml:lang="en">audioDuration</visallo:intent>
         <visallo:intent xml:lang="en">media.duration</visallo:intent>
         <visallo:intent xml:lang="en">videoDuration</visallo:intent>
-        <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;double"/>
+        <rdfs:label xml:lang="en">Duration</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -128,10 +130,10 @@
     <!-- http://visallo.org/minimal#fileSize -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#fileSize">
-        <rdfs:label xml:lang="en">File Size</rdfs:label>
-        <visallo:intent xml:lang="en">media.fileSize</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <visallo:intent xml:lang="en">media.fileSize</visallo:intent>
+        <rdfs:label xml:lang="en">File Size</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -139,11 +141,11 @@
     <!-- http://visallo.org/minimal#geolocation -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#geolocation">
+        <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <rdfs:range rdf:resource="http://visallo.org#geolocation"/>
+        <visallo:intent>geoLocation</visallo:intent>
+        <visallo:intent>media.geoLocation</visallo:intent>
         <rdfs:label xml:lang="en">Geolocation</rdfs:label>
-        <visallo:intent xml:lang="en">geoLocation</visallo:intent>
-        <visallo:intent xml:lang="en">media.geoLocation</visallo:intent>
-        <rdfs:range rdf:resource="&visallo;geolocation"/>
-        <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
     </owl:DatatypeProperty>
     
 
@@ -151,10 +153,10 @@
     <!-- http://visallo.org/minimal#height -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#height">
-        <rdfs:label xml:lang="en">Height</rdfs:label>
-        <visallo:intent xml:lang="en">media.height</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <visallo:intent>media.height</visallo:intent>
+        <rdfs:label xml:lang="en">Height</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -162,10 +164,10 @@
     <!-- http://visallo.org/minimal#imageHeading -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#imageHeading">
-        <rdfs:label xml:lang="en">Image Heading</rdfs:label>
-        <visallo:intent>media.imageHeading</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;double"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <visallo:intent>media.imageHeading</visallo:intent>
+        <rdfs:label xml:lang="en">Image Heading</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -173,10 +175,10 @@
     <!-- http://visallo.org/minimal#rawMetadata -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#rawMetadata">
-        <rdfs:label xml:lang="en">Metadata</rdfs:label>
-        <visallo:intent xml:lang="en">media.metadata</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <visallo:intent>media.metadata</visallo:intent>
+        <rdfs:label xml:lang="en">Metadata</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -184,10 +186,10 @@
     <!-- http://visallo.org/minimal#width -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#width">
-        <rdfs:label xml:lang="en">Width</rdfs:label>
-        <visallo:intent xml:lang="en">media.width</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <visallo:intent>media.width</visallo:intent>
+        <rdfs:label xml:lang="en">Width</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -195,11 +197,11 @@
     <!-- http://visallo.org/minimal#yAxisFlipped -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#yAxisFlipped">
-        <rdfs:label>Y Axis Flipped</rdfs:label>
-        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
-        <visallo:intent>media.yAxisFlipped</visallo:intent>
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
-        <rdfs:range rdf:resource="&xsd;boolean"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <visallo:intent>media.yAxisFlipped</visallo:intent>
+        <visallo:userVisible rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</visallo:userVisible>
+        <rdfs:label>Y Axis Flipped</rdfs:label>
     </owl:DatatypeProperty>
     
 
@@ -215,14 +217,30 @@
     
 
 
+    <!-- http://visallo.com/desktop/example#raw -->
+
+    <owl:Class rdf:about="http://visallo.com/desktop/example#raw"/>
+    
+
+
+    <!-- http://visallo.com/minimal#location -->
+
+    <owl:Class rdf:about="http://visallo.com/minimal#location">
+        <visallo:color>rgb(160, 7, 206)</visallo:color>
+        <visallo:intent>location</visallo:intent>
+        <rdfs:label xml:lang="en">Location</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://visallo.org/minimal#audio -->
 
     <owl:Class rdf:about="http://visallo.org/minimal#audio">
-        <rdfs:label xml:lang="en">Audio</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/minimal#raw"/>
-        <visallo:intent>audio</visallo:intent>
-        <visallo:displayType xml:lang="en">audio</visallo:displayType>
         <visallo:color xml:lang="en">rgb(149, 138, 218)</visallo:color>
+        <visallo:displayType xml:lang="en">audio</visallo:displayType>
+        <visallo:intent>audio</visallo:intent>
+        <rdfs:label xml:lang="en">Audio</rdfs:label>
     </owl:Class>
     
 
@@ -230,11 +248,11 @@
     <!-- http://visallo.org/minimal#document -->
 
     <owl:Class rdf:about="http://visallo.org/minimal#document">
-        <rdfs:label xml:lang="en">Document</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/minimal#raw"/>
-        <visallo:intent>document</visallo:intent>
-        <visallo:displayType xml:lang="en">document</visallo:displayType>
         <visallo:color xml:lang="en">rgb(28, 137, 28)</visallo:color>
+        <visallo:displayType xml:lang="en">document</visallo:displayType>
+        <visallo:intent>document</visallo:intent>
+        <rdfs:label xml:lang="en">Document</rdfs:label>
     </owl:Class>
     
 
@@ -242,12 +260,33 @@
     <!-- http://visallo.org/minimal#image -->
 
     <owl:Class rdf:about="http://visallo.org/minimal#image">
-        <rdfs:label xml:lang="en">Image</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/minimal#raw"/>
-        <visallo:intent>image</visallo:intent>
-        <visallo:intent>entityImage</visallo:intent>
-        <visallo:displayType xml:lang="en">image</visallo:displayType>
         <visallo:color xml:lang="en">rgb(176, 87, 53)</visallo:color>
+        <visallo:displayType xml:lang="en">image</visallo:displayType>
+        <visallo:intent>entityImage</visallo:intent>
+        <visallo:intent>image</visallo:intent>
+        <rdfs:label xml:lang="en">Image</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/minimal#organization -->
+
+    <owl:Class rdf:about="http://visallo.org/minimal#organization">
+        <visallo:color>rgb(137, 39, 26)</visallo:color>
+        <visallo:intent>organization</visallo:intent>
+        <rdfs:label xml:lang="en">Organization</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://visallo.org/minimal#person -->
+
+    <owl:Class rdf:about="http://visallo.org/minimal#person">
+        <visallo:color>rgb(28, 137, 28)</visallo:color>
+        <visallo:intent>face</visallo:intent>
+        <visallo:intent>person</visallo:intent>
+        <rdfs:label xml:lang="en">Person</rdfs:label>
     </owl:Class>
     
 
@@ -255,9 +294,9 @@
     <!-- http://visallo.org/minimal#raw -->
 
     <owl:Class rdf:about="http://visallo.org/minimal#raw">
-        <rdfs:label xml:lang="en">Raw</rdfs:label>
-        <visallo:glyphIconFileName xml:lang="en">raw.png</visallo:glyphIconFileName>
         <visallo:color xml:lang="en">rgb(28, 137, 28)</visallo:color>
+        <visallo:glyphIconFileName xml:lang="en">raw.png</visallo:glyphIconFileName>
+        <rdfs:label xml:lang="en">Raw</rdfs:label>
     </owl:Class>
     
 
@@ -265,15 +304,15 @@
     <!-- http://visallo.org/minimal#video -->
 
     <owl:Class rdf:about="http://visallo.org/minimal#video">
-        <rdfs:label xml:lang="en">Video</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://visallo.org/minimal#raw"/>
-        <visallo:intent>video</visallo:intent>
         <visallo:color xml:lang="en">rgb(149, 138, 218)</visallo:color>
         <visallo:displayType xml:lang="en">video</visallo:displayType>
+        <visallo:intent>video</visallo:intent>
+        <rdfs:label xml:lang="en">Video</rdfs:label>
     </owl:Class>
 </rdf:RDF>
 
 
 
-<!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
+<!-- Generated by the OWL API (version 4.2.6.20160910-2108) https://github.com/owlcs/owlapi -->
 

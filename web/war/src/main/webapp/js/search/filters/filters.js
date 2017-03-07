@@ -5,10 +5,12 @@ define([
     './filtersTpl.hbs',
     './filterItem',
     'tpl!./entityItem',
+    'tpl!./extendedDataElementItem',
     'search/sort',
     'util/vertex/formatters',
     'util/ontology/conceptSelect',
     'util/ontology/relationshipSelect',
+    'util/ontology/tableNameSelect',
     'util/withDataRequest',
     'configuration/plugins/registry',
     'd3'
@@ -18,10 +20,12 @@ define([
     template,
     FilterItem,
     entityItemTemplate,
+    extendedDataElementItemTemplate,
     SortFilter,
     F,
     ConceptSelector,
     RelationshipSelector,
+    TableNameSelector,
     withDataRequest,
     registry,
     d3) {
@@ -46,9 +50,11 @@ define([
             conceptListSelector: '.concepts-list',
             relationshipListSelector: '.edgetype-list',
             edgeLabelDropdownSelector: '.edgetype-dropdown',
+            tableNameDropdownSelector: '.tablename-dropdown',
             sortContentSelector: '.sort-content',
             conceptFilterSelector: '.concepts-dropdown,.concepts-list,.concept-filter-header',
             edgeLabelFilterSelector: '.edgetype-dropdown,.edgetype-list,.edgetype-filter-header',
+            tableNameFilterSelector: '.tablename-dropdown,.tablename-list,.tablename-filter-header',
             match: 'vertex',
             supportsMatch: true,
             supportsSorting: true,
@@ -57,9 +63,8 @@ define([
         });
 
         this.after('initialize', function() {
-            var self = this;
+            const self = this;
 
-            this.throttledNotifyOfFilters = _.throttle(this.notifyOfFilters.bind(this), 100);
             this.notifyOfFilters = _.debounce(this.notifyOfFilters.bind(this), FILTER_SEARCH_DELAY_SECONDS * 1000);
 
             this.matchType = this.attr.match;
@@ -68,7 +73,9 @@ define([
                 showMatchType: this.attr.supportsMatch !== false,
                 showConceptFilter: this.attr.match === 'vertex',
                 showEdgeFilter: this.attr.match === 'edge',
-                showSorting: this.attr.supportsSorting
+                showExtendedDataFilter: this.attr.match === 'extended-data',
+                showSorting: this.attr.supportsSorting,
+                hasExtendedDataInSystem: true // TODO set this based on the ontology if any extended data properties exist
             }));
 
             this.on('filterItemChanged', this.onFilterItemChanged);
@@ -86,18 +93,27 @@ define([
                     e.stopPropagation();
                     e.preventDefault();
                 }
-            })
+            });
             this.on('change', {
                 matchTypeSelector: this.onChangeMatchType
-            })
+            });
             this.on('conceptSelected', this.onConceptChange);
             this.on('relationshipSelected', this.onEdgeTypeChange);
+            this.on('tableSelected', this.onTableChange);
             this.on('searchByRelatedEntity', this.onSearchByRelatedEntity);
+            this.on('searchByElementExtendedData', this.onSearchByElementExtendedData);
             this.on('searchByProperty', this.onSearchByProperty);
             this.on('filterExtensionChanged', this.onFilterExtensionChanged);
 
-            this.requestPropertiesByDomainType = function() {
-                return this.dataRequest('ontology', 'propertiesByDomainType', this.matchType);
+            this.requestPropertiesByDomainType = function(type) {
+                if (self.propertiesByDomainType[type]) {
+                    return Promise.resolve(self.propertiesByDomainType[type]);
+                }
+                return this.dataRequest('ontology', 'propertiesByDomainType', type)
+                    .then((result) => {
+                        self.propertiesByDomainType[type] = result;
+                        return result;
+                    });
             };
 
             this.filtersLoaded = this.dataRequest('ontology', 'ontology').then(({ relationships, concepts }) => {
@@ -113,6 +129,7 @@ define([
                     .then(function() {
                         self.loadConcepts();
                         self.loadEdgeTypes();
+                        self.loadTableNames();
                         self.loadSorting();
                         self.trigger('filtersLoaded');
                     });
@@ -151,7 +168,7 @@ define([
                 });
 
             if (componentPromises.length) {
-                componentPromises.splice(0, 0, Promise.require('search/filters/extensionItem.hbs'))
+                componentPromises.splice(0, 0, Promise.require('search/filters/extensionItem.hbs'));
                 return Promise.all(componentPromises)
                     .then(function(components) {
                         var template = components.shift();
@@ -181,7 +198,7 @@ define([
                         )
                     });
             } else return Promise.resolve();
-        }
+        };
 
         this.onFilterExtensionChanged = function(event, data) {
             var self = this,
@@ -248,6 +265,44 @@ define([
                         .catch(function(error) {
                             console.error(error)
                         })
+                });
+        };
+
+        this.onSearchByElementExtendedData = function(event, data) {
+            event.stopPropagation();
+            var self = this;
+
+            this.disableNotify = true;
+            Promise.resolve(this.clearFilters({ triggerUpdates: false }))
+                .then(this.setMatchType.bind(this, 'extended-data'))
+                .then(this.setElementExtendedData.bind(this, data))
+                .then(function() {
+                    self.disableNotify = false;
+                    self.notifyOfFilters();
+                })
+                .done();
+        };
+
+        this.setElementExtendedData = function(data) {
+            const self = this;
+
+            const requestOptions = {};
+            if (data.elementType === 'VERTEX') {
+                requestOptions.vertexIds = [data.elementId];
+            } else if (data.elementType === 'EDGE') {
+                requestOptions.edgeIds = [data.elementId];
+            } else {
+                throw new Error('invalid element type: ' + data.elementType);
+            }
+            return this.dataRequest(data.elementType.toLowerCase(), 'store', requestOptions)
+                .then(function(elements) {
+                    const single = elements[0];
+                    const title = F.vertex.title(single) || single.id;
+
+                    self.otherFilters.elementExtendedData = data;
+                    self.$node.find('.entity-filters')
+                        .append(extendedDataElementItemTemplate({title: title})).show();
+                    self.notifyOfFilters();
                 });
         };
 
@@ -344,6 +399,40 @@ define([
             }
         };
 
+        this.setExtendedDataTableFilter = function(tablePropertyIri) {
+            this.extendedDataTableFilter = tablePropertyIri || '';
+            this.trigger(this.select('tableNameDropdownSelector'), 'selectTableIri', {tablePropertyIri: tablePropertyIri});
+
+            if (this.matchType === 'edge' || this.matchType === 'vertex') {
+                return;
+            }
+
+            Promise.all([
+                this.dataRequest('ontology', 'properties'),
+                this.requestPropertiesByDomainType('extended-data')
+            ]).then(([ontologyProperties, extendedDataProperties]) => {
+                const tableProperty = tablePropertyIri ? ontologyProperties.byTitle[tablePropertyIri] : null;
+
+                this.filteredPropertiesList = extendedDataProperties
+                    .filter((prop) => {
+                        if (!tableProperty) {
+                            return true;
+                        }
+                        return tableProperty.tablePropertyIris.indexOf(prop.title) >= 0;
+                    });
+                this.select('filterItemsSelector')
+                    .add(this.select('sortContentSelector'))
+                    .trigger('filterProperties', {
+                        properties: this.filteredPropertiesList
+                    });
+                if (tablePropertyIri) {
+                    this.otherFilters.elementExtendedData = this.otherFilters.elementExtendedData || {};
+                    this.otherFilters.elementExtendedData.tableName = tablePropertyIri;
+                }
+                this.notifyOfFilters();
+            });
+        };
+
         this.filterPropertyList = function(properties) {
             let addedTitles = {};
             this.filteredPropertiesList = (
@@ -381,10 +470,14 @@ define([
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
             this.select('edgeLabelFilterSelector').toggle(Boolean(this.otherFilters.relatedToVertexIds || type === 'edge'));
+            this.select('tableNameFilterSelector').toggle(this.otherFilters.elementExtendedData || type === 'extended-data');
             if (this.matchType === 'vertex') {
                 this.setConceptFilter(this.conceptFilter);
-            } else {
+            } else if (this.matchType === 'edge') {
                 this.setEdgeTypeFilter(this.edgeLabelFilter);
+            } else if (this.matchType === 'extended-data') {
+                this.$node.find('.child-nodes').hide();
+                this.setExtendedDataTableFilter(this.extendedDataTableFilter);
             }
             this.select('filterItemsSelector').each(function() {
                 var $li = $(this);
@@ -392,7 +485,7 @@ define([
                     $li.remove();
             });
             this.setSort();
-            return Promise.resolve(this.propertiesByDomainType[type] || this.requestPropertiesByDomainType())
+            return this.requestPropertiesByDomainType(type)
                 .then(result => {
                     if (result.length) {
                         this.propertiesByDomainType[type] = result;
@@ -429,7 +522,7 @@ define([
                 })
             }
 
-            if (this.matchType === 'edge') {
+            if (this.matchType === 'edge' || this.matchType === 'extended-data') {
                 return;
             }
 
@@ -520,6 +613,10 @@ define([
             this.setEdgeTypeFilter(data.relationship && data.relationship.title || '');
         };
 
+        this.onTableChange = function(event, data) {
+            this.setExtendedDataTableFilter(data.tableProperty && data.tableProperty.title || '');
+        };
+
         this.onSortFieldsUpdated = function(event, data) {
             this.setSort(data.sortFields, { propagate: false });
         };
@@ -568,6 +665,7 @@ define([
             return !!(filters &&
                 (!_.isEmpty(filters.conceptFilter) && this.matchType === 'vertex') ||
                 (!_.isEmpty(filters.edgeLabelFilter) && this.matchType === 'edge') ||
+                (!_.isEmpty(filters.extendedDataTableFilter) && this.matchType === 'extended-data') ||
                 !_.isEmpty(filters.propertyFilters) ||
                 !_.isEmpty(filters.otherFilters) ||
                 !_.isEmpty(this.currentSort)
@@ -575,7 +673,7 @@ define([
         }
 
         this.notifyOfFilters = function(options) {
-            var self = this;
+            const self = this;
 
             if (this.disableNotify) return;
 
@@ -583,6 +681,7 @@ define([
                     otherFilters: this.otherFilters,
                     conceptFilter: this.conceptFilter,
                     edgeLabelFilter: this.edgeLabelFilter,
+                    extendedDataTableFilter: this.extendedDataTableFilter,
                     sortFields: this.currentSort,
                     matchType: this.matchType,
                     propertyFilters: _.chain(this.propertyFilters)
@@ -641,7 +740,7 @@ define([
             }
             keys.forEach(function(key) {
                 delete self.otherFilters[key];
-            })
+            });
             this.disableMatchEdges = false;
             this.setMatchType(this.matchType);
             this.notifyOfFilters();
@@ -798,6 +897,12 @@ define([
             });
         };
 
+        this.loadTableNames = function() {
+            TableNameSelector.attachTo(this.select('tableNameDropdownSelector'), {
+                defaultText: i18n('search.filters.all_tablenames')
+            });
+        };
+
         this.loadConcepts = function() {
             ConceptSelector.attachTo(this.select('conceptDropdownSelector'), {
                 onlySearchable: true,
@@ -806,7 +911,7 @@ define([
         };
 
         this.loadPropertyFilters = function() {
-            var self = this;
+            const self = this;
 
             if (!_.isObject(this.propertiesByDomainType)) {
                 this.propertiesByDomainType = {};

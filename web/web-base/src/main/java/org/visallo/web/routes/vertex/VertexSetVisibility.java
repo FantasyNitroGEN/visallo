@@ -19,7 +19,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.util.VisibilityValidator;
@@ -50,7 +50,7 @@ public class VertexSetVisibility implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiVertex handle(
             @Required(name = "graphVertexId") String graphVertexId,
             @Required(name = "visibilitySource") String visibilitySource,
             @ActiveWorkspaceId String workspaceId,
@@ -90,10 +90,6 @@ public class VertexSetVisibility implements ParameterizedHandler {
                 Priority.HIGH
         );
 
-//        Workspace workspace = workspaceRepository.findById(workspaceId, user);
-//        ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, authorizations);
-//        workQueueRepository.pushWorkspaceChange(clientApiWorkspace, clientApiWorkspace.getUsers(), user.getUserId(), sourceGuid);
-
-        return ClientApiConverter.toClientApi(graphVertex, workspaceId, authorizations);
+        return (ClientApiVertex) ClientApiConverter.toClientApi(graphVertex, workspaceId, authorizations);
     }
 }

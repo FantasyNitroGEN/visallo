@@ -58,7 +58,8 @@ define([], function() {
             identifier: 'org.visallo.layout.body.right',
             children: [
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
-                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' }
+                { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
+                { componentPath: 'detail/extendedData/extendedData', className: 'org-visallo-extended-data', modelAttribute: 'data' }
             ]
         },
         {
@@ -67,6 +68,7 @@ define([], function() {
                 { componentPath: 'detail/properties/properties', className: 'org-visallo-properties', modelAttribute: 'data' },
                 { componentPath: 'comments/comments', className: 'org.visallo-comments', modelAttribute: 'data' },
                 { componentPath: 'detail/relationships/relationships', className: 'org-visallo-relationships', modelAttribute: 'data' },
+                { componentPath: 'detail/extendedData/extendedData', className: 'org-visallo-extended-data', modelAttribute: 'data' },
                 { componentPath: 'detail/text/text', className: 'org-visallo-texts' }
             ]
         },

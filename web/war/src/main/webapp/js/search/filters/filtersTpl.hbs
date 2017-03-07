@@ -5,6 +5,8 @@
         {{#if showConceptFilter}}checked{{/if}} value="vertex">{{ i18n 'search.filters.match.vertex' }}</label>
       <label><input type="radio" class="match-type-edge" name="match-type" 
         {{#if showEdgeFilter}}checked{{/if}} value="edge">{{ i18n 'search.filters.match.edge' }}</label>
+      {{#if hasExtendedDataInSystem}}<label><input type="radio" class="match-type-extended-data" name="match-type"
+        {{#if showExtendedDataFilter}}checked{{/if}} value="extended-data">{{ i18n 'search.filters.match.extended-data' }}</label>{{/if}}
     </div>
   </li>
 </ul>
@@ -23,6 +25,9 @@
   <li {{#unless showEdgeFilter}}style="display:none"{{/unless}} class="edgetype-list">
       <ul class="fields ui-sortable"></ul>
   </li>
+  <li {{#unless showExtendedDataFilter}}style="display:none"{{/unless}}
+    class="tablename-filter-header nav-header">{{ i18n 'search.filters.tableName' }}</li>
+  <li {{#unless showExtendedDataFilter}}style="display:none"{{/unless}} class="tablename-dropdown"></li>
   {{#if showSorting}}
   <li class="sort-filter-header nav-header">{{ i18n 'search.filters.sort' }}</li>
   <li class="sort-content"></li>

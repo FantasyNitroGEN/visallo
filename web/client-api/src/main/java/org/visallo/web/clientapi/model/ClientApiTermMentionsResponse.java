@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiTermMentionsResponse implements ClientApiObject {
-    private List<ClientApiElement> termMentions = new ArrayList<ClientApiElement>();
+    private List<ClientApiVertexiumObject> termMentions = new ArrayList<ClientApiVertexiumObject>();
 
-    public List<ClientApiElement> getTermMentions() {
+    public List<ClientApiVertexiumObject> getTermMentions() {
         return termMentions;
     }
 }

@@ -20,6 +20,7 @@ public class WebConfiguration {
     public static final String VERTEX_LOAD_RELATED_MAX_BEFORE_PROMPT = PREFIX + "vertex.loadRelatedMaxBeforePrompt";
     public static final String VERTEX_LOAD_RELATED_MAX_FORCE_SEARCH = PREFIX + "vertex.loadRelatedMaxForceSearch";
     public static final String VERTEX_RELATIONSHIPS_MAX_PER_SECTION = PREFIX + "vertex.relationships.maxPerSection";
+    public static final String ELEMENT_EXTENDED_DATA_MAX_PER_SECTION = PREFIX + "element.extendedData.maxPerSection";
     public static final String DETAIL_HISTORY_STACK_MAX = PREFIX + "detail.history.stack.max";
     public static final String VIDEO_PREVIEW_FRAMES_COUNT = PREFIX + "video.preview.frames.count";
     public static final String FIELD_JUSTIFICATION_VALIDATION = PREFIX + "field.justification.validation";
@@ -30,6 +31,7 @@ public class WebConfiguration {
     public static final String TYPEAHEAD_PROPERTIES_MAX_ITEMS = PREFIX + "typeahead.properties.maxItems";
     public static final String TYPEAHEAD_CONCEPTS_MAX_ITEMS = PREFIX + "typeahead.concepts.maxItems";
     public static final String TYPEAHEAD_EDGE_LABELS_MAX_ITEMS = PREFIX + "typeahead.edgeLabels.maxItems";
+    public static final String TYPEAHEAD_TABLE_NAMES_MAX_ITEMS = PREFIX + "typeahead.tableNames.maxItems";
     public static final String PROPERTIES_MULTIVALUE_DEFAULT_VISIBLE_COUNT = PREFIX + "properties.multivalue.defaultVisibleCount";
     public static final String PROPERTIES_METADATA_PROPERTY_NAMES = PREFIX + "properties.metadata.propertyNames";
     public static final String PROPERTIES_METADATA_PROPERTY_NAMES_DISPLAY = PREFIX + "properties.metadata.propertyNamesDisplay";
@@ -95,6 +97,8 @@ public class WebConfiguration {
 
         DEFAULTS.put(VERTEX_RELATIONSHIPS_MAX_PER_SECTION, "5");
 
+        DEFAULTS.put(ELEMENT_EXTENDED_DATA_MAX_PER_SECTION, "10");
+
         DEFAULTS.put(DETAIL_HISTORY_STACK_MAX, "5");
 
         DEFAULTS.put(VIDEO_PREVIEW_FRAMES_COUNT, Integer.toString(ArtifactThumbnailRepository.FRAMES_PER_PREVIEW));
@@ -113,6 +117,7 @@ public class WebConfiguration {
         DEFAULTS.put(TYPEAHEAD_CONCEPTS_MAX_ITEMS, "-1");
         DEFAULTS.put(TYPEAHEAD_PROPERTIES_MAX_ITEMS, "-1");
         DEFAULTS.put(TYPEAHEAD_EDGE_LABELS_MAX_ITEMS, "-1");
+        DEFAULTS.put(TYPEAHEAD_TABLE_NAMES_MAX_ITEMS, "-1");
 
         // Hide multivalue properties after this count
         DEFAULTS.put(PROPERTIES_MULTIVALUE_DEFAULT_VISIBLE_COUNT, "2");

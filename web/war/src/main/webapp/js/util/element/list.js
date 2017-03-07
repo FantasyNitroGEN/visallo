@@ -33,6 +33,7 @@ define([
     './detail-relationship-item',
     './vertex-item',
     './edge-item',
+    './extended-data-row-item',
     'tpl!util/alert',
     'util/requirejs/promise!util/service/ontologyPromise',
     'util/vertex/formatters',
@@ -47,6 +48,7 @@ define([
     DetailRelationshipItem,
     VertexItem,
     EdgeItem,
+    ExtendedDataRowItem,
     alertTemplate,
     ontologyPromise,
     F,
@@ -102,6 +104,7 @@ define([
             this.attr.items = this.attr.items || this.attr.edges || this.attr.vertices;
 
             this.renderers = registry.extensionsForPoint('org.visallo.entity.listItemRenderer').concat([
+                { canHandle: function(item) { return F.vertex.isExtendedDataRow(item); }, component: ExtendedDataRowItem },
                 { canHandle: function(item, usageContext) {
                         return usageContext === 'detail/relationships' &&
                                 item && item.relationship &&
@@ -415,14 +418,21 @@ define([
             if (this.localScrolling && (this.offset + MAX_ITEMS_BEFORE_FORCE_LOADING) >= this.allItems.length) {
                 this.$node.find('.infinite-loading').remove();
             }
+            const getElementId = (item) => {
+                if (item.type === 'extendedDataRow') {
+                    return item.id.elementId;
+                } else {
+                    return item.id;
+                }
+            };
             if (items.length && 'vertex' in items[0]) {
                 this._items = {
                     ...(this._items || {}),
-                    ...(_.indexBy(_.pluck(items, 'vertex'), 'id')),
-                    ...(_.indexBy(_.pluck(items, 'relationship'), 'id'))
+                    ...(_.indexBy(_.pluck(items, 'vertex'), getElementId)),
+                    ...(_.indexBy(_.pluck(items, 'relationship'), getElementId))
                 };
             } else {
-                this._items = { ...(this._items || {}), ...(_.indexBy(items, 'id')) };
+                this._items = { ...(this._items || {}), ...(_.indexBy(items, getElementId)) };
             }
 
             var self = this,
@@ -571,8 +581,10 @@ define([
 
             this.select('itemSelector').each(function(idx, item) {
                 var $item = $(item),
-                    vertexId = $item.children('a').data('vertexId');
-                if (vertexId && vertexId in updatedVertices) {
+                    $a = $item.children('a'),
+                    vertexId = $a.data('vertexId'),
+                    isExtendedData = $a.data('extendedData');
+                if (!isExtendedData && vertexId && vertexId in updatedVertices) {
                     self.attachItemRenderer($item, updatedVertices[vertexId]);
                 }
             });

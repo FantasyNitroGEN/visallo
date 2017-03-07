@@ -94,7 +94,7 @@ define([
 
         this.onLimitParentConceptId = function(event, data) {
             this.attr.limitParentConceptId = data.conceptId;
-            this.transformRelationships();
+            this.transformTableProperties();
         };
 
         this.onChange = function(event, data) {
@@ -126,7 +126,7 @@ define([
 
                     var ontologyConcepts = ontology.concepts,
                         relationshipOntology = ontology.relationships,
-                        transformed = self.transformRelationships(),
+                        transformed = self.transformTableProperties(),
                         placeholderForRelationships = function() {
                             return transformed.length ?
                                 self.attr.defaultText :
@@ -143,7 +143,7 @@ define([
                         minLength: 0,
                         items: self.attr.maxItems,
                         source: function(query) {
-                            var relationships = self.transformRelationships(),
+                            var relationships = self.transformTableProperties(),
                                 placeholder = placeholderForRelationships(relationships);
 
                             relationships.splice(0, 0, placeholder);
@@ -207,7 +207,7 @@ define([
                 });
         }
 
-        this.transformRelationships = function() {
+        this.transformTableProperties = function() {
             var self = this,
                 list = this.limitedToSourceDest || ontology.relationships.list;
 
