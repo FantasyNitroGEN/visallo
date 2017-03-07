@@ -338,11 +338,11 @@ define([
                 const tabSettings = tableView[tabId];
                 const { direction, sortPropertyIri } = tabSettings;
                 const sort = [`${sortPropertyIri}:${direction}`];
-                const itemFilter = url.indexOf('vertex') > -1 ? 'conceptType' : 'edgeLabel';
+                const itemFilter = url.indexOf('vertex') > -1 ? 'conceptTypes' : 'edgeLabels';
 
                 return {
                     ...parameters,
-                    [itemFilter]: tabId,
+                    [itemFilter]: JSON.stringify([{ iri: tabId, includeChildNodes: false }]),
                     'sort[]': sort,
                     offset: startIndex,
                     size: stopIndex - startIndex
