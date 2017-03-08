@@ -3,3 +3,4 @@ package.json
 .bookignore
 .gitignore
 yarn.lock
+_book-*
