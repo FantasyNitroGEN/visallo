@@ -1,2 +1,4 @@
 docs.visallo.org/
 node_modules/
+_book-*
+_book

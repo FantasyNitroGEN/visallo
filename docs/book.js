@@ -5,7 +5,7 @@ module.exports = {
   language: 'en',
   direction: 'ltr',
   // UPDATE Makefile "plugins=" variable if changing
-  plugins: [ 'ga', 'theme-visallo', 'github-embed' ],
+  plugins: [ '-sharing', 'ga', 'theme-visallo', 'github-embed' ],
   styles: {
       website: 'styles/website.css'
   },
@@ -15,6 +15,9 @@ module.exports = {
     },
     lunr: {
         maxIndexSize: 1000000000
+    },
+    'theme-visallo': {
+        canonicalBaseUrl: 'http://docs.visallo.org'
     }
   }
 };
