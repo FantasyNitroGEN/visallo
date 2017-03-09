@@ -5,6 +5,7 @@ import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.model.PropertyJustificationMetadata;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -264,8 +265,11 @@ public class GraphRepository {
         if (publicProperty != null && workspaceId != null &&
                 SandboxStatus.getFromVisibilityString(publicProperty.getVisibility().getVisibilityString(), workspaceId)
                         == SandboxStatus.PUBLIC) {
+            long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
             // changing a public property, so hide it from the workspace
             element.markPropertyHidden(publicProperty, new Visibility(workspaceId), authorizations);
+            graph.flush();
+            workQueueRepository.pushGraphPropertyQueueHiddenOrDeleted(element, publicProperty, ElementOrPropertyStatus.HIDDEN, beforeDeletionTimestamp, workspaceId, Priority.HIGH);
         } else if (isUpdate && oldVisibilitySource != null && !oldVisibilitySource.equals(newVisibilitySource)) {
             // changing a existing sandboxed property's visibility
             elementMutation.alterPropertyVisibility(oldProperty, propertyVisibility);
