@@ -1,6 +1,45 @@
-
 v3.1.0
 ==================
+
+## Added
+
+* Multiple concepts and edge labels can be added to entity/relation search for an `IN` search
+* Pushing onto the gpw queue when a published property has been changed
+* `org.visallo.search.advanced` extension point with tutorial and documentation
+
+## Changed
+
+* Interfaces relating the Worker Queues
+* Re-run the search if match-type (entity/relation) changes when there are no filters, but there is a search query.
+* Upgrade Vertexium (2.5.3)
+
+## Fixed
+
+* Added an additional validation of the status when the graph property runner checks for whether or not any GPWs are interested
+* Changes to type filter when searching related will re-run the search
+* Ctrl+click selection in Windows.
+* Empty timeline doesn't throw JavaScript exceptions
+* Entity context menu options still appeared when the number of selected entities did not match their configuration for the acceptable amount.
+* Fix issue where loading the same relation saved search with a property filter would show duplicate filters.
+* Fixed Element Inspector add relationship property menu item copy
+* Hide graph layout options when you don't have edit access to thise case.
+* History was not available for relationships imported from RDF files.
+* In Firefox, when shift selecting rows in the saved search table, other text on the screen would be highlighted.
+* In IE, clicking the display all columns checkbox in the table configuration would not update on the first click if some columns were displayed and some were not(checkbox was indeterminate).
+* Issue where multiple selection element list could disappear
+* Shift selecting mutiple rows in the saved search table wasn't quite correct.
+* ctrl/cmd+click was not deselecting already selected elements in a list.
+
+## Documentation
+
+* Added tutorial and documented [`org.visallo.entity.listItemRenderer`](http://docs.visallo.org/extension-points/front-end/entityListItemRenderer/)
+* New JSDoc documentation of front-end API, services, extension points
+* New tutorials in documentation with references to actual plugin projects
+
+## Removed
+
+* Hierarchical graph layout for selections.
+* `org.visallo.detail.extensions` extension point, instead use the `org.visallo.layout.component` extension to adjust element inspector display
 
 v3.0.0
 ==================
