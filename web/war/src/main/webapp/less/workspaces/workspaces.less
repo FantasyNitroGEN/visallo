@@ -61,6 +61,10 @@ li {
 
   .badge {
     float: right;
+
+    &.permissions {
+      align-self: center;
+    }
   }
 }
 
@@ -185,18 +189,29 @@ li {
   .share-list li.user-row {
     display: flex;
     margin: 0.5em 0;
-    .subtitle {
-      font-size: 90%;
-      color: #555;
-    }
-    .user-displayname {
+
+    .user-info {
       flex: 1 1 auto;
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-    .user-status {
-      top: 1.5ex;
+      
+      .user-displayname {
+        flex: 1 1 auto;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .user-status {
+        top: 1.5ex;
+      }
+
+      .subtitle {
+        font-size: 90%;
+        color: #555;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   }
   .share-list .nav-header {
