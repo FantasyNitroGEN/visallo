@@ -120,7 +120,15 @@ public class GraphPropertyWorkData {
         return visibilityJson;
     }
 
+    /**
+     * @deprecated  replaced by {@link #getElementVisibilityJson()}
+     */
+    @Deprecated
     public VisibilityJson getVisibilityJson() {
+        return getElementVisibilityJson();
+    }
+
+    public VisibilityJson getElementVisibilityJson() {
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(getElement());
         if (visibilityJson != null) {
             return visibilityJson;
@@ -129,11 +137,22 @@ public class GraphPropertyWorkData {
         return getVisibilitySourceJson();
     }
 
+    public VisibilityJson getPropertyVisibilityJson() {
+        if (property != null) {
+            VisibilityJson propertyVisibilityJson = VisalloProperties.VISIBILITY_JSON_METADATA.getMetadataValue(property);
+            if (propertyVisibilityJson != null) {
+                return propertyVisibilityJson;
+            }
+        }
+        return getElementVisibilityJson();
+    }
+
     public Metadata createPropertyMetadata(User user) {
         Metadata metadata = new Metadata();
-        VisibilityJson visibilityJson = getVisibilityJson();
+        VisibilityJson visibilityJson = getElementVisibilityJson();
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         if (visibilityJson != null) {
+            
             VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
         }
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), defaultVisibility);
@@ -142,7 +161,7 @@ public class GraphPropertyWorkData {
     }
 
     public void setVisibilityJsonOnElement(ElementBuilder builder) {
-        VisibilityJson visibilityJson = getVisibilityJson();
+        VisibilityJson visibilityJson = getElementVisibilityJson();
         if (visibilityJson != null) {
             VisalloProperties.VISIBILITY_JSON.setProperty(builder, visibilityJson, visibilityTranslator.getDefaultVisibility());
         }
