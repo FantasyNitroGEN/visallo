@@ -48,9 +48,10 @@ define([
             filterItemsSelector: '.prop-filters .filter',
             conceptDropdownSelector: '.concepts-dropdown',
             conceptListSelector: '.concepts-list',
-            relationshipListSelector: '.edgetype-list',
             edgeLabelDropdownSelector: '.edgetype-dropdown',
+            relationshipListSelector: '.edgetype-list',
             tableNameDropdownSelector: '.tablename-dropdown',
+            tableNameListSelector: '.tablename-list',
             sortContentSelector: '.sort-content',
             conceptFilterSelector: '.concepts-dropdown,.concepts-list,.concept-filter-header',
             edgeLabelFilterSelector: '.edgetype-dropdown,.edgetype-list,.edgetype-filter-header',
@@ -116,9 +117,10 @@ define([
                     });
             };
 
-            this.filtersLoaded = this.dataRequest('ontology', 'ontology').then(({ relationships, concepts }) => {
+            this.filtersLoaded = this.dataRequest('ontology', 'ontology').then(({ relationships, concepts, properties }) => {
                 this.conceptsById = concepts.byId;
                 this.relationshipsById = relationships.byId;
+                this.propertiesByIri = properties.byTitle;
                 this.conceptsByParent = _.groupBy(concepts.byTitle, 'parentConcept');
                 this.relationshipsByParent = _.groupBy(relationships.list, 'parentIri');
 
@@ -400,37 +402,65 @@ define([
         };
 
         this.setExtendedDataTableFilter = function(tablePropertyIri) {
-            this.extendedDataTableFilter = tablePropertyIri || '';
-            this.trigger(this.select('tableNameDropdownSelector'), 'selectTableIri', {tablePropertyIri: tablePropertyIri});
+            const self = this;
 
-            if (this.matchType === 'edge' || this.matchType === 'vertex') {
+            if (arguments.length === 0) {
+                this.extendedDataTableFilter = [];
+            }
+            if (_.isArray(tablePropertyIri)) {
+                this.extendedDataTableFilter = tablePropertyIri;
+                tablePropertyIri = null;
+            }
+            if (!this.extendedDataTableFilter) {
+                this.extendedDataTableFilter = [];
+            }
+            if (tablePropertyIri) {
+                this.extendedDataTableFilter = [{ iri: tablePropertyIri }];
+            }
+
+            _.defer(() => {
+                this.select('tableNameDropdownSelector').find('input').blur();
+                this.trigger(this.select('tableNameDropdownSelector'), 'selectTableIri');
+            });
+
+            if (this.matchType !== 'extended-data') {
                 return;
             }
 
-            Promise.all([
-                this.dataRequest('ontology', 'properties'),
-                this.requestPropertiesByDomainType('extended-data')
-            ]).then(([ontologyProperties, extendedDataProperties]) => {
-                const tableProperty = tablePropertyIri ? ontologyProperties.byTitle[tablePropertyIri] : null;
-
-                this.filteredPropertiesList = extendedDataProperties
-                    .filter((prop) => {
-                        if (!tableProperty) {
-                            return true;
-                        }
-                        return tableProperty.tablePropertyIris.indexOf(prop.title) >= 0;
-                    });
-                this.select('filterItemsSelector')
-                    .add(this.select('sortContentSelector'))
-                    .trigger('filterProperties', {
-                        properties: this.filteredPropertiesList
-                    });
-                if (tablePropertyIri) {
-                    this.otherFilters.elementExtendedData = this.otherFilters.elementExtendedData || {};
-                    this.otherFilters.elementExtendedData.tableName = tablePropertyIri;
-                }
-                this.notifyOfFilters();
+            this.renderList('tableNameListSelector', this.extendedDataTableFilter, {
+                setter(v) { self.setExtendedDataTableFilter(v); },
+                displayName(filter) { return self.propertiesByIri[filter.iri].displayName; },
+                hasChildren(iri) { return false; }
             });
+
+            if (this.extendedDataTableFilter && this.extendedDataTableFilter.length > 0) {
+                this.otherFilters.elementExtendedData = this.otherFilters.elementExtendedData || {};
+                this.otherFilters.elementExtendedData.tableName = this.extendedDataTableFilter[0].iri;
+            } else {
+                delete this.otherFilters.elementExtendedData;
+            }
+
+            // Only filter the property list if table name search
+            // If related search just notify filters
+            if (this.extendedDataTableFilter.length) {
+                Promise.all([
+                    this.dataRequest('ontology', 'properties'),
+                    this.requestPropertiesByDomainType('extended-data')
+                ]).then(([ontologyProperties, extendedDataProperties]) => {
+                    const tableProperties = this.extendedDataTableFilter
+                        .map(item => ontologyProperties.byTitle[item.iri]);
+                    const properties = extendedDataProperties
+                        .filter(prop => {
+                            return tableProperties
+                                .some(tableProperty => tableProperty.tablePropertyIris.indexOf(prop.title) >= 0);
+                        });
+                    this.filterPropertyList([{list: properties}]);
+                    this.notifyOfFilters();
+                });
+            } else {
+                this.filterPropertyList();
+                this.notifyOfFilters();
+            }
         };
 
         this.filterPropertyList = function(properties) {
@@ -470,13 +500,12 @@ define([
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
             this.select('edgeLabelFilterSelector').toggle(Boolean(this.otherFilters.relatedToVertexIds || type === 'edge'));
-            this.select('tableNameFilterSelector').toggle(this.otherFilters.elementExtendedData || type === 'extended-data');
+            this.select('tableNameFilterSelector').toggle(Boolean(this.otherFilters.elementExtendedData || type === 'extended-data'));
             if (this.matchType === 'vertex') {
                 this.setConceptFilter(this.conceptFilter);
             } else if (this.matchType === 'edge') {
                 this.setEdgeTypeFilter(this.edgeLabelFilter);
             } else if (this.matchType === 'extended-data') {
-                this.$node.find('.child-nodes').hide();
                 this.setExtendedDataTableFilter(this.extendedDataTableFilter);
             }
             this.select('filterItemsSelector').each(function() {
@@ -522,7 +551,7 @@ define([
                 })
             }
 
-            if (this.matchType === 'edge' || this.matchType === 'extended-data') {
+            if (this.matchType !== 'vertex') {
                 return;
             }
 
@@ -561,18 +590,18 @@ define([
                                 this.append('span')
                                     .text(i18n('search.filters.include.child.nodes'))
                             })
-                        })
+                        });
                         this.append('button').attr('class', 'remove-icon').html('&times');
-                    })
+                    });
                     this.exit().remove();
                 })
                 .order()
                 .call(function() {
-                    this.select('.display').text(displayName)
+                    this.select('.display').text(displayName);
                     this.select('.remove-icon').on('click', function(d, index) {
                         list.splice(index, 1);
                         setter(list);
-                    })
+                    });
                     this.select('.descendants')
                         .style('display', function(d) {
                             var children = hasChildren(d.iri);
@@ -647,6 +676,7 @@ define([
                 .then(() => options.clearMatch !== false ? this.setMatchType('vertex') : null)
                 .then(() => this.setConceptFilter())
                 .then(() => this.setEdgeTypeFilter())
+                .then(() => this.setExtendedDataTableFilter())
                 .then(this.setSort.bind(this))
                 .then(this.createNewRowIfNeeded.bind(this))
                 .then(function() {
@@ -670,7 +700,7 @@ define([
                 !_.isEmpty(filters.otherFilters) ||
                 !_.isEmpty(this.currentSort)
              );
-        }
+        };
 
         this.notifyOfFilters = function(options) {
             const self = this;
@@ -796,7 +826,7 @@ define([
                                         return _.contains(keys, pair[0]);
                                     })
                                     .object()
-                                    .value()
+                                    .value();
 
                                 $extensionLi
                                     .on('savedQueryLoaded', function loaded() {
@@ -835,11 +865,21 @@ define([
                     if (data.parameters.edgeLabels) {
                         var types = data.parameters.edgeLabels;
                         if (_.isString(types)) {
-                            types = JSON.parse(types)
+                            types = JSON.parse(types);
                         }
                         return self.setEdgeTypeFilter(types);
                     }
                     return self.setEdgeTypeFilter();
+                })
+                .then(function() {
+                    if (data.parameters.elementExtendedData) {
+                        var types = data.parameters.elementExtendedData;
+                        if (_.isString(types)) {
+                            types = JSON.parse(types);
+                        }
+                        return self.setExtendedDataTableFilter(types);
+                    }
+                    return self.setExtendedDataTableFilter();
                 })
                 .then(function() {
                     var sortRaw = data.parameters['sort[]'],

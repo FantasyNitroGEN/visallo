@@ -31,6 +31,9 @@ define([
             });
             this.on('limitParentConceptId', this.onLimitParentConceptId);
             this.on('selectTableIri', this.onSetTableIri);
+            this.on('change', {
+                fieldSelector: this.onChange
+            });
 
             this.setupTypeahead();
         });
@@ -47,6 +50,15 @@ define([
         this.onLimitParentConceptId = function (event, data) {
             this.attr.limitParentConceptId = data.conceptId;
             this.transformTableProperties();
+        };
+
+        this.onChange = function(event, data) {
+            const value = $.trim(this.select('fieldSelector').val());
+            if (!value) {
+                this.trigger('tableSelected', {
+                    tableProperty: null
+                });
+            }
         };
 
         this.setupTypeahead = function () {

@@ -119,8 +119,13 @@ define([
                                 .flatten()
                                 .uniq()
                                 .map(function(propertyName) {
-                                    return ontology.properties[propertyName]
+                                    if (!ontology.properties[propertyName]) {
+                                        console.error('could not find extended-data property: ' + propertyName);
+                                        return null;
+                                    }
+                                    return ontology.properties[propertyName];
                                 })
+                                .compact()
                                 .value();
                         }
 
