@@ -34,6 +34,8 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             FetchHint.OUT_EDGE_LABELS
     );
     private static final int HISTORICAL_PROPERTY_MAX_SPV_SIZE = 2000;
+    private static final String MODIFIED_BY_PROPERTY = "http://visallo.org#modifiedBy";
+    private static final String CONCEPT_TYPE_PROPERTY = "http://visallo.org#conceptType";
 
     public static List<ClientApiElement> toClientApi(
             Iterable<? extends org.vertexium.Element> elements,
@@ -299,6 +301,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         
         Map<String, HistoricalPropertyValue> cachedValues = Maps.newHashMap();
         ClientApiHistoricalPropertyResults.Event event = null;
+        HistoricalPropertyValue conceptTypeHpv = null;
         
         for (HistoricalPropertyValue hpv : sortedHistoricalValues) {
             String key = hpv.getPropertyKey() + hpv.getPropertyName();
@@ -306,8 +309,19 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             event = null;
             
             if(cached == null) { // Add
-                event = generatePropertyAddedEvent(hpv, locale, resourceBundle, withVisibility);
-                 cachedValues.put(key, hpv);
+                if(hpv.getPropertyName().equals(CONCEPT_TYPE_PROPERTY)) {
+                    conceptTypeHpv = hpv;
+                } else {
+                    event = generatePropertyAddedEvent(hpv, locale, resourceBundle, withVisibility);
+                    cachedValues.put(key, hpv);
+
+                    // Use the ModifiedBy property to complete the ConceptType event
+                    if (hpv.getPropertyName().equals(MODIFIED_BY_PROPERTY) && conceptTypeHpv != null) {
+                        String modifiedBy = event.fields.get("value");
+                        event = generatePropertyAddedEvent(conceptTypeHpv, locale, resourceBundle, withVisibility);
+                        event.modifiedBy = modifiedBy;
+                    }
+                }
             } else if(hpv.isDeleted()) {  // Delete
                 // Non-consecutive delete events
                 if(hpv.isDeleted() != cached.isDeleted()) {
@@ -337,7 +351,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         event.timestamp = hpv.getTimestamp();
         event.propertyKey = hpv.getPropertyKey();
         event.propertyName = hpv.getPropertyName();
-        Metadata.Entry modifiedByEntry = hpv.getMetadata().getEntry("http://visallo.org#modifiedBy");
+        Metadata.Entry modifiedByEntry = hpv.getMetadata().getEntry(MODIFIED_BY_PROPERTY);
         event.modifiedBy = ((modifiedByEntry != null) ? toClientApiValue(modifiedByEntry.getValue()).toString() : null);
         return event;
     }
