@@ -10,6 +10,10 @@ Change directories to the checked out code. This is your `$PROJECT_DIR` director
 
       cd visallo
 
+Compile the application (optionally run tests.)
+      
+      mvn -DskipTests compile      
+
 Run the web application.
 
       mvn -am -pl dev/tomcat-server -P dev-tomcat-run compile
