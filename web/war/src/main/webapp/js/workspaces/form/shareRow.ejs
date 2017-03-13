@@ -1,12 +1,15 @@
 <li class="user-row" data-user-id="<%= user.userId %>"
 >
-  <span class="user-displayname"><%= user.displayName %></span>
+  <div class="user-info">
+    <div class="user-status st-<%= user.status ? user.status.toLowerCase() : 'unknown' %>"></div>
+      <span class="user-displayname"><%= user.displayName %></span>
+      <% if (user.displayName.toLowerCase() !== (user.email || user.userName).toLowerCase()) { %>
+      <div class="subtitle"><%= user.email || user.userName %></div>
+      <% } %>
+  </div>
+
   <span class="badge permissions"
-       data-access="<%= user.access.toUpperCase() %>"
-       style="<%= editable ? '' : 'cursor:default' %>"
-       ><%= user.permissionLabel %> <% if (editable) { %><span class="caret"></span><% } %></span>
-  <% if (user.displayName.toLowerCase() !== (user.email || user.userName).toLowerCase()) { %>
-  <div class="subtitle"><%= user.email || user.userName %></div>
-  <% } %>
-  <div class="user-status st-<%= user.status ? user.status.toLowerCase() : 'unknown' %>"></div>
+         data-access="<%= user.access.toUpperCase() %>"
+         style="<%= editable ? '' : 'cursor:default' %>"
+         ><%= user.permissionLabel %> <% if (editable) { %><span class="caret"></span><% } %></span>
 </li>
