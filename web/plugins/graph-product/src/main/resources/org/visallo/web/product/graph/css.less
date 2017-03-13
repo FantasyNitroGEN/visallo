@@ -31,6 +31,8 @@
   .find-path-config {
     width: 250px;
     height: 305px;
+    display: flex;
+    flex-direction: column;
 
     .field-title {
       text-transform: uppercase;
@@ -78,6 +80,10 @@
           border: 0;
           margin-top: -5px;
           margin-bottom: -5px;
+
+          &::-ms-expand {
+            display: none;
+          }
         }
       }
     }
