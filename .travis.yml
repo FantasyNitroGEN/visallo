@@ -2,15 +2,17 @@ sudo: false
 language: java
 jdk:
   - oraclejdk8
+node_js: "6"
+cache:
+  directories:
+    - $HOME/.npm
+    - $HOME/.yarn-cache
 env:
   - CC=clang CXX=clang++
-script: mvn -B -fae test -Ptest-exclude-native -DlogQuiet
-after_success:
-  - test $TRAVIS_REPO_SLUG == "visallo/visallo" && test $TRAVIS_BRANCH == "master" || test 'echo $TRAVIS_BRANCH | grep -Eq /^release-.*$/' && test $TRAVIS_PULL_REQUEST == "false" && echo "<settings><servers><server><id>sonatype-nexus-snapshots</id><username>\${env.DEPLOY_USERNAME}</username><password>\${env.DEPLOY_PASSWORD}</password></server></servers></settings>" > ~/settings.xml
-  - test -f ~/settings.xml && mvn -B --settings ~/settings.xml -f root/pom.xml deploy
-  - test -f ~/settings.xml && mvn -B --settings ~/settings.xml -DskipTests deploy
-  - CREATED_BY="$TRAVIS_REPO_SLUG commit "`git rev-parse --short HEAD`""
-  - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then ./travis/travis-request.sh --repo $TRAVIS_DOWNSTREAM_REPO --token $TRAVIS_ACCESS_TOKEN_PRO --by "$CREATED_BY" --branch $TRAVIS_BRANCH; fi 
+  - BUILD_DOCS=1 VERSION_LIST="release-3.1 master" VERSION_ROOT="release-3.1" 
+install: ./travis/install.sh
+script: ./travis/script.sh
+after_success: ./travis/after-success.sh
 branches:
   only:
     - master
