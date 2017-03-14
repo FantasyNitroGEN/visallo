@@ -13,7 +13,6 @@ import org.atmosphere.interceptor.BroadcastOnPostAtmosphereInterceptor;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.atmosphere.interceptor.JavaScriptProtocol;
 import org.json.JSONObject;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -165,7 +164,9 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
 
     private void onDisconnectOrClose(AtmosphereResourceEvent event) {
         // If POST /logout was called first the session will be invalidated.
-        if (event.getResource().getRequest().getSession() == null) {
+        if (event.getResource() == null
+                || event.getResource().getRequest() == null
+                || event.getResource().getRequest().getSession() == null) {
             return;
         }
 
@@ -251,6 +252,10 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
 
     private boolean decrementUserSessionCount(AtmosphereResource resource) {
         String userId = getCurrentUserId(resource);
+        if (userId == null) {
+            LOGGER.debug("userId could not be found in Atmosphere session");
+            return false;
+        }
         return userSessionCounterRepository.deleteSession(userId, resource.uuid()) < 1;
     }
 
@@ -263,7 +268,8 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
         if (userId != null && userId.trim().length() > 0) {
             return userId;
         }
-        throw new VisalloException("failed to get a current userId via an AtmosphereResource");
+
+        return null;
     }
 
     @Inject

@@ -10,7 +10,6 @@ public abstract class WebServer extends CommandLineTool {
     public static final int DEFAULT_SERVER_PORT = 8080;
     public static final int DEFAULT_HTTPS_SERVER_PORT = 8443;
     public static final String DEFAULT_CONTEXT_PATH = "";
-    public static final int DEFAULT_SESSION_TIMEOUT = 30;
     public static final String DEFAULT_KEYSTORE_TYPE = "JKS";
 
     @Parameter(names = {"--port"}, arity = 1, description = "The port to run the HTTP connector on")
@@ -48,9 +47,6 @@ public abstract class WebServer extends CommandLineTool {
 
     @Parameter(names = {"--contextPath"}, arity = 1, description = "Context path for the webapp")
     private String contextPath = DEFAULT_CONTEXT_PATH;
-
-    @Parameter(names = {"--sessionTimeout"}, arity = 1, description = "number of minutes before idle sessions expire")
-    private int sessionTimeout = DEFAULT_SESSION_TIMEOUT;
 
     public int getHttpPort() {
         return httpPort;
@@ -98,9 +94,5 @@ public abstract class WebServer extends CommandLineTool {
 
     public File getWebAppDir() {
         return webAppDir;
-    }
-
-    public int getSessionTimeout() {
-        return sessionTimeout;
     }
 }
