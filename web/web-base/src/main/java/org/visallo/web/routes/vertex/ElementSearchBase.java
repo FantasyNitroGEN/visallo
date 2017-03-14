@@ -48,7 +48,7 @@ public abstract class ElementSearchBase {
     ) throws Exception {
         SearchOptions searchOptions = WebSearchOptionsFactory.create(request, workspaceId);
         try (QueryResultsIterableSearchResults searchResults = this.searchRunner.run(searchOptions, user, authorizations)) {
-            Map<String, Double> scores = null;
+            Map<Object, Double> scores = null;
             if (searchResults.getQueryResultsIterable() instanceof IterableWithScores) {
                 scores = ((IterableWithScores<?>) searchResults.getQueryResultsIterable()).getScores();
             }
@@ -201,7 +201,7 @@ public abstract class ElementSearchBase {
     protected List<ClientApiElement> convertElementsToClientApi(
             ElementSearchRunnerBase.QueryAndData queryAndData,
             Iterable<? extends Element> searchResults,
-            Map<String, Double> scores,
+            Map<Object, Double> scores,
             String workspaceId,
             Authorizations authorizations
     ) {
