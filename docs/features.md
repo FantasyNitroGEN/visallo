@@ -4,11 +4,11 @@ Many featues within Visallo are developed and run as plugins to the system. Ther
 
 ## Web Plugins
 
-The following web plugins come with Visallo, but not all are installed by default. 
+The following web plugins come with Visallo, but not all are [installed](#viewing-active-plugins) by default.
 
 | Feature | Description |
 | ------- | -------------------|
-| admin-import-rdf | import RDF formatted data from the admin console |
+| [admin-import-rdf](extension-points/back-end/ingestion/rdfimport.md#through-the-webapp-ui) | import RDF formatted data from the admin console |
 | auth-username-only | authentication via username only; useful during development |
 | auth-username-password | standard username password authentication |
 | change-email | UI plugin allowing users to change their email address |
@@ -27,4 +27,9 @@ The following features are executed as graph property workers that run within th
 | zipcode-extractor | identification of postal codes in text (currently US only) |
 | tika-mime-type | sets MIME type metadata property of "raw" properties (e.g. file content) using [Tika](http://tika.apache.org/) |
 | mime-type-ontology-mapper | sets the concept type property of vertices based on their MIME type |
+
+
+## Viewing Active Plugins
+
+You can view a list of all active plugins as well as registered UI extensions under the **Plugin** section of the Admin panel
 
