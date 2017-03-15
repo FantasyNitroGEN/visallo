@@ -1,7 +1,6 @@
 package org.visallo.core.util;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
@@ -34,8 +33,6 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             FetchHint.OUT_EDGE_LABELS
     );
     private static final int HISTORICAL_PROPERTY_MAX_SPV_SIZE = 2000;
-    private static final String MODIFIED_BY_PROPERTY = "http://visallo.org#modifiedBy";
-    private static final String CONCEPT_TYPE_PROPERTY = "http://visallo.org#conceptType";
 
     public static List<ClientApiElement> toClientApi(
             Iterable<? extends org.vertexium.Element> elements,
@@ -299,7 +296,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         List<HistoricalPropertyValue> sortedHistoricalValues = Lists.newArrayList(historicalPropertyValues);
         Collections.reverse(sortedHistoricalValues);
         
-        Map<String, HistoricalPropertyValue> cachedValues = Maps.newHashMap();
+        Map<String, HistoricalPropertyValue> cachedValues = new HashMap<>();
         ClientApiHistoricalPropertyResults.Event event = null;
         HistoricalPropertyValue conceptTypeHpv = null;
         
@@ -308,28 +305,28 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             HistoricalPropertyValue cached = cachedValues.get(key);
             event = null;
             
-            if(cached == null) { // Add
-                if(hpv.getPropertyName().equals(CONCEPT_TYPE_PROPERTY)) {
+            if (cached == null) { // Add
+                if (hpv.getPropertyName().equals(VisalloProperties.CONCEPT_TYPE.getPropertyName())) {
                     conceptTypeHpv = hpv;
                 } else {
                     event = generatePropertyAddedEvent(hpv, locale, resourceBundle, withVisibility);
                     cachedValues.put(key, hpv);
 
                     // Use the ModifiedBy property to complete the ConceptType event
-                    if (hpv.getPropertyName().equals(MODIFIED_BY_PROPERTY) && conceptTypeHpv != null) {
+                    if (hpv.getPropertyName().equals(VisalloProperties.MODIFIED_BY.getPropertyName()) && conceptTypeHpv != null) {
                         String modifiedBy = event.fields.get("value");
                         event = generatePropertyAddedEvent(conceptTypeHpv, locale, resourceBundle, withVisibility);
                         event.modifiedBy = modifiedBy;
                     }
                 }
-            } else if(hpv.isDeleted()) {  // Delete
+            } else if (hpv.isDeleted()) {  // Delete
                 // Non-consecutive delete events
-                if(hpv.isDeleted() != cached.isDeleted()) {
+                if (hpv.isDeleted() != cached.isDeleted()) {
                     event = generatePropertyDeletedEvent(hpv, locale, resourceBundle, withVisibility);
                 }
                 cachedValues.remove(key);
             } else { // Check if modified
-                if(hasHistoricalPropertyChanged(cached, hpv, withVisibility)) {
+                if (hasHistoricalPropertyChanged(cached, hpv, withVisibility)) {
                     event = generatePropertyModifiedEvent(hpv, cached, locale, resourceBundle, withVisibility);
                 } else {
                     LOGGER.warn("Historical property value did not change. Ignore");
@@ -338,7 +335,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
                 cachedValues.put(key, hpv);
             }
             
-            if(event != null) {
+            if (event != null) {
                 result.events.add(event);
             }
         }
@@ -351,7 +348,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         event.timestamp = hpv.getTimestamp();
         event.propertyKey = hpv.getPropertyKey();
         event.propertyName = hpv.getPropertyName();
-        Metadata.Entry modifiedByEntry = hpv.getMetadata().getEntry(MODIFIED_BY_PROPERTY);
+        Metadata.Entry modifiedByEntry = hpv.getMetadata().getEntry(VisalloProperties.MODIFIED_BY.getPropertyName());
         event.modifiedBy = ((modifiedByEntry != null) ? toClientApiValue(modifiedByEntry.getValue()).toString() : null);
         return event;
     }
@@ -361,7 +358,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         
         ClientApiHistoricalPropertyResults.Event event = generateGenericEvent(hpv); 
         event.setEventType(ClientApiHistoricalPropertyResults.EventType.PROPERTY_ADDED);
-        Map<String, String> fields = Maps.newHashMap();
+        Map<String, String> fields =new HashMap<>();
         
         Object value = hpv.getValue();
         if (value instanceof StreamingPropertyValue) {
@@ -369,7 +366,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         }
         fields.put("value", toClientApiValue(value).toString());
         
-        if(withVisibility) {
+        if (withVisibility) {
             fields.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
         }
         event.fields = fields;
@@ -382,8 +379,8 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         
         ClientApiHistoricalPropertyResults.Event event = generateGenericEvent(hpv); 
         event.setEventType(ClientApiHistoricalPropertyResults.EventType.PROPERTY_DELETED);
-        Map<String, String> fields = Maps.newHashMap();
-        Map<String, String> changed = Maps.newHashMap();
+        Map<String, String> fields = new HashMap<>();
+        Map<String, String> changed = new HashMap<>();
         
         Object value = hpv.getValue();
         if (value instanceof StreamingPropertyValue) {
@@ -391,7 +388,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         }
         changed.put("value", toClientApiValue(value).toString());
 
-        if(withVisibility) {
+        if (withVisibility) {
             changed.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
         }
         event.fields = null;
@@ -406,19 +403,19 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         ClientApiHistoricalPropertyResults.Event event = generateGenericEvent(hpv); 
         event.setEventType(ClientApiHistoricalPropertyResults.EventType.PROPERTY_MODIFIED);
         
-        Map<String, String> fields = Maps.newHashMap();
-        Map<String, String> changed = Maps.newHashMap();
+        Map<String, String> fields = new HashMap<>();
+        Map<String, String> changed = new HashMap<>();
         
         Object value = hpv.getValue();
         if (value instanceof StreamingPropertyValue) {
             value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value, locale, resourceBundle);
         }
         fields.put("value", toClientApiValue(value).toString());
-        if(!hpv.getValue().equals(cached.getValue())) {
+        if (!hpv.getValue().equals(cached.getValue())) {
             changed.put("value", toClientApiValue(cached.getValue()).toString());
         }
        
-        if(withVisibility) {
+        if (withVisibility) {
             fields.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
             if (!hpv.getPropertyVisibility().getVisibilityString().equals(cached.getPropertyVisibility().getVisibilityString())) {
                 changed.put("visibility", cached.getPropertyVisibility().getVisibilityString());
@@ -432,10 +429,10 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
     
     private static boolean hasHistoricalPropertyChanged(HistoricalPropertyValue previous, HistoricalPropertyValue current,
         boolean withVisibility) {
-        if(!current.getValue().equals(previous.getValue())) {
+        if (!current.getValue().equals(previous.getValue())) {
             return true;
         }  
-        if(withVisibility && !current.getPropertyVisibility().getVisibilityString().equals(previous.getPropertyVisibility().getVisibilityString())) {
+        if (withVisibility && !current.getPropertyVisibility().getVisibilityString().equals(previous.getPropertyVisibility().getVisibilityString())) {
             return true;
         }
         return false;
