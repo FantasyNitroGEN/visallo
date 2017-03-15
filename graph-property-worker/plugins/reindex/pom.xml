@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.visallo</groupId>
         <artifactId>visallo-graph-property-worker-plugin-base</artifactId>
-        <version>3.1.0-RC2-SNAPSHOT</version>
+        <version>3.1.0-RC2</version>
         <relativePath>../../graph-property-worker-plugin-base</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
