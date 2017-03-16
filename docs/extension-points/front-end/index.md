@@ -17,7 +17,7 @@ require(['public/v1/api'], function(visallo) {
 })
 ```
 
-For example, to add an item to the menubar, use the [Menubar extension point](./menubar/index.md):
+For example, to add an item to the menu bar, use the [Menu bar extension point](./menubar/index.md):
 
 {% github_embed "https://github.com/visallo/doc-examples/blob/3b6ac03e/extension-menubar/src/main/resources/org/visallo/examples/menubar/plugin.js#L3-L16" %}{% endgithub_embed %}
 

@@ -65,13 +65,13 @@ Visallo has a built-in set of routing using the URLs fragment identifier.
 
     Opens Visallo, and the admin pane (if the user has admin privilege) to the admin tool with name `[name]` in section `[section]`. 
 
-* **Open Visallo Menubar Tools**
+* **Open Visallo Menu Bar Tools**
 
         Fragment: #tools=[menubar name, [menubar name]]
         Example: https://visallo.com/#tools=products      // Open Work Products (and first product)
                  https://visallo.com/#tools=dashboard,workspaces,activity // Open Dashboard, Cases, and Activity Pane
 
-    Opens Visallo to the specified menubar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behavior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
+    Opens Visallo to the specified menu bar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behavior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
 
 ## Configuration
 
