@@ -1,3 +1,7 @@
+addons:
+  apt:
+    packages:
+      - python
 sudo: false
 language: java
 jdk:
@@ -7,6 +11,7 @@ cache:
   directories:
     - $HOME/.npm
     - $HOME/.yarn-cache
+    - $HOME/awscli-bundle
 env:
   - CC=clang CXX=clang++
   - BUILD_DOCS=1 VERSION_LIST="release-3.1 master" VERSION_ROOT="release-3.1" 
