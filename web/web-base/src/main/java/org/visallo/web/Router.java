@@ -298,6 +298,9 @@ public class Router extends HttpServlet {
         if (handleIllegalState(request, response, e)) {
             return;
         }
+        if (isClientAbortException(e)) {
+            return;
+        }
 
         String message = String.format("Unhandled exception for %s %s", request.getMethod(), request.getRequestURI());
         if (app.isDevModeEnabled()) {
@@ -306,6 +309,17 @@ public class Router extends HttpServlet {
             LOGGER.warn(message, e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    private boolean isClientAbortException(Throwable e) {
+        // Need to use a string here because ClientAbortException is a Tomcat specific exception
+        if (e.getClass().getName().equals("org.apache.catalina.connector.ClientAbortException")) {
+            return true;
+        }
+        if (e.getCause() != null) {
+            return isClientAbortException(e.getCause());
+        }
+        return false;
     }
 
     private boolean handleIllegalState(HttpServletRequest request, HttpServletResponse response, Throwable e) throws IOException {
