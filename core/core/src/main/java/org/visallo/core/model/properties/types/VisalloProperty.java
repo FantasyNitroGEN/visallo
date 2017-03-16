@@ -122,6 +122,14 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         m.softDeleteProperty(key, getPropertyName(), visibility);
     }
 
+    public <T extends Element> void removeProperty(
+            ElementUpdateContext<T> ctx,
+            String propertyKey,
+            Visibility visibility
+    ) {
+        removeProperty(ctx.getMutation(), propertyKey, visibility);
+    }
+
     public void alterVisibility(ExistingElementMutation<?> elementMutation, String propertyKey, Visibility newVisibility) {
         elementMutation.alterPropertyVisibility(propertyKey, getPropertyName(), newVisibility);
     }
