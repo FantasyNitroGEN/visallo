@@ -3,7 +3,7 @@
 * [Element List Item Renderer JavaScript API `org.visallo.entity.listItemRenderer`](../../../javascript/org.visallo.entity.listItemRenderer.html)
 * [Element List Item Renderer Example Code](https://github.com/visallo/doc-examples/tree/master/extension-entity-listitemrenderer)
 
-This allows plugins to adjust how list items are displayed in search results, details panels, or anywhere else the [Element List Component](../../../javascript/module-components_List.html) is used.
+This allows plugins to adjust how list items are displayed in search results, Element Inspector, or anywhere else the [Element List Component](../../../javascript/module-components_List.html) is used.
 
 <div style="text-align:center">
 <img src="./items.png" width="100%" style="max-width: 500px;">
