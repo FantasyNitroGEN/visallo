@@ -39,21 +39,32 @@ public class WebConfiguration {
     public static final String LOGIN_SHOW_POWERED_BY = PREFIX + "login.showPoweredBy";
     public static final String SHOW_VERSION_COMMENTS = PREFIX + "showVersionComments";
     public static final String SHOW_VISIBILITY_IN_DETAILS_PANE = PREFIX + "showVisibilityInDetailsPane";
-    public static final PropertyMetadata PROPERTY_METADATA_SOURCE_TIMEZONE = new PropertyMetadata("http://visallo.org#sourceTimezone",
+    public static final String MAX_SESSION_INACTIVE_INTERVAL_SECONDS = PREFIX + "maxSessionInactiveIntervalSeconds";
+    public static final PropertyMetadata PROPERTY_METADATA_SOURCE_TIMEZONE = new PropertyMetadata(
+            "http://visallo.org#sourceTimezone",
             "properties.metadata.label.source_timezone",
-            "timezone");
-    public static final PropertyMetadata PROPERTY_METADATA_MODIFIED_DATE = new PropertyMetadata(VisalloProperties.MODIFIED_DATE,
+            "timezone"
+    );
+    public static final PropertyMetadata PROPERTY_METADATA_MODIFIED_DATE = new PropertyMetadata(
+            VisalloProperties.MODIFIED_DATE,
             "properties.metadata.label.modified_date",
-            "datetime");
-    public static final PropertyMetadata PROPERTY_METADATA_MODIFIED_BY = new PropertyMetadata(VisalloProperties.MODIFIED_BY,
+            "datetime"
+    );
+    public static final PropertyMetadata PROPERTY_METADATA_MODIFIED_BY = new PropertyMetadata(
+            VisalloProperties.MODIFIED_BY,
             "properties.metadata.label.modified_by",
-            "user");
-    public static final PropertyMetadata PROPERTY_METADATA_STATUS = new PropertyMetadata("sandboxStatus",
+            "user"
+    );
+    public static final PropertyMetadata PROPERTY_METADATA_STATUS = new PropertyMetadata(
+            "sandboxStatus",
             "properties.metadata.label.status",
-            "sandboxStatus");
-    public static final PropertyMetadata PROPERTY_METADATA_CONFIDENCE = new PropertyMetadata(VisalloProperties.CONFIDENCE_METADATA,
+            "sandboxStatus"
+    );
+    public static final PropertyMetadata PROPERTY_METADATA_CONFIDENCE = new PropertyMetadata(
+            VisalloProperties.CONFIDENCE_METADATA,
             "properties.metadata.label.confidence",
-            "percent");
+            "percent"
+    );
 
     public static final Map<String, String> DEFAULTS = new HashMap<>();
 
@@ -124,6 +135,7 @@ public class WebConfiguration {
 
         DEFAULTS.put(MAP_PROVIDER, MapProvider.OSM.toString());
         DEFAULTS.put(MAP_PROVIDER_OSM_URL, "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+        DEFAULTS.put(MAX_SESSION_INACTIVE_INTERVAL_SECONDS, Integer.toString(30 * 60));
     }
 
     public static class PropertyMetadata {
