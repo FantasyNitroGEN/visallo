@@ -1,9 +1,9 @@
-# Menubar
+# Menu Bar
 
-* [Menubar JavaScript API `org.visallo.menubar`](../../../javascript/org.visallo.menubar.html)
-* [Menubar Example Code](https://github.com/visallo/doc-examples/tree/master/extension-menubar)
+* [Menu Bar JavaScript API `org.visallo.menubar`](../../../javascript/org.visallo.menubar.html)
+* [Menu Bar Example Code](https://github.com/visallo/doc-examples/tree/master/extension-menubar)
 
-Add additional icons into the menubar that can open a slide out panel or display a component in the content area like the built in dashboard.
+Add additional icons into the menu bar that can open a slide out panel or display a component in the content area like the built in dashboard.
 
 The icon can refer to an existing icon [bundled with Visallo](https://github.com/visallo/visallo/tree/master/web/war/src/main/webapp/img/glyphicons/white), or one registered with `registerFile` in a plugin. For best results, use a white mono-chromatic icon.
 
@@ -22,7 +22,7 @@ Register the plugin, a component for the pane, and a template for the _Welcome t
 
 ### Register Extension
 
-Register the menubar extension by pointing to the component and template. This one will use a bundled icon.
+Register the menu bar extension by pointing to the component and template. This one will use a bundled icon.
 
 {% github_embed "https://github.com/visallo/doc-examples/blob/3b6ac03e/extension-menubar/src/main/resources/org/visallo/examples/menubar/plugin.js#L3-L16" %}{% endgithub_embed %}
 
