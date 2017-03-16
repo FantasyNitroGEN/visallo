@@ -4,7 +4,7 @@ Extension points are places built into Visallo that can define additional behavi
 
 An extension point is simply a mapping from a string – the namespaced extension point name – to a JavaScript object. What kind of object is defined by the consumer of the extension point.
 
-All registered extension points are viewable in the admin panel, under `UI Extensions`, and in the table of contents in this document. This document focuses on tutorials for the extension points, for code-level documentation, view the [Extension Point Api](../../javascript/extensionpoints.html).
+All registered extension points are viewable in the admin panel, under `UI Extensions`, and in the table of contents in this document. This document focuses on tutorials for the extension points, for code-level documentation, view the [Extension Point Api](../../javascript/extensionPoints.html).
 
 ## Register an extension point
 
