@@ -3,7 +3,7 @@
 * [Activity JavaScript API `org.visallo.activity`](../../../javascript/org.visallo.activity.html)
 * [Activity Example Code](https://github.com/visallo/doc-examples/tree/master/extension-activity)
 
-Activity extension points allow plugins to add additional items to the activity panel (opened via the gears menubar icon.) These rows can show the progress of a long-running process or a front-end task using start/stop events.
+Activity extension points allow plugins to add additional items to the activity panel (opened via the gears menu bar icon.) These rows can show the progress of a long-running process or a front-end task using start/stop events.
 
 <div style="text-align:center">
 <img src="./activity.png" width="100%" style="max-width: 400px;">
