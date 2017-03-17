@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.visallo</groupId>
         <artifactId>visallo-web-plugin-base</artifactId>
-        <version>3.1.0-RC3-SNAPSHOT</version>
+        <version>3.1.0</version>
         <relativePath>../../web-plugin-base</relativePath>
     </parent>
     <groupId>org.visallo</groupId>
     <artifactId>visallo-web-table</artifactId>
     <name>Visallo: Web: Plugins: Table</name>
-    <version>3.1.0-RC3-SNAPSHOT</version>
+    <version>3.1.0</version>
 
     <build>
         <plugins>
