@@ -188,6 +188,7 @@ define([
             this.on(document, 'sessionExpiration', this.onSessionExpiration);
             this.on(document, 'showVertexContextMenu', this.onShowVertexContextMenu);
             this.on(document, 'showEdgeContextMenu', this.onShowEdgeContextMenu);
+            this.on(document, 'showCollapsedItemContextMenu', this.onShowCollapsedItemContextMenu);
             this.on(document, 'warnAboutContextMenuDisabled', this.onWarnAboutContextMenuDisabled);
             this.on(document, 'genericPaste', this.onGenericPaste);
             this.on(document, 'toggleTimeline', this.onToggleTimeline);
@@ -507,11 +508,11 @@ define([
             }
         };
 
-        this.onShowEdgeContextMenu = this.onShowVertexContextMenu = function(event, data) {
+        this.onShowCollapsedItemContextMenu = this.onShowEdgeContextMenu = this.onShowVertexContextMenu = function(event, data) {
             data.element = event.target;
 
             VertexMenu.teardownAll();
-            if (data && (data.vertexId || data.edgeIds)) {
+            if (data && (data.collapsedItemId || data.vertexId || data.edgeIds)) {
                 VertexMenu.attachTo(document.body, data);
             }
         };

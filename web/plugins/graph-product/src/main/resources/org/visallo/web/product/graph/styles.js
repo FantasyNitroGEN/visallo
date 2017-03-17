@@ -104,6 +104,15 @@ define([], function() {
                     }
                 },
                 {
+                    selector: 'node.c',
+                    css: {
+                        'background-color': '#fff',
+                        'background-image': 'data(imageSrc)',
+                        shape: 'rectangle',
+                        content: 'data(truncatedTitle)',
+                    }
+                },
+                {
                     selector: 'node:selected',
                     css: {
                         'background-color': '#0088cc',

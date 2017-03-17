@@ -91,6 +91,7 @@ define([
             initialProductDisplay: PropTypes.bool,
             hasPreview: PropTypes.bool,
             editable: PropTypes.bool,
+            onCollapseSelectedVertices: PropTypes.func.isRequired,
             ...eventPropTypes
         },
 
@@ -407,6 +408,12 @@ define([
             this.fit();
         },
 
+        onMenuCollapseSelectedVertices() {
+            const { cy } = this.state;
+            const selectedVertices = cy.nodes().filter(':selected');
+            this.props.onCollapseSelectedVertices(selectedVertices);
+        },
+
         onMenuSelect(select) {
             const { cy } = this.state;
 
@@ -508,7 +515,7 @@ define([
         fit(nodes, options = {}) {
             const { animate = true } = options;
             const { cy } = this.state;
-            const cyNodes = nodes || cy.nodes('node.v,node.partial,.decoration');
+            const cyNodes = nodes || cy.nodes('node.c,node.v,node.partial,.decoration');
 
             if (cyNodes.size() === 0) {
                 cy.reset();

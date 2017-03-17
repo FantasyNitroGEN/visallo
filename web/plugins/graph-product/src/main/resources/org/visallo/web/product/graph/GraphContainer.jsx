@@ -236,6 +236,19 @@ define([
     );
 
     /**
+     * Register a function that can add or remove classes from cytoscape collapsed nodes for custom styling.
+     *
+     * @param {org.visallo.graph.collapsed.class~classFn} config
+     */
+    registry.documentExtensionPoint('org.visallo.graph.collapsed.class',
+        'Function that can change cytoscape classes of nodes',
+        function(e) {
+            return _.isFunction(e);
+        },
+        'http://docs.visallo.org/extension-points/front-end/graphCollapsedNode/class.html'
+    );
+
+    /**
      * Register a function that can add or remove classes from cytoscape nodes for custom styling.
      *
      * @param {org.visallo.graph.node.class~classFn} config
@@ -420,6 +433,10 @@ define([
 
                 onUpdatePreview: (id, dataUrl) => dispatch(productActions.updatePreview(id, dataUrl)),
 
+                onUpdateExtendedData: (id, key, data) => {
+                    dispatch(productActions.updateExtendedData(id, key, data));
+                },
+
                 onAddRelated: (id, vertices) => dispatch(graphActions.addRelated(id, vertices)),
                 onUpdatePositions: (id, positions) => dispatch(graphActions.updatePositions(id, positions, { undoable: true })),
                 onSaveViewport: (id, { pan, zoom }) => dispatch(productActions.updateViewport(id, { pan, zoom })),
@@ -446,6 +463,9 @@ define([
                 },
                 onRemoveElementIds: (elementIds) => {
                     dispatch(productActions.removeElements(props.product.id, elementIds, { undoable: true }));
+                },
+                onCollapsedItemMenu: (element, collapsedItemId, position) => {
+                    $(element).trigger('showCollapsedItemContextMenu', { collapsedItemId, position });
                 },
                 onVertexMenu: (element, vertexId, position) => {
                     $(element).trigger('showVertexContextMenu', { vertexId, position });

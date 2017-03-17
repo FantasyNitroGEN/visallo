@@ -44,6 +44,7 @@
         * [Graph Node Class](extension-points/front-end/graphNode/class.md)
         * [Graph Node Decorations](extension-points/front-end/graphDecorations/index.md)
         * [Graph Node Transformer](extension-points/front-end/graphNode/transformer.md)
+        * [Graph Collapsed Node Class](extension-points/front-end/graphCollapsedNode/class.md)
         * [Graph Options](extension-points/front-end/graphOptions/index.md)
         * [Graph Selection](extension-points/front-end/graphSelector/index.md)
         * [Graph Style](extension-points/front-end/graphStyle/index.md)

@@ -28,6 +28,7 @@ define([
                     domElement: this.attr.element || this.$menu.get(0),
                     edgeIds: this.attr.edgeIds,
                     vertexId: this.attr.vertexId,
+                    collapsedItemId: this.attr.collapsedItemId,
                     position: this.attr.position
                 })
                 .attach();

@@ -40,7 +40,7 @@ define([
             // the element that was clicked on
             element: React.PropTypes.any,
 
-            // the vertex or edge title
+            // the collapsed item, vertex, or edge title
             elementTitle: React.PropTypes.string.isRequired,
 
             // the menu items to render
@@ -88,7 +88,7 @@ define([
             // the element that was clicked on
             element: React.PropTypes.any,
 
-            // the vertex or edge title
+            // the collapsed item, vertex, or edge title
             elementTitle: React.PropTypes.string.isRequired,
 
             // the menu item to render
@@ -191,9 +191,10 @@ define([
 
     const ElementContextMenu = React.createClass({
         propTypes: {
-            // can be a vertexId or edgeIds
+            // can be a collapsedItemId, vertexId, or edgeIds
             vertexId: React.PropTypes.string,
             edgeIds: React.PropTypes.arrayOf(React.PropTypes.string),
+            collapsedItemId: React.PropTypes.string,
 
             // the position to display the menu
             position: React.PropTypes.shape({
@@ -213,7 +214,11 @@ define([
         },
 
         getElement() {
-            if (this.props.vertexId) {
+            if (this.props.collapsedItemId) {
+                return Promise.resolve({
+                    collapsedItemId: this.props.collapsedItemId
+                });
+            } else if (this.props.vertexId) {
                 return withDataRequest.dataRequest('vertex', 'store', {vertexIds: this.props.vertexId});
             } else {
                 return withDataRequest.dataRequest('edge', 'store', {edgeIds: this.props.edgeIds});
@@ -221,19 +226,24 @@ define([
         },
 
         componentWillMount() {
+            const isCollapsedItem = !!this.props.collapsedItemId;
             const isVertex = !!this.props.vertexId;
             this.getElement()
                 .then((elements) => {
-                    if (!elements || elements.length === 0) {
+                    if (!isCollapsedItem && (!elements || elements.length === 0)) {
                         throw new Error(`Could not find element: ${this.props.vertexId || this.props.edgeIds}`);
                     }
 
-                    const items = isVertex ? this.createVertexMenuItems() : this.createEdgeMenuItems();
+                    const items = isCollapsedItem
+                        ? this.createCollapsedItemMenuItems()
+                        : isVertex
+                            ? this.createVertexMenuItems()
+                            : this.createEdgeMenuItems();
                     const firstElement = _.isArray(elements)
                         ? elements[0]
                         : elements;
 
-                    registry.extensionsForPoint(`org.visallo.${isVertex ? 'vertex' : 'edge'}.menu`).forEach((item) => {
+                    registry.extensionsForPoint(`org.visallo.${isCollapsedItem ? 'collapsedItem' : isVertex ? 'vertex' : 'edge'}.menu`).forEach((item) => {
                         const currentSelection = isVertex
                             ? visalloData.selectedObjects.vertexIds
                             : visalloData.selectedObjects.edgeIds;
@@ -250,11 +260,13 @@ define([
                         }
                     });
 
-                    const title = elements.length > 1
-                        ? i18n('vertex.contextmenu.multiple')
-                        : isVertex
-                            ? F.string.truncate(F.vertex.title(firstElement), 3)
-                            : F.string.truncate(F.edge.title(firstElement), 3);
+                    const title = isCollapsedItem
+                        ? i18n('vertex.contextmenu.collapsed')
+                        : elements.length > 1
+                            ? i18n('vertex.contextmenu.multiple')
+                            : isVertex
+                                ? F.string.truncate(F.vertex.title(firstElement), 3)
+                                : F.string.truncate(F.edge.title(firstElement), 3);
 
                     this.setState({
                         domElement: this.props.domElement,
@@ -277,7 +289,12 @@ define([
         handleMenuItemClick(item) {
             $(this.state.domElement).trigger(
                 item.event,
-                {...item.args, vertexId: this.props.vertexId, edgeIds: this.props.edgeIds}
+                {
+                    ...item.args,
+                    collapsedItemId: this.props.collapsedItemId,
+                    vertexId: this.props.vertexId,
+                    edgeIds: this.props.edgeIds
+                }
             );
         },
 
@@ -329,6 +346,15 @@ define([
                                         domElement={this.props.domElement} element={this.state.element}
                                         onMenuItemClick={this.handleMenuItemClick}/>
             </div>);
+        },
+
+        createCollapsedItemMenuItems() {
+            return [
+                {
+                    label: i18n('vertex.contextmenu.uncollapse'),
+                    event: 'uncollapse'
+                }
+            ];
         },
 
         createEdgeMenuItems() {

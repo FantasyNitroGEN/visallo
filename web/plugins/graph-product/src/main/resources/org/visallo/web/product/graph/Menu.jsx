@@ -98,6 +98,10 @@ define([
                     </li>
                     ) : null}
 
+                    {editable && hasSelection ? (
+                            <li><a onMouseUp={this.props.onEvent} data-func="CollapseSelectedVertices" tabIndex="-1" href="#">{i18n('graph.contextmenu.collapse')}</a></li>
+                    ) : null}
+
                     <li className="dropdown-submenu">
                     <a onMouseUp={this.props.onEvent} tabIndex="-1" href="#">{i18n('graph.contextmenu.zoom')}</a>
                     <ul className="dropdown-menu">
