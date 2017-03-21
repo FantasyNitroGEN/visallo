@@ -26,6 +26,7 @@ import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.vertexium.util.IterableUtils.toList;
@@ -456,6 +457,17 @@ public class WorkspaceHelper {
                 visibilityJson.getSource(),
                 priority
         );
+    }
+
+    public void updateEntitiesOnWorkspace(
+            String workspaceId,
+            Collection<String> vertexIds,
+            User user
+    ) {
+        Workspace workspace = workspaceRepository.findById(workspaceId, user);
+        workspaceRepository.updateEntitiesOnWorkspace(workspace, vertexIds, user);
+        workQueueRepository.pushUserCurrentWorkspaceChange(user, workspaceId);
+        graph.flush();
     }
 
 }
