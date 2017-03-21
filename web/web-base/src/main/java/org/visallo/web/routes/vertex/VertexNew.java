@@ -13,7 +13,6 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
@@ -29,6 +28,7 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
 import org.visallo.web.util.VisibilityValidator;
 
+import java.util.Arrays;
 import java.util.ResourceBundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -135,10 +135,11 @@ public class VertexNew implements ParameterizedHandler {
         );
 
         if (workspaceId != null) {
-            Workspace workspace = workspaceRepository.findById(workspaceId, user);
-            workspaceRepository.updateEntityOnWorkspace(workspace, vertex.getId(), user);
-            workQueueRepository.pushUserCurrentWorkspaceChange(user, workspaceId);
-            this.graph.flush();
+            workspaceHelper.updateEntitiesOnWorkspace(
+                    workspaceId,
+                    Arrays.asList(vertex.getId()),
+                    user
+            );
         }
 
         if (properties != null) {
