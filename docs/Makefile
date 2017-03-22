@@ -101,7 +101,7 @@ link-check-external: build
 			--ordered \
 			--exclude "java/" \
 			--exclude "https://myvisalloinstance/" \
-			--exclude "http://docs.visallo.org/" \			
+			--exclude "http://docs.visallo.org/" \
 			--exclude "http://localhost:8888/" \
 			--exclude "http://visallo.org/sample#" \
 			--exclude "http://visallo.org/#" ; \
