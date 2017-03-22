@@ -74,12 +74,14 @@ public abstract class GraphUpdateContext implements AutoCloseable {
     }
 
     protected void flushFutures() {
-        saveOutstandingUpdateFutures();
-        graph.flush();
-        if (isPushOnQueue()) {
-            pushOutstandingUpdateFutures();
+        synchronized (outstandingFutures) {
+            saveOutstandingUpdateFutures();
+            graph.flush();
+            if (isPushOnQueue()) {
+                pushOutstandingUpdateFutures();
+            }
+            outstandingFutures.clear();
         }
-        outstandingFutures.clear();
     }
 
     private void pushOutstandingUpdateFutures() {
@@ -271,9 +273,11 @@ public abstract class GraphUpdateContext implements AutoCloseable {
     }
 
     private <T extends Element> void addToOutstandingFutures(UpdateFuture<T> future) {
-        outstandingFutures.add(future);
-        if (outstandingFutures.size() > saveQueueSize) {
-            flushFutures();
+        synchronized (outstandingFutures) {
+            outstandingFutures.add(future);
+            if (outstandingFutures.size() > saveQueueSize) {
+                flushFutures();
+            }
         }
     }
 
