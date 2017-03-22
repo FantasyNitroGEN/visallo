@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/v5analytics/visallo.svg?branch=master)](https://travis-ci.org/v5analytics/visallo)
+[![Build Status](https://travis-ci.org/visallo/visallo.svg?branch=master)](https://travis-ci.org/visallo/visallo)
 
 ![Visallo Logo](http://docs.visallo.org/img/visallo-banner.png)
 
