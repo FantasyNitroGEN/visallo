@@ -15,6 +15,11 @@ module.exports = function(grunt) {
             cfg = { src: Object.values(requireConfig.paths)
                     .filter(p => p.indexOf('../libs') === 0)
                     .map(p => p.replace('../libs/', '') + '.js') };
+            // Not in require config (relative to libs)
+            cfg.src.push('babel-polyfill/dist/polyfill.min.js');
+            cfg.src.push('requirejs/require.js');
+            cfg.src.push('gridstack/dist/gridstack.min.css');
+            cfg.src.push('video.js/dist/video-js.min.css');
         } else {
             cfg = { src: ['**/*.*'] };
         }
