@@ -90,9 +90,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     private Cache<String, Vertex> userWorkspaceVertexCache = CacheBuilder.newBuilder()
             .expireAfterWrite(15, TimeUnit.SECONDS)
             .build();
-    private Cache<String, List<WorkspaceEntity>> workspaceEntitiesCached = CacheBuilder.newBuilder()
-            .expireAfterWrite(15, TimeUnit.SECONDS)
-            .build();
 
     public void clearCache() {
         usersWithReadAccessCache.invalidateAll();
@@ -100,7 +97,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         usersWithWriteAccessCache.invalidateAll();
         usersWithAccessCache.invalidateAll();
         userWorkspaceVertexCache.invalidateAll();
-        workspaceEntitiesCached.invalidateAll();
     }
 
     @Inject
@@ -449,12 +445,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 user.getUserId()
         );
         long startTime = System.currentTimeMillis();
-        String cacheKey = workspace.getWorkspaceId() + includeHidden + user.getUserId();
-        List<WorkspaceEntity> results = workspaceEntitiesCached.getIfPresent(cacheKey);
-        if (results != null) {
-            LOGGER.debug("END findEntitiesNoLock (cache hit, found: %d entities)", results.size());
-            return results;
-        }
 
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
                 user,
@@ -476,7 +466,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             workspaceVertices = null;
         }
 
-        results = entityEdges.stream()
+        List<WorkspaceEntity> results = entityEdges.stream()
                 .map(edge -> {
                     String entityVertexId = edge.getOtherVertexId(workspace.getWorkspaceId());
 
@@ -495,7 +485,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        workspaceEntitiesCached.put(cacheKey, results);
         LOGGER.debug(
                 "END findEntitiesNoLock (found: %d entities, time: %dms)",
                 results.size(),
@@ -630,7 +619,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 );
             }
             getGraph().flush();
-            workspaceEntitiesCached.invalidateAll();
         });
 
         fireWorkspaceUpdateEntities(workspace, vertexIds, user);
