@@ -15,6 +15,7 @@ import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.lock.NonLockingLockRepository;
+import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -28,6 +29,7 @@ import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.time.TimeRepository;
 import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
+import org.visallo.vertexium.model.longRunningProcess.VertexiumLongRunningProcessRepository;
 import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
@@ -35,6 +37,7 @@ import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 public abstract class VisalloInMemoryTestBase {
     private WorkspaceRepository workspaceRepository;
@@ -57,6 +60,8 @@ public abstract class VisalloInMemoryTestBase {
     private TimeRepository timeRepository;
     private PrivilegeRepository privilegeRepository;
     private FileSystemRepository fileSystemRepository;
+    private LongRunningProcessRepository longRunningProcessRepository;
+    private WorkQueueNames workQueueNames;
 
     @Before
     public void before() {
@@ -80,6 +85,8 @@ public abstract class VisalloInMemoryTestBase {
         timeRepository = null;
         privilegeRepository = null;
         fileSystemRepository = null;
+        longRunningProcessRepository = null;
+        workQueueNames = null;
     }
 
     protected WorkspaceRepository getWorkspaceRepository() {
@@ -202,6 +209,22 @@ public abstract class VisalloInMemoryTestBase {
                 getConfiguration()
         );
         return workQueueRepository;
+    }
+
+    protected List<byte[]> getWorkQueueItems(String queueName) {
+        WorkQueueRepository workQueueRepository = getWorkQueueRepository();
+        if (!(workQueueRepository instanceof InMemoryWorkQueueRepository)) {
+            throw new VisalloException("Can only get work queue items from " + InMemoryWorkQueueRepository.class.getName());
+        }
+        return InMemoryWorkQueueRepository.getQueue(queueName);
+    }
+
+    protected void clearWorkQueues() {
+        WorkQueueRepository workQueueRepository = getWorkQueueRepository();
+        if (!(workQueueRepository instanceof InMemoryWorkQueueRepository)) {
+            throw new VisalloException("Can only clear work queue items from " + InMemoryWorkQueueRepository.class.getName());
+        }
+        InMemoryWorkQueueRepository.clearQueue();
     }
 
     protected OntologyRepository getOntologyRepository() {
@@ -359,5 +382,27 @@ public abstract class VisalloInMemoryTestBase {
 
     protected WorkProduct getWorkProductByKind(String kind) {
         throw new VisalloException("unhandled getWorkProductByKind: " + kind);
+    }
+
+    public LongRunningProcessRepository getLongRunningProcessRepository() {
+        if (longRunningProcessRepository != null) {
+            return longRunningProcessRepository;
+        }
+        longRunningProcessRepository = new VertexiumLongRunningProcessRepository(
+                getGraphAuthorizationRepository(),
+                getUserRepository(),
+                getWorkQueueRepository(),
+                getGraph(),
+                getAuthorizationRepository()
+        );
+        return longRunningProcessRepository;
+    }
+
+    public WorkQueueNames getWorkQueueNames() {
+        if (workQueueNames != null) {
+            return workQueueNames;
+        }
+        workQueueNames = new WorkQueueNames(getConfiguration());
+        return workQueueNames;
     }
 }
