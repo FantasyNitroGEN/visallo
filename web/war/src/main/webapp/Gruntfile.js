@@ -95,21 +95,6 @@ module.exports = function(grunt) {
             }
         },
 
-        uglify: {
-            js: {
-                options: {
-                    sourceMapIn: function(filename) {
-                        return filename + '.map'
-                    },
-                    sourceMap: true,
-                    sourceMapIncludeSources: true
-                },
-                files: [
-                    { expand: true, cwd: 'jsc', src: ['**/*.js'], dest: 'jsc/' },
-                ]
-            }
-        },
-
         compress: {
             gzip: {
                 options: { mode: 'gzip' },
@@ -303,7 +288,7 @@ module.exports = function(grunt) {
       grunt.registerTask('development', 'Build js/less for development',
          ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates', 'handlebars:compile']);
       grunt.registerTask('production', 'Build js/less for production',
-         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'uglify:js', 'handlebars:compile', 'compress']);
+         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'handlebars:compile', 'compress']);
 
       grunt.registerTask('default', ['development', 'watch']);
 };
