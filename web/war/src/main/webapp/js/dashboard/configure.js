@@ -83,6 +83,8 @@ define([
         this.onConfigurationChanged = function(event, data) {
             this.trigger('configurationChanged', data);
 
+            if (data.options && data.options.changed === 'item.title') return;
+
             var extension = this.extension,
                 reportAdded = data.item.configuration.report || extension.report,
                 reportRemoved = !data.item.configuration.report && !extension.report;
