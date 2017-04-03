@@ -15,7 +15,7 @@
     <name>Visallo: Web: Server: Tomcat</name>
 
     <properties>
-        <tomcat.version>8.5.12</tomcat.version>
+        <tomcat.version>8.5.13</tomcat.version>
     </properties>
 
     <dependencies>
