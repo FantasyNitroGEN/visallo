@@ -116,5 +116,99 @@ define([
                 }
             });
         });
+
+        describe('ELEMENT_UPDATE', () => {
+            it('should update extendedData with added edges', () => {
+                const nextState = reducer(
+                    genState({
+                        products: {
+                            p1: {
+                                id: 'p1',
+                                extendedData: {
+                                    edges: [],
+                                    vertices: [],
+                                    unauthorizedEdgeIds: [ 'e1' ]
+                                }
+                            }
+                        }
+                    }),
+                    {
+                        type: 'ELEMENT_UPDATE',
+                        payload: {
+                            edges: [
+                                {
+                                    id: 'e1',
+                                    inVertexId: 'v1',
+                                    label: 'l',
+                                    outVertexId: 'v2'
+                                }
+                            ],
+                            vertices: [],
+                            workspaceId
+                        }
+                    }
+                );
+                nextState.workspaces[workspaceId].products['p1'].should.deep.equal({
+                    id: 'p1',
+                    extendedData: {
+                        edges: [
+                            {
+                                edgeId: 'e1',
+                                inVertexId: 'v1',
+                                label: 'l',
+                                outVertexId: 'v2'
+                            }
+                        ],
+                        vertices: [],
+                        unauthorizedEdgeIds: []
+                    }
+                });
+            });
+
+            it('should update extendedData with deleted edges', () => {
+                const nextState = reducer(
+                    genState({
+                        products: {
+                            p1: {
+                                id: 'p1',
+                                extendedData: {
+                                    edges: [
+                                        {
+                                            edgeId: 'e1',
+                                            inVertexId: 'v1',
+                                            label: 'l',
+                                            outVertexId: 'v2'
+                                        }
+                                    ],
+                                    vertices: [],
+                                    unauthorizedEdgeIds: []
+                                }
+                            }
+                        }
+                    }),
+                    {
+                        type: 'ELEMENT_UPDATE',
+                        payload: {
+                            edges: [
+                                {
+                                    id: 'e1',
+                                    _DELETED: true
+                                }
+                            ],
+                            vertices: [],
+                            workspaceId
+                        }
+                    }
+                );
+                nextState.workspaces[workspaceId].products['p1'].should.deep.equal({
+                    id: 'p1',
+                    extendedData: {
+                        edges: [],
+                        vertices: [],
+                        unauthorizedEdgeIds: [ 'e1' ]
+                    }
+                });
+            });
+        });
     });
 });

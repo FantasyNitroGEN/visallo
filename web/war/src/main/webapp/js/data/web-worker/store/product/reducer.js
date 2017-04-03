@@ -169,11 +169,17 @@ define(['updeep'], function(u) {
         }, state);
     }
 
-    function updateViewable(state, {workspaceId, vertices}) {
+    function updateViewable(state, {workspaceId, vertices, edges = [], unauthorizedEdgeIds}) {
+        const [ deletedEdges, otherEdges ] = _.partition(edges, '_DELETED');
+        const otherEdgeIds = otherEdges.map(e => e.id);
+        const deletedEdgeIds = deletedEdges.map(e => e.id);
+
         const updateExtendedDataViewable = (product) => {
             return u.if(product.extendedData && product.extendedData.vertices, {
                 extendedData: {
-                    vertices: transformVertexData
+                    vertices: transformVertexData,
+                    edges: transformEdges,
+                    unauthorizedEdgeIds: transformUnauthorizedEdgeIds
                 }
             }, product);
         };
@@ -192,6 +198,23 @@ define(['updeep'], function(u) {
                 }
             });
         };
+        const transformEdges = prevEdges => {
+            const transformEdge = ({ id, label, inVertexId, outVertexId }) => ({ edgeId: id, label, inVertexId, outVertexId });
+            const prevEdgeIds = prevEdges.map(p => p.edgeId);
+            const [ edgeUpdates, edgeAdds ] = _.partition(otherEdges, e => prevEdgeIds.includes(e.id));
+
+            return prevEdges
+                .filter(p => !deletedEdgeIds.includes(p.edgeId))
+                .map(p => {
+                    const update = edgeUpdates.find(edge => edge.id === p.edgeId);
+                    return update && transformEdge(update) || p;
+                })
+                .concat(edgeAdds.map(e => transformEdge(e)));
+        };
+        const transformUnauthorizedEdgeIds = prevIds =>
+            prevIds
+                .filter(id => !otherEdgeIds.includes(id))
+                .concat(deletedEdgeIds);
 
         return u.if(vertices, {
             workspaces: {
