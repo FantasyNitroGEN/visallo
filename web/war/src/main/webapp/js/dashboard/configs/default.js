@@ -36,9 +36,10 @@ define(['flight/lib/component'], function(defineComponent) {
                 buttonSelector: this.onReset
             });
 
+            this.triggerChangeImmediate = this.triggerChange;
             this.triggerChange = _.debounce(this.triggerChange.bind(this), 500);
 
-            this.on('keyup change', {
+            this.on('keyup change blur', {
                 inputSelector: this.onChange
             });
 
@@ -81,7 +82,11 @@ define(['flight/lib/component'], function(defineComponent) {
             if (!title.length) return;
 
             this.attr.item.title = title;
-            this.triggerChange();
+            if (event.type === 'keyup') {
+                this.triggerChange();
+            } else {
+                this.triggerChangeImmediate();
+            }
         };
 
         this.triggerChange = function() {
