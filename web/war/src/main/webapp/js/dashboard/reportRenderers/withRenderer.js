@@ -53,6 +53,7 @@ define([
             this.OTHER_COLOR_INDEX = 19;
 
             var self = this,
+                displayed = false,
                 savedResult,
                 savedResultPreProcessing,
                 $loading,
@@ -112,7 +113,8 @@ define([
                 render = function() {
                     if (_.isFunction(self.render)) {
                         var containerNode = self.$node;
-                        if (containerNode.width() && containerNode.height() && savedResult) {
+                        displayed = containerNode.width() && containerNode.height();
+                        if (displayed && savedResult) {
                             self.render(d3, containerNode[0], savedResult, d3tip);
                             self.$node.removeClass('error');
                             self.trigger('finishedLoading');
@@ -165,6 +167,9 @@ define([
                 };
 
             this.on('reflow', function() {
+                if (!displayed) {
+                    this.$node.empty();
+                }
                 Promise.resolve()
                     .then(render)
                     .catch(errorHandler)
