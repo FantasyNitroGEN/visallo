@@ -75,7 +75,14 @@ define([
                             return result;
                         })
                         .then(function(result) {
-                            return checkRendererSupportsResponse(self.attr.item.configuration.reportRenderer, result);
+                            if (self.attr.item.configuration.reportRenderer && !checkRendererSupportsResponse(self.attr.item.configuration.reportRenderer, result)) {
+                                delete self.attr.item.configuration.reportRenderer;
+                                self.trigger('configurationChanged', {
+                                    extension: self.attr.extension,
+                                    item: self.attr.item
+                                });
+                            }
+                            return result;
                         })
                         .then(setAggregations)
                         .then(function(result) {
@@ -344,16 +351,11 @@ define([
     }
 
     function checkRendererSupportsResponse(reportRendererIdentifier, root) {
-        if (reportRendererIdentifier) {
-            var renderer = _.findWhere(
-                registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer'),
-                { identifier: reportRendererIdentifier }
-            );
-            if (!renderer.supportsResponse(root)) {
-                throw new Error('Renderer not supported');
-            }
-        }
-        return root;
+        const renderer = _.findWhere(
+            registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer'),
+            { identifier: reportRendererIdentifier }
+        );
+        return renderer.supportsResponse(root);
     }
 
     function getRootObject(report, result) {
