@@ -230,17 +230,17 @@ define([
             })
         };
 
-        this.onContextMenu = function(evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
+        this.onContextMenu = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-            var vertexId = $(evt.target).closest('.element-item').children('a').data('vertexId');
+            var vertexId = $(e.target).closest('.element-item').children('a').data('vertexId');
             if (vertexId) {
                 this.trigger(this.$node, 'showVertexContextMenu', {
                     vertexId: vertexId,
                     position: {
-                        x: event.pageX,
-                        y: event.pageY
+                        x: e.pageX,
+                        y: e.pageY
                     }
                 });
             }
