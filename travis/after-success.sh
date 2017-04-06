@@ -28,5 +28,5 @@ else
   test -f ~/settings.xml && mvn -B --settings ~/settings.xml -f root/pom.xml deploy
   test -f ~/settings.xml && mvn -B --settings ~/settings.xml -DskipTests deploy
   CREATED_BY="$TRAVIS_REPO_SLUG commit "`git rev-parse --short HEAD`""
-  if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then ./travis-request.sh --repo $TRAVIS_DOWNSTREAM_REPO --token $TRAVIS_ACCESS_TOKEN_PRO --by "$CREATED_BY" --branch $TRAVIS_BRANCH; fi 
+  if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then ./travis/travis-request.sh --repo $TRAVIS_DOWNSTREAM_REPO --token $TRAVIS_ACCESS_TOKEN_PRO --by "$CREATED_BY" --branch $TRAVIS_BRANCH; fi
 fi
