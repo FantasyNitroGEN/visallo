@@ -348,6 +348,7 @@ define([
                 if (data.name === 'dashboard' && data.visible) {
                     this.adjustHeader();
                     load();
+                    this.$node.find('.item-content').trigger('reflow');
                 }
             })
         });
