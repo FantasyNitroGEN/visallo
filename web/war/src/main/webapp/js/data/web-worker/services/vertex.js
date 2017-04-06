@@ -99,10 +99,12 @@ define([
          * Get history of vertex (property changes, etc)
          *
          * @param {string} vertexId
+         * @param {boolean} withVisibility
          */
-        history: function(vertexId) {
+        history: function(vertexId, withVisibility) {
             return ajax('GET', '/vertex/history', {
-                graphVertexId: vertexId
+                graphVertexId: vertexId,
+                withVisibility: withVisibility
             });
         },
 
