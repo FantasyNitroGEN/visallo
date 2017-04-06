@@ -294,8 +294,8 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         
         // Sort chronologically
         List<HistoricalPropertyValue> sortedHistoricalValues = Lists.newArrayList(historicalPropertyValues);
-        Collections.reverse(sortedHistoricalValues);
-        
+        Collections.sort(sortedHistoricalValues, Collections.reverseOrder());
+
         Map<String, HistoricalPropertyValue> cachedValues = new HashMap<>();
         ClientApiHistoricalPropertyResults.Event event = null;
         HistoricalPropertyValue conceptTypeHpv = null;
