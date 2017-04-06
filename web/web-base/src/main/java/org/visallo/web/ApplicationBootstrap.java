@@ -2,10 +2,7 @@ package org.visallo.web;
 
 import com.google.inject.Injector;
 import org.atmosphere.cache.UUIDBroadcasterCache;
-import org.atmosphere.cpr.AtmosphereHandler;
-import org.atmosphere.cpr.AtmosphereInterceptor;
-import org.atmosphere.cpr.AtmosphereServlet;
-import org.atmosphere.cpr.SessionSupport;
+import org.atmosphere.cpr.*;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
@@ -160,16 +157,17 @@ public class ApplicationBootstrap implements ServletContextListener {
         servlet.setAsyncSupported(true);
         servlet.setLoadOnStartup(0);
         servlet.setInitParameter(AtmosphereHandler.class.getName(), Messaging.class.getName());
-        servlet.setInitParameter("org.atmosphere.cpr.sessionSupport", "true");
-        servlet.setInitParameter("org.atmosphere.cpr.broadcastFilterClasses", MessagingFilter.class.getName() + "," +
+        servlet.setInitParameter(ApplicationConfig.PROPERTY_SESSION_CREATE, "false");
+        servlet.setInitParameter(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true");
+        servlet.setInitParameter(ApplicationConfig.BROADCAST_FILTER_CLASSES, MessagingFilter.class.getName() + "," +
                 MessagingThrottleFilter.class.getName());
         servlet.setInitParameter(AtmosphereInterceptor.class.getName(), HeartbeatInterceptor.class.getName());
-        servlet.setInitParameter("org.atmosphere.interceptor.HeartbeatInterceptor.heartbeatFrequencyInSeconds", "30");
-        servlet.setInitParameter("org.atmosphere.cpr.CometSupport.maxInactiveActivity", "-1");
-        servlet.setInitParameter("org.atmosphere.cpr.broadcasterCacheClass", UUIDBroadcasterCache.class.getName());
-        servlet.setInitParameter("org.atmosphere.cpr.dropAccessControlAllowOriginHeader", "true");
-        servlet.setInitParameter("org.atmosphere.websocket.maxTextMessageSize", "1048576");
-        servlet.setInitParameter("org.atmosphere.websocket.maxBinaryMessageSize", "1048576");
+        servlet.setInitParameter(ApplicationConfig.HEARTBEAT_INTERVAL_IN_SECONDS, "30");
+        servlet.setInitParameter(ApplicationConfig.MAX_INACTIVE, "-1");
+        servlet.setInitParameter(ApplicationConfig.BROADCASTER_CACHE, UUIDBroadcasterCache.class.getName());
+        servlet.setInitParameter(ApplicationConfig.DROP_ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "true");
+        servlet.setInitParameter(ApplicationConfig.WEBSOCKET_MAXTEXTSIZE, "1048576");
+        servlet.setInitParameter(ApplicationConfig.WEBSOCKET_MAXBINARYSIZE, "1048576");
 
         addSecurityConstraint(servlet, config);
     }
@@ -183,7 +181,7 @@ public class ApplicationBootstrap implements ServletContextListener {
     private void addCacheFilter(ServletContext context) {
         FilterRegistration.Dynamic filter = context.addFilter(CACHE_FILTER_NAME, CacheServletFilter.class);
         filter.setAsyncSupported(true);
-        String[] mappings = new String[]{"/", "*.html", "*.css", "*.js", "*.ejs", "*.less", "*.hbs", "*.map"};
+        String[] mappings = new String[]{"/", "*.html", "*.css", "*.js", "*.ejs", "*.less", "*.hbs"};
         for (String mapping : mappings) {
             filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, mapping);
         }

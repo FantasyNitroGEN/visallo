@@ -364,7 +364,7 @@ define([
             const { cy } = this.state;
 
             var zoom = cy._private.zoom,
-                { width, height } = cy.renderer().containerBB,
+                [,, width, height] = cy.renderer().containerBB,
                 pos = cy.renderer().projectIntoViewport(width / 2, height / 2);
 
             cy.zoom({

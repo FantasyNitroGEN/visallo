@@ -306,6 +306,13 @@ define([
                      */
                     mouseout: 'onMouseOut'
                 }[event.type];
+                if (_.isFunction(decoration.onClick)) {
+                    if (handlerName === 'onMouseOver') {
+                        this.refs.node.style.cursor = 'pointer';
+                    } else if (handlerName === 'onMouseOut' || handlerName === 'onClick') {
+                        this.refs.node.style.cursor = null;
+                    }
+                }
                 if (_.isFunction(decoration[handlerName])) {
                     decoration[handlerName].call(cyTarget, event, {
                         cy,

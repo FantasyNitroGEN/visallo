@@ -4,7 +4,7 @@ Extension points are places built into Visallo that can define additional behavi
 
 An extension point is simply a mapping from a string – the namespaced extension point name – to a JavaScript object. What kind of object is defined by the consumer of the extension point.
 
-All registered extension points are viewable in the admin panel, under `UI Extensions`, and in the table of contents in this document. This document focuses on tutorials for the extension points, for code-level documentation, view the [Extension Point Api](../../javascript/extensionpoints.html).
+All registered extension points are viewable in the admin panel, under `UI Extensions`, and in the table of contents in this document. This document focuses on tutorials for the extension points, for code-level documentation, view the [Extension Point Api](../../javascript/extensionPoints.html).
 
 ## Register an extension point
 
@@ -17,7 +17,7 @@ require(['public/v1/api'], function(visallo) {
 })
 ```
 
-For example, to add an item to the menubar, use the [Menubar extension point](./menubar/index.md):
+For example, to add an item to the menu bar, use the [Menu bar extension point](./menubar/index.md):
 
 {% github_embed "https://github.com/visallo/doc-examples/blob/3b6ac03e/extension-menubar/src/main/resources/org/visallo/examples/menubar/plugin.js#L3-L16" %}{% endgithub_embed %}
 

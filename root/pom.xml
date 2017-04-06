@@ -17,10 +17,10 @@
 
     <inceptionYear>2013</inceptionYear>
     <organization>
-        <name>V5 Analytics</name>
-        <url>http://v5analytics.com</url>
+        <name>Visallo, LLC</name>
+        <url>https://visallo.com</url>
     </organization>
-    <url>https://github.com/v5analytics/visallo</url>
+    <url>https://github.com/visallo/visallo</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>

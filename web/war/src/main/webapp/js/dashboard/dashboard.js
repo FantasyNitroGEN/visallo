@@ -129,7 +129,7 @@ define([
      * `statistics` Statistics for property: [`min`, `max`, `count`, `average`, `sum`](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-stats-aggregation.html).
      *
      * @typedef org.visallo.dashboard.item~aggregation
-     * @property {string} type Type of aggregation: `term`, `geohash`, `histogram`, `statistics`
+     * @property {string} type Type of aggregation: `term`, `geohash`, `histogram`
      * @property {string} name Name the aggregation that's returned with results. Useful when more than one aggregation is used.
      * @property {string} field Property name iri to aggregate.
      */

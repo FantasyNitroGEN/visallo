@@ -230,7 +230,8 @@ public class VisalloBootstrap extends AbstractModule {
                 LOGGER.debug("creating graph");
                 g = (Graph) createMethod.invoke(null, configurationSubset);
             } catch (Exception e) {
-                throw new RuntimeException("Could not create graph " + graphClass.getName(), e);
+                LOGGER.error("Could not create graph %s", graphClass.getName(), e);
+                throw new VisalloException("Could not create graph " + graphClass.getName(), e);
             }
 
             checkVisalloGraphVersion(g);

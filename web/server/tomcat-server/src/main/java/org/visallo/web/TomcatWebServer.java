@@ -48,7 +48,6 @@ public class TomcatWebServer extends WebServer {
         defaultConnector.setRedirectPort(super.getHttpsPort());
 
         Context context = tomcat.addWebapp(this.getContextPath(), getWebAppDir().getAbsolutePath());
-        context.setSessionTimeout(super.getSessionTimeout());
 
         // don't scan classpath for web components to avoid benign log warnings
         StandardJarScanner jarScanner = new StandardJarScanner();

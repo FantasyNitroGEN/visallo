@@ -53,7 +53,7 @@
         * [Layout Component](extension-points/front-end/layout/component.md)
         * [Logout](extension-points/front-end/logout/index.md)
         * [Map Options](extension-points/front-end/mapOptions/index.md)
-        * [Menubar](extension-points/front-end/menubar/index.md)
+        * [Menu Bar](extension-points/front-end/menubar/index.md)
         * [Search Advanced](extension-points/front-end/searchAdvanced/index.md)
         * [Search Toolbar](extension-points/front-end/searchToolbar/index.md)
         * [User Account](extension-points/front-end/userAccount/index.md)

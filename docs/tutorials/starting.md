@@ -38,7 +38,7 @@ You should definitely spend some time looking around Visallo.  When you download
 
 * An example authentication plugin that logs you in as long as your user name and password are the same
 * An example graph property worker that extracts person names from a csv that is imported
-* An web app plugin which adds the ability to google a person concept's name from the details pane of that entity inside of Visallo
+* An web app plugin which adds the ability to google a person concept's name from the Element Inspector of that entity inside of Visallo
 
 Since we are already logged in as admin with the password of admin, we know that the authentication module works and the source code can be found inside of your project in the ```./auth``` folder.
 
@@ -54,7 +54,7 @@ The file was imported into Visallo and run through the graph property work queue
 
 ### Example Web Plugin
 
-Now that we have some people in our system, we can use the example web plugin to google their names.  To see the code that makes up this plugin, look inside of the ```./web``` folder in your project.  Click on "Bruce Wayne" in the graph and the details pane will open.  In the details pane you can view the information that you are allowed to see about Bruce Wayne.  Click the "Google" button at the top menu bar of the details pane to open a new window that automatically opens the search results page for "Bruce Wayne" in Google.  
+Now that we have some people in our system, we can use the example web plugin to google their names.  To see the code that makes up this plugin, look inside of the ```./web``` folder in your project.  Click on "Bruce Wayne" in the graph and the Element Inspector will open.  In the Element Inspector you can view the information that you are allowed to see about Bruce Wayne.  Click the "Google" button at the top menu bar of the Element Inspector to open a new window that automatically opens the search results page for "Bruce Wayne" in Google.  
 
 ## Now What?
 
