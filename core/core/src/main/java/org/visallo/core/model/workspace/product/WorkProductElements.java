@@ -136,6 +136,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
         if (params.optBoolean("includeEdges")) {
             JSONArray edges = new JSONArray();
+            JSONArray unauthorizedEdgeIds = new JSONArray();
             Authorizations systemAuthorizations = authorizationRepository.getGraphAuthorizations(
                     user,
                     VisalloVisibility.SUPER_USER_VISIBILITY_STRING
@@ -145,16 +146,27 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                     WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                     systemAuthorizations
             ));
-            Iterable<RelatedEdge> relatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
-            for (RelatedEdge relatedEdge : relatedEdges) {
-                JSONObject edge = new JSONObject();
-                edge.put("edgeId", relatedEdge.getEdgeId());
-                edge.put("label", relatedEdge.getLabel());
-                edge.put("outVertexId", relatedEdge.getOutVertexId());
-                edge.put("inVertexId", relatedEdge.getInVertexId());
-                edges.put(edge);
+            Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
+            List<String> ids = StreamUtil.stream(productRelatedEdges)
+                    .map(edge -> edge.getEdgeId())
+                    .collect(Collectors.toList());
+            Map<String, Boolean> relatedEdgesById = graph.doEdgesExist(ids, authorizations);
+
+            for (RelatedEdge relatedEdge : productRelatedEdges) {
+                String edgeId = relatedEdge.getEdgeId();
+                if (relatedEdgesById.get(edgeId)) {
+                    JSONObject edge = new JSONObject();
+                    edge.put("edgeId", relatedEdge.getEdgeId());
+                    edge.put("label", relatedEdge.getLabel());
+                    edge.put("outVertexId", relatedEdge.getOutVertexId());
+                    edge.put("inVertexId", relatedEdge.getInVertexId());
+                    edges.put(edge);
+                } else {
+                   unauthorizedEdgeIds.put(edgeId);
+                }
             }
             extendedData.put("edges", edges);
+            extendedData.put("unauthorizedEdgeIds", unauthorizedEdgeIds);
         }
 
         return extendedData;
