@@ -162,6 +162,7 @@ function setupRequireJs(data, callback) {
     require.deps = data.webWorkerResources;
     require.callback = callback;
     importScripts(BASE_URL + '/libs/requirejs/require.js?' + data.cacheBreaker);
+    require.load = asyncRequireJSLoader
 }
 
 function onMessageHandler(event) {
@@ -283,4 +284,25 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
             xmlHttpRequest.setRequestHeader('graphTraceEnable', 'true');
         }
     }
+}
+
+function asyncRequireJSLoader(context, moduleName, url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+    xhr.onload = function(e) {
+        if (this.status === 200) {
+            var blob = new Blob([this.response], { type: 'text/javascript' });
+            var blobURL = URL.createObjectURL(blob);
+            importScripts(blobURL);
+            URL.revokeObjectURL(blobURL);
+            context.completeLoad(moduleName);
+        } else {
+            context.onError(new Error('Require for ' + moduleName + ' failed at ' + url));
+        }
+    };
+    xhr.onerror = function() {
+        context.onError(new Error('Require for ' + moduleName + ' failed at ' + url));
+    }
+    xhr.send();
 }

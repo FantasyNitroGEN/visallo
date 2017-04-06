@@ -12,7 +12,7 @@ requirejs.config({
 
 requirejs(['/base/jsc/require.config.js'], function(cfg) {
 
-    var requireConfig = $.extend(true, {}, cfg, {
+    var requireConfig = $.extend(true, {}, cfg, unminifyForTest('react', 'react-dom', 'react-redux'), {
 
         // Karma serves files from '/base'
         baseUrl: '/base/jsc',
@@ -140,5 +140,17 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
 
     global.require = requirejs;
     requirejs.config(requireConfig);
+
+    function unminifyForTest() {
+        var override = {};
+        for (var i = 0; i < arguments.length; i++) {
+            var name = arguments[i];
+            if (name in cfg.paths) {
+                override[name] = cfg.paths[name].replace(/\.min$/, '')
+            }
+        }
+        return { paths: override };
+    }
 });
 })(this);
+

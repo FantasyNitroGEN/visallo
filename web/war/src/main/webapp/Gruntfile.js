@@ -8,6 +8,34 @@ module.exports = function(grunt) {
     require('load-grunt-tasks')(grunt);
     grunt.loadTasks('grunt-tasks');
 
+
+    var compressionFiles = ['jsc/', 'libs/', 'css/'].map(dir => {
+        var cfg = {};
+        if (dir === 'libs/') {
+            cfg = { src: Object.values(requireConfig.paths)
+                    .filter(p => p.indexOf('../libs') === 0)
+                    .map(p => p.replace('../libs/', '') + '.js') };
+            // Not in require config (relative to libs)
+            cfg.src.push('babel-polyfill/dist/polyfill.min.js');
+            cfg.src.push('requirejs/require.js');
+            cfg.src.push('gridstack/dist/gridstack.min.css');
+            cfg.src.push('video.js/dist/video-js.min.css');
+        } else {
+            cfg = { src: ['**/*.*'] };
+        }
+
+        return Object.assign({}, cfg, {
+            expand: true, cwd: dir, dest: dir, extDot: 'last',
+            rename: function(dest, src, cfg) {
+                var ext = grunt.task.current.target === 'brotli' ? 'br' : 'gz';
+                return `${dest}/${src}.${ext}`
+            },
+            filter: function(src) {
+                return !((/\.(gz|br)$/).test(src));
+            }
+        })
+    })
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
@@ -63,6 +91,8 @@ module.exports = function(grunt) {
         babel: {
             js: {
                 options: {
+                    comments: false,
+                    compact: true,
                     sourceMap: true
                 },
                 files: [
@@ -72,18 +102,14 @@ module.exports = function(grunt) {
             }
         },
 
-        uglify: {
-            js: {
-                options: {
-                    sourceMapIn: function(filename) {
-                        return filename + '.map'
-                    },
-                    sourceMap: true,
-                    sourceMapIncludeSources: true
-                },
-                files: [
-                    { expand: true, cwd: 'jsc', src: ['**/*.js'], dest: 'jsc/' },
-                ]
+        compress: {
+            gzip: {
+                options: { mode: 'gzip' },
+                files: compressionFiles
+            },
+            brotli: {
+                options: { mode: 'brotli' },
+                files: compressionFiles
             }
         },
 
@@ -269,7 +295,7 @@ module.exports = function(grunt) {
       grunt.registerTask('development', 'Build js/less for development',
          ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates', 'handlebars:compile']);
       grunt.registerTask('production', 'Build js/less for production',
-         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'handlebars:compile', 'uglify:js']);
+         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'handlebars:compile', 'compress']);
 
       grunt.registerTask('default', ['development', 'watch']);
 };
