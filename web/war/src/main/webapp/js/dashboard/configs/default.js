@@ -73,7 +73,7 @@ define(['flight/lib/component'], function(defineComponent) {
                 }
             }
             this.select('inputSelector').val(this.getTitle());
-            this.triggerChange();
+            this.triggerChangeImmediate();
         };
 
         this.onChange = function(event) {
