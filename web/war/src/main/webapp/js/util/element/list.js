@@ -230,25 +230,25 @@ define([
             })
         };
 
-        this.onContextMenu = function(evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
+        this.onContextMenu = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-            const link = $(evt.target).closest('.element-item').children('a');
+            const link = $(e.target).closest('.element-item').children('a');
             if (link.data('vertexId')) {
                 this.trigger(this.$node, 'showVertexContextMenu', {
                     vertexId: link.data('vertexId'),
                     position: {
-                        x: event.pageX,
-                        y: event.pageY
+                        x: e.pageX,
+                        y: e.pageY
                     }
                 });
             } else if (link.data('edgeId')) {
                 this.trigger(this.$node, 'showEdgeContextMenu', {
                     edgeIds: [link.data('edgeId')],
                     position: {
-                        x: event.pageX,
-                        y: event.pageY
+                        x: e.pageX,
+                        y: e.pageY
                     }
                 });
             }
