@@ -23,7 +23,7 @@ import java.util.*;
  * - ${appdata}/Visallo
  * - /opt/visallo/ or c:/opt/visallo/
  * <p/>
- * You can override the default search order using a system property or environment property VISALLO_CONFIGURATION_LOADER_SEARCH_ORDER.
+ * You can override the default search order using a system property or environment property VISALLO_CONFIGURATION_LOADER_SEARCH_LOCATIONS.
  * The default is: systemProperty,env,userHome,appdata,defaultDir
  */
 public class FileConfigurationLoader extends ConfigurationLoader {
