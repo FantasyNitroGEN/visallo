@@ -1,5 +1,6 @@
 package org.visallo.core.util;
 
+import com.google.common.collect.Lists;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
@@ -24,6 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.util.StreamUtil.stream;
 
 public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApiConverter {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ClientApiConverter.class);
     public static final EnumSet<FetchHint> SEARCH_FETCH_HINTS = EnumSet.of(
             FetchHint.PROPERTIES,
             FetchHint.PROPERTY_METADATA,
@@ -280,38 +282,170 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return null;
     }
 
-    public static ClientApiHistoricalPropertyResults toClientApi(
-            Iterable<HistoricalPropertyValue> historicalPropertyValues,
-            Locale locale,
-            ResourceBundle resourceBundle
-    ) {
+    /**
+     * Sort HistoricalPropertyValue chronologically and generate events by looking at the
+     * deltas between the historical values.
+     */
+    public static ClientApiHistoricalPropertyResults calculateHistoricalPropertyDeltas(
+        Iterable<HistoricalPropertyValue> historicalPropertyValues, Locale locale, ResourceBundle resourceBundle,
+            boolean withVisibility) {
+       
         ClientApiHistoricalPropertyResults result = new ClientApiHistoricalPropertyResults();
-        for (HistoricalPropertyValue historicalPropertyValue : historicalPropertyValues) {
-            result.events.add(toClientApi(historicalPropertyValue, locale, resourceBundle));
+        
+        // Sort chronologically
+        List<HistoricalPropertyValue> sortedHistoricalValues = Lists.newArrayList(historicalPropertyValues);
+        Collections.sort(sortedHistoricalValues, Collections.reverseOrder());
+
+        Map<String, HistoricalPropertyValue> cachedValues = new HashMap<>();
+        ClientApiHistoricalPropertyResults.Event event = null;
+        HistoricalPropertyValue conceptTypeHpv = null;
+        
+        for (HistoricalPropertyValue hpv : sortedHistoricalValues) {
+            String key = hpv.getPropertyKey() + hpv.getPropertyName();
+            HistoricalPropertyValue cached = cachedValues.get(key);
+            event = null;
+            
+            if (cached == null) { // Add
+                if (hpv.getPropertyName().equals(VisalloProperties.CONCEPT_TYPE.getPropertyName())) {
+                    conceptTypeHpv = hpv;
+                } else {
+                    event = generatePropertyAddedEvent(hpv, locale, resourceBundle, withVisibility);
+                    cachedValues.put(key, hpv);
+
+                    // Use the ModifiedBy property to complete the ConceptType event
+                    if (hpv.getPropertyName().equals(VisalloProperties.MODIFIED_BY.getPropertyName()) && conceptTypeHpv != null) {
+                        String modifiedBy = event.fields.get("value");
+                        event = generatePropertyAddedEvent(conceptTypeHpv, locale, resourceBundle, withVisibility);
+                        event.modifiedBy = modifiedBy;
+                    }
+                }
+            } else if (hpv.isDeleted()) {  // Delete
+                // Non-consecutive delete events
+                if (hpv.isDeleted() != cached.isDeleted()) {
+                    event = generatePropertyDeletedEvent(hpv, locale, resourceBundle, withVisibility);
+                }
+                cachedValues.remove(key);
+            } else { // Check if modified
+                if (hasHistoricalPropertyChanged(cached, hpv, withVisibility)) {
+                    event = generatePropertyModifiedEvent(hpv, cached, locale, resourceBundle, withVisibility);
+                } else {
+                    LOGGER.warn("Historical property value did not change. Ignore");
+                    LOGGER.warn("  was:" + hpv);
+                }
+                cachedValues.put(key, hpv);
+            }
+            
+            if (event != null) {
+                result.events.add(event);
+            }
         }
+        
         return result;
     }
-
-    public static ClientApiHistoricalPropertyResults.Event toClientApi(
-            HistoricalPropertyValue hpv,
-            Locale locale,
-            ResourceBundle resourceBundle
-    ) {
-        ClientApiHistoricalPropertyResults.Event result = new ClientApiHistoricalPropertyResults.Event();
-        result.timestamp = hpv.getTimestamp();
-        for (Metadata.Entry entry : hpv.getMetadata().entrySet()) {
-            result.metadata.put(entry.getKey(), toClientApiValue(entry.getValue()));
-        }
+    
+    private static ClientApiHistoricalPropertyResults.Event generateGenericEvent(HistoricalPropertyValue hpv) {
+        ClientApiHistoricalPropertyResults.Event event = new ClientApiHistoricalPropertyResults.Event();
+        event.timestamp = hpv.getTimestamp();
+        event.propertyKey = hpv.getPropertyKey();
+        event.propertyName = hpv.getPropertyName();
+        Metadata.Entry modifiedByEntry = hpv.getMetadata().getEntry(VisalloProperties.MODIFIED_BY.getPropertyName());
+        event.modifiedBy = ((modifiedByEntry != null) ? toClientApiValue(modifiedByEntry.getValue()).toString() : null);
+        return event;
+    }
+    
+    private static ClientApiHistoricalPropertyResults.Event generatePropertyAddedEvent(HistoricalPropertyValue hpv,
+        Locale locale, ResourceBundle resourceBundle, boolean withVisibility) {
+        
+        ClientApiHistoricalPropertyResults.Event event = generateGenericEvent(hpv); 
+        event.setEventType(ClientApiHistoricalPropertyResults.EventType.PROPERTY_ADDED);
+        Map<String, String> fields =new HashMap<>();
+        
         Object value = hpv.getValue();
         if (value instanceof StreamingPropertyValue) {
             value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value, locale, resourceBundle);
         }
-        result.value = toClientApiValue(value);
-        result.propertyKey = hpv.getPropertyKey();
-        result.propertyName = hpv.getPropertyName();
-        result.propertyVisibility = hpv.getPropertyVisibility().getVisibilityString();
-        return result;
+        fields.put("value", toClientApiValue(value).toString());
+        
+        if (withVisibility) {
+            fields.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
+        }
+        event.fields = fields;
+        event.changed = null;
+        return event;
     }
+    
+    private static ClientApiHistoricalPropertyResults.Event generatePropertyDeletedEvent(HistoricalPropertyValue hpv,
+        Locale locale, ResourceBundle resourceBundle, boolean withVisibility) {
+        
+        ClientApiHistoricalPropertyResults.Event event = generateGenericEvent(hpv); 
+        event.setEventType(ClientApiHistoricalPropertyResults.EventType.PROPERTY_DELETED);
+        Map<String, String> fields = new HashMap<>();
+        Map<String, String> changed = new HashMap<>();
+        
+        Object value = hpv.getValue();
+        if (value instanceof StreamingPropertyValue) {
+            value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value, locale, resourceBundle);
+        }
+        changed.put("value", toClientApiValue(value).toString());
+
+        if (withVisibility) {
+            changed.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
+        }
+        event.fields = null;
+        event.changed = changed;
+        
+        return event;
+    }
+    
+    private static ClientApiHistoricalPropertyResults.Event generatePropertyModifiedEvent(HistoricalPropertyValue hpv,
+        HistoricalPropertyValue cached, Locale locale, ResourceBundle resourceBundle, boolean withVisibility) {
+        
+        ClientApiHistoricalPropertyResults.Event event = generateGenericEvent(hpv); 
+        event.setEventType(ClientApiHistoricalPropertyResults.EventType.PROPERTY_MODIFIED);
+        
+        Map<String, String> fields = new HashMap<>();
+        Map<String, String> changed = new HashMap<>();
+        
+        Object value = hpv.getValue();
+        if (value instanceof StreamingPropertyValue) {
+            value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value, locale, resourceBundle);
+        }
+        fields.put("value", toClientApiValue(value).toString());
+        if (!hpv.getValue().equals(cached.getValue())) {
+            changed.put("value", toClientApiValue(cached.getValue()).toString());
+        }
+       
+        if (withVisibility) {
+            fields.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
+            if (!hpv.getPropertyVisibility().getVisibilityString().equals(cached.getPropertyVisibility().getVisibilityString())) {
+                changed.put("visibility", cached.getPropertyVisibility().getVisibilityString());
+            }
+        }
+        event.fields = fields;
+        event.changed = changed;
+        
+        return event;
+    }
+    
+    private static boolean hasHistoricalPropertyChanged(HistoricalPropertyValue previous, HistoricalPropertyValue current,
+        boolean withVisibility) {
+        if (!current.getValue().equals(previous.getValue())) {
+            return true;
+        }  
+        if (withVisibility && !current.getPropertyVisibility().getVisibilityString().equals(previous.getPropertyVisibility().getVisibilityString())) {
+            return true;
+        }
+        return false;
+    }
+    
+    public static ClientApiHistoricalPropertyResults toClientApi(
+            Iterable<HistoricalPropertyValue> historicalPropertyValues,
+            Locale locale,
+            ResourceBundle resourceBundle,
+            boolean withVisibility
+    ) {
+        return calculateHistoricalPropertyDeltas(historicalPropertyValues, locale, resourceBundle, withVisibility); 
+    };
 
     private static String readStreamingPropertyValueForHistory(
             StreamingPropertyValue spv,
