@@ -150,12 +150,16 @@ define([
             return Promise.all([
                 Promise.require('search/dashboard/aggregation'),
                 conceptType && this.dataRequest('ontology', 'propertiesByConceptId', conceptType)
-            ]).spread(function(Aggregation, propertiesByConceptId) {
-                var node = self.select('aggregationSectionSelector');
+            ]).then(function([Aggregation, propertiesByConceptId]) {
+                const node = self.select('aggregationSectionSelector');
+                let aggregations;
+                if (self.aggregations) {
+                    aggregations = self.aggregations.map(a => ({ ...a}));
+                }
 
                 node.toggle(!!self.attr.item.configuration.searchId);
                 Aggregation.attachTo(node.teardownComponent(Aggregation), {
-                    aggregations: self.aggregations
+                    aggregations
                 })
                 if (propertiesByConceptId) {
                     node.trigger('filterProperties', {
