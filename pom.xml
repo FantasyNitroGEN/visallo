@@ -4,14 +4,14 @@
     <parent>
         <groupId>org.visallo</groupId>
         <artifactId>visallo-root</artifactId>
-        <version>3.1.1-SNAPSHOT</version>
+        <version>3.1.1</version>
         <relativePath>./root</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>visallo</artifactId>
     <packaging>pom</packaging>
     <name>Visallo</name>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.1.1</version>
 
     <scm>
         <url>https://github.com/v5analytics/visallo</url>
