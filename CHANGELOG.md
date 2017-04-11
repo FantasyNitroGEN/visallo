@@ -1,3 +1,20 @@
+v3.1.1
+==================
+
+## Changed
+
+* Performance improvements to users visiting with empty cache and connections with noticeable latency
+
+## Fixed
+
+* Always retrieve latest case diffs from the graph
+* Brief display of some edges breaking the case sandbox when switching graphs
+* Count aggregation on multiple properties. Unable to configure an aggregation if the previous aggregation used an incompatible visualization.
+* Creates workspace edge when adding vertex
+* Fixes issue with dashboard card data not rendering if the dashboard is
+* Focus in dashboard card title field doesn&#39;t leave after typing pause
+* Right clicking an item from a list in Firefox would not bring up the Context Menu.
+* Subtitle/Time formula more visible when selected in element list
 
 v3.1.0
 ==================
