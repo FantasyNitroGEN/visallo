@@ -348,7 +348,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         event.timestamp = hpv.getTimestamp();
         event.propertyKey = hpv.getPropertyKey();
         event.propertyName = hpv.getPropertyName();
-        Metadata.Entry modifiedByEntry = hpv.getMetadata().getEntry(VisalloProperties.MODIFIED_BY.getPropertyName());
+        Metadata.Entry modifiedByEntry = (hpv.getMetadata() != null) ? hpv.getMetadata().getEntry(VisalloProperties.MODIFIED_BY.getPropertyName()) : null;
         event.modifiedBy = ((modifiedByEntry != null) ? toClientApiValue(modifiedByEntry.getValue()).toString() : null);
         return event;
     }
@@ -358,7 +358,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         
         ClientApiHistoricalPropertyResults.Event event = generateGenericEvent(hpv); 
         event.setEventType(ClientApiHistoricalPropertyResults.EventType.PROPERTY_ADDED);
-        Map<String, String> fields =new HashMap<>();
+        Map<String, String> fields = new HashMap<>();
         
         Object value = hpv.getValue();
         if (value instanceof StreamingPropertyValue) {
@@ -367,7 +367,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         fields.put("value", toClientApiValue(value).toString());
         
         if (withVisibility) {
-            fields.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
+            fields.put("visibility", removeWorkspaceVisibility(hpv.getPropertyVisibility().getVisibilityString()));
         }
         event.fields = fields;
         event.changed = null;
@@ -383,13 +383,15 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         Map<String, String> changed = new HashMap<>();
         
         Object value = hpv.getValue();
-        if (value instanceof StreamingPropertyValue) {
-            value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value, locale, resourceBundle);
+        if (value != null) {
+            if (value instanceof StreamingPropertyValue) {
+                value = readStreamingPropertyValueForHistory((StreamingPropertyValue) value, locale, resourceBundle);
+            }
+            changed.put("value", toClientApiValue(value).toString());
         }
-        changed.put("value", toClientApiValue(value).toString());
 
         if (withVisibility) {
-            changed.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
+            changed.put("visibility", removeWorkspaceVisibility(hpv.getPropertyVisibility().getVisibilityString()));
         }
         event.fields = null;
         event.changed = changed;
@@ -416,9 +418,11 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         }
        
         if (withVisibility) {
-            fields.put("visibility", hpv.getPropertyVisibility().getVisibilityString());
-            if (!hpv.getPropertyVisibility().getVisibilityString().equals(cached.getPropertyVisibility().getVisibilityString())) {
-                changed.put("visibility", cached.getPropertyVisibility().getVisibilityString());
+            String currentVis = removeWorkspaceVisibility(hpv.getPropertyVisibility().getVisibilityString());
+            String previousVis = removeWorkspaceVisibility(cached.getPropertyVisibility().getVisibilityString());
+            fields.put("visibility", currentVis);
+            if (!currentVis.equals(previousVis)) {
+                changed.put("visibility", previousVis);
             }
         }
         event.fields = fields;
@@ -431,8 +435,10 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         boolean withVisibility) {
         if (!current.getValue().equals(previous.getValue())) {
             return true;
-        }  
-        if (withVisibility && !current.getPropertyVisibility().getVisibilityString().equals(previous.getPropertyVisibility().getVisibilityString())) {
+        }
+        String currentVis = removeWorkspaceVisibility(current.getPropertyVisibility().getVisibilityString());
+        String previousVis = removeWorkspaceVisibility(previous.getPropertyVisibility().getVisibilityString());
+        if (withVisibility && !currentVis.equals(previousVis)) {
             return true;
         }
         return false;
@@ -529,5 +535,12 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
                 toClientApiGeoPoint(rect.getNorthWest()),
                 toClientApiGeoPoint(rect.getSouthEast())
         );
+    }
+
+    public static String removeWorkspaceVisibility(String visibility) {
+        return Arrays.stream(visibility.split("\\|"))
+                .map(s -> s.replaceAll("&?\\(WORKSPACE_.*?\\)", "").replace("visallo",""))
+                .filter(s -> s.length() > 0 && !s.equals("()"))
+                .collect(Collectors.joining("|"));
     }
 }
