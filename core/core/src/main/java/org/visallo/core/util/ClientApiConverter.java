@@ -299,7 +299,8 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         Map<String, HistoricalPropertyValue> cachedValues = new HashMap<>();
         ClientApiHistoricalPropertyResults.Event event = null;
         HistoricalPropertyValue conceptTypeHpv = null;
-        
+
+        int i = 0;
         for (HistoricalPropertyValue hpv : sortedHistoricalValues) {
             String key = hpv.getPropertyKey() + hpv.getPropertyName();
             HistoricalPropertyValue cached = cachedValues.get(key);
@@ -308,16 +309,28 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             if (cached == null) { // Add
                 if (hpv.getPropertyName().equals(VisalloProperties.CONCEPT_TYPE.getPropertyName())) {
                     conceptTypeHpv = hpv;
+                    HistoricalPropertyValue modifiedByHpv = cachedValues.get(VisalloProperties.MODIFIED_BY.getPropertyName());
+
+                    int j = i;
+                    while (modifiedByHpv == null && j < sortedHistoricalValues.size()) {
+                        HistoricalPropertyValue v = sortedHistoricalValues.get(j);
+                        if (v.getPropertyName().equals(VisalloProperties.MODIFIED_BY.getPropertyName())) {
+                            modifiedByHpv = v;
+                        }
+                        j++;
+                    }
+
+                    event = generatePropertyAddedEvent(conceptTypeHpv, locale, resourceBundle, withVisibility);
+
+                    if (modifiedByHpv != null) {
+                        // Use the ModifiedBy property to complete the ConceptType event
+                        ClientApiHistoricalPropertyResults.Event modifiedByEvent = generatePropertyAddedEvent(modifiedByHpv, locale, resourceBundle, withVisibility);
+                        String modifiedBy = modifiedByEvent.fields.get("value");
+                        event.modifiedBy = modifiedBy;
+                    }
                 } else {
                     event = generatePropertyAddedEvent(hpv, locale, resourceBundle, withVisibility);
                     cachedValues.put(key, hpv);
-
-                    // Use the ModifiedBy property to complete the ConceptType event
-                    if (hpv.getPropertyName().equals(VisalloProperties.MODIFIED_BY.getPropertyName()) && conceptTypeHpv != null) {
-                        String modifiedBy = event.fields.get("value");
-                        event = generatePropertyAddedEvent(conceptTypeHpv, locale, resourceBundle, withVisibility);
-                        event.modifiedBy = modifiedBy;
-                    }
                 }
             } else if (hpv.isDeleted()) {  // Delete
                 // Non-consecutive delete events
@@ -338,6 +351,8 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             if (event != null) {
                 result.events.add(event);
             }
+
+            i++;
         }
         
         return result;
