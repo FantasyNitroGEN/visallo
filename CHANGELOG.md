@@ -1,3 +1,15 @@
+v3.1.2
+==================
+
+## Changed
+
+* Stop workspace visibilities from being reported in history changes
+
+## Fixed
+
+* When editing a compound property different field values would sometimes switch if you only modified the visibility of the property.
+* Importing files and viewing their history would show &#34;Created Thing&#34; instead of &#34;Created Image/Document/etc.&#34;
+
 v3.1.1
 ==================
 
