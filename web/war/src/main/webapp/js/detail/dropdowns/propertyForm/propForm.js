@@ -340,7 +340,10 @@ define([
                         const dependentProperties = property.key ?
                             F.vertex.props(self.attr.data, propertyName, property.key) :
                             F.vertex.props(self.attr.data, propertyName);
-                        self.currentValue = _.pluck(dependentProperties, 'value');
+                        self.currentValue = propertyDetails.dependentPropertyIris.map((iri) => {
+                            let property = dependentProperties.find((property) => property.name === iri);
+                            return property === undefined ? '' : property.value;
+                        });
                         fieldComponent = 'fields/compound/compound';
                     } else if (propertyDetails.displayType === 'duration') {
                         fieldComponent = 'fields/duration';
