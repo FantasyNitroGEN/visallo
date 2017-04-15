@@ -4,7 +4,7 @@ While we recommend reading all the pages in this Developer Guide, the steps belo
 
 Clone the source code.
 
-      git clone git://github.com/v5analytics/visallo.git
+      git clone git://github.com/visallo/visallo.git
 
 Change directories to the checked out code. This is your `$PROJECT_DIR` directory.
 

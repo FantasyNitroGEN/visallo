@@ -1,7 +1,7 @@
 /**
  * Rebuild the custom ./babel.js if changing plugins/presets
  *
- * https://github.com/v5analytics/babel-standalone
+ * https://github.com/visallo/babel-standalone
  *
  * Expected Scope:
  * input [String] JSX Source

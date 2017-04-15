@@ -23,7 +23,7 @@ within the AWS Marketplace. We recommend using the built-in RDP client for Micro
 Use the Visallo Cloud Formation script to start a Visallo cloud development environment as an AWS EC2 instance using the 
 following steps:
 
-1. [Download](https://github.com/v5analytics/visallo/blob/master/cloud/dev/visallo-cloud-formation.yaml) the Cloud Formation script
+1. [Download](https://github.com/visallo/visallo/blob/master/cloud/dev/visallo-cloud-formation.yaml) the Cloud Formation script
 1. Upload the script through the [Cloud Formation](https://aws.amazon.com/cloudformation/) section of the Amazon Web 
 Services Console for your AWS account.
 1. Fill in appropriate parameter values. Defaults will work in most cases.

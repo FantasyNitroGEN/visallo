@@ -72,7 +72,7 @@ Parameters:
     Description: URL to the setup-centos.sh script used to configure the EC2 instance
     AllowedPattern: '^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]'
     ConstraintDescription: Must be a valid HTTP or HTTPS URL
-    Default: 'https://raw.githubusercontent.com/v5analytics/visallo/master/cloud/dev/setup-centos.sh'
+    Default: 'https://raw.githubusercontent.com/visallo/visallo/master/cloud/dev/setup-centos.sh'
 
   VolumeSnapshotId:
     Type: String

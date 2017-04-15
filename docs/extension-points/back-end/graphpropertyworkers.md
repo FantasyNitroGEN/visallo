@@ -8,7 +8,7 @@ The Graph Property Workers follow the [blackboard design pattern](https://en.wik
 
 ## Development
 
-There are many examples of Graph Property Workers in the open source Visallo project. You can find some of them [here](https://github.com/v5analytics/visallo/search?q=%22extends+GraphPropertyWorker%22&type=Code).  
+There are many examples of Graph Property Workers in the open source Visallo project. You can find some of them [here](https://github.com/visallo/visallo/search?q=%22extends+GraphPropertyWorker%22&type=Code).  
 
 For a bare-bones Graph Property Worker you must implement two methods: the [```execute```](../../java/org/visallo/core/ingest/graphProperty/GraphPropertyWorker.html#execute-java.io.InputStream-org.visallo.core.ingest.graphProperty.GraphPropertyWorkData-) method and the [```isHandled```](../../java/org/visallo/core/ingest/graphProperty/GraphPropertyWorker.html#isHandled-org.vertexium.Element-org.vertexium.Property-) method.
 

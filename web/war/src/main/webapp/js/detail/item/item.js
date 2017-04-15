@@ -63,7 +63,7 @@ define([
     }, 'http://docs.visallo.org/extension-points/front-end/layout/component.html')
 
     /**
-     * Visallo includes the [Flex](https://github.com/v5analytics/visallo/blob/master/web/war/src/main/webapp/js/detail/item/types/flex.js) layout type.
+     * Visallo includes the [Flex](https://github.com/visallo/visallo/blob/master/web/war/src/main/webapp/js/detail/item/types/flex.js) layout type.
      *
      * Layout components are passed properties: `layoutConfig` and `children`
      *
