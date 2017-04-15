@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/v5analytics/visallo.svg?branch=master)](https://travis-ci.org/v5analytics/visallo)
+[![Build Status](https://travis-ci.org/visallo/visallo.svg?branch=master)](https://travis-ci.org/visallo/visallo)
 
 ![Visallo Logo](http://docs.visallo.org/img/visallo-banner.png)
 
@@ -17,7 +17,8 @@ Visallo is an **open source** big data **platform** for analytical tools and vis
 
 ## License
 
-Copyright 2015 V5 Analytics LLC<br>
+Copyright 2017 Visallo, LLC<br>
+Copyright 2015 V5 Analytics, LLC<br>
 Copyright 2013 Altamira Technologies Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
