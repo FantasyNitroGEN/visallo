@@ -14,9 +14,9 @@
     <version>3.1.2-SNAPSHOT</version>
 
     <scm>
-        <url>https://github.com/v5analytics/visallo</url>
-        <connection>scm:git:git://github.com:v5analytics/visallo.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:v5analytics/visallo.git</developerConnection>
+        <url>https://github.com/visallo/visallo</url>
+        <connection>scm:git:git://github.com:visallo/visallo.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:visallo/visallo.git</developerConnection>
     </scm>
 
     <modules>

@@ -4,7 +4,7 @@ Visallo uses OWL files to define what type of entities you can create, what prop
 can connect to. Visallo has extended the OWL file to include additional attributes that will change how Visallo
 works.
 
-For an example see the [sample ontology](https://github.com/v5analytics/visallo/tree/master/config/ontology-sample).
+For an example see the [sample ontology](https://github.com/visallo/visallo/tree/master/config/ontology-sample).
 
 ## Loading an ontology via configuration
 

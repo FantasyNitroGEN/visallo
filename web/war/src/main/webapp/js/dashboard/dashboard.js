@@ -36,7 +36,7 @@ define([
      * extension, or added manually by users using the "Add Item" button
      * when editing dashboards.
      *
-     * The bundled items are defined in [registerDefaultItems.js](https://github.com/v5analytics/visallo/blob/master/web/war/src/main/webapp/js/dashboard/registerDefaultItems.js) for examples.
+     * The bundled items are defined in [registerDefaultItems.js](https://github.com/visallo/visallo/blob/master/web/war/src/main/webapp/js/dashboard/registerDefaultItems.js) for examples.
      *
      * Either `componentPath` or `report` is required.
      *
@@ -56,7 +56,7 @@ define([
      * @param {string} description Shown under the `title` in "Add Item" list
      * @param {object} [report] Use Visallo reportRenderers to render a search aggregation
      * @param {string} [report.defaultRenderer] The identifier of a report renderer to use as default when adding this item.
-     * @param {string} report.endpoint The endpoint path to access the data. See [`Router`](https://github.com/v5analytics/visallo/blob/master/web/web-base/src/main/java/org/visallo/web/Router.java) for all available endpoints.
+     * @param {string} report.endpoint The endpoint path to access the data. See [`Router`](https://github.com/visallo/visallo/blob/master/web/web-base/src/main/java/org/visallo/web/Router.java) for all available endpoints.
      * @param {object} [report.endpointParameters] Parameters to pass to endpoint.
      * Parameters when using search: {@link org.visallo.dashboard.item~reportParametersForSearch}
      * @param {object} [report.mapping] Custom configuration for mapping results
@@ -167,7 +167,7 @@ define([
      * Adds additional output types for dashboard items that define a `report` or `item.configuration.report`.
      *
      * There are several built-in renderers defined in
-     * [`reportRenderers.js`](https://github.com/v5analytics/visallo/blob/master/web/war/src/main/webapp/js/dashboard/reportRenderers.js).
+     * [`reportRenderers.js`](https://github.com/visallo/visallo/blob/master/web/war/src/main/webapp/js/dashboard/reportRenderers.js).
      *
      * ## withReportRenderer Mixin
      *
@@ -212,7 +212,7 @@ define([
      * the default dashboard items and their layout. The user is able to modify it upon its creation.
      *
      * Only one extension should be registered or an error will log to console.
-     * The default layout is defined in [`defaultLayout.js`](https://github.com/v5analytics/visallo/blob/master/web/war/src/main/webapp/js/dashboard/defaultLayout.js).
+     * The default layout is defined in [`defaultLayout.js`](https://github.com/visallo/visallo/blob/master/web/war/src/main/webapp/js/dashboard/defaultLayout.js).
      *
      * @param {Array} config Array of dashboard item configurations
      * @example

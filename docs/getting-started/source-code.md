@@ -6,7 +6,7 @@ obtain the source code, you must first install Git on your system. GitHub provid
 
 To get started, clone the main repository using this command. 
 
-    git clone git://github.com/v5analytics/visallo.git
+    git clone git://github.com/visallo/visallo.git
 
 If you're planning on contributing to Visallo, then it's a good idea to fork the repository first. GitHub provides [instructions for forking a repository](https://help.github.com/articles/fork-a-repo). After forking the Visallo repository, you'll want to create a local clone of your fork in which to make changes before [creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 

@@ -152,7 +152,7 @@ yarn add --dev \
 Now, configure babel using `.babelrc`
 
 ```sh
-curl -O https://github.com/v5analytics/visallo/blob/master/web/plugins/map-product/src/main/resources/org/visallo/web/product/map/.babelrc > .babelrc
+curl -O https://github.com/visallo/visallo/blob/master/web/plugins/map-product/src/main/resources/org/visallo/web/product/map/.babelrc > .babelrc
 ```
 
 Create a webpack configuration file: `src/main/resources/org/example/webpack.config.js`
