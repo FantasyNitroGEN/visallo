@@ -9,16 +9,16 @@
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:visallo="http://visallo.org#">
 
-    <rdf:Description rdf:about="&visallo;COMPANY_v5analytics">
+    <rdf:Description rdf:about="&visallo;COMPANY_visallo">
         <rdf:type rdf:resource="&visallo;company"/>
-        <visallo:title>V5 Analytics</visallo:title>
+        <visallo:title>Visallo, LLC</visallo:title>
     </rdf:Description>
 
     <rdf:Description rdf:about="&visallo;PERSON_susan">
         <rdf:type rdf:resource="&visallo;person"/>
         <visallo:firstName>Susan</visallo:firstName>
         <visallo:lastName>Feng</visallo:lastName>
-        <visallo:worksFor rdf:resource="&visallo;COMPANY_v5analytics"/>
+        <visallo:worksFor rdf:resource="&visallo;COMPANY_visallo"/>
     </rdf:Description>
 
 </rdf:RDF>
