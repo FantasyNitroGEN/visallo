@@ -5,8 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "V5 Analytics LLC",
-  "repository": "v5analytics/visallo",
+  "author": "Visallo, LLC",
+  "repository": "visallo/visallo",
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {

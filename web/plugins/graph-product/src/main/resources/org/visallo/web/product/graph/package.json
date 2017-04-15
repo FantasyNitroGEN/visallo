@@ -2,8 +2,8 @@
   "name": "visallo-web-product-graph",
   "description": "",
   "main": "plugin.js",
-  "author": "V5 Analytics LLC",
-  "repository": "v5analytics/visallo",
+  "author": "Visallo, LLC",
+  "repository": "visallo/visallo",
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {

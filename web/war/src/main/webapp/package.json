@@ -105,6 +105,6 @@
     "test": "node ./node_modules/karma/bin/karma start --single-run",
     "postinstall": "node ./node_modules/grunt-cli/bin/grunt deps"
   },
-  "author": "V5 Analytics LLC",
+  "author": "Visallo, LLC",
   "license": "Apache-2.0"
 }

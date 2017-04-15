@@ -18,6 +18,7 @@ Visallo is an **open source** big data **platform** for analytical tools and vis
 ## License
 
 Copyright 2017 Visallo, LLC<br>
+Copyright 2015 V5 Analytics, LLC<br>
 Copyright 2013 Altamira Technologies Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
