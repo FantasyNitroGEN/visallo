@@ -7,7 +7,7 @@
     <parent>
         <artifactId>visallo</artifactId>
         <groupId>org.visallo</groupId>
-        <version>3.1.2-SNAPSHOT</version>
+        <version>3.1.2</version>
     </parent>
 
     <artifactId>visallo-graph-property-worker-group</artifactId>
