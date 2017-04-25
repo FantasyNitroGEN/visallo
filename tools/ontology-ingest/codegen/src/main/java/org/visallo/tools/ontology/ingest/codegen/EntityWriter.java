@@ -95,18 +95,30 @@ public abstract class EntityWriter {
             writer.println("  public static final " + visalloPropertyType + " " + constantName + " = new " + visalloPropertyType + "(\"" + property.getTitle() + "\");");
             if (propertyType.equals("Date")) {
                 writer.println(String.format(
-                        "  public %s set%s(Object value, SimpleDateFormat dateFormat) { return add%s(\"\", value, dateFormat); }",
-                        propertyAdditionType, upperCamelCasePropertyName, upperCamelCasePropertyName));
+                        "  public %s set%s(Object value, SimpleDateFormat dateFormat) { return add%2$s(\"\", value, dateFormat); }",
+                        propertyAdditionType, upperCamelCasePropertyName));
                 writer.println(String.format(
-                        "  public %s add%s(String key, Object value, SimpleDateFormat dateFormat) { return %s(%s.getPropertyName(), key, value, dateFormat); }",
+                        "  public %s set%s(Object value, SimpleDateFormat dateFormat, String visibility) { return add%2$s(\"\", value, dateFormat, visibility); }",
+                        propertyAdditionType, upperCamelCasePropertyName));
+                writer.println(String.format(
+                        "  public %s add%s(String key, Object value, SimpleDateFormat dateFormat) { return add%2$s(key, value, dateFormat, null); }",
+                        propertyAdditionType, upperCamelCasePropertyName, helperMethodName, constantName
+                ));
+                writer.println(String.format(
+                        "  public %s add%s(String key, Object value, SimpleDateFormat dateFormat, String visibility) { return %s(%s.getPropertyName(), key, value, dateFormat, visibility); }",
                         propertyAdditionType, upperCamelCasePropertyName, helperMethodName, constantName
                 ));
             } else {
                 writer.println(String.format(
-                        "  public %s set%s(Object value) { return add%s(\"\", value); }",
-                        propertyAdditionType, upperCamelCasePropertyName, upperCamelCasePropertyName));
+                        "  public %s set%s(Object value) { return add%2$s(\"\", value); }", propertyAdditionType, upperCamelCasePropertyName));
                 writer.println(String.format(
-                        "  public %s add%s(String key, Object value) { return %s(%s.getPropertyName(), key, value); }",
+                        "  public %s set%s(Object value, String visibility) { return add%2$s(\"\", value, visibility); }",
+                        propertyAdditionType, upperCamelCasePropertyName));
+                writer.println(String.format(
+                        "  public %s add%s(String key, Object value) { return add%2$s(key, value, null); }",
+                        propertyAdditionType, upperCamelCasePropertyName));
+                writer.println(String.format(
+                        "  public %s add%s(String key, Object value, String visibility) { return %s(%s.getPropertyName(), key, value, visibility); }",
                         propertyAdditionType, upperCamelCasePropertyName, helperMethodName, constantName
                 ));
             }
