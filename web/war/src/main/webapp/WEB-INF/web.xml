@@ -6,10 +6,7 @@
         <listener-class>org.visallo.web.ApplicationBootstrap</listener-class>
     </listener>
     <distributable/>
-
-    <!--
-    <session-config>
-        <session-timeout>1</session-timeout>
-    </session-config>
-    -->
+    <listener>
+        <listener-class>org.visallo.web.VisalloSessionListener</listener-class>
+    </listener>
 </web-app>
