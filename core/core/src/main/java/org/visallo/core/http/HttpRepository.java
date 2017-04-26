@@ -97,6 +97,9 @@ public abstract class HttpRepository {
             if (retryCount > 0) {
                 if (responseCode == HTTP_TOO_MANY_REQUESTS || responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
                     String rateLimitResetString = connection.getHeaderField("X-RateLimit-Reset");
+                    if (rateLimitResetString == null) {
+                        rateLimitResetString = connection.getHeaderField("Retry-After");
+                    }
                     if (rateLimitResetString != null) {
                         long rateLimitReset = Long.parseLong(rateLimitResetString);
                         if (rateLimitReset > 1400000000) {
