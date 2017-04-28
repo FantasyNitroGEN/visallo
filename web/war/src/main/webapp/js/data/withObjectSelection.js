@@ -96,6 +96,7 @@ define([
                     this.trigger('selectObjects', {
                         vertexIds: newSelection.vertices,
                         edgeIds: newSelection.edges,
+                        options: newSelection.options,
                         dispatch: false
                     });
                 }
@@ -165,13 +166,21 @@ define([
          * $(document).trigger('selectObjects', { edgeIds: ['e1'] })
          */
         this.onSelectObjects = function(event, data) {
+            if (data && 'focus' in data) {
+                console.warn(`selectObjects event with "focus" should be moved to options object.
+Support will be removed in future versions, use:
+
+    this.trigger('selectObjects', { options: { focus: true }})`);
+                data.options = { focus: data.focus, ...(data.options || {}) };
+            }
             if (!data || data.dispatch !== false) {
                 visalloData.storePromise.then(store => {
                     var action;
                     if (data) {
                         let payload = {
                             vertices: data.vertexIds,
-                            edges: data.edgeIds
+                            edges: data.edgeIds,
+                            options: data.options
                         };
                         if (data.vertices) payload.vertices = _.pluck(data.vertices, 'id');
                         if (data.edges) payload.edges = _.pluck(data.edges, 'id');
@@ -181,6 +190,7 @@ define([
                     }
                     store.dispatch(action);
                 })
+                return;
             }
 
             var self = this;
@@ -262,11 +272,10 @@ define([
                                             return _.clone(value);
                                         })
                                         .value();
-                                    if (data && 'focus' in data) {
-                                        postData.focus = data.focus;
-                                    }
                                     if (data && 'options' in data) {
                                         postData.options = data.options;
+                                    } else {
+                                        postData.options = {};
                                     }
 
                                     /**
@@ -278,7 +287,7 @@ define([
                                      * @property {Array.<object>} data.vertices
                                      * @property {Array.<object>} data.edges
                                      * @property {object} data.options
-                                     * @property {object} data.focus
+                                     * @property {object} data.options.focus Used to scroll to sourceInfo of document text
                                      * @example <caption>From Flight</caption>
                                      * this.on(document, 'objectsSelected', function(event, data) {
                                      *     console.log('Selection:', data.vertices, data.edges);
