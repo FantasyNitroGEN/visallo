@@ -52,8 +52,7 @@ define([
 
         this.onObjectsSelected = function(evt, data) {
             var self = this,
-                vertices = data.vertices,
-                edges = data.edges,
+                { vertices, edges, options } = data,
                 moduleName, moduleData, moduleName2,
                 pane = this.$node.closest('.detail-pane');
 
@@ -95,7 +94,7 @@ define([
                 Module.attachTo(self.select('detailTypeContentSelector').teardownAllComponents(), {
                     model: vertices.concat(edges),
                     constraints: ['width'],
-                    focus: data.focus
+                    focus: options.focus
                 });
             })
         };

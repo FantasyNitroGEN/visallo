@@ -101,20 +101,16 @@ define([
         };
 
         this.onObjectsSelected = function(event, data) {
-            if (data && data.options && (data.options.fromHistogram || data.options.fromFilter)) {
-                return;
-            }
-
             var selectedVertices = (data && data.vertices) || [],
                 selectedEdges = (data && data.edges) || [],
                 selectedEdgeIds = _.pluck(selectedEdges, 'id').sort(),
                 selectedVertexIds = _.pluck(selectedVertices, 'id').sort();
 
-            this.clearBrush();
-            this.currentSelected = {
-                vertexIds: selectedVertexIds,
-                edgeIds: selectedEdgeIds
-            };
+            if (!data.options.fromHistogram) {
+                this.clearBrush();
+            }
+
+            this.currentSelected = { vertexIds: selectedVertexIds, edgeIds: selectedEdgeIds };
             this.updateBarSelection(this.currentSelected);
         };
 

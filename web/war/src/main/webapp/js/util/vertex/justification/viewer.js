@@ -89,11 +89,13 @@ define([
 
             this.trigger(document, 'selectObjects', {
                 vertexIds: [vertexId],
-                focus: {
-                    vertexId: vertexId,
-                    textPropertyKey: textPropertyKey,
-                    textPropertyName: textPropertyName,
-                    offsets: offsets
+                options: {
+                    focus: {
+                        vertexId: vertexId,
+                        textPropertyKey: textPropertyKey,
+                        textPropertyName: textPropertyName,
+                        offsets: offsets
+                    }
                 }
             })
         };
