@@ -1207,16 +1207,20 @@ define([
 
     return $.extend({}, F, { vertex: V, vertexUrl: vertexUrl.vertexUrl, edge: E });
 
-    function treeLookupForConceptProperty(conceptId, propertyName) {
+    function treeLookupForConceptProperty(conceptId, propertyName, additionalScope) {
         var ontologyConcept = conceptId && ontology.concepts.byId[conceptId],
             formulaString = ontologyConcept && ontologyConcept[propertyName];
+
+        if (ontologyConcept && !additionalScope.ontology) {
+            additionalScope.ontology = ontologyConcept
+        }
 
         if (formulaString) {
             return formulaString;
         }
 
         if (ontologyConcept && ontologyConcept.parentConcept) {
-            return treeLookupForConceptProperty(ontologyConcept.parentConcept, propertyName);
+            return treeLookupForConceptProperty(ontologyConcept.parentConcept, propertyName, additionalScope);
         }
     }
 
@@ -1232,11 +1236,12 @@ define([
                 ontologyRelation = ontology.relationships.byTitle[edge.label],
                 label = ontologyRelation.displayName;
             additionalScope.label = label;
+            additionalScope.ontology = ontologyRelation;
             formulaString = ontologyRelation[formulaKey];
         } else if (isVertex) {
             var vertex = vertexOrEdge,
                 conceptId = V.prop(vertex, 'conceptType');
-            formulaString = treeLookupForConceptProperty(conceptId, formulaKey);
+            formulaString = treeLookupForConceptProperty(conceptId, formulaKey, additionalScope);
         } else {
             if (formulaKey === 'titleFormula') {
                 return i18n('element.unauthorized').toUpperCase();

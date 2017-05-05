@@ -68,7 +68,6 @@ define(['util/promise'], function() {
                 properties:[]
             });
 
-            // Add video sub concept to test compound properties
             ontologyJson.concepts.push({
                 id:'http://visallo.org/dev#personSub',
                 title:'http://visallo.org/dev#personSub',
@@ -78,6 +77,33 @@ define(['util/promise'], function() {
                 searchable:true,
                 properties:[]
             });
+
+            ontologyJson.concepts.push({
+                id:'http://visallo.org/dev#formulaTestConcept',
+                title:'http://visallo.org/dev#formulaTestConcept',
+                displayName:'FormulaTestConcept',
+                parentConcept:'http://visallo.org#root',
+                pluralDisplayName:'FormulaTestConcepts',
+                titleFormula: 'ontology.displayName',
+                properties:[]
+            })
+
+            ontologyJson.concepts.push({
+                id:'http://visallo.org/dev#formulaTest',
+                title:'http://visallo.org/dev#formulaTest',
+                displayName:'FormulaTest',
+                parentConcept:'http://visallo.org#root',
+                pluralDisplayName:'FormulaTests',
+                titleFormula: `String(
+                    typeof prop === "function" &&
+                    typeof propRaw === "function" &&
+                    typeof longestProp === "function" &&
+                    typeof ontology === "object" &&
+                    typeof vertex === 'object' &&
+                    typeof edge === 'undefined'
+                )`,
+                properties:[]
+            })
 
             window.ONTOLOGY_JSON = ontologyJson;
             require(['data/web-worker/services/ontology'], function(ontology) {

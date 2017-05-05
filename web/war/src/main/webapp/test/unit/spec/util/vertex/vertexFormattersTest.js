@@ -37,7 +37,7 @@ define([
         COMPOUND_TEST_PROPERTY_NAME = 'http://visallo.org/testing#compound1',
 
         keyIdent = 0,
-        vertexIdent = 0,
+        elementIdent = 0,
         addMetadata = function(property, key, value) {
             var newProp = _.extend({}, property);
             if (!newProp.metadata) {
@@ -69,11 +69,11 @@ define([
                 id = null;
             }
             return {
-                id: id || ('testVertex' + vertexIdent++),
+                id: id || `testVertex-${elementIdent++}`,
                 properties: properties || [],
                 type: 'vertex'
             }
-        }
+        };
 
     describe('vertex formatters', function() {
 
@@ -521,7 +521,21 @@ define([
                         propertyFactory(PROPERTY_NAME_CONCEPT, 'http://visallo.org/dev#person')
                     ]);
 
-                expect(V.title(vertex)).to.equal('harwig, jason')
+                V.title(vertex).should.equal('harwig, jason')
+            })
+
+            it('Concept should be available to formulas for vertices', function() {
+                var vertex = vertexFactory([
+                    propertyFactory(PROPERTY_NAME_CONCEPT, '', 'http://visallo.org/dev#formulaTestConcept')
+                ])
+                V.title(vertex).should.equal('FormulaTestConcept')
+            })
+
+            it('Check for scope vars in formula', function() {
+                var vertex = vertexFactory([
+                    propertyFactory(PROPERTY_NAME_CONCEPT, '', 'http://visallo.org/dev#formulaTest')
+                ])
+                V.title(vertex).should.equal('true')
             })
         })
 

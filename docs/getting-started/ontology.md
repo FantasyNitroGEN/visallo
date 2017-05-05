@@ -130,6 +130,13 @@ repository.ontology.owl.default.dir=$VISALLO_DIR/config/ontology-sample
 * **titleFormula** - A JavaScript snippet used to display the title of the entity. The snipped could be a single expression, or multiple lines with a `return`. All formulas have access to:
     * `vertex`: The json vertex object (if the element is vertex)
     * `edge`: The json edge object (if the element is an edge)
+    * `ontology`: The json ontology object (concept/relation)
+        * `id` The iri
+        * `displayName` The display name of type
+        * `parentConcept` Parent iri (if vertex and is a child type)
+        * `parentIri` Parent iri (if edge and is a child type)
+        * `pluralDisplayName` The plural display name of type
+        * `properties` The property iris defined on this type
     * `prop`: Function that accepts a property IRI and returns the display value.
     * `propRaw`: Function that accepts a property IRI and returns the raw value.
 
