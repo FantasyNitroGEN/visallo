@@ -1,6 +1,7 @@
 package org.visallo.tools.ontology.ingest.common;
 
 import com.google.common.base.Strings;
+import org.vertexium.Visibility;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 
@@ -63,15 +64,23 @@ public abstract class EntityBuilder {
     }
 
     protected PropertyAddition<String> addStringProperty(String iri, String key, Object value) {
+        return addStringProperty(iri, key, value, null);
+    }
+
+    protected PropertyAddition<String> addStringProperty(String iri, String key, Object value, String visibility) {
         String strValue = null;
         if (value != null) {
             strValue = value.toString();
             strValue = Strings.isNullOrEmpty(strValue) ? null : strValue;
         }
-        return addTo(iri, key, strValue);
+        return addTo(iri, key, strValue, visibility);
     }
 
     protected PropertyAddition<Date> addDateProperty(String iri, String key, Object value, SimpleDateFormat dateFormat) {
+        return addDateProperty(iri, key, value, dateFormat, null);
+    }
+
+    protected PropertyAddition<Date> addDateProperty(String iri, String key, Object value, SimpleDateFormat dateFormat, String visibility) {
         Date dateValue = null;
         if (value != null) {
             if (value instanceof Date) {
@@ -85,10 +94,14 @@ public abstract class EntityBuilder {
                 }
             }
         }
-        return addTo(iri, key, dateValue);
+        return addTo(iri, key, dateValue, visibility);
     }
 
     protected PropertyAddition<byte[]> addByteArrayProperty(String iri, String key, Object value) {
+        return addByteArrayProperty(iri, key, value, null);
+    }
+
+    protected PropertyAddition<byte[]> addByteArrayProperty(String iri, String key, Object value, String visibility) {
         byte[] byteArrayValue = null;
         if (value != null) {
             if (value instanceof byte[]) {
@@ -97,10 +110,14 @@ public abstract class EntityBuilder {
                 throw new VisalloException("Unable to assign value " + value + " as byte[]");
             }
         }
-        return addTo(iri, key, byteArrayValue);
+        return addTo(iri, key, byteArrayValue, visibility);
     }
 
     protected PropertyAddition<Boolean> addBooleanProperty(String iri, String key, Object value) {
+        return addBooleanProperty(iri, key, value, null);
+    }
+
+    protected PropertyAddition<Boolean> addBooleanProperty(String iri, String key, Object value, String visibility) {
         Boolean booleanValue = null;
         if (value != null) {
             if (value instanceof Boolean) {
@@ -109,10 +126,14 @@ public abstract class EntityBuilder {
                 booleanValue = Boolean.valueOf(value.toString().trim());
             }
         }
-        return addTo(iri, key, booleanValue);
+        return addTo(iri, key, booleanValue, visibility);
     }
 
     protected PropertyAddition<Double> addDoubleProperty(String iri, String key, Object value) {
+        return addDoubleProperty(iri, key, value, null);
+    }
+
+    protected PropertyAddition<Double> addDoubleProperty(String iri, String key, Object value, String visibility) {
         Double doubleValue = null;
         if (value != null) {
             if (value instanceof String) {
@@ -126,10 +147,14 @@ public abstract class EntityBuilder {
                 doubleValue = (Double) value;
             }
         }
-        return addTo(iri, key, doubleValue);
+        return addTo(iri, key, doubleValue, visibility);
     }
 
     protected PropertyAddition<Integer> addIntegerProperty(String iri, String key, Object value) {
+        return addIntegerProperty(iri, key, value, null);
+    }
+
+    protected PropertyAddition<Integer> addIntegerProperty(String iri, String key, Object value, String visibility) {
         Integer intValue = null;
         if (value != null) {
             if (value instanceof String) {
@@ -143,10 +168,14 @@ public abstract class EntityBuilder {
                 intValue = (Integer) value;
             }
         }
-        return addTo(iri, key, intValue);
+        return addTo(iri, key, intValue, visibility);
     }
 
     protected PropertyAddition<Long> addLongProperty(String iri, String key, Object value) {
+        return addLongProperty(iri, key, value, null);
+    }
+
+    protected PropertyAddition<Long> addLongProperty(String iri, String key, Object value, String visibility) {
         Long longValue = null;
         if (value != null) {
             if (value instanceof String) {
@@ -162,19 +191,23 @@ public abstract class EntityBuilder {
                 longValue = (Long) value;
             }
         }
-        return addTo(iri, key, longValue);
+        return addTo(iri, key, longValue, visibility);
     }
 
     protected PropertyAddition<GeoPoint> addGeoPointProperty(String iri, String key, Object value) {
+        return addGeoPointProperty(iri, key, value, null);
+    }
+
+    protected PropertyAddition<GeoPoint> addGeoPointProperty(String iri, String key, Object value, String visibility) {
         GeoPoint geoValue = null;
         if (value != null) {
             geoValue = (GeoPoint) value;
         }
-        return addTo(iri, key, geoValue);
+        return addTo(iri, key, geoValue, visibility);
     }
 
-    private <T> PropertyAddition<T> addTo(String iri, String key, T value) {
-        PropertyAddition<T> addition = new PropertyAddition<>(iri, key, value);
+    private <T> PropertyAddition<T> addTo(String iri, String key, T value, String visibility) {
+        PropertyAddition<T> addition = new PropertyAddition<>(iri, key, value).withVisibility(visibility);
         propertyAdditions.add(addition);
         return addition;
     }
