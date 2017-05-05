@@ -150,26 +150,32 @@ define([
             var self = this;
 
             require(['../dropdowns/termForm/termForm'], function(TermForm) {
-                self.$node.show().find('.underneath').teardownComponent(TermForm);
-                var root = $('<div class="underneath">');
+                const $form = self.$node.show().find('.underneath');
+                const termForm = $form.lookupComponent(TermForm);
 
-                if (data.property) {
-                    root.appendTo(self.node);
-                } else {
-                    root.prependTo(self.node);
+                if (!termForm || (data.property && data.property.key) !== termForm.attr.dataInfo.originalPropertyKey) {
+                    $form.teardownComponent(TermForm);
+
+                    const root = $('<div class="underneath">');
+
+                    if (data.property) {
+                        root.appendTo(self.node);
+                    } else {
+                        root.prependTo(self.node);
+                    }
+
+                    TermForm.attachTo(root, {
+                        artifactData: self.model,
+                        dataInfo: _.extend({}, data.property, {
+                            originalPropertyKey: data.property && data.property.key,
+                            title: data.title
+                        }, data.value),
+                        restrictConcept: data.value.concept,
+                        existing: Boolean(data.property && data.property.resolvedVertexId),
+                        detectedObject: true,
+                        unresolve: data.unresolve || false
+                    });
                 }
-
-                TermForm.attachTo(root, {
-                    artifactData: self.model,
-                    dataInfo: _.extend({}, data.property, {
-                        originalPropertyKey: data.property && data.property.key,
-                        title: data.title
-                    }, data.value),
-                    restrictConcept: data.value.concept,
-                    existing: Boolean(data.property && data.property.resolvedVertexId),
-                    detectedObject: true,
-                    unresolve: data.unresolve || false
-                });
             })
         };
 
