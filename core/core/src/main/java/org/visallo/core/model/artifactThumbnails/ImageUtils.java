@@ -1,7 +1,9 @@
 package org.visallo.core.model.artifactThumbnails;
 
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 
 public class ImageUtils {
 
@@ -91,7 +93,7 @@ public class ImageUtils {
     }
 
     public static int thumbnailType(BufferedImage image) {
-        if (image.getColorModel().getNumComponents() > 3) {
+        if (image.getColorModel().getNumComponents() > 3 || isGrayScale(image)) {
             return BufferedImage.TYPE_4BYTE_ABGR;
         } else if (image.getColorModel().getNumColorComponents() == 3) {
             return BufferedImage.TYPE_3BYTE_BGR;
@@ -100,9 +102,13 @@ public class ImageUtils {
     }
 
     public static String thumbnailFormat(BufferedImage image) {
-        if (image.getColorModel().getNumComponents() > 3) {
+        if (image.getColorModel().getNumComponents() > 3 || isGrayScale(image)) {
             return "png";
         }
         return "jpg";
+    }
+
+    private static boolean isGrayScale(BufferedImage image) {
+        return image.getColorModel().getColorSpace().getType() == ColorSpace.TYPE_GRAY;
     }
 }
