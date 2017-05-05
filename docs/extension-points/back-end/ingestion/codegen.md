@@ -108,6 +108,7 @@ Through this pattern you can create any number of entities and relationships by 
 
 ### Visibility
 
+#### Entity 
 Adding visibility to the saved entities is possible through the Java API. In the following code example the first phone number entry, its title property, and the edges have the visibility label of "TS" added to them so that they may be tagged with that visibility when it enters the system:
 
 
@@ -128,4 +129,20 @@ Adding visibility to the saved entities is possible through the Java API. In the
     }
 ```
 
-Very similar method calls can be done in the system in the same manner as adding the visibilities.
+#### Properties
+Visibilities on entity properties can be set through the code that is generated. To set the visibility of a property, call the version of the method that applies the visibility string to the entity and it will be saved with that visibility.
+
+In the following example a phone number entity is created that contains two phone number properties. If the user that views the entity has an authorization of "A" and not "B", they will only be able to see the first property that has the visibility of "A". If they have both "A" and "B", they will be able to see both values on the entity.
+
+```java
+    @Override
+    protected int run() throws Exception {
+        PhoneNumber phoneNumber = new PhoneNumber("phonenumber1");
+        phoneNumber.addPhoneNumber("1", "(555) 555-5555", "A");
+        phoneNumber.addPhoneNumber("2", "(123) 456-7890", "B");
+
+        ingestRepository.save(phoneNumber);
+
+        return 0;
+    }
+```
