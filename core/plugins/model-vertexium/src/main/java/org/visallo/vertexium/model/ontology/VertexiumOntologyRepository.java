@@ -8,6 +8,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -178,6 +180,13 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     .define();
         }
 
+        if (!graph.isPropertyDefined(OntologyProperties.ONTOLOGY_FILE_MD5.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.ONTOLOGY_FILE_MD5.getPropertyName())
+                    .dataType(String.class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
+
         if (!graph.isPropertyDefined(OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyName())) {
             graph.defineProperty(OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.getPropertyName())
                     .dataType(Integer.class)
@@ -229,13 +238,31 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public void storeOntologyFile(InputStream in, IRI documentIRI) {
-        StreamingPropertyValue value = new StreamingPropertyValue(in, byte[].class);
+        byte[] data;
+        try {
+            data = IOUtils.toByteArray(in);
+        } catch (IOException ex) {
+            throw new VisalloException("Could not read ontology input stream", ex);
+        }
+        String md5 = DigestUtils.md5Hex(data);
+        StreamingPropertyValue value = new StreamingPropertyValue(new ByteArrayInputStream(data), byte[].class);
         value.searchIndex(false);
         Metadata metadata = new Metadata();
         Vertex rootConceptVertex = ((VertexiumConcept) getRootConcept()).getVertex();
         metadata.add("index", Iterables.size(OntologyProperties.ONTOLOGY_FILE.getProperties(rootConceptVertex)), VISIBILITY.getVisibility());
         OntologyProperties.ONTOLOGY_FILE.addPropertyValue(rootConceptVertex, documentIRI.toString(), value, metadata, VISIBILITY.getVisibility(), authorizations);
+        OntologyProperties.ONTOLOGY_FILE_MD5.addPropertyValue(rootConceptVertex, documentIRI.toString(), md5, metadata, VISIBILITY.getVisibility(), authorizations);
         graph.flush();
+    }
+
+    @Override
+    protected boolean hasFileChanged(IRI documentIRI, byte[] inFileData) {
+        Vertex rootConceptVertex = ((VertexiumConcept) getRootConcept()).getVertex();
+        String existingMd5 = OntologyProperties.ONTOLOGY_FILE_MD5.getPropertyValue(rootConceptVertex, documentIRI.toString());
+        if (existingMd5 == null) {
+            return true;
+        }
+        return !DigestUtils.md5Hex(inFileData).equals(existingMd5);
     }
 
     @Override
