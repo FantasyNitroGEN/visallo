@@ -248,6 +248,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             File inDir,
             Authorizations authorizations
     ) throws Exception {
+        if (!hasFileChanged(documentIRI, inFileData)) {
+            LOGGER.info("skipping %s, file has not changed", documentIRI);
+            return;
+        }
         Reader inFileReader = new InputStreamReader(new ByteArrayInputStream(inFileData));
 
         OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
@@ -298,6 +302,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         storeOntologyFile(new ByteArrayInputStream(inFileData), documentIRI);
 
         clearCache();
+    }
+
+    protected boolean hasFileChanged(IRI documentIRI, byte[] inFileData) {
+        return true;
     }
 
     private void importInverseOfObjectProperties(OWLOntology o) {
