@@ -48,7 +48,7 @@ public class FormulaEvaluatorTest {
 
         Locale locale = Locale.getDefault();
         String timeZone = TimeZone.getDefault().getDisplayName();
-        userContext = new FormulaEvaluator.UserContext(locale, timeZone, null);
+        userContext = new FormulaEvaluator.UserContext(locale, null, timeZone, null);
 
         final String ontologyJson = IOUtils.toString(FormulaEvaluatorTest.class.getResourceAsStream("ontology.json"), "utf-8");
         final String configurationJson = IOUtils.toString(FormulaEvaluatorTest.class.getResourceAsStream("configuration.json"), "utf-8");

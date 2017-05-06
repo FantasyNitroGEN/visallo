@@ -3,7 +3,10 @@ package org.visallo.core.formula;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
 import org.apache.commons.io.IOUtils;
-import org.mozilla.javascript.*;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Element;
 import org.visallo.core.config.Configuration;
@@ -21,6 +24,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -193,15 +197,21 @@ public class FormulaEvaluator {
         private final Locale locale;
         private final String timeZone;
         private final String workspaceId;
+        private final ResourceBundle resourceBundle;
 
-        public UserContext(Locale locale, String timeZone, String workspaceId) {
+        public UserContext(Locale locale, ResourceBundle resourceBundle, String timeZone, String workspaceId) {
             this.locale = locale == null ? Locale.getDefault() : locale;
+            this.resourceBundle = resourceBundle;
             this.timeZone = timeZone;
             this.workspaceId = workspaceId;
         }
 
         public Locale getLocale() {
             return locale;
+        }
+
+        public ResourceBundle getResourceBundle() {
+            return resourceBundle;
         }
 
         public String getTimeZone() {

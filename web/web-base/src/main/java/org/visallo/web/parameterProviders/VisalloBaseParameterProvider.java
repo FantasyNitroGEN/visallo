@@ -15,9 +15,7 @@ import org.visallo.web.CurrentUser;
 import org.visallo.web.WebApp;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Locale;
+import java.util.*;
 import java.util.TimeZone;
 
 public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<T> {
@@ -232,6 +230,12 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             return WebApp.getLocal(language, country, variant);
         }
         return request.getLocale();
+    }
+
+    protected ResourceBundle getBundle(HttpServletRequest request) {
+        WebApp webApp = getWebApp(request);
+        Locale locale = getLocale(request);
+        return webApp.getBundle(locale);
     }
 
     protected String getTimeZone(final HttpServletRequest request) {

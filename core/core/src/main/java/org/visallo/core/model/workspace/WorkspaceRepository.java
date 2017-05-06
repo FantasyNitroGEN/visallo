@@ -12,6 +12,7 @@ import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -166,7 +167,7 @@ public abstract class WorkspaceRepository {
         ADD, UPDATE
     }
 
-    public abstract ClientApiWorkspaceDiff getDiff(Workspace workspace, User user, Locale locale, String timeZone);
+    public abstract ClientApiWorkspaceDiff getDiff(Workspace workspace, User user, FormulaEvaluator.UserContext userContext);
 
     public String getCreatorUserId(String workspaceId, User user) {
         for (WorkspaceUser workspaceUser : findUsersWithAccess(workspaceId, user)) {

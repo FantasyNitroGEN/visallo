@@ -1453,10 +1453,9 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     @Override
     @Traced
     public ClientApiWorkspaceDiff getDiff(
-            final Workspace workspace,
-            final User user,
-            final Locale locale,
-            final String timeZone
+            Workspace workspace,
+            User user,
+            FormulaEvaluator.UserContext userContext
     ) {
         if (!hasReadPermissions(workspace.getWorkspaceId(), user)) {
             throw new VisalloAccessDeniedException(
@@ -1469,12 +1468,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return lockRepository.lock(getLockName(workspace), () -> {
             List<WorkspaceEntity> workspaceEntities = findEntitiesNoLock(workspace, true, true, user);
             Iterable<Edge> workspaceEdges = findModifiedEdges(workspace, workspaceEntities, true, user);
-
-            FormulaEvaluator.UserContext userContext = new FormulaEvaluator.UserContext(
-                    locale,
-                    timeZone,
-                    workspace.getWorkspaceId()
-            );
             return workspaceDiff.diff(workspace, workspaceEntities, workspaceEdges, userContext, user);
         });
     }
