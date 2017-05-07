@@ -60,6 +60,7 @@
         <commons.compress.version>1.11</commons.compress.version>
         <commons.io.version>2.4</commons.io.version>
         <commons.lang.version>2.5</commons.lang.version>
+        <commons.lang3.version>3.4</commons.lang3.version>
         <commons.httpclient.version>3.1</commons.httpclient.version>
         <curator.version>2.11.0</curator.version>
         <elasticsearch.version>1.7.5</elasticsearch.version>
@@ -348,6 +349,11 @@
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
                 <version>${commons.lang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons.lang3.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-fileupload</groupId>
