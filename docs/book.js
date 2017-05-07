@@ -11,7 +11,10 @@ module.exports = {
   },
   pluginsConfig: {
     ga: {
-        token: 'UA-63006144-4'
+        token: 'UA-63006144-4',
+        configuration: {
+            cookieDomain: 'docs.visallo.org'
+        }
     },
     lunr: {
         maxIndexSize: 1000000000
