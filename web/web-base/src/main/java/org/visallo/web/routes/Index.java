@@ -31,6 +31,7 @@ public class Index implements ParameterizedHandler {
     private static final String PLUGIN_CSS_RESOURCES_PARAM = "pluginCssResources";
     private static final String LOGO_IMAGE_DATA_URI = "logoDataUri";
     private static final String SHOW_VERSION_COMMENTS = "showVersionComments";
+    private static final String DEV_MODE = "devMode";
     private static final String LOGO_PATH_BUNDLE_KEY = "visallo.loading-logo.path";
     private static final String CONTEXT_PATH = "contextPath";
     private static final Map<String, String> MESSAGE_BUNDLE_PARAMS = ImmutableMap.of(
@@ -58,7 +59,8 @@ public class Index implements ParameterizedHandler {
     }
 
     private String getIndexHtml(HttpServletRequest request, WebApp app, ResourceBundle resourceBundle) throws IOException {
-        if (indexHtml == null || app.isDevModeEnabled()) {
+        boolean devMode = app.isDevModeEnabled();
+        if (indexHtml == null || devMode) {
             Map<String, Object> context = new HashMap<>();
             context.put(CONTEXT_PATH, request.getContextPath());
             context.put(PLUGIN_JS_RESOURCES_BEFORE_AUTH_PARAM, app.getPluginsJsResourcesBeforeAuth());
@@ -67,6 +69,7 @@ public class Index implements ParameterizedHandler {
             context.put(PLUGIN_CSS_RESOURCES_PARAM, app.getPluginsCssResources());
             context.put(LOGO_IMAGE_DATA_URI, getLogoImageDataUri(request, resourceBundle));
             context.put(SHOW_VERSION_COMMENTS, showVersionComments);
+            context.put(DEV_MODE, devMode);
             for (Map.Entry<String, String> param : MESSAGE_BUNDLE_PARAMS.entrySet()) {
                 context.put(param.getKey(), resourceBundle.getString(param.getValue()));
             }

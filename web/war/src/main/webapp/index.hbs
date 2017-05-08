@@ -28,6 +28,7 @@
       }
 
       require.urlArgs = window.visalloCacheBreaker = "vslo_v=" + versionParameter;
+      window.visalloEnvironment = { dev: {{devMode}}, prod: !{{devMode}} };
       window.visalloPluginResources = {
         beforeAuth: [
         {{#each pluginJsResourcesBeforeAuth}}  '{{contextPath}}{{.}}'{{#unless @last}},{{/unless}}

@@ -8,6 +8,7 @@ module.exports = {
     },
     "globals": {
         "DEBUG": false,
+        "visalloEnvironment": false,
         "visalloData": false,
         "visalloCacheBreaker": false,
         "visalloPluginResources": false,

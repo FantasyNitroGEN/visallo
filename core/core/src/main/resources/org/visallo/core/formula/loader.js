@@ -11,6 +11,7 @@ console = {
     error: consoleError
 };
 window.addEventListener = function() { };
+window.visalloEnvironment = { dev: false, prod: true };
 require.config({
     baseUrl: '',
     paths: {

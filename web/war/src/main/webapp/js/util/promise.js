@@ -37,6 +37,7 @@
         if (P) {
             Promise.config({
                 cancellation: true,
+                longStackTraces: visalloEnvironment.dev,
                 warnings: {
                     wForgottenReturn: false
                 }
@@ -91,9 +92,12 @@
                 }
             }
 
-            'all race reject resolve try map'.split(' ').forEach(function(key) {
-                Promise[key] = OldPromise[key];
-            })
+            Promise.all = OldPromise.all;
+            Promise.map = OldPromise.map;
+            Promise.race = OldPromise.race;
+            Promise.reject = OldPromise.reject;
+            Promise.resolve = OldPromise.resolve;
+            Promise.try = OldPromise.try;
             Promise.prototype = OldPromise.prototype;
         }
 

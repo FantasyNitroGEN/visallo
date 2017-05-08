@@ -74,7 +74,8 @@ define([
             this.worker = new Worker(PATH_TO_WORKER + '?' + visalloCacheBreaker);
             this.worker.postMessage(JSON.stringify({
                 cacheBreaker: visalloCacheBreaker,
-                webWorkerResources: visalloPluginResources.webWorker
+                webWorkerResources: visalloPluginResources.webWorker,
+                environment: visalloEnvironment
             }));
             this.worker.onmessage = this.onDataWorkerMessage.bind(this);
             this.worker.onerror = this.onDataWorkerError.bind(this);

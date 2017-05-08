@@ -51,6 +51,7 @@ function setupComplete() {
 }
 
 function setupAll(data) {
+    self.visalloEnvironment = data.environment;
     setupConsole();
     setupWebsocket(data);
     var resolveStore;

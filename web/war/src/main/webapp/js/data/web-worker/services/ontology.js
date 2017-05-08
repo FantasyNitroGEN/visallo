@@ -258,7 +258,7 @@ define([
                                     if (node.color) {
                                         child.color = node.color;
                                     } else {
-                                        if (!_.contains(ignoreColorWarnings, child.id) && child.userVisible !== false) {
+                                        if (visalloEnvironment.dev && !_.contains(ignoreColorWarnings, child.id) && child.userVisible !== false) {
                                             console.warn(
                                                 'No color specified in concept hierarchy for conceptType:',
                                                 child.id

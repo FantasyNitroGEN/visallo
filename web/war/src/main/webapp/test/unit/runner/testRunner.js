@@ -75,6 +75,7 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
                     authorizations: ['a','b']
                 }
             };
+            global.visalloEnvironment = { dev: false, prod: true };
 
             _.templateSettings.escape = /\{([\s\S]+?)\}/g;
             _.templateSettings.evaluate = /<%([\s\S]+?)%>/g;
