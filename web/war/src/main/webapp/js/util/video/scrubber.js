@@ -1,19 +1,17 @@
 
 define([
     'flight/lib/component',
-    'videojs',
     'tpl!./scrubber',
     'tpl!./video',
     'util/withDataRequest'
-], function(defineComponent, videojs, template, videoTemplate, withDataRequest) {
+], function(defineComponent, template, videoTemplate, withDataRequest) {
     'use strict';
 
     var NUMBER_FRAMES = 0, // Populated by config
         POSTER = 1,
         FRAMES = 2,
-        MAX_DIMENSIONS = [450, 300];
-
-    videojs.options.flash.swf = '../libs/video.js/dist/video-js.swf';
+        MAX_DIMENSIONS = [450, 300],
+        videojs;
 
     return defineComponent(VideoScrubber, withDataRequest);
 
@@ -134,60 +132,63 @@ define([
 
         this.setupVideo = function(dim) {
             var self = this;
+            require(['videojs'], _videojs => {
+                videojs = _videojs;
+                videojs.options.flash.swf = '../libs/video.js/dist/video-js.swf';
 
-            // FIXME: needed?
-            this.posterFrameDimensions = dim;
+                this.posterFrameDimensions = dim;
 
-            this.updateCss(true);
-            this.showPoster();
+                this.updateCss(true);
+                this.showPoster();
 
-            var throttledFrameUpdate = _.throttle(this.onGraphPaddingUpdated.bind(this), 100);
-            this.on(document, 'graphPaddingUpdated', throttledFrameUpdate);
-            this.on(document, 'windowResize', throttledFrameUpdate);
-            this.on('videoPlayerInitialized', function(e) {
-                this.off('mousemove');
-                this.off('mouseleave');
-                this.off('click');
-            });
-            this.on('click', this.onClick);
+                var throttledFrameUpdate = _.throttle(this.onGraphPaddingUpdated.bind(this), 100);
+                this.on(document, 'graphPaddingUpdated', throttledFrameUpdate);
+                this.on(document, 'windowResize', throttledFrameUpdate);
+                this.on('videoPlayerInitialized', function(e) {
+                    this.off('mousemove');
+                    this.off('mouseleave');
+                    this.off('click');
+                });
+                this.on('click', this.onClick);
 
-            this.loadVideoPreview()
-                .then(function(previewDimensions) {
-                    self.videoPreviewImageDimensions = previewDimensions;
-                    self.videoPreviewFrameImageDimensions = [previewDimensions[0] / NUMBER_FRAMES, previewDimensions[1]];
+                this.loadVideoPreview()
+                    .then(function(previewDimensions) {
+                        self.videoPreviewImageDimensions = previewDimensions;
+                        self.videoPreviewFrameImageDimensions = [previewDimensions[0] / NUMBER_FRAMES, previewDimensions[1]];
 
-                    self.on('mousemove', {
-                        scrubbingLineSelector: function(e) {
-                            e.stopPropagation();
-                        }
-                    });
-                    self.$node
-                        .on('mouseenter mousemove', function(e) {
-                            var $target = $(e.target);
-                            if ($target.is('.scrubbing-play-button') || $target.is(this)) {
+                        self.on('mousemove', {
+                            scrubbingLineSelector: function(e) {
                                 e.stopPropagation();
-                                self.showPoster();
-                            } else {
-                                var left = e.pageX - $target.offset().left,
-                                    percent = left / $target.width();
-
-                                if (percent <= 1.0 && percent >= 0.0) {
-                                    var index = Math.round(percent * NUMBER_FRAMES);
-                                    self.scrubPercent = index / NUMBER_FRAMES;
-                                    self.showFrames(index);
-                                } else {
-                                    self.showPoster();
-                                }
                             }
-                        })
-                        .on('mouseleave', function(e) {
-                            self.showPoster();
-                        })
-                })
-                .catch(function() { })
-                .then(function() {
-                    self.setup = true;
-                })
+                        });
+                        self.$node
+                            .on('mouseenter mousemove', function(e) {
+                                var $target = $(e.target);
+                                if ($target.is('.scrubbing-play-button') || $target.is(this)) {
+                                    e.stopPropagation();
+                                    self.showPoster();
+                                } else {
+                                    var left = e.pageX - $target.offset().left,
+                                        percent = left / $target.width();
+
+                                    if (percent <= 1.0 && percent >= 0.0) {
+                                        var index = Math.round(percent * NUMBER_FRAMES);
+                                        self.scrubPercent = index / NUMBER_FRAMES;
+                                        self.showFrames(index);
+                                    } else {
+                                        self.showPoster();
+                                    }
+                                }
+                            })
+                            .on('mouseleave', function(e) {
+                                self.showPoster();
+                            })
+                    })
+                    .catch(function() { })
+                    .then(function() {
+                        self.setup = true;
+                    })
+            })
         };
 
         this.loadPosterFrame = function() {
@@ -379,11 +380,13 @@ define([
         };
 
         this.onSeekToTime = function(event, data) {
-            if (!this.setup) this.setupVideo();
-            this.startVideo({
-                seek: data.seekTo / 1000,
-                autoPlay: data.autoPlay
-            });
+            Promise.resolve(this.setup ? Promise.resolve() : this.setupVideo())
+                .then(() => {
+                    this.startVideo({
+                        seek: data.seekTo / 1000,
+                        autoPlay: data.autoPlay
+                    });
+                })
         };
 
     }
