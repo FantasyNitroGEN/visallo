@@ -97,7 +97,7 @@ public class ArtifactThumbnailRepository {
             Graphics2D g = resizedImage.createGraphics();
             int width = resizedImage.getWidth();
             int height = resizedImage.getHeight();
-            if (transformedImage.getColorModel().getNumComponents() > 3) {
+            if (transformedImage.getColorModel().getNumComponents() != 3) {
                 g.drawImage(transformedImage, 0, 0, width, height, null);
             } else {
                 g.drawImage(transformedImage, 0, 0, width, height, Color.BLACK, null);
