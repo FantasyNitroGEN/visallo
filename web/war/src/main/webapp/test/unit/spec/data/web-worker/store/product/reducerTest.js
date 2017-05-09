@@ -60,7 +60,7 @@ define([
             });
         });
 
-        it('should update data with an existing new key/value', () => {
+        it('should update data with an existing key/value', () => {
             const nextState = reducer(genState({
                 products: {
                     p1: {
@@ -125,8 +125,8 @@ define([
                             p1: {
                                 id: 'p1',
                                 extendedData: {
-                                    edges: [],
-                                    vertices: [],
+                                    edges: {},
+                                    vertices: {},
                                     unauthorizedEdgeIds: [ 'e1' ]
                                 }
                             }
@@ -135,15 +135,15 @@ define([
                     {
                         type: 'ELEMENT_UPDATE',
                         payload: {
-                            edges: [
-                                {
+                            edges: {
+                                e1: {
                                     id: 'e1',
                                     inVertexId: 'v1',
                                     label: 'l',
                                     outVertexId: 'v2'
                                 }
-                            ],
-                            vertices: [],
+                            },
+                            vertices: {},
                             workspaceId
                         }
                     }
@@ -151,15 +151,15 @@ define([
                 nextState.workspaces[workspaceId].products['p1'].should.deep.equal({
                     id: 'p1',
                     extendedData: {
-                        edges: [
-                            {
+                        edges: {
+                            e1: {
                                 edgeId: 'e1',
                                 inVertexId: 'v1',
                                 label: 'l',
                                 outVertexId: 'v2'
                             }
-                        ],
-                        vertices: [],
+                        },
+                        vertices: {},
                         unauthorizedEdgeIds: []
                     }
                 });
@@ -172,15 +172,15 @@ define([
                             p1: {
                                 id: 'p1',
                                 extendedData: {
-                                    edges: [
-                                        {
+                                    edges: {
+                                        e1: {
                                             edgeId: 'e1',
                                             inVertexId: 'v1',
                                             label: 'l',
                                             outVertexId: 'v2'
                                         }
-                                    ],
-                                    vertices: [],
+                                    },
+                                    vertices: {},
                                     unauthorizedEdgeIds: []
                                 }
                             }
@@ -189,13 +189,13 @@ define([
                     {
                         type: 'ELEMENT_UPDATE',
                         payload: {
-                            edges: [
-                                {
+                            edges: {
+                                e1: {
                                     id: 'e1',
                                     _DELETED: true
                                 }
-                            ],
-                            vertices: [],
+                            },
+                            vertices: {},
                             workspaceId
                         }
                     }
@@ -203,8 +203,8 @@ define([
                 nextState.workspaces[workspaceId].products['p1'].should.deep.equal({
                     id: 'p1',
                     extendedData: {
-                        edges: [],
-                        vertices: [],
+                        edges: {},
+                        vertices: {},
                         unauthorizedEdgeIds: [ 'e1' ]
                     }
                 });

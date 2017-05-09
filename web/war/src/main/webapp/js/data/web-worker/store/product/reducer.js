@@ -170,6 +170,7 @@ define(['updeep'], function(u) {
     }
 
     function updateViewable(state, {workspaceId, vertices, edges = [], unauthorizedEdgeIds}) {
+    //TODO: this may be wrong, we could invalidate extendedData and request new? I wrote this not knowing extendedData.vertices/edges were derived
         const [ deletedEdges, otherEdges ] = _.partition(edges, '_DELETED');
         const otherEdgeIds = otherEdges.map(e => e.id);
         const deletedEdgeIds = deletedEdges.map(e => e.id);
@@ -184,7 +185,7 @@ define(['updeep'], function(u) {
             }, product);
         };
         const transformVertexData = (vertexIds) => {
-            return vertexIds.map((vertexId) => {
+            return _.mapObject(vertexIds, (vertexId) => {
                 const { id, unauthorized, ...rest } = vertexId;
                 const update = vertices.find((vertex) => vertex.id === id);
                 if (update !== undefined) {
@@ -200,16 +201,22 @@ define(['updeep'], function(u) {
         };
         const transformEdges = prevEdges => {
             const transformEdge = ({ id, label, inVertexId, outVertexId }) => ({ edgeId: id, label, inVertexId, outVertexId });
-            const prevEdgeIds = prevEdges.map(p => p.edgeId);
+            const prevEdgeIds = Object.keys(prevEdges);
             const [ edgeUpdates, edgeAdds ] = _.partition(otherEdges, e => prevEdgeIds.includes(e.id));
 
-            return prevEdges
-                .filter(p => !deletedEdgeIds.includes(p.edgeId))
-                .map(p => {
+            prevEdges = _.chain(prevEdges)
+                .pick(p => !deletedEdgeIds.includes(p.edgeId))
+                .mapObject(p => {
                     const update = edgeUpdates.find(edge => edge.id === p.edgeId);
                     return update && transformEdge(update) || p;
                 })
-                .concat(edgeAdds.map(e => transformEdge(e)));
+                .value();
+            edgeAdds.forEach(e => {
+                const edge = transformEdge(e)
+                prevEdges[edge.edgeId] = edge;
+            });
+
+            return prevEdges;
         };
         const transformUnauthorizedEdgeIds = prevIds =>
             prevIds

@@ -114,7 +114,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
         String id = productVertex.getId();
 
         if (params.optBoolean("includeVertices")) {
-            JSONArray vertices = new JSONArray();
+            JSONObject vertices = new JSONObject();
             List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
                     Direction.OUT,
                     WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
@@ -135,13 +135,13 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                     vertex.put("unauthorized", true);
                 }
                 setEdgeJson(propertyVertexEdge, vertex);
-                vertices.put(vertex);
+                vertices.put(otherId, vertex);
             }
             extendedData.put("vertices", vertices);
         }
 
         if (params.optBoolean("includeEdges")) {
-            JSONArray edges = new JSONArray();
+            JSONObject edges = new JSONObject();
             JSONArray unauthorizedEdgeIds = new JSONArray();
             Authorizations systemAuthorizations = authorizationRepository.getGraphAuthorizations(
                     user,
@@ -166,7 +166,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                     edge.put("label", relatedEdge.getLabel());
                     edge.put("outVertexId", relatedEdge.getOutVertexId());
                     edge.put("inVertexId", relatedEdge.getInVertexId());
-                    edges.put(edge);
+                    edges.put(edgeId, edge);
                 } else {
                    unauthorizedEdgeIds.put(edgeId);
                 }

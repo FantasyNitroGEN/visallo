@@ -50,35 +50,36 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
         const { vertices, edges } = product.extendedData
         const viewable = v => v.unauthorized !== true
 
-        return { vertices: vertices.filter(viewable), edges }
+        return { vertices: _.pick(vertices, viewable), edges }
     });
 
     const getElementsInProduct = createSelector([getElementIdsInProduct, elementSelectors.getElements], (elementIds, elements) => {
+        const { vertices, edges } = elementIds;
         return {
-            vertices: _.pick(elements.vertices, _.pluck(elementIds.vertices, 'id')),
-            edges: _.pick(elements.edges, _.pluck(elementIds.edges, 'edgeId'))
+            vertices: _.pick(elements.vertices, Object.keys(vertices)),
+            edges: _.pick(elements.edges, Object.keys(edges))
         };
     })
 
     const getSelectedElementsInProduct = createSelector([getSelection, getElementIdsInProduct], (selection, elementIds) => {
         const { vertices, edges } = elementIds;
         return {
-            vertices: _.indexBy(_.intersection(selection.vertices, _.pluck(vertices, 'id'))),
-            edges: _.indexBy(_.intersection(selection.edges, _.pluck(edges, 'edgeId')))
+            vertices: _.indexBy(_.intersection(selection.vertices, Object.keys(vertices))),
+            edges: _.indexBy(_.intersection(selection.edges, Object.keys(edges)))
         };
     });
 
     const getFocusedElementsInProduct = createSelector([getFocused, getElementIdsInProduct], (focusing, elementIds) => {
         const { vertices, edges } = elementIds;
         const focused = { vertices: {}, edges: {} };
-        vertices.forEach(v => {
-            if (v.id in focusing.vertexIds) {
-                focused.vertices[v.id] = true;
+        Object.keys(vertices).forEach(vertexId => {
+            if (vertexId in focusing.vertexIds) {
+                focused.vertices[vertexId] = true;
             }
         });
-        edges.forEach(e => {
-            if (e.edgeId in focusing.edgeIds) {
-                focused.edges[e.edgeId] = true;
+        Object.keys(edges).forEach(edgeId => {
+            if (edgeId in focusing.edgeIds) {
+                focused.edges[edgeId] = true;
             }
         })
         return focused;

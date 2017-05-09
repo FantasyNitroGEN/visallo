@@ -13,6 +13,8 @@ import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.types.JsonSingleValueVisalloProperty;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workspace.product.WorkProductElements;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.PropertyType;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class GraphWorkProduct extends WorkProductElements {
     public static final JsonSingleValueVisalloProperty ENTITY_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphWorkProduct.class);
 
     @Inject
     public GraphWorkProduct(OntologyRepository ontologyRepository, AuthorizationRepository authorizationRepository) {

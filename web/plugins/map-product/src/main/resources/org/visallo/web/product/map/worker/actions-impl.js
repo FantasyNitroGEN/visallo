@@ -19,7 +19,7 @@ define([
 
             edges.then(function(edgeVertexIds) {
                 const product = productSelectors.getProductsById(getState())[productId];
-                const existing = product.extendedData ? product.extendedData.vertices : [];
+                const existing = product.extendedData ? Object.keys(product.extendedData.vertices) : [];
                 const combined = _.without(_.uniq(edgeVertexIds.concat(vertexIds)), ..._.pluck(existing, 'id'));
                 if (!combined.length) return;
 

@@ -31,8 +31,8 @@ define([
                     dispatch(api.update(product));
 
                     const { vertices, edges } = product.extendedData;
-                    const vertexIds = _.pluck(vertices, 'id');
-                    const edgeIds = _.pluck(edges, 'edgeId');
+                    const vertexIds = Object.keys(vertices);
+                    const edgeIds = Object.keys(edges);
 
                     dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
                 })
@@ -101,12 +101,12 @@ define([
             if (workspace.editable && elements && elements.vertexIds && elements.vertexIds.length) {
                 const removeVertices = elements.vertexIds;
                 const product = state.product.workspaces[workspaceId].products[productId];
-                const byId = _.indexBy(product.extendedData.vertices, 'id');
+                const vertices = product.extendedData.vertices
 
                 let undoPayload = {};
                 if (undoable) {
                     const updateVertices = removeVertices
-                        .map(id => byId[id])
+                        .map(id => vertices[id])
                         .reduce(
                             (vertices, {id, pos}) => ({
                                 [id]: pos,
@@ -151,8 +151,8 @@ define([
 
             dispatch(selectionActions.set({
                 selection: {
-                    vertices: product.extendedData.vertices.map(v => v.id),
-                    edges: product.extendedData.edges.map(e => e.id)
+                    vertices: Object.keys(product.extendedData.vertices),
+                    edges: Object.keys(product.extendedData.edges)
                 }
             }));
         },
