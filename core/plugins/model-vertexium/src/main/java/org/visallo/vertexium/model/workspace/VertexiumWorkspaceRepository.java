@@ -1,5 +1,6 @@
 package org.visallo.vertexium.model.workspace;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -1062,10 +1063,10 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     WorkspaceProperties.TITLE.updateProperty(elemCtx, title.substring(0, Math.min(title.length(), 128)), visibility);
                 }
                 if (kind != null) {
+                    if (getWorkProductByKind(kind) == null) {
+                        throw new VisalloException("invalid kind: " + kind);
+                    }
                     WorkspaceProperties.PRODUCT_KIND.updateProperty(elemCtx, kind, visibility);
-                }
-                if (productId == null) {
-                    WorkspaceProperties.PRODUCT_KIND.setProperty(elemCtx.getMutation(), kind, visibility);
                 }
                 if (params != null) {
                     updateProductData(elemCtx, WorkspaceProperties.PRODUCT_DATA, params.optJSONObject("data"));
@@ -1092,7 +1093,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     }
             );
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new VisalloException("Could not addOrUpdateProduct(workspaceId: " + workspaceId + ", productId: " + productId + ")", e);
         }
 
         getGraph().flush();
@@ -1125,8 +1126,13 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Visibility visibility = VISIBILITY.getVisibility();
         Metadata metadata = new Metadata();
         JSONUtil.streamKeys(data).forEach(key -> {
-            String value = data.get(key).toString();
-            property.updateProperty(elemCtx, key, value, metadata, visibility);
+            Object valueObject = data.get(key);
+            if (JSONObject.NULL.equals(valueObject)) {
+                property.removeProperty(elemCtx, key, visibility);
+            } else {
+                String value = valueObject.toString();
+                property.updateProperty(elemCtx, key, value, metadata, visibility);
+            }
         });
     }
 
@@ -1189,6 +1195,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
     }
 
+    @VisibleForTesting
+    public void setWorkProducts(List<WorkProduct> workProducts) {
+        this.workProducts = workProducts;
+    }
+
     @Override
     public InputStream getProductPreviewById(String workspaceId, String productId, User user) {
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
@@ -1225,6 +1236,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         WorkProduct workProduct = getWorkProductByKind(kind);
         JSONObject extendedData = null;
         if (includeExtended) {
+            checkNotNull(params, "params is required when getting extended data");
             extendedData = workProduct.getExtendedData(getGraph(), getVertex(workspaceId, user), productVertex, params, user, authorizations);
         }
 
