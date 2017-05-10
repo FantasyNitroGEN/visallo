@@ -11,15 +11,31 @@ define([
     registry.markUndocumentedExtensionPoint('org.visallo.workproduct')
 
     var initialProductId = null;
-    $(document).on('menubarToggleDisplay', function handler(event, data) {
-        const { name, options } = data;
-        if (name === 'products' && !_.isEmpty(options)) {
-            if ('id' in options) {
-                initialProductId = options.id
-                $(document).off('menubarToggleDisplay', handler)
-            } else console.warn('Specify id=[product id] in url to open product. #tools=products&id=...')
-        }
-    })
+    $(document)
+        .on('menubarToggleDisplay', function handler(event, data) {
+            const { name, options } = data;
+            if (name === 'products' && !_.isEmpty(options)) {
+                if ('id' in options) {
+                    initialProductId = options.id
+                    $(document).off('menubarToggleDisplay', handler)
+                } else console.warn('Specify id=[product id] in url to open product. #tools=products&id=...')
+            }
+        })
+        .on('productsPaneVisible', function handler(event, data) {
+            $(document).off('productsPaneVisible', handler);
+            if (initialProductId) return;
+            visalloData.storePromise.then(store => {
+                const state = store.getState();
+                const selected = productSelectors.getSelectedId(state)
+                if (!selected) {
+                    const products = productSelectors.getProducts(state);
+                    if (products.length) {
+                        store.dispatch(productActions.select(products[0].id))
+                    }
+                }
+            })
+        })
+
 
     return redux.connect(
 

@@ -174,8 +174,6 @@ define([
                     dispatch({type: 'PRODUCT_LIST', payload: { workspaceId, loading: false, loaded: true, products }});
                     if (initialProductId) {
                         dispatch(api.select({ productId: initialProductId }))
-                    } else if (!getState().product.workspaces[workspaceId].selected) {
-                        dispatch(api.select({ productId: null }))
                     }
                 })
             }

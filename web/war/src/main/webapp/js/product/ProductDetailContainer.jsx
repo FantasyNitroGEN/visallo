@@ -4,6 +4,7 @@ define([
     'configuration/plugins/registry',
     './ProductDetail',
     './ProductDetailEmpty',
+    './ProductDetailNoSelection',
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/selectors'
 ], function(
@@ -12,17 +13,21 @@ define([
     registry,
     ProductDetail,
     ProductDetailEmpty,
+    ProductDetailNoSelection,
     productActions,
     productSelectors) {
     'use strict';
 
     const ProductDetailContainer = React.createClass({
         render() {
-            var { props } = this;
+            const props = this.props;
+            var { product, products, extensions } = props;
 
-            if (props.product) {
+            if (product) {
                 return (<ProductDetail {...props} />);
-            } else if (props.extensions) {
+            } else if (products && products.length) {
+                return (<ProductDetailNoSelection {...props} />);
+            } else if (extensions) {
                 return (<ProductDetailEmpty {...props} />);
             }
 
@@ -57,6 +62,7 @@ define([
                 const user = state.user.current;
                 return {
                     padding: state.panel.padding,
+                    products: productSelectors.getProducts(state),
                     extensions,
                     editable: workspace && user ?
                         workspace.editable && user.privileges.includes('EDIT') :
