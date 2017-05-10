@@ -125,14 +125,6 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
                 getVisibility(),
                 authorizations
         );
-
-        VertexBuilder vb = graph.prepareVertex(longRunningProcessGraphVertexId, vertex.getVisibility());
-        LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
-                vb,
-                longRunningProcessQueueItem,
-                getVisibility()
-        );
-        vb.save(authorizations);
         this.graph.flush();
     }
 
