@@ -8,7 +8,7 @@ define([
     const RegistryInjectorHOC = (WrappedComponent, identifiers) => {
         if (!_.isArray(identifiers)) throw new Error('identifiers must be an array');
 
-        return React.createClass({
+        const WithRegistry = React.createClass({
             displayName: `RegistryInjectorHOC(${WrappedComponent.displayName || 'Component'})`,
             componentDidMount() {
                 if (identifiers.length === 0) {
@@ -24,10 +24,11 @@ define([
                 $(document).off('extensionsChanged.registryInjector');
             },
             render() {
-                const registrySubset = _.object(identifiers.map(i => [i, registry.extensionsForPoint(i)]));
-                return (<WrappedComponent ref="wrapped" {...this.props} registry={registrySubset} />);
+                return (<WrappedComponent {...this.props} registry={registry.extensionsForPoints(identifiers)} />);
             }
         })
+
+        return WithRegistry;
     };
 
     RegistryInjectorHOC.registry = registry;

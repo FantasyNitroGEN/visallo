@@ -24,6 +24,42 @@ define(['configuration/plugins/registry'], function(registry) {
             registry.extensionsForPoint('a').length.should.equal(0)
         })
 
+        it('should be able to request the same subset', function() {
+            registry.registerExtension('a', 'A')
+            registry.registerExtension('b', 'B')
+            registry.registerExtension('c', 'C')
+
+            registry.documentExtensionPoint('a', 'desc', () => true)
+            registry.documentExtensionPoint('b', 'desc', () => true)
+            registry.documentExtensionPoint('c', 'desc', () => false)
+
+            const r = registry.extensionsForPoints(['a', 'b', 'c'])
+            r.should.deep.equal({ a: ['A'], b: ['B'], c: [] })
+            r.should.equal(registry.extensionsForPoints(['a', 'b', 'c']))
+
+            registry.registerExtension('d', 'D')
+            registry.documentExtensionPoint('d', 'desc', () => true)
+            r.should.equal(registry.extensionsForPoints(['b', 'a', 'c']))
+        })
+        
+        it('should return the same object when asking twice and no change', function() {
+            registry.registerExtension('a', 'AA')
+            const beforeDoc = registry.extensionsForPoint('a')
+            registry.documentExtensionPoint('a', 'desc', () => true)
+            const afterDoc = registry.extensionsForPoint('a')
+            const afterDoc2 = registry.extensionsForPoint('a')
+            beforeDoc.should.not.equal(afterDoc)
+            afterDoc.should.equal(afterDoc2)
+
+            registry.registerExtension('b', 'BB')
+            registry.documentExtensionPoint('b', 'desc', () => true)
+            const initialB = registry.extensionsForPoint('b')
+            initialB.should.equal(registry.extensionsForPoint('b'))
+
+            const afterB = registry.extensionsForPoint('a')
+            afterDoc.should.equal(afterB)
+        })
+
         it('should throw error when extension point is not provided', function() {
             expect(registry.registerExtension).to.throw('extension')
             expect(function() {
