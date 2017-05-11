@@ -12,7 +12,7 @@
 
     <groupId>org.visallo</groupId>
     <artifactId>visallo-plugin-archetype</artifactId>
-    <version>2.2.3-SNAPSHOT</version>
+    <version>2.2.3</version>
     <packaging>maven-archetype</packaging>
 
     <name>Visallo: Maven Archetype</name>
