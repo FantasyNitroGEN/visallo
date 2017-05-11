@@ -359,11 +359,9 @@ define([
                         const values = [];
                         const ontologyProperty = ontologyProperties.byTitle[title];
                         const isCompoundField = !!ontologyProperty.dependentPropertyIris;
-                        const properties = _.uniq(F.vertex.props(result, title), function(property) {
-                            let identifier = property.key + property.metadata['http://visallo.org#visibilityJson'].source;
-                            if (!isCompoundField) identifier += property.name;
-                            return identifier;
-                        });
+                        const properties = _.uniq(F.vertex.props(result, title), (property) => (
+                            isCompoundField ? property.key : (property.key + property.name)
+                        ));
                         let propertiesPromise;
 
                         if (properties.length) {
