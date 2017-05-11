@@ -36,7 +36,7 @@ define([
             this.on('infiniteScrollRequest', this.onInfiniteScrollRequest);
 
             this.dataRequest('config', 'properties').done(function(configProperties) {
-                self.exactMatch = (configProperties['search.exactMatch'] === 'true');    
+                self.exactMatch = (configProperties['search.exactMatch'] === 'true');
             });
         });
 
@@ -74,7 +74,7 @@ define([
         this.onQueryUpdated = function(event, data) {
             var self = this,
                 query = data.value;
-            
+
             if (query && query !== '*' && this.exactMatch) {
                 query = '\"' + query + '\"';
             }
