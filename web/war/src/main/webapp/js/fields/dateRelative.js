@@ -91,9 +91,9 @@ define([
 
                 var date = this.calculateRelativeDate(value);
                 if (this.displayTime) {
-                    value._date = F.date.dateStringUtc(date) + ' ' + F.date.timeStringUtc(date);
+                    value._date = F.date.dateStringServer(date) + ' ' + F.date.timeStringServer(date);
                 } else {
-                    value._date = F.date.dateString(date);
+                    value._date = F.date.dateStringServer(date);
                 }
             }
 

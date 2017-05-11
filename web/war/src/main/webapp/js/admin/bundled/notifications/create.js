@@ -92,10 +92,10 @@ define([
                     newNotification.notificationId = self.attr.notification.id;
                 }
                 if (newNotification.startDate) {
-                    newNotification.startDate = F.date.dateTimeStringUtc(newNotification.startDate)
+                    newNotification.startDate = F.timezone.dateTimeStringServer(newNotification.startDate)
                 }
                 if (newNotification.endDate) {
-                    newNotification.endDate = F.date.dateTimeStringUtc(newNotification.endDate)
+                    newNotification.endDate = F.timezone.dateTimeStringServer(newNotification.endDate)
                 }
             });
         }

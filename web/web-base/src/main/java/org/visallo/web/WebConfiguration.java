@@ -37,6 +37,9 @@ public class WebConfiguration {
     public static final String MAP_PROVIDER = PREFIX + "map.provider";
     public static final String MAP_PROVIDER_OSM_URL = PREFIX + "map.provider.osm.url";
     public static final String LOGIN_SHOW_POWERED_BY = PREFIX + "login.showPoweredBy";
+    public static final String FORMATS_DATE_DATEDISPLAY = PREFIX + "formats.date.dateDisplay";
+    public static final String FORMATS_DATE_TIMEDISPLAY = PREFIX + "formats.date.timeDisplay";
+    public static final String FORMATS_DATE_SHOW_TIMEZONE = PREFIX + "formats.date.showTimezone";
     public static final String SHOW_VERSION_COMMENTS = PREFIX + "showVersionComments";
     public static final String SHOW_VISIBILITY_IN_DETAILS_PANE = PREFIX + "showVisibilityInDetailsPane";
     public static final String MAX_SESSION_INACTIVE_INTERVAL_SECONDS = PREFIX + "maxSessionInactiveIntervalSeconds";
@@ -71,6 +74,10 @@ public class WebConfiguration {
     static {
         DEFAULTS.put(LOGIN_SHOW_POWERED_BY, "false");
         DEFAULTS.put(SHOW_VERSION_COMMENTS, "true");
+
+        DEFAULTS.put(FORMATS_DATE_DATEDISPLAY, "YYYY-MM-DD");
+        DEFAULTS.put(FORMATS_DATE_TIMEDISPLAY, "HH:mm");
+        DEFAULTS.put(FORMATS_DATE_SHOW_TIMEZONE, "true");
 
         DEFAULTS.put(SHOW_VISIBILITY_IN_DETAILS_PANE, "true");
 

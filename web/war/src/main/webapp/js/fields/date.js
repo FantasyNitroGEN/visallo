@@ -53,9 +53,7 @@ define([
                 showInputs: false,
                 showSeconds: false,
                 minuteStep: 15,
-                maxHours: 24,
                 defaultTime: timeString || false,
-                showMeridian: false,
                 disableMousewheel: true
             })
 
@@ -64,9 +62,22 @@ define([
             });
             this.on('selectTimezone', this.onSelectTimezone);
             this.updateTimezone();
-            this.select('inputSelector').eq(0).datepicker().on('changeDate', () => {
+
+            const input = this.select('inputSelector').eq(0)
+
+            // Set this value once here so the datepicker can open
+            // to selected month and highlight the day
+            if (this.attr.value) {
+                if (this.displayTime) {
+                    input.val(F.date.dateString(this.attr.value))
+                } else {
+                    input.val(F.date.dateStringUtc(this.attr.value))
+                }
+            }
+
+            input.datepicker().on('changeDate', () => {
                 this.triggerFieldUpdated();
-            });
+            })
         });
 
         this.getValue = function() {
@@ -78,10 +89,10 @@ define([
                     timeVal = timeField.val();
 
                 if (dateStr && timeVal) {
-                    return F.timezone.dateTimeStringToUtc(dateStr + ' ' + timeVal, this.currentTimezone.name);
+                    return F.timezone.dateTimeStringServer(dateStr + ' ' + timeVal, this.currentTimezone.name);
                 }
-            } else {
-                return dateStr;
+            } else if (dateStr) {
+                return F.date.dateStringServer(dateStr);
             }
         };
 
@@ -102,7 +113,7 @@ define([
                     } else {
                         var looksLikeCorrectFormat = (/^\d+-\d+-\d+ \d+:\d+$/).test(value);
                         if (looksLikeCorrectFormat) {
-                            var parsed = F.timezone.date(value, 'Etc/UTC');
+                            var parsed = F.timezone.dateInServerFormat(value, 'Etc/UTC');
                             if (parsed) {
                                 date = parsed.toDate();
                             }
@@ -139,12 +150,17 @@ define([
             }
             this.select('inputSelector').eq(0).val(dateString);
             if (this.displayTime) {
+                if (timeString) {
+                    // Unable to change how am/pm is shown in timepicker
+                    // so uppercase to match
+                    timeString = timeString.toUpperCase()
+                }
                 this.select('timeFieldSelector').val(timeString);
             }
         };
 
         this.isValid = function(value) {
-            return _.isString(value) && value.length;
+            return _.isString(value) && value.length && F.date.local(value);
         };
 
         this.onSelectTimezone = function(event, data) {
@@ -211,21 +227,5 @@ define([
                     this.attr.vertexProperty['http://visallo.org#sourceTimezone']
             });
         };
-
-        var DATE_REGEX = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*$/,
-            DATE_TIME_REGEX = /^\s*\d{4}-\d{1,2}-\d{1,2}\s*\d{1,2}:\d{1,2}\s*$/;
-
-            /*
-        this.isValid = function() {
-            var displayTime = this.displayTime,
-                name = this.attr.property.title,
-                values = this.getValues();
-
-            return _.every(values, function(v, i) {
-                return (displayTime ? DATE_TIME_REGEX.test(v) : DATE_REGEX.test(v)) &&
-                    F.vertex.singlePropValid(v, name);
-            });
-        };
-        */
     }
 });

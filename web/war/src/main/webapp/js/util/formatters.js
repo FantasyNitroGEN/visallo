@@ -10,16 +10,32 @@ define([
     'sf',
     'chrono',
     'jstz',
-    'moment-timezone',
     'duration-js',
     'util/messages',
+    'moment',
+    'moment-timezone',
     'jquery',
     'underscore'
-], function(sf, chrono, jstz, moment, Duration, i18n) {
+], function(sf, chrono, jstz, Duration, i18n, moment) {
     'use strict';
+
+    var language = 'en';
+    try {
+        var languagePref = localStorage.getItem('language');
+        if (languagePref) {
+            language = languagePref;
+        }
+    } catch(langerror) { /*eslint no-empty:0 */ }
+    moment.locale(language);
 
     var BITS_FOR_INDEX = 12,
         BITS_FOR_OFFSET = 32 - BITS_FOR_INDEX,
+        SERVER_DATE = 'YYYY-MM-DD',
+        SERVER_TIME = 'HH:mm',
+        dateFormat,
+        timeFormat,
+        showTz,
+        datepickerFormat,
         classNameIndex = 0,
         toClassNameMap = {},
         fromClassNameMap = {},
@@ -47,6 +63,45 @@ define([
 
     function checkIfMac() {
         return ~navigator.userAgent.indexOf('Mac OS X');
+    }
+
+    function convertToDatePickerFormat() {
+        // converts momentjs formats to bootstrap datepicker
+        // https://momentjs.com/docs/#/displaying/format/
+        // https://bootstrap-datepicker.readthedocs.io/en/stable/options.html#format
+        return dateFormat
+            .replace(/M+/g, function(v) {
+                return ['m', 'mm', 'M', 'MM'][v.length - 1];
+            })
+            .replace(/D+/g, function(v) {
+                return ['d', 'dd'][v.length - 1];
+            })
+            .replace(/d{3,4}/g, function(v) {
+                return ['D', 'DD'][v.length - 3];
+            })
+            .replace(/Y{2,}/g, function(v) {
+                return v.length === 2 ? 'yy' : 'yyyy';
+            })
+    }
+
+    function checkDateTimeFormat(format, type) {
+        try {
+            var output = moment().format(format);
+            if (!output || !output.length || output === format) {
+                throw new Error('Date format invalid');
+            }
+
+            if (type === 'date' && !(/^(M+|D+|d{3,4}|YY|YYYY|[^a-zA-Z\d])+$/).test(format)) {
+                throw new Error('Date format includes unsupported characters', format);
+            } else if (type === 'time' && !(/^(H+|h+|m+|a|A|[^a-zA-Z\d])+$/).test(format)) {
+                throw new Error('Time format includes unsupported characters', format);
+            }
+        } catch(e) {
+            console.error('Date Format is invalid: ' + format +
+                '. Check configuration parameter: web.ui.format.date.' + type + 'Display');
+            return false;
+        }
+        return true;
     }
 
     function codeForCharacter(character) {
@@ -609,6 +664,36 @@ define([
          */
         date: {
 
+            resetToDefaultDateFormat: function() {
+                dateFormat = SERVER_DATE;
+                datepickerFormat = null;
+                timeFormat = SERVER_TIME;
+                showTz = true;
+            },
+
+            datepickerFormat: function() {
+                if (!datepickerFormat) {
+                    datepickerFormat = convertToDatePickerFormat();
+                }
+                return datepickerFormat
+            },
+
+            setDateFormat: function(format) {
+                if (format && checkDateTimeFormat(format, 'date')) {
+                    dateFormat = format;
+                    datepickerFormat = null;
+                    return true;
+                }
+            },
+
+            setTimeFormat: function(format, _showTz) {
+                if (format && checkDateTimeFormat(format, 'time')) {
+                    timeFormat = format;
+                    showTz = _.isUndefined(_showTz) ? true : Boolean(_showTz);
+                    return true;
+                }
+            },
+
             /**
              * Try to parse the input as a date.
              *
@@ -724,19 +809,25 @@ define([
             },
 
             /**
-             * Convert date to date string (no time)
+             * Convert date to date string (no time) using the configurated
+             * date format specified in configuration parameter:
+             * `web.ui.formats.date.dateDisplay`
              *
              * @param {string|number} millisStr milliseconds
              * @returns {string} Date string (no time) based on milliseconds
              */
             dateString: function(millisStr) {
                 if (_.isUndefined(millisStr)) return '';
-                return sf('{0:yyyy-MM-dd}', FORMATTERS.date.local(millisStr));
+                return moment(FORMATTERS.date.local(millisStr)).format(dateFormat);
             },
 
             /**
              * Convert date to date time string, optionally to different
-             * timezone.
+             * timezone using the configured date and time formats specified
+             * in configuration parameters:
+             * `web.ui.formats.date.dateDisplay`
+             * `web.ui.formats.date.timeDisplay`
+             * `web.ui.formats.date.showTimezone`
              *
              * @param {string|number} millisStr milliseconds
              * @param {string} [overrideTzInfo=Users Timezone] Specify different TZ (UTC, etc.)
@@ -751,10 +842,19 @@ define([
                         timezoneAbbreviation = tzInfo.tzAbbr;
                     }
                 }
-                return sf('{0:yyyy-MM-dd HH:mm}{1}',
-                    FORMATTERS.date.local(millisStr),
-                    timezoneAbbreviation ? (' ' + timezoneAbbreviation) : ''
+                return moment(FORMATTERS.date.local(millisStr)).format(dateFormat + ' ' + timeFormat) + (
+                    showTz && timezoneAbbreviation ? (' ' + timezoneAbbreviation) : ''
                 );
+            },
+
+            dateStringServer: function(millisStr) {
+                if (_.isUndefined(millisStr)) return '';
+                return moment(FORMATTERS.date.utc(millisStr)).format(SERVER_DATE);
+            },
+
+            timeStringServer: function(millisStr) {
+                if (_.isUndefined(millisStr)) return '';
+                return moment(FORMATTERS.date.utc(millisStr)).format(SERVER_TIME);
             },
 
             /**
@@ -787,7 +887,7 @@ define([
              */
             timeString: function(millisStr) {
                 if (_.isUndefined(millisStr)) return '';
-                return sf('{0:HH:mm}', FORMATTERS.date.local(millisStr));
+                return moment(FORMATTERS.date.local(millisStr)).format(timeFormat);
             },
 
             /**
@@ -880,10 +980,22 @@ define([
             dateTimeStringToTimezone: function(dateStr, srcTimezone, destTimezone) {
                 var dateTz = FORMATTERS.timezone.date(dateStr, srcTimezone);
 
-                return dateTz.tz(destTimezone).format('YYYY-MM-DD HH:mm');
+                return dateTz.tz(destTimezone).format(dateFormat + ' ' + timeFormat);
             },
             dateTimeStringToUtc: function(dateStr, timezone) {
                 return FORMATTERS.timezone.dateTimeStringToTimezone(dateStr, timezone, 'Etc/UTC');
+            },
+            dateTimeStringServer: function(dateStr, timezone) {
+                var dateTz = FORMATTERS.timezone.date(dateStr, timezone || FORMATTERS.timezone.currentTimezone().name);
+                return dateTz.tz('Etc/UTC').format(SERVER_DATE + ' ' + SERVER_TIME + ' [UTC]');
+            },
+            dateInServerFormat: function(dateStr, timezone) {
+                if (/^\s*$/.test(dateStr)) {
+                    return dateStr;
+                }
+                return _.isNumber(dateStr) ?
+                    moment.tz(dateStr, timezone) :
+                    moment.tz(dateStr, SERVER_DATE + ' ' + SERVER_TIME, timezone);
             },
             date: function(dateStr, timezone) {
                 if (/^\s*$/.test(dateStr)) {
@@ -891,7 +1003,7 @@ define([
                 }
                 return _.isNumber(dateStr) ?
                     moment.tz(dateStr, timezone) :
-                    moment.tz(dateStr, 'YYYY-MM-DD HH:mm', timezone);
+                    moment.tz(dateStr, dateFormat + ' ' + timeFormat, timezone);
             },
             offsetDisplay: function(offsetMinutes) {
                 var negative = offsetMinutes < 0,
@@ -962,6 +1074,8 @@ define([
     };
 
     FORMATTERS.string.palantirPrettyPrint = FORMATTERS.string.prettyPrint;
+
+    FORMATTERS.date.resetToDefaultDateFormat();
 
     return FORMATTERS;
 });

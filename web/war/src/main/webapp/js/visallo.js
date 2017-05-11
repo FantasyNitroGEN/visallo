@@ -258,28 +258,18 @@ function(jQuery,
                     }
 
                     require([
-                        'moment',
+                        'util/requirejs/promise!util/service/propertiesPromise',
+                        'util/formatters',
                         'bootstrap',
                         'easing',
                         'jquery-scrollstop',
                         'bootstrap-datepicker',
                         'bootstrap-timepicker',
-                        'util/formatters',
                         'util/visibility/util',
                         'util/handlebars/after_auth_helpers'
-                    ], function(moment) {
-                        var language = 'en';
-                        try {
-                            var languagePref = localStorage.getItem('language');
-                            if (languagePref) {
-                                language = languagePref;
-                            }
-                        } catch(langerror) { /*eslint no-empty:0 */ }
-                        moment.locale(language);
+                    ], function(config, F) {
 
-                        // Default datepicker options
-                        $.fn.datepicker.defaults.format = 'yyyy-mm-dd';
-                        $.fn.datepicker.defaults.autoclose = true;
+                        configureDateFormats(config, F)
 
                         if (popoutDetails) {
                             visalloData.isFullscreen = true;
@@ -356,6 +346,24 @@ function(jQuery,
                 });
             }
         }
+    }
+
+    function configureDateFormats(config, F) {
+        const dateDisplay = config['formats.date.dateDisplay'];
+        const timeDisplay = config['formats.date.timeDisplay'];
+        const showTz = config['formats.date.showTimezone'] !== 'false';
+
+        F.date.setDateFormat(dateDisplay);
+        F.date.setTimeFormat(timeDisplay, showTz);
+
+        // Default datepicker options
+        $.fn.datepicker.defaults.format = F.date.datepickerFormat();
+        $.fn.datepicker.defaults.autoclose = true;
+
+        // Check whether to show am/pm and twelve hour time in timepicker
+        const showMeridian = /(h|a|A)/.test(timeDisplay);
+        $.fn.timepicker.defaults.showMeridian = showMeridian;
+        $.fn.timepicker.defaults.maxHours = showMeridian ? 12 : 24;
     }
 
     function updateVisalloLoadingProgress(string, percentInProgress) {

@@ -4,17 +4,16 @@
       data-provide="datepicker"
       placeholder="{{today}}"
       value="{{dateString}}"
-      pattern="\d{4}-\d+-\d+"
       required="required" 
       class="date">
     <input type="text"
       placeholder="{{todayTime}}"
-      pattern="\d+:\d+"
+      pattern="\d+(:\d)?(\s*[amAMpmPM])?"
       required="required" 
       class="timepicker">
     <span class="add-on timezone"></span>
   </div>
 {{else}}
   <input data-provide="datepicker" placeholder="{{today}}" 
-    value="{{dateString}}" type="text" pattern="\d{4}-\d+-\d+"></input>
+    value="{{dateString}}" type="text" required></input>
 {{/if}}

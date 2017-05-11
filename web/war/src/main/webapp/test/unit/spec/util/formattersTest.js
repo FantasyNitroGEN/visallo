@@ -1,9 +1,21 @@
 define([
     'util/formatters',
-    'moment-timezone'
+    'moment-timezone',
+    'bootstrap-datepicker'
 ], function(f, moment) {
 
+    var originalError = console.error;
+
     describe('formatters', function() {
+
+        beforeEach(function() {
+            console.error = sinon.spy()
+            f.date.resetToDefaultDateFormat()
+        })
+
+        afterEach(function() {
+            console.error = originalError
+        })
 
         describe('for numbers', function() {
 
@@ -236,6 +248,15 @@ define([
                 f.date.local('2015-06-23 13:16 ' + thisMachineTimezoneOffsetStr).getTime()
                     .should.equal(dateLocal.getTime())
                 f.date.dateTimeString(dateLocal.getTime()).should.match(/^2015-06-23 13:16 .+$/)
+
+                f.date.setDateFormat('M/D/YYYY')
+                f.date.setTimeFormat('h:mm a')
+                f.date.dateTimeString(dateLocal.getTime()).should.match(/^6\/23\/2015 1:16 pm .+$/)
+            })
+
+            it('should ignore invalid format setting', function() {
+                f.date.setDateFormat('yyyy')
+                f.date.dateString(new Date(2017, 0, 1)).should.equal('2017-01-01')
             })
 
             it('should format to preferred format', function() {
@@ -252,6 +273,63 @@ define([
                 f.date.dateString('' + now.getTime()).should.equal(now.getFullYear() + '-' + month + '-' + day);
 
                 f.date.dateString(now).should.equal(now.getFullYear() + '-' + month + '-' + day);
+
+                f.date.setDateFormat('MM DD, YYYY')
+                f.date.dateString(now).should.equal(`${month} ${day}, ${now.getFullYear()}`);
+
+                f.date.setDateFormat('YYYY')
+                f.date.dateString(now).should.equal(String(now.getFullYear()));
+            })
+
+            it('should convert from moment to datepicker format', function() {
+                var checkDate = new Date(2017, 2 - 1, 1); // Wed Feb 1 2017
+
+                check('D', '1')
+                check('DD', '01')
+
+                check('ddd', 'Wed')
+                check('dddd', 'Wednesday')
+
+                check('M', '2')
+                check('MM', '02')
+                check('MMM', 'Feb')
+                check('MMMM', 'February')
+
+                check('YY', '17')
+                check('YYYY', '2017')
+
+                check('YYYY-MM-DD', '2017-02-01')
+                check('M/D/YY', '2/1/17')
+                check('MMM D, YYYY', 'Feb 1, 2017')
+                
+                function check(format, expected) {
+                    expect(f.date.setDateFormat(format)).to.be.true
+                    f.date.dateString(checkDate).should.equal(expected)
+                    $.fn.datepicker.DPGlobal.formatDate(checkDate, f.date.datepickerFormat(), 'en').should.equal(expected)
+                }
+            })
+
+            it('should check for correct subset of format supported', function() {
+                fail('Y')
+                fail('Mo')
+                fail('Do')
+                fail('do')
+                
+                function fail(format) {
+                    console.error.reset();
+                    expect(f.date.setDateFormat(format)).to.not.be.true
+                    console.error.should.have.been.called.once
+                }
+            })
+
+            it('should check for correct subset of time format supported', function() {
+                fail('x')
+                
+                function fail(format) {
+                    console.error.reset();
+                    expect(f.date.setTimeFormat(format)).to.not.be.true
+                    console.error.should.have.been.called.once
+                }
             })
 
             it('should return empty strings when undefined', function() {
@@ -284,6 +362,12 @@ define([
 
                 var noTz = now.getFullYear() + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
                 f.date.dateTimeString(originalTime).should.contain(noTz);
+            })
+
+            it('should format datetimes with no timezone', function() {
+                var time = new Date(2017, 0, 1, 13, 30);
+                f.date.setTimeFormat('h:mm a', false)
+                f.date.dateTimeString(time).should.equal('2017-01-01 1:30 pm')
             })
 
             it('addDaysToDate() should return a Date object N days away', function() {
