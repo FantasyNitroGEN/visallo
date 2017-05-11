@@ -23,11 +23,10 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.workQueue.Priority;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workQueue.TestWorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
-import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -55,7 +54,8 @@ public class GraphRepositoryTest {
     @Mock
     private TermMentionRepository termMentionRepository;
 
-    private WorkQueueRepository workQueueRepository;
+    private TestWorkQueueRepository workQueueRepository;
+    private WorkQueueNames workQueueNames;
 
     private Authorizations defaultAuthorizations;
     private DirectVisibilityTranslator visibilityTranslator;
@@ -71,8 +71,8 @@ public class GraphRepositoryTest {
         visibilityTranslator = new DirectVisibilityTranslator();
         graph = InMemoryGraph.create(graphConfig, idGenerator, new DefaultSearchIndex(graphConfig));
         defaultAuthorizations = graph.createAuthorizations();
-        WorkQueueNames workQueueNames = new WorkQueueNames(configuration);
-        workQueueRepository = new InMemoryWorkQueueRepository(graph, workQueueNames, configuration);
+        workQueueNames = new WorkQueueNames(configuration);
+        workQueueRepository = new TestWorkQueueRepository(graph, workQueueNames, configuration);
 
         graphRepository = new GraphRepository(
                 graph,
@@ -259,9 +259,9 @@ public class GraphRepositoryTest {
         assertTrue(hiddenVisibilities.hasNext());
         assertEquals(WORKSPACE_VIZ, hiddenVisibilities.next());
 
-        List<byte[]> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
+        List<byte[]> queue = workQueueRepository.getWorkQueue(workQueueNames.getGraphPropertyQueueName());
         assertEquals(1, queue.size());
-        InMemoryWorkQueueRepository.clearQueue();
+        workQueueRepository.clearQueue();
     }
 
     @Test
@@ -322,7 +322,7 @@ public class GraphRepositoryTest {
             });
         }
 
-        List<byte[]> queue = InMemoryWorkQueueRepository.getQueue("graphProperty");
+        List<byte[]> queue = workQueueRepository.getWorkQueue(workQueueNames.getGraphPropertyQueueName());
         assertEquals(2, queue.size());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.MODIFIED_DATE.getPropertyName());
         assertWorkQueueContains(queue, "v1", "", VisalloProperties.VISIBILITY_JSON.getPropertyName());

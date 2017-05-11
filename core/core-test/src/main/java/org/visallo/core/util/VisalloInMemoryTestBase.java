@@ -20,6 +20,7 @@ import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.*;
+import org.visallo.core.model.workQueue.TestWorkQueueRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceDiffHelper;
 import org.visallo.core.model.workspace.WorkspaceListener;
@@ -28,16 +29,12 @@ import org.visallo.core.model.workspace.product.WorkProduct;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.time.TimeRepository;
-import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
 import org.visallo.vertexium.model.longRunningProcess.VertexiumLongRunningProcessRepository;
 import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public abstract class VisalloInMemoryTestBase {
     private WorkspaceRepository workspaceRepository;
@@ -203,7 +200,7 @@ public abstract class VisalloInMemoryTestBase {
             return workQueueRepository;
         }
         WorkQueueNames workQueueNames = new WorkQueueNames(getConfiguration());
-        workQueueRepository = new InMemoryWorkQueueRepository(
+        workQueueRepository = new TestWorkQueueRepository(
                 getGraph(),
                 workQueueNames,
                 getConfiguration()
@@ -213,18 +210,18 @@ public abstract class VisalloInMemoryTestBase {
 
     protected List<byte[]> getWorkQueueItems(String queueName) {
         WorkQueueRepository workQueueRepository = getWorkQueueRepository();
-        if (!(workQueueRepository instanceof InMemoryWorkQueueRepository)) {
-            throw new VisalloException("Can only get work queue items from " + InMemoryWorkQueueRepository.class.getName());
+        if (!(workQueueRepository instanceof TestWorkQueueRepository)) {
+            throw new VisalloException("Can only get work queue items from " + TestWorkQueueRepository.class.getName());
         }
-        return InMemoryWorkQueueRepository.getQueue(queueName);
+        return ((TestWorkQueueRepository) workQueueRepository).getWorkQueue(queueName);
     }
 
     protected void clearWorkQueues() {
         WorkQueueRepository workQueueRepository = getWorkQueueRepository();
-        if (!(workQueueRepository instanceof InMemoryWorkQueueRepository)) {
-            throw new VisalloException("Can only clear work queue items from " + InMemoryWorkQueueRepository.class.getName());
+        if (!(workQueueRepository instanceof TestWorkQueueRepository)) {
+            throw new VisalloException("Can only clear work queue items from " + TestWorkQueueRepository.class.getName());
         }
-        InMemoryWorkQueueRepository.clearQueue();
+        ((TestWorkQueueRepository) workQueueRepository).clearQueue();
     }
 
     protected OntologyRepository getOntologyRepository() {
