@@ -221,7 +221,7 @@ define([
             })
             $(document).on('dragstart', function(event) {
                 const dataTransfer = event.originalEvent.dataTransfer;
-                if (!$('.products-pane.visible').length) {
+                if (dataTransfer && !$('.products-pane.visible').length) {
                     if (_.any(dataTransfer.types, type => type === VISALLO_MIMETYPES.ELEMENTS)) {
                         const cls = 'hint-drop-normal';
                         const node = $('.menubar-pane .products a').addClass(cls);
