@@ -2,6 +2,12 @@
 v2.2.3
 ==================
 
+## Changed
+
+* Tomcat configuration now uses a generic error page when an exception occurs
+* Log email notification as INFO
+* Allow search queries to be exact matches
+
 v2.2.2
 ==================
 
