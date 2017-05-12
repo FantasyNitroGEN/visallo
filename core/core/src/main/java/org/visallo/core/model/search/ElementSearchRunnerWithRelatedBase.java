@@ -53,7 +53,7 @@ public abstract class ElementSearchRunnerWithRelatedBase extends ElementSearchRu
         } else if (relatedToVertexIds.size() == 1) {
             graphQuery = query(queryString, relatedToVertexIds.get(0), authorizations);
         } else {
-            graphQuery = new CompositeGraphQuery(Lists.transform(
+            graphQuery = new CompositeGraphQuery(getGraph(), Lists.transform(
                     relatedToVertexIds,
                     relatedToVertexId -> query(queryString, relatedToVertexId, authorizations)
             ));
