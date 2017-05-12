@@ -8,7 +8,8 @@ define([
     'util/popovers/withElementScrollingPositionUpdates',
     'configuration/plugins/registry',
     'd3',
-    './extensionToolbarPopover'
+    './extensionToolbarPopover',
+    'util/component/attacher'
 ], function(
     require,
     defineComponent,
@@ -19,7 +20,8 @@ define([
     withElementScrollingPositionUpdates,
     registry,
     d3,
-    SearchToolbarExtensionPopover) {
+    SearchToolbarExtensionPopover,
+    Attacher) {
     'use strict';
 
     var SEARCH_TYPES = ['Visallo'];
@@ -670,27 +672,37 @@ define([
                 $container.show();
 
                 if (attach) {
-                    require([path], function(AdvancedSearchExtension) {
-                        /**
-                         * Responsible for displaying the interface for
-                         * searching, and displaying the results.
-                         *
-                         * @typedef org.visallo.search.advanced~Component
-                         * @property {string} resultsSelector Css selector to
-                         * container that will hold results
-                         * @see module:components/List
-                         * @listens org.visallo.search.advanced#savedQuerySelected
-                         * @fires org.visallo.search.advanced#setCurrentSearchForSaving
-                         * @example <caption>Rendering results</caption>
-                         * List.attachTo($(this.attr.resultsSelector), {
-                         *     items: results
-                         * })
-                         */
-                        AdvancedSearchExtension.attachTo($container, {
-                            resultsSelector: '.search-pane .' + cls
+                    /**
+                     * Responsible for displaying the interface for
+                     * searching, and displaying the results.
+                     *
+                     * @typedef org.visallo.search.advanced~Component
+                     * @property {string} resultsSelector Css selector to
+                     * container that will hold results
+                     * @see module:components/List
+                     * @listens org.visallo.search.advanced#savedQuerySelected
+                     * @fires org.visallo.search.advanced#setCurrentSearchForSaving
+                     * @example <caption>Rendering results</caption>
+                     * List.attachTo($(this.attr.resultsSelector), {
+                     *     items: results
+                     * })
+                     */
+                    Attacher()
+                        .path(path)
+                        .node($container)
+                        .params({
+                            resultsSelector: '.search-pane .' + cls,
+                            resultsContainer: $('.search-pane .' + cls)
+                        })
+                        .behavior({
+                            setCurrentSearchForSaving: (evt, query) => {
+                                self.trigger($container, 'setCurrentSearchForSaving', query);
+                            }
+                        })
+                        .attach()
+                        .then(() => {
+                            self.trigger($container, 'searchtypeloaded', { type: newSearchType });
                         });
-                        self.trigger($container, 'searchtypeloaded', { type: newSearchType });
-                    })
                 } else {
                     self.trigger($container, 'searchtypeloaded', { type: newSearchType });
                 }

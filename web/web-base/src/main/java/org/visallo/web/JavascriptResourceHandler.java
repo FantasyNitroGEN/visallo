@@ -34,7 +34,8 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
             EXECUTOR_CONCURRENT,
             EXECUTOR_IDLE_THREAD_RELEASE_SECONDS,
             TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>());
+            new LinkedBlockingQueue<>()
+    );
 
     static {
         compilationExecutor.allowCoreThreadTimeOut(true);
@@ -107,6 +108,9 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
 
     private CachedCompilation compileIfNecessary(CachedCompilation previousCompilation) throws IOException {
         URL url = this.getClass().getResource(jsResourceName);
+        if (url == null) {
+            throw new VisalloException("Could not find resource: " + jsResourceName);
+        }
         long lastModified = url.openConnection().getLastModified();
 
         if (previousCompilation == null || previousCompilation.isNecessary(lastModified)) {
@@ -152,7 +156,8 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
             externs.add(SourceFile.fromInputStream(
                     closureExternResourcePath,
                     this.getClass().getResourceAsStream(closureExternResourcePath),
-                    Charset.forName("UTF-8")));
+                    Charset.forName("UTF-8")
+            ));
         }
 
         Result result = compiler.compile(externs, inputs, compilerOptions);
