@@ -227,7 +227,7 @@ define([
                 if (initialProductDisplay && !hasViewport) return true;
                 const wasEmpty = oldNodes.length === 0;
                 const hasNodes = newNodes.length
-                const positionIsEmpty = node => node.position.x === 0 && node.position.y === 0;
+                const positionIsEmpty = node => !node.position || (node.position.x === 0 && node.position.y === 0);
 
                 if (wasEmpty && hasNodes) {
                     return _.every(newNodes, positionIsEmpty);

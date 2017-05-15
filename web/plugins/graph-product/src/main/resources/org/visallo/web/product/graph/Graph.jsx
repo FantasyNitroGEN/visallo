@@ -37,9 +37,51 @@ define([
         const num = showNum ? ` (${F.number.pretty(edges.length)})` : '';
         return display + num;
     };
+    const propTypesElementArrays = { vertices: PropTypes.array, edges: PropTypes.array };
+
+    let memoizeForStorage = {};
+    const memoizeClear = () => { memoizeForStorage = {}; }
+    const memoizeFor = function(key, elements, fn, idFn) {
+        if (!key) throw new Error('Cache key must be specified');
+        if (!elements) throw new Error('Valid elements should be provided');
+        if (!_.isFunction(fn)) throw new Error('Cache creation method should be provided');
+        const fullKey = `${key}-${idFn ? idFn() : elements.id}`;
+        const cache = memoizeForStorage[fullKey];
+        const vertexChanged = cache && (_.isArray(cache.elements) ?
+            (
+                cache.elements.length !== elements.length ||
+                _.any(cache.elements, (ce, i) => ce !== elements[i])
+            ) : cache.elements !== elements
+        ); 
+        if (cache && !vertexChanged) {
+            return cache.value
+        }
+
+        memoizeForStorage[fullKey] = { elements, value: fn() };
+        return memoizeForStorage[fullKey].value
+    }
+
     const Graph = React.createClass({
 
         propTypes: {
+            workspace: PropTypes.shape({
+                editable: PropTypes.bool
+            }).isRequired,
+            product: PropTypes.shape({
+                previewMD5: PropTypes.string,
+                extendedData: PropTypes.shape(propTypesElementArrays).isRequired
+            }).isRequired,
+            uiPreferences: PropTypes.shape({
+                edgeLabels: PropTypes.bool
+            }).isRequired,
+            productElementIds: PropTypes.shape(propTypesElementArrays).isRequired,
+            elements: PropTypes.shape({
+                vertices: PropTypes.object,
+                edges: PropTypes.object
+            }).isRequired,
+            selection: PropTypes.shape(propTypesElementArrays).isRequired,
+            focusing: PropTypes.shape(propTypesElementArrays).isRequired,
+            registry: PropTypes.object.isRequired,
             onUpdatePreview: PropTypes.func.isRequired,
             onVertexMenu: PropTypes.func,
             onEdgeMenu: PropTypes.func
@@ -72,19 +114,20 @@ define([
         },
 
         componentDidMount() {
+            memoizeClear();
             this.cyNodeIdsWithPositionChanges = {};
 
-            this.popoverHelper = new PopoverHelper(this.refs.node, this.cy);
+            this.popoverHelper = new PopoverHelper(this.node, this.cy);
             this.legacyListeners({
                 addRelatedDoAdd: (event, data) => {
                     this.props.onAddRelated(this.props.product.id, data.addVertices)
                 },
                 selectAll: (event, data) => {
-                    this.refs.cytoscape.state.cy.elements().select();
+                    this.cytoscape.state.cy.elements().select();
                 },
                 selectConnected: (event, data) => {
                     event.stopPropagation();
-                    const cy = this.refs.cytoscape.state.cy;
+                    const cy = this.cytoscape.state.cy;
                     const selected = cy.elements().filter(':selected');
                     selected.neighborhood('node').select();
                     selected.connectedNodes().select();
@@ -128,6 +171,9 @@ define([
         componentWillReceiveProps(nextProps) {
             if (nextProps.selection !== this.props.selection) {
                 this.resetQueuedSelection(nextProps.selection);
+            }
+            if (nextProps.registry !== this.props.registry) {
+                memoizeClear();
             }
             if (nextProps.product.id === this.props.product.id) {
                 this.setState({ viewport: {}, initialProductDisplay: false })
@@ -191,9 +237,9 @@ define([
                 extensionViews = registry['org.visallo.graph.view'];
 
             return (
-                <div ref="node" className="org-visallo-graph" style={{ height: '100%' }}>
+                <div ref={r => {this.node = r}} className="org-visallo-graph" style={{ height: '100%' }}>
                     <Cytoscape
-                        ref="cytoscape"
+                        ref={r => { this.cytoscape = r}}
                         {...events}
                         {...menuHandlers}
                         tools={this.getTools()}
@@ -308,9 +354,9 @@ define([
                 }[event.type];
                 if (_.isFunction(decoration.onClick)) {
                     if (handlerName === 'onMouseOver') {
-                        this.refs.node.style.cursor = 'pointer';
+                        this.node.style.cursor = 'pointer';
                     } else if (handlerName === 'onMouseOut' || handlerName === 'onClick') {
-                        this.refs.node.style.cursor = null;
+                        this.node.style.cursor = null;
                     }
                 }
                 if (_.isFunction(decoration[handlerName])) {
@@ -346,7 +392,7 @@ define([
 
         onFileImportSuccess(event, { vertexIds, position }) {
             const { x, y } = position;
-            const { left, top } = this.refs.node.getBoundingClientRect();
+            const { left, top } = this.node.getBoundingClientRect();
             const pos = this.droppableTransformPosition({
                 x: x - left,
                 y: y - top
@@ -356,7 +402,7 @@ define([
 
         onKeyboard(event) {
             const { type } = event;
-            const cytoscape = this.refs.cytoscape;
+            const cytoscape = this.cytoscape;
 
             switch (type) {
                 case 'fit': cytoscape.fit();
@@ -371,7 +417,7 @@ define([
         },
 
         onMenuSelect(identifier) {
-            const cy = this.refs.cytoscape.state.cy;
+            const cy = this.cytoscape.state.cy;
             const selector = _.findWhere(
                 this.props.registry['org.visallo.graph.selection'],
                 { identifier }
@@ -388,7 +434,7 @@ define([
                 );
 
             if (exporter) {
-                const cy = this.refs.cytoscape.state.cy;
+                const cy = this.cytoscape.state.cy;
                 const { product } = this.props;
                 Promise.require('util/popovers/exportWorkspace/exportWorkspace').then(ExportWorkspace => {
                     ExportWorkspace.attachTo(cy.container(), {
@@ -413,7 +459,7 @@ define([
         },
 
         previewVertex(event, data) {
-            const cy = this.refs.cytoscape.state.cy;
+            const cy = this.cytoscape.state.cy;
 
             Promise.all([
                 Promise.require('util/popovers/detail/detail'),
@@ -435,12 +481,12 @@ define([
                 })
                 const availableToOpen = MaxPreviewPopovers - (currentPopovers.length - remove.length);
                 if (add.length && add.length > availableToOpen) {
-                    $(this.refs.node).trigger('displayInformation', { message: i18n('popovers.preview_vertex.too_many', MaxPreviewPopovers) });
+                    $(this.node).trigger('displayInformation', { message: i18n('popovers.preview_vertex.too_many', MaxPreviewPopovers) });
                     add = add.slice(0, Math.max(0, availableToOpen));
                 }
 
                 add.forEach(id => {
-                    var $popover = $('<div>').addClass('graphDetailPanePopover').appendTo(this.refs.node);
+                    var $popover = $('<div>').addClass('graphDetailPanePopover').appendTo(this.node);
                     this.detailPopoversMap[id] = $popover[0];
                     DetailPopover.attachTo($popover[0], {
                         vertexId: id,
@@ -461,7 +507,7 @@ define([
             if (this.props.workspace.editable) {
                 Promise.require('util/popovers/fileImport/fileImport')
                     .then(CreateVertex => {
-                        CreateVertex.attachTo(this.refs.node, {
+                        CreateVertex.attachTo(this.node, {
                             anchorTo: { page: position }
                         });
                     });
@@ -473,7 +519,7 @@ define([
         },
 
         cancelDraw() {
-            const cy = this.refs.cytoscape.state.cy;
+            const cy = this.cytoscape.state.cy;
             cy.autoungrabify(false);
             this.setState({ draw: null })
         },
@@ -603,7 +649,7 @@ define([
         },
 
         droppableTransformPosition(rpos) {
-            const cy = this.refs.cytoscape.state.cy;
+            const cy = this.cytoscape.state.cy;
             const pan = cy.pan();
             const zoom = cy.zoom();
             return retina.pixelsToPoints({
@@ -661,40 +707,44 @@ define([
                         return nodes;
                     }
                     const vertex = vertices[id];
-                    const applyDecorations = _.filter(registry['org.visallo.graph.node.decoration'], function(e) {
-                        /**
-                         * @callback org.visallo.graph.node.decoration~applyTo
-                         * @param {object} vertex
-                         * @returns {boolean} Whether the decoration should be
-                         * added to the node representing the vertex
-                         */
-                        return !_.isFunction(e.applyTo) || e.applyTo(vertex);
+                    const applyDecorations = memoizeFor('org.visallo.graph.node.decoration#applyTo', vertex, () => {
+                        return _.filter(registry['org.visallo.graph.node.decoration'], function(e) {
+                            /**
+                             * @callback org.visallo.graph.node.decoration~applyTo
+                             * @param {object} vertex
+                             * @returns {boolean} Whether the decoration should be
+                             * added to the node representing the vertex
+                             */
+                            return !_.isFunction(e.applyTo) || e.applyTo(vertex);
+                        });
                     });
                     if (applyDecorations.length) {
                         const parentId = 'decP' + id;
                         cyNode.data.parent = parentId;
-                        const decorations = applyDecorations.map(dec => {
-                            const data = mapDecorationToData(dec, vertex, () => this.forceUpdate());
-                            if (!data) {
-                                return;
-                            }
-                            var { padding } = dec;
-                            return {
-                                group: 'nodes',
-                                classes: mapDecorationToClasses(dec, vertex),
-                                data: {
-                                    ...data,
-                                    id: idForDecoration(dec, vertex.id),
-                                    alignment: dec.alignment,
-                                    padding,
-                                    parent: parentId,
-                                    vertex
-                                },
-                                position: { x: -1, y: -1 },
-                                grabbable: false,
-                                selectable: false
-                            }
-                        })
+                        const decorations = memoizeFor('org.visallo.graph.node.decoration#data', vertex, () => {
+                            return applyDecorations.map(dec => {
+                                const data = mapDecorationToData(dec, vertex, () => this.forceUpdate());
+                                if (!data) {
+                                    return;
+                                }
+                                var { padding } = dec;
+                                return {
+                                    group: 'nodes',
+                                    classes: mapDecorationToClasses(dec, vertex),
+                                    data: {
+                                        ...data,
+                                        id: idForDecoration(dec, vertex.id),
+                                        alignment: dec.alignment,
+                                        padding,
+                                        parent: parentId,
+                                        vertex
+                                    },
+                                    position: { x: -1, y: -1 },
+                                    grabbable: false,
+                                    selectable: false
+                                }
+                            })
+                        });
 
                         nodes.push({
                             group: 'nodes',
@@ -798,11 +848,11 @@ define([
         },
 
         showConnectionPopover() {
-            const cy = this.refs.cytoscape.state.cy;
+            const cy = this.cytoscape.state.cy;
             const { connectionType, vertexId, toVertexId, connectionData } = this.state.draw;
             const Popover = Popovers(connectionType);
             Popover.teardownAll();
-            Popover.attachTo(this.refs.node, {
+            Popover.attachTo(this.node, {
                 cy,
                 cyNode: cy.getElementById(toVertexId),
                 otherCyNode: cy.getElementById(vertexId),
@@ -817,7 +867,7 @@ define([
             this.removeEvents = [];
 
             _.each(map, (handler, events) => {
-                var node = this.refs.node;
+                var node = this.node;
                 var func = handler;
                 if (!_.isFunction(handler)) {
                     node = handler.node;
@@ -831,45 +881,47 @@ define([
 
 
     const mapEdgeToData = (id, edgeInfos, edges, ontology, transformers) => {
-        const { inVertexId, outVertexId, label } = edgeInfos[0];
-        const base = {
-            id,
-            source: outVertexId,
-            target: inVertexId,
-            type: label,
-            label: edgeDisplay(label, ontology, edgeInfos),
-            edgeInfos,
-            edges
-        };
+        return memoizeFor('org.visallo.graph.edge.transformer', edges, () => {
+            const { inVertexId, outVertexId, label } = edgeInfos[0];
+            const base = {
+                id,
+                source: outVertexId,
+                target: inVertexId,
+                type: label,
+                label: edgeDisplay(label, ontology, edgeInfos),
+                edgeInfos,
+                edges
+            };
 
-        if (edges.length) {
-            return transformers.reduce((data, fn) => {
+            if (edges.length) {
+                return transformers.reduce((data, fn) => {
 
-                /**
-                 * Mutate the object to change the edge data.
-                 *
-                 * @callback org.visallo.graph.edge.transformer~transformerFn
-                 * @param {object} data The cytoscape data object
-                 * @param {string} data.source The source vertex id
-                 * @param {string} data.target The target vertex id
-                 * @param {string} data.type The edge label IRI
-                 * @param {string} data.label The edge label display value
-                 * @param {array.<object>} data.edgeInfos
-                 * @param {array.<object>} data.edges
-                 * @example
-                 * function transformer(data) {
-                 *     data.myCustomAttr = '';
-                 * }
-                 */
-                fn(data)
-                return data;
-            }, base)
-        }
+                    /**
+                     * Mutate the object to change the edge data.
+                     *
+                     * @callback org.visallo.graph.edge.transformer~transformerFn
+                     * @param {object} data The cytoscape data object
+                     * @param {string} data.source The source vertex id
+                     * @param {string} data.target The target vertex id
+                     * @param {string} data.type The edge label IRI
+                     * @param {string} data.label The edge label display value
+                     * @param {array.<object>} data.edgeInfos
+                     * @param {array.<object>} data.edges
+                     * @example
+                     * function transformer(data) {
+                     *     data.myCustomAttr = '';
+                     * }
+                     */
+                    fn(data)
+                    return data;
+                }, base)
+            }
 
-        return base;
+            return base;
+        }, () => id)
     };
     const mapEdgeToClasses = (edgeInfos, edges, focusing, classers) => {
-        const cls = [];
+        let cls = [];
         if (edges.length) {
 
             /**
@@ -884,8 +936,13 @@ define([
              *     cls.push('org-example-cls');
              * }
              */
-            classers.forEach(fn => fn(edges, edgeInfos.label, cls));
-            cls.push('e');
+
+            cls = memoizeFor('org.visallo.graph.edge.class', edges, function() {
+                const cls = [];
+                classers.forEach(fn => fn(edges, edgeInfos.label, cls));
+                cls.push('e');
+                return cls;
+            }, () => edges.map(e => e.id).sort())
         } else cls.push('partial')
         if (_.any(edgeInfos, info => info.edgeId in focusing.edges)) {
             cls.push('focus');
@@ -918,66 +975,38 @@ define([
             return full;
         }
     })();
-    const mapDecorationToData = (function() {
-        const decorations = new WeakMap();
-        return (decoration, vertex, update) => {
-            let vertexMap = decorations.get(decoration);
-            if (!vertexMap) {
-                vertexMap = {};
-                decorations.set(decoration, vertexMap);
+    const mapDecorationToData = (decoration, vertex, update) => {
+        const getData = () => {
+            var data;
+            /**
+             * _**Note:** This will be called for every vertex change event
+             * (`verticesUpdated`). Cache/memoize the result if possible._
+             *
+             * @callback org.visallo.graph.node.decoration~data
+             * @param {object} vertex
+             * @returns {object} The cytoscape data object for a decoration
+             * given a vertex
+             */
+            if (_.isFunction(decoration.data)) {
+                data = decoration.data(vertex);
+            } else if (decoration.data) {
+                data = decoration.data;
             }
-            let cache = vertexMap[vertex.id]
-            if (!cache) {
-                cache = vertexMap[vertex.id] = { promise: null, data: null, previous: null };
+            if (!_.isObject(data)) {
+                throw new Error('data is not an object', data)
             }
-
-            const promise = cache.promise;
-            const vertexChanged = cache.previous && vertex !== cache.previous;
-            const getData = () => {
-                var data;
-                /**
-                 * _**Note:** This will be called for every vertex change event
-                 * (`verticesUpdated`). Cache/memoize the result if possible._
-                 *
-                 * @callback org.visallo.graph.node.decoration~data
-                 * @param {object} vertex
-                 * @returns {object} The cytoscape data object for a decoration
-                 * given a vertex
-                 */
-                if (_.isFunction(decoration.data)) {
-                    data = decoration.data(vertex);
-                } else if (decoration.data) {
-                    data = decoration.data;
-                }
-                if (!_.isObject(data)) {
-                    throw new Error('data is not an object', data)
-                }
-                var p = Promise.resolve(data);
-                p.catch(e => console.error(e))
-                p.tap(() => {
-                    update()
-                });
-                return p;
-            };
-            const getIfFulfilled = p => {
-                if (p.isFulfilled()) return p.value();
-            }
-            cache.previous = vertex;
-
-            if (promise) {
-                if (vertexChanged) {
-                    promise.cancel();
-                    cache.promise = getData();
-                    return getIfFulfilled(cache.promise);
-                } else {
-                    return getIfFulfilled(promise);
-                }
-            } else {
-                cache.promise = getData();
-                return getIfFulfilled(cache.promise);
-            }
+            var p = Promise.resolve(data);
+            p.catch(e => console.error(e))
+            p.tap(() => {
+                update()
+            });
+            return p;
+        };
+        const getIfFulfilled = p => {
+            if (p.isFulfilled()) return p.value();
         }
-    })();
+        return getIfFulfilled(getData());
+    };
     const mapDecorationToClasses = (decoration, vertex) => {
         var cls = ['decoration'];
 
@@ -1003,7 +1032,7 @@ define([
         return cls.join(' ');
     };
     const mapVertexToClasses = (id, vertices, focusing, classers) => {
-        const cls = [];
+        let cls = [];
         if (id in vertices) {
             const vertex = vertices[id];
 
@@ -1018,8 +1047,12 @@ define([
              *     cls.push('org-example-cls');
              * }
              */
-            classers.forEach(fn => fn(vertex, cls));
-            cls.push('v');
+            cls = memoizeFor('org.visallo.graph.node.class', vertex, function() {
+                const cls = [];
+                classers.forEach(fn => fn(vertex, cls));
+                cls.push('v');
+                return cls;
+            })
         } else cls.push('partial')
         if (id in focusing.vertices) {
             cls.push('focus')
@@ -1027,35 +1060,43 @@ define([
         return cls.join(' ')
     };
     const vertexToCyNode = (vertex, transformers, hovering) => {
-        const title = F.vertex.title(vertex);
-        const truncatedTitle = F.string.truncate(title, 3);
-        const conceptType = F.vertex.prop(vertex, 'conceptType');
-        const imageSrc = F.vertex.image(vertex, null, 150);
-        const selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
-        const startingData = {
-            id: vertex.id,
-            isTruncated: title !== truncatedTitle,
-            truncatedTitle: hovering === vertex.id ? title : truncatedTitle,
-            conceptType,
-            imageSrc,
-            selectedImageSrc
-        };
+        const result = memoizeFor('vertexToCyNode', vertex, function() {
+            const title = F.vertex.title(vertex);
+            const truncatedTitle = F.string.truncate(title, 3);
+            const conceptType = F.vertex.prop(vertex, 'conceptType');
+            const imageSrc = F.vertex.image(vertex, null, 150);
+            const selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
+            const startingData = {
+                id: vertex.id,
+                isTruncated: title !== truncatedTitle,
+                truncatedTitle,
+                conceptType,
+                imageSrc,
+                selectedImageSrc
+            };
 
-        return transformers.reduce((data, t) => {
-            /**
-             * Mutate the data object that gets passed to Cytoscape.
-             *
-             * @callback org.visallo.graph.node.transformer~transformerFn
-             * @param {object} vertex The vertex representing this node
-             * @param {object} data The cytoscape data object
-             * @example
-             * function transformer(vertex, data) {
-             *     data.myCustomAttr = '...';
-             * }
-             */
-            t(vertex, data)
-            return data;
-        }, startingData);
+            return transformers.reduce((data, t) => {
+                /**
+                 * Mutate the data object that gets passed to Cytoscape.
+                 *
+                 * @callback org.visallo.graph.node.transformer~transformerFn
+                 * @param {object} vertex The vertex representing this node
+                 * @param {object} data The cytoscape data object
+                 * @example
+                 * function transformer(vertex, data) {
+                 *     data.myCustomAttr = '...';
+                 * }
+                 */
+                t(vertex, data)
+                return data;
+            }, startingData);
+        });
+        
+        if (hovering === vertex.id) {
+            return { ...result, truncatedTitle: title }
+        }
+            
+        return result;
     }
     const mapVertexToData = (id, vertices, transformers, hovering) => {
         if (id in vertices) {

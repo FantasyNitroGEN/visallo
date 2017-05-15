@@ -5,16 +5,80 @@
  * @module registry
  * @classdesc Registry for adding and removing extensions given documentated extension points
  */
-define(['underscore'], function(_) {
-    'use strict';
+define(['underscore', 'updeep', 'reselect'], function(_, u, reselect) {
 
-    var extensions = {},
+    var tmpPrev = {};
+
+    var extensionsNoMutate = {},
         extensionDocumentation = {},
         uuidToExtensionPoint = {},
         legacyMappingToNew = {},
-        uuidGen = 0,
-        alreadyWarnedAboutDocsByExtensionPoint = {},
+        uuidGen = 0;
+
+    const alreadyWarnedAboutDocsByExtensionPoint = {},
         alreadyWarnedAboutLegacyByExtensionPoint = {},
+        getOrCreateSelector = (function() {
+            const selectorsByPoint = {};
+            const _extensions = state => state.extensions;
+            const _documentation = state => state.documentation;
+            return extensionPoint => {
+                if (!(extensionPoint in selectorsByPoint)) {
+                    // Selector per extension point because selectors have cache size of 1
+                    selectorsByPoint[extensionPoint] = reselect.createSelector([_extensions, _documentation], (extensions, documentation) => {
+                        if (extensions) {
+                            const registered = _.values(extensions);
+                            if (documentation) {
+                                const validityChecked = _.partition(registered, documentation.validator);
+                                if (validityChecked[1].length) {
+                                    console.warn(
+                                        'Extensions invalid',
+                                        validityChecked[1],
+                                        'according to validator',
+                                        documentation.validator.toString()
+                                    );
+                                }
+                                return validityChecked[0];
+                            } else {
+                                if (shouldWarnAboutMissingDocs(extensionPoint)) {
+                                    console.warn('Consider adding documentation for ' +
+                                        extensionPoint +
+                                        '\n\tUsage: registry.documentExtensionPoint(\'' + extensionPoint + '\', desc, validator)'
+                                    );
+                                }
+
+                                return registered;
+                            }
+                        }
+                        return [];
+                    })
+                }
+                return selectorsByPoint[extensionPoint];
+            };
+        })(),
+        getExtensions = (function() {
+            return (extensionPoint) => {
+                return getOrCreateSelector(extensionPoint)({
+                    extensions: extensionsNoMutate[extensionPoint],
+                    documentation: extensionDocumentation[extensionPoint]
+                })
+            };
+        })(),
+        getExtensionSubset = (function() {
+            const cache = {};
+            const _extensions = state => state.extensionsNoMutate;
+            const _points = state => state.extensionPoints;
+
+            return extensionPoints => {
+                const key = extensionPoints.sort().join(',')
+                const subset = _.object(extensionPoints.map(p => [p, getExtensions(p)]))
+                if (cache[key] && _.all(subset, (list, point) => list === cache[key][point])) {
+                    return cache[key];
+                }
+
+                cache[key] = subset;
+                return subset;
+            };
+        })(),
         verifyArguments = function(extensionPoint, extension) {
             if (!_.isString(extensionPoint) && extensionPoint) {
                 throw new Error('extensionPoint must be string');
@@ -40,14 +104,18 @@ define(['underscore'], function(_) {
         shouldWarnAboutMissingDocs = _.partial(shouldWarn, alreadyWarnedAboutDocsByExtensionPoint),
         shouldWarnAboutLegacyUse = _.partial(shouldWarn, alreadyWarnedAboutLegacyByExtensionPoint),
         moveExistingLegacyExtensions = function(old, extensionPoint) {
-            if (extensions[old]) {
-                if (!extensions[extensionPoint]) {
-                    extensions[extensionPoint] = {};
-                }
-                _.each(extensions[old], function(config, uuid) {
-                    extensions[extensionPoint][uuid] = config
-                });
+            if (extensionsNoMutate[old]) {
+                extensionsMutate({
+                    [extensionPoint]: _.object(
+                        _.map(extensionsNoMutate[old], (config, uuid) => {
+                            return [uuid, u.constant(config)]
+                        })
+                    )
+                })
             }
+        },
+        extensionsMutate = function(config) {
+            extensionsNoMutate = u(config, extensionsNoMutate)
         },
 
         /**
@@ -55,10 +123,10 @@ define(['underscore'], function(_) {
          */
         api = {
             debug: function() {
-                console.log(extensions);
+                console.log(extensionsNoMutate);
             },
             clear: function() {
-                extensions = {};
+                extensionsNoMutate = {};
                 extensionDocumentation = {};
                 legacyMappingToNew = {};
                 uuidToExtensionPoint = {};
@@ -110,16 +178,10 @@ The extension will continue to work, but the old name will be removed in future 
                 const extensionPoint = api.canonicalName(point);
                 verifyArguments.apply(null, arguments);
 
-                var byId = extensions[extensionPoint],
-                    uuid = [extensionPoint, uuidGen++].join('-');
+                const uuid = [extensionPoint, uuidGen++].join('-');
 
-                if (!byId) {
-                    byId = extensions[extensionPoint] = {};
-                }
-
-                byId[uuid] = extension;
+                extensionsMutate({ [extensionPoint]: { [uuid]: u.constant(extension) } })
                 uuidToExtensionPoint[uuid] = extensionPoint;
-
                 triggerChange(extensionPoint);
 
                 return uuid;
@@ -130,9 +192,9 @@ The extension will continue to work, but the old name will be removed in future 
                     throw new Error('extension point required to unregister')
                 }
 
-                var uuids = _.keys(extensions[extensionPoint])
+                var uuids = _.keys(extensionsNoMutate[extensionPoint])
                 uuidToExtensionPoint = _.omit(uuidToExtensionPoint, uuids)
-                delete extensions[extensionPoint]
+                extensionsMutate(u.omit(extensionPoint));
                 delete extensionDocumentation[extensionPoint]
             },
 
@@ -150,10 +212,7 @@ The extension will continue to work, but the old name will be removed in future 
                     throw new Error('extension uuid not found in registry')
                 }
 
-                var byId = extensions[extensionPoint];
-                if (byId) {
-                    delete byId[extensionUuid];
-                }
+                extensionsMutate({ [extensionPoint]: u.omit(extensionUuid) });
 
                 triggerChange(extensionPoint);
             },
@@ -236,35 +295,21 @@ The extension will continue to work, but the old name will be removed in future 
              * @returns {Array.<Object>} List of all registered (and valid if validator exists) extension configuration values
              */
             extensionsForPoint: function(point) {
+                if (!_.isString(point)) throw new Error('Must specify a string')
                 const extensionPoint = api.canonicalName(point);
-                var documentation = extensionDocumentation[extensionPoint],
-                    byId = extensions[extensionPoint];
+                return getExtensions(extensionPoint);
+            },
 
-                if (!documentation && shouldWarnAboutMissingDocs(extensionPoint)) {
-                    console.warn('Consider adding documentation for ' +
-                        extensionPoint +
-                        '\n\tUsage: registry.documentExtensionPoint(\'' + extensionPoint + '\', desc, validator)'
-                    );
-                }
-
-                if (byId) {
-                    var registered = _.values(byId);
-                    if (documentation) {
-                        var validityChecked = _.partition(registered, documentation.validator);
-                        if (validityChecked[1].length) {
-                            console.warn(
-                                'Extensions invalid',
-                                validityChecked[1],
-                                'according to validator',
-                                documentation.validator.toString()
-                            );
-                        }
-                        return validityChecked[0];
-                    } else {
-                        return registered;
-                    }
-                }
-                return [];
+            /**
+             * Get a subset of the currently registered extensions for given `extensionPoints`.
+             *
+             * @param {Array.<String>} extensionPoints The extension points to get
+             * @returns {Object} Object with point strings as keys and list of extensions as values (only valid extensions returned)
+             */
+            extensionsForPoints: function(points) {
+                if (!_.isArray(points) || points.length === 0) throw new Error('Must specify an array')
+                const extensionPoints = points.map(api.canonicalName);
+                return getExtensionSubset(extensionPoints)
             }
         };
 
