@@ -57,6 +57,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     private Visibility secretWorkspaceViz;
     private Metadata secretMetadata;
     private VisibilityJson initialVisibilityJson;
+    private FormulaEvaluator.UserContext userContext;
 
     @Parameterized.Parameters
     public static Iterable<Object[]> initialVisibilitySources() {
@@ -130,6 +131,8 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 .thenReturn(Collections.emptyList());
         when(ontologyRepository.getPropertyByIRI(VisalloProperties.VISIBILITY_JSON.getPropertyName()))
                 .thenReturn(new InMemoryOntologyProperty());
+
+        userContext = new FormulaEvaluator.UserContext(LOCALE, null, TIME_ZONE, workspaceId);
     }
 
     @Test
@@ -896,7 +899,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     private List<ClientApiWorkspaceDiff.Item> getDiffsFromWorkspace() {
-        return workspaceRepository.getDiff(workspace, user1, LOCALE, TIME_ZONE).getDiffs();
+        return workspaceRepository.getDiff(workspace, user1, userContext).getDiffs();
     }
 
     private <T extends ClientApiWorkspaceDiff.Item> List<T> getDiffsFromWorkspace(Class<T> itemType) {
@@ -1051,7 +1054,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
     }
 
     private void assertNoDiffs() {
-        assertEquals(0, workspaceRepository.getDiff(workspace, user1, LOCALE, TIME_ZONE).getDiffs().size());
+        assertEquals(0, workspaceRepository.getDiff(workspace, user1, userContext).getDiffs().size());
     }
 
     private static void assertVisibilityOnProperty(Visibility expectedVisibility, Property property) {

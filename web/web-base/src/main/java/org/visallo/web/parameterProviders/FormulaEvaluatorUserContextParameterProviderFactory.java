@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class FormulaEvaluatorUserContextParameterProviderFactory extends ParameterProviderFactory<FormulaEvaluator.UserContext> {
     private final ParameterProvider<FormulaEvaluator.UserContext> parameterProvider;
@@ -24,8 +25,9 @@ public class FormulaEvaluatorUserContextParameterProviderFactory extends Paramet
             public FormulaEvaluator.UserContext getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 Locale locale = getLocale(request);
                 String timeZone = getTimeZone(request);
+                ResourceBundle resourceBundle = getBundle(request);
                 String workspaceId = getActiveWorkspaceIdOrDefault(request);
-                return new FormulaEvaluator.UserContext(locale, timeZone, workspaceId);
+                return new FormulaEvaluator.UserContext(locale, resourceBundle, timeZone, workspaceId);
             }
         };
     }
