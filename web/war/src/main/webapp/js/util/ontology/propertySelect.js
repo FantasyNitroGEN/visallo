@@ -115,10 +115,7 @@ define([
                         source: function() {
                             var sourceProperties = self.filterSourceProperties(self.propertiesForSource);
 
-                            return _.chain(sourceProperties)
-                                .map(mapProperty)
-                                .sortBy(sortByPropertyGroupAndDisplayName)
-                                .value();
+                            return _.map(sourceProperties, mapProperty);
 
                             function mapProperty(p) {
                                 var name = displayName(p),
@@ -132,16 +129,6 @@ define([
                                     propertyGroup: p.propertyGroup,
                                     duplicates: duplicates
                                 });
-                            }
-
-                            function sortByPropertyGroupAndDisplayName(itemJson) {
-                                var item = JSON.parse(itemJson),
-                                    lower = item.displayName.toLowerCase();
-
-                                if (item.propertyGroup) {
-                                    return '1' + item.propertyGroup + lower;
-                                }
-                                return '0' + lower;
                             }
                         },
                         matcher: function(itemJson) {
@@ -166,25 +153,20 @@ define([
                             return item.displayName;
                         },
                         sorter: function(items) {
-                            var query = this.query;
+                            var query = this.query.toLowerCase();
 
                             return _.sortBy(items, function(json) {
                                 var item = JSON.parse(json),
-                                    displayName = item.displayName,
+                                    displayName = item.displayName.toLowerCase(),
                                     group = item.propertyGroup;
 
-                                if (query) {
-                                    if (displayName === query) {
-                                        return '0';
-                                    }
-
-                                    return '1' + displayName;
-                                } else {
-                                    if (group) {
-                                        return '1' + displayName;
-                                    }
-                                    return '0' + displayName;
+                                if (query && displayName === query) {
+                                    return '0';
                                 }
+                                if (group) {
+                                    return '1' + group + displayName;
+                                }
+                                return '0' + displayName;
                             });
                         },
                         updater: function(itemJson) {
