@@ -41,6 +41,7 @@ import org.visallo.core.model.workspace.*;
 import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.model.workspace.product.WorkProduct;
 import org.visallo.core.model.workspace.product.WorkProductElements;
+import org.visallo.core.model.workspace.product.WorkProductHasElements;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
@@ -1155,13 +1156,12 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         );
 
         Vertex productVertex = getGraph().getVertex(productId, authorizations);
-        Iterable<Edge> productElementEdges = productVertex.getEdges(
-                Direction.OUT,
-                WorkProductElements.WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                authorizations
-        );
-        for (Edge productToElement : productElementEdges) {
-            getGraph().softDeleteEdge(productToElement, authorizations);
+
+        String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
+        WorkProduct workProduct = getWorkProductByKind(kind);
+
+        if (workProduct instanceof WorkProductHasElements) {
+            ((WorkProductHasElements) workProduct).cleanUpElements(getGraph(), productVertex, authorizations);
         }
 
         getGraph().softDeleteVertex(productId, authorizations);

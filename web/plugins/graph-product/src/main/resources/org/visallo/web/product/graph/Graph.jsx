@@ -678,7 +678,7 @@ define([
                     }
                 }
             };
-            const cyVertexNodes = _.values(productVertices).reduce((nodes, { id, pos }) => {
+            const cyNodes = _.values(productVertices).reduce((nodes, { id, pos }) => {
                 const data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
                 const cyNode = cyNodeConfig(id, pos, data);
 

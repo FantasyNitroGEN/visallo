@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
     public static final String WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
+    public static final String HAS_VERTEX_LABEL = "_hasVertex";
     private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
 
@@ -178,12 +179,25 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
         return extendedData;
     }
 
+    @Override
+    public void cleanUpElements(Graph graph, Vertex productVertex, Authorizations authorizations) {
+        Iterable<Edge> productElementEdges = productVertex.getEdges(
+                Direction.OUT,
+                WorkProductElements.WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                authorizations
+        );
+
+        for (Edge productToElement : productElementEdges) {
+            graph.softDeleteEdge(productToElement, authorizations);
+        }
+
+        graph.flush();
+    }
+
     protected abstract void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex);
 
     protected abstract void updateProductEdge(ElementUpdateContext<Edge> elemCtx, JSONObject update, Visibility visibility);
 
-    private String getEdgeId(String productId, String vertexId) {
-        return productId + "_hasVertex_" + vertexId;
-    }
+    protected String getEdgeId(String productId, String vertexId) { return productId + HAS_VERTEX_LABEL + vertexId; }
 
 }

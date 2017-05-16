@@ -10,7 +10,7 @@ import org.visallo.core.user.User;
 
 public interface WorkProduct {
     /**
-     * Called when a work product is being update. This allows custom updates to be applied by the work product.
+     * Called when a work product is being updated. This allows custom updates to be applied by the work product.
      */
     void update(
             GraphUpdateContext ctx,

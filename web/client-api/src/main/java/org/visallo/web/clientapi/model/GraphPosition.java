@@ -1,16 +1,24 @@
 package org.visallo.web.clientapi.model;
 
+import org.json.JSONObject;
+
 public class GraphPosition {
     private int x;
     private int y;
 
-    public GraphPosition() {
-
+    public GraphPosition(JSONObject position) {
+        this.x = position.optInt("x", 0);
+        this.y = position.optInt("y", 0);
     }
 
     public GraphPosition(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public GraphPosition() {
+        this.x = 0;
+        this.y = 0;
     }
 
     public int getX() {
@@ -27,6 +35,16 @@ public class GraphPosition {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public void add(GraphPosition graphPosition) {
+        this.x = x + graphPosition.getX();
+        this.y = y + graphPosition.getY();
+    }
+
+    public void subtract(GraphPosition graphPosition) {
+        this.x = x - graphPosition.getX();
+        this.y = y - graphPosition.getY();
     }
 
     @Override
@@ -63,5 +81,12 @@ public class GraphPosition {
                 "x=" + x +
                 ", y=" + y +
                 '}';
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject json = new JSONObject();
+        json.put("x", x);
+        json.put("y", y);
+        return json;
     }
 }
