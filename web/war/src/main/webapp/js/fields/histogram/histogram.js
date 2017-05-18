@@ -245,7 +245,6 @@ define([
         }
 
         this.getObjectIdsForExtent = function(extent) {
-            extent = extent || this.currentExtent;
             return _.chain(this.data || [])
                     .map(function(d) {
                         return _.filter(d.values, function(v) {
@@ -378,11 +377,6 @@ define([
                         updateBrushInfo();
                         updateFocusInfo();
                     }, 1000 / 30))))
-                    //.call(function() {
-                        //if (this.currentExtent) {
-                            //brush = this.brush.extent(this.currentExtent);
-                        //}
-                    //})
                     .x(self.xScale),
 
                 focus = null,
@@ -676,7 +670,9 @@ define([
                     self.updateBarSelection();
                     var objectsForExtent = self.getObjectIdsForExtent(data.extent);
                     _.extend(data, objectsForExtent);
-                    if (!_.isEqual(objectsForExtent, self.currentSelected)) {
+                    if (data.extent && _.isEqual(objectsForExtent, self.currentSelected)) {
+                        self.updateBarSelection(objectsForExtent);
+                    } else {
                         self.currentSelected = objectsForExtent;
                         self.triggerChange(data);
                     }
