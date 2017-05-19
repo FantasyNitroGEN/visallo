@@ -859,6 +859,7 @@ define([
                 menubarWidth = $('.menubar-pane').width(),
                 workspaceOverlayWidth = $('.workspace-overlay').outerWidth(),
                 otherVisiblePanes = $('#app > .ui-resizable.visible, .ui-resizable.visible .ui-resizable:visible')
+                    .not('.ui-ignore-pane-width')
                     .not(withoutPane).toArray(),
                 widthOfOpenPanes = _.reduce(
                     otherVisiblePanes,

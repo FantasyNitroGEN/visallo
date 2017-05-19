@@ -13,7 +13,7 @@ define([
             children: [
                 { ref: 'org.visallo.layout.elements.header' },
                 { ref: 'org.visallo.layout.elements.body', style: { flex: '1 1 auto', overflow: 'auto', minHeight: '5.5em' } },
-                { ref: 'org.visallo.layout.elements.list', style: { flex: '0 0 auto' } }
+                { ref: 'org.visallo.layout.elements.list', style: { flex: '0 0 auto' }, className: 'ui-ignore-pane-width' }
             ]
         },
         {
