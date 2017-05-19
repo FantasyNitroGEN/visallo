@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!./templates/login'
+    './templates/login.hbs'
 ], function(
     defineComponent,
     template) {

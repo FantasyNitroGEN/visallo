@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!../../templates/auxillary/date',
+    '../../templates/auxillary/date.hbs',
     'moment',
     'util/formatters'
 ], function(

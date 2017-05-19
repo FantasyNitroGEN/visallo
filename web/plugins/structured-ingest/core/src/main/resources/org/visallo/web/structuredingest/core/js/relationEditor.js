@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!../templates/relationEditor',
+    '../templates/relationEditor.hbs',
     'util/withDataRequest',
     'util/vertex/formatters',
     'util/ontology/relationshipSelect',

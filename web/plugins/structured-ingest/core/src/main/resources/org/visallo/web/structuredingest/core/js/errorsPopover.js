@@ -23,7 +23,7 @@ define([
         })
 
         this.before('initialize', function(node, config) {
-            config.template = '/org/visallo/web/structuredingest/core/templates/error'
+            config.template = '/org/visallo/web/structuredingest/core/templates/error.hbs'
             config.hideStrategy = _.some(config.errors.list, function(e) {
                 return e.mappingError === true;
             });
