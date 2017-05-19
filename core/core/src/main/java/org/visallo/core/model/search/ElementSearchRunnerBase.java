@@ -134,7 +134,12 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
 
     private Aggregation getTermsAggregation(String aggregationName, JSONObject aggregateJson) {
         String field = aggregateJson.getString("field");
-        return new TermsAggregation(aggregationName, field);
+        TermsAggregation terms = new TermsAggregation(aggregationName, field);
+        int size = aggregateJson.optInt("size", 0);
+        if (size > 0) {
+            terms.setSize(size);
+        }
+        return terms;
     }
 
     private Aggregation getGeohashAggregation(String aggregationName, JSONObject aggregateJson) {
