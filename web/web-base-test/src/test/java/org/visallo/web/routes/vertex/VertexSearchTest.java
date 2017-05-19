@@ -32,7 +32,7 @@ public class VertexSearchTest extends QueryResultsIterableSearchResultsSearchRou
         super.before();
 
         when(searchRepository.findSearchRunnerByUri(VertexSearchRunner.URI)).thenReturn(vertexSearchRunner);
-        vertexSearch = new VertexSearch(searchRepository);
+        vertexSearch = new VertexSearch(graph, searchRepository);
     }
 
     @Test

@@ -1170,6 +1170,10 @@ define([
              */
             isEdge: function(vertex) { return vertex && vertex.type && vertex.type === 'edge'; },
 
+            isExtendedDataRow: function(item) {
+                return (item.id && item.id.rowId) || (item.type === 'extendedDataRow');
+            },
+
             isArtifact: function(vertex) {
                 return _.contains(_.pluck(vertex.properties, 'name'), V.propName('raw'));
             },
@@ -1224,22 +1228,28 @@ define([
         }
     }
 
-    function formulaResultForElement(vertexOrEdge, formulaKey, defaultValue, accessedPropertyNames) {
-        var isEdge = V.isEdge(vertexOrEdge),
-            isVertex = V.isVertex(vertexOrEdge),
+    function formulaResultForElement(vertexiumObject, formulaKey, defaultValue, accessedPropertyNames) {
+        var isEdge = V.isEdge(vertexiumObject),
+            isVertex = V.isVertex(vertexiumObject),
+            isExtendedDataRow = V.isExtendedDataRow(vertexiumObject),
             result = defaultValue,
             formulaString,
             additionalScope = {};
 
-        if (isEdge) {
-            var edge = vertexOrEdge,
+        if (isExtendedDataRow) {
+            const tableName = vertexiumObject.id.tableName,
+                ontologyProperty = ontology.properties.byTitle[tableName];
+            additionalScope.label = ontologyProperty.displayName;
+            formulaString = ontologyProperty[formulaKey];
+        } else if (isEdge) {
+            var edge = vertexiumObject,
                 ontologyRelation = ontology.relationships.byTitle[edge.label],
                 label = ontologyRelation.displayName;
             additionalScope.label = label;
             additionalScope.ontology = ontologyRelation;
             formulaString = ontologyRelation[formulaKey];
         } else if (isVertex) {
-            var vertex = vertexOrEdge,
+            var vertex = vertexiumObject,
                 conceptId = V.prop(vertex, 'conceptType');
             formulaString = treeLookupForConceptProperty(conceptId, formulaKey, additionalScope);
         } else {
@@ -1259,7 +1269,7 @@ define([
                     }
                     return result;
                 };
-            result = formula(formulaString, vertexOrEdge, {
+            result = formula(formulaString, vertexiumObject, {
                 prop: _.wrap(V.prop, capture),
                 propRaw: _.wrap(V.propRaw, capture),
                 longestProp: _.wrap(V.longestProp, capture),

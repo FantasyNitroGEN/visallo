@@ -20,7 +20,7 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.*;
-import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
@@ -72,7 +72,7 @@ public class VertexUploadImage implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiVertex handle(
             HttpServletRequest request,
             @Required(name = "graphVertexId") String graphVertexId,
             @ActiveWorkspaceId String workspaceId,
@@ -145,7 +145,7 @@ public class VertexUploadImage implements ParameterizedHandler {
                 Priority.HIGH
         );
 
-        return ClientApiConverter.toClientApi(entityVertex, workspaceId, authorizations);
+        return (ClientApiVertex) ClientApiConverter.toClientApi(entityVertex, workspaceId, authorizations);
     }
 
     private String imageTitle(Vertex entityVertex) {

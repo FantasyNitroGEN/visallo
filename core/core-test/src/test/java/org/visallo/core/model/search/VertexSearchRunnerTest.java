@@ -53,7 +53,7 @@ public class VertexSearchRunnerTest extends SearchRunnerTestBase {
         SearchOptions searchOptions = new SearchOptions(parameters, "workspace1");
 
         QueryResultsIterableSearchResults results = vertexSearchRunner.run(searchOptions, user, authorizations);
-        assertEquals(2, size(results.getElements()));
+        assertEquals(2, size(results.getVertexiumObjects()));
     }
 
     @Test
@@ -72,6 +72,6 @@ public class VertexSearchRunnerTest extends SearchRunnerTestBase {
         SearchOptions searchOptions = new SearchOptions(parameters, "workspace1");
 
         QueryResultsIterableSearchResults results = vertexSearchRunner.run(searchOptions, user, authorizations);
-        assertEquals(2, size(results.getElements()));
+        assertEquals(2, size(results.getVertexiumObjects()));
     }
 }

@@ -24,6 +24,18 @@
     
 
 
+    <!-- http://visallo.com/minimal#rawContainsImageOfEntity -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.com/minimal#rawContainsImageOfEntity">
+        <rdfs:domain rdf:resource="http://visallo.com/desktop/example#raw"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <visallo:intent>artifactContainsImage</visallo:intent>
+        <visallo:intent>artifactContainsImageOfEntity</visallo:intent>
+        <rdfs:label xml:lang="en">Contains Image of</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://visallo.org/minimal#entityHasMedia -->
 
     <owl:ObjectProperty rdf:about="http://visallo.org/minimal#entityHasMedia">
@@ -129,10 +141,10 @@
     <!-- http://visallo.org/minimal#geolocation -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#geolocation">
-        <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
+        <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
         <rdfs:range rdf:resource="http://visallo.org#geolocation"/>
-        <visallo:intent xml:lang="en">geoLocation</visallo:intent>
-        <visallo:intent xml:lang="en">media.geoLocation</visallo:intent>
+        <visallo:intent>geoLocation</visallo:intent>
+        <visallo:intent>media.geoLocation</visallo:intent>
         <rdfs:label xml:lang="en">Geolocation</rdfs:label>
     </owl:DatatypeProperty>
     
@@ -143,7 +155,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#height">
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
-        <visallo:intent xml:lang="en">media.height</visallo:intent>
+        <visallo:intent>media.height</visallo:intent>
         <rdfs:label xml:lang="en">Height</rdfs:label>
     </owl:DatatypeProperty>
     
@@ -165,7 +177,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#rawMetadata">
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-        <visallo:intent xml:lang="en">media.metadata</visallo:intent>
+        <visallo:intent>media.metadata</visallo:intent>
         <rdfs:label xml:lang="en">Metadata</rdfs:label>
     </owl:DatatypeProperty>
     
@@ -176,7 +188,7 @@
     <owl:DatatypeProperty rdf:about="http://visallo.org/minimal#width">
         <rdfs:domain rdf:resource="http://visallo.org/minimal#raw"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
-        <visallo:intent xml:lang="en">media.width</visallo:intent>
+        <visallo:intent>media.width</visallo:intent>
         <rdfs:label xml:lang="en">Width</rdfs:label>
     </owl:DatatypeProperty>
     
@@ -202,6 +214,22 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
+    
+
+
+    <!-- http://visallo.com/desktop/example#raw -->
+
+    <owl:Class rdf:about="http://visallo.com/desktop/example#raw"/>
+    
+
+
+    <!-- http://visallo.com/minimal#location -->
+
+    <owl:Class rdf:about="http://visallo.com/minimal#location">
+        <visallo:color>rgb(160, 7, 206)</visallo:color>
+        <visallo:intent>location</visallo:intent>
+        <rdfs:label xml:lang="en">Location</rdfs:label>
+    </owl:Class>
     
 
 

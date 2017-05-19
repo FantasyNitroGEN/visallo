@@ -30,29 +30,30 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             FetchHint.PROPERTIES,
             FetchHint.PROPERTY_METADATA,
             FetchHint.IN_EDGE_LABELS,
-            FetchHint.OUT_EDGE_LABELS
+            FetchHint.OUT_EDGE_LABELS,
+            FetchHint.EXTENDED_DATA_TABLE_NAMES
     );
     private static final int HISTORICAL_PROPERTY_MAX_SPV_SIZE = 2000;
 
-    public static List<ClientApiElement> toClientApi(
-            Iterable<? extends org.vertexium.Element> elements,
+    public static List<? extends ClientApiVertexiumObject> toClientApi(
+            Iterable<? extends VertexiumObject> vertexiumObjects,
             String workspaceId,
             Authorizations authorizations
     ) {
-        return toClientApi(elements, workspaceId, false, authorizations);
+        return toClientApi(vertexiumObjects, workspaceId, false, authorizations);
     }
 
-    public static List<ClientApiElement> toClientApi(
-            Iterable<? extends org.vertexium.Element> elements,
+    public static List<? extends ClientApiVertexiumObject> toClientApi(
+            Iterable<? extends VertexiumObject> vertexiumObjects,
             String workspaceId,
             boolean includeEdgeInfos,
             Authorizations authorizations
     ) {
-        List<ClientApiElement> clientApiElements = new ArrayList<>();
-        for (org.vertexium.Element element : elements) {
-            clientApiElements.add(toClientApi(element, workspaceId, includeEdgeInfos, authorizations));
+        List<ClientApiVertexiumObject> results = new ArrayList<>();
+        for (VertexiumObject vertexiumObject : vertexiumObjects) {
+            results.add(toClientApi(vertexiumObject, workspaceId, includeEdgeInfos, authorizations));
         }
-        return clientApiElements;
+        return results;
     }
 
     public static List<ClientApiVertex> toClientApiVertices(
@@ -67,28 +68,31 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         return clientApiElements;
     }
 
-    public static ClientApiElement toClientApi(
-            org.vertexium.Element element,
+    public static ClientApiVertexiumObject toClientApi(
+            VertexiumObject vertexiumObject,
             String workspaceId,
             Authorizations authorizations
     ) {
-        return toClientApi(element, workspaceId, false, authorizations);
+        return toClientApi(vertexiumObject, workspaceId, false, authorizations);
     }
 
-    public static ClientApiElement toClientApi(
-            org.vertexium.Element element,
+    public static ClientApiVertexiumObject toClientApi(
+            VertexiumObject vertexiumObject,
             String workspaceId,
             boolean includeEdgeInfos,
             Authorizations authorizations
     ) {
-        checkNotNull(element, "element cannot be null");
-        if (element instanceof Vertex) {
-            return toClientApiVertex((Vertex) element, workspaceId, null, includeEdgeInfos, authorizations);
+        checkNotNull(vertexiumObject, "vertexiumObject cannot be null");
+        if (vertexiumObject instanceof Vertex) {
+            return toClientApiVertex((Vertex) vertexiumObject, workspaceId, null, includeEdgeInfos, authorizations);
         }
-        if (element instanceof Edge) {
-            return toClientApiEdge((Edge) element, workspaceId);
+        if (vertexiumObject instanceof Edge) {
+            return toClientApiEdge((Edge) vertexiumObject, workspaceId);
         }
-        throw new RuntimeException("Unexpected element type: " + element.getClass().getName());
+        if (vertexiumObject instanceof ExtendedDataRow) {
+            return toClientApiExtendedDataRow((ExtendedDataRow) vertexiumObject, workspaceId);
+        }
+        throw new RuntimeException("Unexpected vertexiumObject type: " + vertexiumObject.getClass().getName());
     }
 
     public static ClientApiVertex toClientApiVertex(
@@ -182,6 +186,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
     ) {
         clientApiElement.setId(element.getId());
         clientApiElement.getProperties().addAll(toClientApiProperties(element.getProperties(), workspaceId));
+        clientApiElement.getExtendedDataTableNames().addAll(element.getExtendedDataTableNames());
         clientApiElement.setSandboxStatus(SandboxStatusUtil.getSandboxStatus(element, workspaceId));
 
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(element);
@@ -199,7 +204,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
     public static List<ClientApiProperty> toClientApiProperties(Iterable<Property> properties, String workspaceId) {
         List<ClientApiProperty> clientApiProperties = new ArrayList<>();
         List<Property> propertiesList = IterableUtils.toList(properties);
-        Collections.sort(propertiesList, new ConfidencePropertyComparator());
+        propertiesList.sort(new ConfidencePropertyComparator());
         SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(propertiesList, workspaceId);
         for (int i = 0; i < propertiesList.size(); i++) {
             Property property = propertiesList.get(i);
@@ -554,8 +559,31 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
 
     public static String removeWorkspaceVisibility(String visibility) {
         return Arrays.stream(visibility.split("\\|"))
-                .map(s -> s.replaceAll("&?\\(WORKSPACE_.*?\\)", "").replace("visallo",""))
+                .map(s -> s.replaceAll("&?\\(WORKSPACE_.*?\\)", "").replace("visallo", ""))
                 .filter(s -> s.length() > 0 && !s.equals("()"))
                 .collect(Collectors.joining("|"));
+    }
+
+    public static List<ClientApiExtendedDataRow> toClientApiExtendedDataRows(Iterable<ExtendedDataRow> rows) {
+        return stream(rows).map(ClientApiConverter::toClientApiExtendedDataRow).collect(Collectors.toList());
+    }
+
+    public static ClientApiExtendedDataRow toClientApiExtendedDataRow(ExtendedDataRow row) {
+        return toClientApiExtendedDataRow(row, null);
+    }
+
+    public static ClientApiExtendedDataRow toClientApiExtendedDataRow(ExtendedDataRow row, String workspaceId) {
+        ClientApiExtendedDataRow results = new ClientApiExtendedDataRow(toClientApiExtendedDataRowId(row.getId()));
+        results.getProperties().addAll(toClientApiProperties(row.getProperties(), workspaceId));
+        return results;
+    }
+
+    public static ClientApiExtendedDataRowId toClientApiExtendedDataRowId(ExtendedDataRowId id) {
+        return new ClientApiExtendedDataRowId(
+                id.getElementType().name(),
+                id.getElementId(),
+                id.getTableName(),
+                id.getRowId()
+        );
     }
 }

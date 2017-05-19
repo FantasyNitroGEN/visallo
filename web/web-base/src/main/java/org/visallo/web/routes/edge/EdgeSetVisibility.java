@@ -20,7 +20,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiEdge;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.util.VisibilityValidator;
 
@@ -50,7 +50,7 @@ public class EdgeSetVisibility implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiEdge handle(
             @Required(name = "graphEdgeId") String graphEdgeId,
             @Required(name = "visibilitySource") String visibilitySource,
             @ActiveWorkspaceId String workspaceId,
@@ -89,6 +89,6 @@ public class EdgeSetVisibility implements ParameterizedHandler {
                 Priority.HIGH
         );
 
-        return ClientApiConverter.toClientApi(graphEdge, workspaceId, authorizations);
+        return (ClientApiEdge) ClientApiConverter.toClientApi(graphEdge, workspaceId, authorizations);
     }
 }

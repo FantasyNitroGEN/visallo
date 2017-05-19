@@ -17,6 +17,7 @@ public class OntologyPropertyDefinition {
     private final PropertyType dataType;
     private Map<String, String> possibleValues;
     private Collection<TextIndexHint> textIndexHints;
+    private Collection<String> extendedDataTableDomains;
     private boolean userVisible;
     private boolean searchable;
     private boolean addable;
@@ -79,6 +80,15 @@ public class OntologyPropertyDefinition {
 
     public OntologyPropertyDefinition setTextIndexHints(Collection<TextIndexHint> textIndexHints) {
         this.textIndexHints = textIndexHints;
+        return this;
+    }
+
+    public Collection<String> getExtendedDataTableDomains() {
+        return extendedDataTableDomains;
+    }
+
+    public OntologyPropertyDefinition setExtendedDataTableDomain(Collection<String> extendedDataTableDomains) {
+        this.extendedDataTableDomains = extendedDataTableDomains;
         return this;
     }
 
