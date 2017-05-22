@@ -38,7 +38,14 @@ public class TomcatWebServer extends WebServer {
         Connector httpsConnector = new Connector(Http11NioProtocol.class.getName());
         setupSslHandling(httpsConnector);
         setupClientCertHandling(httpsConnector);
-        setupCompression(httpsConnector);
+
+        ProtocolHandler handler = httpsConnector.getProtocolHandler();
+        if (handler instanceof AbstractHttp11Protocol) {
+            AbstractHttp11Protocol protocol = (AbstractHttp11Protocol) handler;
+            setupCompression(protocol);
+            protocol.setMaxSwallowSize(-1);
+        }
+
 
         tomcat = new Tomcat();
         tomcat.setPort(super.getHttpPort());
@@ -104,13 +111,10 @@ public class TomcatWebServer extends WebServer {
         LOGGER.info("clientAuth certificate handling set to %s", clientAuthSetting);
     }
 
-    public void setupCompression(Connector connector) {
-        ProtocolHandler handler = connector.getProtocolHandler();
-        if (handler instanceof AbstractHttp11Protocol) {
-            AbstractHttp11Protocol<?> protocol = (AbstractHttp11Protocol<?>) handler;
-            protocol.setCompression("on");
-            protocol.setCompressableMimeType(COMPRESSABLE_MIME_TYPES);
-            LOGGER.info("compression set for mime types: %s", COMPRESSABLE_MIME_TYPES);
-        }
+    public void setupCompression(AbstractHttp11Protocol<?> protocol) {
+        protocol.setCompression("on");
+        protocol.setCompressableMimeType(COMPRESSABLE_MIME_TYPES);
+        protocol.setMaxSwallowSize(-1);
+        LOGGER.info("compression set for mime types: %s", COMPRESSABLE_MIME_TYPES);
     }
 }
