@@ -2,17 +2,19 @@ define([
     'flight/lib/component',
     'util/formatters',
     'util/requirejs/promise!util/service/ontologyPromise',
-    'text!./pieCss.css',
     './withRenderer'
 ], function(
     defineComponent,
     F,
     ontology,
-    pieCss,
     withRenderer) {
     'use strict';
 
-    var PIE_OTHER_CATEGORY = 'PIE_OTHER_CATEGORY',
+    const pieCss = `
+        .legend text { font-family: HelveticaNeue, AvenirNext-Medium, Arial; font-size: 90%; font-weight: normal; fill: #555; }
+        .legend-item.hidden, .legend-info.hidden { display: none; }
+    `;
+    const PIE_OTHER_CATEGORY = 'PIE_OTHER_CATEGORY',
         nameAsFloat = _.compose(floatFn, nameFn),
         nameAsDate = function(d) {
             return new Date(parseInt(nameFn(d), 10))

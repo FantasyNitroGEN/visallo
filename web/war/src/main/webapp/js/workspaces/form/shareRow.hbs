@@ -1,0 +1,13 @@
+<li class="user-row" data-user-id="{{ userId }}">
+  <div class="user-info">
+    <div class="user-status {{ statusClass }}"></div>
+    <span class="user-displayname">{{ displayName }}</span>
+    {{#if subtitle }}
+    <div class="subtitle">{{ subtitle }}</div>
+    {{/if}}
+  </div>
+
+  <span class="badge permissions"
+        data-access="{{ accessName }}"
+        style="{{#unless editable}}cursor:default{{/unless}}">{{ accessDisplay }} {{#if editable}}<span class="caret"></span>{{/if}}</span>
+</li>

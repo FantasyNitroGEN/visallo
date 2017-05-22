@@ -2,16 +2,14 @@
 define([
     'flight/lib/component',
     './form/form',
-    'tpl!./workspaces',
+    './workspaces.hbs',
     './list-tpl.hbs',
-    'tpl!./item',
     'util/withDataRequest',
     'util/formatters'
 ], function(defineComponent,
     WorkspaceForm,
     workspacesTemplate,
     listTemplate,
-    itemTemplate,
     withDataRequest,
     F) {
     'use strict';

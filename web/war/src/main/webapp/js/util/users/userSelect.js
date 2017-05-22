@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     './userSelectTpl.hbs',
-    'tpl!./user',
+    './user.hbs',
     'util/withDataRequest'
 ], function(
     defineComponent,
@@ -91,7 +91,14 @@ define([
                     return userMap[userId].displayName;
                 },
                 highlighter: function(userId) {
-                    return userTemplate({ user: userMap[userId] });
+                    const user = userMap[userId];
+                    return userTemplate({
+                        json: JSON.stringify(user),
+                        statusClass: `st-${user.status ? user.status.toLowerCase() : 'unknown'}`,
+                        displayName: user.displayName,
+                        subtitle: (user.displayName.toLowerCase() !== (user.email || user.userName).toLowerCase()) ?
+                            (user.email || user.userName) : null
+                    });
                 }
             });
         };

@@ -1,0 +1,12 @@
+border-bottom-style: solid;
+border-bottom-width: 1px;
+{{#if normal}}
+border-bottom-color: {{ colors.normal }};
+{{else if dim}}
+border-bottom-color: {{ colors.dim }};
+{{else if hover}}
+background: {{ colors.hover }};
+{{else if term}}
+border-bottom-color: #333;
+border-bottom-style: dotted;
+{{/if}}

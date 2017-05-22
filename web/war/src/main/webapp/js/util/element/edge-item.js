@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'tpl!./edge-item',
+    './edge-item.hbs',
     'util/requirejs/promise!util/service/ontologyPromise',
     'util/vertex/justification/viewer',
     'util/withDataRequest',

@@ -4,7 +4,7 @@ define([
     'flight/lib/registry',
     './filtersTpl.hbs',
     './filterItem',
-    'tpl!./entityItem',
+    './entityItem.hbs',
     'search/sort',
     'util/vertex/formatters',
     'util/ontology/conceptSelect',
@@ -279,7 +279,7 @@ define([
 
                     self.select('edgeLabelFilterSelector').show();
                     self.otherFilters.relatedToVertexIds = _.pluck(vertices, 'id');
-                    self.$node.find('.entity-filters').html(entityItemTemplate({title: title})).show();
+                    self.$node.find('.entity-filters').html(entityItemTemplate({ title })).show();
                     self.notifyOfFilters();
                 });
         };

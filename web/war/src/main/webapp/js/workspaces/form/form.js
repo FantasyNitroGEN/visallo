@@ -1,9 +1,9 @@
 
 define([
     'flight/lib/component',
-    './form-tpl.hbs',
-    'tpl!./shareRow',
-    'tpl!./permissions',
+    './form.hbs',
+    './shareRow.hbs',
+    './permissions.hbs',
     'util/users/userSelect',
     'util/withDataRequest'
 ], function(
@@ -14,6 +14,12 @@ define([
     UserSelect,
     withDataRequest) {
     'use strict';
+
+    const Permissions = [
+        { name: 'READ', display: i18n('workspaces.form.sharing.access.view') },
+        { name: 'COMMENT', display: i18n('workspaces.form.sharing.access.comment') },
+        { name: 'WRITE', display: i18n('workspaces.form.sharing.access.edit') }
+    ];
 
     return defineComponent(Form, withDataRequest);
 
@@ -176,19 +182,17 @@ define([
             var user = _user || this.currentUsers[userPermission.userId];
             if (user) {
                 return {
-                    user: {
-                        access: userPermission.access,
-                        permissionLabel: {
-                            read: i18n('workspaces.form.sharing.access.view'),
-                            comment: i18n('workspaces.form.sharing.access.comment'),
-                            write: i18n('workspaces.form.sharing.access.edit')
-                        }[userPermission.access.toLowerCase()],
-                        userId: user.id,
-                        status: user.status,
-                        displayName: user.displayName,
-                        email: user.email,
-                        userName: user.userName
-                    },
+                    userId: user.id,
+                    displayName: user.displayName,
+                    subtitle: (user.displayName.toLowerCase() !== (user.email || user.userName).toLowerCase()) ?
+                        (user.email || user.userName) : null,
+                    statusClass: `st-${user.status ? user.status.toLowerCase() : 'unknown'}`,
+                    accessName: userPermission.access.toUpperCase(),
+                    accessDisplay: {
+                        read: i18n('workspaces.form.sharing.access.view'),
+                        comment: i18n('workspaces.form.sharing.access.comment'),
+                        write: i18n('workspaces.form.sharing.access.edit')
+                    }[userPermission.access.toLowerCase()],
                     editable: this.editable
                 };
             } else console.warn('User ' + userPermission.userId + ' in permissions is not a current user');
@@ -208,7 +212,12 @@ define([
                 content: function() {
                     var row = $(this).closest('.user-row'),
                         data = $(this).data();
-                    return $(permissionsTemplate(data)).data('userRow', row);
+                    return $(permissionsTemplate({
+                        permissions: Permissions.map(p => ({
+                            ...p,
+                            active: p.name === data.access
+                        }))
+                    })).data('userRow', row);
                 }
             });
         };

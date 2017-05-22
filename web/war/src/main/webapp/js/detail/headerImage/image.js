@@ -1,7 +1,6 @@
 
 define([
     'flight/lib/component',
-    'tpl!./image',
     'util/retina',
     'util/withFileDrop',
     'util/privileges',
@@ -9,7 +8,6 @@ define([
     'util/withDataRequest'
 ], function(
     defineComponent,
-    template,
     retina,
     withFileDrop,
     Privileges,
@@ -47,9 +45,7 @@ define([
             var entityUpdateable = this.attr.data.updateable;
             var canEdit = Privileges.canEDIT && (entityUpdateable === undefined || entityUpdateable === true);
             if (canEdit && !this.isArtifactDisplayType()) {
-                this.$node.html(template({
-                    Privileges: Privileges
-                }));
+                this.$node.html('<input type="file" name="file" /><canvas></canvas>')
 
                 this.select('fileSelector').on({
                     click: function() {

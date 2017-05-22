@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!app',
+    'app.hbs',
     'menubar/menubar',
     'dashboard/dashboard',
     'search/search',
@@ -51,13 +51,6 @@ define([
 
     return defineComponent(App, withFileDrop, withDataRequest);
 
-    function preventPinchToZoom(e) {
-        if (e.ctrlKey) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    }
-
     function App() {
         var DATA_MENUBAR_NAME = 'menubar-name';
 
@@ -95,7 +88,6 @@ define([
             ], 'teardownAll');
 
             this.$node.empty();
-            document.removeEventListener('mousewheel', preventPinchToZoom);
         });
 
         this.after('initialize', function() {
@@ -169,7 +161,6 @@ define([
             );
 
             fixMultipleBootstrapModals();
-            document.addEventListener('mousewheel', preventPinchToZoom, true);
             this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
 
             this.on(document, 'error', this.onError);
@@ -188,7 +179,6 @@ define([
             this.on(document, 'sessionExpiration', this.onSessionExpiration);
             this.on(document, 'showVertexContextMenu', this.onShowVertexContextMenu);
             this.on(document, 'showEdgeContextMenu', this.onShowEdgeContextMenu);
-            this.on(document, 'warnAboutContextMenuDisabled', this.onWarnAboutContextMenuDisabled);
             this.on(document, 'genericPaste', this.onGenericPaste);
             this.on(document, 'toggleTimeline', this.onToggleTimeline);
             this.on(document, 'privilegesReady', _.once(this.onPrivilegesReady.bind(this)));
@@ -396,18 +386,6 @@ define([
                 this.$node.removeClass('workspace-timeline-visible');
                 $button.removeClass('expanded');
             }
-        };
-
-        this.onWarnAboutContextMenuDisabled = function() {
-            if (this.shouldWithholdContextMenuWarning) {
-                return;
-            }
-            this.shouldWithholdContextMenuWarning = true;
-
-            var warning = this.$node.find('.context-menu-warning').show();
-            _.delay(function() {
-                warning.hide();
-            }, 5000)
         };
 
         this.onGenericPaste = function(event, data) {

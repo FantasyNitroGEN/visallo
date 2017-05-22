@@ -1,10 +1,9 @@
 define([
     'flight/lib/component',
-    'tpl!./detail',
     'util/vertex/formatters',
     'util/withDataRequest',
     'configuration/plugins/registry'
-], function(defineComponent, template, F, withDataRequest, registry) {
+], function(defineComponent, F, withDataRequest, registry) {
     'use strict';
 
     return defineComponent(DetailPane, withDataRequest);
@@ -28,7 +27,7 @@ define([
 
             this.before('teardown', this.teardownComponents);
 
-            this.$node.html(template({}));
+            this.$node.html('<div class="type-content"></div>');
         });
 
         this.onFinishedTypeContent = function() {

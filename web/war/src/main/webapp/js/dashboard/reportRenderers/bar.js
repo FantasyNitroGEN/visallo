@@ -2,23 +2,35 @@ define([
     'flight/lib/component',
     'util/vertex/formatters',
     'util/requirejs/promise!util/service/ontologyPromise',
-    'text!./barCss.css',
     './withRenderer'
 ], function(
     defineComponent,
     F,
     ontology,
-    barCss,
     withRenderer) {
     'use strict';
 
-    var MAX_ROWS = 10,
-        BAR_OTHER_CATEGORY = 'BAR_OTHER_CATEGORY',
-        d3,
-        nameAsFloat = _.compose(floatFn, nameFn),
-        nameAsDate = function(d) {
-            return new Date(parseInt(d.name, 10))
-        };
+    const barCss = `
+        .axis path, .axis .tick line {
+          fill: none;
+          stroke: #767676;
+          stroke-width: 1px;
+        }
+        .axis text {
+            fill: #767676;
+        }
+        text {
+          font-family: HelveticaNeue, AvenirNext-Medium, Arial;
+        }
+    `;
+    const MAX_ROWS = 10;
+    const BAR_OTHER_CATEGORY = 'BAR_OTHER_CATEGORY';
+    const nameAsFloat = _.compose(floatFn, nameFn);
+    const nameAsDate = function(d) {
+        return new Date(parseInt(d.name, 10))
+    };
+
+    var d3;
 
     return defineComponent(StackedBar, withRenderer);
 
