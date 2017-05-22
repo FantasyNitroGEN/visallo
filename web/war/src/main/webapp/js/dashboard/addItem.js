@@ -24,7 +24,7 @@ define([
 
         this.list = function() {
             var self = this,
-                extensions = registry.extensionsForPoint('org.visallo.web.dashboard.item');
+                extensions = registry.extensionsForPoint('org.visallo.dashboard.item');
 
             this.$node
                 .removeClass('add')

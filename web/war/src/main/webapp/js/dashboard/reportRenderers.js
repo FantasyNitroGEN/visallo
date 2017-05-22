@@ -4,7 +4,7 @@ define([
 ], function(registry, ontology) {
     'use strict';
 
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
+    registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-element-list',
         supportsResponse: function(data) {
             return data.type === 'TYPE_ELEMENTS';
@@ -13,7 +13,7 @@ define([
         componentPath: 'dashboard/reportRenderers/element-list'
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
+    registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-bar-vertical',
         supportsResponse: function(data) {
             return data.type === 'TYPE_AGGREGATION' &&
@@ -27,7 +27,7 @@ define([
         componentPath: 'dashboard/reportRenderers/bar'
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
+    registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-bar-horizontal',
         supportsResponse: function(data) {
             return data.type === 'TYPE_AGGREGATION' &&
@@ -42,7 +42,7 @@ define([
         componentPath: 'dashboard/reportRenderers/bar'
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
+    registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-pie',
         supportsResponse: function(data) {
             return data.type === 'TYPE_AGGREGATION' &&
@@ -56,7 +56,7 @@ define([
         componentPath: 'dashboard/reportRenderers/pie'
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
+    registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-choropleth',
         label: 'Choropleth',
         supportsResponse: function(data) {
@@ -75,7 +75,7 @@ define([
         componentPath: 'dashboard/reportRenderers/choropleth'
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
+    registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-text-overview',
         configurationPath: 'dashboard/configs/report/text-overview-config',
         supportsResponse: function(data) {
@@ -90,7 +90,7 @@ define([
         componentPath: 'dashboard/reportRenderers/text-overview'
     });
 
-    registry.registerExtension('org.visallo.web.dashboard.reportrenderer', {
+    registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-geohash',
         supportsResponse: function(data) {
             return data.type === 'TYPE_AGGREGATION' &&

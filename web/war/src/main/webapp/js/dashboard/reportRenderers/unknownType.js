@@ -13,7 +13,7 @@ define([
     function UnknownType() {
         this.render = function(d3, node, data) {
             var self = this,
-                reportRenderers = registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer'),
+                reportRenderers = registry.extensionsForPoint('org.visallo.dashboard.reportrenderer'),
                 renderer = _.find(reportRenderers, function(reportRenderer) {
                     try {
                         return reportRenderer.supportsResponse(data);

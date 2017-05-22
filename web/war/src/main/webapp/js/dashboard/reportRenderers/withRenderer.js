@@ -357,7 +357,7 @@ define([
 
     function checkRendererSupportsResponse(reportRendererIdentifier, root) {
         const renderer = _.findWhere(
-            registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer'),
+            registry.extensionsForPoint('org.visallo.dashboard.reportrenderer'),
             { identifier: reportRendererIdentifier }
         );
         return renderer.supportsResponse(root);
