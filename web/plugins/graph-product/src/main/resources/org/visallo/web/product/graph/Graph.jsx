@@ -943,11 +943,16 @@ define([
                 cls.push('e');
                 return cls;
             }, () => edges.map(e => e.id).sort())
-        } else cls.push('partial')
-        if (_.any(edgeInfos, info => info.edgeId in focusing.edges)) {
-            cls.push('focus');
+        } else {
+            cls.push('partial')
         }
-        return cls.join(' ')
+
+        const classes = cls.join(' ');
+
+        if (_.any(edgeInfos, info => info.edgeId in focusing.edges)) {
+            return classes + ' focus';
+        }
+        return classes;
     };
     const decorationIdMap = {};
     const decorationForId = id => {
@@ -1053,11 +1058,15 @@ define([
                 cls.push('v');
                 return cls;
             })
-        } else cls.push('partial')
-        if (id in focusing.vertices) {
-            cls.push('focus')
+        } else {
+            cls.push('partial')
         }
-        return cls.join(' ')
+
+        const classes = cls.join(' ');
+        if (id in focusing.vertices) {
+            return classes + ' focus';
+        }
+        return classes;
     };
     const vertexToCyNode = (vertex, transformers, hovering) => {
         const result = memoizeFor('vertexToCyNode', vertex, function() {
