@@ -7,7 +7,7 @@ import org.vertexium.query.Aggregation;
 import org.vertexium.query.AggregationResult;
 import org.vertexium.query.Query;
 import org.vertexium.query.QueryResultsIterable;
-import org.visallo.core.model.search.ElementSearchRunnerBase;
+import org.visallo.core.model.search.VertexiumObjectSearchRunnerBase;
 import org.visallo.core.model.search.QueryResultsIterableSearchResults;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public abstract class QueryResultsIterableSearchResultsSearchRouteTestBase exten
     protected List<Aggregation> aggregations;
     protected long queryResultsIterableTotalHits;
     protected ArrayList<Element> queryResultsIterableElements;
-    protected ElementSearchRunnerBase.QueryAndData queryAndData;
+    protected VertexiumObjectSearchRunnerBase.QueryAndData queryAndData;
 
     @Mock
     protected QueryResultsIterableSearchResults results;
@@ -68,7 +68,7 @@ public abstract class QueryResultsIterableSearchResultsSearchRouteTestBase exten
         when(results.getQueryAndData()).thenReturn(queryAndData);
     }
 
-    protected ElementSearchRunnerBase.QueryAndData createQueryAndData() {
-        return Mockito.mock(ElementSearchRunnerBase.QueryAndData.class);
+    protected VertexiumObjectSearchRunnerBase.QueryAndData createQueryAndData() {
+        return Mockito.mock(VertexiumObjectSearchRunnerBase.QueryAndData.class);
     }
 }

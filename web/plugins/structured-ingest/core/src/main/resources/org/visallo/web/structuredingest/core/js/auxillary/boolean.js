@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!../../templates/auxillary/boolean'
+    '../../templates/auxillary/boolean.hbs'
 ], function(
     defineComponent,
     template) {

@@ -13,7 +13,11 @@ define([], function() {
                 return window.location.href.replace(/#.*$/, '') +
                     '#v=' + _.map(vertices, function(v) {
                         if (_.isObject(v) && 'type' in v) {
-                            return encodeURIComponent(v.type.substring(0, 1) + v.id);
+                            if (v.type === 'extendedDataRow') {
+                                return encodeURIComponent(v.id.elementType.toLowerCase().substring(0, 1) + v.id.elementId);
+                            } else {
+                                return encodeURIComponent(v.type.substring(0, 1) + v.id);
+                            }
                         }
                         return encodeURIComponent(_.isString(v) ? v : v.id);
                     }).join(',') +

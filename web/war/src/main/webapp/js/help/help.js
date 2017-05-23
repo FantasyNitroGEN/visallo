@@ -2,8 +2,8 @@
 define([
     'flight/lib/component',
     'util/formatters',
-    'tpl!./help',
-    'tpl!./sections'
+    './help.hbs',
+    './sections.hbs'
 ], function(
     defineComponent,
     F,
@@ -22,6 +22,16 @@ define([
 
     function prettyCommand(shortcut) {
         return F.string.shortcut(shortcut.character, shortcut);
+    }
+
+    function sortFn(s1, s2) {
+        var i1 = SCOPE_SORTING_HINTS.indexOf(s1),
+            i2 = SCOPE_SORTING_HINTS.indexOf(s2);
+
+        if (i1 < 0) i1 = SCOPE_SORTING_HINTS.length;
+        if (i2 < 0) i2 = SCOPE_SORTING_HINTS.length;
+
+        return i1 === i2 ? 0 : i1 > i2;
     }
 
     function Help() {
@@ -56,17 +66,14 @@ define([
         this.onKeyboardShortcutsRegistered = function(e, data) {
             this.$node.find('ul').html(
                 sectionsTemplate({
-                    shortcutsByScope: data,
-                    prettyCommand: prettyCommand,
-                    sortFunction: function(s1, s2) {
-                        var i1 = SCOPE_SORTING_HINTS.indexOf(s1),
-                            i2 = SCOPE_SORTING_HINTS.indexOf(s2);
-
-                        if (i1 < 0) i1 = SCOPE_SORTING_HINTS.length;
-                        if (i2 < 0) i2 = SCOPE_SORTING_HINTS.length;
-
-                        return i1 === i2 ? 0 : i1 > i2;
-                    }
+                    scopes: Object.keys(data).sort(sortFn).map(scope => ({
+                        className: scope.toLowerCase(),
+                        title: scope,
+                        shortcuts: Object.keys(data[scope]).sort().map(key => ({
+                            display: prettyCommand(data[scope][key]),
+                            desc: data[scope][key].desc
+                        }))
+                    }))
                 })
             );
         };

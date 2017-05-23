@@ -1,0 +1,28 @@
+<ul class="menu-top">
+  <li class="dashboard"><a>{{ i18n 'menubar.icons.dashboard' }}</a></li>
+
+  <li class="divider"></li>
+
+  <li class="search"><a>{{ i18n 'menubar.icons.search' }}</a></li>
+  <li class="workspaces"><a>{{ i18n 'menubar.icons.workspaces' }}</a></li>
+  <li class="products"><a>{{ i18n 'menubar.icons.products' }}</a></li>
+
+  {{#if isAdmin }}
+    <li class="admin"><a>{{ i18n 'menubar.icons.admin' }}</a></li>
+  {{/if}}
+
+  <li class="divider"></li>
+
+</ul>
+
+<ul class="menu-bottom">
+
+  <li class="activity"><a>{{ i18n 'menubar.icons.activity' }}</a></li>
+
+  <li class="spacer"></li>
+  <li class="divider"></li>
+  <li class="spacer"></li>
+
+  <li class="logout"><a>{{ i18n 'menubar.icons.logout' }}</a></li>
+</ul>
+

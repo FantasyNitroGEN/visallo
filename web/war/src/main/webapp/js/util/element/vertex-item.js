@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'tpl!./vertex-item',
+    './vertex-item.hbs',
     'util/element/withPreview',
     'util/vertex/formatters'
 ], function(

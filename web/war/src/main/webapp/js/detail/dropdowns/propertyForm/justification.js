@@ -1,8 +1,8 @@
 
 define([
     'flight/lib/component',
-    'tpl!./justification',
-    'tpl!./justificationRef',
+    './justification.hbs',
+    './justificationRef.hbs',
     'util/withTeardown',
     'util/withDataRequest',
     'util/vertex/formatters',
@@ -153,9 +153,11 @@ define([
                     self.transitionHeight(templateRef(value));
                 });
             } else if (this.justificationValidation !== VALIDATION.NONE) {
+                const required = this.justificationValidation === VALIDATION.REQUIRED;
                 this.transitionHeight(template({
                     value: value || '',
-                    required: this.justificationValidation === VALIDATION.REQUIRED
+                    placeholder: i18n('justification.field.placeholder.' + (required ? 'required' : 'optional')),
+                    required
                 }));
                 this.select('fieldSelector').tooltip({
                     container: 'body'

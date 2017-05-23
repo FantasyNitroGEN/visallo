@@ -3,7 +3,7 @@
 #set( $symbol_escape = '\' )
 define([
     'public/v1/api',
-    'hbs!./login'
+    './login.hbs'
 ], function(
     visallo,
     template) {

@@ -1032,8 +1032,8 @@ define([
             var style = HIGHLIGHT_STYLES[this.getActiveStyle()];
             if (!style.styleApplied) {
                 this.dataRequest('ontology', 'concepts').done(function(concepts) {
-                    var styleFile = 'tpl!detail/text/highlight-styles/' + style.selector + '.css',
-                        detectedObjectStyleFile = 'tpl!detail/text/highlight-styles/detectedObject.css';
+                    var styleFile = 'detail/text/highlight-styles/' + style.selector + '.hbs',
+                        detectedObjectStyleFile = 'detail/text/highlight-styles/detectedObject.hbs';
 
                     require([styleFile, detectedObjectStyleFile], function(tpl, doTpl) {
                         function apply(concept) {
@@ -1048,10 +1048,18 @@ define([
                                         (concept.className && ('vertex.' + concept.className)),
                                     definition = function(state, template) {
                                         return (template || tpl)({
-                                            STATES: STATES,
-                                            state: state,
-                                            concept: concept,
-                                            colorjs: colorjs
+                                            ...(_.object(_.map(STATES, (v, k) => [k.toLowerCase(), v === state]))),
+                                            normalOrHover: (state === STATES.NORMAL || state === STATES.HOVER),
+                                            colors: {
+                                                normal: colorjs(concept.color).setAlpha(1.0),
+                                                dim: colorjs(concept.color).setAlpha(0.2).setSaturation(0.2),
+                                                hover: colorjs(concept.color).setAlpha(0.3),
+                                                detectedObjects: {
+                                                    background: colorjs(concept.color).darkenByRatio(0.6).setAlpha(0.1),
+                                                    foreground: colorjs(concept.color).darkenByRatio(0.3).desaturateByRatio(0.5)
+                                                }
+                                            },
+                                            concept: concept
                                         });
                                     };
 

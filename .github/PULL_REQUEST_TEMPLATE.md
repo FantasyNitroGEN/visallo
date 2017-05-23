@@ -1,5 +1,4 @@
 - [ ] joeferner
-- [ ] diegogrz
 - [ ] mwizeman sfeng88
 - [ ] joeybrk372 rygim jharwig EvanOxfeld
 

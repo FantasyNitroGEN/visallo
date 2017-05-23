@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!./actionbar'
+    './actionbar.hbs'
 ], function(
     defineComponent,
     template
@@ -41,7 +41,21 @@ define([
             this.$node.removeAttr('title');
             var tooltip = this.$node.tooltip({
                 trigger: 'click',
-                title: template(this.attr),
+                title: template({
+                    actions: Object.keys(this.attr.actions).map(a => {
+                        const action = this.attr.actions[a];
+                        if (_.isString(action)) {
+                            return { cls: '', event: action, name: a };
+                        } else {
+                            return {
+                                cls: action.className || '',
+                                event: action.event,
+                                name: a,
+                                style: action.style || ''
+                            };
+                        }
+                    })
+                }),
                 placement: 'bottom',
                 container: 'body',
                 html: true

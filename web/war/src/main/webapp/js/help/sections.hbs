@@ -1,0 +1,11 @@
+{{#each scopes }}
+<li>
+  <h1 class="{{ className }}">{{ title }}</h1>
+  <dl>
+    {{#each shortcuts }}
+    <dt>{{ display }}</dt>
+    <dd>{{ desc }}</dd>
+    {{/each}}
+  </dl>
+</li>
+{{/each}}

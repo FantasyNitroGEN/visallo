@@ -1,7 +1,7 @@
 
 define([
     'flight/lib/component',
-    'tpl!app',
+    'app.hbs',
     'menubar/menubar',
     'dashboard/dashboard',
     'search/search',
@@ -51,13 +51,6 @@ define([
 
     return defineComponent(App, withFileDrop, withDataRequest);
 
-    function preventPinchToZoom(e) {
-        if (e.ctrlKey) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    }
-
     function App() {
         var DATA_MENUBAR_NAME = 'menubar-name';
 
@@ -95,7 +88,6 @@ define([
             ], 'teardownAll');
 
             this.$node.empty();
-            document.removeEventListener('mousewheel', preventPinchToZoom);
         });
 
         this.after('initialize', function() {
@@ -169,7 +161,6 @@ define([
             );
 
             fixMultipleBootstrapModals();
-            document.addEventListener('mousewheel', preventPinchToZoom, true);
             this.on('registerForPositionChanges', this.onRegisterForPositionChanges);
 
             this.on(document, 'error', this.onError);
@@ -189,7 +180,6 @@ define([
             this.on(document, 'showVertexContextMenu', this.onShowVertexContextMenu);
             this.on(document, 'showEdgeContextMenu', this.onShowEdgeContextMenu);
             this.on(document, 'showCollapsedItemContextMenu', this.onShowCollapsedItemContextMenu);
-            this.on(document, 'warnAboutContextMenuDisabled', this.onWarnAboutContextMenuDisabled);
             this.on(document, 'genericPaste', this.onGenericPaste);
             this.on(document, 'toggleTimeline', this.onToggleTimeline);
             this.on(document, 'privilegesReady', _.once(this.onPrivilegesReady.bind(this)));
@@ -397,18 +387,6 @@ define([
                 this.$node.removeClass('workspace-timeline-visible');
                 $button.removeClass('expanded');
             }
-        };
-
-        this.onWarnAboutContextMenuDisabled = function() {
-            if (this.shouldWithholdContextMenuWarning) {
-                return;
-            }
-            this.shouldWithholdContextMenuWarning = true;
-
-            var warning = this.$node.find('.context-menu-warning').show();
-            _.delay(function() {
-                warning.hide();
-            }, 5000)
         };
 
         this.onGenericPaste = function(event, data) {
@@ -860,6 +838,7 @@ define([
                 menubarWidth = $('.menubar-pane').width(),
                 workspaceOverlayWidth = $('.workspace-overlay').outerWidth(),
                 otherVisiblePanes = $('#app > .ui-resizable.visible, .ui-resizable.visible .ui-resizable:visible')
+                    .not('.ui-ignore-pane-width')
                     .not(withoutPane).toArray(),
                 widthOfOpenPanes = _.reduce(
                     otherVisiblePanes,
@@ -880,7 +859,7 @@ define([
         };
 
         this.onResizeCreateLoad = function(event) {
-            var user = visalloData.currentUser,
+            const user = visalloData.currentUser,
                 $pane = $(event.target),
                 sizePaneName = $pane.data('sizePreference'),
                 widthPaneName = !sizePaneName && $pane.data('widthPreference'),
@@ -892,21 +871,47 @@ define([
                 userPrefs = user.uiPreferences,
                 value = userPrefs && prefName in userPrefs && userPrefs[prefName];
 
+            let width;
+            let height;
             if (sizePaneName && value) {
-                var size = value.split(',');
+                const size = value.split(',');
                 if (size.length === 2) {
-                    $pane.width(parseInt(size[0], 10));
-                    $pane.height(parseInt(size[1], 10));
+                    width = parseInt(size[0], 10);
+                    height = parseInt(size[1], 10);
                 }
             } else if (widthPaneName && value) {
-                $pane.width(parseInt(value, 10));
+                width = parseInt(value, 10);
             } else if (heightPaneName && value) {
-                $pane.height(parseInt(value, 10));
+                height = parseInt(value, 10);
             } else if (!prefName && !$pane.is('.facebox')) {
                 console.warn(
                     'No data-width-preference or data-size-preference ' +
                     'attribute for resizable pane', $pane[0]
                 );
+            }
+
+            if (width) {
+                const minWidth = $pane.resizable('option', 'minWidth');
+                if (minWidth && width < minWidth) {
+                    width = minWidth;
+                }
+                const maxWidth = $pane.resizable('option', 'maxWidth');
+                if (maxWidth && width < maxWidth) {
+                    width = maxWidth;
+                }
+                $pane.width(width);
+            }
+
+            if (height) {
+                const minHeight = $pane.resizable('option', 'minHeight');
+                if (minHeight && height < minHeight) {
+                    height = minHeight;
+                }
+                const maxHeight = $pane.resizable('option', 'maxHeight');
+                if (maxHeight && height < maxHeight) {
+                    height = maxHeight;
+                }
+                $pane.height(height);
             }
         };
 

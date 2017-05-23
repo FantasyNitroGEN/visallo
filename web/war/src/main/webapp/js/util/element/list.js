@@ -29,7 +29,7 @@
 define([
     'flight/lib/component',
     'configuration/plugins/registry',
-    'tpl!./list',
+    './list.hbs',
     './detail-relationship-item',
     './vertex-item',
     './edge-item',
@@ -129,9 +129,10 @@ define([
                     self.$node
                         .addClass('element-list')
                         .html(template({
-                            localScrolling: self.localScrolling,
-                            infiniteScrolling: self.attr.infiniteScrolling &&
-                                               self.attr.total !== self.attr.items.length
+                            scrolling: self.localScrolling || (
+                                self.attr.infiniteScrolling &&
+                                self.attr.total !== self.attr.items.length
+                            )
                         }));
 
                     self.attachEvents();

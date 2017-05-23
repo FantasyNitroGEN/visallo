@@ -12,8 +12,8 @@ define([
 
     const reportConfigurationPath = 'dashboard/configs/report';
 
-    var reportRenderers = registry.extensionsForPoint('org.visallo.web.dashboard.reportrenderer'),
-        extensions = registry.extensionsForPoint('org.visallo.web.dashboard.item');
+    var reportRenderers = registry.extensionsForPoint('org.visallo.dashboard.reportrenderer'),
+        extensions = registry.extensionsForPoint('org.visallo.dashboard.item');
 
     return defineComponent(ConfigPopover, withPopover);
 

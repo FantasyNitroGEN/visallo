@@ -1,0 +1,9 @@
+border:0;
+{{#if normalOrHover}}
+background: {{ colors.normal }};
+color: white;
+{{else if dim}}
+background: {{ colors.detectedObjects.background }};
+color: {{ colors.detectedObjects.foreground }};
+text-shadow: none;
+{{/if}}

@@ -18,6 +18,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JsonSerializer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.ClientApiEdge;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
@@ -48,7 +49,7 @@ public class EdgeCreate implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiEdge handle(
             @Optional(name = "edgeId") String edgeId,
             @Required(name = "outVertexId") String outVertexId,
             @Required(name = "inVertexId") String inVertexId,
@@ -87,6 +88,6 @@ public class EdgeCreate implements ParameterizedHandler {
 
         workQueueRepository.broadcastElement(edge, workspaceId);
         workQueueRepository.pushElement(edge, Priority.HIGH);
-        return ClientApiConverter.toClientApi(edge, workspaceId, authorizations);
+        return (ClientApiEdge) ClientApiConverter.toClientApi(edge, workspaceId, authorizations);
     }
 }

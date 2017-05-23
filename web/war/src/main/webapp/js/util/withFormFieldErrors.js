@@ -31,7 +31,9 @@ define(['tpl!./alert'], function(alertTemplate) {
                 }
             } catch(e) { /*eslint no-empty:0 */ }
 
-            if (_.isObject(error)) {
+            if (_.isError(error)) {
+                messages.push(error.message)
+            } else if (_.isObject(error)) {
                 _.keys(error).forEach(function(fieldName) {
                     switch (fieldName) {
                         case 'status': break;
@@ -66,12 +68,15 @@ define(['tpl!./alert'], function(alertTemplate) {
                             break;
                     }
                 });
-            } else {
-                messages.push(error || 'Unknown error');
+            } else if (_.isString(error) && error) {
+                messages.push(error);
+            }
+
+            if (!messages.length) {
+                messages.push('Unknown error')
             }
 
             var errorsContainer = rootEl.find('.errors');
-
             if (errorsContainer.length) {
                 errorsContainer.html(
                     alertTemplate({

@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'util/withDropdown',
-    'tpl!./commentForm',
+    './commentForm.hbs',
     'tpl!util/alert',
     'util/vertex/formatters',
     'util/withDataRequest'
@@ -40,9 +40,8 @@ define([
             this.on('visibilitychange', this.onVisibilityChange);
 
             this.$node.html(commentTemplate({
-                graphVertexId: this.attr.data.id,
-                commentText: this.attr.comment && this.attr.comment.value || '',
-                buttonText: i18n('detail.comment.form.button')
+                graphVertexId: this.attr.data.id || '',
+                commentText: this.attr.comment && this.attr.comment.value || ''
             }));
 
             this.on('opened', function() {

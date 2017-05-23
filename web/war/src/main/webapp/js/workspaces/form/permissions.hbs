@@ -1,0 +1,11 @@
+<ul class="nav nav-list permissions-list">
+  {{#each permissions }}
+    <li><label><input 
+      data-permissions="{{ name }}" 
+      type="radio"
+      name="permission"
+      {{#if active }}checked{{/if}}>{{ display }}</label></li>
+  {{/each}}
+  <li class="divider"> </li>
+  <li><button class="remove-access btn btn-danger">{{ i18n 'workspaces.diff.button.revoke' }}</button></li>
+</ul>

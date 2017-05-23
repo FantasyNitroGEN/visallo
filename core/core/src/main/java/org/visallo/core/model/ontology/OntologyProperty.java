@@ -109,7 +109,18 @@ public abstract class OntologyProperty {
 
     public ClientApiOntology.Property toClientApi() {
         try {
-            ClientApiOntology.Property result = new ClientApiOntology.Property();
+            ClientApiOntology.Property result;
+            if (this instanceof ExtendedDataTableProperty) {
+                result = new ClientApiOntology.ExtendedDataTableProperty();
+                ExtendedDataTableProperty edtp = (ExtendedDataTableProperty) this;
+                ClientApiOntology.ExtendedDataTableProperty cedtp = (ClientApiOntology.ExtendedDataTableProperty) result;
+                cedtp.setTitleFormula(edtp.getTitleFormula());
+                cedtp.setSubtitleFormula(edtp.getSubtitleFormula());
+                cedtp.setTimeFormula(edtp.getTimeFormula());
+                cedtp.setTablePropertyIris(edtp.getTablePropertyIris());
+            } else {
+                result = new ClientApiOntology.Property();
+            }
             result.setTitle(getTitle());
             result.setDisplayName(getDisplayName());
             result.setUserVisible(getUserVisible());

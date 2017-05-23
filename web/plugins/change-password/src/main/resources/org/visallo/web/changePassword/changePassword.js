@@ -21,7 +21,7 @@ define(['configuration/plugins/registry'], function(registry) {
             this.after('initialize', function() {
                 var self = this;
 
-                require(['hbs!org/visallo/web/changePassword/template'], function(template) {
+                require(['org/visallo/web/changePassword/template.hbs'], function(template) {
                     self.$node.html(template({}));
                 });
 

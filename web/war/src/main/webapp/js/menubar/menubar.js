@@ -3,7 +3,7 @@ define([
     'flight/lib/component',
     'configuration/plugins/registry',
     './activity/activity',
-    'tpl!./menubar',
+    './menubar.hbs',
     'admin/admin'
 ], function(defineComponent, registry, Activity, template, AdminList) {
     'use strict';

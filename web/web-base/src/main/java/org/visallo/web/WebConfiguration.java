@@ -43,6 +43,8 @@ public class WebConfiguration {
     public static final String SHOW_VERSION_COMMENTS = PREFIX + "showVersionComments";
     public static final String SHOW_VISIBILITY_IN_DETAILS_PANE = PREFIX + "showVisibilityInDetailsPane";
     public static final String MAX_SESSION_INACTIVE_INTERVAL_SECONDS = PREFIX + "maxSessionInactiveIntervalSeconds";
+    public static final String TIMEZONE_DEFAULT_DETECT = PREFIX + "timezone.defaults.detect";
+    public static final String TIMEZONE_DEFAULT_TIMEZONE = PREFIX + "timezone.defaults.timezone";
     public static final PropertyMetadata PROPERTY_METADATA_SOURCE_TIMEZONE = new PropertyMetadata(
             "http://visallo.org#sourceTimezone",
             "properties.metadata.label.source_timezone",

@@ -2,7 +2,7 @@ define([
     'require',
     'flight/lib/component',
     'util/withDropdown',
-    'tpl!./propForm',
+    './propForm.hbs',
     'util/ontology/propertySelect',
     'tpl!util/alert',
     'util/withTeardown',

@@ -13,6 +13,25 @@ define([], function() {
         this.$node
             .on('registerForPositionChanges', this.onRegisterForPositionChanges)
             .on('unregisterForPositionChanges', this.onUnregisterForPositionChanges);
+    };
+
+    PopoverHelper.prototype.getCyNodeFromAnchor = function(anchorTo) {
+        const cy = this.cy;
+        if ('vertexId' in anchorTo) {
+            return cy.getElementById(anchorTo.vertexId);
+        }
+
+        if ('edgeId' in anchorTo) {
+            return cy.edges().filter(function(edgeIndex, edge) {
+                return _.any(edge.data('edgeInfos'), function(edgeInfo) {
+                    return edgeInfo.edgeId === anchorTo.edgeId;
+                });
+            })
+        }
+
+        if ('decorationId' in anchorTo) {
+            return cy.getElementById(anchorTo.decorationId);
+        }
     }
 
     PopoverHelper.prototype.destroy = function() {
@@ -24,27 +43,27 @@ define([], function() {
     }
 
     PopoverHelper.prototype.onRegisterForPositionChanges = function(event, data) {
-        var self = this,
-            cy = this.cy,
-            anchorTo = data && data.anchorTo;
+        const self = this;
+        const cy = this.cy;
+        const anchorTo = data && data.anchorTo;
 
-        if (!anchorTo || (!anchorTo.vertexId && !anchorTo.edgeId && !anchorTo.page && !anchorTo.decorationId)) {
+        if (!anchorTo) {
+            return console.error('Registering for position events requires an anchorTo config');
+        }
+        
+        const anchorToCyElement = anchorTo.vertexId || anchorTo.edgeId || anchorTo.decorationId;
+        const anchorToPage = anchorTo.page
+
+        if (!anchorToCyElement && !anchorToPage) {
             return console.error('Registering for position events requires a vertexId, edgeId, page, or decorationId');
         }
 
-        var cyNode = anchorTo.vertexId
-            ? cy.getElementById(anchorTo.vertexId)
-            : anchorTo.edgeId
-            ? cy.edges().filter(function(edgeIndex, edge) {
-                return _.any(edge.data('edgeInfos'), function(edgeInfo) {
-                    return edgeInfo.edgeId === anchorTo.edgeId;
-                });
-            })
-            : anchorTo.decorationId
-            ? cy.getElementById(anchorTo.decorationId)
-            : undefined;
-        if (!cyNode || cyNode.length == 0) {
-            return console.error('Could not find cyNode');
+        var cyNode = null;
+        if (anchorToCyElement) {
+            cyNode = this.getCyNodeFromAnchor(anchorTo);
+            if (!cyNode || cyNode.length === 0) {
+                return console.error('Could not find cyNode with anchorTo', anchorTo);
+            }
         }
 
         event.stopPropagation();

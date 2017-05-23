@@ -21,7 +21,7 @@ define([
         })
 
         this.before('initialize', function(node, config) {
-            config.template = '/org/visallo/web/structuredingest/core/templates/createdObject'
+            config.template = '/org/visallo/web/structuredingest/core/templates/createdObject.hbs'
             config.isEdge = 'inVertex' in config.object;
             config.type = config.isEdge ? 'Relationship' : 'Entity';
             config.properties = _.chain(config.object.properties)

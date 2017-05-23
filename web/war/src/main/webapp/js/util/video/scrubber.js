@@ -1,8 +1,8 @@
 
 define([
     'flight/lib/component',
-    'tpl!./scrubber',
-    'tpl!./video',
+    './scrubber.hbs',
+    './video.hbs',
     'util/withDataRequest'
 ], function(defineComponent, template, videoTemplate, withDataRequest) {
     'use strict';

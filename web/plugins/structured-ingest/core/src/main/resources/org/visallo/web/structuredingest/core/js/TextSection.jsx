@@ -57,7 +57,7 @@ define([
 
             require([
                 'org/visallo/web/structuredingest/core/js/form',
-                'hbs!org/visallo/web/structuredingest/core/templates/modal'
+                'org/visallo/web/structuredingest/core/templates/modal.hbs'
             ], (CSVMappingForm, template) => {
                 CSVMappingForm.attachTo($(template({})).appendTo('#app'), { vertex });
             });

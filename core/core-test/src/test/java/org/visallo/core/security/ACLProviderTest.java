@@ -1,6 +1,7 @@
 package org.visallo.core.security;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -145,6 +146,7 @@ public class ACLProviderTest {
         when(vertex.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
         when(vertex.getProperties("prop4")).thenReturn(Collections.emptyList());
         when(vertex.getProperties()).thenReturn(Lists.newArrayList(allProperties));
+        when(vertex.getExtendedDataTableNames()).thenReturn(ImmutableSet.of());
 
         when(edge.getId()).thenReturn("EDGE_1");
         when(edge.getLabel()).thenReturn("edge");
@@ -153,6 +155,7 @@ public class ACLProviderTest {
         when(edge.getProperties("prop3")).thenReturn(ImmutableList.of(elementProperty3));
         when(edge.getProperties("prop4")).thenReturn(Collections.emptyList());
         when(edge.getProperties()).thenReturn(Lists.newArrayList(allProperties));
+        when(edge.getExtendedDataTableNames()).thenReturn(ImmutableSet.of());
 
         when(graph.getVertex(eq("VERTEX_1"), any(Authorizations.class))).thenReturn(vertex);
         when(graph.getEdge(eq("EDGE_1"), any(Authorizations.class))).thenReturn(edge);
@@ -261,8 +264,8 @@ public class ACLProviderTest {
     }
 
     private void setupForCommentPropertyTests() {
-        when(privilegeRepository.getPrivileges(eq(user1))).thenReturn(Sets.newHashSet( Privilege.COMMENT));
-        when(privilegeRepository.getPrivileges(eq(user2))).thenReturn(Sets.newHashSet( Privilege.COMMENT));
+        when(privilegeRepository.getPrivileges(eq(user1))).thenReturn(Sets.newHashSet(Privilege.COMMENT));
+        when(privilegeRepository.getPrivileges(eq(user2))).thenReturn(Sets.newHashSet(Privilege.COMMENT));
 
         // user1 and user2 can both add/update/delete the comment property, but not other properties
 
@@ -281,8 +284,8 @@ public class ACLProviderTest {
     }
 
     private void setupForRegularPropertyTests() {
-        when(privilegeRepository.getPrivileges(eq(user1))).thenReturn(Sets.newHashSet( Privilege.EDIT));
-        when(privilegeRepository.getPrivileges(eq(user2))).thenReturn(Sets.newHashSet( Privilege.EDIT));
+        when(privilegeRepository.getPrivileges(eq(user1))).thenReturn(Sets.newHashSet(Privilege.EDIT));
+        when(privilegeRepository.getPrivileges(eq(user2))).thenReturn(Sets.newHashSet(Privilege.EDIT));
 
         // only user1 can add/update/delete the regular property
 
