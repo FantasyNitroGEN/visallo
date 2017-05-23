@@ -108,10 +108,6 @@ public class StructuredIngestWebAppPlugin implements WebAppPlugin {
     }
 
     private void ensureOntologyDefined() {
-        if (ontologyRepository.isOntologyDefined(StructuredIngestOntology.IRI)) {
-            return;
-        }
-
         try (InputStream structuredFileOwl = StructuredIngestWebAppPlugin.class.getResourceAsStream("structured-file.owl")) {
             byte[] inFileData = IOUtils.toByteArray(structuredFileOwl);
             IRI tagIRI = IRI.create(StructuredIngestOntology.IRI);

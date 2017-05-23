@@ -301,7 +301,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     OWLOntology o = m.loadOntologyFromOntologyDocument(visalloBaseOntologySource, config);
                     loadedOntologies.add(o);
                 } catch (UnloadableImportException ex) {
-                    LOGGER.error("Could not load %s", ontologyFileIRI, ex);
+                    LOGGER.warn("Could not load existing %s", ontologyFileIRI, ex);
                 }
             }
         }
