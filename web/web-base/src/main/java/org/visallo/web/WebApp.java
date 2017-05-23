@@ -317,6 +317,13 @@ public class WebApp extends App {
      * @param scriptResourceName Classpath to JavaScript template (ejs, hbs, etc)
      */
     public void registerJavaScriptTemplate(String scriptResourceName) {
+        if (scriptResourceName.endsWith(".hbs")) {
+            get("/jsc" + scriptResourceName + ".js", new HandlebarsPrecompiledResourceHandler(scriptResourceName, isDevModeEnabled()));
+        } else {
+            LOGGER.warn("Non-Handlebars templates are considered deprecated, as they can cause performance issues" +
+                "\n(please use '.hbs' extension if this is handlebar formatted template)"
+            );
+        }
         register(scriptResourceName, "text/plain", "jsc", false, null);
     }
 
@@ -457,4 +464,5 @@ public class WebApp extends App {
             return this;
         }
     }
+
 }

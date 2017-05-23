@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!../../templates/auxillary/geoLocation'
+    '../../templates/auxillary/geoLocation.hbs'
 ], function(
     defineComponent,
     template) {
