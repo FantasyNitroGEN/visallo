@@ -2,7 +2,7 @@ package org.visallo.core.model.search;
 
 import org.vertexium.Element;
 
-public class VertexFindRelatedSearchResults extends ElementsSearchResults {
+public class VertexFindRelatedSearchResults extends VertexiumObjectsSearchResults {
     private final Iterable<? extends Element> elements;
     private final long count;
 
@@ -12,7 +12,7 @@ public class VertexFindRelatedSearchResults extends ElementsSearchResults {
     }
 
     @Override
-    public Iterable<? extends Element> getElements() {
+    public Iterable<? extends Element> getVertexiumObjects() {
         return elements;
     }
 

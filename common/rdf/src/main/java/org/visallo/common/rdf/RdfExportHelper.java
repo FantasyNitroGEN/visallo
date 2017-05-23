@@ -11,37 +11,51 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class RdfExportHelper {
-    public String exportElementToRdfTriple(Element element) {
+    public String exportVertexiumObjectToRdfTriple(VertexiumObject vertexiumObject) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            exportElementToRdfTriple(element, out);
+            exportVertexiumObjectToRdfTriple(vertexiumObject, out);
         } catch (IOException ex) {
-            throw new VisalloException("Could not export element", ex);
+            throw new VisalloException("Could not export vertexiumObject", ex);
         }
         return out.toString();
     }
 
-    public void exportElementsToRdfTriple(Iterable<? extends Element> elements, OutputStream out) throws IOException {
+    public void exportVertexiumObjectsToRdfTriple(Iterable<? extends VertexiumObject> vertexiumObjects, OutputStream out) throws IOException {
         boolean first = true;
-        for (Element element : elements) {
+        for (VertexiumObject vertexiumObject : vertexiumObjects) {
             if (!first) {
                 out.write("\n".getBytes());
             }
-            exportElementToRdfTriple(element, out);
+            exportVertexiumObjectToRdfTriple(vertexiumObject, out);
             first = false;
         }
     }
 
-    public void exportElementToRdfTriple(Element element, OutputStream out) throws IOException {
-        writeElementRdfTripleComment(element, out);
-        writeElementRdfTriple(element, out);
-        for (Property property : element.getProperties()) {
-            writePropertyRdfTriples(element, property, out);
+    public void exportVertexiumObjectToRdfTriple(VertexiumObject vertexiumObject, OutputStream out) throws IOException {
+        writeVertexiumObjectRdfTripleComment(vertexiumObject, out);
+        if (vertexiumObject instanceof Element) {
+            writeElementRdfTriple((Element) vertexiumObject, out);
+            for (Property property : vertexiumObject.getProperties()) {
+                writePropertyRdfTriples((Element) vertexiumObject, property, out);
+            }
+        } else {
+            throw new VisalloException("Unhandled " + VertexiumObject.class.getName() + ": " + vertexiumObject.getClass().getName());
         }
     }
 
-    private void writeElementRdfTripleComment(Element element, OutputStream out) throws IOException {
-        out.write(String.format("# %s: %s", element instanceof Vertex ? "Vertex" : "Edge", element.getId()).getBytes());
+    private void writeVertexiumObjectRdfTripleComment(VertexiumObject vertexiumObject, OutputStream out) throws IOException {
+        String typeString;
+        if (vertexiumObject instanceof Vertex) {
+            typeString = "Vertex";
+        } else if (vertexiumObject instanceof Edge) {
+            typeString = "Edge";
+        } else if (vertexiumObject instanceof ExtendedDataRow) {
+            typeString = "Extended Data Row";
+        } else {
+            throw new VisalloException("Unhandled " + VertexiumObject.class.getName() + ": " + vertexiumObject.getClass().getName());
+        }
+        out.write(String.format("# %s: %s", typeString, vertexiumObject.getId()).getBytes());
         out.write("\n".getBytes());
     }
 

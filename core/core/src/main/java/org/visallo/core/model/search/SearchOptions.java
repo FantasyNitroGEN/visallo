@@ -1,6 +1,7 @@
 package org.visallo.core.model.search;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 
 import java.lang.reflect.Array;
@@ -65,6 +66,9 @@ public class SearchOptions {
         }
         if (resultType == Boolean.class && obj instanceof String) {
             return resultType.cast(Boolean.parseBoolean((String) obj));
+        }
+        if (resultType == String.class && obj instanceof JSONObject) {
+            return resultType.cast(obj.toString());
         }
         return resultType.cast(obj);
     }

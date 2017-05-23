@@ -4,10 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientApiElementSearchResponse extends ClientApiSearchResponse {
-    private List<ClientApiElement> elements = new ArrayList<ClientApiElement>();
+    private List<ClientApiVertexiumObject> elements = new ArrayList<ClientApiVertexiumObject>();
+    private List<ClientApiVertexiumObject> referencedElements;
 
-    public List<ClientApiElement> getElements() {
+    public List<ClientApiVertexiumObject> getElements() {
         return elements;
+    }
+
+    public List<ClientApiVertexiumObject> getReferencedElements() {
+        return referencedElements;
+    }
+
+    public void setReferencedElements(List<ClientApiVertexiumObject> referencedElements) {
+        this.referencedElements = referencedElements;
     }
 
     @Override

@@ -266,12 +266,16 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             boolean deleteable,
             boolean updateabale
     ) {
-        InMemoryOntologyProperty property = (InMemoryOntologyProperty) getPropertyByIRI(propertyIri);
+        InMemoryOntologyProperty property = getPropertyByIRI(propertyIri);
         if (property == null) {
             searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
 
-            property = new InMemoryOntologyProperty();
+            if (dataType.equals(PropertyType.EXTENDED_DATA_TABLE)) {
+                property = new InMemoryExtendedDataTableOntologyProperty();
+            } else {
+                property = new InMemoryOntologyProperty();
+            }
             property.setDataType(dataType);
             property.setUserVisible(userVisible);
             property.setSearchable(searchable);
@@ -338,13 +342,18 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public OntologyProperty getPropertyByIRI(String propertyIRI) {
+    public InMemoryOntologyProperty getPropertyByIRI(String propertyIRI) {
         return propertiesCache.get(propertyIRI);
     }
 
     @Override
-    public Relationship getRelationshipByIRI(String relationshipIRI) {
+    public InMemoryRelationship getRelationshipByIRI(String relationshipIRI) {
         return relationshipsCache.get(relationshipIRI);
+    }
+
+    @Override
+    public InMemoryConcept getConceptByIRI(String conceptIRI) {
+        return (InMemoryConcept) super.getConceptByIRI(conceptIRI);
     }
 
     @Override
@@ -412,7 +421,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             File inDir,
             boolean isDeclaredInOntology
     ) {
-        InMemoryConcept concept = (InMemoryConcept) getConceptByIRI(conceptIRI);
+        InMemoryConcept concept = getConceptByIRI(conceptIRI);
         if (concept != null) {
             return concept;
         }
@@ -476,6 +485,15 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         );
         relationshipsCache.put(relationshipIRI, inMemRelationship);
         return inMemRelationship;
+    }
+
+    @Override
+    protected void addExtendedDataTableProperty(OntologyProperty tableProperty, OntologyProperty property) {
+        if (!(tableProperty instanceof InMemoryExtendedDataTableOntologyProperty)) {
+            throw new VisalloException("Invalid property type to add extended data table property to: " + tableProperty.getDataType());
+        }
+        InMemoryExtendedDataTableOntologyProperty edtp = (InMemoryExtendedDataTableOntologyProperty) tableProperty;
+        edtp.addTableProperty(property.getIri());
     }
 
     private static class OwlData {

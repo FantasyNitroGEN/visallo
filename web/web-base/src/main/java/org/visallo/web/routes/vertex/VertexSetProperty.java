@@ -26,8 +26,8 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
 import org.visallo.web.routes.SetPropertyBase;
@@ -72,7 +72,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiVertex handle(
             HttpServletRequest request,
             @Required(name = "graphVertexId") String graphVertexId,
             @Optional(name = "propertyKey") String propertyKey,
@@ -149,7 +149,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             workQueueRepository.pushTextUpdated(sourceInfo.vertexId);
         }
 
-        return ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
+        return (ClientApiVertex) ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
     }
 
     private List<SavePropertyResults> saveProperty(

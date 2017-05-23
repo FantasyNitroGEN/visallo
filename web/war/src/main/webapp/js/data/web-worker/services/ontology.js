@@ -112,6 +112,23 @@ define([
             propertiesByDomainType: memoize(function(type) {
                 return getOntology()
                     .then(function(ontology) {
+                        if (type === 'extended-data') {
+                            return _.chain(ontology.properties)
+                                .pluck('tablePropertyIris')
+                                .compact()
+                                .flatten()
+                                .uniq()
+                                .map(function(propertyName) {
+                                    if (!ontology.properties[propertyName]) {
+                                        console.error('could not find extended-data property: ' + propertyName);
+                                        return null;
+                                    }
+                                    return ontology.properties[propertyName];
+                                })
+                                .compact()
+                                .value();
+                        }
+
                         var items = (type === 'concept' || type === 'vertex') ? ontology.concepts : ontology.relationships;
 
                         return _.chain(items)

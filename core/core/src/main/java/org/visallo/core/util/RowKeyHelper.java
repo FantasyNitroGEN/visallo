@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class RowKeyHelper {
     public static final char FIELD_SEPARATOR = (char) 0x1e;
@@ -44,5 +46,10 @@ public class RowKeyHelper {
 
     public static String[] splitOnMinorFieldSeparator(String rowKey) {
         return rowKey.split("" + FIELD_SEPARATOR);
+    }
+
+    public static String fromDate(Date date) {
+        SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        return DATE_TIME_FORMAT.format(date);
     }
 }

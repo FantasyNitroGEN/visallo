@@ -22,8 +22,8 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
@@ -67,7 +67,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiVertex handle(
             @Required(name = "artifactId") String artifactId,
             @Required(name = "title") String title,
             @Required(name = "conceptId") String conceptId,
@@ -164,6 +164,6 @@ public class ResolveDetectedObject implements ParameterizedHandler {
         workQueueRepository.broadcastElement(edge, workspaceId);
         workQueueRepository.pushGraphPropertyQueue(artifactVertex, propertyKey, VisalloProperties.DETECTED_OBJECT.getPropertyName(), Priority.HIGH);
 
-        return ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);
+        return (ClientApiVertex) ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);
     }
 }

@@ -287,7 +287,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         long totalEndTime = System.currentTimeMillis();
 
         startTime = System.currentTimeMillis();
-        importDataProperties(o);
+        importDataProperties(o, authorizations);
         endTime = System.currentTimeMillis();
         long importDataPropertiesTime = endTime - startTime;
 
@@ -323,9 +323,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    private void importDataProperties(OWLOntology o) {
+    private void importDataProperties(OWLOntology o, Authorizations authorizations) {
         for (OWLDataProperty dataTypeProperty : o.getDataPropertiesInSignature()) {
-            importDataProperty(o, dataTypeProperty);
+            importDataProperty(o, dataTypeProperty, authorizations);
+        }
+        clearCache();
+        for (OWLDataProperty dataTypeProperty : o.getDataPropertiesInSignature()) {
+            importDataPropertyExtendedDataTableDomains(o, dataTypeProperty);
         }
     }
 
@@ -539,11 +543,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    protected void importDataProperty(OWLOntology o, OWLDataProperty dataTypeProperty) {
+    protected void importDataProperty(OWLOntology o, OWLDataProperty dataTypeProperty, Authorizations authorizations) {
         String propertyIRI = dataTypeProperty.getIRI().toString();
         try {
             String propertyDisplayName = OWLOntologyUtil.getLabel(o, dataTypeProperty);
             PropertyType propertyType = OWLOntologyUtil.getPropertyType(o, dataTypeProperty);
+            checkNotNull(propertyType, "Failed to decode property type of: " + propertyIRI);
             boolean userVisible = OWLOntologyUtil.getUserVisible(o, dataTypeProperty);
             boolean searchable = OWLOntologyUtil.getSearchable(o, dataTypeProperty);
             boolean addable = OWLOntologyUtil.getAddable(o, dataTypeProperty);
@@ -557,9 +562,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             String[] intents = OWLOntologyUtil.getIntents(o, dataTypeProperty);
             boolean deleteable = OWLOntologyUtil.getDeleteable(o, dataTypeProperty);
             boolean updateable = OWLOntologyUtil.getUpdateable(o, dataTypeProperty);
-            if (propertyType == null) {
-                throw new VisalloException("Could not get property type on data property " + propertyIRI);
-            }
 
             List<Concept> domainConcepts = new ArrayList<>();
             for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(dataTypeProperty, o)) {
@@ -576,7 +578,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
             List<Relationship> domainRelationships = new ArrayList<>();
             for (OWLAnnotation domainAnnotation : OWLOntologyUtil.getObjectPropertyDomains(o, dataTypeProperty)) {
-                String domainClassIri = removeExtraQuotes(domainAnnotation.getValue().toString());
+                String domainClassIri = OWLOntologyUtil.getOWLAnnotationValueAsString(domainAnnotation);
                 Relationship domainRelationship = getRelationshipByIRI(domainClassIri);
                 if (domainRelationship == null) {
                     LOGGER.error("Could not find relationship with IRI \"%s\" for data type property \"%s\"", domainClassIri, dataTypeProperty.getIRI());
@@ -588,7 +590,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
             Map<String, String> possibleValues = OWLOntologyUtil.getPossibleValues(o, dataTypeProperty);
             Collection<TextIndexHint> textIndexHints = OWLOntologyUtil.getTextIndexHints(o, dataTypeProperty);
-            addPropertyTo(
+            OntologyProperty property = addPropertyTo(
                     domainConcepts,
                     domainRelationships,
                     propertyIRI,
@@ -610,17 +612,64 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     deleteable,
                     updateable
             );
+
+            for (OWLAnnotation annotation : EntitySearcher.getAnnotations(dataTypeProperty, o)) {
+                String annotationIri = annotation.getProperty().getIRI().toString();
+                String valueString = annotation.getValue() instanceof OWLLiteral
+                        ? ((OWLLiteral) annotation.getValue()).getLiteral()
+                        : annotation.getValue().toString();
+
+                if (annotationIri.equals(OntologyProperties.TITLE_FORMULA.getPropertyName())) {
+                    property.setProperty(
+                            OntologyProperties.TITLE_FORMULA.getPropertyName(),
+                            valueString,
+                            authorizations
+                    );
+                    continue;
+                }
+
+                if (annotationIri.equals(OntologyProperties.SUBTITLE_FORMULA.getPropertyName())) {
+                    property.setProperty(
+                            OntologyProperties.SUBTITLE_FORMULA.getPropertyName(),
+                            valueString,
+                            authorizations
+                    );
+                    continue;
+                }
+
+                if (annotationIri.equals(OntologyProperties.TIME_FORMULA.getPropertyName())) {
+                    property.setProperty(
+                            OntologyProperties.TIME_FORMULA.getPropertyName(),
+                            valueString,
+                            authorizations
+                    );
+                    continue;
+                }
+            }
         } catch (Throwable ex) {
             throw new VisalloException("Failed to load data property: " + propertyIRI, ex);
         }
     }
 
-    private String removeExtraQuotes(String str) {
-        if (str.startsWith("\"") && str.endsWith("\"")) {
-            str = str.substring(1, str.length() - 1);
+    private void importDataPropertyExtendedDataTableDomains(OWLOntology o, OWLDataProperty dataTypeProperty) {
+        String propertyIri = dataTypeProperty.getIRI().toString();
+        for (OWLAnnotation edtDomainAnnotation : OWLOntologyUtil.getExtendedDataTableDomains(o, dataTypeProperty)) {
+            String tablePropertyIri = OWLOntologyUtil.getOWLAnnotationValueAsString(edtDomainAnnotation);
+            addExtendedDataTableProperty(tablePropertyIri, propertyIri);
         }
-        return str;
     }
+
+    protected void addExtendedDataTableProperty(String tablePropertyIri, String propertyIri) {
+        OntologyProperty tableProperty = getPropertyByIRI(tablePropertyIri);
+        checkNotNull(tableProperty, "Could not find table property: " + tablePropertyIri);
+
+        OntologyProperty property = getPropertyByIRI(propertyIri);
+        checkNotNull(property, "Could not find property: " + propertyIri);
+
+        addExtendedDataTableProperty(tableProperty, property);
+    }
+
+    protected abstract void addExtendedDataTableProperty(OntologyProperty tableProperty, OntologyProperty property);
 
     @Override
     public OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition) {
@@ -628,7 +677,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         if (property != null) {
             return property;
         }
-        return addPropertyTo(
+        OntologyProperty prop = addPropertyTo(
                 ontologyPropertyDefinition.getConcepts(),
                 ontologyPropertyDefinition.getRelationships(),
                 ontologyPropertyDefinition.getPropertyIri(),
@@ -650,6 +699,14 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 ontologyPropertyDefinition.getDeleteable(),
                 ontologyPropertyDefinition.getUpdateable()
         );
+        if (ontologyPropertyDefinition.getExtendedDataTableDomains() != null) {
+            for (String extendedDataTableDomain : ontologyPropertyDefinition.getExtendedDataTableDomains()) {
+                OntologyProperty tableProperty = getPropertyByIRI(extendedDataTableDomain);
+                checkNotNull(tableProperty, "Could not find table property: " + extendedDataTableDomain);
+                addExtendedDataTableProperty(tableProperty, prop);
+            }
+        }
+        return prop;
     }
 
     protected abstract OntologyProperty addPropertyTo(
@@ -1262,6 +1319,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             Collection<TextIndexHint> textIndexHints,
             boolean searchable
     ) {
+        if (dataType == PropertyType.EXTENDED_DATA_TABLE) {
+            return false;
+        }
         if (dataType == PropertyType.STRING) {
             checkNotNull(textIndexHints, "textIndexHints are required for string properties");
             if (searchable && (textIndexHints.isEmpty() || textIndexHints.equals(TextIndexHint.NONE))) {

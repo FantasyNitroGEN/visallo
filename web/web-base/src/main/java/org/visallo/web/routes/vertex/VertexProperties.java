@@ -10,6 +10,7 @@ import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 public class VertexProperties implements ParameterizedHandler {
@@ -21,7 +22,7 @@ public class VertexProperties implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiVertex handle(
             @Required(name = "graphVertexId") String graphVertexId,
             @ActiveWorkspaceId String workspaceId,
             Authorizations authorizations
@@ -30,6 +31,6 @@ public class VertexProperties implements ParameterizedHandler {
         if (vertex == null) {
             throw new VisalloResourceNotFoundException("Could not find vertex: " + graphVertexId);
         }
-        return ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
+        return (ClientApiVertex) ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
     }
 }

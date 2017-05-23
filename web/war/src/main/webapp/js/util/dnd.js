@@ -63,7 +63,13 @@ define(['util/vertex/formatters'], function(F) {
             vertexIds = [];
             edgeIds = [];
             elements.forEach(({ id, type }) => {
-                if (type === 'vertex') {
+                if (type === 'extendedDataRow') {
+                    if (id.elementType === 'VERTEX') {
+                        vertexIds.push(id.elementId);
+                    } else {
+                        edgeIds.push(id.elementId);
+                    }
+                } else if (type === 'vertex') {
                     vertexIds.push(id);
                 } else {
                     edgeIds.push(id);

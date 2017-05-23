@@ -18,6 +18,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.BadRequestException;
 import org.visallo.web.clientapi.model.ClientApiElement;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
@@ -39,7 +40,7 @@ public class UnresolveDetectedObject implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiVertex handle(
             @Required(name = "vertexId") String vertexId,
             @Required(name = "multiValueKey") String multiValueKey,
             @ActiveWorkspaceId String workspaceId,
@@ -56,6 +57,6 @@ public class UnresolveDetectedObject implements ParameterizedHandler {
 
         workspaceHelper.deleteEdge(workspaceId, edge, artifactVertex, resolvedVertex, isPublicEdge, Priority.HIGH, authorizations, user);
 
-        return ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);
+        return (ClientApiVertex) ClientApiConverter.toClientApi(artifactVertex, workspaceId, authorizations);
     }
 }

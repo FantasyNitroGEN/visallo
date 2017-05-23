@@ -43,6 +43,6 @@ public class VertexFindRelatedSearchRunnerTest extends SearchRunnerTestBase {
         SearchOptions searchOptions = new SearchOptions(parameters, "workspace1");
 
         VertexFindRelatedSearchResults results = vertexFindRelatedSearchRunner.run(searchOptions, user, authorizations);
-        assertEquals(2, size(results.getElements()));
+        assertEquals(2, size(results.getVertexiumObjects()));
     }
 }

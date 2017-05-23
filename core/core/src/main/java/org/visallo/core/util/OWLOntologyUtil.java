@@ -18,6 +18,7 @@ import java.util.Map;
 
 public class OWLOntologyUtil {
     private static final String OBJECT_PROPERTY_DOMAIN_IRI = "http://visallo.org#objectPropertyDomain";
+    private static final String EXTENDED_DATA_TABLE_DOMAIN_IRI = "http://visallo.org#extendedDataTableDomain";
 
     public static String getLabel(OWLOntology o, OWLEntity owlEntity) {
         String bestLabel = owlEntity.getIRI().toString();
@@ -130,6 +131,16 @@ public class OWLOntologyUtil {
         List<OWLAnnotation> results = new ArrayList<>();
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlDataTypeProperty, o)) {
             if (annotation.getProperty().getIRI().toString().equals(OBJECT_PROPERTY_DOMAIN_IRI)) {
+                results.add(annotation);
+            }
+        }
+        return results;
+    }
+
+    public static Iterable<OWLAnnotation> getExtendedDataTableDomains(OWLOntology o, OWLDataProperty owlDataTypeProperty) {
+        List<OWLAnnotation> results = new ArrayList<>();
+        for (OWLAnnotation annotation : EntitySearcher.getAnnotations(owlDataTypeProperty, o)) {
+            if (annotation.getProperty().getIRI().toString().equals(EXTENDED_DATA_TABLE_DOMAIN_IRI)) {
                 results.add(annotation);
             }
         }
@@ -256,6 +267,9 @@ public class OWLOntologyUtil {
         if ("http://visallo.org#image".equals(iri)) {
             return PropertyType.IMAGE;
         }
+        if ("http://visallo.org#extendedDataTable".equals(iri)) {
+            return PropertyType.EXTENDED_DATA_TABLE;
+        }
         if ("http://www.w3.org/2001/XMLSchema#hexBinary".equals(iri)) {
             return PropertyType.BINARY;
         }
@@ -278,5 +292,16 @@ public class OWLOntologyUtil {
             return PropertyType.INTEGER;
         }
         throw new VisalloException("Unhandled property type " + iri);
+    }
+
+    public static String getOWLAnnotationValueAsString(OWLAnnotation owlAnnotation) {
+        return removeExtraQuotes(owlAnnotation.getValue().toString());
+    }
+
+    private static String removeExtraQuotes(String str) {
+        if (str.startsWith("\"") && str.endsWith("\"")) {
+            str = str.substring(1, str.length() - 1);
+        }
+        return str;
     }
 }

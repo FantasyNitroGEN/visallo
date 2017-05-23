@@ -49,7 +49,7 @@ public class VertexFindRelated implements ParameterizedHandler {
     ) {
         VertexFindRelatedSearchResults results = this.searchRunner.run(searchOptions, user, authorizations);
         ClientApiElementFindRelatedResponse response = new ClientApiElementFindRelatedResponse();
-        for (Element element : results.getElements()) {
+        for (Element element : results.getVertexiumObjects()) {
             Vertex vertex = (Vertex) element;
             ClientApiVertex clientApiVertex = ClientApiConverter.toClientApiVertex(vertex, searchOptions.getWorkspaceId(), authorizations);
             response.getElements().add(clientApiVertex);

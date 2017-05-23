@@ -11,6 +11,8 @@ import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLOntology;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeImpl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -28,13 +30,20 @@ public class OwlToJavaTest {
     private OwlToJava owlToJava;
     private OWLDatatype dataPropertyRange;
     private String dataPropertyDisplayType;
+    private List<String> extendedDataTableNames;
 
     @Before
     public void before() {
         owlToJava = new OwlToJava() {
+
             @Override
             protected OWLDatatype getDataPropertyRange(OWLOntology o, OWLDataProperty dataProperty) {
                 return dataPropertyRange;
+            }
+
+            @Override
+            protected List<String> getExtendedDataTableNames(OWLOntology o, OWLDataProperty dataProperty) {
+                return extendedDataTableNames;
             }
 
             @Override
@@ -44,6 +53,7 @@ public class OwlToJavaTest {
         };
         dataPropertyDisplayType = null;
         dataPropertyRange = null;
+        extendedDataTableNames = new ArrayList<>();
     }
 
     @Test
@@ -85,5 +95,19 @@ public class OwlToJavaTest {
         owlToJava.exportDataProperty(sortedValues, sortedIntents, documentIri, o, dataProperty);
         assertEquals(1, sortedValues.size());
         assertEquals("public static final " + expectedType + " PROP = new " + expectedType + "(\"http://visallo.org/test#prop\");", sortedValues.get("PROP").trim());
+    }
+
+    @Test
+    public void exportExtendedDataProperty() {
+        SortedMap<String, String> sortedValues = new TreeMap<>();
+        SortedMap<String, String> sortedIntents = new TreeMap<>();
+        IRI documentIri = IRI.create("http://visallo.org/test");
+        when(dataProperty.getIRI()).thenReturn(IRI.create("http://visallo.org/test#prop"));
+
+        dataPropertyRange = new OWLDatatypeImpl(IRI.create("http://www.w3.org/2001/XMLSchema#string"));
+        extendedDataTableNames.add("http://visallo.org/test#table1");
+        owlToJava.exportDataProperty(sortedValues, sortedIntents, documentIri, o, dataProperty);
+        assertEquals(1, sortedValues.size());
+        assertEquals("public static final StringVisalloExtendedData TABLE1_PROP = new StringVisalloExtendedData(\"http://visallo.org/test#table1\", \"http://visallo.org/test#prop\");", sortedValues.get("TABLE1_PROP").trim());
     }
 }
