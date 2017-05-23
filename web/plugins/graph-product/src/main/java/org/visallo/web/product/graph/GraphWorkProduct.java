@@ -88,6 +88,40 @@ public class GraphWorkProduct extends WorkProductElements {
                     compoundNodes.put(otherId, vertexOrNode);
                 }
             }
+
+            if (compoundNodes.length() > 0) {
+                JSONUtil.stream(compoundNodes.toJSONArray(compoundNodes.names()))
+                    .forEach(compoundNode -> {
+                        ArrayDeque<JSONObject> childrenDFS = Queues.newArrayDeque();
+                        String childId = ((JSONObject) compoundNode).getJSONArray("children").getString(0);
+                        JSONObject firstChild = vertices.optJSONObject(childId);
+                        if (firstChild == null) firstChild = compoundNodes.optJSONObject(childId);
+                        childrenDFS.push(firstChild);
+
+                        boolean visible = ((JSONObject) compoundNode).optBoolean("visible", false);
+                        while (!visible || childrenDFS.isEmpty()) {
+                            JSONObject child = childrenDFS.poll();
+                            JSONArray children = child.optJSONArray("children");
+
+                            if (children != null) {
+                                JSONUtil.stream(children).forEach(nextChildId -> {
+                                    JSONObject nextChild = vertices.optJSONObject((String) nextChildId);
+                                    if (nextChild == null)
+                                        nextChild = compoundNodes.optJSONObject((String) nextChildId);
+
+                                    childrenDFS.push(nextChild);
+                                });
+                            } else {
+                                child = vertices.optJSONObject(childId);
+                                visible = child.optBoolean("unauthorized") != true;
+                            }
+                        }
+
+                        ((JSONObject) compoundNode).put("visible", visible);
+                        compoundNodes.put(((JSONObject) compoundNode).getString("id"), compoundNode);
+                    });
+            }
+
             extendedData.put("vertices", vertices);
             extendedData.put("compoundNodes", compoundNodes);
         }
@@ -451,7 +485,7 @@ public class GraphWorkProduct extends WorkProductElements {
 
     protected void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex) {
         JSONObject position = ENTITY_POSITION.getPropertyValue(propertyVertexEdge);
-        String parent = GraphProductOntology.PARENT_NODE.getPropertyValue(propertyVertexEdge);
+        String parent = GraphProductOntology.PARENT_NODE.getPropertyValue(propertyVertexEdge, "root");
         JSONArray children = GraphProductOntology.NODE_CHILDREN.getPropertyValue(propertyVertexEdge);
 
         if (position == null) {

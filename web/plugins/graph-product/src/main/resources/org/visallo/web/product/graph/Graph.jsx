@@ -106,7 +106,8 @@ define([
                 draw: null,
                 paths: null,
                 hovering: null,
-                collapsedImageDataUris: {}
+                collapsedImageDataUris: {},
+                rootNodeId: null
             }
         },
 
@@ -463,9 +464,13 @@ define([
         },
 
         onCollapseSelectedVertices(nodes) {
-            const collapseData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
+            const { product, productElementIds } = this.props;
+            const collapseData = product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
             const newCollapseData = {};
             let vertexIds = [];
+
+            if (nodes.length < 2) return;
+
             nodes.forEach(node => {
                 const nodeId = node.id();
                 const collapseItemData = collapseData[nodeId];
@@ -487,7 +492,7 @@ define([
                 }
             });
 
-            const positions = nodes.map(node => node.position());
+            const positions = nodes.map(node => retina.pixelsToPoints(node.position()));
             const pos = {
                 x: positions.reduce((total, pos) => total + pos.x, 0) / positions.length,
                 y: positions.reduce((total, pos) => total + pos.y, 0) / positions.length
@@ -757,7 +762,7 @@ define([
             const { vertices: productVertices, edges: productEdges } = productElementIds;
             const { vertices, edges } = elements;
             const { vertices: verticesSelectedById, edges: edgesSelectedById } = selection;
-            const collapseData = product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
+            const collapseData = product.extendedData.compoundNodes;
             const nodeIds = {};
             const cyNodeConfig = (id, pos, data) => {
                 if (data) {
@@ -772,6 +777,33 @@ define([
                     }
                 }
             };
+//            const vertexNodes = _.values({ ...vertices, ...collapsedNodes });
+//            const verticesAndNodes = {};
+//            function mergeVerticesAndNodes(vertices, nodes) {
+//                const { rootNodeId } = this.state;
+//                const vertexNodes = [];
+//
+//                if (!rootNodeId) {
+//                    [vertices, nodes].forEach((type) => {
+//                        _.mapObject(type, (item, id) => {
+//                            if (item.parent === 'root') {
+//                                vertexNodes.push(item);
+//                            }
+//                        })
+//                    });
+//                } else {
+//                    nodes[rootNodeId].children.forEach((childId) => {
+//                        vertexNodes.push((vertices[childId] || nodes[childId]));
+//                    });
+//                }
+//
+//                vertexNodes.filter((item) => {
+//                    return !item.children || hasVisibleChildren(item);
+//                    _.some(item.children, (childId) => {
+//                        return vr
+//                    })
+//                })
+//            }
             const cyVertexNodes = _.values(productVertices).reduce((nodes, { id, pos }) => {
                 const data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
                 const cyNode = cyNodeConfig(id, pos, data);
@@ -993,6 +1025,7 @@ define([
                 if (type === 'collapsedItem') {
                     const collapseData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
                     const collapsedItem = collapseData[cyElementOrId.id()];
+                    //TODO: getting previous collapsedItem id for this not new
                     if (!collapsedItem) {
                         console.error(`could not find collapsed item with id: ${cyElementOrId.id()}`);
                         return;

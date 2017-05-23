@@ -403,14 +403,13 @@ define([
                 ontology = state.ontology,
                 panelPadding = state.panel.padding,
                 ghosts = state['org-visallo-graph'].animatingGhosts,
-                uiPreferences = state.user.current.uiPreferences,
-                focusing = productSelectors.getFocusedElementsInProduct(state);
+                uiPreferences = state.user.current.uiPreferences;
 
             return {
                 ...props,
                 selection: productSelectors.getSelectedElementsInProduct(state),
                 viewport: productSelectors.getViewport(state),
-                focusing,
+                focusing: productSelectors.getFocusedElementsInProduct(state),
                 ghosts,
                 pixelRatio,
                 uiPreferences,

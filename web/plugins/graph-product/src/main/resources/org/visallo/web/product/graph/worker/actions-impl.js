@@ -122,7 +122,7 @@ define([
             return ajax('POST', '/product', {
                 productId,
                 params: {
-                    updateVertices,
+                    updateVertices: _.mapObject(updateVertices, (v) => ({ pos: v })),
                     broadcastOptions: {
                         preventBroadcastToSourceGuid: true
                     }
