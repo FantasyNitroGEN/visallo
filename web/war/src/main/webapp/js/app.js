@@ -846,6 +846,7 @@ define([
                 menubarWidth = $('.menubar-pane').width(),
                 workspaceOverlayWidth = $('.workspace-overlay').outerWidth(),
                 otherVisiblePanes = $('#app > .ui-resizable.visible, .ui-resizable.visible .ui-resizable:visible')
+                    .not('.ui-ignore-pane-width')
                     .not(withoutPane).toArray(),
                 widthOfOpenPanes = _.reduce(
                     otherVisiblePanes,
@@ -866,7 +867,7 @@ define([
         };
 
         this.onResizeCreateLoad = function(event) {
-            var user = visalloData.currentUser,
+            const user = visalloData.currentUser,
                 $pane = $(event.target),
                 sizePaneName = $pane.data('sizePreference'),
                 widthPaneName = !sizePaneName && $pane.data('widthPreference'),
@@ -878,21 +879,47 @@ define([
                 userPrefs = user.uiPreferences,
                 value = userPrefs && prefName in userPrefs && userPrefs[prefName];
 
+            let width;
+            let height;
             if (sizePaneName && value) {
-                var size = value.split(',');
+                const size = value.split(',');
                 if (size.length === 2) {
-                    $pane.width(parseInt(size[0], 10));
-                    $pane.height(parseInt(size[1], 10));
+                    width = parseInt(size[0], 10);
+                    height = parseInt(size[1], 10);
                 }
             } else if (widthPaneName && value) {
-                $pane.width(parseInt(value, 10));
+                width = parseInt(value, 10);
             } else if (heightPaneName && value) {
-                $pane.height(parseInt(value, 10));
+                height = parseInt(value, 10);
             } else if (!prefName && !$pane.is('.facebox')) {
                 console.warn(
                     'No data-width-preference or data-size-preference ' +
                     'attribute for resizable pane', $pane[0]
                 );
+            }
+
+            if (width) {
+                const minWidth = $pane.resizable('option', 'minWidth');
+                if (minWidth && width < minWidth) {
+                    width = minWidth;
+                }
+                const maxWidth = $pane.resizable('option', 'maxWidth');
+                if (maxWidth && width < maxWidth) {
+                    width = maxWidth;
+                }
+                $pane.width(width);
+            }
+
+            if (height) {
+                const minHeight = $pane.resizable('option', 'minHeight');
+                if (minHeight && height < minHeight) {
+                    height = minHeight;
+                }
+                const maxHeight = $pane.resizable('option', 'maxHeight');
+                if (maxHeight && height < maxHeight) {
+                    height = maxHeight;
+                }
+                $pane.height(height);
             }
         };
 
