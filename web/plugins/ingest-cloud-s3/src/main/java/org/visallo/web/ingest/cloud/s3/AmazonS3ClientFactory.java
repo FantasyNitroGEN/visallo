@@ -46,7 +46,6 @@ public class AmazonS3ClientFactory {
         }
         clientConfiguration.setProxyUsername(getConfig("proxy.username"));
         clientConfiguration.setProxyPassword(getConfig("proxy.password"));
-        clientConfiguration.setNonProxyHosts(getConfig("proxy.nonProxyHosts"));
 
         return clientConfiguration;
     }

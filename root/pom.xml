@@ -110,7 +110,7 @@
         <tika.version>1.13</tika.version>
         <pdfbox.version>2.0.1</pdfbox.version>
         <apache.poi.version>3.15-beta1</apache.poi.version>
-        <aws-java-sdk.version>1.11.63</aws-java-sdk.version>
+        <aws-java-sdk.version>1.10.6</aws-java-sdk.version>
         <tomcat.version>8.5.6</tomcat.version>
 
         <!-- Test Dependency Versions -->
