@@ -3,6 +3,7 @@
 $ = { extend: _.extend };
 window = this;
 navigator = { userAgent: ''};
+visalloData = {};
 console = {
     log: print,
     info: print,

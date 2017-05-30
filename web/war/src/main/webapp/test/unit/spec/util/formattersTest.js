@@ -339,8 +339,8 @@ define([
             })
 
             it('should return empty strings when formatted incorrectly', function() {
-                f.date.local('2015-06-23 13:1').should.equal('')
-                f.date.utc('2015-06-23 13:1').should.equal('')
+                f.date.local('a').should.equal('')
+                f.date.utc('a').should.equal('')
             })
 
             it('should format dates when string thats actually a time millis', function() {
