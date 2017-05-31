@@ -403,7 +403,8 @@ define([
                 ontology = state.ontology,
                 panelPadding = state.panel.padding,
                 ghosts = state['org-visallo-graph'].animatingGhosts,
-                uiPreferences = state.user.current.uiPreferences;
+                uiPreferences = state.user.current.uiPreferences,
+                rootId = productSelectors.getProduct(state).localData.rootId || 'root';
 
             return {
                 ...props,
@@ -415,6 +416,7 @@ define([
                 uiPreferences,
                 ontology,
                 panelPadding,
+                rootId,
                 productElementIds: productSelectors.getElementIdsInProduct(state),
                 elements: productSelectors.getElementsInProduct(state),
                 workspace: state.workspace.byId[state.workspace.currentId],
@@ -430,15 +432,14 @@ define([
                 onSetSelection: (selection) => dispatch(selectionActions.set(selection)),
                 onClearSelection: () => dispatch(selectionActions.clear()),
 
-                onUpdatePreview: (id, dataUrl) => dispatch(productActions.updatePreview(id, dataUrl)),
+                onUpdatePreview: (productId, dataUrl) => dispatch(productActions.updatePreview(productId, dataUrl)),
 
-                onUpdateExtendedData: (id, key, data) => {
-                    dispatch(productActions.updateExtendedData(id, key, data));
-                },
-
-                onAddRelated: (id, vertices) => dispatch(graphActions.addRelated(id, vertices)),
-                onUpdatePositions: (id, positions) => dispatch(graphActions.updatePositions(id, positions, { undoable: true })),
-                onSaveViewport: (id, { pan, zoom }) => dispatch(productActions.updateViewport(id, { pan, zoom })),
+                onUpdateRootId: (productId, nodeId) => dispatch(productActions.updatePreview(productId, nodeId)),
+                onCollapseNodes: (productId, collapseData) => dispatch(graphActions.collapseNodes(productId, collapseData, { undoable: true })),
+                onUncollapseNodes: (productId, collapsedNodeIds) => dispatch(graphActions.uncollapseNodes(productId, collapsedNodeIds, { undoable: true })),
+                onAddRelated: (productId, vertices) => dispatch(graphActions.addRelated(productId, vertices)),
+                onUpdatePositions: (productId, positions) => dispatch(graphActions.updatePositions(productId, positions, { undoable: true })),
+                onSaveViewport: (productId, { pan, zoom }) => dispatch(productActions.updateViewport(productId, { pan, zoom })),
                 onSearch(event) {
                     event.preventDefault();
                     if (!$('.search-pane.visible').length) {
@@ -454,14 +455,14 @@ define([
                     if (elements) {
                         event.preventDefault();
                         event.stopPropagation();
-                        dispatch(graphActions.dropElements(props.product.id, elements, position))
+                        dispatch(graphActions.dropElements(props.product.id, elements, position, props.rootId))
                     }
                 },
                 onDropElementIds: (elementIds, position) => {
-                    dispatch(graphActions.dropElements(props.product.id, elementIds, position))
+                    dispatch(graphActions.dropElements(props.product.id, elementIds, position, props.rootId))
                 },
                 onRemoveElementIds: (elementIds) => {
-                    dispatch(productActions.removeElements(props.product.id, elementIds, { undoable: true }));
+                    dispatch(graphActions.removeElements(props.product.id, elementIds, { undoable: true }));
                 },
                 onCollapsedItemMenu: (element, collapsedItemId, position) => {
                     $(element).trigger('showCollapsedItemContextMenu', { collapsedItemId, position });

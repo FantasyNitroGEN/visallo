@@ -10,7 +10,9 @@ var VisalloAmdExternals = [
     'data/web-worker/store/product/actions-impl',
     'data/web-worker/store/product/selectors',
     'data/web-worker/store/selection/actions',
+    'data/web-worker/store/selection/actions-impl',
     'data/web-worker/store/user/actions-impl',
+    'org/visallo/web/product/map/dist/actions-impl',
     'data/web-worker/util/ajax',
     'public/v1/api',
     'util/dnd',
@@ -25,11 +27,7 @@ var VisalloAmdExternals = [
     'updeep'
 ].map(path => ({ [path]: { amd: path }}));
 
-module.exports = {
-  entry: {
-    Map: './MapContainer.jsx',
-    'actions-impl': './worker/actions-impl.js'
-  },
+var baseConfig = {
   output: {
     path: './dist',
     filename: '[name].js',
@@ -86,3 +84,19 @@ module.exports = {
     })
   ]
 };
+
+module.exports = [
+    Object.assign({}, baseConfig, {
+        entry: {
+            'actions-impl': './worker/actions-impl.js',
+            'plugin-worker': './worker/plugin.js'
+        },
+        target: 'webworker'
+    }),
+    Object.assign({}, baseConfig, {
+        entry: {
+            Graph: './MapContainer.jsx'
+        },
+        target: 'web'
+    })
+];

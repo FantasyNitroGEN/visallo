@@ -41,7 +41,7 @@ define([
             }
         },
         render() {
-            const { product, selected, registry, editable } = this.props;
+            const { product, selected, editable } = this.props;
             const { confirmDelete, editing, invalid, loading } = this.state;
             const { previewMD5, id, kind, title, workspaceId } = product;
             const isSelected = selected === id;
@@ -150,17 +150,11 @@ define([
         return (<ProductListItemWithDroppable {...props}
             mimeTypes={[VISALLO_MIMETYPES.ELEMENTS]}
             onDrop={e => {
-                const extension = _.findWhere(props.registry['org.visallo.workproduct'], {
-                    identifier: props.product.kind
-                });
-
-                if (_.isFunction(extension.handleDrop)) {
-                    const elements = dnd.getElementsFromDataTransfer(e.dataTransfer);
-                    if (elements) {
-                        extension.handleDrop(elements, props.product);
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
+                const elements = dnd.getElementsFromDataTransfer(e.dataTransfer);
+                if (elements) {
+                    props.onDropElements(props.product, elements);
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
             }}
         />);

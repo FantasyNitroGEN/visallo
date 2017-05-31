@@ -62,8 +62,6 @@ define([
         memoizeForStorage[fullKey] = { elements, value: fn() };
         return memoizeForStorage[fullKey].value
     }
-    const COLLAPSED_EXTENDED_DATA_KEY = 'org.visallo.web.product.graph.collapsed';
-    const COLLAPSED_ID_PREFIX = '__COLLAPSED_';
 
     const Graph = React.createClass({
 
@@ -106,8 +104,7 @@ define([
                 draw: null,
                 paths: null,
                 hovering: null,
-                collapsedImageDataUris: {},
-                rootNodeId: null
+                collapsedImageDataUris: {}
             }
         },
 
@@ -148,8 +145,8 @@ define([
                         }
                     });
                 },
-                uncollapse: (event, { collapsedItemId }) => {
-                    this.uncollapse(collapsedItemId);
+                uncollapse: (event, { collapsedNodeIds }) => {
+                    this.props.onUncollapseNodes(this.props.product.id, collapsedNodeIds);
                 },
                 menubarToggleDisplay: { node: document, handler: (event, data) => {
                     if (data.name === 'products-full') {
@@ -241,7 +238,7 @@ define([
                     onMenuCreateVertex: this.onMenuCreateVertex,
                     onMenuSelect: this.onMenuSelect,
                     onMenuExport: this.onMenuExport,
-                    onCollapseSelectedVertices: this.onCollapseSelectedVertices
+                    onCollapseSelectedNodes: this.onCollapseSelectedNodes
                 },
                 cyElements = this.mapPropsToElements(editable),
                 extensionViews = registry['org.visallo.graph.view'];
@@ -463,32 +460,18 @@ define([
             }
         },
 
-        onCollapseSelectedVertices(nodes) {
-            const { product, productElementIds } = this.props;
-            const collapseData = product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
-            const newCollapseData = {};
+        onCollapseSelectedNodes(nodes) {
+            const { product, productElementIds, rootId } = this.props;
+            const collapsedNodes = product.extendedData.compoundNodes;
             let vertexIds = [];
 
             if (nodes.length < 2) return;
 
             nodes.forEach(node => {
-                const nodeId = node.id();
-                const collapseItemData = collapseData[nodeId];
-                if (collapseItemData) {
-                    vertexIds = vertexIds.concat(collapseItemData.vertexIds);
+                if (node.data.vertexIds) {
+                    vertexIds = vertexIds.concat(node.data.vertexIds);
                 } else {
-                    vertexIds.push(nodeId);
-                }
-            });
-
-            Object.keys(collapseData).forEach(collapseItemId => {
-                const collapseItemData = collapseData[collapseItemId];
-                const newVertexIds = collapseItemData.vertexIds.filter(vertexId => !vertexIds.includes(vertexId));
-                if (newVertexIds.length > 0) {
-                    newCollapseData[collapseItemId] = {
-                        ...collapseItemData,
-                        vertexIds: newVertexIds
-                    };
+                    vertexIds.push(node.id());
                 }
             });
 
@@ -497,21 +480,12 @@ define([
                 x: positions.reduce((total, pos) => total + pos.x, 0) / positions.length,
                 y: positions.reduce((total, pos) => total + pos.y, 0) / positions.length
             };
-            const newCollapseItemId = COLLAPSED_ID_PREFIX + Date.now();
-            newCollapseData[newCollapseItemId] = {
-                vertexIds: vertexIds,
-                pos: pos
-            };
-            this.updateCollapseExtendedData(newCollapseData);
-        },
 
-        uncollapse(collapseItemId) {
-            const collapseItemData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
-            const newCollapseItemData = {
-                ...collapseItemData
-            };
-            delete newCollapseItemData[collapseItemId];
-            this.updateCollapseExtendedData(newCollapseItemData);
+            this.props.onCollapseNodes(product.id, {
+                children: vertexIds,
+                pos,
+                parent: rootId
+             });
         },
 
         onMenuCreateVertex({pageX, pageY }) {
@@ -650,7 +624,7 @@ define([
             // TODO: show all selected objects if not on item
             if (cyTarget !== cy) {
                 const { pageX, pageY } = originalEvent;
-                if (cyTarget.data('collapsedItem')) {
+                if (cyTarget.is('node.c')) {
                     this.props.onCollapsedItemMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
                 } else if (cyTarget.isNode()) {
                     this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
@@ -688,37 +662,21 @@ define([
         },
 
         sendPositionUpdates() {
+            const { vertices, compoundNodes: collapsedNodes } = this.props.product.extendedData;
+
             if (!_.isEmpty(this.cyNodeIdsWithPositionChanges)) {
-                const collapseData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
-                const newCollapseData = {...collapseData};
-                const elementPositions = {};
-                let collapseItemPositionChanged = false;
-                Object.keys(this.cyNodeIdsWithPositionChanges).forEach(id => {
-                    const cyNode = this.cyNodeIdsWithPositionChanges[id];
-                    const pos = retina.pixelsToPoints(cyNode.position());
-                    if (cyNode.data('collapsedItem')) {
-                        newCollapseData[id] = {
-                            ...collapseData[id],
-                            pos
-                        };
-                        collapseItemPositionChanged = true;
-                    } else {
-                        elementPositions[id] = pos;
-                    }
+                const positionUpdates = _.mapObject(this.cyNodeIdsWithPositionChanges, (cyNode, id) => {
+                    const update = vertices[id] || collapsedNodes[id];
+                    update.pos = retina.pixelsToPoints(cyNode.position());
+                    return update;
                 });
 
-                if (Object.keys(elementPositions).length > 0) {
-                    this.props.onUpdatePositions(this.props.product.id, elementPositions);
-                }
-                if (collapseItemPositionChanged) {
-                    this.updateCollapseExtendedData(newCollapseData);
-                }
+                this.props.onUpdatePositions(
+                    this.props.product.id,
+                    positionUpdates
+                );
                 this.cyNodeIdsWithPositionChanges = {};
             }
-        },
-
-        updateCollapseExtendedData(newData) {
-            this.props.onUpdateExtendedData(this.props.product.id, COLLAPSED_EXTENDED_DATA_KEY, newData);
         },
 
         onPosition({ cyTarget }) {
@@ -744,16 +702,38 @@ define([
                 y: (rpos.y - pan.y) / zoom
             });
         },
+//
+//        getCollapseDataContainingVertexId(vertexId) {
+//            const collapseData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY];
+//            if (!collapseData) {
+//                return null;
+//            }
+//            const matchingCollapsedItems = Object.keys(collapseData).filter(collapseItemId => {
+//                return collapseData[collapseItemId].vertexIds.includes(vertexId);
+//            });
+//            return matchingCollapsedItems.length > 0 ? matchingCollapsedItems[0] : null;
+//        },
 
-        getCollapseDataContainingVertexId(vertexId) {
-            const collapseData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY];
-            if (!collapseData) {
-                return null;
+        getRootNode() {
+            const { product, productElementIds, rootId } = this.props;
+            const productVertices = productElementIds.vertices;
+            const collapsedNodes = product.extendedData.compoundNodes;
+
+            if (collapsedNodes[rootId] && collapsedNodes[rootId].visible) {
+                return collapsedNodes[id];
+            } else {
+                const children = [];
+
+                [productVertices, collapsedNodes].forEach((type) => {
+                    _.mapObject(type, (item, id) => {
+                        if (item.parent === 'root') {
+                           children.push(id);
+                        }
+                    })
+                });
+
+                return { id: 'root', children }
             }
-            const matchingCollapsedItems = Object.keys(collapseData).filter(collapseItemId => {
-                return collapseData[collapseItemId].vertexIds.includes(vertexId);
-            });
-            return matchingCollapsedItems.length > 0 ? matchingCollapsedItems[0] : null;
         },
 
         mapPropsToElements(editable) {
@@ -762,61 +742,55 @@ define([
             const { vertices: productVertices, edges: productEdges } = productElementIds;
             const { vertices, edges } = elements;
             const { vertices: verticesSelectedById, edges: edgesSelectedById } = selection;
-            const collapseData = product.extendedData.compoundNodes;
-            const nodeIds = {};
-            const cyNodeConfig = (id, pos, data) => {
-                if (data) {
-                    nodeIds[id] = true;
-                    return {
-                        group: 'nodes',
-                        data,
-                        classes: mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']),
-                        position: retina.pointsToPixels(pos),
-                        selected: (id in verticesSelectedById),
-                        grabbable: editable
-                    }
-                }
-            };
-//            const vertexNodes = _.values({ ...vertices, ...collapsedNodes });
-//            const verticesAndNodes = {};
-//            function mergeVerticesAndNodes(vertices, nodes) {
-//                const { rootNodeId } = this.state;
-//                const vertexNodes = [];
-//
-//                if (!rootNodeId) {
-//                    [vertices, nodes].forEach((type) => {
-//                        _.mapObject(type, (item, id) => {
-//                            if (item.parent === 'root') {
-//                                vertexNodes.push(item);
-//                            }
-//                        })
-//                    });
-//                } else {
-//                    nodes[rootNodeId].children.forEach((childId) => {
-//                        vertexNodes.push((vertices[childId] || nodes[childId]));
-//                    });
-//                }
-//
-//                vertexNodes.filter((item) => {
-//                    return !item.children || hasVisibleChildren(item);
-//                    _.some(item.children, (childId) => {
-//                        return vr
-//                    })
-//                })
-//            }
-            const cyVertexNodes = _.values(productVertices).reduce((nodes, { id, pos }) => {
-                const data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
-                const cyNode = cyNodeConfig(id, pos, data);
-                if (this.getCollapseDataContainingVertexId(id)) {
-                    return nodes;
-                }
+            const collapsedNodes = _.pick(product.extendedData.compoundNodes, ({ visible }) => visible);
 
-                if (cyNode && ghosts && id in ghosts) {
+            const rootNode = this.getRootNode();
+            const filterByRoot = (items) => _.values(_.pick(items, rootNode.children));
+
+            const cyNodeConfig = (node) => {
+                const { id, type, pos, children, parent, title } = node;
+                let selected, classes, data;
+
+                 if (type === 'vertex') {
+                    selected = id in verticesSelectedById;
+                    classes = mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']);
+                    data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
+
+                    renderedNodeIds[id] = true;
+                 } else {
+                    const vertexIds = getVertexIdsFromCollapsedNode(node, collapsedNodes, vertices);
+                    selected = vertexIds.some(id => id in verticesSelectedById)
+                    classes = mapCollapsedNodeToClasses(id, collapsedNodes, focusing, vertexIds, registry['org.visallo.graph.collapsed.class']);
+                    data = {
+                        ...collapsedNode,
+                        vertexIds,
+                        truncatedTitle: title || F.string.truncate(generateCollapsedItemTitle(collapsedNode, vertices), 3),
+                        imageSrc: this.state.collapsedImageDataUris[id] && this.state.collapsedImageDataUris[id].imageDataUri || 'img/loading-large@2x.png'
+                    }
+                 }
+
+                return {
+                    group: 'nodes',
+                    data,
+                    classes,
+                    position: retina.pointsToPixels(pos),
+                    selected,
+                    grabbable: editable
+                }
+            }
+
+            const renderedNodeIds = {};
+
+            const cyVertices = filterByRoot(productVertices).reduce((nodes, nodeData) => {
+                const { type, id, pos, parent } = nodeData;
+                const cyNode = cyNodeConfig(nodeData);
+
+                if (ghosts && id in ghosts) {
                     const ghostData = {
                         ...cyNode.data,
                         id: `${cyNode.data.id}-ANIMATING`,
                         animateTo: {
-                            id: data.id,
+                            id: nodeData.id,
                             pos: { ...cyNode.position }
                         }
                     };
@@ -897,8 +871,8 @@ define([
             }, []);
 
             _.defer(() => {
-                CollapsedNodeImageHelpers.updateImageDataUrisForCollapsedItems(
-                    this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {},
+                CollapsedNodeImageHelpers.updateImageDataUrisForCollapsedNodes(
+                    filterByRoot(collapsedNodes),
                     this.props.elements.vertices,
                     this.state.collapsedImageDataUris,
                     (newCollapsedImageDataUris) => {
@@ -909,35 +883,20 @@ define([
                 );
             });
 
-            const collapsedNodes = Object.keys(collapseData).reduce((nodes, collapsedItemId) => {
-                const collapsedItem = collapseData[collapsedItemId];
-                nodeIds[collapsedItemId] = true;
+            const cyCollapsedNodes = filterByRoot(collapsedNodes).reduce((nodes, nodeData) => {
+                const { type, id, pos, parent, children } = nodeData;
+                const cyNode = cyNodeConfig(nodeData);
 
-                const cyNode = {
-                    group: 'nodes',
-                    data: {
-                        id: collapsedItemId,
-                        collapsedItem: true,
-                        truncatedTitle: collapsedItem.title || F.string.truncate(generateCollapsedItemTitle(collapsedItem, vertices), 3),
-                        imageSrc: this.state.collapsedImageDataUris[collapsedItemId] && this.state.collapsedImageDataUris[collapsedItemId].imageDataUri
-                            ? this.state.collapsedImageDataUris[collapsedItemId].imageDataUri
-                            : 'img/loading-large@2x.png'
-                    },
-                    position: retina.pointsToPixels(collapsedItem.pos),
-                    classes: mapCollapsedItemToClasses(collapsedItemId, collapseData, focusing, registry['org.visallo.graph.collapsed.class']),
-                    selected: collapsedItemId in verticesSelectedById || collapsedItem.vertexIds.some(vertexId => vertexId in verticesSelectedById),
-                    grabbable: editable
-                };
-                nodes.push(cyNode);
+                renderedNodeIds[collapsedNodeId] = true;
 
                 if (ghosts) {
-                    collapsedItem.vertexIds.forEach(vertexId => {
-                        if (vertexId in ghosts) {
+                    ghosts.forEach(ghost => {
+                        if (ghost.id in cyNode.vertexIds) {
                             const ghostData = {
                                 ...cyNode.data,
                                 id: `${cyNode.data.id}-ANIMATING`,
                                 animateTo: {
-                                    id: vertexId,
+                                    id,
                                     pos: {...cyNode.position}
                                 }
                             };
@@ -945,7 +904,7 @@ define([
                             nodes.push({
                                 ...cyNode,
                                 data: ghostData,
-                                position: retina.pointsToPixels(ghosts[vertexId]),
+                                position: retina.pointsToPixels(ghosts[id]),
                                 grabbable: false,
                                 selectable: false
                             });
@@ -953,17 +912,18 @@ define([
                     });
                 }
 
+                nodes.push(cyNode);
                 return nodes;
             }, []);
 
-            const cyNodes = cyVertexNodes.concat(collapsedNodes);
+            const cyNodes = cyVertices.concat(cyCollapsedNodes);
 
             const cyEdges = _.chain(productEdges)
                 .filter(edgeInfo => {
                     const elementMarkedAsDeletedInStore =
                         edgeInfo.edgeId in edges &&
                         edges[edgeInfo.edgeId] === null;
-                    const edgeNodesExist = edgeInfo.inVertexId in nodeIds && edgeInfo.outVertexId in nodeIds;
+                    const edgeNodesExist = edgeInfo.inVertexId in renderedNodeIds && edgeInfo.outVertexId in renderedNodeIds;
 
                     return !elementMarkedAsDeletedInStore && edgeNodesExist;
                 })
@@ -971,22 +931,30 @@ define([
                 .map((edgeInfos, id) => {
                     const {inVertexId, outVertexId} = edgeInfos[0];
                     return {
-                        inCollapsedItemId: getCollapsedItemIdFromVertexId(collapseData, inVertexId),
-                        outCollapsedItemId: getCollapsedItemIdFromVertexId(collapseData, outVertexId),
+                        inCollapsedNodeId: getRenderedParentNodeFromVertexId(inVertexId),
+                        outCollapsedNodeId: getRenderedParentNodeFromVertexId(outVertexId),
                         edgeInfos,
                         id
                     };
+
+                    function getRenderedParentNodeFromVertexId(vertexId) {
+                        let parentId = productVertices[vertexId].parent;
+                        while (parentId !== rootNode.id && !(parentId in renderedNodeIds)) {
+                            parentId = productVertices[vertexId].parent;
+                            if (!collapsedNodes[parentId]) return null;
+                        }
+                        return parentId === rootNode.id ? null : parentId;
+                    }
                 })
-                .filter(({inCollapsedItemId, outCollapsedItemId}) => {
-                    // exclude collapsed item self referencing edges
-                    return !outCollapsedItemId
-                        || !inCollapsedItemId
-                        || outCollapsedItemId !== inCollapsedItemId
+                .filter(({inCollapsedNodeId, outCollapsedNodeId}) => {
+                    // exclude collapsed node self-referencing edges
+                    return !outCollapsedNodeId || !inCollapsedNodeId
+                        || (outCollapsedNodeId !== inCollapsedNodeId)
                 })
                 .map(data => {
                     const edgesForInfos = Object.values(_.pick(edges, _.pluck(data.edgeInfos, 'edgeId')));
                     return {
-                        data: mapEdgeToData(data, edgesForInfos, collapseData, ontology, registry['org.visallo.graph.edge.transformer']),
+                        data: mapEdgeToData(data, edgesForInfos, ontology, registry['org.visallo.graph.edge.transformer']),
                         classes: mapEdgeToClasses(data.edgeInfos, edgesForInfos, focusing, registry['org.visallo.graph.edge.class']),
                         selected: _.any(data.edgeInfos, e => e.edgeId in edgesSelectedById)
                     }
@@ -994,6 +962,7 @@ define([
                 .value();
 
             return { nodes: cyNodes, edges: cyEdges };
+
         },
 
         resetQueuedSelection(sel) {
@@ -1022,15 +991,14 @@ define([
             let id = cyElementOrId;
 
             if (cyElementOrId && _.isFunction(cyElementOrId.data)) {
-                if (type === 'collapsedItem') {
-                    const collapseData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY] || {};
-                    const collapsedItem = collapseData[cyElementOrId.id()];
-                    //TODO: getting previous collapsedItem id for this not new
-                    if (!collapsedItem) {
-                        console.error(`could not find collapsed item with id: ${cyElementOrId.id()}`);
+                if (type === 'collapsedNode') {
+                    const collapsedNode = this.props.product.extendedData.compoundNodes[id];
+                    //TODO: getting previous collapsedNode id for this not new
+                    if (!collapsedNode) {
+                        console.error(`could not find collapsed node with id: ${id}`);
                         return;
                     }
-                    collapsedItem.vertexIds.forEach(vertexId => {
+                    collapsedNode.vertexIds.forEach(vertexId => {
                         this.coalesceSelection(action, 'vertices', vertexId);
                     });
                     return;
@@ -1099,25 +1067,33 @@ define([
         }
     });
 
-    const getCollapsedItemIdFromVertexId = (collapseData, vertexId) => {
-        for (let collapsedItemId of Object.keys(collapseData)) {
-            const collapsedItem = collapseData[collapsedItemId];
-            if (collapsedItem.vertexIds.includes(vertexId)) {
-                return collapsedItemId;
-            }
+    const getVertexIdsFromCollapsedNode = (collapsedNodes, collapsedNodeId) => {
+        const vertexIds = [];
+        const queue = [collapsedNodes[collapsedNodeId]];
+
+        while (queue.length > 0) {
+            const collapsedNode = queue.pop();
+            collapsedNode.children.forEach(id => {
+                if (collapsedNodes[id]) {
+                    queue.push(collapsedNodes[id])
+                } else {
+                    vertexIds.push(id);
+                }
+            });
         }
-        return null;
+
+        return vertexIds;
     };
 
-    const mapEdgeToData = (data, edges, collapseData, ontology, transformers) => {
-        const { id, edgeInfos, outCollapsedItemId, inCollapsedItemId } = data;
+    const mapEdgeToData = (data, edges, ontology, transformers) => {
+        const { id, edgeInfos, outCollapsedNodeId, inCollapsedNodeId } = data;
 
         return memoizeFor('org.visallo.graph.edge.transformer', edges, () => {
             const { inVertexId, outVertexId, label } = edgeInfos[0];
             const base = {
                 id,
-                source: outCollapsedItemId || outVertexId,
-                target: inCollapsedItemId || inVertexId,
+                source: outCollapsedNodeId || outVertexId,
+                target: inCollapsedNodeId || inVertexId,
                 type: label,
                 label: edgeDisplay(label, ontology, edgeInfos),
                 edgeInfos,
@@ -1305,26 +1281,26 @@ define([
         return classes;
     };
 
-    const mapCollapsedItemToClasses = (collapsedItemId, collapseData, focusing, classers) => {
+    const mapCollapsedNodeToClasses = (collapsedNodeId, collapsedNodes, focusing, vertexIds, classers) => {
         const cls = [];
-        if (collapsedItemId in collapseData) {
-            const collapsedItem = collapseData[collapsedItemId];
+        if (collapsedNodeId in collapsedNodes) {
+            const collapsedNode = collapsedNodes[collapsedNodeId];
 
             /**
              * Mutate the classes array to adjust the classes.
              *
              * @callback org.visallo.graph.collapsed.class~classFn
-             * @param {object} collapsedItem The collapsed item that represents the node
+             * @param {object} collapsedNode The collapsed item that represents the node
              * @param {array.<string>} classes List of classes that will be added to cytoscape node.
              * @example
-             * function(collapsedItem, cls) {
+             * function(collapsedNode, cls) {
              *     cls.push('org-example-cls');
              * }
              */
-            classers.forEach(fn => fn(collapsedItem, cls));
+            classers.forEach(fn => fn(collapsedNode, cls));
             cls.push('c');
 
-            if (collapsedItem.vertexIds.some(vertexId => vertexId in focusing.vertices)) {
+            if (vertexIds.some(vertexId => vertexId in focusing.vertices)) {
                 cls.push('focus');
             }
         } else {
@@ -1333,15 +1309,39 @@ define([
         return cls.join(' ');
     };
 
+//    const collapsedNodeToCyNode = (collapsedNodes, vertices, id) => {
+//        const result = memoizeFor('collapsedNodeToCyNode', collapsedNodes[id], function() {
+//            const collapsedNode = collapsedNodes[id];
+//            const title = generateCollapsedNodeTitle(collapsedNode, vertices);
+//            const truncatedTitle = F.string.truncate(title, 3);
+//            const conceptType = F.vertex.prop(vertex, 'conceptType');
+//            const imageSrc = CollapsedNodeImageHelpers.generateImageDataUriForCollapsedNode(
+//               vertices,
+//               collapsedNode
+//           );
+//
+//            return {
+//                ...collapsedNode,
+//                title,
+//                truncatedTitle,
+//                isTruncated: title !== truncatedTitle,
+//                imageSrc,
+//                selectedImageSrc: imageSrc
+//            };
+//        }, () => id);
+//
+//        return result;
+//    }
+
     const getCyItemTypeAsString = (item) => {
-        if (item.data('collapsedItem')) {
-            return 'collapsedItem';
+        if (item.isNode()) {
+            return item.data.vertexIds ? 'collapsedNode' : 'vertices';
         }
-        return item.isNode() ? 'vertices' : 'edges';
+        return 'edges';
     };
 
-    const generateCollapsedItemTitle = (collapsedItem, vertices) => {
-        return collapsedItem.vertexIds.map(vertexId => F.vertex.title(vertices[vertexId])).join(', ');
+    const generateCollapsedNodeTitle = (collapsedNode, vertices) => {
+        return collapsedNode.vertexIds.map(vertexId => F.vertex.title(vertices[vertexId])).join(', ');
     };
 
     const vertexToCyNode = (vertex, transformers, hovering) => {

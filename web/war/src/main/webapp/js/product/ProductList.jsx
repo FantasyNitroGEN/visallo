@@ -1,13 +1,12 @@
 define([
     'react',
-    './ProductListItem',
-    'components/RegistryInjectorHOC'
-], function(React, ProductListItem, RegistryInjectorHOC) {
+    './ProductListItem'
+], function(React, ProductListItem) {
     'use strict';
 
     const ProductList = React.createClass({
         render() {
-            const { products, status, onCreate, types, registry, workspace, user, ...rest } = this.props;
+            const { products, status, onCreate, types, workspace, user, ...rest } = this.props;
             const { loading, loaded } = status;
             if (!workspace) return null;
             if (!user) return null;
@@ -18,7 +17,7 @@ define([
                 return null;
             }
 
-            var itemElements = products.map(product => <ProductListItem key={product.id} registry={registry} product={product} editable={editable} {...rest} />),
+            var itemElements = products.map(product => <ProductListItem key={product.id} product={product} editable={editable} {...rest} />),
                 content = loading ? (<div className="message">{i18n('product.empty.message')}</div>) :
                     loaded && itemElements.length ? itemElements :
                     loaded ? (<div className="message">{i18n('product.empty.message')}</div>) :
@@ -50,5 +49,5 @@ define([
         }
     });
 
-    return RegistryInjectorHOC(ProductList, ['org.visallo.workproduct']);
+    return ProductList;
 });

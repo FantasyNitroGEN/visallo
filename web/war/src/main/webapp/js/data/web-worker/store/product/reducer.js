@@ -13,35 +13,12 @@ define(['updeep'], function(u) {
             case 'PRODUCT_PREVIEW_UPDATE': return updatePreview(state, payload);
             case 'PRODUCT_REMOVE': return removeProduct(state, payload);
             case 'PRODUCT_UPDATE_VIEWPORT': return updateViewport(state, payload);
-            case 'PRODUCT_REMOVE_ELEMENTS': return removeElements(state, payload);
             case 'PRODUCT_UPDATE_DATA': return updateData(state, payload);
             case 'PRODUCT_UPDATE_EXTENDED_DATA': return updateExtendedData(state, payload);
-
-            case 'ELEMENT_UPDATE': return updateViewable(state, payload);
         }
 
         return state;
     };
-
-    function removeElements(state, { workspaceId, productId, elements }) {
-        const { vertexIds, edgeIds } = elements;
-        const updates = {};
-
-        if (vertexIds) updates.vertices = u.reject(v => vertexIds.includes(v.id));
-        if (edgeIds) updates.edges = u.reject(e => edgeIds.includes(e.edgeId));
-
-        return u({
-            workspaces: {
-                [workspaceId]: {
-                    products: {
-                        [productId]: {
-                            extendedData: updates
-                        }
-                    }
-                }
-            }
-        }, state);
-    }
 
     function updateTitle(state, { workspaceId, productId, title, loading }) {
         var update;
@@ -116,6 +93,10 @@ define(['updeep'], function(u) {
 
     function updateProduct(state, { product }) {
         const { id, workspaceId } = product;
+        const existing = state.workspaces[workspaceId].products[id];
+        const localData = existing && existing.localData || {};
+        product.localData = localData;
+
         return u({
             workspaces: {
                 [workspaceId]: {
@@ -169,64 +150,15 @@ define(['updeep'], function(u) {
         }, state);
     }
 
-    function updateViewable(state, {workspaceId, vertices, edges = [], unauthorizedEdgeIds}) {
-    //TODO: this may be wrong, we could invalidate extendedData and request new? I wrote this not knowing extendedData.vertices/edges were derived
-        const [ deletedEdges, otherEdges ] = _.partition(edges, '_DELETED');
-        const otherEdgeIds = otherEdges.map(e => e.id);
-        const deletedEdgeIds = deletedEdges.map(e => e.id);
-
-        const updateExtendedDataViewable = (product) => {
-            return u.if(product.extendedData && product.extendedData.vertices, {
-                extendedData: {
-                    vertices: transformVertexData,
-                    edges: transformEdges,
-                    unauthorizedEdgeIds: transformUnauthorizedEdgeIds
-                }
-            }, product);
-        };
-        const transformVertexData = (vertexIds) => {
-            return _.mapObject(vertexIds, (vertexId) => {
-                const { id, unauthorized, ...rest } = vertexId;
-                const update = vertices.find((vertex) => vertex.id === id);
-                if (update !== undefined) {
-                    if (update._DELETED !== true) {
-                        return { id, ...rest }
-                    } else {
-                        return { id, unauthorized: true, ...rest };
-                    }
-                } else {
-                    return vertexId;
-                }
-            });
-        };
-        const transformEdges = prevEdges => {
-            const transformEdge = ({ id, label, inVertexId, outVertexId }) => ({ edgeId: id, label, inVertexId, outVertexId });
-            const prevEdgeIds = Object.keys(prevEdges);
-            const [ edgeUpdates, edgeAdds ] = _.partition(otherEdges, e => prevEdgeIds.includes(e.id));
-
-            prevEdges = _.chain(prevEdges)
-                .pick(p => !deletedEdgeIds.includes(p.edgeId))
-                .mapObject(p => {
-                    const update = edgeUpdates.find(edge => edge.id === p.edgeId);
-                    return update && transformEdge(update) || p;
-                })
-                .value();
-            edgeAdds.forEach(e => {
-                const edge = transformEdge(e)
-                prevEdges[edge.edgeId] = edge;
-            });
-
-            return prevEdges;
-        };
-        const transformUnauthorizedEdgeIds = prevIds =>
-            prevIds
-                .filter(id => !otherEdgeIds.includes(id))
-                .concat(deletedEdgeIds);
-
-        return u.if(vertices, {
+    function updateLocalData(state, {workspaceId, productId, localData}) {
+        return u({
             workspaces: {
                 [workspaceId]: {
-                    products: u.map(updateExtendedDataViewable)
+                    products: {
+                        [productId]: {
+                            localData: u.constant(localData)
+                        }
+                    }
                 }
             }
         }, state);

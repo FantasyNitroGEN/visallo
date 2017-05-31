@@ -11,8 +11,12 @@ import org.visallo.core.model.Name;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.web.VisalloCsrfHandler;
 import org.visallo.web.WebApp;
 import org.visallo.web.WebAppPlugin;
+import org.visallo.web.product.graph.routes.CollapseVertices;
+import org.visallo.web.product.graph.routes.RemoveVertices;
+import org.visallo.web.product.graph.routes.UpdateVertices;
 
 import javax.servlet.ServletContext;
 import java.io.InputStream;
@@ -37,6 +41,12 @@ public class GraphWebAppPlugin implements WebAppPlugin {
 
     @Override
     public void init(WebApp app, ServletContext servletContext, Handler authenticationHandler) {
+        Class<? extends Handler> authenticationHandlerClass = authenticationHandler.getClass();
+        Class<? extends Handler> csrfHandlerClass = VisalloCsrfHandler.class;
+
+        app.post("/product/graph/vertices/collapse", authenticationHandlerClass, csrfHandlerClass, CollapseVertices.class);
+        app.post("/product/graph/vertices/remove", authenticationHandlerClass, csrfHandlerClass, RemoveVertices.class);
+        app.post("/product/graph/vertices/update", authenticationHandlerClass, csrfHandlerClass, UpdateVertices.class);
 
         app.registerJavaScript("/org/visallo/web/product/graph/plugin.js");
 
@@ -57,10 +67,6 @@ public class GraphWebAppPlugin implements WebAppPlugin {
     }
 
     private void ensureOntologyDefined() {
-        if (ontologyRepository.isOntologyDefined(GraphProductOntology.IRI)) {
-            return;
-        }
-
         try (InputStream graphOwl = GraphWebAppPlugin.class.getResourceAsStream("graph.owl")) {
             byte[] inFileData = IOUtils.toByteArray(graphOwl);
             IRI graphIRI = IRI.create(GraphProductOntology.IRI);

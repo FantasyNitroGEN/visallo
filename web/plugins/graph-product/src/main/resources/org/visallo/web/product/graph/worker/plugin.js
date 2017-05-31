@@ -9,6 +9,9 @@ define([
         reducer: function(state, { type, payload }) {
             switch (type) {
                 case 'PRODUCT_GRAPH_SET_POSITIONS': return updatePositions(state, payload);
+                case 'PRODUCT_GRAPH_REMOVE_ELEMENTS': return removeElements(state, payload);
+                case 'PRODUCT_GRAPH_UPDATE_ELEMENTS': return updateElements(state, payload);
+
                 case 'PRODUCT_ADD_EDGE_IDS': return addEdges(state, payload);
             }
 
@@ -19,12 +22,21 @@ define([
                 undo: (undo) => actions.undoSetPositions(undo),
                 redo: (redo) => actions.redoSetPositions(redo)
             },
-            PRODUCT_REMOVE_ELEMENTS: {
+            PRODUCT_GRAPH_REMOVE_ELEMENTS: {
                 undo: (undo) => actions.undoRemoveElements(undo),
                 redo: (redo) => actions.redoRemoveElements(redo)
+            },
+            PRODUCT_GRAPH_COLLAPSE_NODES: {
+                undo: (undo) => actions.uncollapseNodes(undo),
+                redo: (redo) => actions.collapseNodes(redo)
+            },
+            PRODUCT_GRAPH_UNCOLLAPSE_NODES: {
+                undo: (undo) => actions.collapseNodes(undo),
+                redo: (redo) => actions.uncollapseNodes(redo)
             }
         }
     })
+
     registry.registerExtension('org.visallo.store', {
         key: 'org-visallo-graph',
         reducer: function(state, { type, payload }) {
@@ -69,31 +81,26 @@ define([
         if (product && product.extendedData && product.extendedData.vertices) {
             const updatedIds = [];
             var updated = u.updateIn(
-                `workspaces.${workspaceId}.products.${productId}.extendedData.vertices.*`,
-                function(vertexPosition) {
-                    if (vertexPosition.id in updateVertices) {
-                        const pos = updateVertices[vertexPosition.id];
-                        updatedIds.push([vertexPosition.id]);
-                        return {
-                            id: vertexPosition.id,
-                            pos
-                        }
-                    }
-                    return vertexPosition;
-                },
+                `workspaces.${workspaceId}.products.${productId}.extendedData.vertices`,
+                function(positions) { return applyUpdates(positions, updatedIds) },
                 state
+            );
+            updated = u.updateIn(
+                `workspaces.${workspaceId}.products.${productId}.extendedData.compoundNodes`,
+                function(positions) { return applyUpdates(positions, updatedIds) },
+                updated
             );
 
             const additionalVertices = _.omit(updateVertices, updatedIds)
             if (!_.isEmpty(additionalVertices)) {
-                var nextIndex = product.extendedData.vertices.length;
-                const additions = _.object(_.map(additionalVertices, (pos, id) => {
-                    return [nextIndex++, { id, pos }];
-                }));
-
                 updated = u.updateIn(
                     `workspaces.${workspaceId}.products.${productId}.extendedData.vertices`,
-                    additions,
+                    function(positions) { return addPositions(positions, additionalVertices, 'vertex') },
+                    updated
+                )
+                updated = u.updateIn(
+                    `workspaces.${workspaceId}.products.${productId}.extendedData.compoundNodes`,
+                    function(positions) { return addPositions(positions, additionalVertices, 'collapsedNode') },
                     updated
                 )
             }
@@ -102,5 +109,46 @@ define([
         }
 
         return state;
+
+        function applyUpdates(positions, updatedIds) {
+            return _.mapObject(positions, (position) => {
+                if (position.id in updateVertices) {
+                    updatedIds.push(position.id);
+                    return updateVertices[position.id];
+                }
+                return position;
+            })
+        }
+
+        function addPositions(positions, adding, type) {
+            Object.keys(adding).forEach(id => {
+                const newPos = adding[id];
+                if (newPos.type === type) {
+                    positions[id] = newPos;
+                }
+            });
+            return positions;
+        }
+    }
+
+    function removeElements(state, { workspaceId, productId, elements, removeChildren }) {
+        const { vertexIds, edgeIds, collapsedNodeIds } = elements;
+        const updates = {};
+
+        if (vertexIds) updates.vertices = u.omitBy(v => vertexIds.includes(v.id));
+        if (edgeIds) updates.edges = u.omitBy(e => edgeIds.includes(e.edgeId));
+        if (collapsedNodeIds) updates.compoundNodes = u.omitBy(c => collapsedNodeIds.includes(c.id));
+
+        return u({
+            workspaces: {
+                [workspaceId]: {
+                    products: {
+                        [productId]: {
+                            extendedData: updates
+                        }
+                    }
+                }
+            }
+        }, state);
     }
 });

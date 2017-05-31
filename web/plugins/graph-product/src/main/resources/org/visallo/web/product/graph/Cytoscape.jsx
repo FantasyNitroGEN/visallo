@@ -91,7 +91,7 @@ define([
             initialProductDisplay: PropTypes.bool,
             hasPreview: PropTypes.bool,
             editable: PropTypes.bool,
-            onCollapseSelectedVertices: PropTypes.func.isRequired,
+            onCollapseSelectedNodes: PropTypes.func.isRequired,
             ...eventPropTypes
         },
 
@@ -408,10 +408,10 @@ define([
             this.fit();
         },
 
-        onMenuCollapseSelectedVertices() {
+        onMenuCollapseSelectedNodes() {
             const { cy } = this.state;
-            const selectedVertices = cy.nodes().filter(':selected');
-            this.props.onCollapseSelectedVertices(selectedVertices);
+            const selectedNodes = cy.nodes().filter(':selected');
+            this.props.onCollapseSelectedNodes(selectedNodes);
         },
 
         onMenuSelect(select) {

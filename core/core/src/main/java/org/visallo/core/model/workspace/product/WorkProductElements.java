@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
     public static final String WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
-    public static final String HAS_VERTEX_LABEL = "_hasVertex";
+    public static final String HAS_VERTEX_LABEL = "_hasVertex_";
     private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
 

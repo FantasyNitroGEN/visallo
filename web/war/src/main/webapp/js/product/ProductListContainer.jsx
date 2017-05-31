@@ -62,6 +62,15 @@ define([
                 },
                 onSelectProduct: (productId) => {
                     dispatch(productActions.select(productId))
+                },
+                onDropElements: (product, elements) => {
+                    const extension = _.findWhere(registry.extensionsForPoint('org.visallo.workproduct'), {
+                        identifier: product.kind
+                    });
+
+                    if (extension.storeActions && _.isFunction(extension.storeActions.dropElements)) {
+                        dispatch(extension.storeActions.dropElements(product.id, elements));
+                    }
                 }
             }
         }

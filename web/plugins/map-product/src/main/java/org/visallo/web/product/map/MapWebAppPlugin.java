@@ -18,5 +18,7 @@ public class MapWebAppPlugin implements WebAppPlugin {
         app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/Map.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/actions-impl.js");
         app.registerResourceBundle("/org/visallo/web/product/map/messages.properties");
+
+        app.registerCompiledWebWorkerJavaScript("/org/visallo/web/product/map/dist/plugin-worker.js");
     }
 }

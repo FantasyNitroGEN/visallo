@@ -7,7 +7,6 @@ import org.visallo.core.model.properties.types.StringSingleValueVisalloProperty;
 
 public class GraphProductOntology {
     public static final String IRI = "http://visallo.org/workspace/product/graph";
-    public static final String TO_NODE_IRI = "http://visallo.org/workspace/product/graph#toNode";
     public static final String CONCEPT_TYPE_COMPOUND_NODE = "http://visallo.org/workspace/product/graph#compoundNode";
 
     public static final JsonSingleValueVisalloProperty ENTITY_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");

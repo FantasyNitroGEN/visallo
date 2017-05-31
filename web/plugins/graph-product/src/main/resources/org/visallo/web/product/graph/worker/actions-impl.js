@@ -25,6 +25,14 @@ define([
     const workspaceReadonly = (state) => !state.workspace.byId[state.workspace.currentId].editable;
 
     const api = {
+        updateRootId: ({ productId, nodeId }) => (dispatch, getState) => {
+            const state = getState();
+            const workspaceId = state.workspace.currentId;
+            const product = state.product.workspaces[workspaceId].products[productId];
+
+            productActions.updateLocalData(productId, 'rootId', nodeId);
+        },
+
         snapToGrid: ({ snap }) => (dispatch, getState) => {
             const state = getState();
             if (workspaceReadonly(state)) {
@@ -64,21 +72,24 @@ define([
 
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
-            const byId = _.indexBy(product.extendedData.vertices, 'id');
-            const newVertices = Object.keys(updateVertices)
-                .filter(id => !(id in byId));
-            const addingNewVertices = newVertices.length > 0;
+            const productNodes = { ...product.extendedData.vertices, ...product.extendedData.compoundNodes };
+            const byType = _.groupBy(updateVertices, (update) => update.type || 'vertex');
+            const newVertices = _.pick(updateVertices, (update, id) => !(id in productNodes));
+            const addingNewVertices = Object.keys(newVertices).length > 0;
 
-            updateVertices = _.mapObject(updateVertices, pos =>
-                _.mapObject(pos, v => Math.round(v))
-            );
+            updateVertices = _.mapObject(updateVertices, ({ pos, ...rest }) => {
+                return {
+                    pos: _.mapObject(pos, v => Math.round(v)),
+                    ...rest
+                }
+            });
 
             let undoPayload = {};
             if (undoable) {
                 undoPayload = {
                     undoScope: productId,
                     undo: {
-                        productId,
+                        productId
                     },
                     redo: {
                         productId,
@@ -87,13 +98,14 @@ define([
                 };
                 if (Object.keys(updateVertices).length !== newVertices.length) {
                     undoPayload.undo.updateVertices = _.chain(updateVertices)
-                                                        .mapObject((pos, id) => byId[id] && byId[id].pos)
-                                                        .pick((pos, id) => !!pos)
+                                                        .mapObject((update, id) => productNodes[id])
+                                                        .pick((node) => !!node)
                                                         .value();
                 }
                 if (addingNewVertices) {
                     undoPayload.undo.removeElements = {
-                        vertexIds: newVertices
+                        vertexIds: Object.keys(byType, 'vertex'),
+                        collapsedNodeIds: Object.keys(byType, 'collapsedNode')
                     };
                 }
             }
@@ -107,8 +119,9 @@ define([
                     ...undoPayload
                 }
             });
+
             if (snapToGrid) {
-                updateVertices = _.mapObject(updateVertices, pos => snapPosition(pos));
+                updateVertices = _.mapObject(updateVertices, ({ pos, ...rest }) => ({ pos: snapPosition(pos), ...rest }));
                 dispatch({
                     type: 'PRODUCT_GRAPH_SET_POSITIONS',
                     payload: {
@@ -119,15 +132,7 @@ define([
                 });
             }
 
-            return ajax('POST', '/product', {
-                productId,
-                params: {
-                    updateVertices: _.mapObject(updateVertices, (v) => ({ pos: v })),
-                    broadcastOptions: {
-                        preventBroadcastToSourceGuid: true
-                    }
-                },
-            }).then(() => {
+            return ajax('POST', '/product/graph/vertices/update', { productId, updates: updateVertices }).then(() => {
                 if (addingNewVertices) {
                     return ajax('GET', '/product', { productId,
                         includeExtended: true,
@@ -139,7 +144,7 @@ define([
                         dispatch(productActions.update(product));
 
                         const { edges } = product.extendedData;
-                        const vertexIds = Object.keys(updateVertices);
+                        const vertexIds = Object.keys(byType.vertex);
                         const edgeIds = _.pluck(edges, 'edgeId');
                         return dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
                     });
@@ -152,7 +157,7 @@ define([
                 dispatch(api.updatePositions({ productId, updateVertices }));
             }
             if (removeElements) {
-                dispatch(productActions.removeElements({ productId, elements: removeElements }));
+                dispatch(api.removeElements({ productId, elements: removeElements }));
             }
         },
 
@@ -195,15 +200,25 @@ define([
                 const state = getState();
                 const workspaceId = state.workspace.currentId;
                 const product = state.product.workspaces[workspaceId].products[productId];
-                const existingById = _.indexBy(product.extendedData ? product.extendedData.vertices : [], 'id');
+                const parentId = product.localData && product.localData.rootId || 'root';
+                const existingById = product.extendedData ? product.extendedData.vertices : {};
                 const [existingVertices, newVertices] = _.partition(_.uniq(edgeVertexIds.concat(vertexIds)), id => id in existingById);
 
                 if (!newVertices.length && (!position || !existingVertices.length)) return;
 
                 const nextPosition = positionGeneratorFrom(position, newVertices.length, product);
+                const updateVertices = {};
+                newVertices.forEach(id => {
+                    updateVertices[id] = {
+                        id,
+                        type: 'vertex',
+                        parent: parentId,
+                        pos: nextPosition()
+                    };
+                });
                 dispatch(api.updatePositions({
                     productId,
-                    updateVertices: _.object(newVertices.map(id => [id, nextPosition()])),
+                    updateVertices,
                     existingVertices: { position, vertices: existingVertices },
                     undoable: true
                 }))
@@ -246,9 +261,132 @@ define([
             }));
         },
 
+        removeElements: ({ productId, elements, undoable}) => (dispatch, getState) => {
+            const state = getState();
+            const workspaceId = state.workspace.currentId;
+            const workspace = state.workspace.byId[workspaceId];
+
+            if (workspace.editable && elements &&
+                (elements.vertexIds && elements.vertexIds.length) ||
+                (elements.collapsedNodeIds && elements.collapsedNodeIds.length)
+            ) {
+                const product = state.product.workspaces[workspaceId].products[productId];
+                const { vertices: productVertices, compoundNodes: productCompoundNodes } = product.extendedData;
+                const removeCollapsedNodes = elements.collapsedNodeIds || [];
+                const removeVertices = elements.vertexIds || [];
+                removeVertices.forEach(id => {
+                    const vertex = productVertices[id];
+                    let parent = productCompoundNodes[vertex.parent];
+                    while (parent) {
+                        const children = parent.children.filter(childId => childId !== id);
+                        if (children.length === 0) { //TODO: change visible status if necessary
+                            removeCollapsedNodes.push({ ...parent, children });
+                        }
+                    }
+                });
+
+                let undoPayload = {};
+                if (undoable) {
+                    const updateVertices = removeVertices
+                        .map(id => productVertices[id])
+                        .reduce(
+                            (vertices, productVertex) => ({
+                                [productVertex.id]: productVertex,
+                                ...vertices
+                            }),
+                            {}
+                        );
+                    const updateCollapsedNodes = removeCollapsedNodes
+                        .map(({ id }) => productCompoundNodes[id])
+                        .reduce(
+                            (nodes, productNode) => ({
+                                [productNode.id]: productNode,
+                                ...nodes
+                            }),
+                            {}
+                        );
+                    undoPayload = {
+                        undoScope: productId,
+                        undo: {
+                            productId,
+                            updateVertices: { ...updateVertices, ...updateCollapsedNodes}
+                        },
+                        redo: {
+                            productId,
+                            removeElements: elements
+                        }
+                    };
+                }
+
+                dispatch({
+                    type: 'PRODUCT_GRAPH_REMOVE_ELEMENTS',
+                    payload: {
+                        elements: { vertexIds: removeVertices, collapsedNodeIds: removeCollapsedNodes },
+                        removeChildren: true,
+                        productId,
+                        workspaceId,
+                        ...undoPayload
+                    }
+                });
+                dispatch(selectionActions.remove({
+                    selection: { vertices: removeVertices }
+                }));
+
+                if (removeVertices.length) {
+                    ajax('POST', '/product/graph/vertices/remove', {
+                        productId,
+                        vertexIds: removeVertices.concat(removeCollapsedNodes),
+                        params: { removeChildren: true }
+                    });
+                }
+            }
+        },
+
         undoRemoveElements: ({ productId, updateVertices }) => api.updatePositions({ productId, updateVertices }),
 
-        redoRemoveElements: ({ productId, removeElements }) => productActions.removeElements({ productId, elements: removeElements })
+        redoRemoveElements: ({ productId, removeElements }) => api.removeElements({ productId, elements: removeElements }),
+
+        collapseNodes: ({ productId, collapseData, undoable }) => (dispatch, getState) => {
+            const { id, children, ...params } = collapseData;
+            const requestData = {
+                children,
+                params,
+                productId
+            };
+            if (id) {
+                requestData.vertexId = id;
+            }
+
+            ajax('POST', '/product/graph/vertices/collapse', requestData).then(collapsedNode => {
+                if (undoable) {
+                    dispatch({
+                        type: 'PUSH_UNDO',
+                        payload: {
+                            undoActionType: 'PRODUCT_GRAPH_COLLAPSE_NODES',
+                            undoScope: productId,
+                            undo: { productId, collapsedNodeIds: [collapsedNode.id] },
+                            redo: { productId, collapseData }
+                        }
+                    })
+                }
+            });
+        },
+
+        uncollapseNodes: ({ productId, collapseNodeIds, undoable }) => (dispatch, getState) => {
+            ajax('POST', '/product/graph/vertices/remove', { productId, vertexIds: collapsedNodeIds }).then(product => {
+                if (undoable) {
+                    dispatch({
+                        type: 'PUSH_UNDO',
+                        payload: {
+                            undoActionType: 'PRODUCT_GRAPH_UNCOLLAPSE_NODES',
+                            undoScope: productId,
+                            undo: { productId, collapseData },
+                            redo: { productId, collapsedNodeIds: [collapsedNode.id] }
+                        }
+                    })
+                }
+            });
+        }
     };
 
     return api;
@@ -279,5 +417,4 @@ define([
             return {...currentPosition}
         }
     }
-
 })

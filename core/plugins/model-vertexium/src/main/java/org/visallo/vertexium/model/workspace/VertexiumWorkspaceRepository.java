@@ -40,7 +40,6 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
 import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.model.workspace.product.WorkProduct;
-import org.visallo.core.model.workspace.product.WorkProductElements;
 import org.visallo.core.model.workspace.product.WorkProductHasElements;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;

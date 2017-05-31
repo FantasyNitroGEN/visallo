@@ -29,7 +29,7 @@ define([
 
     const drawImages = function(canvasCtx, images) {
         images.forEach((image, index) => {
-            const layoutInfo = getCollapsedItemInnerImageLayoutInfo(index, images.length, circleRadius * 2);
+            const layoutInfo = getCollapsedNodeInnerImageLayoutInfo(index, images.length, circleRadius * 2);
             if (layoutInfo) {
                 canvasCtx.drawImage(
                     image,
@@ -49,9 +49,9 @@ define([
         return textMeasurements[text] = canvasCtx.measureText(text);
     };
 
-    const drawCount = function(canvas, canvasCtx, collapsedItem) {
+    const drawCount = function(canvas, canvasCtx, collapsedNode) {
         canvasCtx.font = countTextFont;
-        const countText = collapsedItem.vertexIds.length.toString();
+        const countText = collapsedNode.vertexIds.length.toString();
         const countTextMeasurements = measureText(canvasCtx, countText);
         const countTextCenterY = countTextBorderRadius;
         const countTextRight = canvas.width;
@@ -87,14 +87,14 @@ define([
         );
     };
 
-    const generateImageDataUriForCollapsedItem = function(
+    const generateImageDataUriForCollapsedNode = function(
         vertices,
-        collapsedItemId,
-        collapsedItem,
+        collapsedNodeId,
+        collapsedNode,
         collapsedImageDataUris,
         onCollapsedImageDataUrisChange
     ) {
-        Promise.all(collapsedItem.vertexIds.map(vertexId => loadVertexImage(vertices, vertexId)))
+        Promise.all(collapsedNode.vertexIds.map(vertexId => loadVertexImage(vertices, vertexId)))
             .then(images => {
                 const canvas = document.createElement('canvas');
                 canvas.height = canvas.width = imageSize;
@@ -102,12 +102,12 @@ define([
 
                 drawCircle(canvas, canvasCtx);
                 drawImages(canvasCtx, images);
-                drawCount(canvas, canvasCtx, collapsedItem);
+                drawCount(canvas, canvasCtx, collapsedNode);
 
                 onCollapsedImageDataUrisChange({
                     ...collapsedImageDataUris,
-                    [collapsedItemId]: {
-                        ...collapsedImageDataUris[collapsedItemId],
+                    [collapsedNodeId]: {
+                        ...collapsedImageDataUris[collapsedNodeId],
                         imageDataUri: canvas.toDataURL('image/png')
                     }
                 });
@@ -135,7 +135,7 @@ define([
         });
     };
 
-    const getCollapsedItemInnerImageLayoutInfo = function(index, number, size) {
+    const getCollapsedNodeInnerImageLayoutInfo = function(index, number, size) {
         if (number === 1) {
             return {
                 centerX: size / 2,
@@ -175,7 +175,7 @@ define([
     };
 
     return {
-        updateImageDataUrisForCollapsedItems(collapseData, vertices, collapsedImageDataUris, onCollapsedImageDataUrisChange) {
+        updateImageDataUrisForCollapsedNodes(collapseData, vertices, collapsedImageDataUris, onCollapsedImageDataUrisChange) {
             if (!vertices || Object.keys(vertices).length === 0) {
                 return;
             }
@@ -184,32 +184,32 @@ define([
                 ...collapsedImageDataUris
             };
 
-            Object.keys(newCollapsedImageDataUris).forEach(collapsedItemId => {
-                const collapsedItem = collapseData[collapsedItemId];
-                if (!collapsedItem) {
-                    delete newCollapsedImageDataUris[collapsedItemId];
+            Object.keys(newCollapsedImageDataUris).forEach(collapsedNodeId => {
+                const collapsedNode = collapseData[collapsedNodeId];
+                if (!collapsedNode) {
+                    delete newCollapsedImageDataUris[collapsedNodeId];
                 }
             });
 
             let changed = false;
-            Object.keys(collapseData).forEach(collapsedItemId => {
-                const collapsedItem = collapseData[collapsedItemId];
-                const vertexIdsString = collapsedItem.vertexIds.join(';');
-                const existingCollapsedItemImageUriInfo = collapsedImageDataUris[collapsedItemId];
-                if (existingCollapsedItemImageUriInfo && existingCollapsedItemImageUriInfo.vertexIdsString === vertexIdsString) {
+            Object.keys(collapseData).forEach(collapsedNodeId => {
+                const collapsedNode = collapseData[collapsedNodeId];
+                const vertexIdsString = collapsedNode.vertexIds.join(';');
+                const existingCollapsedNodeImageUriInfo = collapsedImageDataUris[collapsedNodeId];
+                if (existingCollapsedNodeImageUriInfo && existingCollapsedNodeImageUriInfo.vertexIdsString === vertexIdsString) {
                     return;
                 }
 
-                newCollapsedImageDataUris[collapsedItemId] = {
+                newCollapsedImageDataUris[collapsedNodeId] = {
                     vertexIdsString: vertexIdsString,
                     imageDataUri: null
                 };
                 changed = true;
                 _.defer(() => {
-                    generateImageDataUriForCollapsedItem(
+                    generateImageDataUriForCollapsedNode(
                         vertices,
-                        collapsedItemId,
-                        collapsedItem,
+                        collapsedNodeId,
+                        collapsedNode,
                         newCollapsedImageDataUris,
                         onCollapsedImageDataUrisChange
                     );

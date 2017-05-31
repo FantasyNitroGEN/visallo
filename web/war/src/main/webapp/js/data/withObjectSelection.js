@@ -2,8 +2,9 @@ define([
     'data/web-worker/store/selection/actions',
     'data/web-worker/store/element/actions',
     'data/web-worker/store/product/actions',
-    'data/web-worker/store/product/selectors'
-], function(selectionActions, elementActions, productActions, productSelectors) {
+    'data/web-worker/store/product/selectors',
+    'configuration/plugins/registry'
+], function(selectionActions, elementActions, productActions, productSelectors, registry) {
     'use strict';
 
     return withObjectSelection;
@@ -124,15 +125,22 @@ define([
 
             visalloData.storePromise.then(store => {
                 var vertexIds = [],
-                    productId = productSelectors.getSelectedId(store.getState());
+                    product = productSelectors.getProduct(store.getState());
 
-                if (productId) {
+                if (product) {
                     if (data && data.vertexId) {
                         vertexIds = [data.vertexId]
                     } else if (selectedObjects && selectedObjects.vertices.length) {
                         vertexIds = _.pluck(selectedObjects.vertices, 'id')
                     }
-                    store.dispatch(productActions.removeElements(productId, { vertexIds }, { undoable: true }));
+
+                    const extension = _.findWhere(registry.extensionsForPoint('org.visallo.workproduct'), {
+                        identifier: product.kind
+                    });
+
+                    if (extension.storeActions && _.isFunction(extension.storeActions.removeElements)) {
+                        store.dispatch(extension.storeActions.removeElements(product.id, { vertexIds }, { undoable: true }));
+                    }
                 }
             })
         };
