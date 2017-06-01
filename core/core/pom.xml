@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.visallo</groupId>
         <artifactId>visallo-core-group</artifactId>
-        <version>3.1.3-SNAPSHOT</version>
+        <version>3.1.3</version>
     </parent>
     <artifactId>visallo-core</artifactId>
     <packaging>jar</packaging>
