@@ -236,7 +236,7 @@ public abstract class ACLProvider {
         if (clientApiElement instanceof ClientApiVertex) {
             String iri = VisalloProperties.CONCEPT_TYPE.getPropertyValue(clientApiElement);
             while (iri != null) {
-                Concept concept = ontologyRepository.getConceptByIRI(iri);
+                Concept concept = ontologyRepository.getConceptByIRI(iri, user, workspaceId);
                 if (concept == null) {
                     LOGGER.warn("Could not find concept: %s", iri);
                     break;
@@ -247,7 +247,7 @@ public abstract class ACLProvider {
         } else if (clientApiElement instanceof ClientApiEdge) {
             String iri = ((ClientApiEdge) clientApiElement).getLabel();
             while (iri != null) {
-                Relationship relationship = ontologyRepository.getRelationshipByIRI(iri);
+                Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, user, workspaceId);
                 if (relationship == null) {
                     LOGGER.warn("Could not find relationship: %s", iri);
                     break;
@@ -610,7 +610,7 @@ public abstract class ACLProvider {
 
     private Relationship getOntologyRelationshipFromElement(String edgeLabel, User user, String workspaceId) {
         checkNotNull(edgeLabel, "Edge label cannot be null");
-        Relationship relationship = ontologyRepository.getRelationshipByIRI(edgeLabel);
+        Relationship relationship = ontologyRepository.getRelationshipByIRI(edgeLabel, user, workspaceId);
         checkNotNull(relationship, edgeLabel + " does not exist in ontology");
         return relationship;
     }
