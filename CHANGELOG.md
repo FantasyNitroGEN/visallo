@@ -1,3 +1,23 @@
+v3.1.3
+==================
+
+## Added
+
+* Retry-After header support to HttpRepository
+
+## Changed
+
+* Upgrade to Vertexium 2.5.7
+
+## Fixed
+
+* Image object resolution form no longer reopens every time you resize/move the selection box.
+* Image selection box could not be moved if the Work Products List was closed.
+* Issue where side panels would sometimes become invisible when trying to resize them.
+* Property groups remain together in the property select
+* Resolving object would sometimes fail.
+* Video not able to be previewed in search results until something was selected
+
 v3.1.2
 ==================
 
