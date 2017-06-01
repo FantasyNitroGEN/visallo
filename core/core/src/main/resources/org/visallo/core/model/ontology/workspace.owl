@@ -52,7 +52,15 @@
         <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
         <rdfs:label xml:lang="en">To Entity</rdfs:label>
     </owl:ObjectProperty>
-    
+
+
+    <!-- http://visallo.org/workspace#toOntology -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/workspace#toOntology">
+        <rdfs:domain rdf:resource="http://visallo.org/workspace#workspace"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <rdfs:label xml:lang="en">To Ontology</rdfs:label>
+    </owl:ObjectProperty>
 
 
     <!-- http://visallo.org/workspace#toProduct -->

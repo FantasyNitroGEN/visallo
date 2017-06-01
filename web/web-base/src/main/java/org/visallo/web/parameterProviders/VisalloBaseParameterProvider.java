@@ -37,7 +37,7 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         this.configuration = configuration;
     }
 
-    protected static String getActiveWorkspaceIdOrDefault(final HttpServletRequest request) {
+    public static String getActiveWorkspaceIdOrDefault(final HttpServletRequest request) {
         String workspaceId = (String) request.getAttribute(WORKSPACE_ID_ATTRIBUTE_NAME);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
             workspaceId = request.getHeader(VISALLO_WORKSPACE_ID_HEADER_NAME);

@@ -38,6 +38,8 @@ import org.visallo.web.routes.notification.SystemNotificationDelete;
 import org.visallo.web.routes.notification.SystemNotificationSave;
 import org.visallo.web.routes.notification.UserNotificationMarkRead;
 import org.visallo.web.routes.ontology.Ontology;
+import org.visallo.web.routes.ontology.OntologyConceptSave;
+import org.visallo.web.routes.ontology.OntologyGet;
 import org.visallo.web.routes.ping.Ping;
 import org.visallo.web.routes.ping.PingStats;
 import org.visallo.web.routes.product.*;
@@ -88,6 +90,8 @@ public class Router extends HttpServlet {
             app.post("/logout", csrfProtector, Logout.class);
 
             app.get("/ontology", authenticator, csrfProtector, ReadPrivilegeFilter.class, Ontology.class);
+            app.get("/ontology/segment", authenticator, csrfProtector, ReadPrivilegeFilter.class, OntologyGet.class);
+            app.post("/ontology/concept", authenticator, csrfProtector, OntologyEditPrivilegeFilter.class, OntologyConceptSave.class);
 
             app.get("/notification/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, Notifications.class);
             app.post("/notification/mark-read", authenticator, csrfProtector, ReadPrivilegeFilter.class, UserNotificationMarkRead.class);

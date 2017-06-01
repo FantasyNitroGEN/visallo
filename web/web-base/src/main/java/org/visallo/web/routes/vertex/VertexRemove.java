@@ -51,7 +51,7 @@ public class VertexRemove implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Could not find vertex with id: " + graphVertexId);
         }
 
-        if (!aclProvider.canDeleteElement(vertex, user)) {
+        if (!aclProvider.canDeleteElement(vertex, user, workspaceId)) {
             throw new VisalloAccessDeniedException("Vertex " + graphVertexId + " is not deleteable", user,
                     graphVertexId);
         }

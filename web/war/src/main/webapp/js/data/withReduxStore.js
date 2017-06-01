@@ -69,9 +69,14 @@ define([
                     });
                     return;
                 }
+                const workspaceId = visalloData.currentUser.currentWorkspaceId;
                 require(['data/web-worker/store/ontology/actions'], ontologyActions => {
-                    self._reduxStore.dispatch(ontologyActions.get())
+                    self._reduxStore.dispatch(ontologyActions.get(workspaceId))
                 });
+                if (!workspaceId) {
+                    console.error(`Current user doesn't have a currentWorkspaceId property set
+That should not be possible as /user/me ensures a workspace is created in that case.`);
+                }
             }
         }
     }

@@ -73,6 +73,7 @@
             'react': '../libs/react/dist/react-with-addons.min',
             'react-dom': '../libs/react-dom/dist/react-dom.min',
             'react-redux': '../libs/react-redux/dist/react-redux.min',
+            'react-virtualized-select': '../libs/react-virtualized-select/dist/umd/react-virtualized-select',
             'Reselect': '../libs/reselect/dist/reselect',
             'redux': '../libs/redux/dist/redux.min',
             'sf': '../libs/sf/sf',

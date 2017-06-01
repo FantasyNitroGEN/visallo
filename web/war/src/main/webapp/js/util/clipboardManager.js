@@ -129,7 +129,7 @@ define([
         };
 
         this._onClick = function(event) {
-            if ($(event.target).is('input,select,textarea,.visallo-allow-focus,.visallo-allow-focus *')) return;
+            if ($(event.target).is('input,select,textarea,.Select,.Select *,.visallo-allow-focus,.visallo-allow-focus *')) return;
 
             var inFocus = $(':focus');
             // Check for previous focus, since we are going to steal it to

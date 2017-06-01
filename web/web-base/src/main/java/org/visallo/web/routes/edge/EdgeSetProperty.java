@@ -94,7 +94,7 @@ public class EdgeSetProperty extends SetPropertyBase implements ParameterizedHan
 
         Edge edge = graph.getEdge(edgeId, authorizations);
 
-        aclProvider.checkCanAddOrUpdateProperty(edge, propertyKey, propertyName, user);
+        aclProvider.checkCanAddOrUpdateProperty(edge, propertyKey, propertyName, user, workspaceId);
 
         OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
 

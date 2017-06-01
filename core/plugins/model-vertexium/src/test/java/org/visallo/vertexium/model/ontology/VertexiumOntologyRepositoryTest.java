@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.semanticweb.owlapi.model.IRI;
 import org.vertexium.Authorizations;
@@ -22,8 +23,7 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.GraphAuthorizationRepository;
-import org.visallo.core.model.user.InMemoryGraphAuthorizationRepository;
+import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
@@ -53,8 +53,10 @@ public class VertexiumOntologyRepositoryTest {
     private Authorizations authorizations;
     private Graph graph;
     private GraphAuthorizationRepository graphAuthorizationRepository;
+    //private PrivilegeRepository privilegeRepository;
     private LockRepository lockRepository;
     private GraphRepository graphRepository;
+    private VisibilityTranslator visibilityTranslator;
 
     @Mock
     private Configuration configuration;
@@ -69,7 +71,18 @@ public class VertexiumOntologyRepositoryTest {
         authorizations = new InMemoryAuthorizations();
         graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
         lockRepository = new NonLockingLockRepository();
-        VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
+//        privilegeRepository = new UserPropertyPrivilegeRepository(
+//                ontologyRepository,
+//                configuration,
+//                null,
+//                workQueueRepository
+//        ) {
+//            @Override
+//            protected Iterable<PrivilegesProvider> getPrivilegesProviders(Configuration configuration) {
+//                return Lists.newArrayList();
+//            }
+//        };
+        visibilityTranslator = new DirectVisibilityTranslator();
         graphRepository = new GraphRepository(graph, visibilityTranslator, termMentionRepository, workQueueRepository);
     }
 
@@ -92,7 +105,6 @@ public class VertexiumOntologyRepositoryTest {
         Concept parentConcept = ontologyRepository.getParentConcept(concept);
         assertEquals(1, parentConcept.getProperties().size());
     }
-
 
     @Test
     public void dependenciesBetweenOntologyFilesShouldNotChangeParentProperties() throws Exception {
@@ -295,6 +307,7 @@ public class VertexiumOntologyRepositoryTest {
         ontologyRepository = new VertexiumOntologyRepository(
                 graph,
                 graphRepository,
+                visibilityTranslator,
                 configuration,
                 graphAuthorizationRepository,
                 lockRepository

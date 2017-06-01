@@ -11,6 +11,7 @@ public class WorkspaceProperties {
     public static final String PRODUCT_CONCEPT_IRI = "http://visallo.org/workspace#product";
     public static final String DASHBOARD_ITEM_CONCEPT_IRI = "http://visallo.org/workspace#dashboardItem";
     public static final String WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace#toEntity";
+    public static final String WORKSPACE_TO_ONTOLOGY_RELATIONSHIP_IRI = "http://visallo.org/workspace#toOntology";
     public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = "http://visallo.org/workspace#toUser";
     public static final String WORKSPACE_TO_DASHBOARD_RELATIONSHIP_IRI = "http://visallo.org/workspace#toDashboard";
     public static final String WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI = "http://visallo.org/workspace#toProduct";

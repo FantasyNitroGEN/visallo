@@ -11,10 +11,9 @@
  */
 define([
     '../util/ajax',
-    '../util/memoize',
     '../store',
     'configuration/plugins/registry'
-], function(ajax, memoize, store, registry) {
+], function(ajax, store, registry) {
     'use strict';
 
     /**
@@ -32,13 +31,35 @@ define([
     var ontologyReady = function(s) {
         return s &&
         s.ontology &&
-        !_.isEmpty(s.ontology.concepts) &&
-        !_.isEmpty(s.ontology.properties) &&
-        !_.isEmpty(s.ontology.relationships);
-    }
+        publicData.currentWorkspaceId &&
+        s.ontology[publicData.currentWorkspaceId] &&
+        !_.isEmpty(s.ontology[publicData.currentWorkspaceId].concepts) &&
+        !_.isEmpty(s.ontology[publicData.currentWorkspaceId].properties) &&
+        !_.isEmpty(s.ontology[publicData.currentWorkspaceId].relationships);
+    };
+    var warnOnce = _.memoize(function() {
+        console.warn.apply(console, arguments);
+    }, function() {
+        return arguments.length === 2 ? arguments[1] : arguments[0];
+    });
+    var subscribeToClear = _.once(function() {
+        var _store = store.getStore();
+        var select = (store) => store.workspace.currentId && store.ontology && store.ontology[store.workspace.currentId];
+        var previous = select(_store.getState());
+        _store.subscribe(function() {
+            var current = select(_store.getState());
+            if (previous !== current) {
+                previous = current;
+                if (previous && current) {
+                    _.defer(api.clearMemoizedValues);
+                }
+            }
+        })
+    });
     var getOntology = function() {
         return store.getOrWaitForNestedState(function(s) {
-            return JSON.parse(JSON.stringify(s.ontology));
+            subscribeToClear();
+            return JSON.parse(JSON.stringify(s.ontology[publicData.currentWorkspaceId]));
         }, ontologyReady)
     }
     var extensions = registry.extensionsForPoint('org.visallo.ontology');
@@ -48,6 +69,23 @@ define([
      */
     var api = {
 
+            clearMemoizedValues: function() {
+                Object.keys(api).forEach(function(key) {
+                    var obj = api[key];
+                    if (_.isFunction(obj) && 'cache' in obj) {
+                        obj.cache = {};
+                    }
+                });
+                dispatchMain('dataRequestFastPassClear', {
+                    paths: [
+                        'ontology/ontology',
+                        'ontology/properties',
+                        'ontology/relationships'
+                    ]
+                })
+
+            },
+
             /**
              * All ontology objects: concepts, properties, relationships
              *
@@ -55,7 +93,8 @@ define([
              *
              * @function
              */
-            ontology: memoize(function() {
+            ontology: _.memoize(function() {
+                console.log('getting the ontology')
                 return Promise.all([
                     api.concepts(),
                     api.properties(),
@@ -78,7 +117,7 @@ define([
              *
              * @function
              */
-            properties: memoize(function() {
+            properties: _.memoize(function() {
 
                 return getOntology()
                     .then(function(ontology) {
@@ -109,7 +148,7 @@ define([
              * @param {string} type Either 'vertex' or 'edge'
              * @returns {Array.<object>}
              */
-            propertiesByDomainType: memoize(function(type) {
+            propertiesByDomainType: _.memoize(function(type) {
                 return getOntology()
                     .then(function(ontology) {
                         var items = (type === 'concept' || type === 'vertex') ? ontology.concepts : ontology.relationships;
@@ -132,7 +171,7 @@ define([
              * @function
              * @param {string} id
              */
-            propertiesByRelationship: memoize(function(relationshipId) {
+            propertiesByRelationship: _.memoize(function(relationshipId) {
                 return api.ontology()
                     .then(function(ontology) {
                         var propertyIds = [],
@@ -171,7 +210,7 @@ define([
              * @function
              * @param {string} id
              */
-            propertiesByConceptId: memoize(function(conceptId) {
+            propertiesByConceptId: _.memoize(function(conceptId) {
                 return getOntology()
                     .then(function(ontology) {
                         var propertyIds = [],
@@ -209,7 +248,7 @@ define([
              *
              * @function
              */
-            concepts: memoize(function() {
+            concepts: _.memoize(function() {
                 var clsIndex = 0;
 
                 return getOntology()
@@ -254,15 +293,15 @@ define([
                                 if (!child.glyphIconSelectedHref) {
                                     child.glyphIconSelectedHref = node.glyphIconSelectedHref;
                                 }
+                                if (child.userVisible !== false && child.id === child.displayName) {
+                                    warnOnce('Concept displayName is same as IRI', child.id)
+                                }
                                 if (!child.color) {
                                     if (node.color) {
                                         child.color = node.color;
                                     } else {
                                         if (visalloEnvironment.dev && !_.contains(ignoreColorWarnings, child.id) && child.userVisible !== false) {
-                                            console.warn(
-                                                'No color specified in concept hierarchy for conceptType:',
-                                                child.id
-                                            );
+                                            warnOnce( 'No color specified in concept hierarchy for conceptType:', child.id);
                                         }
                                         child.color = 'rgb(0, 0, 0)';
                                     }
@@ -332,7 +371,7 @@ define([
              *
              * @function
              */
-            relationships: memoize(function() {
+            relationships: _.memoize(function() {
                 return Promise.all([api.concepts(), getOntology()])
                     .then(function(results) {
                         var concepts = results.shift(),
@@ -419,7 +458,7 @@ define([
              * @param {string} source Source concept IRI
              * @param {string} target Target concept IRI
              */
-            relationshipsBetween: memoize(function(source, dest) {
+            relationshipsBetween: _.memoize(function(source, dest) {
                 return api.relationships()
                     .then(function(relationships) {
                         var key = genSourceDestKey(source, dest);

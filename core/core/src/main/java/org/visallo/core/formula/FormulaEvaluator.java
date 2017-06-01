@@ -119,10 +119,10 @@ public class FormulaEvaluator {
         String mapKey = userContext.locale.toString() + userContext.timeZone;
         Scriptable scope = scopes.get(mapKey);
         if (scope == null) {
-            scope = setupContext(getOntologyJson(), getConfigurationJson(userContext.locale), userContext.timeZone);
+            scope = setupContext(getOntologyJson(userContext.getWorkspaceId()), getConfigurationJson(userContext.locale), userContext.timeZone);
             scopes.put(mapKey, scope);
         } else {
-            scope.put("ONTOLOGY_JSON", scope, Context.toObject(getOntologyJson(), scope));
+            scope.put("ONTOLOGY_JSON", scope, Context.toObject(getOntologyJson(userContext.getWorkspaceId()), scope));
         }
         return scope;
     }
@@ -162,7 +162,8 @@ public class FormulaEvaluator {
         evaluateFile(scope, "loader.js");
     }
 
-    protected String getOntologyJson() {
+    protected String getOntologyJson(String workspaceId) {
+        // FIXME: user?? workspace?
         ClientApiOntology result = ontologyRepository.getClientApiObject();
         try {
             return ObjectMapperFactory.getInstance().writeValueAsString(result);

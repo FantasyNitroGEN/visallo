@@ -11,6 +11,8 @@ public final class Privilege {
     public static final String COMMENT_EDIT_ANY = "COMMENT_EDIT_ANY"; // edit other users' comments
     public static final String COMMENT_DELETE_ANY = "COMMENT_DELETE_ANY"; // delete other users' comments
     public static final String HISTORY_READ = "HISTORY_READ"; // read vertex/edge/property history
+    public static final String ONTOLOGY_ADD = "ONTOLOGY_ADD"; // Add to ontology from interface
+    public static final String ONTOLOGY_PUBLISH = "ONTOLOGY_PUBLISH"; // Add to ontology from interface
     public static final String SEARCH_SAVE_GLOBAL = "SEARCH_SAVE_GLOBAL";
     public static final String EDIT = "EDIT";
     public static final String PUBLISH = "PUBLISH";
@@ -24,6 +26,7 @@ public final class Privilege {
                 COMMENT_EDIT_ANY,
                 COMMENT_DELETE_ANY,
                 HISTORY_READ,
+                ONTOLOGY_ADD,
                 SEARCH_SAVE_GLOBAL,
                 EDIT,
                 PUBLISH,

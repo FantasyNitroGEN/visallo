@@ -17,7 +17,8 @@ module.exports = {
         setupComponent: false,
         sinon: false,
         xdescribe: false,
-        xit: false
+        xit: false,
+        publicData: false
     },
     rules: {
         "no-unused-expressions": "off",

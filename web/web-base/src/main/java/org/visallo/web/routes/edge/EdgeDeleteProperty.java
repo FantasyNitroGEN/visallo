@@ -59,7 +59,7 @@ public class EdgeDeleteProperty implements ParameterizedHandler {
         // TODO remove all properties from all edges? I don't think so
         Edge edge = graph.getEdge(edgeId, authorizations);
 
-        aclProvider.checkCanDeleteProperty(edge, propertyKey, propertyName, user);
+        aclProvider.checkCanDeleteProperty(edge, propertyKey, propertyName, user, workspaceId);
 
         boolean isComment = VisalloProperties.COMMENT.isSameName(propertyName);
 

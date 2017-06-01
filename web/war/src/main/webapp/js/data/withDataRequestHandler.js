@@ -115,5 +115,11 @@ define([], function() {
             this.trigger(message.type, message);
         };
 
+        this.dataRequestFastPassClear = function(message) {
+            message.paths.forEach(function(path) {
+                FAST_PASSED[path] = null;
+            })
+        };
+
     }
 });

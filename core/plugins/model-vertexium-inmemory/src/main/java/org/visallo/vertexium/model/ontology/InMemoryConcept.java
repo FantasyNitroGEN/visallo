@@ -59,6 +59,11 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
+    public String getId() {
+        return this.conceptIRI;
+    }
+
+    @Override
     public String getTitle() {
         return title;
     }

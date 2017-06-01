@@ -1,10 +1,13 @@
 package org.visallo.web.routes.user;
 
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.handlers.CSRFHandler;
+import org.vertexium.util.IterableUtils;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -44,6 +47,12 @@ public class MeGet implements ParameterizedHandler {
         } catch (Exception ex) {
             LOGGER.error("Failed to read user's current workspace %s", user.getCurrentWorkspaceId(), ex);
             userMe.setCurrentWorkspaceId(null);
+        }
+
+        if (userMe.getCurrentWorkspaceId() == null) {
+            Workspace workspace = workspaceRepository.add(user);
+            userMe.setCurrentWorkspaceId(workspace.getWorkspaceId());
+            userMe.setCurrentWorkspaceName(workspace.getDisplayTitle());
         }
 
         return userMe;

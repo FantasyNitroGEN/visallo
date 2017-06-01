@@ -58,6 +58,11 @@ public class VertexiumConcept extends Concept {
     }
 
     @Override
+    public String getId() {
+        return this.vertex.getId();
+    }
+
+    @Override
     public String getTitle() {
         return OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(vertex);
     }

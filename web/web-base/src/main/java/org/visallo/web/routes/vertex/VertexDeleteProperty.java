@@ -58,7 +58,7 @@ public class VertexDeleteProperty implements ParameterizedHandler {
 
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
 
-        aclProvider.checkCanDeleteProperty(vertex, propertyKey, propertyName, user);
+        aclProvider.checkCanDeleteProperty(vertex, propertyKey, propertyName, user, workspaceId);
 
         boolean isComment = VisalloProperties.COMMENT.isSameName(propertyName);
 

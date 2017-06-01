@@ -50,6 +50,7 @@ public abstract class WorkspaceRepository {
     public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = WorkspaceProperties.WORKSPACE_TO_USER_RELATIONSHIP_IRI;
     public static final String WORKSPACE_ID_PREFIX = "WORKSPACE_";
     public static final String OWL_IRI = "http://visallo.org/workspace";
+    private static final String DEFAULT_WORKSPACE_TITLE = "Default";
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceRepository.class);
     private final Graph graph;
     private final Configuration configuration;
@@ -114,7 +115,15 @@ public abstract class WorkspaceRepository {
 
     public abstract Workspace add(String workspaceId, String title, User user);
 
+    public Workspace add(User user) {
+        return add(null, user);
+    }
+
+
     public Workspace add(String title, User user) {
+        if (title == null) {
+            title = DEFAULT_WORKSPACE_TITLE + " - " + user.getDisplayName();
+        }
         return add(null, title, user);
     }
 
@@ -124,7 +133,7 @@ public abstract class WorkspaceRepository {
     public abstract Iterable<Workspace> findAllForUser(User user);
 
     /**
-     * Finds all workspaces irregardless of access.
+     * Finds all workspaces regardless of access.
      *
      * @param user a user with access to all workspaces such as system user.
      */

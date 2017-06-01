@@ -56,7 +56,7 @@ public class FormulaEvaluatorTest {
 
         evaluator = new FormulaEvaluator(configuration, ontologyRepository) {
             @Override
-            protected String getOntologyJson() {
+            protected String getOntologyJson(String workspaceId) {
                 return ontologyJson;
             }
 
@@ -82,7 +82,7 @@ public class FormulaEvaluatorTest {
 
     @Test
     public void testEvaluatorJson() throws Exception {
-        assertTrue(evaluator.getOntologyJson().length() > 0);
+        assertTrue(evaluator.getOntologyJson(null).length() > 0);
         assertTrue(evaluator.getConfigurationJson(Locale.getDefault()).length() > 0);
     }
 

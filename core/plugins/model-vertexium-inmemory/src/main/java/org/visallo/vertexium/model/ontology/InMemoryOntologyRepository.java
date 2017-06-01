@@ -15,6 +15,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.*;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.PropertyType;
@@ -25,6 +26,7 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 
+// FIXME: all "return null" methods
 public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(InMemoryOntologyRepository.class);
     private final Graph graph;
@@ -139,6 +141,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris, User user, String workspaceId) {
+
+    }
+
+    @Override
     protected List<OWLOntology> loadOntologyFiles(
             OWLOntologyManager m,
             OWLOntologyLoaderConfiguration config,
@@ -223,6 +230,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    protected OntologyProperty addPropertyTo(List<Concept> concepts, List<Relationship> relationships, String propertyIri, String displayName, PropertyType dataType, Map<String, String> possibleValues, Collection<TextIndexHint> textIndexHints, boolean userVisible, boolean searchable, boolean addable, boolean sortable, String displayType, String propertyGroup, Double boost, String validationFormula, String displayFormula, ImmutableList<String> dependentPropertyIris, String[] intents, boolean deleteable, boolean updateable, User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
     public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
         for (Concept concept : getConceptsWithProperties()) {
             if (concept.getProperties().contains(property)) {
@@ -235,6 +247,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         for (String domainIri : domainIris) {
             getConceptByIRI(domainIri).getProperties().add(property);
         }
+    }
+
+    @Override
+    public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris, User user, String workspaceId) {
+
     }
 
     @Override
@@ -311,6 +328,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public void clearCache(String workspaceId) {
+        // do nothing it's all in memory already.
+    }
+
+    @Override
     public Iterable<Relationship> getRelationships() {
         return new ConvertingIterable<InMemoryRelationship, Relationship>(relationshipsCache.values()) {
             @Override
@@ -319,6 +341,17 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             }
         };
     }
+
+    @Override
+    public Iterable<Relationship> getRelationships(Iterable<String> ids, User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
+    public Iterable<Relationship> getRelationships(User user, String workspaceId) {
+        return null;
+    }
+
 
     @Override
     public Iterable<OntologyProperty> getProperties() {
@@ -331,10 +364,25 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public Iterable<OntologyProperty> getProperties(Iterable<String> ids, User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
+    public Iterable<OntologyProperty> getProperties(User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
     public String getDisplayNameForLabel(String relationshipIRI) {
         InMemoryRelationship relationship = relationshipsCache.get(relationshipIRI);
         checkNotNull(relationship, "Could not find relationship " + relationshipIRI);
         return relationship.getDisplayName();
+    }
+
+    @Override
+    public String getDisplayNameForLabel(String relationshipIRI, User user, String workspaceId) {
+        return null;
     }
 
     @Override
@@ -353,6 +401,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public Iterable<Concept> getConceptsWithProperties(User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
     public Iterable<Concept> getConceptsWithProperties() {
         return new ConvertingIterable<InMemoryConcept, Concept>(conceptsCache.values()) {
             @Override
@@ -363,8 +416,18 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public Concept getRootConcept(User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
     public Concept getEntityConcept() {
         return conceptsCache.get(InMemoryOntologyRepository.ENTITY_CONCEPT_IRI);
+    }
+
+    @Override
+    public Concept getEntityConcept(User user, String workspaceId) {
+        return null;
     }
 
     @Override
@@ -374,6 +437,16 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 return conceptsCache.get(key);
             }
         }
+        return null;
+    }
+
+    @Override
+    public Concept getParentConcept(Concept concept, User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
+    public Iterable<Concept> getConcepts(Iterable<String> ids, User user, String workspaceId) {
         return null;
     }
 
@@ -389,6 +462,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    protected List<Concept> getChildConcepts(Concept concept, User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
     protected List<Relationship> getChildRelationships(Relationship relationship) {
         List<Relationship> results = new ArrayList<>();
         for (Relationship childRelationship : relationshipsCache.values()) {
@@ -400,8 +478,18 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    protected List<Relationship> getChildRelationships(Relationship relationship, User user, String workspaceId) {
+        return null;
+    }
+
+    @Override
     public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
         return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true);
+    }
+
+    @Override
+    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true, user, workspaceId);
     }
 
     @Override
@@ -412,6 +500,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             File inDir,
             boolean isDeclaredInOntology
     ) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true, null,null);
+    }
+
+    @Override
+    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
         InMemoryConcept concept = (InMemoryConcept) getConceptByIRI(conceptIRI);
         if (concept != null) {
             return concept;
@@ -476,6 +569,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         );
         relationshipsCache.put(relationshipIRI, inMemRelationship);
         return inMemRelationship;
+    }
+
+    @Override
+    public Relationship getOrCreateRelationshipType(Relationship parent, Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, boolean deleteChangeableProperties, User user, String workspaceId) {
+        return null;
     }
 
     private static class OwlData {

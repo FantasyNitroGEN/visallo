@@ -40,6 +40,7 @@
     "react": "15.4.2",
     "react-dom": "15.4.2",
     "react-redux": "^4.4.5",
+    "react-virtualized-select": "^3.0.1",
     "redux": "^3.5.2",
     "redux-worker": "^0.1.2",
     "redux-worker-middleware": "^0.2.0",

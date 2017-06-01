@@ -19,6 +19,8 @@ public abstract class Concept implements OntologyElement, HasOntologyProperties 
         this.properties = properties;
     }
 
+    public abstract String getId();
+
     public abstract String getTitle();
 
     public abstract boolean hasGlyphIconResource();

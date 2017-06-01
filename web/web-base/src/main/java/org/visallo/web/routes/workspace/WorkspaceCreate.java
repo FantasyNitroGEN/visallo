@@ -15,7 +15,6 @@ import org.visallo.web.clientapi.model.ClientApiWorkspace;
 
 public class WorkspaceCreate implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceCreate.class);
-    private static final String DEFAULT_WORKSPACE_TITLE = "Default";
 
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
@@ -36,9 +35,7 @@ public class WorkspaceCreate implements ParameterizedHandler {
             Authorizations authorizations
     ) throws Exception {
         Workspace workspace;
-        if (title == null) {
-            title = DEFAULT_WORKSPACE_TITLE + " - " + user.getDisplayName();
-        }
+
         workspace = workspaceRepository.add(title, user);
 
         LOGGER.info("Created workspace: %s, title: %s", workspace.getWorkspaceId(), workspace.getDisplayTitle());

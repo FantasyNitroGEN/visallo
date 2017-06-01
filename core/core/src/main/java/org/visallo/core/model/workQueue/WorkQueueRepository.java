@@ -778,6 +778,24 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
+    public void pushOntologyChange(String workspaceId) {
+        JSONObject json = new JSONObject();
+        json.put("type", "ontologyChange");
+        JSONObject data = new JSONObject();
+        data.put("workspaceId", workspaceId);
+        json.put("data", data);
+        broadcastJson(json);
+    }
+    public void pushOntologyConceptsChange(String workspaceId, String... ids) {
+        JSONObject json = new JSONObject();
+        json.put("type", "ontologyConceptsChange");
+        JSONObject data = new JSONObject();
+        data.put("workspaceId", workspaceId);
+        data.put("conceptIds", new JSONArray(ids));
+        json.put("data", data);
+        broadcastJson(json);
+    }
+
     public void pushTextUpdated(String vertexId) {
         pushTextUpdated(vertexId, Priority.NORMAL);
     }

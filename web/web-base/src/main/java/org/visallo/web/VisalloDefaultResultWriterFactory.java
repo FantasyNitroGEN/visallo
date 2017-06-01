@@ -6,6 +6,7 @@ import com.v5analytics.webster.resultWriters.ResultWriter;
 import com.v5analytics.webster.resultWriters.ResultWriterBase;
 import com.v5analytics.webster.resultWriters.ResultWriterFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
@@ -16,6 +17,7 @@ import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
+import org.visallo.web.parameterProviders.ActiveWorkspaceIdParameterProviderFactory;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
@@ -82,8 +84,12 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                     if (resultIsClientApiObject) {
                         ClientApiObject clientApiObject = (ClientApiObject) result;
                         User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+                        String workspaceId = user == null ? null : user.getCurrentWorkspaceId();
+                        if (StringUtils.isEmpty(workspaceId)) {
+                            workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
+                        }
                         try (TraceSpan ignored = Trace.start("aclProvider.appendACL")) {
-                            clientApiObject = aclProvider.appendACL(clientApiObject, user);
+                            clientApiObject = aclProvider.appendACL(clientApiObject, user, workspaceId);
                         }
                         String jsonObject;
                         try {

@@ -69,7 +69,7 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
                 }
             });
 
-            global.visalloData = {
+            global.publicData = global.visalloData = {
                 currentWorkspaceId: 'w1',
                 currentUser: {
                     authorizations: ['a','b']

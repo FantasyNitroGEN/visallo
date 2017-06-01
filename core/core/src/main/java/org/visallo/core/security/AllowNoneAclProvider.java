@@ -22,52 +22,52 @@ public class AllowNoneAclProvider extends ACLProvider {
     }
 
     @Override
-    public boolean canDeleteElement(Element element, OntologyElement ontologyElement, User user) {
+    public boolean canDeleteElement(Element element, OntologyElement ontologyElement, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canDeleteElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
+    public boolean canDeleteElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canDeleteProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
+    public boolean canDeleteProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canDeleteProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
+    public boolean canDeleteProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canUpdateElement(Element element, OntologyElement ontologyElement, User user) {
+    public boolean canUpdateElement(Element element, OntologyElement ontologyElement, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canUpdateElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user) {
+    public boolean canUpdateElement(ClientApiElement clientApiElement, OntologyElement ontologyElement, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canUpdateProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
+    public boolean canUpdateProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canUpdateProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
+    public boolean canUpdateProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canAddProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
+    public boolean canAddProperty(Element element, OntologyElement ontologyElement, String propertyKey, String propertyName, User user, String workspaceId) {
         return false;
     }
 
     @Override
-    public boolean canAddProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user) {
+    public boolean canAddProperty(ClientApiElement clientApiElement, OntologyElement ontologyElement, String propertyKey, String propertyName, User user, String workspaceId) {
         return false;
     }
 }
