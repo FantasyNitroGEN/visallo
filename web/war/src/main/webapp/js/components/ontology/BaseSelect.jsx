@@ -47,7 +47,7 @@ define([
             this.setState({ value })
 
             if (!value) {
-                this.props.onSelected({ option: null });
+                this.props.onSelected();
             } else {
                 this.props.onSelected(this.getOptionByValue(value))
             }
