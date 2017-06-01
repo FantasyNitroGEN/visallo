@@ -262,13 +262,15 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             if (workspaceId != null) {
                 Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(user, workspaceId, WorkspaceRepository.VISIBILITY_STRING, VISIBILITY_STRING);
                 Vertex workspace = graph.getVertex(workspaceId, authorizations);
-                Iterable<Vertex> vertices = workspace.getVertices(Direction.OUT, WorkspaceProperties.WORKSPACE_TO_ONTOLOGY_RELATIONSHIP_IRI, authorizations);
-                List<Concept> concepts = transformConcepts(vertices, user, workspaceId);
+                Iterable<Vertex> vertices = Lists.newArrayList(workspace.getVertices(Direction.OUT, WorkspaceProperties.WORKSPACE_TO_ONTOLOGY_RELATIONSHIP_IRI, authorizations));
+
                 ClientApiOntology workspaceOntology = published.merge(
-                        concepts.stream().map(concept -> concept.toClientApi()).collect(Collectors.toList()),
-                        // FIXME, find these 2
-                        new ArrayList<>(),
-                        new ArrayList<>()
+                        transformConcepts(vertices, user, workspaceId)
+                                .stream().map(concept -> concept.toClientApi()).collect(Collectors.toList()),
+                        transformProperties(vertices, user, workspaceId)
+                                .stream().map(property -> property.toClientApi()).collect(Collectors.toList()),
+                        transformRelationships(vertices, user, workspaceId)
+                                .stream().map(relationship -> relationship.toClientApi()).collect(Collectors.toList())
                 );
 
                 if (workspaceOntology != null) {
@@ -403,7 +405,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 @Override
                 public List<Relationship> callWithTime() throws Exception {
                     Iterable<Vertex> vertices = graph.getVerticesWithPrefix(ID_PREFIX_RELATIONSHIP, getAuthorizations(user, workspaceId));
-                    vertices = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_RELATIONSHIP));
                     return transformRelationships(vertices, user, workspaceId);
                 }
             });
@@ -486,7 +487,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 @Override
                 public List<OntologyProperty> callWithTime() throws Exception {
                     Iterable<Vertex> vertices = graph.getVerticesWithPrefix(ID_PREFIX_PROPERTY, getAuthorizations(user, workspaceId));
-                    vertices = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_PROPERTY));
                     return transformProperties(vertices, user, workspaceId);
                 }
             });
@@ -520,7 +520,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 public List<Concept> callWithTime() throws Exception {
                     Authorizations authorizations = getAuthorizations(user, workspaceId);
                     Iterable<Vertex> vertices = graph.getVerticesWithPrefix(ID_PREFIX_CONCEPT, authorizations);
-                    vertices = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_CONCEPT));
                     return transformConcepts(vertices, user, workspaceId);
                 }
             });
@@ -655,7 +654,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), visibility);
                 }
 
-                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, conceptIRI, metadata, visibility);
+                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_CONCEPT, metadata, visibility);
                 OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, conceptIRI, metadata, visibility);
                 OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName, metadata, visibility);
                 if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
@@ -1112,7 +1111,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     private List<OntologyProperty> transformProperties(Iterable<Vertex> vertices, User user, String workspaceId) {
-        return Lists.newArrayList(Iterables.transform(vertices, new Function<Vertex, OntologyProperty>() {
+        Iterable<Vertex> filtered = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_PROPERTY));
+        return Lists.newArrayList(Iterables.transform(filtered, new Function<Vertex, OntologyProperty>() {
             @Nullable
             @Override
             public OntologyProperty apply(@Nullable Vertex vertex) {
@@ -1126,7 +1126,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     private List<Concept> transformConcepts(Iterable<Vertex> vertices, User user, String workspaceId) {
-        return Lists.newArrayList(Iterables.transform(vertices, new Function<Vertex, Concept>() {
+        Iterable<Vertex> filtered = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_CONCEPT));
+        return Lists.newArrayList(Iterables.transform(filtered, new Function<Vertex, Concept>() {
             @Nullable
             @Override
             public Concept apply(@Nullable Vertex vertex) {
@@ -1139,7 +1140,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     private List<Relationship> transformRelationships(Iterable<Vertex> vertices, User user, String workspaceId) {
-        return Lists.newArrayList(Iterables.transform(vertices, new Function<Vertex, Relationship>() {
+        Iterable<Vertex> filtered = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_RELATIONSHIP));
+        return Lists.newArrayList(Iterables.transform(filtered, new Function<Vertex, Relationship>() {
             @Nullable
             @Override
             public Relationship apply(@Nullable Vertex vertex) {
