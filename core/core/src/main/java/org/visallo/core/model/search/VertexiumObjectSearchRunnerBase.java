@@ -50,8 +50,8 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
 
         QueryAndData queryAndData = getQuery(searchOptions, authorizations);
         applyFiltersToQuery(queryAndData, filterJson, user);
-        applyConceptTypeFilterToQuery(queryAndData, searchOptions);
-        applyEdgeLabelFilterToQuery(queryAndData, searchOptions);
+        applyConceptTypeFilterToQuery(queryAndData, user, searchOptions);
+        applyEdgeLabelFilterToQuery(queryAndData, user, searchOptions);
         applySortToQuery(queryAndData, searchOptions);
         applyAggregationsToQuery(queryAndData, searchOptions);
         applyExtendedDataFilters(queryAndData, searchOptions);
@@ -232,7 +232,7 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
 
     protected abstract QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations);
 
-    protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
+    protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, User user, SearchOptions searchOptions) {
         Query query = queryAndData.getQuery();
         String conceptTypes = searchOptions.getOptionalParameter("conceptTypes", String.class);
         if (conceptTypes == null) {
@@ -240,14 +240,14 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
             String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
             if (conceptType != null) {
                 final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
+                ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes), user, searchOptions.getWorkspaceId());
             }
         } else {
-            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes));
+            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes), user, searchOptions.getWorkspaceId());
         }
     }
 
-    protected void applyEdgeLabelFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
+    protected void applyEdgeLabelFilterToQuery(QueryAndData queryAndData, User user, SearchOptions searchOptions) {
         Query query = queryAndData.getQuery();
         String labels = searchOptions.getOptionalParameter("edgeLabels", String.class);
         if (labels == null) {
@@ -255,10 +255,10 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
             String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
             if (edgeLabel != null) {
                 final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
+                ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes), user, searchOptions.getWorkspaceId());
             }
         } else {
-            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels));
+            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels), user, searchOptions.getWorkspaceId());
         }
     }
 
