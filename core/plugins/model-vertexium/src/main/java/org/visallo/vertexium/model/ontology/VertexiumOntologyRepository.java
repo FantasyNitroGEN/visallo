@@ -519,9 +519,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 @Override
                 public List<Concept> callWithTime() throws Exception {
                     Authorizations authorizations = getAuthorizations(user, workspaceId);
-                    if (workspaceId != null) {
-                        authorizations = graph.createAuthorizations(authorizations, workspaceId);
-                    }
                     Iterable<Vertex> vertices = graph.getVerticesWithPrefix(ID_PREFIX_CONCEPT, authorizations);
                     vertices = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_CONCEPT));
                     return transformConcepts(vertices, user, workspaceId);
@@ -636,15 +633,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
             Visibility visibility = VISIBILITY.getVisibility();
             String id = ID_PREFIX_CONCEPT + conceptIRI;
-            if (workspaceId == null && user != null) {
-                if (privilegeRepository == null) {
-                    privilegeRepository = InjectHelper.getInstance(PrivilegeRepository.class);
-                }
-                if (!privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_ADD)) {
-                    throw new VisalloAccessDeniedException("User missing privilege to published concepts", user, null);
-                }
-            }
-
             VertexBuilder builder = null;
             if (workspaceId == null) {
                 builder = graph.prepareVertex(id, visibility);
@@ -1016,6 +1004,13 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         }
     }
 
+    private PrivilegeRepository getPrivilegeRepository() {
+        if (privilegeRepository == null) {
+            privilegeRepository = InjectHelper.getInstance(PrivilegeRepository.class);
+        }
+        return privilegeRepository;
+    }
+
     private Vertex getParentConceptVertex(Vertex conceptVertex, User user, String workspaceId) {
         try {
             return Iterables.getOnlyElement(conceptVertex.getVertices(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId)), null);
@@ -1035,10 +1030,14 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             return graph.createAuthorizations(authorizations, workspaceId);
         }
         if (workspaceId == null) {
-            if (privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_ADD)) {
+            if (getPrivilegeRepository().hasPrivilege(user, Privilege.ONTOLOGY_PUBLISH)) {
                 return authorizationRepository.getGraphAuthorizations(user, VISIBILITY_STRING);
             }
-            throw new VisalloAccessDeniedException("User is missing ONTOLOGY_ADD privilege", user, null);
+            throw new VisalloAccessDeniedException("User is missing ONTOLOGY_PUBLISH privilege", user, null);
+        }
+
+        if (!getPrivilegeRepository().hasPrivilege(user, Privilege.ONTOLOGY_ADD)) {
+            throw new VisalloAccessDeniedException("User missing privilege to add to the ontology", user, null);
         }
 
         return authorizationRepository.getGraphAuthorizations(user, workspaceId, VISIBILITY_STRING);
