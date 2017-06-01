@@ -94,7 +94,6 @@ define([
              * @function
              */
             ontology: _.memoize(function() {
-                console.log('getting the ontology')
                 return Promise.all([
                     api.concepts(),
                     api.properties(),

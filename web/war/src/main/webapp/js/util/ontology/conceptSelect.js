@@ -28,17 +28,12 @@ define([
     'util/component/attacher',
     //'./concepts.hbs',
     //'./concept.hbs',
-    //'util/withDataRequest',
-    'util/requirejs/promise!util/service/ontologyPromise',
-    //'./withSelect'
 ], function(
     defineComponent,
     attacher,
     //template,
-    //conceptTemplate,
-    //withDataRequest,
-    ontology/*,
-    withSelect*/) {
+    //conceptTemplate
+    ) {
 
     return defineComponent(ConceptSelector);
 
@@ -51,12 +46,14 @@ define([
             this.attacher = attacher()
                 .node(this.node)
                 .behavior({
-                    onConceptSelected: (attacher, concept) => {
+                    onSelected: (attacher, concept) => {
                         this.trigger('conceptSelected', { concept })
                     }
                 })
                 .path('components/ontology/Concepts')
-            this.attacher.attach();
+            this.attacher.attach().then(() => {
+                this.trigger('positionDialog');
+            });
         })
     }
 });
