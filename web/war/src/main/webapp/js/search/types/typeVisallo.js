@@ -188,7 +188,8 @@ define([
                     otherFilters: otherFilters,
                     paging: paging,
                     sort: sortFields,
-                    matchType: matchType
+                    matchType: matchType,
+                    fetchReferencedElements: true
                 };
 
             this.triggerUpdatedSavedSearchQuery(options);

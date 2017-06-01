@@ -5,7 +5,10 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Graph;
+import org.vertexium.Metadata;
+import org.vertexium.Vertex;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -22,8 +25,8 @@ import org.visallo.core.util.VertexiumMetadataUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiAddElementProperties;
-import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
 import org.visallo.web.util.VisibilityValidator;
@@ -64,7 +67,7 @@ public class VertexNew implements ParameterizedHandler {
     }
 
     @Handle
-    public ClientApiElement handle(
+    public ClientApiVertex handle(
             @Optional(name = "vertexId", allowEmpty = false) String vertexId,
             @Required(name = "conceptType", allowEmpty = false) String conceptType,
             @Required(name = "visibilitySource") String visibilitySource,
@@ -155,6 +158,6 @@ public class VertexNew implements ParameterizedHandler {
             }
         }
 
-        return ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
+        return (ClientApiVertex) ClientApiConverter.toClientApi(vertex, workspaceId, authorizations);
     }
 }

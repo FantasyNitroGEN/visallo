@@ -112,6 +112,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         }
     }
 
+
     private AuthorizationRepository getAuthorizationRepository() {
         if (authorizationRepository == null) {
             authorizationRepository = InjectHelper.getInstance(AuthorizationRepository.class);
@@ -164,6 +165,13 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
         if (!graph.isPropertyDefined(OntologyProperties.GLYPH_ICON.getPropertyName())) {
             graph.defineProperty(OntologyProperties.GLYPH_ICON.getPropertyName())
+                    .dataType(byte[].class)
+                    .textIndexHint(TextIndexHint.NONE)
+                    .define();
+        }
+
+        if (!graph.isPropertyDefined(OntologyProperties.MAP_GLYPH_ICON.getPropertyName())) {
+            graph.defineProperty(OntologyProperties.MAP_GLYPH_ICON.getPropertyName())
                     .dataType(byte[].class)
                     .textIndexHint(TextIndexHint.NONE)
                     .define();
@@ -358,7 +366,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     OWLOntology o = m.loadOntologyFromOntologyDocument(visalloBaseOntologySource, config);
                     loadedOntologies.add(o);
                 } catch (UnloadableImportException ex) {
-                    LOGGER.error("Could not load %s", ontologyFileIRI, ex);
+                    LOGGER.warn("Could not load existing %s", ontologyFileIRI, ex);
                 }
             }
         }
@@ -588,7 +596,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         return Lists.newArrayList(new ConvertingIterable<Vertex, OntologyProperty>(vertex.getVertices(Direction.OUT, LabelName.HAS_PROPERTY.toString(), getAuthorizations(user, workspaceId))) {
             @Override
             protected OntologyProperty convert(Vertex o) {
-                return createOntologyProperty(o, getDependentPropertyIris(o, user, workspaceId));
+                return createOntologyProperty(o, getDependentPropertyIris(o, user, workspaceId), VertexiumOntologyProperty.getDataType(o));
             }
         });
     }
@@ -781,10 +789,23 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 }
             }).get();
 
-            return createOntologyProperty(vertex, dependentPropertyIris);
+            return createOntologyProperty(vertex, dependentPropertyIris, dataType);
         } catch (Exception e) {
             throw new VisalloException("Could not create property: " + propertyIri, e);
         }
+    }
+
+    @Override
+    protected void addExtendedDataTableProperty(OntologyProperty tableProperty, OntologyProperty property, User user, String workspaceId) {
+        if (!(tableProperty instanceof VertexiumExtendedDataTableOntologyProperty)) {
+            throw new VisalloException("Invalid table property type: " + tableProperty.getDataType());
+        }
+
+        Vertex tablePropertyVertex = ((VertexiumExtendedDataTableOntologyProperty) tableProperty).getVertex();
+        Vertex propertyVertex = ((VertexiumOntologyProperty) property).getVertex();
+
+        findOrAddEdge(tablePropertyVertex, propertyVertex, LabelName.HAS_PROPERTY.toString(), user, workspaceId);
+        ((VertexiumExtendedDataTableOntologyProperty) tableProperty).addProperty(property.getIri());
     }
 
     @Override
@@ -1021,9 +1042,19 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
      */
     protected OntologyProperty createOntologyProperty(
             Vertex propertyVertex,
-            ImmutableList<String> dependentPropertyIris
+            ImmutableList<String> dependentPropertyIris,
+            PropertyType propertyType
     ) {
-        return new VertexiumOntologyProperty(propertyVertex, dependentPropertyIris);
+        if (propertyType.equals(PropertyType.EXTENDED_DATA_TABLE)) {
+            VertexiumExtendedDataTableOntologyProperty result = new VertexiumExtendedDataTableOntologyProperty(propertyVertex, dependentPropertyIris);
+            Iterable<String> tablePropertyIris = propertyVertex.getVertexIds(Direction.OUT, LabelName.HAS_PROPERTY.toString(), authorizations);
+            for (String tablePropertyIri : tablePropertyIris) {
+                result.addProperty(tablePropertyIri.substring(VertexiumOntologyRepository.ID_PREFIX_PROPERTY.length()));
+            }
+            return result;
+        } else {
+            return new VertexiumOntologyProperty(propertyVertex, dependentPropertyIris);
+        }
     }
 
     /**
@@ -1075,7 +1106,11 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             @Nullable
             @Override
             public OntologyProperty apply(@Nullable Vertex vertex) {
-                return createOntologyProperty(vertex, getDependentPropertyIris(vertex, user, workspaceId));
+                return createOntologyProperty(
+                        vertex,
+                        getDependentPropertyIris(vertex, user, workspaceId),
+                        VertexiumOntologyProperty.getDataType(vertex)
+                );
             }
         }));
     }

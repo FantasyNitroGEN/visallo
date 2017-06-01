@@ -1,22 +1,20 @@
 package org.visallo.web.routes.vertex;
 
 import com.v5analytics.webster.annotations.Handle;
-import org.vertexium.Authorizations;
-import org.vertexium.Edge;
-import org.vertexium.Element;
-import org.vertexium.Vertex;
+import org.vertexium.*;
 import org.vertexium.query.*;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.search.QueryResultsIterableSearchResults;
-import org.visallo.core.model.search.ElementSearchRunnerBase;
 import org.visallo.core.model.search.SearchOptions;
+import org.visallo.core.model.search.VertexiumObjectSearchRunnerBase;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
+import org.visallo.web.clientapi.model.ClientApiExtendedDataRow;
 import org.visallo.web.clientapi.model.ClientApiSearchResponse;
+import org.visallo.web.clientapi.model.ClientApiVertexiumObject;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.routes.search.WebSearchOptionsFactory;
 
@@ -29,14 +27,19 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public abstract class ElementSearchBase {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchBase.class);
+public abstract class VertexiumObjectSearchBase {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexiumObjectSearchBase.class);
     private static final Pattern DATE_TIME_PATTERN = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T.*");
-    private final ElementSearchRunnerBase searchRunner;
+    private final VertexiumObjectSearchRunnerBase searchRunner;
+    private final Graph graph;
 
-    public ElementSearchBase(ElementSearchRunnerBase searchRunner) {
+    public VertexiumObjectSearchBase(
+            Graph graph,
+            VertexiumObjectSearchRunnerBase searchRunner
+    ) {
         checkNotNull(searchRunner, "searchRunner is required");
         this.searchRunner = searchRunner;
+        this.graph = graph;
     }
 
     @Handle
@@ -53,7 +56,7 @@ public abstract class ElementSearchBase {
                 scores = ((IterableWithScores<?>) searchResults.getQueryResultsIterable()).getScores();
             }
 
-            List<ClientApiElement> elementList = convertElementsToClientApi(
+            List<ClientApiVertexiumObject> vertexiumObjects = convertElementsToClientApi(
                     searchResults.getQueryAndData(),
                     searchResults.getQueryResultsIterable(),
                     scores,
@@ -62,8 +65,13 @@ public abstract class ElementSearchBase {
             );
 
             ClientApiElementSearchResponse results = new ClientApiElementSearchResponse();
-            results.getElements().addAll(elementList);
+            results.getElements().addAll(vertexiumObjects);
             results.setNextOffset((int) (searchResults.getOffset() + searchResults.getSize()));
+
+            Boolean fetchReferencedElements = searchOptions.getOptionalParameter("fetchReferencedElements", Boolean.class);
+            if (fetchReferencedElements != null && fetchReferencedElements) {
+                results.setReferencedElements(findReferencedElements(vertexiumObjects, workspaceId, authorizations));
+            }
 
             addSearchResultsDataToResults(results, searchResults.getQueryAndData(), searchResults.getQueryResultsIterable());
 
@@ -71,16 +79,54 @@ public abstract class ElementSearchBase {
         }
     }
 
+    protected List<ClientApiVertexiumObject> findReferencedElements(
+            List<ClientApiVertexiumObject> searchResults,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
+        Set<String> edgeIds = new HashSet<>();
+        Set<String> vertexIds = new HashSet<>();
+        for (ClientApiVertexiumObject searchResult : searchResults) {
+            if (searchResult instanceof ClientApiExtendedDataRow) {
+                ClientApiExtendedDataRow row = (ClientApiExtendedDataRow) searchResult;
+                switch (row.getId().getElementType()) {
+                    case "EDGE":
+                        edgeIds.add(row.getId().getElementId());
+                        break;
+                    case "VERTEX":
+                        vertexIds.add(row.getId().getElementId());
+                        break;
+                    default:
+                        throw new VisalloException("Unhandled " + ElementType.class.getName() + ": " + row.getId().getElementType());
+                }
+            }
+        }
+
+        List<ClientApiVertexiumObject> results = new ArrayList<>();
+        if (vertexIds.size() > 0) {
+            Iterable<Vertex> vertices = graph.getVertices(vertexIds, ClientApiConverter.SEARCH_FETCH_HINTS, authorizations);
+            for (Vertex vertex : vertices) {
+                results.add(ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations));
+            }
+        }
+        if (edgeIds.size() > 0) {
+            Iterable<Edge> edges = graph.getEdges(edgeIds, ClientApiConverter.SEARCH_FETCH_HINTS, authorizations);
+            for (Edge edge : edges) {
+                results.add(ClientApiConverter.toClientApiEdge(edge, workspaceId));
+            }
+        }
+        return results;
+    }
 
     private void addSearchResultsDataToResults(
             ClientApiElementSearchResponse results,
-            ElementSearchRunnerBase.QueryAndData queryAndData,
-            QueryResultsIterable<? extends Element> searchResults
+            VertexiumObjectSearchRunnerBase.QueryAndData queryAndData,
+            QueryResultsIterable<? extends VertexiumObject> searchResults
     ) {
         // CompositeGraphQuery returns 0 for getTotalHits, it would be nice to change the Vertexium API
         // to denote this but that would be a breaking change. For now we'll test and not set total hits
         // and let the UI handle it
-        if(!(queryAndData.getQuery() instanceof CompositeGraphQuery)) {
+        if (!(queryAndData.getQuery() instanceof CompositeGraphQuery)) {
             results.setTotalHits(searchResults.getTotalHits());
         }
 
@@ -92,7 +138,10 @@ public abstract class ElementSearchBase {
         }
     }
 
-    private ClientApiSearchResponse.AggregateResult toClientApiAggregateResult(QueryResultsIterable<? extends Element> searchResults, Aggregation aggregation) {
+    private ClientApiSearchResponse.AggregateResult toClientApiAggregateResult(
+            QueryResultsIterable<? extends VertexiumObject> searchResults,
+            Aggregation aggregation
+    ) {
         AggregationResult aggResult;
         if (aggregation instanceof TermsAggregation) {
             aggResult = searchResults.getAggregationResult(aggregation.getAggregationName(), TermsResult.class);
@@ -198,33 +247,35 @@ public abstract class ElementSearchBase {
         return result;
     }
 
-    protected List<ClientApiElement> convertElementsToClientApi(
-            ElementSearchRunnerBase.QueryAndData queryAndData,
-            Iterable<? extends Element> searchResults,
+    protected List<ClientApiVertexiumObject> convertElementsToClientApi(
+            VertexiumObjectSearchRunnerBase.QueryAndData queryAndData,
+            Iterable<? extends VertexiumObject> searchResults,
             Map<Object, Double> scores,
             String workspaceId,
             Authorizations authorizations
     ) {
-        List<ClientApiElement> elementsList = new ArrayList<>();
-        for (Element element : searchResults) {
-            Integer commonCount = getCommonCount(queryAndData, element);
-            ClientApiElement elem;
-            if (element instanceof Vertex) {
-                elem = ClientApiConverter.toClientApiVertex((Vertex) element, workspaceId, commonCount, authorizations);
-            } else if (element instanceof Edge) {
-                elem = ClientApiConverter.toClientApiEdge((Edge) element, workspaceId);
+        List<ClientApiVertexiumObject> results = new ArrayList<>();
+        for (VertexiumObject vertexiumObject : searchResults) {
+            Integer commonCount = getCommonCount(queryAndData, vertexiumObject);
+            ClientApiVertexiumObject vo;
+            if (vertexiumObject instanceof Vertex) {
+                vo = ClientApiConverter.toClientApiVertex((Vertex) vertexiumObject, workspaceId, commonCount, authorizations);
+            } else if (vertexiumObject instanceof Edge) {
+                vo = ClientApiConverter.toClientApiEdge((Edge) vertexiumObject, workspaceId);
+            } else if (vertexiumObject instanceof ExtendedDataRow) {
+                vo = ClientApiConverter.toClientApiExtendedDataRow((ExtendedDataRow) vertexiumObject, workspaceId);
             } else {
-                throw new VisalloException("Unhandled element type: " + element.getClass().getName());
+                throw new VisalloException("Unhandled " + VertexiumObject.class.getName() + ": " + vertexiumObject.getClass().getName());
             }
             if (scores != null) {
-                elem.setScore(scores.get(element.getId()));
+                vo.setScore(scores.get(vertexiumObject.getId()));
             }
-            elementsList.add(elem);
+            results.add(vo);
         }
-        return elementsList;
+        return results;
     }
 
-    protected Integer getCommonCount(ElementSearchRunnerBase.QueryAndData queryAndData, Element element) {
+    protected Integer getCommonCount(VertexiumObjectSearchRunnerBase.QueryAndData queryAndData, VertexiumObject vertexiumObject) {
         return null;
     }
 }

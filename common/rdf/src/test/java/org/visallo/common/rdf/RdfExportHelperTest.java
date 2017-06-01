@@ -41,7 +41,7 @@ public class RdfExportHelperTest {
         graph.flush();
 
         Vertex v1 = graph.getVertex("v1", authorizations);
-        String rdf = rdfExportHelper.exportElementToRdfTriple(v1);
+        String rdf = rdfExportHelper.exportVertexiumObjectToRdfTriple(v1);
         String expected = "# Vertex: v1\n" +
                 "<v1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://visallo.org#person>\n" +
                 "<v1> <http://visallo.org#conceptType> \"http://visallo.org#person\"\n" +
@@ -66,7 +66,7 @@ public class RdfExportHelperTest {
         graph.flush();
 
         Edge e1 = graph.getEdge("e1", authorizations);
-        String rdf = rdfExportHelper.exportElementToRdfTriple(e1);
+        String rdf = rdfExportHelper.exportVertexiumObjectToRdfTriple(e1);
         String expected = "# Edge: e1\n" +
                 "<v1> <http://visallo.org#knows:e1> <v2>\n" +
                 "<EDGE:e1> <http://visallo.org#conceptType> \"http://visallo.org#person\"\n" +

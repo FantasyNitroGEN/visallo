@@ -1,15 +1,22 @@
 define([
     'flight/lib/component',
-    './pageList.hbs'
+    './pageList.hbs',
+    'util/component/attacher'
 ], function(
     defineComponent,
-    listTemplate) {
+    listTemplate,
+    Attacher) {
     'use strict';
 
-    var ACCESS_EXTENSION_PAGE = {
-            identifier: 'access',
-            pageComponentPath: 'workspaces/userAccount/bundled/access/access'
-        };
+    const ACCESS_EXTENSION_PAGE = {
+        identifier: 'access',
+        pageComponentPath: 'workspaces/userAccount/bundled/access/access'
+    };
+
+    const SETTINGS_EXTENSION_PAGE = {
+        identifier: 'settings',
+        pageComponentPath: 'workspaces/userAccount/bundled/settings/Settings'
+    };
 
     return defineComponent(UserAccount);
 
@@ -36,6 +43,10 @@ define([
 
             require(['configuration/plugins/registry'], function(registry) {
                 var pages = registry.extensionsForPoint('org.visallo.user.account.page');
+                if (!_.findWhere(pages, { identifier: SETTINGS_EXTENSION_PAGE.identifier })) {
+                    registry.registerExtension('org.visallo.user.account.page', SETTINGS_EXTENSION_PAGE);
+                    pages.push(SETTINGS_EXTENSION_PAGE);
+                }
                 if (!_.findWhere(pages, { identifier: ACCESS_EXTENSION_PAGE.identifier })) {
                     registry.registerExtension('org.visallo.user.account.page', ACCESS_EXTENSION_PAGE);
                     pages.push(ACCESS_EXTENSION_PAGE);
@@ -62,9 +73,13 @@ define([
                     .data('componentPath'),
                 container = this.select('pageSelector').teardownAllComponents();
 
-            require([componentPath], function(Page) {
-                Page.attachTo(container);
-            });
+            if (this._attacher) {
+                this._attacher.teardown();
+            }
+            this._attacher = Attacher()
+                .node(container)
+                .path(componentPath);
+            this._attacher.attach();
         };
 
     }

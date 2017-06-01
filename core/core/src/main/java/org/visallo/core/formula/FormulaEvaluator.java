@@ -8,7 +8,7 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.vertexium.Authorizations;
-import org.vertexium.Element;
+import org.vertexium.VertexiumObject;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -17,6 +17,7 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.ClientApiVertexiumObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 
 import java.io.IOException;
@@ -63,31 +64,31 @@ public class FormulaEvaluator {
         executorService.shutdown();
     }
 
-    public String evaluateTitleFormula(Element element, UserContext userContext, Authorizations authorizations) {
-        return evaluateFormula("Title", element, null, null, userContext, authorizations);
+    public String evaluateTitleFormula(VertexiumObject vertexiumObject, UserContext userContext, Authorizations authorizations) {
+        return evaluateFormula("Title", vertexiumObject, null, null, userContext, authorizations);
     }
 
-    public String evaluateTimeFormula(Element element, UserContext userContext, Authorizations authorizations) {
-        return evaluateFormula("Time", element, null, null, userContext, authorizations);
+    public String evaluateTimeFormula(VertexiumObject vertexiumObject, UserContext userContext, Authorizations authorizations) {
+        return evaluateFormula("Time", vertexiumObject, null, null, userContext, authorizations);
     }
 
-    public String evaluateSubtitleFormula(Element element, UserContext userContext, Authorizations authorizations) {
-        return evaluateFormula("Subtitle", element, null, null, userContext, authorizations);
+    public String evaluateSubtitleFormula(VertexiumObject vertexiumObject, UserContext userContext, Authorizations authorizations) {
+        return evaluateFormula("Subtitle", vertexiumObject, null, null, userContext, authorizations);
     }
 
     public String evaluatePropertyDisplayFormula(
-            Element element,
+            VertexiumObject vertexiumObject,
             String propertyKey,
             String propertyName,
             UserContext userContext,
             Authorizations authorizations
     ) {
-        return evaluateFormula("Property", element, propertyKey, propertyName, userContext, authorizations);
+        return evaluateFormula("Property", vertexiumObject, propertyKey, propertyName, userContext, authorizations);
     }
 
     private String evaluateFormula(
             String type,
-            Element element,
+            VertexiumObject vertexiumObject,
             String propertyKey,
             String propertyName,
             UserContext userContext,
@@ -95,7 +96,7 @@ public class FormulaEvaluator {
     ) {
         FormulaEvaluatorCallable evaluationCallable = new FormulaEvaluatorCallable(
                 type,
-                element,
+                vertexiumObject,
                 propertyKey,
                 propertyName,
                 userContext,
@@ -189,8 +190,8 @@ public class FormulaEvaluator {
         }
     }
 
-    protected String toJson(Element element, String workspaceId, Authorizations authorizations) {
-        ClientApiElement v = ClientApiConverter.toClientApi(element, workspaceId, authorizations);
+    protected String toJson(VertexiumObject vertexiumObject, String workspaceId, Authorizations authorizations) {
+        ClientApiVertexiumObject v = ClientApiConverter.toClientApi(vertexiumObject, workspaceId, authorizations);
         return v.toString();
     }
 
@@ -229,19 +230,19 @@ public class FormulaEvaluator {
         private final String propertyName;
         private UserContext userContext;
         private String fieldName;
-        private Element element;
+        private VertexiumObject vertexiumObject;
         private Authorizations authorizations;
 
         public FormulaEvaluatorCallable(
                 String fieldName,
-                Element element,
+                VertexiumObject vertexiumObject,
                 String propertyKey,
                 String propertyName,
                 UserContext userContext,
                 Authorizations authorizations
         ) {
             this.fieldName = fieldName;
-            this.element = element;
+            this.vertexiumObject = vertexiumObject;
             this.propertyKey = propertyKey;
             this.propertyName = propertyName;
             this.userContext = userContext;
@@ -252,7 +253,7 @@ public class FormulaEvaluator {
         public String call() throws Exception {
             Scriptable scope = getScriptable(userContext);
             Context context = Context.getCurrentContext();
-            String json = toJson(element, userContext.getWorkspaceId(), authorizations);
+            String json = toJson(vertexiumObject, userContext.getWorkspaceId(), authorizations);
             Function function = (Function) scope.get("evaluate" + fieldName + "FormulaJson", scope);
             Object result = function.call(
                     context,

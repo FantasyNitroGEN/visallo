@@ -7,10 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Authorizations;
-import org.vertexium.Element;
-import org.vertexium.Graph;
-import org.vertexium.Visibility;
+import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.ConfigurationLoader;
@@ -47,7 +44,7 @@ public class FormulaEvaluatorTest {
         Configuration configuration = configurationLoader.createConfiguration();
 
         Locale locale = Locale.getDefault();
-        String timeZone = TimeZone.getDefault().getDisplayName();
+        String timeZone = "America/New_York";
         userContext = new FormulaEvaluator.UserContext(locale, null, timeZone, null);
 
         final String ontologyJson = IOUtils.toString(FormulaEvaluatorTest.class.getResourceAsStream("ontology.json"), "utf-8");
@@ -66,9 +63,9 @@ public class FormulaEvaluatorTest {
             }
 
             @Override
-            protected String toJson(Element element, String workspaceId, Authorizations authorizations) {
-                if (element != null) {
-                    return super.toJson(element, workspaceId, authorizations);
+            protected String toJson(VertexiumObject vertexiumObject, String workspaceId, Authorizations authorizations) {
+                if (vertexiumObject != null) {
+                    return super.toJson(vertexiumObject, workspaceId, authorizations);
                 }
                 return vertexJson;
             }

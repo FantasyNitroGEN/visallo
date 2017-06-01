@@ -2,3 +2,4 @@ org.visallo.core.model.search.VertexSearchRunner
 org.visallo.core.model.search.ElementSearchRunner
 org.visallo.core.model.search.EdgeSearchRunner
 org.visallo.core.model.search.VertexFindRelatedSearchRunner
+org.visallo.core.model.search.ExtendedDataSearchRunner

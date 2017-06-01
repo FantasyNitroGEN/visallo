@@ -3,6 +3,7 @@
 $ = { extend: _.extend };
 window = this;
 navigator = { userAgent: ''};
+visalloData = {};
 console = {
     log: print,
     info: print,
@@ -38,9 +39,11 @@ require.config({
         'util/formatters': 'util_formatters',
         'util/promise': 'util_promise',
         'util/messages': 'util_messages',
+        'util/parsers': 'util_parsers',
         'util/requirejs/promise': 'util_requirejs_promise',
         'util/service/messagesPromise': 'util_service_messagesPromise',
         'util/service/ontologyPromise': 'util_service_ontologyPromise',
+        'util/service/propertiesPromise': 'util_service_propertiesPromise',
         'util/vertex/formatters': 'util_vertex_formatters',
         'util/vertex/formula': 'util_vertex_formula',
         'util/vertex/urlFormatters': 'util_vertex_urlFormatters',

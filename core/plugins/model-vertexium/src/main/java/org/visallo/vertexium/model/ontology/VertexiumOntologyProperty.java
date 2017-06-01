@@ -138,6 +138,10 @@ public class VertexiumOntologyProperty extends OntologyProperty {
         return PropertyType.convert(OntologyProperties.DATA_TYPE.getPropertyValue(vertex));
     }
 
+    public static PropertyType getDataType(Vertex vertex) {
+        return PropertyType.convert(OntologyProperties.DATA_TYPE.getPropertyValue(vertex));
+    }
+
     public String getDisplayType() {
         return OntologyProperties.DISPLAY_TYPE.getPropertyValue(vertex);
     }

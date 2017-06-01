@@ -48,6 +48,6 @@ public class EdgeSearchRunnerTest extends SearchRunnerTestBase {
         SearchOptions searchOptions = new SearchOptions(parameters, "workspace1");
 
         QueryResultsIterableSearchResults results = edgeSearchRunner.run(searchOptions, user, authorizations);
-        assertEquals(2, size(results.getElements()));
+        assertEquals(2, size(results.getVertexiumObjects()));
     }
 }

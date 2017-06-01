@@ -54,7 +54,7 @@ public class VertexFindRelatedTest extends SearchRouteTestBase {
         List<Vertex> elements = new ArrayList<>();
         elements.add(v2);
         elements.add(v3);
-        when(results.getElements()).thenReturn((List) elements);
+        when(results.getVertexiumObjects()).thenReturn((List) elements);
         when(results.getCount()).thenReturn(2L);
 
         setParameter("q", "*");

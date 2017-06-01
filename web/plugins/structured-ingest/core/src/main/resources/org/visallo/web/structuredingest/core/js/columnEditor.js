@@ -1,6 +1,6 @@
 define([
     'flight/lib/component',
-    'hbs!../templates/columnEditor',
+    '../templates/columnEditor.hbs',
     './util',
     'util/ontology/conceptSelect',
     'util/withDataRequest',

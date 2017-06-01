@@ -69,7 +69,7 @@ define([
                 }
             });
             this.on('clearSearch', function(event, data) {
-                this.hideSearchResults();
+                this.hideAndClearSearchResults();
 
                 var filters = this.select('filtersSelector').find('.content')
                 this.trigger(filters, 'clearfilters', data);
@@ -83,8 +83,14 @@ define([
         });
 
         this.onToggleDisplay = function(event, data) {
-            if (data.name === 'search' && this.$node.closest('.visible').length === 0) {
-                this.hideSearchResults();
+            if (data.name === 'search') {
+                if (this.$node.closest('.visible').length === 0) {
+                    this.hideSearchResults();
+                } else {
+                    if (this.select('resultsContainerSelector').html().length > 0) {
+                        this.showSearchResults();
+                    }
+                }
             }
         };
 
@@ -113,12 +119,24 @@ define([
             });
         };
 
-        this.hideSearchResults = function() {
+        this.hideAndClearSearchResults = function() {
+            return this.hideSearchResults(true);
+        };
+
+        this.hideSearchResults = function(clear) {
             this.select('resultsSelector')
                 .hide();
-            this.select('resultsContainerSelector')
-                .teardownAllComponents()
-                .empty();
+            if (clear) {
+                this.select('resultsContainerSelector')
+                    .teardownAllComponents()
+                    .empty();
+            }
+            this.trigger(document, 'paneResized');
+        };
+
+        this.showSearchResults = function() {
+            this.select('resultsSelector')
+                .show();
             this.trigger(document, 'paneResized');
         };
 

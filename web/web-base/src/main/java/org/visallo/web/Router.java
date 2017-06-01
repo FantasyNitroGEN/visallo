@@ -28,6 +28,8 @@ import org.visallo.web.routes.directory.DirectoryGet;
 import org.visallo.web.routes.directory.DirectorySearch;
 import org.visallo.web.routes.edge.*;
 import org.visallo.web.routes.element.ElementSearch;
+import org.visallo.web.routes.extendedData.ExtendedDataGet;
+import org.visallo.web.routes.extendedData.ExtendedDataSearch;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessById;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessCancel;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessDelete;
@@ -184,6 +186,10 @@ public class Router extends HttpServlet {
             app.get("/edge/count", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeGetCount.class);
             app.get("/edge/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeSearch.class);
             app.post("/edge/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, EdgeSearch.class);
+
+            app.get("/extended-data", authenticator, csrfProtector, ReadPrivilegeFilter.class, ExtendedDataGet.class);
+            app.get("/extended-data/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, ExtendedDataSearch.class);
+            app.post("/extended-data/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, ExtendedDataSearch.class);
 
             app.get("/workspace/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceList.class);
             app.post("/workspace/create", authenticator, csrfProtector, ReadPrivilegeFilter.class, WorkspaceCreate.class);

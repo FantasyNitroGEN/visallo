@@ -26,7 +26,7 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 
-// FIXME: all "return null" methods
+// FIXME: all "return null" or empty methods
 public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(InMemoryOntologyRepository.class);
     private final Graph graph;
@@ -145,6 +145,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     }
 
+
     @Override
     protected List<OWLOntology> loadOntologyFiles(
             OWLOntologyManager m,
@@ -234,6 +235,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         return null;
     }
 
+
     @Override
     public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
         for (Concept concept : getConceptsWithProperties()) {
@@ -253,6 +255,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris, User user, String workspaceId) {
 
     }
+
 
     @Override
     protected void getOrCreateInverseOfRelationship(Relationship fromRelationship, Relationship inverseOfRelationship) {
@@ -283,12 +286,16 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             boolean deleteable,
             boolean updateabale
     ) {
-        InMemoryOntologyProperty property = (InMemoryOntologyProperty) getPropertyByIRI(propertyIri);
+        InMemoryOntologyProperty property = getPropertyByIRI(propertyIri);
         if (property == null) {
             searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
 
-            property = new InMemoryOntologyProperty();
+            if (dataType.equals(PropertyType.EXTENDED_DATA_TABLE)) {
+                property = new InMemoryExtendedDataTableOntologyProperty();
+            } else {
+                property = new InMemoryOntologyProperty();
+            }
             property.setDataType(dataType);
             property.setUserVisible(userVisible);
             property.setSearchable(searchable);
@@ -386,13 +393,23 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public OntologyProperty getPropertyByIRI(String propertyIRI) {
+    public InMemoryOntologyProperty getPropertyByIRI(String propertyIRI) {
         return propertiesCache.get(propertyIRI);
     }
 
     @Override
-    public Relationship getRelationshipByIRI(String relationshipIRI) {
+    public InMemoryRelationship getRelationshipByIRI(String relationshipIRI) {
         return relationshipsCache.get(relationshipIRI);
+    }
+
+    @Override
+    public InMemoryConcept getConceptByIRI(String conceptIRI) {
+        return getConceptByIRI(conceptIRI, null, null);
+    }
+
+    @Override
+    public InMemoryConcept getConceptByIRI(String conceptIRI, User user, String workspaceId) {
+        return (InMemoryConcept) super.getConceptByIRI(conceptIRI, user, workspaceId);
     }
 
     @Override
@@ -505,7 +522,8 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
-        InMemoryConcept concept = (InMemoryConcept) getConceptByIRI(conceptIRI);
+        InMemoryConcept concept = getConceptByIRI(conceptIRI, user, workspaceId);
+
         if (concept != null) {
             return concept;
         }
@@ -574,6 +592,14 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     @Override
     public Relationship getOrCreateRelationshipType(Relationship parent, Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, boolean deleteChangeableProperties, User user, String workspaceId) {
         return null;
+    }
+
+    protected void addExtendedDataTableProperty(OntologyProperty tableProperty, OntologyProperty property, User user, String workspaceId) {
+        if (!(tableProperty instanceof InMemoryExtendedDataTableOntologyProperty)) {
+            throw new VisalloException("Invalid property type to add extended data table property to: " + tableProperty.getDataType());
+        }
+        InMemoryExtendedDataTableOntologyProperty edtp = (InMemoryExtendedDataTableOntologyProperty) tableProperty;
+        edtp.addTableProperty(property.getIri());
     }
 
     private static class OwlData {

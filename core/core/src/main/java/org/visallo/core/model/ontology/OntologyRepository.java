@@ -137,6 +137,8 @@ public interface OntologyRepository {
 
     OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition);
 
+    OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition, User user, String workspaceId);
+
     OWLOntologyManager createOwlOntologyManager(OWLOntologyLoaderConfiguration config, IRI excludeDocumentIRI) throws Exception;
 
     void resolvePropertyIds(JSONArray filterJson) throws JSONException;
@@ -221,6 +223,11 @@ public interface OntologyRepository {
 
     String getRequiredPropertyIRIByIntent(String intent, User user, String workspaceId);
 
+    /**
+     * This method was used to avoid reimporting ontologies. It is no longer needed since MD5s of imported ontologies
+     * will be kept and if an ontology has not changed it will not be imported again.
+     */
+    @Deprecated
     boolean isOntologyDefined(String iri);
 
     OntologyProperty getDependentPropertyParent(String iri);

@@ -10,9 +10,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.types.*;
 import org.visallo.core.util.OWLOntologyUtil;
 
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import static org.vertexium.util.IterableUtils.toList;
 
@@ -109,57 +107,109 @@ public class OwlToJava extends CommandLineTool {
 
     void exportDataProperty(SortedMap<String, String> sortedValues, SortedMap<String, String> sortedIntents, IRI documentIri, OWLOntology o, OWLDataProperty dataProperty) {
         String iri = dataProperty.getIRI().toString();
+        String javaConstName = iriToJavaConstName(documentIri, iri);
+        OWLDatatype range = getDataPropertyRange(o, dataProperty);
+        String rangeIri = range.getIRI().toString();
+
+        addIntents(sortedIntents, OWLOntologyUtil.getIntents(o, dataProperty));
+
+        List<String> extendedDataTableNames = getExtendedDataTableNames(o, dataProperty);
+        if (extendedDataTableNames.size() > 0) {
+            String type;
+
+            if ("http://www.w3.org/2001/XMLSchema#double".equals(rangeIri)
+                    || "http://www.w3.org/2001/XMLSchema#float".equals(rangeIri)) {
+                type = DoubleVisalloExtendedData.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#int".equals(rangeIri)
+                    || "http://www.w3.org/2001/XMLSchema#integer".equals(rangeIri)
+                    || "http://www.w3.org/2001/XMLSchema#unsignedByte".equals(rangeIri)) {
+                type = IntegerVisalloExtendedData.class.getSimpleName();
+            } else if ("http://visallo.org#geolocation".equals(rangeIri)) {
+                type = GeoPointVisalloExtendedData.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#dateTime".equals(rangeIri)) {
+                type = DateVisalloExtendedData.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#date".equals(rangeIri)) {
+                type = DateVisalloExtendedData.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#string".equals(rangeIri)) {
+                type = StringVisalloExtendedData.class.getSimpleName();
+            } else {
+                throw new VisalloException("Could not map range type " + rangeIri);
+            }
+
+            for (String extendedDataTableName : extendedDataTableNames) {
+                String name = iriToJavaConstName(documentIri, extendedDataTableName) + "_" + javaConstName;
+                sortedValues.put(name, String.format("    public static final %s %s = new %s(\"%s\", \"%s\");", type, name, type, extendedDataTableName, iri));
+            }
+        } else {
+            if ("http://visallo.org#extendedDataTable".equals(rangeIri)) {
+                sortedValues.put(javaConstName, String.format("    public static final String %s = \"%s\";", javaConstName, iri));
+                return;
+            }
+
+            String type;
+            if ("http://www.w3.org/2001/XMLSchema#double".equals(rangeIri)
+                    || "http://www.w3.org/2001/XMLSchema#float".equals(rangeIri)) {
+                type = DoubleVisalloProperty.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#int".equals(rangeIri)
+                    || "http://www.w3.org/2001/XMLSchema#integer".equals(rangeIri)
+                    || "http://www.w3.org/2001/XMLSchema#unsignedByte".equals(rangeIri)) {
+                type = IntegerVisalloProperty.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#unsignedLong".equals(rangeIri)) {
+                type = LongVisalloProperty.class.getSimpleName();
+            } else if ("http://visallo.org#geolocation".equals(rangeIri)) {
+                type = GeoPointVisalloProperty.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#string".equals(rangeIri)) {
+                String displayType = getDataPropertyDisplayType(o, dataProperty);
+                if ("longText".equalsIgnoreCase(displayType)) {
+                    type = StreamingVisalloProperty.class.getSimpleName();
+                } else {
+                    type = StringVisalloProperty.class.getSimpleName();
+                }
+            } else if ("http://www.w3.org/2001/XMLSchema#boolean".equals(rangeIri)) {
+                type = BooleanVisalloProperty.class.getSimpleName();
+            } else if ("http://visallo.org#currency".equals(rangeIri)) {
+                type = DoubleVisalloProperty.class.getSimpleName(); // TODO should this be a CurrenyVisalloProperties
+            } else if ("http://www.w3.org/2001/XMLSchema#dateTime".equals(rangeIri)) {
+                type = DateVisalloProperty.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#date".equals(rangeIri)) {
+                type = DateVisalloProperty.class.getSimpleName();
+            } else if ("http://visallo.org#directory/entity".equals(rangeIri)) {
+                type = DirectoryEntityVisalloProperty.class.getSimpleName();
+            } else if ("http://www.w3.org/2001/XMLSchema#hexBinary".equals(rangeIri)) {
+                type = StreamingVisalloProperty.class.getSimpleName();
+            } else {
+                throw new VisalloException("Could not map range type " + rangeIri);
+            }
+
+            sortedValues.put(javaConstName, String.format("    public static final %s %s = new %s(\"%s\");", type, javaConstName, type, iri));
+        }
+    }
+
+    private String iriToJavaConstName(IRI documentIri, String iri) {
         String iriPartAfterHash = getIriPartAfterHash(iri);
         String javaConstName = toJavaConst(iriPartAfterHash);
         if (!iri.startsWith(documentIri.toString())) {
             String lastIriPart = getLastIriPart(iri);
             javaConstName = toJavaConst(lastIriPart) + "_" + javaConstName;
         }
-        OWLDatatype range = getDataPropertyRange(o, dataProperty);
-        String rangeIri = range.getIRI().toString();
+        return javaConstName;
+    }
 
-        addIntents(sortedIntents, OWLOntologyUtil.getIntents(o, dataProperty));
-
-        String type;
-        if ("http://www.w3.org/2001/XMLSchema#double".equals(rangeIri)
-                || "http://www.w3.org/2001/XMLSchema#float".equals(rangeIri)) {
-            type = DoubleVisalloProperty.class.getSimpleName();
-        } else if ("http://www.w3.org/2001/XMLSchema#int".equals(rangeIri)
-                || "http://www.w3.org/2001/XMLSchema#integer".equals(rangeIri)
-                || "http://www.w3.org/2001/XMLSchema#unsignedByte".equals(rangeIri)) {
-            type = IntegerVisalloProperty.class.getSimpleName();
-        } else if ("http://www.w3.org/2001/XMLSchema#unsignedLong".equals(rangeIri)) {
-            type = LongVisalloProperty.class.getSimpleName();
-        } else if ("http://visallo.org#geolocation".equals(rangeIri)) {
-            type = GeoPointVisalloProperty.class.getSimpleName();
-        } else if ("http://www.w3.org/2001/XMLSchema#string".equals(rangeIri)) {
-            String displayType = getDataPropertyDisplayType(o, dataProperty);
-            if ("longText".equalsIgnoreCase(displayType)) {
-                type = StreamingVisalloProperty.class.getSimpleName();
-            } else {
-                type = StringVisalloProperty.class.getSimpleName();
-            }
-        } else if ("http://www.w3.org/2001/XMLSchema#boolean".equals(rangeIri)) {
-            type = BooleanVisalloProperty.class.getSimpleName();
-        } else if ("http://visallo.org#currency".equals(rangeIri)) {
-            type = DoubleVisalloProperty.class.getSimpleName(); // TODO should this be a CurrenyVisalloProperties
-        } else if ("http://www.w3.org/2001/XMLSchema#dateTime".equals(rangeIri)) {
-            type = DateVisalloProperty.class.getSimpleName();
-        } else if ("http://www.w3.org/2001/XMLSchema#date".equals(rangeIri)) {
-            type = DateVisalloProperty.class.getSimpleName();
-        } else if ("http://visallo.org#directory/entity".equals(rangeIri)) {
-            type = DirectoryEntityVisalloProperty.class.getSimpleName();
-        } else if ("http://www.w3.org/2001/XMLSchema#hexBinary".equals(rangeIri)) {
-            type = StreamingVisalloProperty.class.getSimpleName();
-        } else {
-            throw new VisalloException("Could not map range type " + rangeIri);
-        }
-
-        sortedValues.put(javaConstName, String.format("    public static final %s %s = new %s(\"%s\");", type, javaConstName, type, iri));
+    private List<OWLClassExpression> getDataPropertyDomains(OWLOntology o, OWLDataProperty dataProperty) {
+        return toList(EntitySearcher.getDomains(dataProperty, o));
     }
 
     protected String getDataPropertyDisplayType(OWLOntology o, OWLDataProperty dataProperty) {
         return OWLOntologyUtil.getDisplayType(o, dataProperty);
+    }
+
+    protected List<String> getExtendedDataTableNames(OWLOntology o, OWLDataProperty dataProperty) {
+        Iterable<OWLAnnotation> extendedDataTableDomains = OWLOntologyUtil.getExtendedDataTableDomains(o, dataProperty);
+        List<String> results = new ArrayList<>();
+        for (OWLAnnotation extendedDataTableDomain : extendedDataTableDomains) {
+            results.add(OWLOntologyUtil.getOWLAnnotationValueAsString(extendedDataTableDomain));
+        }
+        return results;
     }
 
     protected OWLDatatype getDataPropertyRange(OWLOntology o, OWLDataProperty dataProperty) {

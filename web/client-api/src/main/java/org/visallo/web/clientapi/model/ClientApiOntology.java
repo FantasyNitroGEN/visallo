@@ -405,6 +405,46 @@ public class ClientApiOntology implements ClientApiObject {
         }
     }
 
+    public static class ExtendedDataTableProperty extends Property {
+        private String titleFormula;
+        private String subtitleFormula;
+        private String timeFormula;
+        private List<String> tablePropertyIris = new ArrayList<String>();
+
+        public String getTitleFormula() {
+            return titleFormula;
+        }
+
+        public void setTitleFormula(String titleFormula) {
+            this.titleFormula = titleFormula;
+        }
+
+        public String getSubtitleFormula() {
+            return subtitleFormula;
+        }
+
+        public void setSubtitleFormula(String subtitleFormula) {
+            this.subtitleFormula = subtitleFormula;
+        }
+
+        public String getTimeFormula() {
+            return timeFormula;
+        }
+
+        public void setTimeFormula(String timeFormula) {
+            this.timeFormula = timeFormula;
+        }
+
+        public void setTablePropertyIris(List<String> tablePropertyIris) {
+            this.tablePropertyIris.clear();
+            this.tablePropertyIris.addAll(tablePropertyIris);
+        }
+
+        public List<String> getTablePropertyIris() {
+            return tablePropertyIris;
+        }
+    }
+
     public static class Relationship implements ClientApiObject, OntologyId {
         private String parentIri;
         private String title;

@@ -60,6 +60,9 @@ public class VertexRaw implements ParameterizedHandler {
             String mimeType = getMimeType(artifactVertex);
             response.setContentType(mimeType);
             response.setMaxAge(VisalloResponse.EXPIRES_1_HOUR);
+            if (fileName == null) {
+                throw new VisalloResourceNotFoundException("Could not find fileName on artifact: " + artifactVertex.getId());
+            }
             String fileNameWithoutQuotes = fileName.replace('"', '\'');
             if (download) {
                 response.addHeader("Content-Disposition", "attachment; filename=\"" + fileNameWithoutQuotes + "\"");

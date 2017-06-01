@@ -6,6 +6,7 @@ import com.v5analytics.webster.Handler;
 import com.v5analytics.webster.handlers.StaticResourceHandler;
 import com.v5analytics.webster.resultWriters.ResultWriterFactory;
 import org.json.JSONObject;
+import org.vertexium.ElementType;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.VisalloResourceBundleManager;
@@ -15,6 +16,7 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.parameterProviders.*;
+import org.visallo.web.parameterValueConverters.ElementTypeParameterValueConverter;
 import org.visallo.web.parameterValueConverters.JSONObjectParameterValueConverter;
 import org.visallo.web.routes.notification.SystemNotificationSeverityValueConverter;
 import org.visallo.web.util.js.SourceMapType;
@@ -72,6 +74,7 @@ public class WebApp extends App {
         App.registerParameterValueConverter(SystemNotificationSeverity.class, new SystemNotificationSeverityValueConverter());
 
         App.registerParameterValueConverter(JSONObject.class, new JSONObjectParameterValueConverter());
+        App.registerParameterValueConverter(ElementType.class, new ElementTypeParameterValueConverter());
         this.visalloDefaultResultWriterFactory = InjectHelper.getInstance(VisalloDefaultResultWriterFactory.class);
 
         Configuration config = injector.getInstance(Configuration.class);
@@ -223,9 +226,9 @@ public class WebApp extends App {
 
     /**
      * Register a JSX react component.
-     *
+     * <p>
      * Converts .jsx files to .js files using babel.
-     *
+     * <p>
      * Source maps are always created and externally linked
      *
      * @param scriptResourceName
@@ -317,6 +320,13 @@ public class WebApp extends App {
      * @param scriptResourceName Classpath to JavaScript template (ejs, hbs, etc)
      */
     public void registerJavaScriptTemplate(String scriptResourceName) {
+        if (scriptResourceName.endsWith(".hbs")) {
+            get("/jsc" + scriptResourceName + ".js", new HandlebarsPrecompiledResourceHandler(scriptResourceName, isDevModeEnabled()));
+        } else {
+            LOGGER.warn("Non-Handlebars templates are considered deprecated, as they can cause performance issues" +
+                "\n(please use '.hbs' extension if this is handlebar formatted template)"
+            );
+        }
         register(scriptResourceName, "text/plain", "jsc", false, null);
     }
 
@@ -457,4 +467,5 @@ public class WebApp extends App {
             return this;
         }
     }
+
 }

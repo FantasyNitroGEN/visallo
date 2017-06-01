@@ -2,7 +2,7 @@ define([
   'flight/lib/component',
   'configuration/admin/utils/withFormHelpers',
   'configuration/admin/utils/fileUpload',
-  'hbs!org/visallo/web/plugin/adminImportRdf/templates/admin-import-rdf',
+  'org/visallo/web/plugin/adminImportRdf/templates/admin-import-rdf.hbs',
   'util/formatters',
   'util/withDataRequest'
 ], function(

@@ -33,7 +33,7 @@ public class EdgeSearchTest extends QueryResultsIterableSearchResultsSearchRoute
 
         when(searchRepository.findSearchRunnerByUri(EdgeSearchRunner.URI)).thenReturn(edgeSearchRunner);
 
-        edgeSearch = new EdgeSearch(searchRepository);
+        edgeSearch = new EdgeSearch(graph, searchRepository);
     }
 
     @Test
