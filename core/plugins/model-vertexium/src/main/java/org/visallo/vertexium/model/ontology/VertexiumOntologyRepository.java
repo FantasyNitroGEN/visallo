@@ -645,24 +645,35 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 }
             }
 
-            if (workspaceId != null) {
+            VertexBuilder builder = null;
+            if (workspaceId == null) {
+                builder = graph.prepareVertex(id, visibility);
+            } else {
                 // TODO: Make sure user has access to workspace
                 VisibilityJson visibilityJson = new VisibilityJson();
                 visibilityJson.setSource(visibility.getVisibilityString());
                 visibilityJson.addWorkspace(workspaceId);
-                visibility = visibilityTranslator.toVisibility(visibilityJson).getVisibility();
                 id = ID_PREFIX_CONCEPT + Hashing.sha1().hashString(workspaceId + conceptIRI, Charsets.UTF_8).toString();
+
+                // Just save the vertex with sandbox to make publishing easier (don't have to publish properties)
+                builder = graph.prepareVertex(id, visibilityTranslator.toVisibility(visibilityJson).getVisibility());
             }
 
-            VertexBuilder builder = graph.prepareVertex(id, visibility);
             Vertex vertex = ctx.update(builder, elemCtx -> {
-                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_CONCEPT, VISIBILITY.getVisibility());
-                OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, conceptIRI, VISIBILITY.getVisibility());
-                OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName, VISIBILITY.getVisibility());
+                Metadata metadata = null;
+                if (user != null) {
+                    metadata = new Metadata();
+                    VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
+                    VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), visibility);
+                }
+
+                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, conceptIRI, metadata, visibility);
+                OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, conceptIRI, metadata, visibility);
+                OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName, metadata, visibility);
                 if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
-                    OntologyProperties.TITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#title') || ''", VISIBILITY.getVisibility());
-                    OntologyProperties.SUBTITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#source') || ''", VISIBILITY.getVisibility());
-                    OntologyProperties.TIME_FORMULA.updateProperty(elemCtx, "''", VISIBILITY.getVisibility());
+                    OntologyProperties.TITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#title') || ''", metadata, visibility);
+                    OntologyProperties.SUBTITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#source') || ''", metadata, visibility);
+                    OntologyProperties.TIME_FORMULA.updateProperty(elemCtx, "''", metadata, visibility);
                 }
             }).get();
 
