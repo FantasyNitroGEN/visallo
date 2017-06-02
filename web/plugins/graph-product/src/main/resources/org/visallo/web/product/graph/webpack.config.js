@@ -20,6 +20,7 @@ var VisalloAmdExternals = [
     'data/web-worker/store/undo/actions',
     'data/web-worker/store/workspace/actions-impl',
     'data/web-worker/store/workspace/actions',
+    'data/web-worker/store/ontology/selectors',
     'data/web-worker/util/ajax',
     'org/visallo/web/product/graph/dist/actions-impl',
     'public/v1/api',

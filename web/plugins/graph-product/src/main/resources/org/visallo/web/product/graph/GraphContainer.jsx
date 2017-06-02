@@ -5,6 +5,7 @@ define([
     'data/web-worker/store/selection/actions',
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/selectors',
+    'data/web-worker/store/ontology/selectors',
     'components/DroppableHOC',
     'configuration/plugins/registry',
     'util/retina',
@@ -18,6 +19,7 @@ define([
     selectionActions,
     productActions,
     productSelectors,
+    ontologySelectors,
     DroppableHOC,
     registry,
     retina,
@@ -387,7 +389,7 @@ define([
 
         (state, props) => {
             var pixelRatio = state.screen.pixelRatio,
-                ontology = state.ontology,
+                ontology = ontologySelectors.getOntology(state),
                 panelPadding = state.panel.padding,
                 ghosts = state['org-visallo-graph'].animatingGhosts,
                 uiPreferences = state.user.current.uiPreferences,

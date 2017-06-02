@@ -59,7 +59,10 @@ define(['reselect'], function(reselect) {
 
     const getConceptKeyIris = createSelector([getOntologyRoot], ontology => ontology.iris && ontology.iris.concept)
 
+    const getOntology = createSelector([getOntologyRoot, getWorkspace], (ontology, workspaceId) => ontology[workspaceId])
+
     return {
+        getOntology,
         getConcepts,
         getConceptKeyIris,
         getVisibleConcepts,
