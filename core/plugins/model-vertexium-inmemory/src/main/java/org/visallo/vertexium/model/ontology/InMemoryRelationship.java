@@ -35,6 +35,11 @@ public class InMemoryRelationship extends Relationship {
     }
 
     @Override
+    public String getId() {
+        return relationshipIRI;
+    }
+
+    @Override
     public String getIRI() {
         return relationshipIRI;
     }

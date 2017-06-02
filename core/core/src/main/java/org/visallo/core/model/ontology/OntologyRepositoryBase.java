@@ -715,7 +715,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 ontologyPropertyDefinition.getDependentPropertyIris(),
                 ontologyPropertyDefinition.getIntents(),
                 ontologyPropertyDefinition.getDeleteable(),
-                ontologyPropertyDefinition.getUpdateable()
+                ontologyPropertyDefinition.getUpdateable(),
+                user,
+                workspaceId
         );
         if (ontologyPropertyDefinition.getExtendedDataTableDomains() != null) {
             for (String extendedDataTableDomain : ontologyPropertyDefinition.getExtendedDataTableDomains()) {
@@ -1278,12 +1280,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     @Override
-    public String generateDynamicIri(String displayName, String workspaceId) {
+    public String generateDynamicIri(Class type, String displayName, String workspaceId) {
         return OntologyRepositoryBase.BASE_OWL_IRI +
                 "/" +
                 displayName.replaceAll("\\s+", "_").toLowerCase() +
                 "#" +
-                Hashing.sha1().hashString(workspaceId + displayName, Charsets.UTF_8).toString();
+                Hashing.sha1().hashString(type.toString() + workspaceId + displayName, Charsets.UTF_8).toString();
     }
 
 

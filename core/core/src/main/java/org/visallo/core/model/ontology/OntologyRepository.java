@@ -258,7 +258,7 @@ public interface OntologyRepository {
 
     void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris, User user, String workspaceId);
 
-    String generateDynamicIri(String displayName, String workspaceId);
+    String generateDynamicIri(Class type, String displayName, String workspaceId);
 
     class ElementTypeFilter implements ClientApiObject {
         public String iri;

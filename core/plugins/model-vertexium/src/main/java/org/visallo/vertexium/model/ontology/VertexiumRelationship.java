@@ -30,6 +30,11 @@ public class VertexiumRelationship extends Relationship {
     }
 
     @Override
+    public String getId() {
+        return vertex.getId();
+    }
+
+    @Override
     public String[] getIntents() {
         return IterableUtils.toArray(OntologyProperties.INTENT.getPropertyValues(vertex), String.class);
     }

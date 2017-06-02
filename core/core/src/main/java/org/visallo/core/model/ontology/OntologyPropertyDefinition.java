@@ -38,8 +38,18 @@ public class OntologyPropertyDefinition {
             String displayName,
             PropertyType dataType
     ) {
+        this(concepts, new ArrayList<>(), propertyIri, displayName, dataType);
+    }
+
+    public OntologyPropertyDefinition(
+            List<Concept> concepts,
+            List<Relationship> relationships,
+            String propertyIri,
+            String displayName,
+            PropertyType dataType
+    ) {
         this.concepts = concepts;
-        this.relationships = new ArrayList<>();
+        this.relationships = relationships;
         this.propertyIri = propertyIri;
         this.displayName = displayName;
         this.dataType = dataType;

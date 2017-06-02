@@ -31,6 +31,11 @@ public class VertexiumOntologyProperty extends OntologyProperty {
         getVertex().getGraph().flush();
     }
 
+    @Override
+    public String getId() {
+        return vertex.getId();
+    }
+
     public String getTitle() {
         return iri;
     }

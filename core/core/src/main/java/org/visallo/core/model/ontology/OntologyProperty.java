@@ -41,6 +41,8 @@ public abstract class OntologyProperty {
         return getTitle();
     }
 
+    public abstract String getId();
+
     public abstract String getTitle();
 
     public abstract String getDisplayName();

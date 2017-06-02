@@ -41,7 +41,6 @@ public class OntologyConceptSave implements ParameterizedHandler {
             @Optional(name = "iri", allowEmpty = false) String iri,
             @Optional(name = "parentConcept", allowEmpty = false) String parentConcept,
             @ActiveWorkspaceId String workspaceId,
-            Authorizations authorizations,
             User user) throws Exception {
 
         Concept parent;
@@ -51,7 +50,7 @@ public class OntologyConceptSave implements ParameterizedHandler {
             parent = ontologyRepository.getConceptByIRI(parentConcept, user, workspaceId);
         }
         if (iri == null) {
-            iri = ontologyRepository.generateDynamicIri(displayName, workspaceId);
+            iri = ontologyRepository.generateDynamicIri(Concept.class, displayName, workspaceId);
         }
         Concept concept = ontologyRepository.getOrCreateConcept(parent, iri, displayName, null, user, workspaceId);
 

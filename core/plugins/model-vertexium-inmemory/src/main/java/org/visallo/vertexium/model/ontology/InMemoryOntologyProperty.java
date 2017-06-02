@@ -37,6 +37,11 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     }
 
     @Override
+    public String getId() {
+        return title;
+    }
+
+    @Override
     public String getDisplayName() {
         return displayName;
     }

@@ -11,6 +11,7 @@ import com.google.common.hash.Hashing;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
@@ -627,40 +628,24 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             return concept;
         }
 
-        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(user == null ? Priority.LOW : Priority.NORMAL, user, getAuthorizations(user, workspaceId))) {
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(getPriority(user), user, getAuthorizations(user, workspaceId))) {
             ctx.setPushOnQueue(false);
 
             Visibility visibility = VISIBILITY.getVisibility();
             VisibilityJson visibilityJson = new VisibilityJson();
             visibilityJson.setSource(visibility.getVisibilityString());;
 
-            String id = ID_PREFIX_CONCEPT + conceptIRI;
-
-            VertexBuilder builder = null;
-            if (workspaceId == null) {
-                builder = graph.prepareVertex(id, visibility);
-            } else {
-                // TODO: Make sure user has access to workspace
-                visibilityJson.addWorkspace(workspaceId);
-                id = ID_PREFIX_CONCEPT + Hashing.sha1().hashString(workspaceId + conceptIRI, Charsets.UTF_8).toString();
-
-                // Just save the vertex with sandbox to make publishing easier (don't have to publish properties)
-                builder = graph.prepareVertex(id, visibilityTranslator.toVisibility(visibilityJson).getVisibility());
-            }
+            VertexBuilder builder = prepareVertex(ID_PREFIX_CONCEPT, conceptIRI, workspaceId, visibility, visibilityJson);
 
             Date modifiedDate = new Date();
             Vertex vertex = ctx.update(builder, modifiedDate, visibilityJson, TYPE_CONCEPT, elemCtx -> {
-                Metadata metadata = null;
-                if (user != null) {
-                    metadata = new Metadata();
-                    VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
-                    VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
-                }
-
+                Metadata metadata = getMetadata(modifiedDate, user, visibility);
                 OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, conceptIRI, metadata, visibility);
                 OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName, metadata, visibility);
                 if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
                     OntologyProperties.TITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#title') || ''", metadata, visibility);
+
+                    // TODO: change to ontology && ontology.displayName
                     OntologyProperties.SUBTITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#source') || ''", metadata, visibility);
                     OntologyProperties.TIME_FORMULA.updateProperty(elemCtx, "''", metadata, visibility);
                 }
@@ -681,6 +666,30 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         } catch (Exception e) {
             throw new VisalloException("Could not create concept: " + conceptIRI, e);
         }
+    }
+
+    private Metadata getMetadata(Date modifiedDate, User user, Visibility visibility) {
+        Metadata metadata = null;
+        if (user != null) {
+            metadata = new Metadata();
+            VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
+            VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
+        }
+        return metadata;
+    }
+
+    private VertexBuilder prepareVertex(String prefix, String iri, String workspaceId, Visibility visibility, VisibilityJson visibilityJson) {
+
+        if (workspaceId == null) {
+            return graph.prepareVertex(prefix + iri, visibility);
+        }
+
+        String id = prefix + Hashing.sha1().hashString(workspaceId + iri, Charsets.UTF_8).toString();
+
+        // FIXME: Make sure user has access to workspace
+        visibilityJson.addWorkspace(workspaceId);
+
+        return graph.prepareVertex(id, visibilityTranslator.toVisibility(visibilityJson).getVisibility());
     }
 
     protected void findOrAddEdge(Vertex fromVertex, final Vertex toVertex, String edgeLabel, User user, String workspaceId) {
@@ -730,7 +739,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             User user,
             String workspaceId
     ) {
-        checkNotNull(concepts, "vertex was null");
+        if (CollectionUtils.isEmpty(concepts) && CollectionUtils.isEmpty(relationships)) {
+            throw new VisalloException("Must specify concepts or relationships to add property");
+        }
         Vertex vertex = getOrCreatePropertyVertex(
                 propertyIri,
                 dataType,
@@ -844,13 +855,19 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             return relationship;
         }
 
-        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, null, getAuthorizations(user, workspaceId))) {
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(getPriority(user), user, getAuthorizations(user, workspaceId))) {
             ctx.setPushOnQueue(false);
 
-            VertexBuilder builder = graph.prepareVertex(ID_PREFIX_RELATIONSHIP + relationshipIRI, VISIBILITY.getVisibility());
-            Vertex relationshipVertex = ctx.update(builder, elemCtx -> {
-                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_RELATIONSHIP, VISIBILITY.getVisibility());
-                OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, relationshipIRI, VISIBILITY.getVisibility());
+            Visibility visibility = VISIBILITY.getVisibility();
+            VisibilityJson visibilityJson = new VisibilityJson();
+            visibilityJson.setSource(visibility.getVisibilityString());
+
+            VertexBuilder builder = prepareVertex(ID_PREFIX_RELATIONSHIP, relationshipIRI, workspaceId, visibility, visibilityJson);
+
+            Date modifiedDate = new Date();
+            Vertex relationshipVertex = ctx.update(builder, modifiedDate, visibilityJson, TYPE_RELATIONSHIP, elemCtx -> {
+                Metadata metadata = getMetadata(modifiedDate, user, visibility);
+                OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, relationshipIRI, metadata, visibility);
             }).get();
 
             for (Concept domainConcept : domainConcepts) {
@@ -906,23 +923,26 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         if (typeProperty == null) {
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
 
-            String propertyVertexId = ID_PREFIX_PROPERTY + propertyIri;
-            try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, null, getAuthorizations(user, workspaceId))) {
+            try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(getPriority(user), user, getAuthorizations(user, workspaceId))) {
                 ctx.setPushOnQueue(false);
 
-                VertexBuilder builder = graph.prepareVertex(propertyVertexId, VISIBILITY.getVisibility());
-                propertyVertex = ctx.update(builder, elemCtx -> {
-                    VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_PROPERTY, VISIBILITY.getVisibility());
-                    OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, propertyIri, VISIBILITY.getVisibility());
-                    OntologyProperties.DATA_TYPE.updateProperty(elemCtx, dataType.toString(), VISIBILITY.getVisibility());
+                Visibility visibility = VISIBILITY.getVisibility();
+                VisibilityJson visibilityJson = new VisibilityJson();
+                visibilityJson.setSource(visibility.getVisibilityString());;
+
+                VertexBuilder builder = prepareVertex(ID_PREFIX_PROPERTY, propertyIri, workspaceId, visibility, visibilityJson);
+                Date modifiedDate = new Date();
+                propertyVertex = ctx.update(builder, modifiedDate, visibilityJson, TYPE_PROPERTY, elemCtx -> {
+                    Metadata metadata = getMetadata(modifiedDate, user, visibility);
+                    OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, propertyIri, metadata, visibility);
+                    OntologyProperties.DATA_TYPE.updateProperty(elemCtx, dataType.toString(), metadata, visibility);
                     if (possibleValues != null) {
-                        OntologyProperties.POSSIBLE_VALUES.updateProperty(elemCtx, JSONUtil.toJson(possibleValues), VISIBILITY.getVisibility());
+                        OntologyProperties.POSSIBLE_VALUES.updateProperty(elemCtx, JSONUtil.toJson(possibleValues), metadata, visibility);
                     }
                     if (textIndexHints.size() > 0) {
-                        Metadata metadata = new Metadata();
                         textIndexHints.forEach(i -> {
                             String textIndexHint = i.toString();
-                            OntologyProperties.TEXT_INDEX_HINTS.updateProperty(elemCtx, textIndexHint, textIndexHint, metadata, VISIBILITY.getVisibility());
+                            OntologyProperties.TEXT_INDEX_HINTS.updateProperty(elemCtx, textIndexHint, textIndexHint, metadata, visibility);
                         });
                     }
                 }).get();
@@ -943,6 +963,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             deleteChangeableProperties(propertyVertex, authorizations);
         }
         return propertyVertex;
+    }
+
+    private Priority getPriority(User user) {
+        return user == null ? Priority.LOW : Priority.NORMAL;
     }
 
     private void saveDependentProperties(String propertyVertexId, Collection<String> dependentPropertyIris, User user, String workspaceId) {

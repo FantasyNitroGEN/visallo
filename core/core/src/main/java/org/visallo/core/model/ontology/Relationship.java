@@ -28,6 +28,8 @@ public abstract class Relationship implements OntologyElement, HasOntologyProper
         this.properties = properties;
     }
 
+    public abstract String getId();
+
     public abstract String getIRI();
 
     public String getParentIRI() {
