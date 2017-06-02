@@ -113,56 +113,6 @@ define([
             }
         }),
 
-//        removeElements: ({ productId, elements, undoable }) => (dispatch, getState) => {
-//            const state = getState();
-//            const workspaceId = state.workspace.currentId;
-//            const workspace = state.workspace.byId[workspaceId];
-//            if (workspace.editable && elements && elements.vertexIds && elements.vertexIds.length) {
-//                const removeVertices = elements.vertexIds;
-//                const product = state.product.workspaces[workspaceId].products[productId];
-//                const vertices = product.extendedData.vertices
-//
-//                let undoPayload = {};
-//                if (undoable) {
-//                    const updateVertices = removeVertices
-//                        .map(id => vertices[id])
-//                        .reduce(
-//                            (vertices, {id, pos}) => ({
-//                                [id]: pos,
-//                                ...vertices
-//                            }),
-//                            {}
-//                        );
-//                    undoPayload = {
-//                        undoScope: productId,
-//                        undo: {
-//                            productId,
-//                            updateVertices
-//                        },
-//                        redo: {
-//                            productId,
-//                            removeElements: elements
-//                        }
-//                    };
-//                }
-//                dispatch({
-//                    type: 'PRODUCT_REMOVE_ELEMENTS',
-//                    payload: {
-//                        elements: { vertexIds: removeVertices },
-//                        productId,
-//                        workspaceId,
-//                        ...undoPayload
-//                    }
-//                });
-//                dispatch(selectionActions.remove({
-//                    selection: { vertices: removeVertices }
-//                }));
-//                if (removeVertices.length) {
-//                    ajax('POST', '/product', { productId, params: { removeVertices }})
-//                }
-//            }
-//        },
-
         selectAll: ({ productId }) => (dispatch, getState) => {
             const state = getState(),
                 workspaceId = state.workspace.currentId,

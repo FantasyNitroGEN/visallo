@@ -95,7 +95,7 @@ module.exports = [
     }),
     Object.assign({}, baseConfig, {
         entry: {
-            Graph: './MapContainer.jsx'
+            Map: './MapContainer.jsx'
         },
         target: 'web'
     })

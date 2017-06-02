@@ -90,7 +90,7 @@ public class GraphWorkProduct extends WorkProductElements {
             }
 
             if (compoundNodes.length() > 0) {
-                JSONUtil.stream(compoundNodes.toJSONArray(compoundNodes.names())) //TODO: synchronized this so I can take advantage of chains? (e.g c1 > c2 > c3 > v1, if v1 is visible all are visible)
+                JSONUtil.stream(compoundNodes.toJSONArray(compoundNodes.names())) //TODO: synchronize this so I can take advantage of chains? (e.g c1 > c2 > c3 > v1, if v1 is visible all are visible)
                     .forEach(compoundNode -> {
                         ArrayDeque<JSONObject> childrenDFS = Queues.newArrayDeque();
                         String childId = ((JSONObject) compoundNode).getJSONArray("children").getString(0);
@@ -174,7 +174,31 @@ public class GraphWorkProduct extends WorkProductElements {
             Visibility visibility,
             Authorizations authorizations
     ) {
-        //NOOP
+        // NOOP
+    }
+
+    @Override
+    public void cleanUpElements(
+            Graph graph,
+            Vertex productVertex,
+            Authorizations authorizations
+    ) {
+        Iterable<Edge> productElementEdges = productVertex.getEdges(
+                Direction.OUT,
+                WorkProductElements.WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                authorizations
+        );
+
+        for (Edge productToElement : productElementEdges) {
+            if (GraphProductOntology.NODE_CHILDREN.hasProperty(productToElement)) {
+                String otherElementId = productToElement.getOtherVertexId(productVertex.getId());
+                graph.softDeleteVertex(otherElementId, authorizations);
+            } else {
+                graph.softDeleteEdge(productToElement, authorizations);
+            }
+        }
+
+        graph.flush();
     }
 
     public JSONObject addCompoundNode(

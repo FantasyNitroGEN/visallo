@@ -54,16 +54,16 @@ define([
                         event.preventDefault();
                         event.stopPropagation();
 
-                        dispatch(mapActions.dropElements(props.product.id, elements))
+                        dispatch(mapActions.dropElements(props.product.id, elements, { undoable: true }))
                     }
                 },
 
                 onDropElementIds(elementIds) {
-                    dispatch(mapActions.dropElements(props.product.id, elementIds));
+                    dispatch(mapActions.dropElements(props.product.id, elements, { undoable: true }));
                 },
 
                 onRemoveElementIds: (elementIds) => {
-                    dispatch(productActions.removeElements(props.product.id, elementIds))
+                    dispatch(mapActions.removeElements(props.product.id, elements, { undoable: true }))
                 },
 
                 onVertexMenu: (element, vertexId, position) => {

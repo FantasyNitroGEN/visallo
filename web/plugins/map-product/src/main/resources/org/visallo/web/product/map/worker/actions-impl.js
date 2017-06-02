@@ -8,8 +8,7 @@ define([
     actions.protectFromMain();
 
     const api = {
-        dropElements: ({ productId, elements }) => (dispatch, getState) => {
-            debugger;
+        dropElements: ({ productId, elements, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
             const { vertexIds, edgeIds } = elements;
@@ -27,9 +26,24 @@ define([
                 const combined = _.without(_.uniq(edgeVertexIds.concat(vertexIds)), ..._.pluck(existing, 'id'));
                 if (!combined.length) return;
 
+                let undoPayload = {};
+                if (undoable) {
+                    undoPayload = {
+                        undoScope: productId,
+                        undo: {
+                            productId,
+                            elements: { vertexIds: combined }
+                        },
+                        redo: {
+                            productId,
+                            elements
+                        }
+                    };
+                }
+
                 dispatch({
                     type: 'PRODUCT_MAP_ADD_ELEMENTS',
-                    payload: { workspaceId, productId, vertexIds }
+                    payload: { workspaceId, productId, vertexIds, ...undoPayload }
                 });
 
                 ajax('POST', '/product', {
@@ -47,7 +61,6 @@ define([
             const workspaceId = state.workspace.currentId;
             const workspace = state.workspace.byId[workspaceId];
             if (workspace.editable && elements && elements.vertexIds && elements.vertexIds.length) {
-                const removeVertices = elements.vertexIds;
                 const product = state.product.workspaces[workspaceId].products[productId];
                 const byId = _.indexBy(product.extendedData.vertices, 'id');
 
@@ -65,6 +78,7 @@ define([
                         }
                     };
                 }
+
                 dispatch({
                     type: 'PRODUCT_MAP_REMOVE_ELEMENTS',
                     payload: {
@@ -77,6 +91,7 @@ define([
                 dispatch(selectionActions.remove({
                     selection: { vertices: elements.vertexIds }
                 }));
+
                 if (elements.vertexIds.length) {
                     ajax('POST', '/product', { productId, params: { removeVertices: elements.vertexIds }})
                 }

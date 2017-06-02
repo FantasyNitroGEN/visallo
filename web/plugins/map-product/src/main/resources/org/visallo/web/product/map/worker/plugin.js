@@ -17,7 +17,7 @@ define([
         undoActions: {
             PRODUCT_MAP_ADD_ELEMENTS: {
                 undo: (undo) => actions.removeElements(undo),
-                redo: (redo) => actions.addElements(redo)
+                redo: (redo) => actions.dropElements(redo)
             },
             PRODUCT_MAP_REMOVE_ELEMENTS: {
                 undo: (undo) => actions.dropElements(undo),
@@ -28,28 +28,34 @@ define([
 
     function addElements(state, { workspaceId, productId, vertexIds }) {
         const product = state.workspaces[workspaceId].products[productId];
-
-        if (product && product.extendedData && product.extendedData.vertices) {
-            updated = u.updateIn(
-                `workspaces.${workspaceId}.products.${productId}.extendedData.vertices`,
-                function(positions) { return addPositions(positions, additionalVertices, 'vertex') },
-                updated
-            );
-
-            return updated;
+        const vertices = product && product.extendedData && product.extendedData.vertices;
+        if (vertices) {
+            return u({
+                workspaces: {
+                    [workspaceId]: {
+                        products: {
+                            [productId]: {
+                                extendedData: {
+                                    vertices: u.constant(_.extend({}, vertices, vertexIds))
+                                }
+                            }
+                        }
+                    }
+                }
+            }, state);
         }
 
         return state;
     }
 
-    function removeElements(state, { workspaceId, productId, elements, removeChildren }) {
+    function removeElements(state, { workspaceId, productId, elements }) {
         return u({
             workspaces: {
                 [workspaceId]: {
                     products: {
                         [productId]: {
                             extendedData: {
-                                vertices: u.omitBy(v => vertexIds.includes(v.id))
+                                vertices: u.omitBy(v => elements.vertexIds.includes(v.id))
                             }
                         }
                     }

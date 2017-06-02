@@ -69,7 +69,7 @@ define([
                     });
 
                     if (extension.storeActions && _.isFunction(extension.storeActions.dropElements)) {
-                        dispatch(extension.storeActions.dropElements(product.id, elements));
+                        dispatch(extension.storeActions.dropElements(product.id, elements, { undoable: true }));
                     }
                 }
             }

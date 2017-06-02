@@ -6,7 +6,7 @@ require(['configuration/plugins/registry', 'data/web-worker/store/actions'], fun
             workerImpl: 'org/visallo/web/product/map/dist/actions-impl',
             actions: {
                 removeElements: function(productId, elements, undoable) { return { productId, elements, undoable }},
-                dropElements: function(productId, elements) { return { productId, elements }}
+                dropElements: function(productId, elements, undoable) { return { productId, elements }}
             }
         })
     })
@@ -18,7 +18,9 @@ require(['configuration/plugins/registry', 'data/web-worker/store/actions'], fun
                 'meta-a': { fire: 'selectAll', desc: i18n('visallo.help.select_all') },
                 'delete': { fire: 'deleteSelected', desc: i18n('visallo.help.delete') },
                 'alt-t': { fire: 'searchTitle', desc: i18n('visallo.help.search_title') },
-                'alt-s': { fire: 'searchRelated', desc: i18n('visallo.help.search_related') }
+                'alt-s': { fire: 'searchRelated', desc: i18n('visallo.help.search_related') },
+                'undo': { fire: 'undo', desc: i18n('visallo.help.undo') },
+                'redo': { fire: 'redo', desc: i18n('visallo.help.redo') }
             }
         });
     });
