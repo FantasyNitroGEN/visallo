@@ -84,6 +84,10 @@ public interface OntologyRepository {
 
     Concept getParentConcept(Concept concept, User user, String workspaceId);
 
+    Set<Concept> getAncestorConcepts(Concept concept, User user, String workspaceId);
+
+    Set<Concept> getConceptAndAncestors(Concept concept, User user, String workspaceId);
+
     Concept getConceptByIRI(String conceptIRI);
 
     Concept getConceptByIRI(String conceptIRI, User user, String workspaceId);
@@ -259,6 +263,8 @@ public interface OntologyRepository {
     void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris, User user, String workspaceId);
 
     String generateDynamicIri(Class type, String displayName, String workspaceId);
+
+    void publishConcept(Concept concept, User user, String workspaceId);
 
     class ElementTypeFilter implements ClientApiObject {
         public String iri;

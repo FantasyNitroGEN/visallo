@@ -7,6 +7,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiPublishItem;
@@ -27,10 +28,11 @@ public class WorkspacePublish implements ParameterizedHandler {
     public ClientApiWorkspacePublishResponse handle(
             @Required(name = "publishData") ClientApiPublishItem[] publishData,
             @ActiveWorkspaceId String workspaceId,
+            User user,
             Authorizations authorizations
     ) throws Exception {
         LOGGER.debug("publishing:\n%s", Joiner.on("\n").join(publishData));
-        ClientApiWorkspacePublishResponse workspacePublishResponse = workspaceRepository.publish(publishData, workspaceId, authorizations);
+        ClientApiWorkspacePublishResponse workspacePublishResponse = workspaceRepository.publish(publishData, user, workspaceId, authorizations);
 
         LOGGER.debug("publishing results: %s", workspacePublishResponse);
         return workspacePublishResponse;

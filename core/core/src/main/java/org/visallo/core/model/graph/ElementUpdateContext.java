@@ -56,7 +56,9 @@ public class ElementUpdateContext<T extends Element> {
             VisibilityJson visibilityJson
     ) {
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
-        VisalloProperties.MODIFIED_BY.updateProperty(this, user.getUserId(), defaultVisibility);
+        if (user != null) {
+            VisalloProperties.MODIFIED_BY.updateProperty(this, user.getUserId(), defaultVisibility);
+        }
         VisalloProperties.MODIFIED_DATE.updateProperty(this, modifiedDate, defaultVisibility);
         VisalloProperties.VISIBILITY_JSON.updateProperty(this, visibilityJson, defaultVisibility);
     }

@@ -6,8 +6,13 @@ import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
+import org.vertexium.query.Contains;
+import org.vertexium.query.Predicate;
+import org.vertexium.query.TermsAggregation;
+import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.IterableUtils;
+import org.vertexium.util.StreamUtils;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
@@ -15,6 +20,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.ingest.video.VideoFrameInfo;
+import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -35,7 +41,9 @@ import org.visallo.web.clientapi.model.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
@@ -297,6 +305,7 @@ public abstract class WorkspaceRepository {
 
     public ClientApiWorkspacePublishResponse publish(
             ClientApiPublishItem[] publishData,
+            User user,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -309,6 +318,7 @@ public abstract class WorkspaceRepository {
                 publishData,
                 ClientApiPublishItem.Action.ADD_OR_UPDATE,
                 workspacePublishResponse,
+                user,
                 workspaceId,
                 authorizations
         );
@@ -331,6 +341,7 @@ public abstract class WorkspaceRepository {
                 publishData,
                 ClientApiPublishItem.Action.DELETE,
                 workspacePublishResponse,
+                user,
                 workspaceId,
                 authorizations
         );
@@ -338,21 +349,50 @@ public abstract class WorkspaceRepository {
     }
 
     private void publishVertices(
-            ClientApiPublishItem[] publishData, ClientApiPublishItem.Action action,
-            ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId,
+            ClientApiPublishItem[] publishData,
+            ClientApiPublishItem.Action action,
+            ClientApiWorkspacePublishResponse workspacePublishResponse,
+            User user,
+            String workspaceId,
             Authorizations authorizations
     ) {
         LOGGER.debug("BEGIN publishVertices");
-        for (ClientApiPublishItem data : publishData) {
+
+        Map<String, ClientApiVertexPublishItem> vertexIdToPublishData = Arrays.stream(publishData)
+                .filter(data -> data instanceof ClientApiVertexPublishItem && data.getAction() == action)
+                .map(data -> ((ClientApiVertexPublishItem) data))
+                .filter(data -> {
+                    String vertexId = data.getVertexId();
+                    if (vertexId == null) {
+                        LOGGER.error("Error publishing %s due to missing vertex id", data.toString());
+                        data.setErrorMessage("Vertex ID must be provided for publishing");
+                        workspacePublishResponse.addFailure(data);
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toMap(ClientApiVertexPublishItem::getVertexId, Function.identity()));
+
+        if (action == ClientApiPublishItem.Action.ADD_OR_UPDATE) {
+            publishRequiredConcepts(vertexIdToPublishData, workspacePublishResponse, user, workspaceId, authorizations);
+        }
+
+        Iterable<Vertex> verticesToPublish = graph.getVertices(
+                vertexIdToPublishData.keySet(),
+                FetchHint.ALL_INCLUDING_HIDDEN,
+                authorizations);
+
+        for (Vertex vertex : verticesToPublish) {
+            String vertexId = vertex.getId();
+            ClientApiPublishItem data = vertexIdToPublishData.get(vertexId);
+            vertexIdToPublishData.remove(vertexId); // remove to indicate that it's been handled
+
+            // If we had an error trying to import the ontology for a vertex, skip it
+            if (data.getErrorMessage() != null) {
+                continue;
+            }
+
             try {
-                if (!(data instanceof ClientApiVertexPublishItem) || data.getAction() != action) {
-                    continue;
-                }
-                ClientApiVertexPublishItem vertexPublishItem = (ClientApiVertexPublishItem) data;
-                String vertexId = vertexPublishItem.getVertexId();
-                checkNotNull(vertexId);
-                Vertex vertex = graph.getVertex(vertexId, FetchHint.ALL_INCLUDING_HIDDEN, authorizations);
-                checkNotNull(vertex);
                 if (SandboxStatusUtil.getSandboxStatus(vertex, workspaceId) == SandboxStatus.PUBLIC
                         && !WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
                     String msg;
@@ -373,8 +413,58 @@ public abstract class WorkspaceRepository {
                 workspacePublishResponse.addFailure(data);
             }
         }
+
+        CloseableUtils.closeQuietly(verticesToPublish);
+
+        vertexIdToPublishData.forEach((vertexId, data) -> {
+            LOGGER.error("Error publishing %s due to vertex not found", data.toString());
+            data.setErrorMessage("Unable to load vertex with id " + vertexId);
+            workspacePublishResponse.addFailure(data);
+        });
+
         LOGGER.debug("END publishVertices");
         graph.flush();
+    }
+
+    private void publishRequiredConcepts(
+            Map<String, ClientApiVertexPublishItem> publishDataByVertexId,
+            ClientApiWorkspacePublishResponse workspacePublishResponse,
+            User user,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
+        Iterable<Vertex> verticesToPublish = graph.getVertices(
+                publishDataByVertexId.keySet(),
+                EnumSet.of(FetchHint.PROPERTIES),
+                authorizations);
+
+        Map<String, List<String>> vertexIdsByConcept = StreamUtils.stream(verticesToPublish)
+                .collect(Collectors.groupingBy(VisalloProperties.CONCEPT_TYPE::getPropertyValue, Collectors.mapping(Vertex::getId, Collectors.toList())));
+
+        long publishedConceptCount = vertexIdsByConcept.keySet().stream()
+                .map(iri -> ontologyRepository.getConceptByIRI(iri, user, workspaceId))
+                .filter(concept -> concept.getSandboxStatus() != SandboxStatus.PUBLIC)
+                .filter(concept -> {
+                    try {
+                        ontologyRepository.getConceptAndAncestors(concept, user, workspaceId).stream()
+                                .filter(conceptOrAncestor -> conceptOrAncestor.getSandboxStatus() != SandboxStatus.PUBLIC)
+                                .forEach(conceptOrAncestor -> ontologyRepository.publishConcept(conceptOrAncestor, user, workspaceId));
+                    } catch (Exception ex) {
+                        LOGGER.error("Error publishing concept %s", concept.getIRI(), ex);
+                        vertexIdsByConcept.get(concept.getIRI()).forEach(vertexId -> {
+                            ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
+                            data.setErrorMessage("Unable to publish concept " + concept.getDisplayName());
+                            workspacePublishResponse.addFailure(data);
+                        });
+                    }
+                    return true;
+                }).count();
+
+        if (publishedConceptCount > 0) {
+            ontologyRepository.clearCache();
+        }
+
+        CloseableUtils.closeQuietly(verticesToPublish);
     }
 
     private void publishEdges(
@@ -512,7 +602,7 @@ public abstract class WorkspaceRepository {
             ClientApiPublishItem.Action action,
             Authorizations authorizations,
             String workspaceId
-    ) throws IOException {
+    ) {
         if (action == ClientApiPublishItem.Action.DELETE
                 || WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
             long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
@@ -522,12 +612,16 @@ public abstract class WorkspaceRepository {
             return;
         }
 
-        // Need to elevate with videoFrame auth to be able to publish VideoFrame properties
+        // Reload the vertex to ensure that we have all of the properties
+        // Need to elevate with videoFrame auth to be able to load and publish VideoFrame properties
         Authorizations authWithVideoFrame = graph.createAuthorizations(
                 authorizations,
                 VideoFrameInfo.VISIBILITY_STRING
         );
-        vertex = graph.getVertex(vertex.getId(), authWithVideoFrame);
+        vertex = graph.getVertex(
+                vertex.getId(),
+                EnumSet.of(FetchHint.PROPERTIES, FetchHint.PROPERTY_METADATA, FetchHint.INCLUDE_HIDDEN),
+                authWithVideoFrame);
 
         LOGGER.debug("publishing vertex %s(%s)", vertex.getId(), vertex.getVisibility().toString());
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
@@ -554,13 +648,6 @@ public abstract class WorkspaceRepository {
                 publishNewProperty(vertexElementMutation, property, workspaceId);
             }
         }
-
-        Metadata metadata = new Metadata();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(
-                metadata,
-                visibilityJson,
-                visibilityTranslator.getDefaultVisibility()
-        );
 
         VisalloProperties.VISIBILITY_JSON.setProperty(
                 vertexElementMutation,

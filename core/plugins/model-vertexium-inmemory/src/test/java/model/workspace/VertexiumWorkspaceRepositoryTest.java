@@ -224,6 +224,7 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
         }};
         ClientApiWorkspacePublishResponse response = workspaceRepository.publish(
                 publishDate,
+                user1,
                 workspace.getWorkspaceId(),
                 NO_AUTHORIZATIONS
         );
@@ -278,6 +279,7 @@ public class VertexiumWorkspaceRepositoryTest extends VertexiumWorkspaceReposito
         }};
         ClientApiWorkspacePublishResponse response = workspaceRepository.publish(
                 publishDate,
+                user1,
                 workspace.getWorkspaceId(),
                 workspaceAuthorizations
         );

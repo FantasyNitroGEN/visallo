@@ -544,6 +544,7 @@
     <!-- http://visallo.org#justification -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#justification">
+        <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>
@@ -554,6 +555,7 @@
     <!-- http://visallo.org#linkTitle -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org#linkTitle">
+        <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <textIndexHints>NONE</textIndexHints>
         <userVisible>false</userVisible>

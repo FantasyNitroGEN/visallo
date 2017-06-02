@@ -256,6 +256,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     }
 
+    @Override
+    public void publishConcept(Concept concept, User user, String workspaceId) {
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
+    }
+
 
     @Override
     protected void getOrCreateInverseOfRelationship(Relationship fromRelationship, Relationship inverseOfRelationship) {

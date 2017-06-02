@@ -893,7 +893,7 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 .toArray(new ClientApiPublishItem[vertexDiffs.size() + propertyDiffs.size() + edgeDiffs.size()]);
 
         ClientApiWorkspacePublishResponse response =
-                workspaceRepository.publish(allPublishItems, workspace.getWorkspaceId(), workspaceAuthorizations);
+                workspaceRepository.publish(allPublishItems, user1, workspace.getWorkspaceId(), workspaceAuthorizations);
         assertTrue(response.isSuccess());
         assertNoDiffs();
     }

@@ -35,16 +35,14 @@ import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.TimingCallable;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiOntology;
-import org.visallo.web.clientapi.model.Privilege;
-import org.visallo.web.clientapi.model.PropertyType;
-import org.visallo.web.clientapi.model.VisibilityJson;
+import org.visallo.web.clientapi.model.*;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -702,6 +700,11 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
 
+    protected void removeEdge(GraphUpdateContext ctx, String fromVertexId, final String toVertexId) {
+        String edgeId = fromVertexId + "-" + toVertexId;
+        ctx.getGraph().deleteEdge(edgeId, ctx.getAuthorizations());
+    }
+
     protected void findOrAddEdge(GraphUpdateContext ctx, String fromVertexId, final String toVertexId, String edgeLabel, User user, String workspaceId) {
         String edgeId = fromVertexId + "-" + toVertexId;
         ctx.getOrCreateEdgeAndUpdate(edgeId, fromVertexId, toVertexId, edgeLabel, VISIBILITY.getVisibility(), elemCtx -> {
@@ -1174,6 +1177,22 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 return toVertexiumRelationship(vertex, user, workspaceId);
             }
         }));
+    }
+
+    @Override
+    public void publishConcept(Concept concept, User user, String workspaceId) {
+        assert(concept instanceof VertexiumConcept);
+        if (concept.getSandboxStatus() != SandboxStatus.PUBLIC) {
+            Vertex vertex = ((VertexiumConcept) concept).getVertex();
+            VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
+            if (visibilityJson.getWorkspaces().contains(workspaceId)) {
+                visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
+                try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, getAuthorizations(user, workspaceId))) {
+                    ctx.update(vertex, new Date(), visibilityJson, null, vertexUpdateCtx -> {});
+                    removeEdge(ctx, workspaceId, vertex.getId());
+                }
+            }
+        }
     }
 
     private String cacheKey(String workspaceId) {

@@ -1036,6 +1036,24 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return result;
     }
 
+    @Override
+    public Set<Concept> getAncestorConcepts(Concept concept, User user, String workspaceId) {
+        Set<Concept> result = Sets.newHashSet();
+        Concept parentConcept = getParentConcept(concept, user, workspaceId);
+        while (parentConcept != null) {
+            result.add(parentConcept);
+            parentConcept = getParentConcept(parentConcept, user, workspaceId);
+        }
+        return result;
+    }
+
+    @Override
+    public Set<Concept> getConceptAndAncestors(Concept concept, User user, String workspaceId) {
+        Set<Concept> result = Sets.newHashSet(concept);
+        result.addAll(getAncestorConcepts(concept, user, workspaceId));
+        return result;
+    }
+
     protected List<Concept> getChildConcepts(Concept concept) {
         return getChildConcepts(concept, null, null);
     }
