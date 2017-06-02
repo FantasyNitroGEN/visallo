@@ -15,6 +15,8 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.SandboxStatusUtil;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.io.IOException;
 import java.util.*;
@@ -22,6 +24,7 @@ import java.util.*;
 public class VertexiumConcept extends Concept {
     private static Set<String> PROPERTIES_NOT_IN_METADATA = new HashSet<>();
     private final Vertex vertex;
+    private final String workspaceId;
 
     static {
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.DISPLAY_NAME.getPropertyName());
@@ -43,13 +46,14 @@ public class VertexiumConcept extends Concept {
         PROPERTIES_NOT_IN_METADATA.add(OntologyProperties.DELETEABLE.getPropertyName());
     }
 
-    public VertexiumConcept(Vertex vertex) {
-        this(vertex, null, null);
+    public VertexiumConcept(Vertex vertex, String workspaceId) {
+        this(vertex, null, null, workspaceId);
     }
 
-    public VertexiumConcept(Vertex vertex, String parentConceptIRI, Collection<OntologyProperty> properties) {
+    public VertexiumConcept(Vertex vertex, String parentConceptIRI, Collection<OntologyProperty> properties, String workspaceId) {
         super(parentConceptIRI, properties);
         this.vertex = vertex;
+        this.workspaceId = workspaceId;
     }
 
     @Override
@@ -246,5 +250,10 @@ public class VertexiumConcept extends Concept {
 
     public Vertex getVertex() {
         return this.vertex;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return SandboxStatusUtil.getSandboxStatus(this.vertex, this.workspaceId);
     }
 }

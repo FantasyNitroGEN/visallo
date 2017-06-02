@@ -100,6 +100,7 @@ public class ClientApiOntology implements ClientApiObject {
         private List<String> addRelatedConceptWhiteList = new ArrayList<String>();
         private List<String> properties = new ArrayList<String>();
         private Map<String, String> metadata = new HashMap<String, String>();
+        private SandboxStatus sandboxStatus;
 
         public String getId() {
             return id;
@@ -246,6 +247,14 @@ public class ClientApiOntology implements ClientApiObject {
         @JsonInclude(JsonInclude.Include.NON_EMPTY)
         public List<String> getIntents() {
             return intents;
+        }
+
+        public SandboxStatus getSandboxStatus() {
+            return sandboxStatus;
+        }
+
+        public void setSandboxStatus(SandboxStatus sandboxStatus) {
+            this.sandboxStatus = sandboxStatus;
         }
     }
 

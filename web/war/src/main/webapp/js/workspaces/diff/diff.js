@@ -171,6 +171,8 @@ define([
                                 if (concept) {
                                     outputItem.conceptImage = concept.glyphIconHref;
                                     outputItem.selectedConceptImage = concept.glyphIconSelectedHref || concept.glyphIconHref;
+                                    outputItem.conceptSandboxStatus = concept.sandboxStatus;
+                                    outputItem.conceptDisplayName = concept.displayName;
                                 }
                             }
                         } else {
@@ -370,10 +372,23 @@ define([
         this.onSelectAllPublish = _.partial(this.onSelectAll, 'publish');
         this.onSelectAllUndo = _.partial(this.onSelectAll, 'undo');
 
-        this.onApplyAll = function(type) {
+        this.onApplyAll = function(type, publishOntology) {
             var self = this,
-                diffsToSend = this.buildDiffsToSend(type);
-            this.publishing = type === 'publish';
+                publishing = type === 'publish';
+
+            if (publishing && !publishOntology) {
+                var ontologyToPublish = this.buildOntologyToPublish();
+                if (_.some(ontologyToPublish, _.size)) {
+                    var shouldPublishOntology = true; console.log('Display the warning prompt with info here.');
+                    if (shouldPublishOntology) {
+                        this.onApplyAll(type, true);
+                    }
+                    return;
+                }
+            }
+
+            var diffsToSend = this.buildDiffsToSend(type);
+            this.publishing = publishing;
             this.undoing = type === 'undo';
             this.render();
 
@@ -429,8 +444,17 @@ define([
                     _.delay(error.remove.bind(error), 5000)
                 });
         };
-        this.onApplyPublishClick = _.partial(this.onApplyAll, 'publish');
-        this.onApplyUndoClick = _.partial(this.onApplyAll, 'undo');
+        this.onApplyPublishClick = _.partial(this.onApplyAll, 'publish', false);
+        this.onApplyUndoClick = _.partial(this.onApplyAll, 'undo', false);
+
+        this.buildOntologyToPublish = function() {
+            var diffsByPrivateConcept = _.chain(this.diffs)
+             .filter(function(diff) { return diff.publish && diff.conceptSandboxStatus !== 'PUBLIC'; })
+             .groupBy(_.property('conceptDisplayName'))
+             .value();
+
+             return { concepts: diffsByPrivateConcept, relationships: { /* TODO */ }, properties: { /* TODO */ }};
+        };
 
         this.buildDiffsToSend = function(applyType) {
             var self = this,

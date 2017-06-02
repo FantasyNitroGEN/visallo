@@ -67,7 +67,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     private AuthorizationRepository authorizationRepository;
     private PrivilegeRepository privilegeRepository;
     private Authorizations authorizations;
-    private WorkspaceRepository workspaceRepository;
+
     protected Cache<String, List<Concept>> allConceptsWithPropertiesCache = CacheBuilder.newBuilder()
             .expireAfterWrite(15, TimeUnit.HOURS)
             .build();
@@ -551,7 +551,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     @Override
     protected List<Concept> getChildConcepts(Concept concept, User user, String workspaceId) {
         Vertex conceptVertex = ((VertexiumConcept) concept).getVertex();
-        return toConcepts(conceptVertex.getVertices(Direction.IN, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId)));
+        return toConcepts(conceptVertex.getVertices(Direction.IN, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId)), workspaceId);
     }
 
     @Override
@@ -572,10 +572,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         return getConceptByIRI(parentIri);
     }
 
-    private List<Concept> toConcepts(Iterable<Vertex> vertices) {
+    private List<Concept> toConcepts(Iterable<Vertex> vertices, String workspaceId) {
         ArrayList<Concept> concepts = new ArrayList<>();
         for (Vertex vertex : vertices) {
-            concepts.add(createConcept(vertex));
+            concepts.add(createConcept(vertex, workspaceId));
         }
         return concepts;
     }
@@ -631,14 +631,16 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             ctx.setPushOnQueue(false);
 
             Visibility visibility = VISIBILITY.getVisibility();
+            VisibilityJson visibilityJson = new VisibilityJson();
+            visibilityJson.setSource(visibility.getVisibilityString());;
+
             String id = ID_PREFIX_CONCEPT + conceptIRI;
+
             VertexBuilder builder = null;
             if (workspaceId == null) {
                 builder = graph.prepareVertex(id, visibility);
             } else {
                 // TODO: Make sure user has access to workspace
-                VisibilityJson visibilityJson = new VisibilityJson();
-                visibilityJson.setSource(visibility.getVisibilityString());
                 visibilityJson.addWorkspace(workspaceId);
                 id = ID_PREFIX_CONCEPT + Hashing.sha1().hashString(workspaceId + conceptIRI, Charsets.UTF_8).toString();
 
@@ -646,15 +648,15 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 builder = graph.prepareVertex(id, visibilityTranslator.toVisibility(visibilityJson).getVisibility());
             }
 
-            Vertex vertex = ctx.update(builder, elemCtx -> {
+            Date modifiedDate = new Date();
+            Vertex vertex = ctx.update(builder, modifiedDate, visibilityJson, TYPE_CONCEPT, elemCtx -> {
                 Metadata metadata = null;
                 if (user != null) {
                     metadata = new Metadata();
                     VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
-                    VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), visibility);
+                    VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
                 }
 
-                VisalloProperties.CONCEPT_TYPE.updateProperty(elemCtx, TYPE_CONCEPT, metadata, visibility);
                 OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, conceptIRI, metadata, visibility);
                 OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName, metadata, visibility);
                 if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
@@ -665,9 +667,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             }).get();
 
             if (parent == null) {
-                concept = createConcept(vertex);
+                concept = createConcept(vertex, workspaceId);
             } else {
-                concept = createConcept(vertex, null, parent.getIRI());
+                concept = createConcept(vertex, null, parent.getIRI(), workspaceId);
                 findOrAddEdge(ctx, ((VertexiumConcept) concept).getVertex(), ((VertexiumConcept) parent).getVertex(), LabelName.IS_A.toString(), user, workspaceId);
             }
 
@@ -1090,15 +1092,15 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     /**
      * Overridable so subclasses can supply a custom implementation of Concept.
      */
-    protected Concept createConcept(Vertex vertex, List<OntologyProperty> conceptProperties, String parentConceptIRI) {
-        return new VertexiumConcept(vertex, parentConceptIRI, conceptProperties);
+    protected Concept createConcept(Vertex vertex, List<OntologyProperty> conceptProperties, String parentConceptIRI, String workspaceId) {
+        return new VertexiumConcept(vertex, parentConceptIRI, conceptProperties, workspaceId);
     }
 
     /**
      * Overridable so subclasses can supply a custom implementation of Concept.
      */
-    protected Concept createConcept(Vertex vertex) {
-        return new VertexiumConcept(vertex);
+    protected Concept createConcept(Vertex vertex, String workspaceId) {
+        return new VertexiumConcept(vertex, workspaceId);
     }
 
     private void deleteChangeableProperties(Vertex vertex, Authorizations authorizations) {
@@ -1134,7 +1136,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 List<OntologyProperty> conceptProperties = getPropertiesByVertexNoRecursion(vertex, user, workspaceId);
                 Vertex parentConceptVertex = getParentConceptVertex(vertex, user, workspaceId);
                 String parentConceptIRI = OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(parentConceptVertex);
-                return createConcept(vertex, conceptProperties, parentConceptIRI);
+                return createConcept(vertex, conceptProperties, parentConceptIRI, workspaceId);
             }
         }));
     }

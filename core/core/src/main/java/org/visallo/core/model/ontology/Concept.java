@@ -5,6 +5,7 @@ import org.atteo.evo.inflector.English;
 import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -49,6 +50,8 @@ public abstract class Concept implements OntologyElement, HasOntologyProperties 
 
     @Override
     public abstract boolean getUpdateable();
+
+    public abstract SandboxStatus getSandboxStatus();
 
     public abstract Map<String, String> getMetadata();
 
@@ -118,6 +121,9 @@ public abstract class Concept implements OntologyElement, HasOntologyProperties 
             }
             for (Map.Entry<String, String> additionalProperty : getMetadata().entrySet()) {
                 concept.getMetadata().put(additionalProperty.getKey(), additionalProperty.getValue());
+            }
+            if (this.getSandboxStatus() != null) {
+                concept.setSandboxStatus(this.getSandboxStatus());
             }
             return concept;
         } catch (UnsupportedEncodingException e) {

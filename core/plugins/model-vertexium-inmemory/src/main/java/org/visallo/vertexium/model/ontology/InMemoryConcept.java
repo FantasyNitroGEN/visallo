@@ -6,6 +6,7 @@ import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.util.JSONUtil;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -223,5 +224,10 @@ public class InMemoryConcept extends Concept {
 
     public String getConceptIRI() {
         return conceptIRI;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return SandboxStatus.PUBLIC;
     }
 }

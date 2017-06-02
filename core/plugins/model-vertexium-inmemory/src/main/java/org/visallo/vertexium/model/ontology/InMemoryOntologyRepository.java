@@ -351,12 +351,12 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Iterable<Relationship> getRelationships(Iterable<String> ids, User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
     public Iterable<Relationship> getRelationships(User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
 
@@ -372,12 +372,12 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Iterable<OntologyProperty> getProperties(Iterable<String> ids, User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
     public Iterable<OntologyProperty> getProperties(User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
@@ -389,7 +389,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public String getDisplayNameForLabel(String relationshipIRI, User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
@@ -419,7 +419,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Iterable<Concept> getConceptsWithProperties(User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
@@ -434,7 +434,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Concept getRootConcept(User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
@@ -444,7 +444,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Concept getEntityConcept(User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
@@ -459,12 +459,12 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Concept getParentConcept(Concept concept, User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
     public Iterable<Concept> getConcepts(Iterable<String> ids, User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
@@ -496,7 +496,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     protected List<Relationship> getChildRelationships(Relationship relationship, User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     @Override
@@ -591,7 +591,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Relationship getOrCreateRelationshipType(Relationship parent, Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, boolean deleteChangeableProperties, User user, String workspaceId) {
-        return null;
+        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
     }
 
     protected void addExtendedDataTableProperty(OntologyProperty tableProperty, OntologyProperty property, User user, String workspaceId) {
