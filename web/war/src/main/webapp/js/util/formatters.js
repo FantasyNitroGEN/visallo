@@ -760,32 +760,17 @@ define([
              */
             local: function(str) {
                 if (_.isUndefined(str)) return '';
+                var tz = FORMATTERS.timezone.currentTimezone();
                 var numberOrString = _.isString(str) && !isNaN(Number(str)) ? Number(str) : str,
                     dateInLocale;
 
                 if (_.isDate(numberOrString)) {
                     dateInLocale = numberOrString;
                 } else {
-                    dateInLocale = new Date(numberOrString);
+                    dateInLocale = new Date(moment.tz(numberOrString, tz.name).toISOString());
                     if (isNaN(dateInLocale.getTime())) {
-                        var match = numberOrString.match(/(\d{4}-\d{2}-\d{2})\s(\d{2}:\d{2})\s(.*)$/);
-                        if (match && match.length > 2) {
-                            var parsed = match.slice(1, 3).join('T') + ':00.000';
-                            dateInLocale = new Date(parsed);
-                            var offset = dateInLocale.getTimezoneOffset(),
-                                isNegative = offset > 0,
-                                hours = '' + Math.floor(Math.abs(offset) / 60),
-                                minutes = '' + (Math.abs(offset) % 60);
-
-                            if (hours.length < 2) hours = '0' + hours;
-                            if (minutes.length < 2) minutes = '0' + minutes;
-
-                            parsed += (isNegative ? '-' : '+') + hours + ':' + minutes;
-                            dateInLocale = new Date(parsed);
-                        } else {
-                            console.warn('Unable to parse date', numberOrString);
-                            return '';
-                        }
+                        console.warn('Unable to parse date: ' + str);
+                        return '';
                     }
                 }
 

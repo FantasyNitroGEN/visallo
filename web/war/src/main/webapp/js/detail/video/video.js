@@ -42,7 +42,8 @@ define([
         this.render = function() {
             var self = this;
 
-            if (!this.isVideoReady()) {
+            const formatsReady = this.isVideoReady();
+            if (!_.any(formatsReady)) {
                 this.videoRendered = false;
                 return this.$node.empty();
             }
@@ -55,6 +56,7 @@ define([
                 VideoScrubber.attachTo(this.select('previewSelector'), {
                     rawUrl: F.vertex.raw(this.model),
                     posterFrameUrl: F.vertex.image(this.model),
+                    formatsReady,
                     videoPreviewImageUrl: F.vertex.imageFrames(this.model),
                     duration: this.duration,
                     allowPlayback: true
@@ -93,12 +95,10 @@ define([
         };
 
         this.isVideoReady = function() {
-            return (
-                (F.vertex.props(this.model, 'http://visallo.org#video-webm') || [])
-                .concat(
-                    (F.vertex.props(this.model, 'http://visallo.org#video-mp4') || [])
-                )
-            ).length >= 2;
+            return _.object(['mp4', 'webm'], format => [
+                format,
+                F.vertex.props(this.model, `http://visallo.org#video-${format}`).length > 0
+            ]);
         };
 
         this.onPlayerTimeUpdate = function(evt, data) {

@@ -121,7 +121,7 @@ repository.ontology.owl.default.dir=$VISALLO_DIR/config/ontology-sample
 
 * **intent** - See the [Intents](#intent) section
 * **glyphIconFileName** - The image to use on the UI to display the entity.
-* **color** - The color to use when underling the entity in a document text section.
+* **color** - The color to use when underlining the entity in a document text section.
 * **displayType** - Specifies how the UI should display the entity.
   * audio
   * image

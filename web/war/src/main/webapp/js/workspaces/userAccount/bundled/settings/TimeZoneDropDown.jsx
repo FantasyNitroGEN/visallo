@@ -24,11 +24,12 @@ define([
                             value={this.props.value}>
                 {Object.keys(jstz.olson.timezones).map(key => {
                     const tz = jstz.olson.timezones[key];
+                    const tzInfo = F.timezone.lookupTimezone(tz);
                     const components = key.split(',');
                     const offsetMinutes = parseInt(components[0], 10);
                     const offset = F.timezone.offsetDisplay(offsetMinutes);
                     const tzPretty = tz.replace(/_/g, ' ');
-                    return (<option value={tz}>{offset} {tzPretty}</option>);
+                    return (<option value={tz}>{offset} {tzPretty}{tzInfo.dst ? '*' : ''}</option>);
                 })}
             </select>);
         }
