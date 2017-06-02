@@ -877,6 +877,11 @@ define([
 
                 name = V.propName(name);
 
+                // This is now on the vertex, for performance just get it there
+                if (name === 'http://visallo.org#conceptType' && !optionalKey && vertex.conceptType) {
+                    return vertex.conceptType;
+                }
+
                 var value = V.propRaw(vertex, name, optionalKey, optionalOpts),
                     ignoreDisplayFormula = optionalOpts && optionalOpts.ignoreDisplayFormula,
                     ontologyProperty = propertiesByTitle[name];
