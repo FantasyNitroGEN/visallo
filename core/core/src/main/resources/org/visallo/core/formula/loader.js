@@ -3,7 +3,7 @@
 $ = { extend: _.extend };
 window = this;
 navigator = { userAgent: ''};
-visalloData = {};
+visalloData = publicData = { currentWorkspaceId: 'WORKSPACE_ID' };
 console = {
     log: print,
     info: print,

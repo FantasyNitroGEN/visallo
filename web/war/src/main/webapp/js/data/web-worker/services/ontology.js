@@ -44,10 +44,12 @@ define([
     });
     var subscribeToClear = _.once(function() {
         var _store = store.getStore();
-        var select = (store) => store.workspace.currentId && store.ontology && store.ontology[store.workspace.currentId];
-        var previous = select(_store.getState());
+        var selectOntology = function(store) {
+            return store.workspace.currentId && store.ontology && store.ontology[store.workspace.currentId];
+        };
+        var previous = selectOntology(_store.getState());
         _store.subscribe(function() {
-            var current = select(_store.getState());
+            var current = selectOntology(_store.getState());
             if (previous !== current) {
                 previous = current;
                 if (previous && current) {
