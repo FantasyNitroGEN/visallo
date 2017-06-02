@@ -405,64 +405,75 @@ define([
                                 })
                                 .sortBy('displayName')
                                 .value(),
-                            groupedByRelated = {};
+                            out = { groupedByRelated: {} };
 
                         return {
                             list: list,
                             byId: ontology.relationships,
                             byTitle: ontology.relationships,
-                            groupedBySourceDestConcepts: conceptGrouping(concepts, list, groupedByRelated),
-                            groupedByRelatedConcept: groupedByRelated
+                            groupedBySourceDestConcepts: conceptGrouping(concepts, list, out),
+                            groupedByRelatedConcept: out.groupedByRelated
                         };
                     });
 
                 // Calculates cache with all possible mappings from source->dest
                 // including all possible combinations of source->children and
                 // dest->children
-                function conceptGrouping(concepts, relationships, groupedByRelated) {
+                function conceptGrouping(concepts, relationships, out) {
+                    var groupedByRelated = out.groupedByRelated;
                     var groups = {},
                         addToAllSourceDestChildrenGroups = function(r, source, dest) {
+                            if (source.userVisible === false || dest.userVisible === false) {
+                                return;
+                            }
+
                             var key = genSourceDestKey(source, dest);
 
                             if (!groups[key]) {
                                 groups[key] = [];
                             }
                             if (!groupedByRelated[source]) {
-                                groupedByRelated[source] = [];
+                                groupedByRelated[source] = {}
                             }
                             if (!groupedByRelated[dest]) {
-                                groupedByRelated[dest] = [];
+                                groupedByRelated[dest] = {}
                             }
 
                             groups[key].push(r);
-                            if (groupedByRelated[source].indexOf(dest) === -1) {
-                                groupedByRelated[source].push(dest);
-                            }
-                            if (groupedByRelated[dest].indexOf(source) === -1) {
-                                groupedByRelated[dest].push(source);
-                            }
+                            groupedByRelated[source][dest] = true;
+                            groupedByRelated[dest][source] = true;
 
                             var destConcept = concepts.byId[dest]
                             if (destConcept && destConcept.children) {
                                 destConcept.children.forEach(function(c) {
-                                    addToAllSourceDestChildrenGroups(r, source, c.id);
+                                    if (c.userVisible !== false) {
+                                        addToAllSourceDestChildrenGroups(r, source, c.id);
+                                    }
                                 })
                             }
 
                             var sourceConcept = concepts.byId[source]
                             if (sourceConcept && sourceConcept.children) {
                                 sourceConcept.children.forEach(function(c) {
-                                    addToAllSourceDestChildrenGroups(r, c.id, dest);
+                                    if (c.userVisible !== false) {
+                                        addToAllSourceDestChildrenGroups(r, c.id, dest);
+                                    }
                                 });
                             }
                         };
 
                     relationships.forEach(function(r) {
-                        r.domainConceptIris.forEach(function(source) {
-                            r.rangeConceptIris.forEach(function(dest) {
-                                addToAllSourceDestChildrenGroups(r, source, dest);
+                        if (r.userVisible !== false) {
+                            r.domainConceptIris.forEach(function(source) {
+                                r.rangeConceptIris.forEach(function(dest) {
+                                    addToAllSourceDestChildrenGroups(r, source, dest);
+                                });
                             });
-                        });
+                        }
+                    });
+
+                    out.groupedByRelated = _.mapObject(groupedByRelated, function(obj, key) {
+                        return _.keys(obj);
                     });
 
                     return groups;
