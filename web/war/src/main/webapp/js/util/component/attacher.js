@@ -96,6 +96,9 @@ define([
                         self._reactElement = provider;
                     }
                 }
+
+                $(self._node).trigger('rendered');
+
                 return self;
             })
     };

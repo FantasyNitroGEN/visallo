@@ -81,6 +81,7 @@ define([], function() {
             this.popover = this.dialog.find('.popover');
 
             this.on(this.popover, 'positionDialog', this.positionDialog);
+            this.on(this.popover, 'rendered', this.positionDialog);
             this.on(this.popover, 'closePopover', this.teardown);
             this.on(this.popover, 'keyup', {
                 withPopoverInputSelector: this.withPopoverOnKeyup

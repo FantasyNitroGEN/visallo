@@ -1,6 +1,18 @@
 define(['../actions', '../../util/ajax'], function(actions, ajax) {
     actions.protectFromMain();
 
+    const listName = { concept: 'concepts', property: 'properties', relationship: 'relationships' };
+    const add = type => ({ workspaceId, key, ...rest }) => dispatch => {
+        const obj = rest[type];
+        return ajax('POST', `/ontology/${type}`, { workspaceId, ...obj })
+            .then(payload => {
+                dispatch(api.partial({ workspaceId, [listName[type]]: { [payload.title]: payload }}))
+                if (key) {
+                    dispatch(api.iriCreated({ key, type, iri: payload.title }))
+                }
+            })
+    };
+
     const api = {
         get: ({ workspaceId, invalidate = false }) => (dispatch, getState) => {
             const state = getState();
@@ -38,12 +50,16 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             })
         },
 
-        addConcept: ({ workspaceId, concept }) => dispatch => {
-            return ajax('POST', '/ontology/concept', concept)
-                .then(payload => {
-                    dispatch(api.partial({ workspaceId, concepts: { [concept.id]: payload }}))
-                })
-        },
+        addConcept: add('concept'),
+
+        addProperty: add('property'),
+
+        addRelationship: add('relationship'),
+
+        iriCreated: ({ type, key, iri }) => ({
+            type: 'ONTOLOGY_IRI_CREATED',
+            payload: { type, key, iri }
+        }),
 
         conceptsChange: ({ workspaceId, conceptIds }) => (dispatch, getState) => {
             const state = getState();

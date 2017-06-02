@@ -54,23 +54,15 @@ define(['reselect'], function(reselect) {
     const getVisibleConceptsWithHeaders = createSelector([getVisibleConcepts], concepts => {
         return _.chain(concepts)
             .sortBy('path')
-            //.tap(x => {
-                //console.log(x.map(c => c.fullPath))
-            //})
-            //.sortBy(c => c.pathComponents.length)
-            //.sortBy(c => {
-                //c.displayName
-            //})
-            //.tap(c => {
-                //debugger
-            //})
             .value()
     })
 
+    const getConceptKeyIris = createSelector([getOntologyRoot], ontology => ontology.iris && ontology.iris.concept)
 
     return {
         getConcepts,
+        getConceptKeyIris,
         getVisibleConcepts,
-        getVisibleConceptsWithHeaders
+        getVisibleConceptsWithHeaders,
     }
 });

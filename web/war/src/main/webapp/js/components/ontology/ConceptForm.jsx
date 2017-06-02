@@ -1,6 +1,6 @@
 define([
     'react',
-    './Concepts'
+    './ConceptSelector'
 ], function(React, ConceptsSelector) {
     'use strict';
 
@@ -14,8 +14,7 @@ define([
         getValue() {
             const { displayName } = this.state;
             const { displayName: defaultValue } = this.props;
-            const value = _.isString(displayName) ? displayName : defaultValue;
-            return value;
+            return _.isString(displayName) ? displayName : defaultValue;
         },
         render() {
             const value = this.getValue();

@@ -5,7 +5,9 @@ define([
     React,
     { default: VirtualizedSelect }) {
 
+    var _counter = 1;
     const PropTypes = React.PropTypes;
+    const keyCounter = () => _counter++;
 
     const createFixedCreatable = Creatable => {
         class CreatablePutLast extends Creatable {
@@ -75,6 +77,12 @@ define([
                 } else throw new Error('Create form prop required when creatable')
             }
         },
+        componentWillReceiveProps(nextProps) {
+            const { key } = this.state;
+            if (key && nextProps.iriKeys && nextProps.iriKeys[key]) {
+                this.setState({ value: nextProps.iriKeys[key], key: false })
+            }
+        },
         render() {
             const { creating, value, CreateForm, selectComponent } = this.state;
             const { options, value: defaultValue, valueKey, labelKey, creatable, createForm } = this.props;
@@ -117,10 +125,10 @@ define([
             );
         },
         onCreate(option) {
-            this.props.onCreate(option);
-            this.setState({ creating: false })
-            // TODO: Have to figure out how to get IRI from created concept,
-            // this.setState({ creating: false, value: ??? });
+            const key = keyCounter();
+            this.props.onCreate(option, { key });
+            // TODO: should have a loading state
+            this.setState({ creating: false, key })
         },
         onNewOptionClick(option) {
             this.setState({ creating: option[this.props.labelKey] })

@@ -27,13 +27,14 @@ define([
         (state, props) => {
             return {
                 options: ontologySelectors.getVisibleConceptsWithHeaders(state),
+                iriKeys: ontologySelectors.getConceptKeyIris(state),
                 ...props
             };
         },
 
         (dispatch, props) => ({
-            onCreate: (concept) => {
-                dispatch(ontologyActions.addConcept(concept));
+            onCreate: (concept, options) => {
+                dispatch(ontologyActions.addConcept(concept, options));
             }
         })
     )(ConceptsSelector);

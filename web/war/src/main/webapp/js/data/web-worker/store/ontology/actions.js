@@ -5,7 +5,9 @@ define(['../actions'], function(actions) {
         workerImpl: 'data/web-worker/store/ontology/actions-impl',
         actions: {
             get: (workspaceId) => ({ workspaceId }),
-            addConcept: (concept) => ({ concept })
+            addConcept: (concept, { key, workspaceId } = {}) => ({ concept, key, workspaceId }),
+            addRelationship: (relationship, { key, workspaceId } = {}) => ({ relationship, key, workspaceId }),
+            addProperty: (property, { key, workspaceId } = {}) => ({ property, key, workspaceId })
         }
     })
 })

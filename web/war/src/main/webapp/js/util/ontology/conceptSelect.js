@@ -25,15 +25,8 @@
  */
 define([
     'flight/lib/component',
-    'util/component/attacher',
-    //'./concepts.hbs',
-    //'./concept.hbs',
-], function(
-    defineComponent,
-    attacher,
-    //template,
-    //conceptTemplate
-    ) {
+    'util/component/attacher'
+], function(defineComponent, attacher) {
 
     return defineComponent(ConceptSelector);
 
@@ -43,6 +36,16 @@ define([
         })
 
         this.after('initialize', function() {
+            this.on('clearSelectedConcept', function() {
+                console.log(event.type, this.attacher);
+            })
+            this.on('selectConceptId', function() {
+                console.log(event.type, this.attacher);
+            })
+            this.on('enableConcept', function() {
+                console.log(event.type, this.attacher);
+            })
+
             this.attacher = attacher()
                 .node(this.node)
                 .behavior({
@@ -50,10 +53,9 @@ define([
                         this.trigger('conceptSelected', { concept })
                     }
                 })
-                .path('components/ontology/Concepts')
-            this.attacher.attach().then(() => {
-                this.trigger('positionDialog');
-            });
+                .path('components/ontology/ConceptSelector')
+
+            this.attacher.attach();
         })
     }
 });
