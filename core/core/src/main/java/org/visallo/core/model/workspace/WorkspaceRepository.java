@@ -462,6 +462,7 @@ public abstract class WorkspaceRepository {
 
         if (publishedConceptCount > 0) {
             ontologyRepository.clearCache();
+            workQueueRepository.pushOntologyChange(null);
         }
 
         CloseableUtils.closeQuietly(verticesToPublish);

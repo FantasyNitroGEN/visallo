@@ -1187,8 +1187,12 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
             if (visibilityJson.getWorkspaces().contains(workspaceId)) {
                 visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
+                VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
                 try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, getAuthorizations(user, workspaceId))) {
-                    ctx.update(vertex, new Date(), visibilityJson, null, vertexUpdateCtx -> {});
+                    ctx.update(vertex, new Date(), visibilityJson, null, vertexUpdateCtx -> {
+                        ExistingElementMutation<Vertex> mutation = (ExistingElementMutation<Vertex>) vertexUpdateCtx.getMutation();
+                        mutation.alterElementVisibility(visalloVisibility.getVisibility());
+                    });
                     removeEdge(ctx, workspaceId, vertex.getId());
                 }
             }
