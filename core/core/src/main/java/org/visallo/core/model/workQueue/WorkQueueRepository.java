@@ -779,12 +779,7 @@ public abstract class WorkQueueRepository {
     }
 
     public void pushOntologyChange(String workspaceId) {
-        JSONObject json = new JSONObject();
-        json.put("type", "ontologyChange");
-        JSONObject data = new JSONObject();
-        data.putOpt("workspaceId", workspaceId);
-        json.put("data", data);
-        broadcastJson(json);
+        pushOntologyChange(workspaceId, null, null, null);
     }
 
     public void pushOntologyChange(String workspaceId, Iterable<String> conceptIds, Iterable<String> relationshipIds, Iterable<String> propertyIds) {
@@ -792,9 +787,11 @@ public abstract class WorkQueueRepository {
         json.put("type", "ontologyChange");
         JSONObject data = new JSONObject();
         data.putOpt("workspaceId", workspaceId);
-        data.put("conceptIds", new JSONArray((Collection) conceptIds));
-        data.put("propertyIds", new JSONArray((Collection) propertyIds));
-        data.put("relationshipIds", new JSONArray((Collection) relationshipIds));
+        if (conceptIds != null || relationshipIds != null || propertyIds != null) {
+            data.put("conceptIds", new JSONArray((Collection) conceptIds));
+            data.put("propertyIds", new JSONArray((Collection) propertyIds));
+            data.put("relationshipIds", new JSONArray((Collection) relationshipIds));
+        }
         json.put("data", data);
         broadcastJson(json);
     }
