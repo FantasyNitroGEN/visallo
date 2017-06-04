@@ -1,12 +1,11 @@
 define(['../actions', '../../util/ajax'], function(actions, ajax) {
     actions.protectFromMain();
 
-    const listName = { concept: 'concepts', property: 'properties', relationship: 'relationships' };
-    const add = type => ({ workspaceId, key, ...rest }) => dispatch => {
+    const add = (type, listName) => ({ workspaceId, key, ...rest }) => dispatch => {
         const obj = rest[type];
         return ajax('POST', `/ontology/${type}`, { workspaceId, ...obj })
             .then(payload => {
-                dispatch(api.partial({ workspaceId, [listName[type]]: { [payload.title]: payload }}))
+                dispatch(api.partial({ workspaceId, [listName]: { [payload.title]: payload }}))
                 if (key) {
                     dispatch(api.iriCreated({ key, type, iri: payload.title }))
                 }
@@ -50,27 +49,33 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             })
         },
 
-        addConcept: add('concept'),
+        addConcept: add('concept', 'concepts'),
 
-        addProperty: add('property'),
+        addProperty: add('property', 'properties'),
 
-        addRelationship: add('relationship'),
+        addRelationship: add('relationship', 'relationships'),
 
         iriCreated: ({ type, key, iri }) => ({
             type: 'ONTOLOGY_IRI_CREATED',
             payload: { type, key, iri }
         }),
 
-        conceptsChange: ({ workspaceId, conceptIds }) => (dispatch, getState) => {
+        ontologyChange: ({ workspaceId, conceptIds, relationshipIds, propertyIds }) => (dispatch, getState) => {
             const state = getState();
             const isPublishedChanged = !workspaceId;
 
             if (isPublishedChanged) {
-                // FIXME: dispatch all ontology clear and load current workspace
+                // FIXME
+                // if (any ids given) {
+                //     all other ontology workspaces should clear and request the ids
+                // } else {
+                //     all other ontology clear and load current workspace {invalidate: true}
+                // }
             } else {
                 const workspaceInStore = workspaceId in state.workspace.byId;
                 if (workspaceInStore) {
-                    return ajax('GET', '/ontology/segment', { conceptIds })
+                    // FIXME if no ids, just dispatch get with invalidate: true
+                    return ajax('GET', '/ontology/segment', { conceptIds, relationshipIds, propertyIds })
                         .then(payload => {
                             dispatch(api.partial({ workspaceId, ...payload }))
                         })

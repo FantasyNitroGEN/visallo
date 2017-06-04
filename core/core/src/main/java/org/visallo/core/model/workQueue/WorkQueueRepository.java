@@ -782,39 +782,33 @@ public abstract class WorkQueueRepository {
         JSONObject json = new JSONObject();
         json.put("type", "ontologyChange");
         JSONObject data = new JSONObject();
-        data.put("workspaceId", workspaceId);
+        data.putOpt("workspaceId", workspaceId);
+        json.put("data", data);
+        broadcastJson(json);
+    }
+
+    public void pushOntologyChange(String workspaceId, Iterable<String> conceptIds, Iterable<String> relationshipIds, Iterable<String> propertyIds) {
+        JSONObject json = new JSONObject();
+        json.put("type", "ontologyChange");
+        JSONObject data = new JSONObject();
+        data.putOpt("workspaceId", workspaceId);
+        data.put("conceptIds", new JSONArray((Collection) conceptIds));
+        data.put("propertyIds", new JSONArray((Collection) propertyIds));
+        data.put("relationshipIds", new JSONArray((Collection) relationshipIds));
         json.put("data", data);
         broadcastJson(json);
     }
 
     public void pushOntologyConceptsChange(String workspaceId, String... ids) {
-        JSONObject json = new JSONObject();
-        json.put("type", "ontologyConceptsChange");
-        JSONObject data = new JSONObject();
-        data.put("workspaceId", workspaceId);
-        data.put("conceptIds", new JSONArray(ids));
-        json.put("data", data);
-        broadcastJson(json);
+        pushOntologyChange(workspaceId, Arrays.asList(ids), null, null);
     }
 
     public void pushOntologyPropertiesChange(String workspaceId, String... ids) {
-        JSONObject json = new JSONObject();
-        json.put("type", "ontologyPropertiesChange");
-        JSONObject data = new JSONObject();
-        data.put("workspaceId", workspaceId);
-        data.put("propertyIds", new JSONArray(ids));
-        json.put("data", data);
-        broadcastJson(json);
+        pushOntologyChange(workspaceId, null, null, Arrays.asList(ids));
     }
 
     public void pushOntologyRelationshipsChange(String workspaceId, String... ids) {
-        JSONObject json = new JSONObject();
-        json.put("type", "ontologyRelationshipsChange");
-        JSONObject data = new JSONObject();
-        data.put("workspaceId", workspaceId);
-        data.put("relationshipIds", new JSONArray(ids));
-        json.put("data", data);
-        broadcastJson(json);
+        pushOntologyChange(workspaceId, null, Arrays.asList(ids), null);
     }
 
     public void pushTextUpdated(String vertexId) {

@@ -19,12 +19,7 @@ define([
             },
             ontologyChange: function(data) {
                 require(['../store/ontology/actions-impl'], function(actions) {
-                    store.getStore().dispatch(actions.get({ workspaceId: data.workspaceId }));
-                });
-            },
-            ontologyConceptsChange: function(data) {
-                require(['../store/ontology/actions-impl'], function(actions) {
-                    store.getStore().dispatch(actions.conceptsChange(data));
+                    store.getStore().dispatch(actions.ontologyChange(data));
                 });
             },
             workProductPreviewChange: function(data) {

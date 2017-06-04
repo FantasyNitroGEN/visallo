@@ -44,7 +44,7 @@ public class OntologyGet implements ParameterizedHandler {
         if (conceptIds != null) {
             List<ClientApiOntology.Concept> concepts = IterableUtils.toList(ontologyRepository.getConcepts(Lists.newArrayList(conceptIds), user, workspaceId))
                     .stream()
-                    .map(concept1 -> concept1.toClientApi())
+                    .map(concept -> concept.toClientApi())
                     .collect(Collectors.toList());
             clientApiOntology.addAllConcepts(concepts);
         }
