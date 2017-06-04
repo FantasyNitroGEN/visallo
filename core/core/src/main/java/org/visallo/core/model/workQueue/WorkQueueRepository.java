@@ -1,5 +1,6 @@
 package org.visallo.core.model.workQueue;
 
+import com.google.common.collect.Sets;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -788,9 +789,9 @@ public abstract class WorkQueueRepository {
         JSONObject data = new JSONObject();
         data.putOpt("workspaceId", workspaceId);
         if (conceptIds != null || relationshipIds != null || propertyIds != null) {
-            data.put("conceptIds", new JSONArray((Collection) conceptIds));
-            data.put("propertyIds", new JSONArray((Collection) propertyIds));
-            data.put("relationshipIds", new JSONArray((Collection) relationshipIds));
+            data.put("conceptIds", conceptIds == null ? new JSONArray() : new JSONArray(Sets.newHashSet(conceptIds)));
+            data.put("propertyIds", propertyIds == null ? new JSONArray() : new JSONArray(Sets.newHashSet(propertyIds)));
+            data.put("relationshipIds", relationshipIds == null ? new JSONArray() : new JSONArray(Sets.newHashSet(relationshipIds)));
         }
         json.put("data", data);
         broadcastJson(json);
