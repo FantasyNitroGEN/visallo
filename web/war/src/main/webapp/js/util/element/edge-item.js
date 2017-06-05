@@ -8,11 +8,16 @@ define([
 ], function(
     defineComponent,
     template,
-    ontology,
+    ontologyPromise,
     JustificationViewer,
     withDataRequest,
     F) {
     'use strict';
+
+    var ontology = ontologyPromise;
+    $(document).on('ontologyUpdated', function(event, data) {
+        ontology = data.ontology;
+    })
 
     return defineComponent(EdgeItem, withDataRequest);
 

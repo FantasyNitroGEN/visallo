@@ -116,9 +116,19 @@ define([], function() {
         };
 
         this.dataRequestFastPassClear = function(message) {
+            var ontologyCleared = false;
             message.paths.forEach(function(path) {
+                ontologyCleared = ontologyCleared || (path.indexOf('ontology') === 0)
                 FAST_PASSED[path] = null;
             })
+
+            if (ontologyCleared) {
+                require(['util/withDataRequest'], dr => {
+                    dr.dataRequest('ontology', 'ontology').then(ontology => {
+                        $(document).trigger('ontologyUpdated', { ontology })
+                    })
+                })
+            }
         };
 
     }

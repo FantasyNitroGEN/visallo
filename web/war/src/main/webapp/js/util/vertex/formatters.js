@@ -10,20 +10,22 @@ define([
     vertexUrl,
     formula,
     i18n,
-    ontology,
+    ontologyPromise,
     visibilityUtil) {
     'use strict';
 
-    var propertiesByTitle = ontology.properties.byTitle,
-        propertiesByDependentToCompound = ontology.properties.byDependentToCompound,
+    var ontology = ontologyPromise;
+    $(document).on('ontologyUpdated', function(event, data) {
+        ontology = data.ontology;
+    })
 
-        /**
-         * Utilities that assist in transforming vertices and edges.
-         *
-         * @alias module:formatters.vertex
-         * @namespace
-         */
-        V = {
+    /**
+     * Utilities that assist in transforming vertices and edges.
+     *
+     * @alias module:formatters.vertex
+     * @namespace
+     */
+    var V = {
 
             /**
              * Check if the passed object is currently published from a case
@@ -662,7 +664,7 @@ define([
                         return V.title(vertex);
                     }),
                     sorted = _.sortBy(verticesWithValues[0], function(vertex) {
-                        var ontologyProperty = propertiesByTitle[V.propName(name)],
+                        var ontologyProperty = ontology.properties.byTitle[V.propName(name)],
                             propRaw = V.propRaw(vertex, name, undefined, { defaultValue: ' ' });
 
                         if (_.isString(propRaw)) {
@@ -699,7 +701,7 @@ define([
             propName: function(name) {
                 var autoExpandedName = (/^http:\/\/visallo.org/).test(name) ?
                         name : ('http://visallo.org#' + name),
-                    ontologyProperty = propertiesByTitle[name] || propertiesByTitle[autoExpandedName],
+                    ontologyProperty = ontology.properties.byTitle[name] || ontology.properties.byTitle[autoExpandedName],
 
                     resolvedName = ontologyProperty && (
                         ontologyProperty.title === name ? name : autoExpandedName
@@ -719,14 +721,14 @@ define([
             longestProp: function(vertex, optionalName) {
                 var properties = vertex.properties
                     .filter(function(a) {
-                        var ontologyProperty = propertiesByTitle[a.name];
+                        var ontologyProperty = ontology.properties.byTitle[a.name];
                         if (optionalName && optionalName !== a.name) {
                             return false;
                         }
                         return ontologyProperty && ontologyProperty.userVisible;
                     })
                     .map(function(a) {
-                        var parentProperty = propertiesByDependentToCompound[a.name];
+                        var parentProperty = ontology.properties.byDependentToCompound[a.name];
                         if (parentProperty && V.hasProperty(vertex, parentProperty)) {
                             return V.prop(vertex, parentProperty, a.key);
                         }
@@ -742,7 +744,7 @@ define([
 
             rollup: function(name, values) {
                 name = V.propName(name);
-                var ontologyProperty = propertiesByTitle[name],
+                var ontologyProperty = ontology.properties.byTitle[name],
                     min = Number.MAX_VALUE,
                     max = Number.MIN_VALUE,
                     sum = 0;
@@ -797,7 +799,7 @@ define([
              */
             propDisplay: function(name, value, options) {
                 name = V.propName(name);
-                var ontologyProperty = propertiesByTitle[name];
+                var ontologyProperty = ontology.properties.byTitle[name];
 
                 if (!ontologyProperty) {
                     return value;
@@ -884,7 +886,7 @@ define([
 
                 var value = V.propRaw(vertex, name, optionalKey, optionalOpts),
                     ignoreDisplayFormula = optionalOpts && optionalOpts.ignoreDisplayFormula,
-                    ontologyProperty = propertiesByTitle[name];
+                    ontologyProperty = ontology.properties.byTitle[name];
 
                 if (!ontologyProperty) {
                     return value;
@@ -1119,7 +1121,7 @@ define([
 
                 name = V.propName(name);
 
-                var ontologyProperty = propertiesByTitle[name],
+                var ontologyProperty = ontology.properties.byTitle[name],
                     dependentIris = ontologyProperty && ontologyProperty.dependentPropertyIris || [],
                     iris = dependentIris.length ? dependentIris : [name],
                     properties = transformMatchingVertexProperties(vertex, iris);

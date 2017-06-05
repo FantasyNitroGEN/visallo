@@ -13,6 +13,11 @@ define([
     d3) {
     'use strict';
 
+    var ontology = ontologyPromise;
+    $(document).on('ontologyUpdated', function(event, data) {
+        ontology = data.ontology;
+    })
+
     return defineComponent(SortByFields);
 
     function SortByFields() {
@@ -92,7 +97,7 @@ define([
             var node = this.$node.find('.property-select');
             node.teardownComponent(FieldSelection);
             FieldSelection.attachTo(node, {
-                properties: _.reject(this.filteredProperties || ontologyPromise.properties.list, function(p) {
+                properties: _.reject(this.filteredProperties || ontology.properties.list, function(p) {
                     return p.searchable === false || p.sortable === false;
                 }),
                 onlySearchable: true,
@@ -143,10 +148,10 @@ define([
                 .call(function() {
                     this.select('span')
                         .text(function(d) {
-                            return ontologyPromise.properties.byTitle[d.field].displayName;
+                            return ontology.properties.byTitle[d.field].displayName;
                         })
                         .attr('title', function(d) {
-                            return ontologyPromise.properties.byTitle[d.field].displayName;
+                            return ontology.properties.byTitle[d.field].displayName;
                         })
                     this.select('a').attr('title', function(d) {
                         return d.direction.toLowerCase();

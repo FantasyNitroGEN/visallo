@@ -6,9 +6,14 @@ define([
 ], function(
     defineComponent,
     F,
-    ontology,
+    ontologyPromise,
     withRenderer) {
     'use strict';
+
+    var ontology = ontologyPromise;
+    $(document).on('ontologyUpdated', function(event, data) {
+        ontology = data.ontology;
+    })
 
     const barCss = `
         .axis path, .axis .tick line {

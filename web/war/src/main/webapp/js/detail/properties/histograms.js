@@ -3,8 +3,13 @@ define([
     'util/vertex/formatters',
     'd3',
     'util/requirejs/promise!util/service/ontologyPromise'
-], function(defineComponent, F, d3, ontology) {
+], function(defineComponent, F, d3, ontologyPromise) {
     'use strict';
+
+    var ontology = ontologyPromise;
+    $(document).on('ontologyUpdated', function(event, data) {
+        ontology = data.ontology;
+    });
 
     var HISTOGRAM_STYLE = 'max', // max or sum
         GRAPH_TYPE = 'GRAPH_TYPE',

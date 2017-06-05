@@ -8,9 +8,14 @@ define([
     defineComponent,
     d3,
     withDataRequest,
-    ontology,
+    ontologyPromise,
     template) {
     'use strict';
+
+    var ontology = ontologyPromise;
+    $(document).on('ontologyUpdated', function(event, data) {
+        ontology = data.ontology;
+    })
 
     var AGGREGATIONS = [
             { value: 'term', name: 'Counts' },
@@ -433,11 +438,8 @@ define([
             if (!options) {
                 options = {};
             }
-            return Promise.all([
-                this.dataRequest('ontology', 'properties'),
-                Promise.require('util/ontology/propertySelect')
-            ]).spread(function(properties, FieldSelection) {
-                var propertiesToFilter = self.filteredProperties || properties.list;
+            return Promise.require('util/ontology/propertySelect').then(function(FieldSelection) {
+                var propertiesToFilter = self.filteredProperties || ontology.properties.list;
 
                 node.teardownComponent(FieldSelection);
 

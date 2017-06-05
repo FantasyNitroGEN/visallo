@@ -1,11 +1,17 @@
 define([
     'detail/toolbar/toolbar',
-    'util/vertex/formatters'
-], function(Toolbar, F) {
+    'util/vertex/formatters',
+    'util/requirejs/promise!util/service/ontologyPromise',
+], function(Toolbar, F, ontologyPromise) {
     'use strict';
 
     var conceptDisplay = _.compose(_.property('displayName'), F.vertex.concept),
-        vertexDisplay = F.vertex.title;
+        vertexDisplay = F.vertex.title,
+        ontology = ontologyPromise;
+
+    $(document).on('ontologyUpdated', function(event, data) {
+        ontology = data.ontology;
+    })
 
     return [
         {
@@ -175,24 +181,18 @@ define([
         if (!_.contains(['subtitle', 'time', 'title'], formula)) {
             throw new Error('Not a valid formula', formula);
         }
-        return Promise.all([
-            Promise.require('util/vertex/formatters'),
-            Promise.require('util/requirejs/promise!util/service/ontologyPromise')
-        ])
-            .then(function(results) {
-                var F = results.shift(),
-                    ontology = results.shift(),
-                    names = [],
-                    subtitle = F.vertex[formula](model, names),
-                    propertyName = _.last(names)
-                if (propertyName) {
-                    var ontologyProperty = ontology.properties.byTitle[propertyName];
-                    if (ontologyProperty) {
-                        propertyName = ontologyProperty.displayName;
-                    }
-                    if (!subtitle) return [];
+        return Promise.require('util/vertex/formatters').then(function(F) {
+            var names = [],
+                subtitle = F.vertex[formula](model, names),
+                propertyName = _.last(names)
+            if (propertyName) {
+                var ontologyProperty = ontology.properties.byTitle[propertyName];
+                if (ontologyProperty) {
+                    propertyName = ontologyProperty.displayName;
                 }
-                return _.compact([propertyName, subtitle]);
-            });
+                if (!subtitle) return [];
+            }
+            return _.compact([propertyName, subtitle]);
+        });
     }
 });
