@@ -73,6 +73,13 @@ public abstract class GraphUpdateContext implements AutoCloseable {
         flushFutures();
     }
 
+    /**
+     * Saves, flushes, and pushes element on work queue.
+     */
+    public void flush() {
+        flushFutures();
+    }
+
     protected void flushFutures() {
         synchronized (outstandingFutures) {
             saveOutstandingUpdateFutures();

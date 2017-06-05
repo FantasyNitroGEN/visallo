@@ -10,18 +10,6 @@ import org.visallo.core.model.workspace.product.WorkProduct;
 import org.visallo.core.user.User;
 
 public class MockWorkProduct implements WorkProduct {
-    @Override
-    public void update(
-            GraphUpdateContext ctx,
-            Vertex workspaceVertex,
-            Vertex productVertex,
-            JSONObject params,
-            User user,
-            Visibility visibility,
-            Authorizations authorizations
-    ) {
-
-    }
 
     @Override
     public JSONObject getExtendedData(

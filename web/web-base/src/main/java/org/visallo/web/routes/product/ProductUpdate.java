@@ -47,13 +47,6 @@ public class ProductUpdate implements ParameterizedHandler {
                 params.getJSONObject("broadcastOptions").put("sourceGuid", sourceGuid);
             }
             product = workspaceRepository.addOrUpdateProduct(workspaceId, productId, title, kind, params, user);
-            if (params.has("updateVertices")) {
-                JSONObject updateVertices = params.getJSONObject("updateVertices");
-                workspaceHelper.updateEntitiesOnWorkspace(
-                        workspaceId,
-                        JSONUtil.toStringList(updateVertices.names()),
-                        user);
-            }
         } else {
             product = workspaceRepository.updateProductPreview(workspaceId, productId, previewDataUrl, user);
         }

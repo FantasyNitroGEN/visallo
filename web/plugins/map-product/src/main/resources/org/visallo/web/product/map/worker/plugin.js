@@ -29,6 +29,9 @@ define([
     function addElements(state, { workspaceId, productId, vertexIds }) {
         const product = state.workspaces[workspaceId].products[productId];
         const vertices = product && product.extendedData && product.extendedData.vertices;
+        const newVertices = {};
+        vertexIds.forEach(id => newVertices[id] = { id });
+
         if (vertices) {
             return u({
                 workspaces: {
@@ -36,7 +39,7 @@ define([
                         products: {
                             [productId]: {
                                 extendedData: {
-                                    vertices: u.constant(_.extend({}, vertices, vertexIds))
+                                    vertices: u.constant(_.extend({}, vertices, newVertices))
                                 }
                             }
                         }

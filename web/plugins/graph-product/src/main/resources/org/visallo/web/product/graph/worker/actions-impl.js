@@ -347,9 +347,8 @@ define([
         redoRemoveElements: ({ productId, removeElements }) => api.removeElements({ productId, elements: removeElements }),
 
         collapseNodes: ({ productId, collapseData, undoable }) => (dispatch, getState) => {
-            const { id, children, ...params } = collapseData;
+            const { id, ...params } = collapseData;
             const requestData = {
-                children,
                 params,
                 productId
             };

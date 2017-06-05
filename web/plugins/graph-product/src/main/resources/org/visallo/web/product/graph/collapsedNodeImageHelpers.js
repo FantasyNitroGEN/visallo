@@ -51,7 +51,7 @@ define([
 
     const drawCount = function(canvas, canvasCtx, collapsedNode) {
         canvasCtx.font = countTextFont;
-        const countText = collapsedNode.vertexIds.length.toString();
+        const countText = collapsedNode.children.length.toString();
         const countTextMeasurements = measureText(canvasCtx, countText);
         const countTextCenterY = countTextBorderRadius;
         const countTextRight = canvas.width;
@@ -94,8 +94,9 @@ define([
         collapsedImageDataUris,
         onCollapsedImageDataUrisChange
     ) {
-        Promise.all(collapsedNode.vertexIds.map(vertexId => loadVertexImage(vertices, vertexId)))
+        Promise.all(collapsedNode.children.map(vertexId => loadVertexImage(vertices, vertexId)))
             .then(images => {
+                images = _.compact(images);
                 const canvas = document.createElement('canvas');
                 canvas.height = canvas.width = imageSize;
                 const canvasCtx = canvas.getContext('2d');
@@ -121,7 +122,8 @@ define([
         return new Promise((resolve, reject) => {
             const vertex = vertices[vertexId];
             if (!vertex) {
-                return reject(new Error(`Could not find vertex: ${vertexId}`));
+                resolve(null);
+                //return reject(new Error(`Could not find vertex: ${vertexId}`));
             }
             const vertexImageUrl = F.vertex.selectedImage(vertex, null, 150);
             const image = document.createElement('img');
@@ -194,14 +196,14 @@ define([
             let changed = false;
             Object.keys(collapseData).forEach(collapsedNodeId => {
                 const collapsedNode = collapseData[collapsedNodeId];
-                const vertexIdsString = collapsedNode.vertexIds.join(';');
+                const childIdsString = collapsedNode.children.join(';');
                 const existingCollapsedNodeImageUriInfo = collapsedImageDataUris[collapsedNodeId];
-                if (existingCollapsedNodeImageUriInfo && existingCollapsedNodeImageUriInfo.vertexIdsString === vertexIdsString) {
+                if (existingCollapsedNodeImageUriInfo && existingCollapsedNodeImageUriInfo.childIdsString === childIdsString) {
                     return;
                 }
 
                 newCollapsedImageDataUris[collapsedNodeId] = {
-                    vertexIdsString: vertexIdsString,
+                    childIdsString: childIdsString,
                     imageDataUri: null
                 };
                 changed = true;

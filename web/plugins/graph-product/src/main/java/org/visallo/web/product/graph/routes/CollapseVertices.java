@@ -5,6 +5,7 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -63,7 +64,6 @@ public class CollapseVertices implements ParameterizedHandler {
     @Handle
     public JSONObject handle(
             @Optional(name = "vertexId") String vertexId,
-            @Required(name = "children[]") String[] children,
             @Required(name = "params") String paramsStr,
             @Required(name = "productId") String productId,
             @ActiveWorkspaceId String workspaceId,
@@ -83,11 +83,9 @@ public class CollapseVertices implements ParameterizedHandler {
             GraphWorkProduct graphWorkProduct = new GraphWorkProduct(ontologyRepository, authorizationRepository, visibilityTranslator);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
-            JSONObject updateData = new JSONObject(paramsStr);
-            updateData.putOpt("id", vertexId);
-            updateData.put("children", children);
+            params.putOpt("id", vertexId);
 
-            nodeJson = graphWorkProduct.addCompoundNode(ctx, productVertex, updateData, user, visibilityTranslator.getDefaultVisibility(), authorizations);
+            nodeJson = graphWorkProduct.addCompoundNode(ctx, productVertex, params, user, visibilityTranslator.getDefaultVisibility(), authorizations);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }

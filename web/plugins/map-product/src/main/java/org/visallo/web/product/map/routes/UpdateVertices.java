@@ -1,4 +1,4 @@
-package org.visallo.web.product.graph.routes;
+package org.visallo.web.product.map.routes;
 
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
@@ -26,10 +26,7 @@ import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
-import org.visallo.web.product.graph.GraphWorkProduct;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.visallo.web.product.map.MapWorkProduct;
 
 public class UpdateVertices implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UpdateVertices.class);
@@ -80,21 +77,17 @@ public class UpdateVertices implements ParameterizedHandler {
                 workspaceId
         );
 
-        List<String> vertices = JSONUtil.toStringList(updateVertices.names());
-        vertices = vertices.stream()
-                .filter(id -> !((JSONObject) updateVertices.get(id)).has("children"))
-                .collect(Collectors.toList());
         workspaceHelper.updateEntitiesOnWorkspace(
                 workspaceId,
-                vertices,
+                JSONUtil.toStringList(updateVertices.names()),
                 user
         );
 
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
-            GraphWorkProduct graphWorkProduct = new GraphWorkProduct(ontologyRepository, authorizationRepository, visibilityTranslator);
+            MapWorkProduct mapWorkProduct = new MapWorkProduct(ontologyRepository, authorizationRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
-            graphWorkProduct.updateVertices(ctx, productVertex, updateVertices, user, visibilityTranslator.getDefaultVisibility(), authorizations);
+            mapWorkProduct.updateVertices(ctx, productVertex, updateVertices, visibilityTranslator.getDefaultVisibility());
         } catch(Exception e) {
             throw new RuntimeException(e);
         }

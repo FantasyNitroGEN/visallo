@@ -62,7 +62,17 @@
         <rdfs:range rdf:resource="http://visallo.org/workspace#product"/>
         <rdfs:label xml:lang="en">To Product</rdfs:label>
     </owl:ObjectProperty>
-    
+
+
+
+    <!-- http://visallo.org/workspace/product#toEntity -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/workspace/product#toEntity">
+        <rdfs:domain rdf:resource="http://visallo.org/workspace#product"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <rdfs:label xml:lang="en">To Entity</rdfs:label>
+    </owl:ObjectProperty>
+
 
 
     <!-- http://visallo.org/workspace#toUser -->

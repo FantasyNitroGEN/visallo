@@ -46,11 +46,9 @@ define([
                     payload: { workspaceId, productId, vertexIds, ...undoPayload }
                 });
 
-                ajax('POST', '/product', {
+                ajax('POST', '/product/map/vertices/update', {
                     productId,
-                    params: {
-                        updateVertices: _.object(combined.map(id => [id, {}]))
-                    }
+                    updates: _.object(combined.map(id => [id, {}]))
                 })
                 dispatch(productActions.select({ productId }));
             })
@@ -93,7 +91,7 @@ define([
                 }));
 
                 if (elements.vertexIds.length) {
-                    ajax('POST', '/product', { productId, params: { removeVertices: elements.vertexIds }})
+                    ajax('POST', '/product/map/vertices/remove', { productId, vertexIds: elements.vertexIds })
                 }
             }
         }

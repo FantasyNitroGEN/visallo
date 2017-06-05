@@ -10,19 +10,6 @@ import org.visallo.core.user.User;
 
 public interface WorkProduct {
     /**
-     * Called when a work product is being updated. This allows custom updates to be applied by the work product.
-     */
-    void update(
-            GraphUpdateContext ctx,
-            Vertex workspaceVertex,
-            Vertex productVertex,
-            JSONObject params,
-            User user,
-            Visibility visibility,
-            Authorizations authorizations
-    );
-
-    /**
      * Get custom extended data from the work product. This does not include the extended data stored on the
      * product itself.
      */

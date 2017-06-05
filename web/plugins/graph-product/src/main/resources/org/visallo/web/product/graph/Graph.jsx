@@ -751,23 +751,25 @@ define([
                 const { id, type, pos, children, parent, title } = node;
                 let selected, classes, data;
 
-                 if (type === 'vertex') {
-                    selected = id in verticesSelectedById;
-                    classes = mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']);
-                    data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
+                if (type === 'vertex') {
+                   selected = id in verticesSelectedById;
+                   classes = mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']);
+                   data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
 
-                    renderedNodeIds[id] = true;
-                 } else {
-                    const vertexIds = getVertexIdsFromCollapsedNode(node, collapsedNodes, vertices);
-                    selected = vertexIds.some(id => id in verticesSelectedById)
-                    classes = mapCollapsedNodeToClasses(id, collapsedNodes, focusing, vertexIds, registry['org.visallo.graph.collapsed.class']);
-                    data = {
-                        ...collapsedNode,
-                        vertexIds,
-                        truncatedTitle: title || F.string.truncate(generateCollapsedItemTitle(collapsedNode, vertices), 3),
-                        imageSrc: this.state.collapsedImageDataUris[id] && this.state.collapsedImageDataUris[id].imageDataUri || 'img/loading-large@2x.png'
-                    }
-                 }
+                   if (data) {
+                       renderedNodeIds[id] = true;
+                   }
+                } else {
+                   const vertexIds = getVertexIdsFromCollapsedNode(collapsedNodes, id);
+                   selected = vertexIds.some(id => id in verticesSelectedById)
+                   classes = mapCollapsedNodeToClasses(id, collapsedNodes, focusing, vertexIds, registry['org.visallo.graph.collapsed.class']);
+                   data = {
+                       ...node,
+                       vertexIds,
+                       truncatedTitle: title || F.string.truncate(generateCollapsedNodeTitle(node, vertices), 3),
+                       imageSrc: this.state.collapsedImageDataUris[id] && this.state.collapsedImageDataUris[id].imageDataUri || 'img/loading-large@2x.png'
+                   }
+                }
 
                 return {
                     group: 'nodes',
@@ -872,7 +874,7 @@ define([
 
             _.defer(() => {
                 CollapsedNodeImageHelpers.updateImageDataUrisForCollapsedNodes(
-                    filterByRoot(collapsedNodes),
+                    _.pick(collapsedNodes, ({ id }) => rootNode.children.includes(id)),
                     this.props.elements.vertices,
                     this.state.collapsedImageDataUris,
                     (newCollapsedImageDataUris) => {
@@ -887,10 +889,10 @@ define([
                 const { type, id, pos, parent, children } = nodeData;
                 const cyNode = cyNodeConfig(nodeData);
 
-                renderedNodeIds[collapsedNodeId] = true;
+                renderedNodeIds[id] = true;
 
                 if (ghosts) {
-                    ghosts.forEach(ghost => {
+                    _.mapObject(ghosts, (ghost => {
                         if (ghost.id in cyNode.vertexIds) {
                             const ghostData = {
                                 ...cyNode.data,
@@ -909,7 +911,7 @@ define([
                                 selectable: false
                             });
                         }
-                    });
+                    }));
                 }
 
                 nodes.push(cyNode);
@@ -1068,6 +1070,7 @@ define([
     });
 
     const getVertexIdsFromCollapsedNode = (collapsedNodes, collapsedNodeId) => {
+        
         const vertexIds = [];
         const queue = [collapsedNodes[collapsedNodeId]];
 
@@ -1341,7 +1344,11 @@ define([
     };
 
     const generateCollapsedNodeTitle = (collapsedNode, vertices) => {
-        return collapsedNode.vertexIds.map(vertexId => F.vertex.title(vertices[vertexId])).join(', ');
+        const children = _.pick(vertices, collapsedNode.children);
+
+        return children.length ?
+            collapsedNode.children.map(vertexId => F.vertex.title(vertices[vertexId])).join(', ') :
+            i18n('org.visallo.web.product.graph.collapsedNode.entities', collapsedNode.children.length)
     };
 
     const vertexToCyNode = (vertex, transformers, hovering) => {
