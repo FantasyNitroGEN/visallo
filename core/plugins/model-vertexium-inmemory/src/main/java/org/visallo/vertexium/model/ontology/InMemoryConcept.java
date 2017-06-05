@@ -4,7 +4,6 @@ import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
-import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
@@ -33,10 +32,12 @@ public class InMemoryConcept extends Concept {
     private Boolean addable;
     private Map<String, String> metadata = new HashMap<String, String>();
     private List<String> intents = new ArrayList<>();
+    private String workspaceId;
 
-    public InMemoryConcept(String conceptIRI, String parentIRI) {
-        super(parentIRI, new ArrayList<OntologyProperty>());
+    public InMemoryConcept(String conceptIRI, String parentIRI, String workspaceId) {
+        super(parentIRI, new ArrayList<>());
         this.conceptIRI = conceptIRI;
+        this.workspaceId = workspaceId;
     }
 
     @Override
@@ -226,8 +227,16 @@ public class InMemoryConcept extends Concept {
         return conceptIRI;
     }
 
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void removeWorkspaceId() {
+        workspaceId = null;
+    }
+
     @Override
     public SandboxStatus getSandboxStatus() {
-        return SandboxStatus.PUBLIC;
+        return workspaceId == null ? SandboxStatus.PUBLIC : SandboxStatus.PRIVATE;
     }
 }

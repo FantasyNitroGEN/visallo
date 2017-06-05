@@ -6,9 +6,6 @@ import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
-import org.vertexium.query.Contains;
-import org.vertexium.query.Predicate;
-import org.vertexium.query.TermsAggregation;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.IterableUtils;
@@ -20,7 +17,6 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.ingest.video.VideoFrameInfo;
-import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -38,7 +34,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
@@ -313,84 +308,59 @@ public abstract class WorkspaceRepository {
             this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage");
         }
 
+        Map<ClientApiPublishItem.Action, List<ClientApiPublishItem>> publishDataByAction = Arrays.stream(publishData)
+                .filter(ClientApiPublishItem::validate)
+                .collect(Collectors.groupingBy(ClientApiPublishItem::getAction));
+
+        List<ClientApiPublishItem> addUpdateData = publishDataByAction.get(ClientApiPublishItem.Action.ADD_OR_UPDATE);
+        if (addUpdateData != null && !addUpdateData.isEmpty()) {
+            publishRequiredConcepts(addUpdateData, user, workspaceId, authorizations);
+
+            // Don't publish any data for which we couldn't also publish the required ontology
+            addUpdateData = addUpdateData.stream().filter(data -> data.getErrorMessage() == null).collect(Collectors.toList());
+
+            publishVertices(addUpdateData, workspaceId, authorizations);
+            publishEdges(addUpdateData, workspaceId, authorizations);
+        }
+
+        publishProperties(publishData, workspaceId, authorizations);
+
+        List<ClientApiPublishItem> deletionData = publishDataByAction.get(ClientApiPublishItem.Action.DELETE);
+        if (deletionData != null && !deletionData.isEmpty()) {
+            publishEdges(deletionData, workspaceId, authorizations);
+            publishVertices(deletionData, workspaceId, authorizations);
+        }
+
         ClientApiWorkspacePublishResponse workspacePublishResponse = new ClientApiWorkspacePublishResponse();
-        publishVertices(
-                publishData,
-                ClientApiPublishItem.Action.ADD_OR_UPDATE,
-                workspacePublishResponse,
-                user,
-                workspaceId,
-                authorizations
-        );
-        publishEdges(
-                publishData,
-                ClientApiPublishItem.Action.ADD_OR_UPDATE,
-                workspacePublishResponse,
-                workspaceId,
-                authorizations
-        );
-        publishProperties(publishData, workspacePublishResponse, workspaceId, authorizations);
-        publishEdges(
-                publishData,
-                ClientApiPublishItem.Action.DELETE,
-                workspacePublishResponse,
-                workspaceId,
-                authorizations
-        );
-        publishVertices(
-                publishData,
-                ClientApiPublishItem.Action.DELETE,
-                workspacePublishResponse,
-                user,
-                workspaceId,
-                authorizations
-        );
+        for (ClientApiPublishItem data : publishData) {
+            if (data.getErrorMessage() != null) {
+                workspacePublishResponse.addFailure(data);
+            }
+        }
         return workspacePublishResponse;
     }
 
-    private void publishVertices(
-            ClientApiPublishItem[] publishData,
-            ClientApiPublishItem.Action action,
-            ClientApiWorkspacePublishResponse workspacePublishResponse,
-            User user,
-            String workspaceId,
-            Authorizations authorizations
-    ) {
+    private void publishVertices(List<ClientApiPublishItem> publishData, String workspaceId, Authorizations authorizations) {
         LOGGER.debug("BEGIN publishVertices");
 
-        Map<String, ClientApiVertexPublishItem> vertexIdToPublishData = Arrays.stream(publishData)
-                .filter(data -> data instanceof ClientApiVertexPublishItem && data.getAction() == action)
+        Map<String, ClientApiVertexPublishItem> vertexIdToPublishData = publishData.stream()
+                .filter(data -> data instanceof ClientApiVertexPublishItem)
                 .map(data -> ((ClientApiVertexPublishItem) data))
-                .filter(data -> {
-                    String vertexId = data.getVertexId();
-                    if (vertexId == null) {
-                        LOGGER.error("Error publishing %s due to missing vertex id", data.toString());
-                        data.setErrorMessage("Vertex ID must be provided for publishing");
-                        workspacePublishResponse.addFailure(data);
-                        return false;
-                    }
-                    return true;
-                })
                 .collect(Collectors.toMap(ClientApiVertexPublishItem::getVertexId, Function.identity()));
 
-        if (action == ClientApiPublishItem.Action.ADD_OR_UPDATE) {
-            publishRequiredConcepts(vertexIdToPublishData, workspacePublishResponse, user, workspaceId, authorizations);
-        }
-
+        // Need to elevate with videoFrame auth to be able to load and publish VideoFrame properties
+        Authorizations authWithVideoFrame = graph.createAuthorizations(
+                authorizations,
+                VideoFrameInfo.VISIBILITY_STRING);
         Iterable<Vertex> verticesToPublish = graph.getVertices(
                 vertexIdToPublishData.keySet(),
                 FetchHint.ALL_INCLUDING_HIDDEN,
-                authorizations);
+                authWithVideoFrame);
 
         for (Vertex vertex : verticesToPublish) {
             String vertexId = vertex.getId();
             ClientApiPublishItem data = vertexIdToPublishData.get(vertexId);
             vertexIdToPublishData.remove(vertexId); // remove to indicate that it's been handled
-
-            // If we had an error trying to import the ontology for a vertex, skip it
-            if (data.getErrorMessage() != null) {
-                continue;
-            }
 
             try {
                 if (SandboxStatusUtil.getSandboxStatus(vertex, workspaceId) == SandboxStatus.PUBLIC
@@ -401,38 +371,35 @@ public abstract class WorkspaceRepository {
                     } else {
                         msg = "Vertex " + vertexId + " is already public";
                     }
-                    LOGGER.warn(msg);
                     data.setErrorMessage(msg);
-                    workspacePublishResponse.addFailure(data);
                     continue;
                 }
-                publishVertex(vertex, data.getAction(), authorizations, workspaceId);
+                publishVertex(vertex, data.getAction(), authWithVideoFrame, workspaceId);
             } catch (Exception ex) {
-                LOGGER.error("Error publishing %s", data.toString(), ex);
                 data.setErrorMessage(ex.getMessage());
-                workspacePublishResponse.addFailure(data);
             }
         }
 
         CloseableUtils.closeQuietly(verticesToPublish);
 
-        vertexIdToPublishData.forEach((vertexId, data) -> {
-            LOGGER.error("Error publishing %s due to vertex not found", data.toString());
-            data.setErrorMessage("Unable to load vertex with id " + vertexId);
-            workspacePublishResponse.addFailure(data);
-        });
+        vertexIdToPublishData.forEach((vertexId, data) ->
+                data.setErrorMessage("Unable to load vertex with id " + vertexId));
 
         LOGGER.debug("END publishVertices");
         graph.flush();
     }
 
     private void publishRequiredConcepts(
-            Map<String, ClientApiVertexPublishItem> publishDataByVertexId,
-            ClientApiWorkspacePublishResponse workspacePublishResponse,
+            List<ClientApiPublishItem> publishData,
             User user,
             String workspaceId,
             Authorizations authorizations
     ) {
+        Map<String, ClientApiVertexPublishItem> publishDataByVertexId = publishData.stream()
+                .filter(data -> data instanceof ClientApiVertexPublishItem)
+                .map(data -> ((ClientApiVertexPublishItem) data))
+                .collect(Collectors.toMap(ClientApiVertexPublishItem::getVertexId, Function.identity()));
+
         Iterable<Vertex> verticesToPublish = graph.getVertices(
                 publishDataByVertexId.keySet(),
                 EnumSet.of(FetchHint.PROPERTIES),
@@ -440,7 +407,6 @@ public abstract class WorkspaceRepository {
 
         Map<String, List<String>> vertexIdsByConcept = StreamUtils.stream(verticesToPublish)
                 .collect(Collectors.groupingBy(VisalloProperties.CONCEPT_TYPE::getPropertyValue, Collectors.mapping(Vertex::getId, Collectors.toList())));
-
 
         List<String> publishedConceptIds = vertexIdsByConcept.keySet().stream()
                 .map(iri -> ontologyRepository.getConceptByIRI(iri, user, workspaceId))
@@ -458,7 +424,6 @@ public abstract class WorkspaceRepository {
                         vertexIdsByConcept.get(concept.getIRI()).forEach(vertexId -> {
                             ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
                             data.setErrorMessage("Unable to publish concept " + concept.getDisplayName());
-                            workspacePublishResponse.addFailure(data);
                         });
                     }
                     return Stream.empty();
@@ -473,14 +438,14 @@ public abstract class WorkspaceRepository {
     }
 
     private void publishEdges(
-            ClientApiPublishItem[] publishData, ClientApiPublishItem.Action action,
-            ClientApiWorkspacePublishResponse workspacePublishResponse, String workspaceId,
+            List<ClientApiPublishItem> publishData,
+            String workspaceId,
             Authorizations authorizations
     ) {
         LOGGER.debug("BEGIN publishEdges");
         for (ClientApiPublishItem data : publishData) {
             try {
-                if (!(data instanceof ClientApiRelationshipPublishItem) || data.getAction() != action) {
+                if (!(data instanceof ClientApiRelationshipPublishItem)) {
                     continue;
                 }
                 ClientApiRelationshipPublishItem relationshipPublishItem = (ClientApiRelationshipPublishItem) data;
@@ -499,26 +464,19 @@ public abstract class WorkspaceRepository {
                     } else {
                         error_msg = "Edge is already public";
                     }
-                    LOGGER.warn(error_msg);
                     data.setErrorMessage(error_msg);
-                    workspacePublishResponse.addFailure(data);
                     continue;
                 }
 
                 if (outVertex != null && inVertex != null
                         && SandboxStatusUtil.getSandboxStatus(outVertex, workspaceId) != SandboxStatus.PUBLIC
                         && SandboxStatusUtil.getSandboxStatus(inVertex, workspaceId) != SandboxStatus.PUBLIC) {
-                    String error_msg = "Cannot publish edge, " + edge.getId() + ", because either source and/or dest vertex are not public";
-                    LOGGER.warn(error_msg);
-                    data.setErrorMessage(error_msg);
-                    workspacePublishResponse.addFailure(data);
+                    data.setErrorMessage("Cannot publish edge, " + edge.getId() + ", because either source and/or dest vertex are not public");
                     continue;
                 }
                 publishEdge(edge, outVertex, inVertex, data.getAction(), workspaceId, authorizations);
             } catch (Exception ex) {
-                LOGGER.error("Error publishing %s", data.toString(), ex);
                 data.setErrorMessage(ex.getMessage());
-                workspacePublishResponse.addFailure(data);
             }
         }
         LOGGER.debug("END publishEdges");
@@ -527,7 +485,6 @@ public abstract class WorkspaceRepository {
 
     private void publishProperties(
             ClientApiPublishItem[] publishData,
-            ClientApiWorkspacePublishResponse workspacePublishResponse,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -550,24 +507,13 @@ public abstract class WorkspaceRepository {
                 }
 
                 if (SandboxStatusUtil.getSandboxStatus(element, workspaceId) != SandboxStatus.PUBLIC) {
-                    String errorMessage = "Cannot publish a modification of a property on a private element: " + element.getId();
-                    VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(element);
-                    LOGGER.warn(
-                            "%s: visibilityJson: %s, workspaceId: %s",
-                            errorMessage,
-                            visibilityJson == null ? null : visibilityJson.toString(),
-                            workspaceId
-                    );
-                    data.setErrorMessage(errorMessage);
-                    workspacePublishResponse.addFailure(data);
+                    data.setErrorMessage("Cannot publish a modification of a property on a private element: " + element.getId());
                     continue;
                 }
 
                 publishProperty(element, data.getAction(), propertyKey, propertyName, workspaceId, authorizations);
             } catch (Exception ex) {
-                LOGGER.error("Error publishing %s", data.toString(), ex);
                 data.setErrorMessage(ex.getMessage());
-                workspacePublishResponse.addFailure(data);
             }
         }
         LOGGER.debug("END publishProperties");
@@ -608,25 +554,13 @@ public abstract class WorkspaceRepository {
             Authorizations authorizations,
             String workspaceId
     ) {
-        if (action == ClientApiPublishItem.Action.DELETE
-                || WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
+        if (action == ClientApiPublishItem.Action.DELETE || WorkspaceDiffHelper.isPublicDelete(vertex, authorizations)) {
             long beforeDeletionTimestamp = System.currentTimeMillis() - 1;
             graph.softDeleteVertex(vertex, authorizations);
             graph.flush();
             workQueueRepository.pushPublishedVertexDeletion(vertex, beforeDeletionTimestamp, Priority.HIGH);
             return;
         }
-
-        // Reload the vertex to ensure that we have all of the properties
-        // Need to elevate with videoFrame auth to be able to load and publish VideoFrame properties
-        Authorizations authWithVideoFrame = graph.createAuthorizations(
-                authorizations,
-                VideoFrameInfo.VISIBILITY_STRING
-        );
-        vertex = graph.getVertex(
-                vertex.getId(),
-                EnumSet.of(FetchHint.PROPERTIES, FetchHint.PROPERTY_METADATA, FetchHint.INCLUDE_HIDDEN),
-                authWithVideoFrame);
 
         LOGGER.debug("publishing vertex %s(%s)", vertex.getId(), vertex.getVisibility().toString());
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
@@ -659,7 +593,7 @@ public abstract class WorkspaceRepository {
                 visibilityJson,
                 visibilityTranslator.getDefaultVisibility()
         );
-        vertexElementMutation.save(authWithVideoFrame);
+        vertexElementMutation.save(authorizations);
 
         for (Vertex termMention : termMentionRepository.findByVertexId(vertex.getId(), authorizations)) {
             termMentionRepository.updateVisibility(termMention, visalloVisibility.getVisibility(), authorizations);

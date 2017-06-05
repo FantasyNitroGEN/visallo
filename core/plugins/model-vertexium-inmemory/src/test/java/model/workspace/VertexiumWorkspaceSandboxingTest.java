@@ -16,6 +16,7 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.SandboxStatusUtil;
+import org.visallo.vertexium.model.ontology.InMemoryConcept;
 import org.visallo.vertexium.model.ontology.InMemoryOntologyProperty;
 import org.visallo.web.clientapi.model.*;
 import org.visallo.web.clientapi.model.ClientApiPublishItem.Action;
@@ -133,6 +134,9 @@ public class VertexiumWorkspaceSandboxingTest extends VertexiumWorkspaceReposito
                 .thenReturn(new InMemoryOntologyProperty());
 
         userContext = new FormulaEvaluator.UserContext(LOCALE, null, TIME_ZONE, workspaceId);
+
+        when(ontologyRepository.getConceptByIRI(VERTEX_CONCEPT_TYPE, user1, workspace.getWorkspaceId()))
+            .thenReturn(new InMemoryConcept(VERTEX_CONCEPT_TYPE, OntologyRepository.ENTITY_CONCEPT_IRI, null));
     }
 
     @Test

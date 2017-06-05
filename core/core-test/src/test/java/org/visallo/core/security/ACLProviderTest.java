@@ -116,9 +116,9 @@ public class ACLProviderTest {
         when(userWithCommentDeleteAny.getUserId()).thenReturn("USER_WITH_COMMENT_DELETE_ANY");
         when(privilegeRepository.getPrivileges(eq(userWithCommentDeleteAny))).thenReturn(Sets.newHashSet(Privilege.EDIT, Privilege.COMMENT_DELETE_ANY));
 
-        when(ontologyRepository.getConceptByIRI("vertex")).thenReturn(vertexConcept);
-        when(ontologyRepository.getConceptByIRI("parent")).thenReturn(parentConcept);
-        when(ontologyRepository.getRelationshipByIRI("edge")).thenReturn(edgeRelationship);
+        when(ontologyRepository.getConceptByIRI("vertex", user1, "workspace1")).thenReturn(vertexConcept);
+        when(ontologyRepository.getConceptByIRI("parent", user1, "workspace1")).thenReturn(parentConcept);
+        when(ontologyRepository.getRelationshipByIRI("edge", user1, "workspace1")).thenReturn(edgeRelationship);
 
         when(vertexConcept.getParentConceptIRI()).thenReturn("parent");
         when(vertexConcept.getProperties()).thenReturn(
@@ -349,7 +349,7 @@ public class ACLProviderTest {
         when(aclProvider.canUpdateProperty(eq(apiElement), any(), eq(null), eq("prop4"), eq(user1), any())).thenReturn(true);
         when(aclProvider.canDeleteProperty(eq(apiElement), any(), eq(null), eq("prop4"), eq(user1), any())).thenReturn(true);
 
-        apiElement = (ClientApiElement) aclProvider.appendACL(apiElement, user1, null);
+        apiElement = (ClientApiElement) aclProvider.appendACL(apiElement, user1, "workspace1");
 
         ClientApiElementAcl elementAcl = apiElement.getAcl();
 

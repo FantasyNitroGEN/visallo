@@ -22,20 +22,23 @@ import org.visallo.web.clientapi.model.PropertyType;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 
-// FIXME: all "return null" or empty methods
 public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(InMemoryOntologyRepository.class);
+    private static final String PUBLIC_ONTOLOGY_CACHE_KEY = "InMemoryOntologyRepository.PUBLIC";
+
     private final Graph graph;
-    private final OWLOntologyLoaderConfiguration owlConfig = new OWLOntologyLoaderConfiguration();
-    private final Map<String, InMemoryConcept> conceptsCache = new HashMap<>();
-    private final Map<String, InMemoryOntologyProperty> propertiesCache = new HashMap<>();
-    private final Map<String, InMemoryRelationship> relationshipsCache = new HashMap<>();
+
+    private final Map<String, Map<String, InMemoryConcept>> publicConceptsCache = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, Map<String, InMemoryRelationship>> publicRelationshipsCache = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, Map<String, InMemoryOntologyProperty>> publicPropertiesCache = Collections.synchronizedMap(new HashMap<>());
+
     private final List<OwlData> fileCache = new ArrayList<>();
-    private Authorizations authorizations;
 
     @Inject
     public InMemoryOntologyRepository(
@@ -47,10 +50,21 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         this.graph = graph;
 
         clearCache();
-        this.authorizations = new InMemoryAuthorizations(VISIBILITY_STRING);
-        owlConfig.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 
-        loadOntologies(getConfiguration(), authorizations);
+        publicConceptsCache.put(PUBLIC_ONTOLOGY_CACHE_KEY, new HashMap<>());
+        publicRelationshipsCache.put(PUBLIC_ONTOLOGY_CACHE_KEY, new HashMap<>());
+        publicPropertiesCache.put(PUBLIC_ONTOLOGY_CACHE_KEY, new HashMap<>());
+
+        loadOntologies(getConfiguration(), new InMemoryAuthorizations(VISIBILITY_STRING));
+    }
+
+    private <T> Map<String, T> computeCacheForWorkspace(Map<String, Map<String, T>> cache, User user, String workspaceId) {
+        Map<String, T> result = new HashMap<>();
+        result.putAll(cache.compute(PUBLIC_ONTOLOGY_CACHE_KEY, (k, v) -> v == null ? new HashMap<>() : v));
+        if (user != null && workspaceId != null && cache.containsKey(workspaceId)) {
+            result.putAll(cache.get(workspaceId));
+        }
+        return result;
     }
 
     @Override
@@ -61,7 +75,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             Authorizations authorizations
     ) throws IOException {
         InMemoryConcept concept = (InMemoryConcept) super.importOntologyClass(o, ontologyClass, inDir, authorizations);
-        conceptsCache.put(concept.getIRI(), concept);
+        publicConceptsCache.get(PUBLIC_ONTOLOGY_CACHE_KEY).put(concept.getIRI(), concept);
         return concept;
     }
 
@@ -76,7 +90,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 objectProperty,
                 authorizations
         );
-        relationshipsCache.put(relationship.getIRI(), relationship);
+        publicRelationshipsCache.get(PUBLIC_ONTOLOGY_CACHE_KEY).put(relationship.getIRI(), relationship);
         return relationship;
     }
 
@@ -135,16 +149,10 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris) {
+    public void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris, User user, String workspaceId) {
         InMemoryOntologyProperty inMemoryOntologyProperty = (InMemoryOntologyProperty) property;
         inMemoryOntologyProperty.setDependentPropertyIris(dependentPropertyIris);
     }
-
-    @Override
-    public void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris, User user, String workspaceId) {
-
-    }
-
 
     @Override
     protected List<OWLOntology> loadOntologyFiles(
@@ -197,8 +205,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             ImmutableList<String> dependentPropertyIris,
             String[] intents,
             boolean deleteable,
-            boolean updateable
-    ) {
+            boolean updateable,
+            User user,
+            String workspaceId) {
         checkNotNull(concepts, "concept was null");
         InMemoryOntologyProperty property = getOrCreatePropertyType(
                 propertyIri,
@@ -218,7 +227,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 dependentPropertyIris,
                 intents,
                 deleteable,
-                updateable
+                updateable,
+                user,
+                workspaceId
         );
         for (Concept concept : concepts) {
             concept.getProperties().add(property);
@@ -231,14 +242,8 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    protected OntologyProperty addPropertyTo(List<Concept> concepts, List<Relationship> relationships, String propertyIri, String displayName, PropertyType dataType, Map<String, String> possibleValues, Collection<TextIndexHint> textIndexHints, boolean userVisible, boolean searchable, boolean addable, boolean sortable, String displayType, String propertyGroup, Double boost, String validationFormula, String displayFormula, ImmutableList<String> dependentPropertyIris, String[] intents, boolean deleteable, boolean updateable, User user, String workspaceId) {
-        return null;
-    }
-
-
-    @Override
-    public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
-        for (Concept concept : getConceptsWithProperties()) {
+    public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris, User user, String workspaceId) {
+        for (Concept concept : getConceptsWithProperties(user, workspaceId)) {
             if (concept.getProperties().contains(property)) {
                 if (!domainIris.remove(concept.getIRI())) {
                     concept.getProperties().remove(property);
@@ -252,15 +257,16 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris, User user, String workspaceId) {
-
-    }
-
-    @Override
     public void publishConcept(Concept concept, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
+        if (publicConceptsCache.containsKey(workspaceId)) {
+            Map<String, InMemoryConcept> sandboxedConcepts = publicConceptsCache.get(workspaceId);
+            if (sandboxedConcepts.containsKey(concept.getIRI())) {
+                InMemoryConcept sandboxConcept = sandboxedConcepts.remove(concept.getIRI());
+                sandboxConcept.removeWorkspaceId();
+                publicConceptsCache.get(PUBLIC_ONTOLOGY_CACHE_KEY).put(concept.getIRI(), sandboxConcept);
+            }
+        }
     }
-
 
     @Override
     protected void getOrCreateInverseOfRelationship(Relationship fromRelationship, Relationship inverseOfRelationship) {
@@ -289,9 +295,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             ImmutableList<String> dependentPropertyIris,
             String[] intents,
             boolean deleteable,
-            boolean updateabale
+            boolean updateabale,
+            User user,
+            String workspaceId
     ) {
-        InMemoryOntologyProperty property = getPropertyByIRI(propertyIri);
+        InMemoryOntologyProperty property = getPropertyByIRI(propertyIri, user, workspaceId);
         if (property == null) {
             searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
             definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
@@ -329,7 +337,10 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 }
             }
             property.setPossibleValues(possibleValues);
-            propertiesCache.put(propertyIri, property);
+
+            String cacheKey = workspaceId == null  ? PUBLIC_ONTOLOGY_CACHE_KEY : workspaceId;
+            Map<String, InMemoryOntologyProperty> workspaceCache = publicPropertiesCache.compute(cacheKey, (k, v) -> v == null ? new HashMap<>() : v);
+            workspaceCache.put(propertyIri, property);
         }
         return property;
     }
@@ -345,184 +356,112 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships() {
-        return new ConvertingIterable<InMemoryRelationship, Relationship>(relationshipsCache.values()) {
-            @Override
-            protected Relationship convert(InMemoryRelationship InMemRelationship) {
-                return InMemRelationship;
-            }
-        };
+    public Iterable<Relationship> getRelationships(User user, String workspaceId) {
+        return computeCacheForWorkspace(publicRelationshipsCache, user, workspaceId).values().stream().collect(Collectors.toList());
     }
 
     @Override
     public Iterable<Relationship> getRelationships(Iterable<String> ids, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
-    }
-
-    @Override
-    public Iterable<Relationship> getRelationships(User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
-    }
-
-
-    @Override
-    public Iterable<OntologyProperty> getProperties() {
-        return new ConvertingIterable<InMemoryOntologyProperty, OntologyProperty>(propertiesCache.values()) {
-            @Override
-            protected OntologyProperty convert(InMemoryOntologyProperty ontologyProperty) {
-                return ontologyProperty;
-            }
-        };
+        if (ids != null) {
+            Map<String, InMemoryRelationship> workspaceRelationships = computeCacheForWorkspace(publicRelationshipsCache, user, workspaceId);
+            return StreamSupport.stream(ids.spliterator(), true)
+                    .map(workspaceRelationships::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     @Override
     public Iterable<OntologyProperty> getProperties(Iterable<String> ids, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
+        if (ids != null) {
+            Map<String, InMemoryOntologyProperty> workspacePropsCache = computeCacheForWorkspace(publicPropertiesCache, user, workspaceId);
+            return StreamSupport.stream(ids.spliterator(), true)
+                    .map(workspacePropsCache::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     @Override
     public Iterable<OntologyProperty> getProperties(User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
+        return computeCacheForWorkspace(publicPropertiesCache, user, workspaceId).values().stream().collect(Collectors.toList());
     }
 
     @Override
-    public String getDisplayNameForLabel(String relationshipIRI) {
-        InMemoryRelationship relationship = relationshipsCache.get(relationshipIRI);
+    public String getDisplayNameForLabel(String relationshipIRI, User user, String workspaceId) {
+        InMemoryRelationship relationship = computeCacheForWorkspace(publicRelationshipsCache, user, workspaceId).get(relationshipIRI);
         checkNotNull(relationship, "Could not find relationship " + relationshipIRI);
         return relationship.getDisplayName();
     }
 
     @Override
-    public String getDisplayNameForLabel(String relationshipIRI, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
+    public InMemoryOntologyProperty getPropertyByIRI(String propertyIRI, User user, String workspaceId) {
+        return computeCacheForWorkspace(publicPropertiesCache, user, workspaceId).get(propertyIRI);
     }
 
     @Override
-    public InMemoryOntologyProperty getPropertyByIRI(String propertyIRI) {
-        return propertiesCache.get(propertyIRI);
-    }
-
-    @Override
-    public InMemoryRelationship getRelationshipByIRI(String relationshipIRI) {
-        return relationshipsCache.get(relationshipIRI);
-    }
-
-    @Override
-    public InMemoryConcept getConceptByIRI(String conceptIRI) {
-        return getConceptByIRI(conceptIRI, null, null);
+    public InMemoryRelationship getRelationshipByIRI(String relationshipIRI, User user, String workspaceId) {
+        return computeCacheForWorkspace(publicRelationshipsCache, user, workspaceId).get(relationshipIRI);
     }
 
     @Override
     public InMemoryConcept getConceptByIRI(String conceptIRI, User user, String workspaceId) {
-        return (InMemoryConcept) super.getConceptByIRI(conceptIRI, user, workspaceId);
+        return computeCacheForWorkspace(publicConceptsCache, user, workspaceId).get(conceptIRI);
     }
 
     @Override
-    public boolean hasRelationshipByIRI(String relationshipIRI) {
-        return getRelationshipByIRI(relationshipIRI) != null;
+    public boolean hasRelationshipByIRI(String relationshipIRI, User user, String workspaceId) {
+        return getRelationshipByIRI(relationshipIRI, user, workspaceId) != null;
     }
 
     @Override
     public Iterable<Concept> getConceptsWithProperties(User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
-    }
-
-    @Override
-    public Iterable<Concept> getConceptsWithProperties() {
-        return new ConvertingIterable<InMemoryConcept, Concept>(conceptsCache.values()) {
-            @Override
-            protected Concept convert(InMemoryConcept concept) {
-                return concept;
-            }
-        };
+        return computeCacheForWorkspace(publicConceptsCache, user, workspaceId).values().stream().collect(Collectors.toList());
     }
 
     @Override
     public Concept getRootConcept(User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
-    }
-
-    @Override
-    public Concept getEntityConcept() {
-        return conceptsCache.get(InMemoryOntologyRepository.ENTITY_CONCEPT_IRI);
+        return computeCacheForWorkspace(publicConceptsCache, user, workspaceId).get(InMemoryOntologyRepository.ROOT_CONCEPT_IRI);
     }
 
     @Override
     public Concept getEntityConcept(User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
-    }
-
-    @Override
-    public Concept getParentConcept(Concept concept) {
-        for (String key : conceptsCache.keySet()) {
-            if (key.equals(concept.getParentConceptIRI())) {
-                return conceptsCache.get(key);
-            }
-        }
-        return null;
+        return computeCacheForWorkspace(publicConceptsCache, user, workspaceId).get(InMemoryOntologyRepository.ENTITY_CONCEPT_IRI);
     }
 
     @Override
     public Concept getParentConcept(Concept concept, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
+        return computeCacheForWorkspace(publicConceptsCache, user, workspaceId).get(concept.getParentConceptIRI());
     }
 
     @Override
     public Iterable<Concept> getConcepts(Iterable<String> ids, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
-    }
-
-    @Override
-    protected List<Concept> getChildConcepts(Concept concept) {
-        List<Concept> results = new ArrayList<>();
-        for (Concept childConcept : conceptsCache.values()) {
-            if (concept.getIRI().equals(childConcept.getParentConceptIRI())) {
-                results.add(childConcept);
-            }
+        if (ids != null) {
+            Map<String, InMemoryConcept> workspaceConcepts = computeCacheForWorkspace(publicConceptsCache, user, workspaceId);
+            return StreamSupport.stream(ids.spliterator(), true)
+                    .map(workspaceConcepts::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
-        return results;
+        return Collections.emptyList();
     }
 
     @Override
     protected List<Concept> getChildConcepts(Concept concept, User user, String workspaceId) {
-        return null;
-    }
-
-    @Override
-    protected List<Relationship> getChildRelationships(Relationship relationship) {
-        List<Relationship> results = new ArrayList<>();
-        for (Relationship childRelationship : relationshipsCache.values()) {
-            if (relationship.getIRI().equals(childRelationship.getParentIRI())) {
-                results.add(childRelationship);
-            }
-        }
-        return results;
+        Map<String, InMemoryConcept> workspaceConcepts = computeCacheForWorkspace(publicConceptsCache, user, workspaceId);
+        return workspaceConcepts.values().stream()
+                .filter(workspaceConcept -> concept.getIRI().equals(workspaceConcept.getParentConceptIRI()))
+                .collect(Collectors.toList());
     }
 
     @Override
     protected List<Relationship> getChildRelationships(Relationship relationship, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
-    }
-
-    @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true);
-    }
-
-    @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true, user, workspaceId);
-    }
-
-    @Override
-    public Concept getOrCreateConcept(
-            Concept parent,
-            String conceptIRI,
-            String displayName,
-            File inDir,
-            boolean isDeclaredInOntology
-    ) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true, null,null);
+        Map<String, InMemoryRelationship> workspaceRelationships = computeCacheForWorkspace(publicRelationshipsCache, user, workspaceId);
+        return workspaceRelationships.values().stream()
+                .filter(workspaceRelationship -> relationship.getIRI().equals(workspaceRelationship.getParentIRI()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -533,39 +472,27 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             return concept;
         }
         if (parent == null) {
-            concept = new InMemoryConcept(conceptIRI, null);
+            concept = new InMemoryConcept(conceptIRI, null, workspaceId);
         } else {
-            concept = new InMemoryConcept(conceptIRI, ((InMemoryConcept) parent).getConceptIRI());
+            concept = new InMemoryConcept(conceptIRI, ((InMemoryConcept) parent).getConceptIRI(), workspaceId);
         }
         concept.setProperty(OntologyProperties.TITLE.getPropertyName(), conceptIRI, null);
         concept.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, null);
-        conceptsCache.put(conceptIRI, concept);
+
+        String cacheKey = workspaceId == null ? PUBLIC_ONTOLOGY_CACHE_KEY : workspaceId;
+        Map<String, InMemoryConcept> workspaceCache = publicConceptsCache.compute(cacheKey, (k, v) -> v == null ? new HashMap<>() : v);
+        workspaceCache.put(conceptIRI, concept);
 
         return concept;
     }
 
     @Override
-    public Relationship getOrCreateRelationshipType(
-            Relationship parent,
-            Iterable<Concept> domainConcepts,
-            Iterable<Concept> rangeConcepts,
-            String relationshipIRI
-    ) {
-        return getOrCreateRelationshipType(parent,domainConcepts, rangeConcepts, relationshipIRI, true);
-    }
-
-    @Override
-    public Relationship getOrCreateRelationshipType(
-            Relationship parent,
-            Iterable<Concept> domainConcepts,
-            Iterable<Concept> rangeConcepts,
-            String relationshipIRI,
-            boolean isDeclaredInOntology
-    ) {
-        Relationship relationship = getRelationshipByIRI(relationshipIRI);
+    public Relationship getOrCreateRelationshipType(Relationship parent, Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, boolean deleteChangeableProperties, User user, String workspaceId) {
+        Relationship relationship = getRelationshipByIRI(relationshipIRI, user, workspaceId);
         if (relationship != null) {
             return relationship;
         }
+
 
         List<String> domainConceptIris = toList(new ConvertingIterable<Concept, String>(domainConcepts) {
             @Override
@@ -588,15 +515,15 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 relationshipIRI,
                 domainConceptIris,
                 rangeConceptIris,
-                properties
+                properties,
+                workspaceId
         );
-        relationshipsCache.put(relationshipIRI, inMemRelationship);
-        return inMemRelationship;
-    }
 
-    @Override
-    public Relationship getOrCreateRelationshipType(Relationship parent, Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, boolean deleteChangeableProperties, User user, String workspaceId) {
-        throw new UnsupportedOperationException("InMemoryOntologyRepository does not support workspace scoped ontologies.");
+        String cacheKey = workspaceId == null  ? PUBLIC_ONTOLOGY_CACHE_KEY : workspaceId;
+        Map<String, InMemoryRelationship> workspaceCache = publicRelationshipsCache.compute(cacheKey, (k, v) -> v == null ? new HashMap<>() : v);
+        workspaceCache.put(relationshipIRI, inMemRelationship);
+
+        return inMemRelationship;
     }
 
     protected void addExtendedDataTableProperty(OntologyProperty tableProperty, OntologyProperty property, User user, String workspaceId) {

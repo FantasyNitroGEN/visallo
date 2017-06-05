@@ -17,6 +17,7 @@ import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
+import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.*;
@@ -35,6 +36,8 @@ import org.visallo.vertexium.model.user.VertexiumUserRepository;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
 
 import java.util.*;
+
+import static org.visallo.core.model.ontology.OntologyRepository.ENTITY_CONCEPT_IRI;
 
 public abstract class VisalloInMemoryTestBase {
     private WorkspaceRepository workspaceRepository;

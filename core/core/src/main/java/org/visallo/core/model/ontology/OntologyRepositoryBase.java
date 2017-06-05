@@ -1306,6 +1306,20 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 Hashing.sha1().hashString(type.toString() + workspaceId + displayName, Charsets.UTF_8).toString();
     }
 
+    @Override
+    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, null, null);
+    }
+
+    @Override
+    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true, user, workspaceId);
+    }
+
+    @Override
+    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, deleteChangeableProperties, null,null);
+    }
 
     @Override
     public Relationship getOrCreateRelationshipType(

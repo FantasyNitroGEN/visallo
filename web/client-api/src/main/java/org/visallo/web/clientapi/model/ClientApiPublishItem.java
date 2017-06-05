@@ -34,6 +34,10 @@ public abstract class ClientApiPublishItem implements ClientApiObject {
         return errorMessage;
     }
 
+    public boolean validate() {
+        return true;
+    }
+
     public abstract String getType();
 
     @Override

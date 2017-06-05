@@ -15,4 +15,13 @@ public class ClientApiVertexPublishItem extends ClientApiPublishItem {
     public String getType() {
         return "vertex";
     }
+
+    @Override
+    public boolean validate() {
+        if (vertexId == null) {
+            setErrorMessage("Vertex ID must be provided for publishing");
+            return false;
+        }
+        return true;
+    }
 }

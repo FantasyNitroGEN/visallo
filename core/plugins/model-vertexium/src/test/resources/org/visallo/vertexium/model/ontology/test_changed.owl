@@ -39,6 +39,7 @@
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/test#firstMet">
         <rdfs:label xml:lang="en">First Met</rdfs:label>
+        <visallo:objectPropertyDomain rdf:resource="http://visallo.org/test#personKnowsPerson"/>
         <rdfs:range rdf:resource="&xsd;dateTime"/>
     </owl:DatatypeProperty>
 
@@ -50,6 +51,7 @@
             dependentProp(&apos;http://visallo.org/test#lastName&apos;)
             ]).join(&apos;, &apos;)
         </visallo:displayFormula>
+        <rdfs:domain rdf:resource="http://visallo.org/test#person"/>
         <rdfs:range rdf:resource="&xsd;integer"/>
         <visallo:intent>test3</visallo:intent>
         <visallo:validationFormula>dependentProp(&apos;http://visallo.org/test#lastName&apos;) &amp;&amp; dependentProp(&apos;http://visallo.org/test#firstName&apos;)</visallo:validationFormula>

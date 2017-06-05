@@ -22,16 +22,19 @@ public class InMemoryRelationship extends Relationship {
     private String titleFormula;
     private String subtitleFormula;
     private String timeFormula;
+    private String workspaceId;
 
     protected InMemoryRelationship(
             String parentIRI,
             String relationshipIRI,
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
-            Collection<OntologyProperty> properties
+            Collection<OntologyProperty> properties,
+            String workspaceId
     ) {
         super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.relationshipIRI = relationshipIRI;
+        this.workspaceId = workspaceId;
     }
 
     @Override
@@ -137,5 +140,13 @@ public class InMemoryRelationship extends Relationship {
 
     public void addInverseOf(Relationship inverseOfRelationship) {
         inverseOfs.add(inverseOfRelationship);
+    }
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void remvoeWorkspaceId() {
+        workspaceId = null;
     }
 }
