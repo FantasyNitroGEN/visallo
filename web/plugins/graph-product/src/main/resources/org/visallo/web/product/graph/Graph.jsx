@@ -38,6 +38,7 @@ define([
         return display + num;
     };
     const propTypesElementArrays = { vertices: PropTypes.array, edges: PropTypes.array };
+    const propTypesElementObjects = { vertices: PropTypes.object, edges: PropTypes.object };
 
     let memoizeForStorage = {};
     const memoizeClear = () => { memoizeForStorage = {}; }
@@ -79,8 +80,8 @@ define([
                 vertices: PropTypes.object,
                 edges: PropTypes.object
             }).isRequired,
-            selection: PropTypes.shape(propTypesElementArrays).isRequired,
-            focusing: PropTypes.shape(propTypesElementArrays).isRequired,
+            selection: PropTypes.shape(propTypesElementObjects).isRequired,
+            focusing: PropTypes.shape(propTypesElementObjects).isRequired,
             registry: PropTypes.object.isRequired,
             onUpdatePreview: PropTypes.func.isRequired,
             onVertexMenu: PropTypes.func,
