@@ -97,6 +97,7 @@ define([
                         <VirtualizedSelect
                             ref={r => { this._virtualized = r}}
                             options={options}
+                            autofocus
                             simpleValue
                             clearable
                             searchable

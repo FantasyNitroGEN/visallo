@@ -47,7 +47,7 @@ define([
             )
         },
         onConceptSelected(option) {
-            this.setState({ parentConcept: option.title })
+            this.setState({ parentConcept: option ? option.title : null })
         },
         onDisplayNameChange(event) {
             this.setState({ displayName: event.target.value })
