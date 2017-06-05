@@ -254,16 +254,26 @@ public class FormulaEvaluator {
             Scriptable scope = getScriptable(userContext);
             Context context = Context.getCurrentContext();
             String json = toJson(vertexiumObject, userContext.getWorkspaceId(), authorizations);
-            Function function = (Function) scope.get("evaluate" + fieldName + "FormulaJson", scope);
-            Object result = function.call(
-                    context,
-                    scope,
-                    scope,
-                    new Object[]{json, propertyKey, propertyName}
-            );
+            Object func = scope.get("evaluate" + fieldName + "FormulaJson", scope);
 
-            String strResult = (String) context.jsToJava(result, String.class);
-            return strResult;
+            if (func.equals(scope.NOT_FOUND)) {
+                throw new VisalloException("formula function not found");
+            }
+
+            if (func instanceof Function) {
+                Function function = (Function) func;
+                Object result = function.call(
+                        context,
+                        scope,
+                        scope,
+                        new Object[]{json, propertyKey, propertyName}
+                );
+
+                String strResult = (String) context.jsToJava(result, String.class);
+                return strResult;
+            }
+
+            throw new VisalloException("Unknown result from formula");
         }
     }
 }
