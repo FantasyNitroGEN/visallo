@@ -441,14 +441,18 @@ public abstract class WorkspaceRepository {
         Map<String, List<String>> vertexIdsByConcept = StreamUtils.stream(verticesToPublish)
                 .collect(Collectors.groupingBy(VisalloProperties.CONCEPT_TYPE::getPropertyValue, Collectors.mapping(Vertex::getId, Collectors.toList())));
 
-        long publishedConceptCount = vertexIdsByConcept.keySet().stream()
+
+        List<String> publishedConceptIds = vertexIdsByConcept.keySet().stream()
                 .map(iri -> ontologyRepository.getConceptByIRI(iri, user, workspaceId))
                 .filter(concept -> concept.getSandboxStatus() != SandboxStatus.PUBLIC)
-                .filter(concept -> {
+                .flatMap(concept -> {
                     try {
-                        ontologyRepository.getConceptAndAncestors(concept, user, workspaceId).stream()
+                        return ontologyRepository.getConceptAndAncestors(concept, user, workspaceId).stream()
                                 .filter(conceptOrAncestor -> conceptOrAncestor.getSandboxStatus() != SandboxStatus.PUBLIC)
-                                .forEach(conceptOrAncestor -> ontologyRepository.publishConcept(conceptOrAncestor, user, workspaceId));
+                                .map(conceptOrAncestor -> {
+                                    ontologyRepository.publishConcept(conceptOrAncestor, user, workspaceId);
+                                    return conceptOrAncestor.getId();
+                                });
                     } catch (Exception ex) {
                         LOGGER.error("Error publishing concept %s", concept.getIRI(), ex);
                         vertexIdsByConcept.get(concept.getIRI()).forEach(vertexId -> {
@@ -457,12 +461,12 @@ public abstract class WorkspaceRepository {
                             workspacePublishResponse.addFailure(data);
                         });
                     }
-                    return true;
-                }).count();
+                    return Stream.empty();
+                }).collect(Collectors.toList());
 
-        if (publishedConceptCount > 0) {
+        if (!publishedConceptIds.isEmpty()) {
             ontologyRepository.clearCache();
-            workQueueRepository.pushOntologyChange(null);
+            workQueueRepository.pushOntologyConceptsChange(null, publishedConceptIds);
         }
 
         CloseableUtils.closeQuietly(verticesToPublish);

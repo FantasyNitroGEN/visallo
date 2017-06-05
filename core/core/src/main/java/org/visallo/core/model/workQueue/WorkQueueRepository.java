@@ -797,6 +797,10 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
+    public void pushOntologyConceptsChange(String workspaceId, List<String> ids) {
+        pushOntologyChange(workspaceId, ids, null, null);
+    }
+
     public void pushOntologyConceptsChange(String workspaceId, String... ids) {
         pushOntologyChange(workspaceId, Arrays.asList(ids), null, null);
     }
