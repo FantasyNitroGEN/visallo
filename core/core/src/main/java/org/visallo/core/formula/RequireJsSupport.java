@@ -63,7 +63,7 @@ public class RequireJsSupport extends ScriptableObject {
 
     private String getFileContents(String file) {
         LOGGER.debug("reading file: %s", file);
-        try (InputStream is = RequireJsSupport.class.getResourceAsStream(file)) {
+        try (InputStream is = RequireJsSupport.class.getResourceAsStream("jsc/" + file)) {
             if (is == null) {
                 throw new VisalloException("File not found: " + file);
             }

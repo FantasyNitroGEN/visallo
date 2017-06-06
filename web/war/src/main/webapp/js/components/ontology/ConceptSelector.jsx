@@ -26,7 +26,7 @@ define([
     return redux.connect(
         (state, props) => {
             return {
-                options: ontologySelectors.getVisibleConceptsWithHeaders(state),
+                options: ontologySelectors.getVisibleConcepts(state),
                 iriKeys: ontologySelectors.getConceptKeyIris(state),
                 ...props
             };

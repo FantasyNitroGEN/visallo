@@ -143,4 +143,40 @@
             </build>
         </profile>
     </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>${plugin.frontend}</version>
+                <configuration>
+                    <workingDirectory>src/main/resources/org/visallo/core/formula</workingDirectory>
+                    <installDirectory>${frontend.installDirectory}</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>yarn install</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>src/main/resources/org/visallo/core/formula</directory>
+                            <includes>
+                                <include>jsc/</include>
+                                <include>node_modules/</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

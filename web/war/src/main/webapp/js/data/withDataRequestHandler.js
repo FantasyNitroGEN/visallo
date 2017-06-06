@@ -1,6 +1,9 @@
 define([], function() {
     'use strict';
 
+    var CACHES = {
+        ontology: null
+    };
     var FAST_PASSED = {
         'ontology/ontology': null,
         'ontology/properties': null,
@@ -26,43 +29,29 @@ define([], function() {
         return { promise, resolve, reject };
     }
 
-    function fastPassNoWorker(message, trigger) {
-        var path = message.data.service + '/' + message.data.method;
-        if (path in FAST_PASSED) {
-            if (FAST_PASSED[path]) {
-               FAST_PASSED[path].promise.then(r => {
-                   trigger(r.type, { ...r, requestId: message.data.requestId });
-               })
-               return true;
-            } else {
-
-                // Special case check for properties/relationship request and
-                // resolve using ontology if already requested
-                if (message.data.service === 'ontology' && (
-                message.data.method === 'properties' || message.data.method === 'relationships'
-                )) {
-                    if (FAST_PASSED['ontology/ontology']) {
-                        FAST_PASSED['ontology/ontology'].promise.then(r => {
-                            trigger(r.type, {
-                                ...r,
-                                result: r.result[message.data.method],
-                                requestId: message.data.requestId
-                            });
-                        })
-                        return true;
-                    }
-                }
-                FAST_PASSED[path] = deferred();
-            }
-        }
-        return false;
-    }
 
     function checkForFastPass(message) {
         var path = message.originalRequest.service + '/' + message.originalRequest.method;
         if (FAST_PASSED[path]) {
+
+            if (path === 'ontology/ontology') {
+                CACHES.ontology = message.result;
+                message.result = {};
+                wrap(message.result, 'ontology', 'concepts')
+                wrap(message.result, 'ontology', 'properties')
+                wrap(message.result, 'ontology', 'relationships')
+            }
             FAST_PASSED[path].resolve(message);
         }
+    }
+
+    function wrap(obj, cacheKey, key) {
+        Object.defineProperty(obj, key, {
+            get: function() {
+                return CACHES[cacheKey][key];
+            },
+            enumerable: true
+        });
     }
 
     function withDataRequestHandler() {
@@ -101,7 +90,7 @@ define([], function() {
             }
             var message = { type: event.type, data };
 
-            if (!fastPassNoWorker(message, this.trigger.bind(this))) {
+            if (!this.fastPassNoWorker(message)) {
                 this.worker.postMessage(message);
             }
         };
@@ -115,6 +104,47 @@ define([], function() {
             this.trigger(message.type, message);
         };
 
+        this.fastPassNoWorker = function(message) {
+            var path = message.data.service + '/' + message.data.method;
+            if (path in FAST_PASSED) {
+                if (FAST_PASSED[path]) {
+                   FAST_PASSED[path].promise.then(r => {
+                       this.trigger(r.type, { ...r, requestId: message.data.requestId });
+                   })
+                   return true;
+                } else {
+
+                    // Special case check for properties/relationship request and
+                    // resolve using ontology if already requested
+                    if (message.data.service === 'ontology' && (
+                    message.data.method === 'properties' || message.data.method === 'relationships'
+                    )) {
+                        const ontologyPath = 'ontology/ontology';
+                        const existing = FAST_PASSED[ontologyPath] && FAST_PASSED[ontologyPath].promise;
+                        Promise.resolve(existing || this.refreshOntology()).then(r => {
+                            this.trigger(r.type, {
+                                ...r,
+                                // TODO: decorate with getters
+                                result: r.result[message.data.method],
+                                requestId: message.data.requestId
+                            });
+                        })
+                        return true;
+                    }
+                    FAST_PASSED[path] = deferred();
+                }
+            }
+            return false;
+        }
+
+        this.refreshOntology = function() {
+            return this.dataRequestPromise
+                .then(dr => dr('ontology', 'ontology'))
+                .then(ontology => {
+                    return FAST_PASSED['ontology/ontology'].promise;
+                });
+        };
+
         this.dataRequestFastPassClear = function(message) {
             var ontologyCleared = false;
             message.paths.forEach(function(path) {
@@ -123,11 +153,7 @@ define([], function() {
             })
 
             if (ontologyCleared) {
-                require(['util/withDataRequest'], dr => {
-                    dr.dataRequest('ontology', 'ontology').then(ontology => {
-                        $(document).trigger('ontologyUpdated', { ontology })
-                    })
-                })
+                this.refreshOntology();
             }
         };
 

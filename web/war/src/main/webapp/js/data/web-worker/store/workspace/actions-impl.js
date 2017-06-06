@@ -32,21 +32,22 @@ define(['../actions', '../../util/ajax', 'require'], function(actions, ajax, req
                         return workspace.workspaceId;
                     })
                 }).then(workspaceId => {
-                    dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
-                    pushSocketMessage({
-                        type: 'setActiveWorkspace',
-                        data: { workspaceId: workspaceId }
-                    });
-                    require(['../ontology/actions-impl'], actions => {
-                        dispatch(actions.get())
+                    require(['../ontology/actions-impl'], ontologyActions => {
+                        const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
+                        Promise.resolve(getOntology).then(() => {
+                            dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                            pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                        })
                     })
                 })
             } else {
-                pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
-                require(['../ontology/actions-impl'], actions => {
-                    dispatch(actions.get({ workspaceId }))
-                    dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
-                    dispatch(api.get({ workspaceId }))
+                require(['../ontology/actions-impl'], ontologyActions => {
+                    const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
+                    Promise.resolve(getOntology).then(() => {
+                        dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                        dispatch(api.get({ workspaceId }))
+                        pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                    })
                 })
             }
         },

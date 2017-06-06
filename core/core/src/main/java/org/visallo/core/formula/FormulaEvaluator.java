@@ -3,10 +3,7 @@ package org.visallo.core.formula;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
 import org.apache.commons.io.IOUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 import org.vertexium.Authorizations;
 import org.vertexium.VertexiumObject;
 import org.visallo.core.config.Configuration;
@@ -157,9 +154,9 @@ public class FormulaEvaluator {
     }
 
     private void loadJavaScript(ScriptableObject scope) {
-        evaluateFile(scope, "libs/underscore.js");
-        evaluateFile(scope, "libs/r.js");
-        evaluateFile(scope, "libs/windowTimers.js");
+        evaluateFile(scope, "../libs/underscore.js");
+        evaluateFile(scope, "../libs/r.js");
+        evaluateFile(scope, "../libs/windowTimers.js");
         evaluateFile(scope, "loader.js");
     }
 
@@ -179,12 +176,14 @@ public class FormulaEvaluator {
 
     private void evaluateFile(ScriptableObject scope, String filename) {
         LOGGER.debug("evaluating file: %s", filename);
-        try (InputStream is = FormulaEvaluator.class.getResourceAsStream(filename)) {
+        try (InputStream is = FormulaEvaluator.class.getResourceAsStream("jsc/" + filename)) {
             if (is == null) {
                 throw new VisalloException("File not found " + filename);
             }
 
             Context.getCurrentContext().evaluateString(scope, IOUtils.toString(is), filename, 0, null);
+        } catch (JavaScriptException ex) {
+            throw new VisalloException("JavaScript error in " + filename, ex);
         } catch (IOException ex) {
             throw new VisalloException("Could not read file: " + filename, ex);
         }

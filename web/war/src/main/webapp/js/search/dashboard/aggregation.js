@@ -444,7 +444,7 @@ define([
                 node.teardownComponent(FieldSelection);
 
                 FieldSelection.attachTo(node, {
-                    selectedProperty: options.selected && properties.byTitle[options.selected] || null,
+                    selectedProperty: options.selected && ontology.properties.byTitle[options.selected] || null,
                     properties: self.filterProperties(propertiesToFilter),
                     showAdminProperties: true,
                     placeholder: options.placeholder || ''
