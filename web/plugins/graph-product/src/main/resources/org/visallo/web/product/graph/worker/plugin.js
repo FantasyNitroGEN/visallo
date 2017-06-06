@@ -10,8 +10,6 @@ define([
             switch (type) {
                 case 'PRODUCT_GRAPH_SET_POSITIONS': return updatePositions(state, payload);
                 case 'PRODUCT_GRAPH_REMOVE_ELEMENTS': return removeElements(state, payload);
-                case 'PRODUCT_GRAPH_UPDATE_ELEMENTS': return updateElements(state, payload);
-
                 case 'PRODUCT_ADD_EDGE_IDS': return addEdges(state, payload);
             }
 
@@ -100,7 +98,7 @@ define([
                 )
                 updated = u.updateIn(
                     `workspaces.${workspaceId}.products.${productId}.extendedData.compoundNodes`,
-                    function(positions) { return addPositions(positions, additionalVertices, 'collapsedNode') },
+                    function(positions) { return addPositions(positions, additionalVertices, 'compoundNode') },
                     updated
                 )
             }
@@ -131,7 +129,7 @@ define([
         }
     }
 
-    function removeElements(state, { workspaceId, productId, elements, removeChildren }) {
+    function removeElements(state, { workspaceId, productId, elements }) {
         const { vertexIds, edgeIds, collapsedNodeIds } = elements;
         const updates = {};
 

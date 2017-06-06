@@ -14,6 +14,7 @@ import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
@@ -39,6 +40,7 @@ public class RemoveVertices implements ParameterizedHandler {
     private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
     private final GraphRepository graphRepository;
+    private final UserRepository userRepository;
 
     @Inject
     public RemoveVertices(
@@ -48,7 +50,8 @@ public class RemoveVertices implements ParameterizedHandler {
             WorkQueueRepository workQueueRepository,
             OntologyRepository ontologyRepository,
             AuthorizationRepository authorizationRepository,
-            GraphRepository graphRepository
+            GraphRepository graphRepository,
+            UserRepository userRepository
     ) {
         this.graph = graph;
         this.visibilityTranslator = visibilityTranslator;
@@ -57,6 +60,7 @@ public class RemoveVertices implements ParameterizedHandler {
         this.ontologyRepository = ontologyRepository;
         this.authorizationRepository = authorizationRepository;
         this.graphRepository = graphRepository;
+        this.userRepository = userRepository;
     }
 
     @Handle
@@ -78,7 +82,7 @@ public class RemoveVertices implements ParameterizedHandler {
                 workspaceId
         );
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
-            GraphWorkProduct graphWorkProduct = new GraphWorkProduct(ontologyRepository, authorizationRepository, visibilityTranslator);
+            GraphWorkProduct graphWorkProduct = new GraphWorkProduct(ontologyRepository, authorizationRepository, graphRepository, userRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
             JSONArray removeVertices = new JSONArray(vertexIds);
 
@@ -90,7 +94,14 @@ public class RemoveVertices implements ParameterizedHandler {
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
         ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, authorizations);
 
-        workQueueRepository.broadcastWorkProductChange(productId, clientApiWorkspace, user, sourceGuid);
+        String skipSourceGuid = null;
+        if (params != null && params.has("broadcastOptions")) {
+            JSONObject broadcastOptions = params.getJSONObject("broadcastOptions");
+            if (broadcastOptions.optBoolean("preventBroadcastToSourceGuid", false)) {
+                skipSourceGuid = sourceGuid;
+            }
+        }
+        workQueueRepository.broadcastWorkProductChange(productId, clientApiWorkspace, user, skipSourceGuid);
 
         response.respondWithSuccessJson();
     }

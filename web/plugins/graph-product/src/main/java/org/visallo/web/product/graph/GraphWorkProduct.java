@@ -9,11 +9,15 @@ import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.ElementUpdateContext;
+import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceProperties;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.product.WorkProductElements;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
@@ -33,19 +37,23 @@ import static org.visallo.web.product.graph.GraphProductOntology.ENTITY_POSITION
 
 public class GraphWorkProduct extends WorkProductElements {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphWorkProduct.class);
-    private final VisibilityTranslator visibilityTranslator;
     private final AuthorizationRepository authorizationRepository;
+    private final GraphRepository graphRepository;
+    private final UserRepository userRepository;
+    private static final VisalloVisibility VISIBILITY = new VisalloVisibility(WorkspaceRepository.VISIBILITY_STRING);
     private static final String ROOT_NODE_ID = "root";
 
     @Inject
     public GraphWorkProduct(
             OntologyRepository ontologyRepository,
             AuthorizationRepository authorizationRepository,
-            VisibilityTranslator visibilityTranslator
+            GraphRepository graphRepository,
+            UserRepository userRepository
     ) {
         super(ontologyRepository, authorizationRepository);
         this.authorizationRepository = authorizationRepository;
-        this.visibilityTranslator = visibilityTranslator;
+        this.graphRepository = graphRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -61,6 +69,8 @@ public class GraphWorkProduct extends WorkProductElements {
         String id = productVertex.getId();
 
         if (params.optBoolean("includeVertices")) {
+            trimCompoundNodes(graph, productVertex);
+
             JSONObject vertices = new JSONObject();
             JSONObject compoundNodes = new JSONObject();
 
@@ -98,7 +108,9 @@ public class GraphWorkProduct extends WorkProductElements {
                         Map<String,Object> compoundNodeMap = (Map<String, Object>) compoundNode;
                         String childId = ((String) ((List) compoundNodeMap.get("children")).get(0));
                         JSONObject firstChild = vertices.optJSONObject(childId);
-                        if (firstChild == null) {firstChild = compoundNodes.optJSONObject(childId);}
+                        if (firstChild == null) {
+                            firstChild = compoundNodes.optJSONObject(childId);
+                        }
                         childrenDFS.push(firstChild);
 
                         boolean visible = (boolean) compoundNodeMap.getOrDefault("visible", false);
@@ -117,7 +129,7 @@ public class GraphWorkProduct extends WorkProductElements {
                                 });
                             } else {
                                 child = vertices.optJSONObject(childId);
-                                visible = child.optBoolean("unauthorized") != true;
+                                visible = !child.optBoolean("unauthorized");
                             }
                         }
 
@@ -144,7 +156,7 @@ public class GraphWorkProduct extends WorkProductElements {
             ));
             Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
             List<String> ids = StreamUtil.stream(productRelatedEdges)
-                    .map(edge -> edge.getEdgeId())
+                    .map(RelatedEdge::getEdgeId)
                     .collect(Collectors.toList());
             Map<String, Boolean> relatedEdgesById = graph.doEdgesExist(ids, authorizations);
 
@@ -166,6 +178,37 @@ public class GraphWorkProduct extends WorkProductElements {
         }
 
         return extendedData;
+    }
+
+    private void trimCompoundNodes(Graph graph, Vertex productVertex) {
+        String id = productVertex.getId();
+        User systemUser = userRepository.getSystemUser();
+        Visibility visibility = VISIBILITY.getVisibility();
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(systemUser);
+
+        List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
+                Direction.OUT,
+                WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                authorizations
+        ));
+
+        List<String> ids = productVertexEdges.stream()
+                .map(edge -> edge.getOtherVertexId(id))
+                .collect(Collectors.toList());
+        Map<String, Vertex> othersById = StreamUtil.stream(graph.getVertices(ids, FetchHint.NONE, authorizations))
+                .collect(Collectors.toMap(Vertex::getId, Function.identity()));
+
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, systemUser, authorizations)) {
+            for (Edge propertyVertexEdge : productVertexEdges) {
+                String otherId = propertyVertexEdge.getOtherVertexId(id);
+                if (!othersById.containsKey(otherId)) {
+                    removeChild(ctx, productVertex, otherId, id, visibility, authorizations);
+                }
+            }
+        } catch(Exception ex) {
+            throw new RuntimeException("Could not clean compound Nodes", ex);
+        }
+
     }
 
     @Override
@@ -297,7 +340,7 @@ public class GraphWorkProduct extends WorkProductElements {
                     if (children != null && children.length() > 0) {
                         if (removeChildren) {
                             Queue<String> childIdQueue = Queues.newSynchronousQueue();
-                            JSONUtil.toStringList(children).forEach(childId -> childIdQueue.add(childId));
+                            JSONUtil.toStringList(children).forEach(childIdQueue::add);
 
                             while (!childIdQueue.isEmpty()) {
                                 String childId = childIdQueue.poll();
@@ -305,7 +348,7 @@ public class GraphWorkProduct extends WorkProductElements {
 
                                 Edge childEdge = ctx.getGraph().getEdge(childEdgeId, authorizations);
                                 JSONArray nextChildren = GraphProductOntology.NODE_CHILDREN.getPropertyValue(childEdge);
-                                JSONUtil.toStringList(nextChildren).forEach(nextId -> childIdQueue.add(nextId));
+                                JSONUtil.toStringList(nextChildren).forEach(childIdQueue::add);
 
                                 if (nextChildren != null) {
                                     ctx.getGraph().softDeleteVertex(childId, authorizations);
@@ -323,7 +366,7 @@ public class GraphWorkProduct extends WorkProductElements {
                         ctx.getGraph().softDeleteEdge(edgeId, authorizations);
                     }
 
-                    if (!parentId.equals(ROOT_NODE_ID)) {
+                    if (!ROOT_NODE_ID.equals(parentId)) {
                         removeChild(ctx, productVertex, (String) id, parentId, visibility, authorizations);
                     }
 
@@ -344,30 +387,32 @@ public class GraphWorkProduct extends WorkProductElements {
         Edge parentProductVertexEdge = ctx.getGraph().getEdge(parentEdgeId, authorizations);
 
         JSONArray children = GraphProductOntology.NODE_CHILDREN.getPropertyValue(parentProductVertexEdge);
-        children.put(childId);
+        if (!JSONUtil.arrayContains(children, childId)) {
+            children.put(childId);
 
-        EdgeBuilderByVertexId parentEdgeBuilder = ctx.getGraph().prepareEdge(
-                parentEdgeId,
-                productVertex.getId(),
-                childId,
-                WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                visibility
-        );
-        ctx.update(parentEdgeBuilder, elemCtx -> {
-            GraphProductOntology.NODE_CHILDREN.updateProperty(elemCtx, children, visibility);
-        });
+            EdgeBuilderByVertexId parentEdgeBuilder = ctx.getGraph().prepareEdge(
+                    parentEdgeId,
+                    productVertex.getId(),
+                    childId,
+                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                    visibility
+            );
+            ctx.update(parentEdgeBuilder, elemCtx -> {
+                GraphProductOntology.NODE_CHILDREN.updateProperty(elemCtx, children, visibility);
+            });
 
-        String childEdgeId = getEdgeId(productVertex.getId(), childId);
-        EdgeBuilderByVertexId childEdgeBuilder = ctx.getGraph().prepareEdge(
-                childEdgeId,
-                productVertex.getId(),
-                childId,
-                WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                visibility
-        );
-        ctx.update(childEdgeBuilder, elemCtx -> {
-            GraphProductOntology.PARENT_NODE.updateProperty(elemCtx, parentId, visibility);
-        });
+            String childEdgeId = getEdgeId(productVertex.getId(), childId);
+            EdgeBuilderByVertexId childEdgeBuilder = ctx.getGraph().prepareEdge(
+                    childEdgeId,
+                    productVertex.getId(),
+                    childId,
+                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                    visibility
+            );
+            ctx.update(childEdgeBuilder, elemCtx -> {
+                GraphProductOntology.PARENT_NODE.updateProperty(elemCtx, parentId, visibility);
+            });
+        }
     }
 
     private void removeChild(

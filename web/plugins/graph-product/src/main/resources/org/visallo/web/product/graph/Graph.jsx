@@ -993,7 +993,7 @@ define([
             let id = cyElementOrId;
 
             if (cyElementOrId && _.isFunction(cyElementOrId.data)) {
-                if (type === 'collapsedNode') {
+                if (type === 'compoundNode') {
                     const collapsedNode = this.props.product.extendedData.compoundNodes[id];
                     //TODO: getting previous collapsedNode id for this not new
                     if (!collapsedNode) {
@@ -1070,7 +1070,7 @@ define([
     });
 
     const getVertexIdsFromCollapsedNode = (collapsedNodes, collapsedNodeId) => {
-        
+        debugger;
         const vertexIds = [];
         const queue = [collapsedNodes[collapsedNodeId]];
 
@@ -1338,7 +1338,7 @@ define([
 
     const getCyItemTypeAsString = (item) => {
         if (item.isNode()) {
-            return item.data.vertexIds ? 'collapsedNode' : 'vertices';
+            return item.data.vertexIds ? 'compoundNode' : 'vertices';
         }
         return 'edges';
     };
