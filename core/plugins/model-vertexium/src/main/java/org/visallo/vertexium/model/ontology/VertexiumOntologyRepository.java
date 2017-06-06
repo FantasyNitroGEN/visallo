@@ -528,18 +528,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public Concept getRootConcept() {
-        return getRootConcept(null, null);
-    }
-
-    @Override
     public Concept getRootConcept(User user, String workspaceId) {
         return getConceptByIRI(VertexiumOntologyRepository.ROOT_CONCEPT_IRI, user, workspaceId);
-    }
-
-    @Override
-    public Concept getEntityConcept() {
-        return getEntityConcept(null, null);
     }
 
     @Override
@@ -599,21 +589,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     @Override
     public Iterable<Concept> getConcepts(Iterable<String> ids, User user, String workspaceId) {
         return transformConcepts(graph.getVertices(ids, getAuthorizations(user, workspaceId)), user, workspaceId);
-    }
-
-    @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true);
-    }
-
-    @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, null, false, user, workspaceId);
-    }
-
-    @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, deleteChangeableProperties, null, null);
     }
 
     @Override
