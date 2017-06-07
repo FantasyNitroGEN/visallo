@@ -2,7 +2,6 @@ package org.visallo.vertexium.model.ontology;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +19,7 @@ import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -53,10 +53,10 @@ public class VertexiumOntologyRepositoryTest {
 
     private static final String TEST_CHANGED_OWL = "test_changed.owl";
 
-    private static final String SANDBOX_IRI = "sandbox-concept-iri";
-    private static final String SANDBOX_DISPLAY_NAME = "Sandbox Concept";
-    private static final String PUBLIC_IRI = "public-concept-iri";
-    private static final String PUBLIC_DISPLAY_NAME = "Public Concept";
+    private static final String SANDBOX_IRI = "sandbox-iri";
+    private static final String SANDBOX_DISPLAY_NAME = "Sandbox Display";
+    private static final String PUBLIC_IRI = "public-iri";
+    private static final String PUBLIC_DISPLAY_NAME = "Public Display";
 
     private VertexiumOntologyRepository ontologyRepository;
     private Authorizations authorizations;
@@ -159,7 +159,7 @@ public class VertexiumOntologyRepositoryTest {
     public void testGettingParentConceptReturnsParentProperties() throws Exception {
         loadHierarchyOwlFile();
         Concept concept = ontologyRepository.getConceptByIRI(TEST_HIERARCHY_IRI + "#person", user, workspaceId);
-        Concept parentConcept = ontologyRepository.getParentConcept(concept);
+        Concept parentConcept = ontologyRepository.getParentConcept(concept, null, null);
         assertEquals(1, parentConcept.getProperties().size());
     }
 
@@ -198,10 +198,10 @@ public class VertexiumOntologyRepositoryTest {
         ontologyRepository.clearCache();
 
         Concept noWorkspace = ontologyRepository.getConceptByIRI(PUBLIC_IRI, user, null);
-        assertEquals(noWorkspace.getDisplayName(), PUBLIC_DISPLAY_NAME);
+        assertEquals(PUBLIC_DISPLAY_NAME, noWorkspace.getDisplayName());
 
         Concept withWorkspace = ontologyRepository.getConceptByIRI(PUBLIC_IRI, user, workspaceId);
-        assertEquals(withWorkspace.getDisplayName(), PUBLIC_DISPLAY_NAME);
+        assertEquals(PUBLIC_DISPLAY_NAME, withWorkspace.getDisplayName());
     }
 
     @Test(expected = VisalloAccessDeniedException.class)
@@ -222,26 +222,7 @@ public class VertexiumOntologyRepositoryTest {
         assertNull(noWorkspace);
 
         Concept withWorkspace = ontologyRepository.getConceptByIRI(SANDBOX_IRI, user, workspaceId);
-        assertEquals(withWorkspace.getDisplayName(), SANDBOX_DISPLAY_NAME);
-    }
-
-    @Test
-    public void creatingSandboxedOntologyConceptsThatShadowPublicConcepts() {
-        userPrivileges.add(Privilege.ONTOLOGY_ADD);
-
-        Concept thing = ontologyRepository.getEntityConcept(user, workspaceId);
-        ontologyRepository.getOrCreateConcept(thing, PUBLIC_IRI, PUBLIC_DISPLAY_NAME, null, systemUser, null);
-        ontologyRepository.getOrCreateConcept(thing, PUBLIC_IRI, SANDBOX_DISPLAY_NAME, null, user, workspaceId);
-        ontologyRepository.clearCache();
-
-        Concept noWorkspace = ontologyRepository.getConceptByIRI(PUBLIC_IRI, user, null);
-        assertEquals(noWorkspace.getDisplayName(), PUBLIC_DISPLAY_NAME);
-
-        Concept withWorkspace = ontologyRepository.getConceptByIRI(PUBLIC_IRI, user, workspaceId);
-        assertEquals(withWorkspace.getDisplayName(), SANDBOX_DISPLAY_NAME);
-
-        Concept withOtherWorkspace = ontologyRepository.getConceptByIRI(PUBLIC_IRI, user, "other-workspace");
-        assertEquals(withOtherWorkspace.getDisplayName(), PUBLIC_DISPLAY_NAME);
+        assertEquals(SANDBOX_DISPLAY_NAME, withWorkspace.getDisplayName());
     }
 
     @Test(expected = VisalloAccessDeniedException.class)
@@ -266,7 +247,53 @@ public class VertexiumOntologyRepositoryTest {
         ontologyRepository.clearCache();
 
         Concept publicConcept = ontologyRepository.getOrCreateConcept(thing, SANDBOX_IRI, SANDBOX_DISPLAY_NAME, null, user, null);
-        assertEquals(publicConcept.getDisplayName(), SANDBOX_DISPLAY_NAME);
+        assertEquals(SANDBOX_DISPLAY_NAME, publicConcept.getDisplayName());
+    }
+
+    @Test(expected = VisalloAccessDeniedException.class)
+    public void creatingOntologyRelationshipsWithNoUserOrWorkspace() {
+        List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, null, null);
+    }
+
+    @Test(expected = VisalloAccessDeniedException.class)
+    public void creatingPublicOntologyRelationshipsWithoutPublishPrivilege() {
+        List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, user, null);
+    }
+
+    @Test
+    public void creatingPublicOntologyRelationships() {
+        List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, systemUser, null);
+        ontologyRepository.clearCache();
+
+        Relationship noWorkspace = ontologyRepository.getRelationshipByIRI(PUBLIC_IRI, user, null);
+        assertEquals(PUBLIC_IRI, noWorkspace.getIRI());
+
+        Relationship withWorkspace = ontologyRepository.getRelationshipByIRI(PUBLIC_IRI, user, workspaceId);
+        assertEquals(PUBLIC_IRI, withWorkspace.getIRI());
+    }
+
+    @Test(expected = VisalloAccessDeniedException.class)
+    public void creatingSandboxedOntologyRelationshipsWithoutAddPermissionPrivilege() {
+        List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, user, workspaceId);
+    }
+
+    @Test
+    public void creatingSandboxedOntologyRelationships() {
+        userPrivileges.add(Privilege.ONTOLOGY_ADD);
+
+        List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, SANDBOX_IRI, true, user, workspaceId);
+        ontologyRepository.clearCache();
+
+        Relationship noWorkspace = ontologyRepository.getRelationshipByIRI(SANDBOX_IRI, user, null);
+        assertNull(noWorkspace);
+
+        Relationship withWorkspace = ontologyRepository.getRelationshipByIRI(SANDBOX_IRI, user, workspaceId);
+        assertEquals(SANDBOX_IRI, withWorkspace.getIRI());
     }
 
     private void validateTestOwlRelationship() {

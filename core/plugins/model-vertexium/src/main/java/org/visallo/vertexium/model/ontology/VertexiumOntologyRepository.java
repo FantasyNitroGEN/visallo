@@ -30,8 +30,6 @@ import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
-import org.visallo.core.model.user.PrivilegeRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -51,6 +49,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Singleton
@@ -65,7 +64,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     private final VisibilityTranslator visibilityTranslator;
     private AuthorizationRepository authorizationRepository;
 
-    private Authorizations systemAuthorizations;
+    private Authorizations publicOntologyAuthorizations;
 
     protected Cache<String, List<Concept>> allConceptsWithPropertiesCache = CacheBuilder.newBuilder()
             .expireAfterWrite(15, TimeUnit.HOURS)
@@ -99,9 +98,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
             defineRequiredProperties(graph);
 
-            systemAuthorizations = graph.createAuthorizations(Collections.singleton(VISIBILITY_STRING));
+            publicOntologyAuthorizations = graph.createAuthorizations(Collections.singleton(VISIBILITY_STRING));
 
-            loadOntologies(config, systemAuthorizations);
+            loadOntologies(config, publicOntologyAuthorizations);
         } catch (Exception ex) {
             LOGGER.error("Could not initialize: %s", this.getClass().getName(), ex);
             throw ex;
@@ -1020,15 +1019,19 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     protected Authorizations getAuthorizations(User user, String workspaceId) {
-        if (user == null) {
+        checkArgument((user == null && workspaceId == null) || user != null, "You cannot provide a workspace id without a valid user.");
+
+        if (user == null || user.getUserType() == UserType.SYSTEM) {
             if (workspaceId == null) {
-                return systemAuthorizations;
+                return publicOntologyAuthorizations;
             }
-            return graph.createAuthorizations(systemAuthorizations, workspaceId);
+            return graph.createAuthorizations(publicOntologyAuthorizations, workspaceId);
         }
+
         if (workspaceId == null) {
             return getAuthorizationRepository().getGraphAuthorizations(user, VISIBILITY_STRING);
         }
+
         // TODO: ensure the user has permission to access the provided workspace
         return getAuthorizationRepository().getGraphAuthorizations(user, workspaceId, VISIBILITY_STRING);
     }

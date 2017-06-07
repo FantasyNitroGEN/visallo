@@ -6,10 +6,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
-import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyProperty;
-import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.ontology.Relationship;
+import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiOntology;
@@ -42,6 +39,7 @@ public class OntologyRealtionshipSave implements ParameterizedHandler {
             @Optional(name = "parentIri", allowEmpty = false) String parentIri,
             @Optional(name = "iri", allowEmpty = false) String relationshipIri,
             @ActiveWorkspaceId String workspaceId,
+            Authorizations authorizations,
             User user) throws Exception {
 
 
@@ -66,6 +64,7 @@ public class OntologyRealtionshipSave implements ParameterizedHandler {
         }
 
         Relationship relationship = ontologyRepository.getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIri, false, user, workspaceId);
+        relationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, authorizations);
 
         ontologyRepository.clearCache(workspaceId);
         workQueueRepository.pushOntologyRelationshipsChange(workspaceId, relationship.getId());

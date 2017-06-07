@@ -11,6 +11,7 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
@@ -29,24 +30,32 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
     public static final String WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
     private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
+    private final UserRepository userRepository;
 
-    protected WorkProductElements(OntologyRepository ontologyRepository, AuthorizationRepository authorizationRepository) {
+    protected WorkProductElements(
+            OntologyRepository ontologyRepository,
+            AuthorizationRepository authorizationRepository,
+            UserRepository userRepository
+    ) {
         this.ontologyRepository = ontologyRepository;
         this.authorizationRepository = authorizationRepository;
+        this.userRepository = userRepository;
 
         addProductToEntityRelationshipToOntology(ontologyRepository);
     }
 
     private void addProductToEntityRelationshipToOntology(OntologyRepository ontologyRepository) {
-        Relationship relationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
+        User systemUser = userRepository.getSystemUser();
+
+        Relationship relationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI, systemUser, null);
         if (relationship != null) {
             return;
         }
 
-        Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI);
+        Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI, systemUser, null);
         checkNotNull(productConcept, "Could not find " + WorkspaceProperties.PRODUCT_CONCEPT_IRI);
 
-        Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING);
+        Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING, systemUser, null);
         checkNotNull(thingConcept, "Could not find " + VisalloProperties.CONCEPT_TYPE_THING);
 
         List<Concept> domainConcepts = new ArrayList<>();
@@ -57,7 +66,10 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                 null,
                 domainConcepts,
                 rangeConcepts,
-                WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI
+                WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                true,
+                systemUser,
+                null
         );
         ontologyRepository.clearCache();
     }
@@ -186,4 +198,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
         return productId + "_hasVertex_" + vertexId;
     }
 
+    protected UserRepository getUserRepository() {
+        return userRepository;
+    }
 }

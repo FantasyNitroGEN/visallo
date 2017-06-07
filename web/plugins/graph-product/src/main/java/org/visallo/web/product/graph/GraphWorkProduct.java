@@ -12,7 +12,9 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.types.JsonSingleValueVisalloProperty;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.product.WorkProductElements;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.PropertyType;
 
 import java.util.ArrayList;
@@ -23,18 +25,24 @@ public class GraphWorkProduct extends WorkProductElements {
     public static final JsonSingleValueVisalloProperty ENTITY_POSITION = new JsonSingleValueVisalloProperty("http://visallo.org/workspace/product/graph#entityPosition");
 
     @Inject
-    public GraphWorkProduct(OntologyRepository ontologyRepository, AuthorizationRepository authorizationRepository) {
-        super(ontologyRepository, authorizationRepository);
+    public GraphWorkProduct(
+            OntologyRepository ontologyRepository,
+            AuthorizationRepository authorizationRepository,
+            UserRepository userRepository
+    ) {
+        super(ontologyRepository, authorizationRepository, userRepository);
         addEdgePositionToOntology(ontologyRepository);
     }
 
     private void addEdgePositionToOntology(OntologyRepository ontologyRepository) {
-        OntologyProperty property = ontologyRepository.getPropertyByIRI(ENTITY_POSITION.getPropertyName());
+        User systemUser = getUserRepository().getSystemUser();
+
+        OntologyProperty property = ontologyRepository.getPropertyByIRI(ENTITY_POSITION.getPropertyName(), systemUser, null);
         if (property != null) {
             return;
         }
 
-        Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
+        Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI, systemUser, null);
         checkNotNull(productToEntityRelationship, "Cannot find relationship: " + WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
                 new ArrayList<>(),
@@ -44,7 +52,7 @@ public class GraphWorkProduct extends WorkProductElements {
         );
         propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
         propertyDefinition.getRelationships().add(productToEntityRelationship);
-        ontologyRepository.getOrCreateProperty(propertyDefinition);
+        ontologyRepository.getOrCreateProperty(propertyDefinition, systemUser, null);
         ontologyRepository.clearCache();
     }
 
