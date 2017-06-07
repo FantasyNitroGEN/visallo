@@ -34,24 +34,34 @@ define([], function() {
         var path = message.originalRequest.service + '/' + message.originalRequest.method;
         if (FAST_PASSED[path]) {
 
+            // Wrap ontology objects with getter that uses the latest ontology
             if (path === 'ontology/ontology') {
                 CACHES.ontology = message.result;
-                message.result = {};
-                wrap(message.result, 'ontology', 'concepts')
-                wrap(message.result, 'ontology', 'properties')
-                wrap(message.result, 'ontology', 'relationships')
+                message.result = {
+                    concepts: wrap(CACHES.ontology.concepts, 'ontology', 'concepts'),
+                    properties: wrap(CACHES.ontology.properties, 'ontology', 'properties'),
+                    relationships: wrap(CACHES.ontology.relationships, 'ontology', 'relationships')
+                };
             }
             FAST_PASSED[path].resolve(message);
         }
     }
 
-    function wrap(obj, cacheKey, key) {
-        Object.defineProperty(obj, key, {
-            get: function() {
-                return CACHES[cacheKey][key];
-            },
-            enumerable: true
-        });
+    function wrap(obj, ...paths) {
+        var wrappedObj = {};
+        Object.keys(obj).forEach(key => {
+            Object.defineProperty(wrappedObj, key, {
+                get: function() {
+                    var latest = CACHES;
+                    paths.forEach(p => {
+                        latest = latest[p];
+                    })
+                    return latest[key];
+                },
+                enumerable: true
+            });
+        })
+        return wrappedObj;
     }
 
     function withDataRequestHandler() {
@@ -124,7 +134,6 @@ define([], function() {
                         Promise.resolve(existing || this.refreshOntology()).then(r => {
                             this.trigger(r.type, {
                                 ...r,
-                                // TODO: decorate with getters
                                 result: r.result[message.data.method],
                                 requestId: message.data.requestId
                             });
@@ -153,7 +162,29 @@ define([], function() {
             })
 
             if (ontologyCleared) {
-                this.refreshOntology();
+                this.refreshOntology().then(ontology => {
+                    /**
+                     * Triggered when the ontology is modified, either by changing the
+                     * case or something was published.
+                     *
+                     * Listen to this event to be notified and update views
+                     * that might be using the ontology.
+                     *
+                     * @global
+                     * @event ontologyChanged
+                     * @property {object} data
+                     * @property {object} data.ontology
+                     * @example <caption>From Flight</caption>
+                     * this.on(document, 'ontologyChanged', function(event, data) {
+                     *     console.log('Ontology:', data.ontology);
+                     * })
+                     * @example <caption>Anywhere</caption>
+                     * $(document).on('ontologyChanged', function(event, data) {
+                     *     console.log('Ontology:', data.ontology);
+                     * })
+                     */
+                    this.trigger('ontologyChanged', { ontology });
+                })
             }
         };
 

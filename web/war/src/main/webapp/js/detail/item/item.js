@@ -14,16 +14,12 @@ define([
     domElementUtil,
     F,
     Promise,
-    ontologyPromise,
+    ontology,
     registry,
     layoutComponents,
     layoutTypes) {
     'use strict';
 
-    var ontology = ontologyPromise;
-    $(document).on('ontologyUpdated', function(event, data) {
-        ontology = data.ontology;
-    })
 
     /**
      * The detail pane is rendered using a custom layout engine consisting of a tree of layout components.

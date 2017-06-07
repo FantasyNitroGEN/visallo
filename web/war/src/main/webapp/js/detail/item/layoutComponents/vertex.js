@@ -2,16 +2,11 @@ define([
     'detail/toolbar/toolbar',
     'util/vertex/formatters',
     'util/requirejs/promise!util/service/ontologyPromise',
-], function(Toolbar, F, ontologyPromise) {
+], function(Toolbar, F, ontology) {
     'use strict';
 
     var conceptDisplay = _.compose(_.property('displayName'), F.vertex.concept),
-        vertexDisplay = F.vertex.title,
-        ontology = ontologyPromise;
-
-    $(document).on('ontologyUpdated', function(event, data) {
-        ontology = data.ontology;
-    })
+        vertexDisplay = F.vertex.title;
 
     return [
         {

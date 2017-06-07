@@ -1,13 +1,8 @@
 define([
     'configuration/plugins/registry',
     'util/requirejs/promise!util/service/ontologyPromise'
-], function(registry, ontologyPromise) {
+], function(registry, ontology) {
     'use strict';
-
-    var ontology = ontologyPromise;
-    $(document).on('ontologyUpdated', function(event, data) {
-        ontology = data.ontology;
-    })
 
     registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-element-list',

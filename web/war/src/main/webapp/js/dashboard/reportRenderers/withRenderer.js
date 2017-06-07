@@ -13,7 +13,7 @@ define([
     F,
     Color,
     d3,
-    ontologyPromise,
+    ontology,
     registry,
     require,
     d3tip,
@@ -31,12 +31,7 @@ define([
         TYPE_UNKNOWN = 'TYPE_UNKNOWN',
         FIELD_CONCEPT_TYPE = 'http://visallo.org#conceptType',
         FIELD_EDGE_LABEL = '__edgeLabel',
-        TIP_UNIQUE_IDENTIFIER = 0,
-        ontology = ontologyPromise;
-
-    $(document).on('ontologyUpdated', function(event, data) {
-        ontology = data.ontology;
-    })
+        TIP_UNIQUE_IDENTIFIER = 0;
 
     return withRenderer;
 

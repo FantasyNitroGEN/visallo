@@ -8,14 +8,9 @@ define([
     defineComponent,
     d3,
     withDataRequest,
-    ontologyPromise,
+    ontology,
     template) {
     'use strict';
-
-    var ontology = ontologyPromise;
-    $(document).on('ontologyUpdated', function(event, data) {
-        ontology = data.ontology;
-    })
 
     var AGGREGATIONS = [
             { value: 'term', name: 'Counts' },

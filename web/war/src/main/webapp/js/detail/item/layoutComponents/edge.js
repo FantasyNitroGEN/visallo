@@ -2,13 +2,8 @@ define([
     'util/vertex/formatters',
     'util/withDataRequest',
     'util/requirejs/promise!util/service/ontologyPromise'
-    ], function(F, dataRequest, ontologyPromise) {
+    ], function(F, dataRequest, ontology) {
     'use strict';
-
-    var ontology = ontologyPromise;
-    $(document).on('ontologyUpdated', function(event, data) {
-        ontology = data.ontology;
-    })
 
     var conceptDisplay = _.compose(_.property('displayName'), F.vertex.concept),
         vertexStore = function(vertexId) {

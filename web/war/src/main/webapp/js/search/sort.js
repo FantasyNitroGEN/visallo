@@ -9,14 +9,9 @@ define([
     defineComponent,
     FieldSelection,
     template,
-    ontologyPromise,
+    ontology,
     d3) {
     'use strict';
-
-    var ontology = ontologyPromise;
-    $(document).on('ontologyUpdated', function(event, data) {
-        ontology = data.ontology;
-    })
 
     return defineComponent(SortByFields);
 
