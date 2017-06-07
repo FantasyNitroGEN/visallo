@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.*;
 import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
+import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -49,6 +50,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -410,37 +412,31 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         }
     }
 
-    private Relationship toVertexiumRelationship(Vertex relationshipVertex, User user, String workspaceId) {
-        Iterable<Vertex> domainVertices = relationshipVertex.getVertices(Direction.IN, LabelName.HAS_EDGE.toString(), getAuthorizations(user, workspaceId));
-        List<String> domainConceptIris = Lists.newArrayList(new ConvertingIterable<Vertex, String>(domainVertices) {
-            @Override
-            protected String convert(Vertex domainVertex) {
-                return OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(domainVertex);
+    private Relationship toVertexiumRelationship(String parentIRI, Vertex relationshipVertex, User user, String workspaceId) {
+        Authorizations authorizations = getAuthorizations(user, workspaceId);
+
+        Iterable<EdgeInfo> domainEdgeInfos = relationshipVertex.getEdgeInfos(Direction.IN, LabelName.HAS_EDGE.toString(), authorizations);
+        Set<String> domainVertexIds = StreamSupport.stream(domainEdgeInfos.spliterator(), false).map(EdgeInfo::getVertexId).collect(Collectors.toSet());
+
+        Iterable<EdgeInfo> rangeEdgeInfos = relationshipVertex.getEdgeInfos(Direction.OUT, LabelName.HAS_EDGE.toString(), authorizations);
+        Set<String> rangeVertexIds = StreamSupport.stream(rangeEdgeInfos.spliterator(), false).map(EdgeInfo::getVertexId).collect(Collectors.toSet());
+
+        Iterable<Vertex> domainAndRangeVertices = graph.getVertices(Iterables.concat(domainVertexIds, rangeVertexIds), EnumSet.of(FetchHint.PROPERTIES), authorizations);
+        List<String> domainIris = new ArrayList<>();
+        List<String> rangeIris = new ArrayList<>();
+        domainAndRangeVertices.forEach(vertex -> {
+            String iri = OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(vertex);
+            if (domainVertexIds.contains(vertex.getId())) {
+                domainIris.add(iri);
+            }
+            if (rangeVertexIds.contains(vertex.getId())) {
+                rangeIris.add(iri);
             }
         });
-
-        Iterable<Vertex> rangeVertices = relationshipVertex.getVertices(Direction.OUT, LabelName.HAS_EDGE.toString(), getAuthorizations(user, workspaceId));
-        List<String> rangeConceptIris = Lists.newArrayList(new ConvertingIterable<Vertex, String>(rangeVertices) {
-            @Override
-            protected String convert(Vertex rangeVertex) {
-                return OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(rangeVertex);
-            }
-        });
-
-        List<String> parentVertexIds = Lists.newArrayList(Iterables.transform(relationshipVertex.getVertices(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId)), new Function<Vertex, String>() {
-            @Override
-            public String apply(Vertex parentRelationshipVertex) {
-                return OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(parentRelationshipVertex);
-            }
-        }));
-        if (parentVertexIds.size() > 1) {
-            throw new VisalloException("Too many parent relationships found for relationship " + relationshipVertex.getId());
-        }
-        String parentIRI = parentVertexIds.size() == 0 ? null : parentVertexIds.get(0);
 
         final List<String> inverseOfIRIs = getRelationshipInverseOfIRIs(relationshipVertex, user, workspaceId);
         List<OntologyProperty> properties = getPropertiesByVertexNoRecursion(relationshipVertex, user, workspaceId);
-        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainConceptIris, rangeConceptIris, properties);
+        return createRelationship(parentIRI, relationshipVertex, inverseOfIRIs, domainIris, rangeIris, properties);
     }
 
     private List<String> getRelationshipInverseOfIRIs(final Vertex vertex, User user, String workspaceId) {
@@ -569,8 +565,14 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     private List<Relationship> toRelationships(Iterable<Vertex> vertices, User user, String workspaceId) {
         ArrayList<Relationship> relationships = new ArrayList<>();
+
+        Authorizations authorizations = getAuthorizations(user, workspaceId);
+        Map<String, String> parentVertexIdToIRI = buildParentIdToIriMap(vertices, authorizations);
+
         for (Vertex vertex : vertices) {
-            relationships.add(toVertexiumRelationship(vertex, user, workspaceId));
+            String parentVertexId = getParentVertexId(vertex, authorizations);
+            String parentIRI = parentVertexId == null ? null : parentVertexIdToIRI.get(parentVertexId);
+            relationships.add(toVertexiumRelationship(parentIRI, vertex, user, workspaceId));
         }
         return relationships;
     }
@@ -1129,17 +1131,8 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     private List<Concept> transformConcepts(Iterable<Vertex> vertices, User user, String workspaceId) {
         Iterable<Vertex> filtered = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_CONCEPT));
 
-        Set<String> parentVertexIds = StreamSupport.stream(filtered.spliterator(), false)
-                .map(vertex -> vertex.getEdgeInfos(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId)))
-                .filter(Objects::isNull)
-                .map(Iterables::getOnlyElement)
-                .filter(Objects::isNull)
-                .map(EdgeInfo::getVertexId)
-                .collect(Collectors.toSet());
-
-        Iterable<Vertex> parentVertices = graph.getVertices(parentVertexIds, EnumSet.of(FetchHint.PROPERTIES), getAuthorizations(user, workspaceId));
-        Map<String, String> parentVertexIdToIRI = StreamSupport.stream(parentVertices.spliterator(), false)
-                .collect(Collectors.toMap(Vertex::getId, OntologyProperties.ONTOLOGY_TITLE::getPropertyValue));
+        Authorizations authorizations = getAuthorizations(user, workspaceId);
+        Map<String, String> parentVertexIdToIRI = buildParentIdToIriMap(filtered, authorizations);
 
         return Lists.newArrayList(Iterables.transform(filtered, new Function<Vertex, Concept>() {
             @Nullable
@@ -1147,23 +1140,54 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             public Concept apply(@Nullable Vertex vertex) {
                 List<OntologyProperty> conceptProperties = getPropertiesByVertexNoRecursion(vertex, user, workspaceId);
 
-                Iterable<EdgeInfo> parentEdgeInfos = vertex.getEdgeInfos(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId));
-                EdgeInfo parentEdge = parentEdgeInfos == null ? null : Iterables.getOnlyElement(parentEdgeInfos);
-                String parentConceptIRI = parentEdge == null ? null : parentVertexIdToIRI.get(parentEdge.getVertexId());
-                return createConcept(vertex, conceptProperties, parentConceptIRI, workspaceId);
+                String parentVertexId = getParentVertexId(vertex, authorizations);
+                String parentIRI = parentVertexId == null ? null : parentVertexIdToIRI.get(parentVertexId);
+
+                return createConcept(vertex, conceptProperties, parentIRI, workspaceId);
             }
         }));
     }
 
     private List<Relationship> transformRelationships(Iterable<Vertex> vertices, User user, String workspaceId) {
         Iterable<Vertex> filtered = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_RELATIONSHIP));
+
+        Authorizations authorizations = getAuthorizations(user, workspaceId);
+        Map<String, String> parentVertexIdToIRI = buildParentIdToIriMap(filtered, authorizations);
+
         return Lists.newArrayList(Iterables.transform(filtered, new Function<Vertex, Relationship>() {
             @Nullable
             @Override
             public Relationship apply(@Nullable Vertex vertex) {
-                return toVertexiumRelationship(vertex, user, workspaceId);
+                String parentVertexId = getParentVertexId(vertex, authorizations);
+                String parentIRI = parentVertexId == null ? null : parentVertexIdToIRI.get(parentVertexId);
+                return toVertexiumRelationship(parentIRI, vertex, user, workspaceId);
             }
         }));
+    }
+
+    private String getParentVertexId(Vertex vertex, Authorizations authorizations) {
+        Iterable<EdgeInfo> parentEdgeInfos = vertex.getEdgeInfos(Direction.OUT, LabelName.IS_A.toString(), authorizations);
+        EdgeInfo parentEdge = parentEdgeInfos == null ? null : Iterables.getOnlyElement(parentEdgeInfos);
+        return parentEdge == null ? null : parentEdge.getVertexId();
+    }
+
+    private Map<String, String> buildParentIdToIriMap(Iterable<Vertex> vertices, Authorizations authorizations) {
+        Set<String> parentVertexIds = StreamSupport.stream(vertices.spliterator(), false)
+                .map(vertex -> vertex.getEdgeInfos(Direction.OUT, LabelName.IS_A.toString(), authorizations))
+                .filter(Objects::isNull)
+                .map(Iterables::getOnlyElement)
+                .filter(Objects::isNull)
+                .map(EdgeInfo::getVertexId)
+                .collect(Collectors.toSet());
+
+        Iterable<Vertex> parentVertices = graph.getVertices(parentVertexIds, EnumSet.of(FetchHint.PROPERTIES), authorizations);
+
+        Map<String, String> vertexIdToIri = StreamSupport.stream(parentVertices.spliterator(), false)
+                .collect(Collectors.toMap(Vertex::getId, OntologyProperties.ONTOLOGY_TITLE::getPropertyValue));
+
+        CloseableUtils.closeQuietly(parentVertices);
+
+        return vertexIdToIri;
     }
 
     @Override
