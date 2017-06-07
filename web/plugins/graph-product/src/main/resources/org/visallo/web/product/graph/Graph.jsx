@@ -145,8 +145,8 @@ define([
                         }
                     });
                 },
-                uncollapse: (event, { collapsedNodeIds }) => {
-                    this.props.onUncollapseNodes(this.props.product.id, collapsedNodeIds);
+                uncollapse: (event, { collapsedNodeId }) => {
+                    this.props.onUncollapseNodes(this.props.product.id, collapsedNodeId);
                 },
                 menubarToggleDisplay: { node: document, handler: (event, data) => {
                     if (data.name === 'products-full') {
@@ -702,17 +702,6 @@ define([
                 y: (rpos.y - pan.y) / zoom
             });
         },
-//
-//        getCollapseDataContainingVertexId(vertexId) {
-//            const collapseData = this.props.product.extendedData[COLLAPSED_EXTENDED_DATA_KEY];
-//            if (!collapseData) {
-//                return null;
-//            }
-//            const matchingCollapsedItems = Object.keys(collapseData).filter(collapseItemId => {
-//                return collapseData[collapseItemId].vertexIds.includes(vertexId);
-//            });
-//            return matchingCollapsedItems.length > 0 ? matchingCollapsedItems[0] : null;
-//        },
 
         getRootNode() {
             const { product, productElementIds, rootId } = this.props;
@@ -737,6 +726,7 @@ define([
         },
 
         mapPropsToElements(editable) {
+            console.log('mapPropsToElements') //TODO: remove debugging
             const { selection, ghosts, productElementIds, elements, ontology, registry, focusing, product } = this.props;
             const { hovering } = this.state;
             const { vertices: productVertices, edges: productEdges } = productElementIds;
@@ -804,6 +794,10 @@ define([
                         grabbable: false,
                         selectable: false
                     });
+                }
+
+                if (parent !== rootNode.id) {
+                    return nodes;
                 }
 
                 if (id in vertices) {
@@ -994,13 +988,8 @@ define([
 
             if (cyElementOrId && _.isFunction(cyElementOrId.data)) {
                 if (type === 'compoundNode') {
-                    const collapsedNode = this.props.product.extendedData.compoundNodes[id];
                     //TODO: getting previous collapsedNode id for this not new
-                    if (!collapsedNode) {
-                        console.error(`could not find collapsed node with id: ${id}`);
-                        return;
-                    }
-                    collapsedNode.vertexIds.forEach(vertexId => {
+                    cyElementOrId.data('vertexIds').forEach(vertexId => {
                         this.coalesceSelection(action, 'vertices', vertexId);
                     });
                     return;
@@ -1070,7 +1059,7 @@ define([
     });
 
     const getVertexIdsFromCollapsedNode = (collapsedNodes, collapsedNodeId) => {
-        debugger;
+        console.log('called getVertexIdsFromCollapsedNode'); //TODO remove debugging
         const vertexIds = [];
         const queue = [collapsedNodes[collapsedNodeId]];
 
@@ -1338,7 +1327,7 @@ define([
 
     const getCyItemTypeAsString = (item) => {
         if (item.isNode()) {
-            return item.data.vertexIds ? 'compoundNode' : 'vertices';
+            return item.data('vertexIds') ? 'compoundNode' : 'vertices';
         }
         return 'edges';
     };

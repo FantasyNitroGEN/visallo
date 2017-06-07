@@ -271,6 +271,7 @@ public class GraphWorkProduct extends WorkProductElements {
 
             JSONObject json = new JSONObject();
             json.put("id", vertexId);
+            json.put("visible", true);
             setEdgeJson(ctx.getGraph().getEdge(edgeId, authorizations), json);
             return json;
         }catch(Exception ex){
@@ -471,9 +472,10 @@ public class GraphWorkProduct extends WorkProductElements {
         GraphPosition graphPosition;
 
         String oldParentId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge);
-        graphPosition = calculateNewPositionFromParent(ctx, productVertex, oldParentId, childId, false, authorizations);
+        graphPosition = calculatePositionFromParents(ctx, productVertex, childId, oldParentId, parentId,  false, authorizations); //TODO: get if new parent is ancestor
 
         updateData.put("pos", graphPosition.toJSONObject());
+        updateData.put("parent", parentId);
         EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
                 edgeId,
                 productVertex.getId(),
@@ -490,29 +492,31 @@ public class GraphWorkProduct extends WorkProductElements {
         addChild(ctx, productVertex, childId, parentId, visibility, authorizations);
     }
 
-    private GraphPosition calculateNewPositionFromParent(
+    private GraphPosition calculatePositionFromParents(
             GraphUpdateContext ctx,
             Vertex productVertex,
-            String parentId,
             String childId,
-            boolean parentIsAncestor,
+            String oldParentId,
+            String newParentId,
+            boolean oldParentIsAncestor,
             Authorizations authorizations
     ) {
         GraphPosition parentOffset;
-        if (!parentId.equals(ROOT_NODE_ID)) {
-            String parentEdgeId = getEdgeId(productVertex.getId(), parentId);
-            Edge parentEdge = ctx.getGraph().getEdge(parentEdgeId, authorizations);
-            parentOffset = getGraphPosition(parentEdge, authorizations);
+        String parentOffsetId = oldParentIsAncestor ? newParentId : oldParentId;
+        if (parentOffsetId.equals(ROOT_NODE_ID)) {
+            parentOffset = new GraphPosition(0, 0);
         } else {
-            parentOffset = new GraphPosition(0,0);
+            String offsetEdgeId = getEdgeId(productVertex.getId(), parentOffsetId);
+            Edge offsetEdge = ctx.getGraph().getEdge(offsetEdgeId, authorizations);
+            parentOffset = getGraphPosition(offsetEdge);
         }
 
         String childEdgeId = getEdgeId(productVertex.getId(), childId);
         Edge childEdge = ctx.getGraph().getEdge(childEdgeId, authorizations);
 
-        GraphPosition graphPosition = getGraphPosition(childEdge, authorizations);
+        GraphPosition graphPosition = getGraphPosition(childEdge);
 
-        if (parentIsAncestor) {
+        if (oldParentIsAncestor) {
             graphPosition.add(parentOffset);
         } else {
             graphPosition.subtract(parentOffset);
@@ -521,7 +525,7 @@ public class GraphWorkProduct extends WorkProductElements {
         return graphPosition;
     }
 
-    private GraphPosition getGraphPosition(Edge productVertexEdge, Authorizations authorizations) {
+    private GraphPosition getGraphPosition(Edge productVertexEdge) {
         JSONObject edgePositionData = ENTITY_POSITION.getPropertyValue(productVertexEdge);
         GraphPosition graphPosition = new GraphPosition(edgePositionData);
         return graphPosition;

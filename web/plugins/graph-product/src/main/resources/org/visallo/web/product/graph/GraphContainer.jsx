@@ -436,7 +436,7 @@ define([
 
                 onUpdateRootId: (productId, nodeId) => dispatch(productActions.updatePreview(productId, nodeId)),
                 onCollapseNodes: (productId, collapseData) => dispatch(graphActions.collapseNodes(productId, collapseData, { undoable: true })),
-                onUncollapseNodes: (productId, collapsedNodeIds) => dispatch(graphActions.uncollapseNodes(productId, collapsedNodeIds, { undoable: true })),
+                onUncollapseNodes: (productId, collapsedNodeId) => dispatch(graphActions.uncollapseNodes(productId, collapsedNodeId, { undoable: true })),
                 onAddRelated: (productId, vertices) => dispatch(graphActions.addRelated(productId, vertices)),
                 onUpdatePositions: (productId, positions) => dispatch(graphActions.updatePositions(productId, positions, { undoable: true })),
                 onSaveViewport: (productId, { pan, zoom }) => dispatch(productActions.updateViewport(productId, { pan, zoom })),

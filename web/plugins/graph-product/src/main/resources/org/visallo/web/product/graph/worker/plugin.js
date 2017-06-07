@@ -8,7 +8,7 @@ define([
         key: 'product',
         reducer: function(state, { type, payload }) {
             switch (type) {
-                case 'PRODUCT_GRAPH_SET_POSITIONS': return updatePositions(state, payload);
+                case 'PRODUCT_GRAPH_SET_POSITIONS': return updateOrAddElements(state, payload);
                 case 'PRODUCT_GRAPH_REMOVE_ELEMENTS': return removeElements(state, payload);
                 case 'PRODUCT_ADD_EDGE_IDS': return addEdges(state, payload);
             }
@@ -73,19 +73,19 @@ define([
         return state;
     }
 
-    function updatePositions(state, { workspaceId, productId, updateVertices }) {
+    function updateOrAddElements(state, { workspaceId, productId, updateVertices }) {
         const product = state.workspaces[workspaceId].products[productId];
 
         if (product && product.extendedData && product.extendedData.vertices) {
             const updatedIds = [];
             var updated = u.updateIn(
                 `workspaces.${workspaceId}.products.${productId}.extendedData.vertices`,
-                function(positions) { return applyUpdates(positions, updatedIds) },
+                function(elements) { return applyUpdates(elements, updatedIds) },
                 state
             );
             updated = u.updateIn(
                 `workspaces.${workspaceId}.products.${productId}.extendedData.compoundNodes`,
-                function(positions) { return applyUpdates(positions, updatedIds) },
+                function(elements) { return applyUpdates(elements, updatedIds) },
                 updated
             );
 
@@ -93,12 +93,12 @@ define([
             if (!_.isEmpty(additionalVertices)) {
                 updated = u.updateIn(
                     `workspaces.${workspaceId}.products.${productId}.extendedData.vertices`,
-                    function(positions) { return addPositions(positions, additionalVertices, 'vertex') },
+                    function(elements) { return addElements(elements, additionalVertices, 'vertex') },
                     updated
                 )
                 updated = u.updateIn(
                     `workspaces.${workspaceId}.products.${productId}.extendedData.compoundNodes`,
-                    function(positions) { return addPositions(positions, additionalVertices, 'compoundNode') },
+                    function(elements) { return addElements(elements, additionalVertices, 'compoundNode') },
                     updated
                 )
             }
@@ -108,24 +108,24 @@ define([
 
         return state;
 
-        function applyUpdates(positions, updatedIds) {
-            return _.mapObject(positions, (position) => {
-                if (position.id in updateVertices) {
-                    updatedIds.push(position.id);
-                    return updateVertices[position.id];
+        function applyUpdates(elements, updatedIds) {
+            return _.mapObject(elements, (element) => {
+                if (element.id in updateVertices) {
+                    updatedIds.push(element.id);
+                    return updateVertices[element.id];
                 }
-                return position;
+                return element;
             })
         }
 
-        function addPositions(positions, adding, type) {
+        function addElements(elements, adding, type) {
             Object.keys(adding).forEach(id => {
-                const newPos = adding[id];
-                if (newPos.type === type) {
-                    positions[id] = newPos;
+                const newElement = adding[id];
+                if (newElement.type === type) {
+                    elements[id] = newElement;
                 }
             });
-            return positions;
+            return elements;
         }
     }
 

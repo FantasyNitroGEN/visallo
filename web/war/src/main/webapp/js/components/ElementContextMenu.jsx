@@ -291,7 +291,7 @@ define([
                 item.event,
                 {
                     ...item.args,
-                    collapsedItemId: this.props.collapsedItemId,
+                    collapsedNodeId: this.props.collapsedItemId,
                     vertexId: this.props.vertexId,
                     edgeIds: this.props.edgeIds
                 }

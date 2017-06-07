@@ -347,6 +347,7 @@ define([
         collapseNodes: ({ productId, collapseData, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
+            const { vertices, compoundNodes: collapsedNodes } = state.product.workspaces[workspaceId].products[productId].extendedData;
             const { id, ...params } = collapseData;
             const requestData = {
                 params,
@@ -357,12 +358,18 @@ define([
             }
 
             ajax('POST', '/product/graph/vertices/collapse', requestData).then(collapsedNode => {
-                debugger;
+                const updateVertices = { [collapsedNode.id]: collapsedNode };
+                collapsedNode.children.forEach(id => {
+                    const child = vertices[id] || collapsedNodes[id];
+                    child.parent = collapsedNode.id;
+                    updateVertices[child.id] = child
+                });
+
                 dispatch({
                     type: 'PRODUCT_GRAPH_SET_POSITIONS',
                     payload: {
                         productId,
-                        updateVertices: { [collapsedNode.id]: collapsedNode },
+                        updateVertices,
                         workspaceId
                     }
                 })
@@ -381,11 +388,12 @@ define([
             });
         },
 
-        uncollapseNodes: ({ productId, collapseNodeIds, undoable }) => (dispatch, getState) => {
+        uncollapseNodes: ({ productId, collapsedNodeId, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
             const { compoundNodes: collapsedNodes, vertices } = product.extendedData;
+            const collapseData = collapsedNodes[collapsedNodeId];
 
 //            const positionUpdates = _.flatten(collapsedNodeIds.map(id => collapsedNodes[id].children)
 //            dispatch({
@@ -407,7 +415,7 @@ define([
 //                }
 //            });
 
-            ajax('POST', '/product/graph/vertices/remove', { productId, vertexIds: collapsedNodeIds }).then(product => {
+            ajax('POST', '/product/graph/vertices/remove', { productId, vertexIds: [collapsedNodeId] }).then(product => {
                 if (undoable) {
                     dispatch({
                         type: 'PUSH_UNDO',
@@ -415,7 +423,7 @@ define([
                             undoActionType: 'PRODUCT_GRAPH_UNCOLLAPSE_NODES',
                             undoScope: productId,
                             undo: { productId, collapseData },
-                            redo: { productId, collapsedNodeIds: [collapsedNode.id] }
+                            redo: { productId, collapsedNodeId }
                         }
                     })
                 }
