@@ -156,6 +156,9 @@ define([
         if (option.disabled) {
             className.push('VirtualizedSelectDisabledOption')
         }
+        if (option.header) {
+            className.push('VirtualizedSelectHeader');
+        }
         if (valueArray && valueArray.indexOf(option) >= 0) {
             className.push('VirtualizedSelectSelectedOption')
         }
@@ -164,6 +167,19 @@ define([
             onMouseOver: () => focusOption(option)
         };
         const indent = (option.depth || 0) * 15;
+
+        if (option.header) {
+            //TODO divider
+            return (
+                <div
+                    className={className.join(' ')}
+                    key={key}
+                    style={style}
+                >
+                    {option[labelKey]}
+                </div>
+            );
+        }
 
         return (
             <div className={className.join(' ')}

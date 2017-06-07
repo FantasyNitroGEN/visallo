@@ -68,12 +68,48 @@ define(['reselect'], function(reselect) {
 
     const getOntology = createSelector([getOntologyRoot, getWorkspace], (ontology, workspaceId) => ontology[workspaceId])
 
+    const getVisibleProperties = createSelector([getProperties], properties => {
+        const compareNameAndGroup = ({ displayName, propertyGroup }) => {
+            const displayNameLC = displayName.toLowerCase();
+            return propertyGroup ? `1${propertyGroup}${displayNameLC}` : `0${displayNameLC}`;
+        };
+
+        return _.chain(properties)
+            .filter(_visible)
+            .sortBy(compareNameAndGroup)
+            .value()
+    });
+
+    const getVisiblePropertiesWithHeaders = createSelector([getVisibleProperties], properties => {
+        let lastGroup;
+        return properties.reduce(
+            (properties, property) => {
+                const { propertyGroup } = property;
+                if (propertyGroup && lastGroup !== propertyGroup) {
+                    lastGroup = propertyGroup;
+                    return [
+                        ...properties,
+                        {
+                            displayName: propertyGroup,
+                            header: true
+                        },
+                        property
+                    ];
+                }
+                return [...properties, property];
+            },
+            []
+        );
+    });
+
     return {
         getOntology,
         getConcepts,
         getConceptKeyIris,
         getVisibleConcepts,
         getProperties,
+        getVisibleProperties,
+        getVisiblePropertiesWithHeaders,
         getRelationships
     }
 });
