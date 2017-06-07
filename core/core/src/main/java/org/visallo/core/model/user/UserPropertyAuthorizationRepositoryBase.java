@@ -56,7 +56,7 @@ public abstract class UserPropertyAuthorizationRepositoryBase extends Authorizat
 
     protected void defineAuthorizationsProperty(OntologyRepository ontologyRepository) {
         List<Concept> concepts = new ArrayList<>();
-        concepts.add(ontologyRepository.getConceptByIRI(UserRepository.USER_CONCEPT_IRI));
+        concepts.add(ontologyRepository.getConceptByIRI(UserRepository.USER_CONCEPT_IRI, null, null));
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
                 concepts,
                 AUTHORIZATIONS_PROPERTY_IRI,
@@ -65,7 +65,7 @@ public abstract class UserPropertyAuthorizationRepositoryBase extends Authorizat
         );
         propertyDefinition.setUserVisible(false);
         propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
-        ontologyRepository.getOrCreateProperty(propertyDefinition);
+        ontologyRepository.getOrCreateProperty(propertyDefinition, new SystemUser(), null);
     }
 
     protected ImmutableSet<String> parseAuthorizations(String authorizations) {

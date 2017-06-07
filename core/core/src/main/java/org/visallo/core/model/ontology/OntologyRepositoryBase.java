@@ -29,7 +29,9 @@ import org.vertexium.query.Contains;
 import org.vertexium.query.Query;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.lock.LockRepository;
@@ -38,6 +40,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.VisalloProperty;
 import org.visallo.core.model.search.SearchProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.ping.PingOntology;
@@ -47,7 +50,9 @@ import org.visallo.core.util.OWLOntologyUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.UserType;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -67,6 +72,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     private final Configuration configuration;
     private final LockRepository lockRepository;
 
+    private UserRepository userRepository;
+    private PrivilegeRepository privilegeRepository;
+
     @Inject
     protected OntologyRepositoryBase(
             Configuration configuration,
@@ -78,21 +86,21 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
         lockRepository.lock("ontology", () -> {
-            Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null);
-            Concept entityConcept = getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null);
+            Concept rootConcept = internalGetOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null, true, null, null);
+            Concept entityConcept = internalGetOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null, true, null, null);
             getOrCreateTopObjectPropertyRelationship(authorizations);
 
             clearCache();
-            addEntityGlyphIcon(entityConcept);
+            addEntityGlyphIcon(entityConcept, authorizations);
 
-            importResourceOwl("base.owl", BASE_OWL_IRI, authorizations);
-            importResourceOwl("user.owl", UserRepository.OWL_IRI, authorizations);
-            importResourceOwl("termMention.owl", TermMentionRepository.OWL_IRI, authorizations);
-            importResourceOwl("workspace.owl", WorkspaceRepository.OWL_IRI, authorizations);
-            importResourceOwl("comment.owl", COMMENT_OWL_IRI, authorizations);
-            importResourceOwl("search.owl", SearchProperties.IRI, authorizations);
-            importResourceOwl("longRunningProcess.owl", LongRunningProcessProperties.OWL_IRI, authorizations);
-            importResourceOwl("ping.owl", PingOntology.BASE_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "base.owl", BASE_OWL_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "user.owl", UserRepository.OWL_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "termMention.owl", TermMentionRepository.OWL_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "workspace.owl", WorkspaceRepository.OWL_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "comment.owl", COMMENT_OWL_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "search.owl", SearchProperties.IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "longRunningProcess.owl", LongRunningProcessProperties.OWL_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "ping.owl", PingOntology.BASE_IRI, authorizations);
 
             for (Map.Entry<String, Map<String, String>> owlGroup : config.getMultiValue(Configuration.ONTOLOGY_REPOSITORY_OWL).entrySet()) {
                 String iri = owlGroup.getValue().get("iri");
@@ -126,20 +134,19 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     private Relationship getOrCreateTopObjectPropertyRelationship(Authorizations authorizations) {
-        Relationship topObjectProperty = getOrCreateRelationshipType(
+        Relationship topObjectProperty = internalGetOrCreateRelationshipType(
                 null,
                 Collections.emptyList(),
                 Collections.emptyList(),
-                TOP_OBJECT_PROPERTY_IRI
+                TOP_OBJECT_PROPERTY_IRI,
+                true,
+                null,
+                null
         );
         if (topObjectProperty.getUserVisible()) {
             topObjectProperty.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), false, authorizations);
         }
         return topObjectProperty;
-    }
-
-    private void importResourceOwl(String fileName, String iri, Authorizations authorizations) {
-        importResourceOwl(OntologyRepositoryBase.class, fileName, iri, authorizations);
     }
 
     @Override
@@ -155,7 +162,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 importFileData(inFileData, documentIRI, null, authorizations);
             } catch (OWLOntologyAlreadyExistsException ex) {
                 LOGGER.warn("Ontology was already defined but not stored: " + fileName + " (iri: " + iri + ")", ex);
-                storeOntologyFile(new ByteArrayInputStream(inFileData), documentIRI);
+                storeOntologyFile(new ByteArrayInputStream(inFileData), documentIRI, authorizations);
             }
         } catch (Exception ex) {
             throw new VisalloException("Could not import ontology file: " + fileName + " (iri: " + iri + ")", ex);
@@ -164,9 +171,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    public abstract boolean isOntologyDefined(String iri);
-
-    private void addEntityGlyphIcon(Concept entityConcept) {
+    private void addEntityGlyphIcon(Concept entityConcept, Authorizations authorizations) {
         if (entityConcept.getGlyphIcon() != null) {
             LOGGER.debug("entityConcept GlyphIcon already set. skipping addEntityGlyphIcon.");
             return;
@@ -181,13 +186,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
             byte[] rawImg = imgOut.toByteArray();
 
-            addEntityGlyphIconToEntityConcept(entityConcept, rawImg);
+            addEntityGlyphIconToEntityConcept(entityConcept, rawImg, authorizations);
         } catch (IOException e) {
             throw new VisalloException("invalid stream for glyph icon");
         }
     }
 
-    protected abstract void addEntityGlyphIconToEntityConcept(Concept entityConcept, byte[] rawImg);
+    protected abstract void addEntityGlyphIconToEntityConcept(Concept entityConcept, byte[] rawImg, Authorizations authorizations);
 
     @Override
     public String guessDocumentIRIFromPackage(File file) throws IOException, ZipException {
@@ -211,7 +216,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    public String guessDocumentIRIFromFile(File owlFile) throws IOException {
+    private String guessDocumentIRIFromFile(File owlFile) throws IOException {
         try (FileInputStream owlFileIn = new FileInputStream(owlFile)) {
             String owlContents = IOUtils.toString(owlFileIn);
 
@@ -297,7 +302,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         LOGGER.debug("import total time: %dms", totalEndTime - totalStartTime);
 
         // do this last after everything was successful so that isOntologyDefined can be used
-        storeOntologyFile(new ByteArrayInputStream(inFileData), documentIRI);
+        storeOntologyFile(new ByteArrayInputStream(inFileData), documentIRI, authorizations);
 
         clearCache();
     }
@@ -331,7 +336,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    protected void importOntologyAnnotationProperties(OWLOntology o, File inDir, Authorizations authorizations) {
+    private void importOntologyAnnotationProperties(OWLOntology o, File inDir, Authorizations authorizations) {
         for (OWLAnnotationProperty annotation : o.getAnnotationPropertiesInSignature()) {
             importOntologyAnnotationProperty(o, annotation, inDir, authorizations);
         }
@@ -346,13 +351,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     }
 
+    @Deprecated
     @Override
-    public void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris) {
+    public final void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris) {
         updatePropertyDependentIris(property, dependentPropertyIris, null, null);
     }
 
+    @Deprecated
     @Override
-    public void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
+    public final void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
         updatePropertyDomainIris(property, domainIris, null, null);
     }
 
@@ -372,7 +379,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return m;
     }
 
-    protected abstract void storeOntologyFile(InputStream inputStream, IRI documentIRI);
+    protected abstract void storeOntologyFile(InputStream inputStream, IRI documentIRI, Authorizations authorizations);
 
     protected abstract List<OWLOntology> loadOntologyFiles(
             OWLOntologyManager m,
@@ -398,7 +405,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         boolean isDeclaredInOntology = o.isDeclared(ontologyClass);
 
         Concept parent = getParentConcept(o, ontologyClass, inDir, authorizations);
-        Concept result = getOrCreateConcept(parent, uri, label, inDir, isDeclaredInOntology);
+        Concept result = internalGetOrCreateConcept(parent, uri, label, inDir, isDeclaredInOntology, null, null);
 
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(ontologyClass, o)) {
             String annotationIri = annotation.getProperty().getIRI().toString();
@@ -531,12 +538,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     ) throws IOException {
         Collection<OWLClassExpression> superClasses = EntitySearcher.getSuperClasses(ontologyClass, o);
         if (superClasses.size() == 0) {
-            return getEntityConcept();
+            return getEntityConcept(null, null);
         } else if (superClasses.size() == 1) {
             OWLClassExpression superClassExpr = superClasses.iterator().next();
             OWLClass superClass = superClassExpr.asOWLClass();
             String superClassUri = superClass.getIRI().toString();
-            Concept parent = getConceptByIRI(superClassUri);
+            Concept parent = getConceptByIRI(superClassUri, null, null);
             if (parent != null) {
                 return parent;
             }
@@ -575,7 +582,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(dataTypeProperty, o)) {
                 OWLClass domainClass = domainClassExpr.asOWLClass();
                 String domainClassIri = domainClass.getIRI().toString();
-                Concept domainConcept = getConceptByIRI(domainClassIri);
+                Concept domainConcept = getConceptByIRI(domainClassIri, null, null);
                 if (domainConcept == null) {
                     LOGGER.error("Could not find class with IRI \"%s\" for data type property \"%s\"", domainClassIri, dataTypeProperty.getIRI());
                 } else {
@@ -587,7 +594,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             List<Relationship> domainRelationships = new ArrayList<>();
             for (OWLAnnotation domainAnnotation : OWLOntologyUtil.getObjectPropertyDomains(o, dataTypeProperty)) {
                 String domainClassIri = OWLOntologyUtil.getOWLAnnotationValueAsString(domainAnnotation);
-                Relationship domainRelationship = getRelationshipByIRI(domainClassIri);
+                Relationship domainRelationship = getRelationshipByIRI(domainClassIri, null, null);
                 if (domainRelationship == null) {
                     LOGGER.error("Could not find relationship with IRI \"%s\" for data type property \"%s\"", domainClassIri, dataTypeProperty.getIRI());
                 } else {
@@ -618,7 +625,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     dependentPropertyIris,
                     intents,
                     deleteable,
-                    updateable
+                    updateable,
+                    null,
+                    null
             );
 
             for (OWLAnnotation annotation : EntitySearcher.getAnnotations(dataTypeProperty, o)) {
@@ -663,11 +672,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         String propertyIri = dataTypeProperty.getIRI().toString();
         for (OWLAnnotation edtDomainAnnotation : OWLOntologyUtil.getExtendedDataTableDomains(o, dataTypeProperty)) {
             String tablePropertyIri = OWLOntologyUtil.getOWLAnnotationValueAsString(edtDomainAnnotation);
-            addExtendedDataTableProperty(tablePropertyIri, propertyIri);
+            addExtendedDataTableProperty(tablePropertyIri, propertyIri, null, null);
         }
     }
 
-    protected void addExtendedDataTableProperty(String tablePropertyIri, String propertyIri) {
+    @Deprecated
+    protected final void addExtendedDataTableProperty(String tablePropertyIri, String propertyIri) {
         addExtendedDataTableProperty(tablePropertyIri, propertyIri, null, null);
     }
 
@@ -683,15 +693,17 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract void addExtendedDataTableProperty(OntologyProperty tableProperty, OntologyProperty property, User user, String workspaceId);
 
-
+    @Deprecated
     @Override
-    public OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition) {
+    public final OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition) {
         return getOrCreateProperty(ontologyPropertyDefinition, null, null);
     }
 
     @Override
-    public OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition, User user, String workspaceId) {
-        OntologyProperty property = getPropertyByIRI(ontologyPropertyDefinition.getPropertyIri());
+    public final OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition, User user, String workspaceId) {
+        checkPrivileges(user, workspaceId);
+
+        OntologyProperty property = getPropertyByIRI(ontologyPropertyDefinition.getPropertyIri(), user, workspaceId);
         if (property != null) {
             return property;
         }
@@ -721,60 +733,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         );
         if (ontologyPropertyDefinition.getExtendedDataTableDomains() != null) {
             for (String extendedDataTableDomain : ontologyPropertyDefinition.getExtendedDataTableDomains()) {
-                OntologyProperty tableProperty = getPropertyByIRI(extendedDataTableDomain);
+                OntologyProperty tableProperty = getPropertyByIRI(extendedDataTableDomain, user, workspaceId);
                 checkNotNull(tableProperty, "Could not find table property: " + extendedDataTableDomain);
                 addExtendedDataTableProperty(tableProperty, prop, user, workspaceId);
             }
         }
         return prop;
-    }
-
-    protected OntologyProperty addPropertyTo(
-            List<Concept> concepts,
-            List<Relationship> relationships,
-            String propertyIri,
-            String displayName,
-            PropertyType dataType,
-            Map<String, String> possibleValues,
-            Collection<TextIndexHint> textIndexHints,
-            boolean userVisible,
-            boolean searchable,
-            boolean addable,
-            boolean sortable,
-            String displayType,
-            String propertyGroup,
-            Double boost,
-            String validationFormula,
-            String displayFormula,
-            ImmutableList<String> dependentPropertyIris,
-            String[] intents,
-            boolean deleteable,
-            boolean updateable
-    ) {
-        return addPropertyTo(
-            concepts,
-            relationships,
-            propertyIri,
-            displayName,
-            dataType,
-            possibleValues,
-            textIndexHints,
-            userVisible,
-            searchable,
-            addable,
-            sortable,
-            displayType,
-            propertyGroup,
-            boost,
-            validationFormula,
-            displayFormula,
-            dependentPropertyIris,
-            intents,
-            deleteable,
-            updateable,
-            null,
-            null
-        );
     }
 
     protected abstract OntologyProperty addPropertyTo(
@@ -816,12 +780,14 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         boolean isDeclaredInOntology = o.isDeclared(objectProperty);
 
         Relationship parent = getParentObjectProperty(o, objectProperty, authorizations);
-        Relationship relationship = getOrCreateRelationshipType(
+        Relationship relationship = internalGetOrCreateRelationshipType(
                 parent,
                 getDomainsConcepts(o, objectProperty),
                 getRangesConcepts(o, objectProperty),
                 iri,
-                isDeclaredInOntology
+                isDeclaredInOntology,
+                null,
+                null
         );
 
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(objectProperty, o)) {
@@ -1002,8 +968,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI) {
+    public final Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI) {
         return getConceptAndAllChildrenByIri(conceptIRI, null, null);
     }
 
@@ -1016,8 +983,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getConceptAndAllChildren(concept, user, workspaceId);
     }
 
+    @Deprecated
     @Override
-    public Set<Concept> getConceptAndAllChildren(Concept concept) {
+    public final Set<Concept> getConceptAndAllChildren(Concept concept) {
         return getConceptAndAllChildren(concept, null, null);
     }
 
@@ -1060,8 +1028,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract List<Concept> getChildConcepts(Concept concept, User user, String workspaceId);
 
+    @Deprecated
     @Override
-    public Set<Relationship> getRelationshipAndAllChildren(Relationship relationship) {
+    public final Set<Relationship> getRelationshipAndAllChildren(Relationship relationship) {
         return getRelationshipAndAllChildren(relationship, null, null);
     }
 
@@ -1080,8 +1049,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return result;
     }
 
+    @Deprecated
     @Override
-    public boolean hasRelationshipByIRI(String relationshipIRI) {
+    public final boolean hasRelationshipByIRI(String relationshipIRI) {
         return hasRelationshipByIRI(relationshipIRI, null, null);
     }
 
@@ -1096,8 +1066,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract List<Relationship> getChildRelationships(Relationship relationship, User user, String workspaceId);
 
+    @Deprecated
     @Override
-    public void resolvePropertyIds(JSONArray filterJson) throws JSONException {
+    public final void resolvePropertyIds(JSONArray filterJson) throws JSONException {
         resolvePropertyIds(filterJson, null, null);
     }
 
@@ -1117,8 +1088,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
+    @Deprecated
     @Override
-    public Concept getConceptByIRI(String conceptIRI) {
+    public final Concept getConceptByIRI(String conceptIRI) {
         return getConceptByIRI(conceptIRI, null, null);
     }
 
@@ -1132,8 +1104,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public OntologyProperty getPropertyByIRI(String propertyIRI) {
+    public final OntologyProperty getPropertyByIRI(String propertyIRI) {
         return getPropertyByIRI(propertyIRI, null, null);
     }
 
@@ -1147,8 +1120,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public OntologyProperty getRequiredPropertyByIRI(String propertyIRI) {
+    public final OntologyProperty getRequiredPropertyByIRI(String propertyIRI) {
         return getRequiredPropertyByIRI(propertyIRI, null, null);
     }
 
@@ -1161,18 +1135,21 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return property;
     }
 
+    @Deprecated
     @Override
-    public Iterable<Relationship> getRelationships() {
+    public final Iterable<Relationship> getRelationships() {
         return getRelationships(null, null);
     }
 
+    @Deprecated
     @Override
-    public Iterable<OntologyProperty> getProperties() {
+    public final Iterable<OntologyProperty> getProperties() {
         return getProperties(null, null);
     }
 
+    @Deprecated
     @Override
-    public String getDisplayNameForLabel(String relationshipIRI) {
+    public final String getDisplayNameForLabel(String relationshipIRI) {
         return getDisplayNameForLabel(relationshipIRI, null, null);
     }
 
@@ -1181,18 +1158,21 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getConceptsWithProperties(null, null);
     }
 
+    @Deprecated
     @Override
-    public Concept getRootConcept() {
+    public final Concept getRootConcept() {
         return getRootConcept(null, null);
     }
 
+    @Deprecated
     @Override
-    public Concept getEntityConcept() {
+    public final Concept getEntityConcept() {
         return getEntityConcept(null, null);
     }
 
+    @Deprecated
     @Override
-    public Concept getParentConcept(Concept concept) {
+    public final Concept getParentConcept(Concept concept) {
         return getParentConcept(concept, null, null);
     }
 
@@ -1211,8 +1191,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public Concept getConceptByIntent(String intent) {
+    public final Concept getConceptByIntent(String intent) {
         return getConceptByIntent(intent, null, null);
     }
 
@@ -1259,8 +1240,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public Concept getRequiredConceptByIntent(String intent) {
+    public final Concept getRequiredConceptByIntent(String intent) {
         return getRequiredConceptByIntent(intent, null, null);
     }
 
@@ -1273,8 +1255,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return concept;
     }
 
+    @Deprecated
     @Override
-    public String getRequiredConceptIRIByIntent(String intent) {
+    public final String getRequiredConceptIRIByIntent(String intent) {
         return getRequiredConceptIRIByIntent(intent, null, null);
     }
 
@@ -1283,8 +1266,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getRequiredConceptByIntent(intent, user, workspaceId).getIRI();
     }
 
+    @Deprecated
     @Override
-    public Concept getRequiredConceptByIRI(String iri) {
+    public final Concept getRequiredConceptByIRI(String iri) {
         return getRequiredConceptByIRI(iri, null, null);
     }
 
@@ -1306,23 +1290,34 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 Hashing.sha1().hashString(type.toString() + workspaceId + displayName, Charsets.UTF_8).toString();
     }
 
+    @Deprecated
     @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
+    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
         return getOrCreateConcept(parent, conceptIRI, displayName, inDir, null, null);
     }
 
     @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
+    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
         return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true, user, workspaceId);
     }
 
+    @Deprecated
     @Override
-    public Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties) {
+    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties) {
         return getOrCreateConcept(parent, conceptIRI, displayName, inDir, deleteChangeableProperties, null,null);
     }
 
     @Override
-    public Relationship getOrCreateRelationshipType(
+    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
+        checkPrivileges(user, workspaceId);
+        return internalGetOrCreateConcept(parent, conceptIRI, displayName, inDir, deleteChangeableProperties, user, workspaceId);
+    }
+
+    protected abstract Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId);
+
+    @Deprecated
+    @Override
+    public final Relationship getOrCreateRelationshipType(
             Relationship parent,
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
@@ -1331,8 +1326,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, true, null, null);
     }
 
+    @Deprecated
     @Override
-    public Relationship getOrCreateRelationshipType(
+    public final Relationship getOrCreateRelationshipType(
             Relationship parent,
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
@@ -1343,7 +1339,32 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     @Override
-    public Relationship getRelationshipByIntent(String intent) {
+    public final Relationship getOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            boolean isDeclaredInOntology,
+            User user,
+            String workspaceId
+    ) {
+        checkPrivileges(user, workspaceId);
+        return internalGetOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, isDeclaredInOntology, user, workspaceId);
+    }
+
+    protected abstract Relationship internalGetOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            boolean isDeclaredInOntology,
+            User user,
+            String workspaceId
+    );
+
+    @Deprecated
+    @Override
+    public final Relationship getRelationshipByIntent(String intent) {
         return getRelationshipByIntent(intent, null, null);
     }
 
@@ -1376,8 +1397,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         throw new VisalloException("Found multiple relationships for intent: " + intent + " (" + iris + ")");
     }
 
+    @Deprecated
     @Override
-    public String getRelationshipIRIByIntent(String intent) {
+    public final String getRelationshipIRIByIntent(String intent) {
         return getRelationshipIRIByIntent(intent, null, null);
     }
 
@@ -1390,8 +1412,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public Relationship getRequiredRelationshipByIntent(String intent) {
+    public final Relationship getRequiredRelationshipByIntent(String intent) {
         return getRequiredRelationshipByIntent(intent, null, null);
     }
 
@@ -1404,8 +1427,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return relationship;
     }
 
+    @Deprecated
     @Override
-    public String getRequiredRelationshipIRIByIntent(String intent) {
+    public final String getRequiredRelationshipIRIByIntent(String intent) {
         return getRequiredRelationshipIRIByIntent(intent, null, null);
     }
 
@@ -1414,8 +1438,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getRequiredRelationshipByIntent(intent, user, workspaceId).getIRI();
     }
 
+    @Deprecated
     @Override
-    public OntologyProperty getPropertyByIntent(String intent) {
+    public final OntologyProperty getPropertyByIntent(String intent) {
         return getPropertyByIntent(intent, null, null);
     }
 
@@ -1448,8 +1473,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         throw new VisalloException("Found multiple properties for intent: " + intent + " (" + iris + ")");
     }
 
+    @Deprecated
     @Override
-    public String getPropertyIRIByIntent(String intent) {
+    public final String getPropertyIRIByIntent(String intent) {
         return getPropertyIRIByIntent(intent, null, null);
     }
 
@@ -1462,8 +1488,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public OntologyProperty getRequiredPropertyByIntent(String intent) {
+    public final OntologyProperty getRequiredPropertyByIntent(String intent) {
         return getRequiredPropertyByIntent(intent, null, null);
     }
 
@@ -1476,8 +1503,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return property;
     }
 
+    @Deprecated
     @Override
-    public String getRequiredPropertyIRIByIntent(String intent) {
+    public final String getRequiredPropertyIRIByIntent(String intent) {
         return getRequiredPropertyIRIByIntent(intent, null, null);
     }
 
@@ -1486,8 +1514,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getRequiredPropertyByIntent(intent, user, workspaceId).getTitle();
     }
 
+    @Deprecated
     @Override
-    public OntologyProperty getDependentPropertyParent(String iri) {
+    public final OntologyProperty getDependentPropertyParent(String iri) {
         return getDependentPropertyParent(iri, null, null);
     }
 
@@ -1501,8 +1530,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
+    @Deprecated
     @Override
-    public <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
+    public final <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
         return getVisalloPropertyByIntent(intent, visalloPropertyType, null, null);
     }
 
@@ -1521,8 +1551,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
+    @Deprecated
     @Override
-    public <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
+    public final <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
         return getRequiredVisalloPropertyByIntent(intent, visalloPropertyType, null, null);
     }
 
@@ -1535,8 +1566,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return result;
     }
 
+    @Deprecated
     @Override
-    public List<OntologyProperty> getPropertiesByIntent(String intent) {
+    public final List<OntologyProperty> getPropertiesByIntent(String intent) {
         return getPropertiesByIntent(intent, null, null);
     }
 
@@ -1552,8 +1584,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return results;
     }
 
+    @Deprecated
     @Override
-    public ClientApiOntology getClientApiObject() {
+    public final ClientApiOntology getClientApiObject() {
         return getClientApiObject(null, null);
     }
 
@@ -1632,8 +1665,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return searchable;
     }
 
+    @Deprecated
     @Override
-    public void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes) {
+    public final void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes) {
         addConceptTypeFilterToQuery(query, conceptTypeIri, includeChildNodes, null, null);
     }
 
@@ -1645,8 +1679,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         addConceptTypeFilterToQuery(query, filters, user, workspaceId);
     }
 
+    @Deprecated
     @Override
-    public void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
+    public final void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
         addConceptTypeFilterToQuery(query, filters, null, null);
     }
 
@@ -1676,8 +1711,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Contains.IN, conceptIds);
     }
 
+    @Deprecated
     @Override
-    public void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes) {
+    public final void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes) {
         addEdgeLabelFilterToQuery(query, edgeLabel, includeChildNodes, null, null);
     }
 
@@ -1689,8 +1725,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         addEdgeLabelFilterToQuery(query, filters, user, workspaceId);
     }
 
+    @Deprecated
     @Override
-    public void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
+    public final void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
         addEdgeLabelFilterToQuery(query, filters, null, null);
     }
 
@@ -1719,6 +1756,25 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         query.hasEdgeLabel(edgeIds);
     }
 
+    protected abstract Authorizations getAuthorizations(User user, String workspaceId);
+
+    protected void checkPrivileges(User user, String workspaceId) {
+        if (user != null && user.getUserType() == UserType.SYSTEM) {
+            return;
+        }
+
+        if (user == null) {
+            throw new VisalloAccessDeniedException("You must provide a valid user to perform this action", null, null);
+        }
+
+        if (workspaceId == null && !getPrivilegeRepository().hasPrivilege(user, Privilege.ONTOLOGY_PUBLISH)) {
+            throw new VisalloAccessDeniedException("User does not have ONTOLOGY_PUBLISH privilege", user, null);
+        } else if (!getPrivilegeRepository().hasPrivilege(user, Privilege.ONTOLOGY_ADD)) {
+            throw new VisalloAccessDeniedException("User does not have ONTOLOGY_ADD privilege", user, null);
+        }
+    }
+
+
     private List<Concept> findLoadedConceptsByIntent(String intent, User user, String workspaceId) {
         List<Concept> results = new ArrayList<>();
         for (Concept concept : getConceptsWithProperties(user, workspaceId)) {
@@ -1739,5 +1795,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
         }
         return results;
+    }
+
+    protected PrivilegeRepository getPrivilegeRepository() {
+        if (privilegeRepository == null) {
+            privilegeRepository = InjectHelper.getInstance(PrivilegeRepository.class);
+        }
+        return privilegeRepository;
     }
 }

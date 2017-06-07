@@ -70,7 +70,9 @@ public class VertexiumUserRepositoryTest {
                 eq(UserRepository.USER_CONCEPT_IRI),
                 anyString(),
                 anyObject(),
-                anyBoolean()
+                anyBoolean(),
+                anyObject(),
+                anyString()
         )).thenReturn(userConcept);
         when(userConcept.getIRI()).thenReturn(UserRepository.USER_CONCEPT_IRI);
 

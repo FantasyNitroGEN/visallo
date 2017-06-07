@@ -17,13 +17,8 @@
 
         <!-- Test Dependencies -->
         <dependency>
-            <groupId>org.vertexium</groupId>
-            <artifactId>vertexium-inmemory</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-model-vertexium-inmemory</artifactId>
+            <artifactId>visallo-core-test</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

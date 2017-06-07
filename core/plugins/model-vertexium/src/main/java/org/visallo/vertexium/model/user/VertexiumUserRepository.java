@@ -74,7 +74,7 @@ public class VertexiumUserRepository extends UserRepository {
         graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
         graphAuthorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
 
-        Concept userConcept = ontologyRepository.getOrCreateConcept(null, USER_CONCEPT_IRI, "visalloUser", null, false);
+        Concept userConcept = ontologyRepository.getOrCreateConcept(null, USER_CONCEPT_IRI, "visalloUser", null, false, getSystemUser(), null);
         userConceptId = userConcept.getIRI();
 
         Set<String> authorizationsSet = new HashSet<>();

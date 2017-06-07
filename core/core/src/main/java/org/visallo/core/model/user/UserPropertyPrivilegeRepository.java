@@ -71,7 +71,7 @@ public class UserPropertyPrivilegeRepository extends PrivilegeRepositoryBase imp
         );
         propertyDefinition.setUserVisible(false);
         propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
-        ontologyRepository.getOrCreateProperty(propertyDefinition);
+        ontologyRepository.getOrCreateProperty(propertyDefinition, new SystemUser(), null);
     }
 
     @Override
