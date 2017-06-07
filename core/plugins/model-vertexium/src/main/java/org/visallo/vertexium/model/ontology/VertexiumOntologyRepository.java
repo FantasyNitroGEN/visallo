@@ -20,6 +20,7 @@ import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.ConvertingIterable;
+import org.vertexium.util.IterableUtils;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
@@ -48,6 +49,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -1126,13 +1128,28 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     private List<Concept> transformConcepts(Iterable<Vertex> vertices, User user, String workspaceId) {
         Iterable<Vertex> filtered = Iterables.filter(vertices, vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex, "").equals(TYPE_CONCEPT));
+
+        Set<String> parentVertexIds = StreamSupport.stream(filtered.spliterator(), false)
+                .map(vertex -> vertex.getEdgeInfos(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId)))
+                .filter(Objects::isNull)
+                .map(Iterables::getOnlyElement)
+                .filter(Objects::isNull)
+                .map(EdgeInfo::getVertexId)
+                .collect(Collectors.toSet());
+
+        Iterable<Vertex> parentVertices = graph.getVertices(parentVertexIds, EnumSet.of(FetchHint.PROPERTIES), getAuthorizations(user, workspaceId));
+        Map<String, String> parentVertexIdToIRI = StreamSupport.stream(parentVertices.spliterator(), false)
+                .collect(Collectors.toMap(Vertex::getId, OntologyProperties.ONTOLOGY_TITLE::getPropertyValue));
+
         return Lists.newArrayList(Iterables.transform(filtered, new Function<Vertex, Concept>() {
             @Nullable
             @Override
             public Concept apply(@Nullable Vertex vertex) {
                 List<OntologyProperty> conceptProperties = getPropertiesByVertexNoRecursion(vertex, user, workspaceId);
-                Vertex parentConceptVertex = getParentConceptVertex(vertex, user, workspaceId);
-                String parentConceptIRI = OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(parentConceptVertex);
+
+                Iterable<EdgeInfo> parentEdgeInfos = vertex.getEdgeInfos(Direction.OUT, LabelName.IS_A.toString(), getAuthorizations(user, workspaceId));
+                EdgeInfo parentEdge = parentEdgeInfos == null ? null : Iterables.getOnlyElement(parentEdgeInfos);
+                String parentConceptIRI = parentEdge == null ? null : parentVertexIdToIRI.get(parentEdge.getVertexId());
                 return createConcept(vertex, conceptProperties, parentConceptIRI, workspaceId);
             }
         }));
