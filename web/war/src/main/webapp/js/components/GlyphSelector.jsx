@@ -8,34 +8,42 @@ define([
     const PropTypes = React.PropTypes;
     const GlyphSelector = React.createClass({
         propTypes: {
+            search: PropTypes.string,
             onSelected: PropTypes.func.isRequired
         },
         getInitialState() {
-            return {};
+            return { isLoading: true };
         },
         componentDidMount() {
             Promise.require('text!../imgc/sprites/glyphicons.json_array').then(json => {
                 var obj = JSON.parse(json);
-                this.setState({ options: obj.list });
+                this.setState({ isLoading: false, options: obj.list });
             })
         },
         render() {
-            const { value = null, options = [] } = this.state;
+            const { value = null, options = [], isLoading } = this.state;
+            const { search } = this.props;
+            var similar = null;
+
+            if (!value && options.length && search) {
+                similar = _.find(options, option => option.label.toLowerCase().indexOf(search.toLowerCase()) >= 0);
+                if (similar) {
+                    similar = similar.value;
+                }
+            }
             return (
                 <VirtualizedSelect
                     options={options}
                     simpleValue
                     clearable
                     searchable
-                    value={value}
+                    value={value || similar}
                     onChange={this.onChange}
                     optionRenderer={GlyphOptionRenderer}
                     optionHeight={28}
+                    isLoading={isLoading}
                     placeholder="Select Icon (optional)"
                     valueRenderer={GlyphValueRenderer}
-                    //labelKey="label"
-                    //valueKey="value"
-                    ////matchProp="label"
                 />
             )
         },

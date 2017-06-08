@@ -80,7 +80,9 @@ define([
         componentWillReceiveProps(nextProps) {
             const { key } = this.state;
             if (key && nextProps.iriKeys && nextProps.iriKeys[key]) {
-                this.setState({ value: nextProps.iriKeys[key], key: false })
+                const value = nextProps.iriKeys[key];
+                this.setState({ value, key: false })
+                this.props.onSelected(this.getOptionByValue(value));
             }
         },
         render() {

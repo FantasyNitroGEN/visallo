@@ -459,13 +459,11 @@ define([
                     conceptType = 'http://www.w3.org/2002/07/owl#Thing';
                 }
 
-                window.LOG_CONCEPT_GETTER = true;
                 concept = getConcept(conceptType);
                 if (!concept && conceptType !== 'relationship') {
                     console.warn('Concept: ' + conceptType + ' is not in ontology');
                     concept = getConcept('http://www.w3.org/2002/07/owl#Thing');
                 }
-                window.LOG_CONCEPT_GETTER = false;
                 return concept;
             },
 

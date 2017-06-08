@@ -13,12 +13,17 @@ define(['reselect'], function(reselect) {
             glyphIconSelectedHref: null
         };
         _collect(concept);
-        const { path, properties, ...override } = collecting;
+        const {
+            path,
+            properties,
+            glyphIconHref = 'img/glyphicons/glyphicons_194_circle_question_mark@2x.png',
+            ...override } = collecting;
         const newConcept = {
             ...concept,
             path: '/' + path.reverse().join('/'),
             properties: _.uniq(properties),
             depth: path.length - 1,
+            glyphIconHref,
             ...override
         };
         return newConcept;

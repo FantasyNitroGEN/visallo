@@ -33,7 +33,7 @@ define([
                         creatable={false}
                         onSelected={this.onConceptSelected} />
 
-                    <GlyphSelector onSelected={this.onIconSelected} />
+                    <GlyphSelector search={value} onSelected={this.onIconSelected} />
 
                     <div style={{textAlign: 'right'}}>
                     <button
