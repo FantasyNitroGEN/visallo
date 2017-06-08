@@ -260,7 +260,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public void publishConcept(Concept concept, User user, String workspaceId) {
+    public void internalPublishConcept(Concept concept, User user, String workspaceId) {
         if (conceptsCache.containsKey(workspaceId)) {
             Map<String, InMemoryConcept> sandboxedConcepts = conceptsCache.get(workspaceId);
             if (sandboxedConcepts.containsKey(concept.getIRI())) {

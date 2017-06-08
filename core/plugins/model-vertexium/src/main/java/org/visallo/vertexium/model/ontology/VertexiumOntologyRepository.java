@@ -1191,10 +1191,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    public void publishConcept(Concept concept, User user, String workspaceId) {
-        // TODO: check that user has access to the workspace
-        checkPrivileges(user, null); // Use null since we're publishing
-
+    public void internalPublishConcept(Concept concept, User user, String workspaceId) {
         assert(concept instanceof VertexiumConcept);
         if (concept.getSandboxStatus() != SandboxStatus.PUBLIC) {
             Vertex vertex = ((VertexiumConcept) concept).getVertex();

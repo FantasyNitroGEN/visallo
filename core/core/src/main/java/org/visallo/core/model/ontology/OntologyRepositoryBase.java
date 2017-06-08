@@ -1758,7 +1758,17 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract Authorizations getAuthorizations(User user, String workspaceId);
 
+    @Override
+    public final void publishConcept(Concept concept, User user, String workspaceId) {
+        checkPrivileges(user, null);
+        internalPublishConcept(concept, user, workspaceId);
+    }
+
+    public abstract void internalPublishConcept(Concept concept, User user, String workspaceId);
+
     protected void checkPrivileges(User user, String workspaceId) {
+        // TODO: check that the user has access to the workspace
+
         if (user != null && user.getUserType() == UserType.SYSTEM) {
             return;
         }

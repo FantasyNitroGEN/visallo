@@ -236,7 +236,12 @@ public abstract class VisalloInMemoryTestBase {
                     getGraph(),
                     getConfiguration(),
                     getLockRepository()
-            );
+            ) {
+                @Override
+                protected PrivilegeRepository getPrivilegeRepository() {
+                    return VisalloInMemoryTestBase.this.getPrivilegeRepository();
+                }
+            };
         } catch (Exception ex) {
             throw new VisalloException("Could not create ontology repository", ex);
         }
@@ -308,6 +313,11 @@ public abstract class VisalloInMemoryTestBase {
             @Override
             protected Iterable<PrivilegesProvider> getPrivilegesProviders(Configuration configuration) {
                 return VisalloInMemoryTestBase.this.getPrivilegesProviders();
+            }
+
+            @Override
+            protected UserRepository getUserRepository() {
+                return VisalloInMemoryTestBase.this.getUserRepository();
             }
         };
         return privilegeRepository;

@@ -17,6 +17,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.ingest.video.VideoFrameInfo;
+import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -305,7 +306,7 @@ public abstract class WorkspaceRepository {
             Authorizations authorizations
     ) {
         if (this.entityHasImageIri == null) {
-            this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage");
+            this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage", user, workspaceId);
         }
 
         Map<ClientApiPublishItem.Action, List<ClientApiPublishItem>> publishDataByAction = Arrays.stream(publishData)
@@ -409,14 +410,31 @@ public abstract class WorkspaceRepository {
                 .collect(Collectors.groupingBy(VisalloProperties.CONCEPT_TYPE::getPropertyValue, Collectors.mapping(Vertex::getId, Collectors.toList())));
 
         List<String> publishedConceptIds = vertexIdsByConcept.keySet().stream()
-                .map(iri -> ontologyRepository.getConceptByIRI(iri, user, workspaceId))
-                .filter(concept -> concept.getSandboxStatus() != SandboxStatus.PUBLIC)
+                .map(iri -> {
+                    Concept concept = ontologyRepository.getConceptByIRI(iri, user, workspaceId);
+                    if (concept == null) {
+                        vertexIdsByConcept.get(iri).forEach(vertexId -> {
+                            ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
+                            data.setErrorMessage("Unable to locate concept with IRI " + iri);
+                        });
+                    }
+                    return concept;
+                })
+                .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC )
                 .flatMap(concept -> {
                     try {
                         return ontologyRepository.getConceptAndAncestors(concept, user, workspaceId).stream()
                                 .filter(conceptOrAncestor -> conceptOrAncestor.getSandboxStatus() != SandboxStatus.PUBLIC)
                                 .map(conceptOrAncestor -> {
-                                    ontologyRepository.publishConcept(conceptOrAncestor, user, workspaceId);
+                                    try {
+                                        ontologyRepository.publishConcept(conceptOrAncestor, user, workspaceId);
+                                    } catch (Exception ex) {
+                                        LOGGER.error("Error publishing concept %s", concept.getIRI(), ex);
+                                        vertexIdsByConcept.get(concept.getIRI()).forEach(vertexId -> {
+                                            ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
+                                            data.setErrorMessage("Unable to publish concept " + concept.getDisplayName());
+                                        });
+                                    }
                                     return conceptOrAncestor.getId();
                                 });
                     } catch (Exception ex) {
