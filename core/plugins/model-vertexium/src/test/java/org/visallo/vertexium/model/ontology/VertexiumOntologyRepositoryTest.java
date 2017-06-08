@@ -191,10 +191,32 @@ public class VertexiumOntologyRepositoryTest {
         Map<String, Concept> conceptsByIri = StreamSupport.stream(conceptsWithProperties.spliterator(), false)
                 .collect(Collectors.toMap(Concept::getIRI, Function.identity()));
 
+        Concept personConcept = conceptsByIri.get("http://visallo.org/testhierarchy#person");
+
+        // Check parent iris
         assertNull(conceptsByIri.get("http://visallo.org#root").getParentConceptIRI());
         assertEquals("http://visallo.org#root", conceptsByIri.get("http://www.w3.org/2002/07/owl#Thing").getParentConceptIRI());
         assertEquals("http://www.w3.org/2002/07/owl#Thing", conceptsByIri.get("http://visallo.org/testhierarchy#contact").getParentConceptIRI());
-        assertEquals("http://visallo.org/testhierarchy#contact", conceptsByIri.get("http://visallo.org/testhierarchy#person").getParentConceptIRI());
+        assertEquals("http://visallo.org/testhierarchy#contact", personConcept.getParentConceptIRI());
+
+        // Check properties
+        List<OntologyProperty> personProperties = personConcept.getProperties().stream().collect(Collectors.toList());
+        assertEquals(1, personProperties.size());
+        assertEquals("http://visallo.org/testhierarchy#name", personProperties.get(0).getIri());
+
+        // Check intents
+        List<String> intents = Arrays.asList(personConcept.getIntents());
+        assertEquals(2, intents.size());
+        assertTrue(intents.contains("face"));
+        assertTrue(intents.contains("person"));
+
+        // Check metadata
+        Map<String, String> metadata = personConcept.getMetadata();
+        assertEquals("{\"source\":\"(ontology)|visallo\"}", metadata.get("http://visallo.org#visibilityJson"));
+
+        // Spot check other concept values
+        assertEquals("Person", personConcept.getDisplayName());
+        assertEquals("prop('http://visallo.org/testhierarchy#name') || ''", personConcept.getTitleFormula());
     }
 
     @Test
