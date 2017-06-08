@@ -18,26 +18,40 @@ define([
             Promise.require('text!../imgc/sprites/glyphicons.json_array').then(json => {
                 var obj = JSON.parse(json);
                 this.setState({ isLoading: false, options: obj.list });
+                this.checkForMatch();
             })
         },
-        render() {
-            const { value = null, options = [], isLoading } = this.state;
-            const { search } = this.props;
-            var similar = null;
+        componentWillReceiveProps(nextProps) {
+            this.checkForMatch(nextProps)
+        },
+        checkForMatch(props) {
+            const { value, options, similar } = this.state;
+            const { search } = props || this.props;
 
-            if (!value && options.length && search) {
-                similar = _.find(options, option => option.label.toLowerCase().indexOf(search.toLowerCase()) >= 0);
-                if (similar) {
-                    similar = similar.value;
+            if (!value && options && search && search.length > 2) {
+                var option = _.find(options, option => option.label.toLowerCase().indexOf(search.toLowerCase()) >= 0);
+                if (option) {
+                    if (option.value !== similar) {
+                        this.setState({ similar: option.value })
+                        this.props.onSelected(option.value);
+                    }
+                } else if (similar) {
+                    this.setState({ similar: null });
+                    this.props.onSelected();
                 }
             }
+        },
+        render() {
+            const { value = null, options = [], isLoading, similar } = this.state;
+            const { search } = this.props;
+
             return (
                 <VirtualizedSelect
                     options={options}
                     simpleValue
                     clearable
                     searchable
-                    value={value || similar}
+                    value={_.isString(value) ? value : similar}
                     onChange={this.onChange}
                     optionRenderer={GlyphOptionRenderer}
                     optionHeight={28}
@@ -48,7 +62,7 @@ define([
             )
         },
         onChange(value) {
-            this.setState({ value })
+            this.setState({ value: value ? value : '' })
 
             if (!value) {
                 this.props.onSelected();
