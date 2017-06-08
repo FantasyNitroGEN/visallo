@@ -1175,9 +1175,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     private Map<String, String> buildParentIdToIriMap(Iterable<Vertex> vertices, Authorizations authorizations) {
         Set<String> parentVertexIds = StreamSupport.stream(vertices.spliterator(), false)
                 .map(vertex -> vertex.getEdgeInfos(Direction.OUT, LabelName.IS_A.toString(), authorizations))
-                .filter(Objects::isNull)
+                .filter(Objects::nonNull)
                 .map(Iterables::getOnlyElement)
-                .filter(Objects::isNull)
+                .filter(Objects::nonNull)
                 .map(EdgeInfo::getVertexId)
                 .collect(Collectors.toSet());
 

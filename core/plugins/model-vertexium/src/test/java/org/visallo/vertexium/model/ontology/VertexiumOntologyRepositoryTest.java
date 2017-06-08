@@ -36,6 +36,9 @@ import org.visallo.web.clientapi.model.UserType;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
@@ -177,6 +180,34 @@ public class VertexiumOntologyRepositoryTest {
         OntologyProperty aliasProperty = ontologyRepository.getPropertyByIRI(TEST01_IRI + "#alias", user, workspaceId);
         Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person", user, workspaceId);
         assertTrue(person.getProperties().stream().anyMatch(p -> p.getIri().equals(aliasProperty.getIri())));
+    }
+
+    @Test
+    public void testGetConceptsWithProperties() throws Exception {
+        loadHierarchyOwlFile();
+        ontologyRepository.clearCache();
+
+        Iterable<Concept> conceptsWithProperties = ontologyRepository.getConceptsWithProperties(user, workspaceId);
+        Map<String, Concept> conceptsByIri = StreamSupport.stream(conceptsWithProperties.spliterator(), false)
+                .collect(Collectors.toMap(Concept::getIRI, Function.identity()));
+
+        assertNull(conceptsByIri.get("http://visallo.org#root").getParentConceptIRI());
+        assertEquals("http://visallo.org#root", conceptsByIri.get("http://www.w3.org/2002/07/owl#Thing").getParentConceptIRI());
+        assertEquals("http://www.w3.org/2002/07/owl#Thing", conceptsByIri.get("http://visallo.org/testhierarchy#contact").getParentConceptIRI());
+        assertEquals("http://visallo.org/testhierarchy#contact", conceptsByIri.get("http://visallo.org/testhierarchy#person").getParentConceptIRI());
+    }
+
+    @Test
+    public void testGetRelationships() throws Exception {
+        loadHierarchyOwlFile();
+        ontologyRepository.clearCache();
+
+        Iterable<Relationship> relationships = ontologyRepository.getRelationships(user, workspaceId);
+        Map<String, Relationship> relationshipsByIri = StreamSupport.stream(relationships.spliterator(), false)
+                .collect(Collectors.toMap(Relationship::getIRI, Function.identity()));
+
+        assertNull(relationshipsByIri.get("http://www.w3.org/2002/07/owl#topObjectProperty").getParentIRI());
+        assertEquals("http://www.w3.org/2002/07/owl#topObjectProperty", relationshipsByIri.get("http://visallo.org/testhierarchy#personKnowsPerson").getParentIRI());
     }
 
     @Test(expected = VisalloAccessDeniedException.class)
