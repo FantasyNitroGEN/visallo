@@ -156,14 +156,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             );
             Vertex workspaceVertex = getVertexFromWorkspace(workspace, true, authorizations);
 
-            List<Vertex> productVertices = Lists.newArrayList(workspaceVertex.getVertices(
-                    Direction.BOTH,
+            workspaceVertex.getVertexIds(
+                    Direction.OUT,
                     WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
                     authorizations
-            ));
-            for (Vertex productVertex : productVertices) {
-                getGraph().softDeleteVertex(productVertex, authorizations);
-            }
+            ).forEach(productId -> deleteProduct(workspaceVertex.getId(), productId, user));
 
             getGraph().softDeleteVertex(workspaceVertex, authorizations);
             getGraph().flush();

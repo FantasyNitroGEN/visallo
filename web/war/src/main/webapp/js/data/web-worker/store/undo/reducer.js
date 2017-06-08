@@ -48,41 +48,34 @@ define([], function() {
                     }
                 };
             }
-            case 'PUSH_UNDO': {
-                return pushUndoStack(payload);
-            }
+            case 'PUSH_UNDO':
             default: {
-                return pushUndoStack(payload);
-            }
-        }
-
-        function pushUndoStack(payload) {
-            if (!payload) {
-                return state;
-            }
-
-            const { undoScope: scope = 'global', undo, redo, undoActionType } = payload;
-            if (!undo || !redo) {
-                return state;
-            }
-
-            const newUndo = {
-                undo,
-                redo
-            };
-
-            newUndo.type = undoActionType || type;
-
-            const scopedState = state[scope] || { undos: [], redos: [] };
-            const { undos, redos } = scopedState;
-
-            return {
-                ...state,
-                [scope]: {
-                    undos: [ ...undos, newUndo ],
-                    redos: []
+                if (!payload) {
+                    return state;
                 }
-            };
+
+                const { undoScope: scope = 'global', undo, redo, undoActionType } = payload;
+                if (!undo || !redo) {
+                    return state;
+                }
+
+                const newUndo = {
+                    undo,
+                    redo,
+                    type: undoActionType || type
+                };
+
+                const scopedState = state[scope] || { undos: [], redos: [] };
+                const { undos, redos } = scopedState;
+
+                return {
+                    ...state,
+                    [scope]: {
+                        undos: [ ...undos, newUndo ],
+                        redos: []
+                    }
+                };
+            }
         }
     }
 });

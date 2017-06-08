@@ -477,8 +477,8 @@ define([
 
             const positions = nodes.map(node => retina.pixelsToPoints(node.position()));
             const pos = {
-                x: positions.reduce((total, pos) => total + pos.x, 0) / positions.length,
-                y: positions.reduce((total, pos) => total + pos.y, 0) / positions.length
+                x: Math.floor(positions.reduce((total, pos) => total + pos.x, 0) / positions.length),
+                y: Math.floor(positions.reduce((total, pos) => total + pos.y, 0) / positions.length)
             };
 
             this.props.onCollapseNodes(product.id, {
