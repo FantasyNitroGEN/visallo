@@ -95,10 +95,11 @@ define([
         };
 
         this.isVideoReady = function() {
-            return _.object(['mp4', 'webm'], format => [
+            const formats = ['mp4', 'webm'].map(format => [
                 format,
                 F.vertex.props(this.model, `http://visallo.org#video-${format}`).length > 0
             ]);
+            return _.object(formats);
         };
 
         this.onPlayerTimeUpdate = function(evt, data) {
