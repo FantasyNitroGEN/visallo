@@ -152,6 +152,10 @@ public abstract class Concept implements OntologyElement, HasOntologyProperties 
 
     public abstract byte[] getGlyphIconSelected();
 
+    public abstract String getGlyphIconFilePath();
+
+    public abstract String getGlyphIconSelectedFilePath();
+
     public abstract byte[] getMapGlyphIcon();
 
     public abstract String getIRI();

@@ -85,13 +85,14 @@ define([
         },
         render() {
             const { creating, value, CreateForm, selectComponent } = this.state;
-            const { options, value: defaultValue, valueKey, labelKey, creatable, createForm } = this.props;
+            const { options, placeholder, value: defaultValue, valueKey, labelKey, creatable, createForm } = this.props;
             return (
                 <div>
                 {
                     (creating && CreateForm) ? (
                         <CreateForm
                             displayName={creating}
+                            onCancel={this.onCancel}
                             onCreate={this.onCreate} />
                     ) : (
                         <VirtualizedSelect
@@ -116,6 +117,7 @@ define([
                             onNewOptionClick={this.onNewOptionClick}
                             optionRenderer={NameOptionRenderer}
                             optionHeight={28}
+                            placeholder={placeholder}
                             labelKey={labelKey}
                             valueKey={valueKey}
                             matchProp="label"
@@ -124,6 +126,9 @@ define([
                 }
                 </div>
             );
+        },
+        onCancel() {
+            this.setState({ creating: false })
         },
         onCreate(option) {
             const key = keyCounter();

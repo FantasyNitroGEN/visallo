@@ -74,12 +74,14 @@ public class VertexiumConcept extends Concept {
     @Override
     public boolean hasGlyphIconResource() {
         // TODO: This can be changed to GLYPH_ICON.getPropertyValue(vertex) once ENTITY_IMAGE_URL is added
-        return vertex.getPropertyValue(OntologyProperties.GLYPH_ICON.getPropertyName()) != null;
+        return vertex.getPropertyValue(OntologyProperties.GLYPH_ICON.getPropertyName()) != null ||
+                vertex.getPropertyValue(OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyName()) != null;
     }
 
     @Override
     public boolean hasGlyphIconSelectedResource() {
-        return vertex.getPropertyValue(OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName()) != null;
+        return vertex.getPropertyValue(OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName()) != null ||
+                vertex.getPropertyValue(OntologyProperties.GLYPH_ICON_SELECTED_FILE_NAME.getPropertyName()) != null;
     }
 
     @Override
@@ -211,6 +213,17 @@ public class VertexiumConcept extends Concept {
         } catch (IOException e) {
             throw new VisalloResourceNotFoundException("Could not retrieve glyph icon selected");
         }
+    }
+    
+    @Override
+    public String getGlyphIconFilePath() {
+        return OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyValue(getVertex());
+    }
+
+
+    @Override
+    public String getGlyphIconSelectedFilePath() {
+        return OntologyProperties.GLYPH_ICON_SELECTED_FILE_NAME.getPropertyValue(getVertex());
     }
 
     @Override

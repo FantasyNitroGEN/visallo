@@ -219,6 +219,16 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
+    public String getGlyphIconFilePath() {
+        return null;
+    }
+
+    @Override
+    public String getGlyphIconSelectedFilePath() {
+        return null;
+    }
+
+    @Override
     public byte[] getMapGlyphIcon() {
         return mapGlyphIcon;
     }

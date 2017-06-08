@@ -86,8 +86,8 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
         lockRepository.lock("ontology", () -> {
-            Concept rootConcept = internalGetOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null, true, null, null);
-            Concept entityConcept = internalGetOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null, true, null, null);
+            Concept rootConcept = internalGetOrCreateConcept(null, ROOT_CONCEPT_IRI, "root",  null,null, true, null, null);
+            Concept entityConcept = internalGetOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null, null, true, null, null);
             getOrCreateTopObjectPropertyRelationship(authorizations);
 
             clearCache();
@@ -405,7 +405,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         boolean isDeclaredInOntology = o.isDeclared(ontologyClass);
 
         Concept parent = getParentConcept(o, ontologyClass, inDir, authorizations);
-        Concept result = internalGetOrCreateConcept(parent, uri, label, inDir, isDeclaredInOntology, null, null);
+        Concept result = internalGetOrCreateConcept(parent, uri, label, null, inDir, isDeclaredInOntology, null, null);
 
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(ontologyClass, o)) {
             String annotationIri = annotation.getProperty().getIRI().toString();
@@ -1298,7 +1298,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     @Override
     public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, true, user, workspaceId);
+        return getOrCreateConcept(parent, conceptIRI, displayName, null, inDir, user, workspaceId);
+    }
+
+    @Override
+    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, User user, String workspaceId) {
+        return getOrCreateConcept(parent, conceptIRI, displayName, glyphIconHref, inDir, true, user, workspaceId);
     }
 
     @Deprecated
@@ -1310,10 +1315,16 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Override
     public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
         checkPrivileges(user, workspaceId);
-        return internalGetOrCreateConcept(parent, conceptIRI, displayName, inDir, deleteChangeableProperties, user, workspaceId);
+        return internalGetOrCreateConcept(parent, conceptIRI, displayName, null, inDir, deleteChangeableProperties, user, workspaceId);
     }
 
-    protected abstract Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId);
+    @Override
+    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
+        checkPrivileges(user, workspaceId);
+        return internalGetOrCreateConcept(parent, conceptIRI, displayName, glyphIconHref, inDir, deleteChangeableProperties, user, workspaceId);
+    }
+
+    protected abstract Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, boolean deleteChangeableProperties, User user, String workspaceId);
 
     @Deprecated
     @Override

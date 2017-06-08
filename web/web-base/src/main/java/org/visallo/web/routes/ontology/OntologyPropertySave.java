@@ -52,7 +52,7 @@ public class OntologyPropertySave implements ParameterizedHandler {
                 .map(iri -> ontologyRepository.getRelationshipByIRI(iri, user, workspaceId))
                 .collect(Collectors.toList());
 
-        PropertyType type = PropertyType.valueOf(dataType);
+        PropertyType type = PropertyType.valueOf(dataType.toUpperCase());
         if (propertyIri == null) {
             propertyIri = ontologyRepository.generateDynamicIri(OntologyProperty.class, displayName, workspaceId);
         }

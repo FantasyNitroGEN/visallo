@@ -1,7 +1,8 @@
 define([
     'react',
-    './ConceptSelector'
-], function(React, ConceptsSelector) {
+    './ConceptSelector',
+    '../GlyphSelector'
+], function(React, ConceptsSelector, GlyphSelector) {
     'use strict';
 
     const PropTypes = React.PropTypes;
@@ -22,19 +23,23 @@ define([
             return (
                 <div>
                     <input type="text"
+                        placeholder="Display Name"
                         onChange={this.onDisplayNameChange}
                         value={value} />
 
-                    <label>Parent Concept</label>
                     <ConceptsSelector
                         value={this.state.parentConcept}
+                        placeholder="Concept to Inherit (optional)"
                         creatable={false}
                         onSelected={this.onConceptSelected} />
 
-                    <label>Icon</label>
-                    <select><option>Choose Icon...</option></select>
+                    <GlyphSelector onSelected={this.onIconSelected} />
 
                     <div style={{textAlign: 'right'}}>
+                    <button
+                        onClick={this.props.onCancel}
+                        className="btn btn-link btn-small"
+                        style={{ width: 'auto', marginBottom: '1em'}}>Cancel</button>
                     <button
                         disabled={disabled}
                         onClick={this.onCreate}
@@ -46,6 +51,9 @@ define([
                 </div>
             )
         },
+        onIconSelected(imgSrc) {
+            this.setState({ imgSrc })
+        },
         onConceptSelected(option) {
             this.setState({ parentConcept: option ? option.title : null })
         },
@@ -55,7 +63,8 @@ define([
         onCreate() {
             this.props.onCreate({
                 parentConcept: this.state.parentConcept,
-                displayName: this.getValue()
+                displayName: this.getValue(),
+                glyphIconHref: this.state.imgSrc
             })
         }
     });

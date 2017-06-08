@@ -8,7 +8,6 @@ module.exports = function(grunt) {
     require('load-grunt-tasks')(grunt);
     grunt.loadTasks('grunt-tasks');
 
-
     var compressionFiles = ['jsc/', 'libs/', 'css/'].map(dir => {
         var cfg = {};
         if (dir === 'libs/') {
@@ -40,7 +39,7 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
 
         clean: {
-            src: ['jsc', 'css'],
+            src: ['jsc', 'css', 'imgc'],
             libs: ['libs']
         },
 
@@ -155,6 +154,18 @@ module.exports = function(grunt) {
             }
         },
 
+        sprite:{
+            all: {
+                src: 'img/glyphicons/*@2x.png',
+                dest: 'imgc/sprites/glyphicons.png',
+                destCss: 'imgc/sprites/glyphicons.json'
+            }
+        },
+
+        'transform-sprite': {
+            all: 'imgc/sprites/glyphicons.json'
+        },
+
         plato: {
             ci: {
                 files: {
@@ -181,6 +192,10 @@ module.exports = function(grunt) {
             css: {
                 files: ['less/**/*.less', 'libs/**/*.css', 'libs/**/*.less'],
                 tasks: ['less:development', 'less:developmentContrast', 'notify:css']
+            },
+            img: {
+                files: ['img/glyphicons/*@2x.png'],
+                tasks: ['sprites']
             },
             compiledCss: {
                 files: ['css/visallo.css'],
@@ -234,8 +249,7 @@ module.exports = function(grunt) {
             }
         },
 
-        'copy-frontend': {
-        },
+        'copy-frontend': {},
 
         karma: {
             options: {
@@ -281,6 +295,8 @@ module.exports = function(grunt) {
           }));
       });
 
+      grunt.registerTask('sprites', ['sprite:all', 'transform-sprite']);
+
       grunt.registerTask('deps', 'Install Webapp Dependencies',
          ['clean:libs', 'copy-frontend', 'amdwrap']);
 
@@ -293,9 +309,9 @@ module.exports = function(grunt) {
          ['deps', 'test:style', 'karma:ci']);
 
       grunt.registerTask('development', 'Build js/less for development',
-         ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates', 'handlebars:compile']);
+         ['clean:src', 'eslint:development', 'less:development', 'less:developmentContrast', 'babel:js', 'copy:templates', 'handlebars:compile', 'sprites']);
       grunt.registerTask('production', 'Build js/less for production',
-         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'handlebars:compile', 'compress']);
+         ['clean:src', 'eslint:ci', 'less:production', 'less:productionContrast', 'babel:js', 'copy:templates', 'handlebars:compile', 'sprites', 'compress']);
 
       grunt.registerTask('default', ['development', 'watch']);
 };

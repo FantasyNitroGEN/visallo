@@ -40,6 +40,7 @@ public class OntologyConceptSave implements ParameterizedHandler {
             @Required(name = "displayName", allowEmpty = false) String displayName,
             @Optional(name = "iri", allowEmpty = false) String iri,
             @Optional(name = "parentConcept", allowEmpty = false) String parentConcept,
+            @Optional(name = "glyphIconHref", allowEmpty = false) String glyphIconHref,
             @ActiveWorkspaceId String workspaceId,
             User user) throws Exception {
 
@@ -52,7 +53,7 @@ public class OntologyConceptSave implements ParameterizedHandler {
         if (iri == null) {
             iri = ontologyRepository.generateDynamicIri(Concept.class, displayName, workspaceId);
         }
-        Concept concept = ontologyRepository.getOrCreateConcept(parent, iri, displayName, null, user, workspaceId);
+        Concept concept = ontologyRepository.getOrCreateConcept(parent, iri, displayName, glyphIconHref, null, user, workspaceId);
 
         ontologyRepository.clearCache(workspaceId);
         workQueueRepository.pushOntologyConceptsChange(workspaceId, concept.getId());

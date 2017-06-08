@@ -13,6 +13,7 @@ import com.google.inject.Singleton;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -38,10 +39,7 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
-import org.visallo.core.util.JSONUtil;
-import org.visallo.core.util.TimingCallable;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.core.util.*;
 import org.visallo.web.clientapi.model.*;
 
 import javax.annotation.Nullable;
@@ -592,7 +590,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    protected Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
+    protected Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
         Concept concept = getConceptByIRI(conceptIRI, user, workspaceId);
         if (concept != null) {
             if (deleteChangeableProperties) {
@@ -621,6 +619,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     // TODO: change to ontology && ontology.displayName
                     OntologyProperties.SUBTITLE_FORMULA.updateProperty(elemCtx, "prop('http://visallo.org#source') || ''", metadata, visibility);
                     OntologyProperties.TIME_FORMULA.updateProperty(elemCtx, "''", metadata, visibility);
+                }
+                if (!StringUtils.isEmpty(glyphIconHref)) {
+                    OntologyProperties.GLYPH_ICON_FILE_NAME.updateProperty(elemCtx, glyphIconHref, metadata, visibility);
                 }
             }).get();
 
