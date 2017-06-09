@@ -2,6 +2,8 @@ define([
     'react',
     'underscore',
     'cytoscape',
+    'cytoscape-dagre',
+    'dagre',
     'fast-json-patch',
     'components/NavigationControls',
     'colorjs',
@@ -13,6 +15,8 @@ define([
     React,
     _,
     cytoscape,
+    cytoscapeDagre,
+    dagre,
     jsonpatch,
     NavigationControls,
     colorjs,
@@ -40,16 +44,8 @@ define([
             },
             edgeElasticity: 10
         },
-        breadthfirst: {
-            roots: function(nodes, options) {
-                if (options && options.onlySelected) {
-                    return [];
-                }
-                return nodes.roots().map(function(n) { return n.id(); })
-            },
-            directed: false,
-            circle: false,
-            maximalAdjustments: 10
+        dagre: {
+
         }
     };
     const PREVIEW_DEBOUNCE_SECONDS = 3;
@@ -129,6 +125,7 @@ define([
             const updateControlDragSelection = (nodeId = null) => this.setState({ controlDragSelection: nodeId });
             fixCytoscapeCorsHandling(cy);
             cytoscape('layout', 'bettergrid', betterGrid);
+            cytoscapeDagre(cytoscape, dagre);
 
             this.clientRect = this.refs.cytoscape.getBoundingClientRect();
             this.setState({ cy })
