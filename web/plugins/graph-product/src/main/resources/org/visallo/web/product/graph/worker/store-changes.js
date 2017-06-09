@@ -15,15 +15,13 @@ define([
             if (workspaceId && state.element[workspaceId]) {
                 const newEdges = state.element[workspaceId].edges;
                 if (prevEdges !== newEdges) {
-                    productSelectors.getProducts(state).forEach(item => {
-                        if (item.extendedData) {
-                            const { vertices, edges } = item.extendedData;
-                            const verticesById = _.indexBy(vertices, 'id');
-                            const edgesById = _.indexBy(edges, 'edgeId');
+                    productSelectors.getProducts(state).forEach(product => {
+                        if (product.extendedData) {
+                            const { vertices, edges } = product.extendedData;
                             const addEdges = [];
                             _.each(newEdges, (edge, id) => {
-                                if (edge !== null && !(id in edgesById)) {
-                                    if (edge.inVertexId in verticesById && edge.outVertexId in verticesById) {
+                                if (edge !== null && !(id in edges)) {
+                                    if (edge.inVertexId in vertices && edge.outVertexId in vertices) {
                                         addEdges.push({
                                             edgeId: id,
                                             ..._.pick(edge, 'inVertexId', 'outVertexId', 'label')
@@ -35,7 +33,7 @@ define([
                                 _.defer(() => {
                                     store.dispatch({
                                         type: 'PRODUCT_ADD_EDGE_IDS',
-                                        payload: { workspaceId, productId: item.id, edges: addEdges }
+                                        payload: { workspaceId, productId: product.id, edges: addEdges }
                                     })
                                 })
                             }

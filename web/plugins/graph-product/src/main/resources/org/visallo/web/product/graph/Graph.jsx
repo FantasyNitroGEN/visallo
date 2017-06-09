@@ -727,7 +727,6 @@ define([
         },
 
         mapPropsToElements(editable) {
-            console.log('mapPropsToElements') //TODO: remove debugging
             const { selection, ghosts, productElementIds, elements, ontology, registry, focusing, product } = this.props;
             const { hovering } = this.state;
             const { vertices: productVertices, edges: productEdges } = productElementIds;
@@ -920,33 +919,34 @@ define([
                     const elementMarkedAsDeletedInStore =
                         edgeInfo.edgeId in edges &&
                         edges[edgeInfo.edgeId] === null;
-                    const edgeNodesExist = edgeInfo.inVertexId in renderedNodeIds && edgeInfo.outVertexId in renderedNodeIds;
-
-                    return !elementMarkedAsDeletedInStore && edgeNodesExist;
+                    return !elementMarkedAsDeletedInStore;
                 })
                 .groupBy(generateCompoundEdgeId)
                 .map((edgeInfos, id) => {
                     const {inVertexId, outVertexId} = edgeInfos[0];
-                    return {
-                        inCollapsedNodeId: getRenderedParentNodeFromVertexId(inVertexId),
-                        outCollapsedNodeId: getRenderedParentNodeFromVertexId(outVertexId),
+                    const edge = {
+                        inNodeId: getRenderedNodeFromVertexId(inVertexId),
+                        outNodeId: getRenderedNodeFromVertexId(outVertexId),
                         edgeInfos,
                         id
                     };
+                    return edge;
 
-                    function getRenderedParentNodeFromVertexId(vertexId) {
-                        let parentId = productVertices[vertexId].parent;
+                    function getRenderedNodeFromVertexId(vertexId) {
+                        const vertex = productVertices[vertexId];
+                        if (!vertex) return null;
+
+                        let parentId = vertex.parent;
                         while (parentId !== rootNode.id && !(parentId in renderedNodeIds)) {
-                            parentId = productVertices[vertexId].parent;
-                            if (!collapsedNodes[parentId]) return null;
+                            const parent = collapsedNodes[parentId];
+                            if (!parent) return null;
+                            parentId = parent.parent;
                         }
-                        return parentId === rootNode.id ? null : parentId;
+                        return parentId === rootNode.id ? vertexId : parentId;
                     }
                 })
-                .filter(({inCollapsedNodeId, outCollapsedNodeId}) => {
-                    // exclude collapsed node self-referencing edges
-                    return !outCollapsedNodeId || !inCollapsedNodeId
-                        || (outCollapsedNodeId !== inCollapsedNodeId)
+                .filter(({inNodeId, outNodeId}) => {
+                    return inNodeId && outNodeId && (inNodeId !== outNodeId);
                 })
                 .map(data => {
                     const edgesForInfos = Object.values(_.pick(edges, _.pluck(data.edgeInfos, 'edgeId')));
@@ -1079,14 +1079,14 @@ define([
     };
 
     const mapEdgeToData = (data, edges, ontology, transformers) => {
-        const { id, edgeInfos, outCollapsedNodeId, inCollapsedNodeId } = data;
+        const { id, edgeInfos, outNodeId, inNodeId } = data;
 
         return memoizeFor('org.visallo.graph.edge.transformer', edges, () => {
-            const { inVertexId, outVertexId, label } = edgeInfos[0];
+            const { label } = edgeInfos[0];
             const base = {
                 id,
-                source: outCollapsedNodeId || outVertexId,
-                target: inCollapsedNodeId || inVertexId,
+                source: outNodeId,
+                target: inNodeId,
                 type: label,
                 label: edgeDisplay(label, ontology, edgeInfos),
                 edgeInfos,
@@ -1118,7 +1118,7 @@ define([
             }
 
             return base;
-        }, () => id)
+        }, () => id + outNodeId + inNodeId)
     };
 
     const mapEdgeToClasses = (edgeInfos, edges, focusing, classers) => {
@@ -1302,6 +1302,7 @@ define([
         return cls.join(' ');
     };
 
+//TODO: remove probably
 //    const collapsedNodeToCyNode = (collapsedNodes, vertices, id) => {
 //        const result = memoizeFor('collapsedNodeToCyNode', collapsedNodes[id], function() {
 //            const collapsedNode = collapsedNodes[id];
@@ -1335,10 +1336,11 @@ define([
 
     const generateCollapsedNodeTitle = (collapsedNode, vertices) => {
         const children = _.pick(vertices, collapsedNode.children);
+        const title = Object.keys(children).length && collapsedNode.children.map(vertexId => (
+            vertices[vertexId] ? F.vertex.title(vertices[vertexId]) : ''
+        )).join(', ');
 
-        return children.length ?
-            collapsedNode.children.map(vertexId => F.vertex.title(vertices[vertexId])).join(', ') :
-            i18n('org.visallo.web.product.graph.collapsedNode.entities', collapsedNode.children.length)
+        return  title || i18n('org.visallo.web.product.graph.collapsedNode.entities', collapsedNode.children.length);
     };
 
     const vertexToCyNode = (vertex, transformers, hovering) => {

@@ -341,10 +341,15 @@ define([
         },
 
         render() {
+            const { items, title, element } = this.state;
+
             return (<div className="vertex-menu" ref="menuDiv">
-                <ElementContextMenuList items={this.state.items} elementTitle={this.state.title}
-                                        domElement={this.props.domElement} element={this.state.element}
-                                        onMenuItemClick={this.handleMenuItemClick}/>
+                { items.length &&
+                    <ElementContextMenuList
+                        items={this.state.items} elementTitle={this.state.title}
+                        domElement={this.props.domElement} element={this.state.element}
+                        onMenuItemClick={this.handleMenuItemClick}/>
+                }
             </div>);
         },
 

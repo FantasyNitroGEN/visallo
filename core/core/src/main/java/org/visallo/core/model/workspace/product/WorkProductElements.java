@@ -72,7 +72,6 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
         if (params.optBoolean("includeEdges")) {
             JSONObject edges = new JSONObject();
-            JSONArray unauthorizedEdgeIds = new JSONArray();
             Authorizations systemAuthorizations = authorizationRepository.getGraphAuthorizations(
                     user,
                     VisalloVisibility.SUPER_USER_VISIBILITY_STRING
@@ -90,19 +89,19 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
             for (RelatedEdge relatedEdge : productRelatedEdges) {
                 String edgeId = relatedEdge.getEdgeId();
+                JSONObject edge = new JSONObject();
+                edge.put("edgeId", relatedEdge.getEdgeId());
+
                 if (relatedEdgesById.get(edgeId)) {
-                    JSONObject edge = new JSONObject();
-                    edge.put("edgeId", relatedEdge.getEdgeId());
                     edge.put("label", relatedEdge.getLabel());
                     edge.put("outVertexId", relatedEdge.getOutVertexId());
                     edge.put("inVertexId", relatedEdge.getInVertexId());
-                    edges.put(edgeId, edge);
                 } else {
-                   unauthorizedEdgeIds.put(edgeId);
+                    edge.put("unauthorized", true);
                 }
+                edges.put(edgeId, edge);
             }
             extendedData.put("edges", edges);
-            extendedData.put("unauthorizedEdgeIds", unauthorizedEdgeIds);
         }
 
         return extendedData;

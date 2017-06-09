@@ -60,7 +60,8 @@ define([
     function addEdges(state, { productId, edges, workspaceId }) {
         const product = state.workspaces[workspaceId].products[productId];
         if (product && product.extendedData && product.extendedData.edges) {
-            let newIndex = product.extendedData.edges.length;
+            //TODO: change this from returning [edgeInfos] to {edgeInfos}, then we should correctly update product.extendedData.edges from WS messages
+            return u.updateIn(`workspaces.${workspaceId}.products.${productId}.extendedData.edges`, )
             const byId = _.indexBy(product.extendedData.edges, 'edgeId')
             const update = _.object(_.compact(edges.map(edgeInfo => {
                 if (edgeInfo.edgeId in byId) return;
@@ -122,7 +123,10 @@ define([
             Object.keys(adding).forEach(id => {
                 const newElement = adding[id];
                 if (newElement.type === type) {
-                    elements[id] = newElement;
+                    elements = {
+                        ...elements,
+                        [id]: newElement
+                    };
                 }
             });
             return elements;

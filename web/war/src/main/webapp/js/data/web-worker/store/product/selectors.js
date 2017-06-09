@@ -45,12 +45,12 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
     })
 
     const getElementIdsInProduct = createSelector([getProduct], (product) => {
-        if (!product || !product.extendedData) return { vertices: [], edges: [] };
-
-        const { vertices, edges } = product.extendedData
-        const viewable = v => v.unauthorized !== true
-
-        return { vertices: _.pick(vertices, viewable), edges }
+        if (product && product.extendedData) {
+            const elementIds = { vertices: product.extendedData.vertices, edges: product.extendedData.edges };
+            return _.mapObject(elementIds, (elements) => _.pick(elements, e => e.unauthorized !== true));
+        } else {
+            return { vertices: {}, edges: {} };
+        }
     });
 
     const getElementsInProduct = createSelector([getElementIdsInProduct, elementSelectors.getElements], (elementIds, elements) => {
