@@ -223,9 +223,13 @@ function(jQuery,
             } else {
                 updateVisalloLoadingProgress('extensions', 0);
                 var len = visalloPluginResources.afterAuth.length,
-                    i = 0;
+                    i = 0,
+                    pluginTimes = [];
                 Promise.all(visalloPluginResources.afterAuth.map(function(path) {
+                    const t0 = new Date().getTime();
                     return Promise.require(path).then(function() {
+                        const t1 = new Date().getTime();
+                        pluginTimes.push({ path, 'duration (ms)': t1 - t0 });
                         updateVisalloLoadingProgress('extensions', ++i / len);
                     })
                 }))
@@ -236,6 +240,16 @@ function(jQuery,
                     .then(function() {
                         updateVisalloLoadingProgress('userinterface');
                         loginSuccess({ user });
+                    })
+                    .finally(function() {
+                        if (window.console) {
+                            if ('groupCollapsed' in console && 'table' in console) {
+                                console.groupCollapsed('Plugin Load Metrics');
+                                console.log('Later plugins will be slower due to network concurrency limits')
+                                console.table(pluginTimes);
+                                console.groupEnd();
+                            }
+                        }
                     })
             }
         }

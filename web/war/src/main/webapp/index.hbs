@@ -11,8 +11,10 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
     <link href='css/visallo.css' rel='stylesheet' media='screen'>
+    <noscript id="deferred-styles">
     {{#each pluginCssResources}}<link href='{{contextPath}}/{{.}}' rel='stylesheet' media='screen'>
     {{/each}}
+    </noscript>
 
     <script src='libs/babel-polyfill/dist/polyfill.min.js'></script>
     <script src='jsc/require.config.js'></script>
@@ -40,6 +42,22 @@
         {{#each pluginJsResourcesWebWorker}}  '{{contextPath}}{{.}}'{{#unless @last}},{{/unless}}
         {{/each}}]
       };
+
+      var loadDeferredStyles = function() {
+          var addStylesNode = document.getElementById("deferred-styles");
+          if (addStylesNode) {
+              var replacement = document.createElement("div");
+              replacement.innerHTML = addStylesNode.textContent;
+              document.body.appendChild(replacement)
+              addStylesNode.parentElement.removeChild(addStylesNode);
+          }
+      };
+      var raf = requestAnimationFrame || mozRequestAnimationFrame || webkitRequestAnimationFrame || msRequestAnimationFrame;
+      if (raf) {
+        raf(function() { window.setTimeout(loadDeferredStyles, 0); });
+      } else {
+        window.addEventListener('load', loadDeferredStyles);
+      }
     })();
   </script>
   <script data-main="visallo" src='libs/requirejs/require.js'></script>
