@@ -366,7 +366,7 @@ public class WebApp extends App {
     public void registerLess(final String lessResourceName) {
         String resourcePath = "css" + lessResourceName + ".css";
         if (isDevModeEnabled()) {
-            get("/" + resourcePath, new LessResourceHandler(lessResourceName));
+            get("/" + resourcePath, new LessResourceHandler(lessResourceName, isDevModeEnabled()));
             pluginsCssResources.add(resourcePath);
         } else {
             pluginsCssResourceHandler.appendLessResource(lessResourceName);
