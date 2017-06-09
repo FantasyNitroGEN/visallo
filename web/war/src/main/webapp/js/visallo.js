@@ -28,6 +28,8 @@ function(jQuery,
 
     $.ui = { keyCode: { ENTER: 13 } };
 
+    lockDownUnderscore(_);
+
     // Debug retina/non-retina by changing to 1/2
     // window.devicePixelRatio = 1;
 
@@ -433,4 +435,12 @@ function(jQuery,
         return (/#\s*$/).test(url) || url.indexOf('#') === -1;
     }
 
+    // Both lodash and underscore pollute the global 'window' object with '_', this prevents future includes of these
+    // libraries from doing that.
+    function lockDownUnderscore(_) {
+        Object.defineProperty(window, '_', {
+            value: _,
+            writeable: false
+        });
+    }
 });
