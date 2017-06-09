@@ -67,11 +67,9 @@ define([
             this.setState({ displayName: event.target.value })
         },
         handleTypeChange(event) {
-            debugger;
             this.setState({ type: event.target.value });
         },
         onCreate() {
-            debugger;
             this.props.onCreate({
                 domain: this.state.domain,
                 type: this.state.type,

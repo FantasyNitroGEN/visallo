@@ -1,9 +1,10 @@
 define(['reselect'], function(reselect) {
     const { createSelector } = reselect;
 
-    const _visible = concept => concept.userVisible !== false &&
-        concept.id !== 'http://www.w3.org/2002/07/owl#Thing' &&
-        concept.id !== 'http://visallo.org#root';
+    const _visible = item => item.userVisible !== false &&
+        item.id !== 'http://www.w3.org/2002/07/owl#Thing' &&
+        item.id !== 'http://visallo.org#root' &&
+        item.displayName;
     const _collectParents = concepts => concept => {
         const collecting = {
             color: null,
@@ -61,6 +62,16 @@ define(['reselect'], function(reselect) {
         return ontology[workspaceId].relationships;
     })
 
+    const getVisibleRelationships = createSelector([getRelationships], relationships => {
+        return _.chain(relationships)
+            .map()
+            .filter(_visible)
+            .sortBy('displayName')
+            .value()
+    })
+
+    const getRelationshipKeyIris = createSelector([getOntologyRoot], ontology => ontology.iris && ontology.iris.relationship)
+
     const getVisibleConcepts = createSelector([getConcepts], concepts => {
         return _.chain(concepts)
             .map()
@@ -109,12 +120,17 @@ define(['reselect'], function(reselect) {
 
     return {
         getOntology,
+
         getConcepts,
         getConceptKeyIris,
         getVisibleConcepts,
+
         getProperties,
         getVisibleProperties,
         getVisiblePropertiesWithHeaders,
-        getRelationships
+
+        getRelationships,
+        getRelationshipKeyIris,
+        getVisibleRelationships
     }
 });
