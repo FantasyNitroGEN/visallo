@@ -83,11 +83,13 @@ define([
                 const value = nextProps.iriKeys[key];
                 this.setState({ value, key: false })
                 this.props.onSelected(this.getOptionByValue(value));
+            } else if (nextProps.value !== this.props.value) {
+                this.setState({ value: nextProps.value })
             }
         },
         render() {
             const { creating, value, CreateForm, selectComponent } = this.state;
-            const { options, placeholder, value: defaultValue, valueKey, labelKey, creatable, createForm } = this.props;
+            const { formProps, value: defaultValue, creatable, createForm, ...rest } = this.props;
             return (
                 <div>
                 {
@@ -95,12 +97,11 @@ define([
                         <CreateForm
                             displayName={creating}
                             onCancel={this.onCancel}
-                            onCreate={this.onCreate} />
+                            onCreate={this.onCreate}
+                            {...(formProps || {})} />
                     ) : (
                         <VirtualizedSelect
                             ref={r => { this._virtualized = r}}
-                            options={options}
-                            autofocus
                             simpleValue
                             clearable
                             searchable
@@ -119,10 +120,8 @@ define([
                             onNewOptionClick={this.onNewOptionClick}
                             optionRenderer={NameOptionRenderer}
                             optionHeight={28}
-                            placeholder={placeholder}
-                            labelKey={labelKey}
-                            valueKey={valueKey}
                             matchProp="label"
+                            {...rest}
                         />
                     )
                 }

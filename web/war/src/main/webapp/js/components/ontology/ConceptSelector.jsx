@@ -15,10 +15,25 @@ define([
     const PropTypes = React.PropTypes;
     const ConceptsSelector = React.createClass({
         propTypes: {
+            filter: PropTypes.shape({
+                conceptId: PropTypes.string.isRequired,
+                showAncestors: PropTypes.bool
+            })
         },
         render() {
+            const { concepts, filter, conceptAncestors } = this.props;
+            var options = concepts;
+            if (filter) {
+                options = concepts.filter(o => {
+                    return o.id === filter.conceptId ||
+                        (!filter.showAncestors || conceptAncestors[filter.conceptId].includes(o.id))
+                })
+            }
             return (
-                <BaseSelect createForm={'components/ontology/ConceptForm'} {...this.props} />
+                <BaseSelect
+                    createForm={'components/ontology/ConceptForm'}
+                    options={options}
+                    {...this.props} />
             );
         }
     });
@@ -26,7 +41,8 @@ define([
     return redux.connect(
         (state, props) => {
             return {
-                options: ontologySelectors.getVisibleConcepts(state),
+                concepts: ontologySelectors.getVisibleConcepts(state),
+                conceptAncestors: ontologySelectors.getConceptAncestors(state),
                 iriKeys: ontologySelectors.getConceptKeyIris(state),
                 ...props
             };

@@ -6,6 +6,7 @@ define([
     'util/withTeardown',
     'util/withDataRequest',
     'util/visibility/edit',
+    'util/ontology/relationshipSelect',
     'detail/dropdowns/propertyForm/justification'
 ], function(
     defineComponent,
@@ -14,6 +15,7 @@ define([
     withTeardown,
     withDataRequest,
     Visibility,
+    RelationshipSelect,
     Justification) {
     'use strict';
 
@@ -28,7 +30,7 @@ define([
     function CreateConnectionPopover() {
 
         this.defaultAttrs({
-            connectButtonSelector: '.connect-dialog .btn-primary',
+            connectButtonSelector: '.connect-dialog button.connect',
             invertButtonSelector: '.connect-dialog button.invert-connection'
         });
 
@@ -51,48 +53,47 @@ define([
             this.visibilitySource = null;
             this.on('visibilitychange', this.onVisibilityChange);
             this.on('justificationchange', this.onJustificationChange);
+            this.on('relationshipSelected', this.onRelationshipSelected);
+            this.on('rendered', this.positionDialog);
+
+            RelationshipSelect.attachTo(this.popover.find('.relationships'), {
+                sourceConcept: this.attr.otherCyNode.data('conceptType'),
+                targetConcept: this.attr.cyNode.data('conceptType')
+            });
+            Visibility.attachTo(this.popover.find('.visibility'), {
+                value: ''
+            });
+            Justification.attachTo(this.popover.find('.justification'));
 
             this.updateRelationshipLabels();
         };
 
         this.updateRelationshipLabels = function() {
             var self = this,
-                select = this.popover.find('select'),
                 button = this.select('connectButtonSelector');
 
-            select.html('<option>' + i18n('popovers.connection.loading') + '</option>');
             button.text(i18n('popovers.connection.button.connect')).attr('disabled', true);
 
-            this.getRelationshipLabels(
-                this.attr.otherCyNode,
-                this.attr.cyNode
-            ).then(function(relationships) {
+            this.popover.find('.relationships').trigger('limitParentConceptId', {
+                    sourceConceptId: this.attr.otherCyNode.data('conceptType'),
+                    targetConceptId: this.attr.cyNode.data('conceptType')
+                })
+                .trigger('selectRelationshipId');
+            this.relationship = null;
+            this.positionDialog();
+            this.checkValid();
 
-                if (relationships.length) {
-                    select.html(
-                        relationships.map(function(d) {
-                            return '<option value="' + d.title + '">' + d.displayName + '</option>';
-                        }).join('')
-                    );
-
-                    Visibility.attachTo(self.popover.find('.visibility'), {
-                        value: ''
-                    });
-                    Justification.attachTo(self.popover.find('.justification'));
-                    self.positionDialog();
-                    self.checkValid();
-                } else {
-                    select.html('<option>' + i18n('relationship.form.no_valid_relationships') + '</option>');
-                }
-
-                self.positionDialog();
-            }).catch(function() {
-                select.html('<option>' + i18n('popovers.connection.error') + '</option>');
-            })
-        }
+            // TODO:
+            //select.html('<option>' + i18n('relationship.form.no_valid_relationships') + '</option>');
+        };
 
         this.getTemplate = function() {
             return new Promise(f => require(['./createConnectionPopoverTpl'], f));
+        };
+
+        this.onRelationshipSelected = function(event, data) {
+            this.relationship = data.relationship ? data.relationship.title : null;
+            this.checkValid();
         };
 
         this.onVisibilityChange = function(event, data) {
@@ -106,10 +107,9 @@ define([
         };
 
         this.checkValid = function() {
-            var button = this.select('connectButtonSelector'),
-                select = this.popover.find('select');
+            var button = this.select('connectButtonSelector');
 
-            if (select.val() &&
+            if (this.relationship &&
                 this.visibilitySource && this.visibilitySource.valid &&
                 this.justification && this.justification.valid) {
                 button.removeAttr('disabled');
@@ -169,12 +169,9 @@ define([
                 parameters = {
                     outVertexId: this.attr.outVertexId,
                     inVertexId: this.attr.inVertexId,
-                    predicateLabel: $target.siblings('select').val(),
+                    predicateLabel: this.relationship,
                     visibilitySource: this.visibilitySource.value
-                },
-                inputs = this.popover.find('select, input')
-                    .attr('disabled', true);
-
+                };
             if (this.attr.otherCyNode.id() !== this.attr.edge.data('source')) {
                 // Invert
                 parameters.outVertexId = this.attr.inVertexId;
@@ -195,7 +192,6 @@ define([
                 })
                 .catch(function(error) {
                     $target.text(i18n('popovers.connection.button.connect'))
-                        .add(inputs)
                         .removeAttr('disabled');
                     self.markFieldErrors(error);
                     self.positionDialog();
@@ -203,33 +199,6 @@ define([
                 .finally(function() {
                     self.attr.teardownOnTap = true;
                 })
-        };
-
-        this.getRelationshipLabels = function(source, dest) {
-            var sourceConceptTypeId = source.data('conceptType'),
-                destConceptTypeId = dest.data('conceptType');
-
-            return Promise.all([
-                this.dataRequest('ontology', 'relationshipsBetween', sourceConceptTypeId, destConceptTypeId),
-                this.dataRequest('ontology', 'relationships')
-            ]).then(function(results) {
-                var relationships = results[0],
-                    ontologyRelationships = results[1],
-                    relationshipsTpl = [];
-
-                relationships.forEach(function(relationship) {
-                    var ontologyRelationship = ontologyRelationships.byTitle[relationship.title];
-                    if (ontologyRelationship && ontologyRelationship.userVisible !== false) {
-                        relationshipsTpl.push({
-                            title: relationship.title,
-                            displayName: ontologyRelationship.displayName
-                        });
-                    }
-                });
-
-                return relationshipsTpl;
-
-            });
         };
     }
 });

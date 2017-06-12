@@ -48,6 +48,9 @@ define([
 
             this.attacher = attacher()
                 .node(this.node)
+                .params({
+                    autofocus: this.attr.focus === true
+                })
                 .behavior({
                     onSelected: (attacher, concept) => {
                         this.trigger('conceptSelected', { concept })

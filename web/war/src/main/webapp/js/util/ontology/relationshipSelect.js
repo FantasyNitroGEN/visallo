@@ -28,9 +28,23 @@ define([
         })
 
         this.after('initialize', function() {
+            var self = this;
+            console.log(this.node)
+            this.on('limitParentConceptId', function(event, data) {
+                const { conceptId: concept, sourceConceptId: sourceConcept, targetConceptId: targetConcept } = data;
+                self.attacher.params({ concept, sourceConcept, targetConcept });
+                self.attacher.attach()
+            })
+            this.on('selectRelationshipId', function(event, data) {
+                self.attacher.params({ ...self.attacher._params, value: '' }).attach()
+            })
 
             this.attacher = attacher()
                 .node(this.node)
+                .params({
+                    sourceConcept: this.attr.sourceConcept,
+                    targetConcept: this.attr.targetConcept
+                })
                 .behavior({
                     onSelected: (attacher, relationship) => {
                         this.trigger('relationshipSelected', { relationship })

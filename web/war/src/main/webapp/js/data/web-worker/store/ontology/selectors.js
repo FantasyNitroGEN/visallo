@@ -1,14 +1,21 @@
 define(['reselect'], function(reselect) {
     const { createSelector } = reselect;
 
-    const _visible = item => item.userVisible !== false &&
-        item.id !== 'http://www.w3.org/2002/07/owl#Thing' &&
-        item.id !== 'http://visallo.org#root' &&
-        item.displayName;
+    const _visible = (item, options = {}) => {
+        const { rootItemsHidden = true } = options;
+        return item &&
+            item.userVisible !== false &&
+            (!rootItemsHidden || (
+                item.id !== 'http://www.w3.org/2002/07/owl#Thing' &&
+                item.id !== 'http://visallo.org#root'
+            )) &&
+            item.displayName;
+    };
     const _collectParents = concepts => concept => {
         const collecting = {
             color: null,
             path: [],
+            pathIris: [],
             properties: [],
             glyphIconHref: null,
             glyphIconSelectedHref: null
@@ -16,12 +23,14 @@ define(['reselect'], function(reselect) {
         _collect(concept);
         const {
             path,
+            pathIris,
             properties,
             glyphIconHref = 'img/glyphicons/glyphicons_194_circle_question_mark@2x.png',
             ...override } = collecting;
         const newConcept = {
             ...concept,
             path: '/' + path.reverse().join('/'),
+            pathIris,
             properties: _.uniq(properties),
             depth: path.length - 1,
             glyphIconHref,
@@ -35,6 +44,7 @@ define(['reselect'], function(reselect) {
             collecting.glyphIconSelectedHref = collecting.glyphIconSelectedHref || concept.glyphIconSelectedHref;
             if (_visible(concept)) {
                 collecting.path.push(concept.displayName)
+                collecting.pathIris.push(concept.title)
             }
             collecting.properties = collecting.properties.concat(concept.properties);
 
@@ -62,15 +72,41 @@ define(['reselect'], function(reselect) {
         return ontology[workspaceId].relationships;
     })
 
-    const getVisibleRelationships = createSelector([getRelationships], relationships => {
+    const getVisibleRelationships = createSelector([getRelationships, getConcepts], (relationships, concepts) => {
+        const anyIrisVisible = iris => _.isArray(iris) && _.any(iris, iri => _visible(concepts[iri], { rootItemsHidden: false }))
+        const relationshipConceptsVisible = r => anyIrisVisible(r.rangeConceptIris) && anyIrisVisible(r.domainConceptIris);
         return _.chain(relationships)
             .map()
-            .filter(_visible)
+            .filter(r => _visible(r) && relationshipConceptsVisible(r))
             .sortBy('displayName')
             .value()
     })
 
     const getRelationshipKeyIris = createSelector([getOntologyRoot], ontology => ontology.iris && ontology.iris.relationship)
+
+    const getConceptAncestors = createSelector([getConcepts], concepts => {
+        const byParent = _.groupBy(concepts, 'parentConcept');
+        const collectAncestors = (list, c, skipFirst) => {
+            if (!skipFirst) list.push(c.title);
+            if (c.parentConcept) {
+                collectAncestors(list, concepts[c.parentConcept]);
+            }
+            return _.uniq(list);
+        }
+        return _.mapObject(concepts, c => collectAncestors([], c, true));
+    })
+
+    const getConceptDescendents = createSelector([getConcepts], concepts => {
+        const byParent = _.groupBy(concepts, 'parentConcept');
+        const collectDescendents = (list, c, skipFirst) => {
+            if (!skipFirst) list.push(c.title);
+            if (byParent[c.title]) {
+                byParent[c.title].forEach(inner => collectDescendents(list, inner));
+            }
+            return _.uniq(list);
+        }
+        return _.mapObject(concepts, c => collectDescendents([], c, true));
+    })
 
     const getVisibleConcepts = createSelector([getConcepts], concepts => {
         return _.chain(concepts)
@@ -123,6 +159,8 @@ define(['reselect'], function(reselect) {
 
         getConcepts,
         getConceptKeyIris,
+        getConceptDescendents,
+        getConceptAncestors,
         getVisibleConcepts,
 
         getProperties,

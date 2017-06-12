@@ -28,6 +28,7 @@
         <rdfs:label xml:lang="en">Has Source</rdfs:label>
         <rdfs:domain rdf:resource="&owl;Thing"/>
         <rdfs:range rdf:resource="&owl;Thing"/>
+        <visallo:userVisible rdf:datatype="&xsd;boolean">false</visallo:userVisible>
         <visallo:addable rdf:datatype="&xsd;boolean">false</visallo:addable>
         <visallo:updateable rdf:datatype="&xsd;boolean">false</visallo:updateable>
     </owl:ObjectProperty>

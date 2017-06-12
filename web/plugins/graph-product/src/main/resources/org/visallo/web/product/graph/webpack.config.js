@@ -33,6 +33,7 @@ var VisalloAmdExternals = [
     'util/withDataRequest',
     'util/withTeardown',
     'util/withFormFieldErrors',
+    'util/ontology/relationshipSelect',
     'detail/dropdowns/propertyForm/justification',
     'util/visibility/edit',
     'flight/lib/component',
