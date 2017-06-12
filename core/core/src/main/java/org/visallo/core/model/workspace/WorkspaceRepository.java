@@ -20,6 +20,7 @@ import org.visallo.core.ingest.video.VideoFrameInfo;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -316,20 +317,21 @@ public abstract class WorkspaceRepository {
         List<ClientApiPublishItem> addUpdateData = publishDataByAction.get(ClientApiPublishItem.Action.ADD_OR_UPDATE);
         if (addUpdateData != null && !addUpdateData.isEmpty()) {
             publishRequiredConcepts(addUpdateData, user, workspaceId, authorizations);
+            publishRequiredRelationships(addUpdateData, user, workspaceId, authorizations);
 
             // Don't publish any data for which we couldn't also publish the required ontology
             addUpdateData = addUpdateData.stream().filter(data -> data.getErrorMessage() == null).collect(Collectors.toList());
 
-            publishVertices(addUpdateData, workspaceId, authorizations);
-            publishEdges(addUpdateData, workspaceId, authorizations);
+            publishVertices(addUpdateData, user, workspaceId, authorizations);
+            publishEdges(addUpdateData, user, workspaceId, authorizations);
         }
 
-        publishProperties(publishData, workspaceId, authorizations);
+        publishProperties(publishData, user, workspaceId, authorizations);
 
         List<ClientApiPublishItem> deletionData = publishDataByAction.get(ClientApiPublishItem.Action.DELETE);
         if (deletionData != null && !deletionData.isEmpty()) {
-            publishEdges(deletionData, workspaceId, authorizations);
-            publishVertices(deletionData, workspaceId, authorizations);
+            publishEdges(deletionData, user, workspaceId, authorizations);
+            publishVertices(deletionData, user, workspaceId, authorizations);
         }
 
         ClientApiWorkspacePublishResponse workspacePublishResponse = new ClientApiWorkspacePublishResponse();
@@ -341,7 +343,7 @@ public abstract class WorkspaceRepository {
         return workspacePublishResponse;
     }
 
-    private void publishVertices(List<ClientApiPublishItem> publishData, String workspaceId, Authorizations authorizations) {
+    private void publishVertices(List<ClientApiPublishItem> publishData, User user, String workspaceId, Authorizations authorizations) {
         LOGGER.debug("BEGIN publishVertices");
 
         Map<String, ClientApiVertexPublishItem> vertexIdToPublishData = publishData.stream()
@@ -375,7 +377,7 @@ public abstract class WorkspaceRepository {
                     data.setErrorMessage(msg);
                     continue;
                 }
-                publishVertex(vertex, data.getAction(), authWithVideoFrame, workspaceId);
+                publishVertex(vertex, data.getAction(), user, authWithVideoFrame, workspaceId);
             } catch (Exception ex) {
                 data.setErrorMessage(ex.getMessage());
             }
@@ -455,8 +457,74 @@ public abstract class WorkspaceRepository {
         CloseableUtils.closeQuietly(verticesToPublish);
     }
 
+    private void publishRequiredRelationships(
+            List<ClientApiPublishItem> publishData,
+            User user,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
+        Map<String, ClientApiRelationshipPublishItem> publishDataByEdgeId = publishData.stream()
+                .filter(data -> data instanceof ClientApiRelationshipPublishItem)
+                .map(data -> ((ClientApiRelationshipPublishItem) data))
+                .collect(Collectors.toMap(ClientApiRelationshipPublishItem::getEdgeId, Function.identity()));
+
+        Iterable<Edge> edgesToPublish = graph.getEdges(
+                publishDataByEdgeId.keySet(),
+                EnumSet.of(FetchHint.PROPERTIES),
+                authorizations);
+
+        Map<String, List<String>> edgeIdsByLabel = StreamUtils.stream(edgesToPublish)
+                .collect(Collectors.groupingBy(Edge::getLabel, Collectors.mapping(Edge::getId, Collectors.toList())));
+
+        List<String> publishedRelationshipIds = edgeIdsByLabel.keySet().stream()
+                .map(iri -> {
+                    Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, user, workspaceId);
+                    if (relationship == null) {
+                        edgeIdsByLabel.get(iri).forEach(edgeId -> {
+                            ClientApiRelationshipPublishItem data = publishDataByEdgeId.get(edgeId);
+                            data.setErrorMessage("Unable to locate relationship with IRI " + iri);
+                        });
+                    }
+                    return relationship;
+                })
+                .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC )
+                .flatMap(relationship -> {
+                    try {
+                        return ontologyRepository.getRelationshipAndAncestors(relationship, user, workspaceId).stream()
+                                .filter(relationshipOrAncestor -> relationshipOrAncestor.getSandboxStatus() != SandboxStatus.PUBLIC)
+                                .map(relationshipOrAncestor -> {
+                                    try {
+                                        ontologyRepository.publishRelationship(relationshipOrAncestor, user, workspaceId);
+                                    } catch (Exception ex) {
+                                        LOGGER.error("Error publishing relationship %s", relationship.getIRI(), ex);
+                                        edgeIdsByLabel.get(relationship.getIRI()).forEach(edgeId -> {
+                                            ClientApiRelationshipPublishItem data = publishDataByEdgeId.get(edgeId);
+                                            data.setErrorMessage("Unable to publish relationship " + relationship.getDisplayName());
+                                        });
+                                    }
+                                    return relationshipOrAncestor.getId();
+                                });
+                    } catch (Exception ex) {
+                        LOGGER.error("Error publishing relationship %s", relationship.getIRI(), ex);
+                        edgeIdsByLabel.get(relationship.getIRI()).forEach(edgeId -> {
+                            ClientApiRelationshipPublishItem data = publishDataByEdgeId.get(edgeId);
+                            data.setErrorMessage("Unable to publish relationship " + relationship.getDisplayName());
+                        });
+                    }
+                    return Stream.empty();
+                }).collect(Collectors.toList());
+
+        if (!publishedRelationshipIds.isEmpty()) {
+            ontologyRepository.clearCache();
+            workQueueRepository.pushOntologyRelationshipsChange(null, publishedRelationshipIds);
+        }
+
+        CloseableUtils.closeQuietly(edgesToPublish);
+    }
+
     private void publishEdges(
             List<ClientApiPublishItem> publishData,
+            User user,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -492,7 +560,7 @@ public abstract class WorkspaceRepository {
                     data.setErrorMessage("Cannot publish edge, " + edge.getId() + ", because either source and/or dest vertex are not public");
                     continue;
                 }
-                publishEdge(edge, outVertex, inVertex, data.getAction(), workspaceId, authorizations);
+                publishEdge(edge, outVertex, inVertex, data.getAction(), user, workspaceId, authorizations);
             } catch (Exception ex) {
                 data.setErrorMessage(ex.getMessage());
             }
@@ -503,6 +571,7 @@ public abstract class WorkspaceRepository {
 
     private void publishProperties(
             ClientApiPublishItem[] publishData,
+            User user,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -518,7 +587,7 @@ public abstract class WorkspaceRepository {
                 String propertyKey = propertyPublishItem.getKey();
                 String propertyName = propertyPublishItem.getName();
 
-                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(propertyName);
+                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(propertyName, user, workspaceId);
                 checkNotNull(ontologyProperty, "Could not find ontology property: " + propertyName);
                 if (!ontologyProperty.getUserVisible() || propertyName.equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
                     continue;
@@ -569,6 +638,7 @@ public abstract class WorkspaceRepository {
     private void publishVertex(
             Vertex vertex,
             ClientApiPublishItem.Action action,
+            User user,
             Authorizations authorizations,
             String workspaceId
     ) {
@@ -598,7 +668,7 @@ public abstract class WorkspaceRepository {
         vertexElementMutation.alterElementVisibility(visalloVisibility.getVisibility());
 
         for (Property property : vertex.getProperties()) {
-            OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName());
+            OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName(), user, workspaceId);
             checkNotNull(ontologyProperty, "Could not find ontology property " + property.getName());
             boolean userVisible = ontologyProperty.getUserVisible();
             if (shouldAutoPublishElementProperty(property, userVisible)) {
@@ -786,6 +856,7 @@ public abstract class WorkspaceRepository {
             @SuppressWarnings("UnusedParameters") Vertex outVertex,
             Vertex inVertex,
             ClientApiPublishItem.Action action,
+            User user,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -826,7 +897,7 @@ public abstract class WorkspaceRepository {
             if (VisalloProperties.JUSTIFICATION.getPropertyName().equals(property.getName())) {
                 userVisible = false;
             } else {
-                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName());
+                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName(), user,workspaceId);
                 checkNotNull(
                         ontologyProperty,
                         "Could not find ontology property " + property.getName() + " on property " + property

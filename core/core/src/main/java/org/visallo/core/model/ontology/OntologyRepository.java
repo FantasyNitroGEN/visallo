@@ -193,6 +193,12 @@ public interface OntologyRepository {
 
     Set<Relationship> getRelationshipAndAllChildren(Relationship relationship, User user, String workspaceId);
 
+    Relationship getParentRelationship(Relationship relationship, User user, String workspaceId);
+
+    Set<Relationship> getAncestorRelationships(Relationship relationship, User user, String workspaceId);
+
+    Set<Relationship> getRelationshipAndAncestors(Relationship relationship, User user, String workspaceId);
+
     Iterable<Concept> getConcepts(Iterable<String> ids, User user, String workspaceId);
 
     /**
@@ -244,6 +250,16 @@ public interface OntologyRepository {
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
             boolean deleteChangeableProperties
+    );
+
+    Relationship getOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            boolean deleteChangeableProperties,
+            User user,
+            String workspaceId
     );
 
     Relationship getOrCreateRelationshipType(
@@ -539,6 +555,8 @@ public interface OntologyRepository {
     String generateDynamicIri(Class type, String displayName, String workspaceId);
 
     void publishConcept(Concept concept, User user, String workspaceId);
+
+    void publishRelationship(Relationship relationship, User user, String workspaceId);
 
     class ElementTypeFilter implements ClientApiObject {
         public String iri;

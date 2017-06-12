@@ -15,8 +15,6 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.*;
-import org.visallo.core.model.user.PrivilegeRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -255,7 +253,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         }
 
         for (String domainIri : domainIris) {
-            getConceptByIRI(domainIri).getProperties().add(property);
+            getConceptByIRI(domainIri, user, workspaceId).getProperties().add(property);
         }
     }
 
@@ -267,6 +265,18 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 InMemoryConcept sandboxConcept = sandboxedConcepts.remove(concept.getIRI());
                 sandboxConcept.removeWorkspaceId();
                 conceptsCache.get(PUBLIC_ONTOLOGY_CACHE_KEY).put(concept.getIRI(), sandboxConcept);
+            }
+        }
+    }
+
+    @Override
+    public void internalPublishRelationship(Relationship relationship, User user, String workspaceId) {
+        if (relationshipsCache.containsKey(workspaceId)) {
+            Map<String, InMemoryRelationship> sandboxedRelationships = relationshipsCache.get(workspaceId);
+            if (sandboxedRelationships.containsKey(relationship.getIRI())) {
+                InMemoryRelationship sandboxRelationship = sandboxedRelationships.remove(relationship.getIRI());
+                sandboxRelationship.removeWorkspaceId();
+                relationshipsCache.get(PUBLIC_ONTOLOGY_CACHE_KEY).put(relationship.getIRI(), sandboxRelationship);
             }
         }
     }
@@ -360,7 +370,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Iterable<Relationship> getRelationships(User user, String workspaceId) {
-        return computeCacheForWorkspace(relationshipsCache, user, workspaceId).values().stream().collect(Collectors.toList());
+        return new ArrayList<>(computeCacheForWorkspace(relationshipsCache, user, workspaceId).values());
     }
 
     @Override
@@ -389,7 +399,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Iterable<OntologyProperty> getProperties(User user, String workspaceId) {
-        return computeCacheForWorkspace(propertiesCache, user, workspaceId).values().stream().collect(Collectors.toList());
+        return new ArrayList<>(computeCacheForWorkspace(propertiesCache, user, workspaceId).values());
     }
 
     @Override
@@ -421,7 +431,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     public Iterable<Concept> getConceptsWithProperties(User user, String workspaceId) {
-        return computeCacheForWorkspace(conceptsCache, user, workspaceId).values().stream().collect(Collectors.toList());
+        return new ArrayList<>(computeCacheForWorkspace(conceptsCache, user, workspaceId).values());
     }
 
     @Override
@@ -437,6 +447,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     @Override
     public Concept getParentConcept(Concept concept, User user, String workspaceId) {
         return computeCacheForWorkspace(conceptsCache, user, workspaceId).get(concept.getParentConceptIRI());
+    }
+
+    @Override
+    public Relationship getParentRelationship(Relationship relationship, User user, String workspaceId) {
+        return computeCacheForWorkspace(relationshipsCache, user, workspaceId).get(relationship.getParentIRI());
     }
 
     @Override
@@ -529,6 +544,10 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                 properties,
                 workspaceId
         );
+
+        if (displayName != null) {
+            inMemRelationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, getAuthorizations(user, workspaceId));
+        }
 
         String cacheKey = workspaceId == null  ? PUBLIC_ONTOLOGY_CACHE_KEY : workspaceId;
         Map<String, InMemoryRelationship> workspaceCache = relationshipsCache.compute(cacheKey, (k, v) -> v == null ? new HashMap<>() : v);

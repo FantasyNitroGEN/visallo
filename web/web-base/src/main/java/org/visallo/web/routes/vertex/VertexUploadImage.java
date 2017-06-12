@@ -81,7 +81,7 @@ public class VertexUploadImage implements ParameterizedHandler {
     ) throws Exception {
         final List<Part> files = Lists.newArrayList(request.getParts());
 
-        Concept concept = ontologyRepository.getConceptByIRI(conceptIri);
+        Concept concept = ontologyRepository.getConceptByIRI(conceptIri, user, workspaceId);
         checkNotNull(concept, "Could not find image concept: " + conceptIri);
 
         if (files.size() != 1) {
@@ -105,7 +105,7 @@ public class VertexUploadImage implements ParameterizedHandler {
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), visibilityTranslator.getDefaultVisibility());
         VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibilityTranslator.getDefaultVisibility());
 
-        String title = imageTitle(entityVertex);
+        String title = imageTitle(entityVertex, user, workspaceId);
         ElementBuilder<Vertex> artifactVertexBuilder = convertToArtifact(file, title, visibilityJson, metadata, user, visibility);
         Vertex artifactVertex = artifactVertexBuilder.save(authorizations);
         this.graph.flush();
@@ -148,13 +148,13 @@ public class VertexUploadImage implements ParameterizedHandler {
         return (ClientApiVertex) ClientApiConverter.toClientApi(entityVertex, workspaceId, authorizations);
     }
 
-    private String imageTitle(Vertex entityVertex) {
+    private String imageTitle(Vertex entityVertex, User user, String workspaceId) {
         Property titleProperty = VisalloProperties.TITLE.getFirstProperty(entityVertex);
         Object title;
         if (titleProperty == null) {
             String conceptTypeProperty = VisalloProperties.CONCEPT_TYPE.getPropertyName();
             String vertexConceptType = (String) entityVertex.getProperty(conceptTypeProperty).getValue();
-            Concept concept = ontologyRepository.getConceptByIRI(vertexConceptType);
+            Concept concept = ontologyRepository.getConceptByIRI(vertexConceptType, user, workspaceId);
             title = concept.getDisplayName();
         } else {
             title = titleProperty.getValue();

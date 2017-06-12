@@ -9,6 +9,7 @@ import org.vertexium.query.Query;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -39,8 +40,8 @@ public class ElementSearchRunner extends VertexiumObjectSearchRunnerWithRelatedB
     }
 
     @Override
-    protected QueryAndData getQuery(SearchOptions searchOptions, final Authorizations authorizations) {
-        JSONArray filterJson = getFilterJson(searchOptions);
+    protected QueryAndData getQuery(SearchOptions searchOptions, User user, Authorizations authorizations) {
+        JSONArray filterJson = getFilterJson(searchOptions, user, searchOptions.getWorkspaceId());
         String queryString = searchOptions.getRequiredParameter("q", String.class);
         LOGGER.debug("search %s\n%s", queryString, filterJson.toString(2));
 

@@ -6,6 +6,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -146,7 +147,12 @@ public class InMemoryRelationship extends Relationship {
         return workspaceId;
     }
 
-    public void remvoeWorkspaceId() {
+    public void removeWorkspaceId() {
         workspaceId = null;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return workspaceId == null ? SandboxStatus.PUBLIC : SandboxStatus.PRIVATE;
     }
 }

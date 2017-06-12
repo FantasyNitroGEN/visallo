@@ -809,6 +809,10 @@ public abstract class WorkQueueRepository {
         pushOntologyChange(workspaceId, null, null, Arrays.asList(ids));
     }
 
+    public void pushOntologyRelationshipsChange(String workspaceId, List<String> ids) {
+        pushOntologyChange(workspaceId, null, ids, null);
+    }
+
     public void pushOntologyRelationshipsChange(String workspaceId, String... ids) {
         pushOntologyChange(workspaceId, null, Arrays.asList(ids), null);
     }

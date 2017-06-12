@@ -17,6 +17,7 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -37,8 +38,8 @@ public abstract class VertexiumObjectSearchRunnerWithRelatedBase extends Vertexi
     }
 
     @Override
-    protected QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations) {
-        JSONArray filterJson = getFilterJson(searchOptions);
+    protected QueryAndData getQuery(SearchOptions searchOptions, User user, Authorizations authorizations) {
+        JSONArray filterJson = getFilterJson(searchOptions, user, searchOptions.getWorkspaceId());
         String queryString;
 
         String[] relatedToVertexIdsParam = searchOptions.getOptionalParameter("relatedToVertexIds[]", String[].class);

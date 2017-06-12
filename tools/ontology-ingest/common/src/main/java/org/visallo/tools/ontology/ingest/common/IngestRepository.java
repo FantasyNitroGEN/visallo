@@ -23,6 +23,7 @@ public class IngestRepository {
     private final Graph graph;
     private final AuthorizationRepository authorizationRepository;
     private final VisibilityTranslator visibilityTranslator;
+    private final UserRepository userRepository;
     private final OntologyRepository ontologyRepository;
 
     private final Set<Class> verifiedClasses = new HashSet<>();
@@ -43,6 +44,7 @@ public class IngestRepository {
         this.authorizationRepository = authorizationRepository;
         this.visibilityTranslator = visibilityTranslator;
         this.ontologyRepository = ontologyRepository;
+        this.userRepository = userRepository;
         defaultIngestOptions = new IngestOptions(userRepository.getSystemUser());
     }
 
@@ -147,7 +149,7 @@ public class IngestRepository {
     public ValidationResult validateConceptBuilder(ConceptBuilder builder) {
         if (!verifiedClasses.contains(builder.getClass())) {
             LOGGER.trace("Validating Concept: %s", builder.getIri());
-            Concept concept = ontologyRepository.getConceptByIRI(builder.getIri());
+            Concept concept = ontologyRepository.getConceptByIRI(builder.getIri(), userRepository.getSystemUser(), null);
             if (concept == null) {
                 return new ValidationResult("Concept class: " + builder.getClass().getName() + " IRI: " + builder.getIri() + " is invalid");
             }
@@ -161,7 +163,7 @@ public class IngestRepository {
     public ValidationResult validateRelationshipBuilder(RelationshipBuilder builder) {
         if (!verifiedClasses.contains(builder.getClass())) {
             LOGGER.trace("Validating Relationship: %s", builder.getIri());
-            Relationship relationship = ontologyRepository.getRelationshipByIRI(builder.getIri());
+            Relationship relationship = ontologyRepository.getRelationshipByIRI(builder.getIri(), userRepository.getSystemUser(), null);
             if (relationship == null) {
                 return new ValidationResult("Relationship class: " + builder.getClass().getName() + " IRI: " + builder.getIri() + " is invalid");
             }
@@ -176,7 +178,7 @@ public class IngestRepository {
                     builder.getOutVertexIri(),
                     builder.getInVertexIri()
             );
-            Relationship relationship = ontologyRepository.getRelationshipByIRI(builder.getIri());
+            Relationship relationship = ontologyRepository.getRelationshipByIRI(builder.getIri(), userRepository.getSystemUser(), null);
             List<String> domainConceptIRIs = relationship.getDomainConceptIRIs();
             List<String> outVertexAndParentIris = getConceptIriWithParents(builder.getOutVertexIri());
             outVertexAndParentIris.retainAll(domainConceptIRIs);
@@ -231,9 +233,9 @@ public class IngestRepository {
             LOGGER.trace("Validating Property on %s: %s", entityBuilder.getIri(), propertyAddition.getIri());
             HasOntologyProperties conceptOrRelationship;
             if (entityBuilder instanceof ConceptBuilder) {
-                conceptOrRelationship = ontologyRepository.getConceptByIRI(entityBuilder.getIri());
+                conceptOrRelationship = ontologyRepository.getConceptByIRI(entityBuilder.getIri(), userRepository.getSystemUser(), null);
             } else if (entityBuilder instanceof RelationshipBuilder) {
-                conceptOrRelationship = ontologyRepository.getRelationshipByIRI(entityBuilder.getIri());
+                conceptOrRelationship = ontologyRepository.getRelationshipByIRI(entityBuilder.getIri(), userRepository.getSystemUser(), null);
             } else {
                 return new ValidationResult("Unexpected type: " + entityBuilder.getClass().getName());
             }
@@ -242,7 +244,7 @@ public class IngestRepository {
                 return new ValidationResult("Entity: " + entityBuilder.getIri() + " does not exist in the ontology");
             }
 
-            OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyAddition.getIri());
+            OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyAddition.getIri(), userRepository.getSystemUser(), null);
             if (property == null) {
                 return new ValidationResult("Property: " + propertyAddition.getIri() + " does not exist in the ontology");
             }
@@ -269,7 +271,7 @@ public class IngestRepository {
     private boolean isPropertyValidForEntity(HasOntologyProperties entity, OntologyProperty property) {
         if (entity.getProperties() == null || !entity.getProperties().contains(property)) {
             if (entity instanceof Concept) {
-                Concept parentConcept = ontologyRepository.getParentConcept((Concept) entity);
+                Concept parentConcept = ontologyRepository.getParentConcept((Concept) entity, userRepository.getSystemUser(), null);
                 if (parentConcept != null) {
                     return isPropertyValidForEntity(parentConcept, property);
                 }

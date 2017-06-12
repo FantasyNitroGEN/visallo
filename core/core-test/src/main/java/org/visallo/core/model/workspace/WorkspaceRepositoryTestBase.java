@@ -5,10 +5,13 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.Element;
 import org.vertexium.Vertex;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.user.UserPropertyPrivilegeRepository;
+import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
@@ -21,8 +24,14 @@ import static org.junit.Assert.*;
 
 public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBase {
     private static final String JUNIT_CONCEPT_TYPE = "junit-concept-iri";
+    private static final String JUNIT_EDGE_LABEL = "junit-edge-iri";
+
+    private WorkspaceHelper workspaceHelper;
 
     private User user;
+    private Workspace workspace;
+    private Authorizations workspaceAuthorizations;
+    private Concept thingConcept;
 
     @Before
     public void before() {
@@ -31,13 +40,34 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
 
         User systemUser = getUserRepository().getSystemUser();
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(systemUser);
-        Concept thing = getOntologyRepository().getEntityConcept(systemUser, null);
+        thingConcept = getOntologyRepository().getEntityConcept(systemUser, null);
 
-        Relationship hasEntityRel = getOntologyRepository().getOrCreateRelationshipType(null, Collections.singleton(thing), Collections.singleton(thing), "has-entity-iri", null, true, systemUser, null);
+        Set<Concept> thingSet = Collections.singleton(thingConcept);
+        Relationship hasEntityRel = getOntologyRepository().getOrCreateRelationshipType(null, thingSet, thingSet, "has-entity-iri", true, systemUser, null);
         hasEntityRel.addIntent("entityHasImage", authorizations);
 
-        getOntologyRepository().getOrCreateConcept(thing, JUNIT_CONCEPT_TYPE, "Junit Concept", null, systemUser, null);
+        getOntologyRepository().getOrCreateConcept(thingConcept, JUNIT_CONCEPT_TYPE, "Junit Concept", null, systemUser, null);
+        getOntologyRepository().getOrCreateRelationshipType(null, thingSet, thingSet, JUNIT_EDGE_LABEL, true, systemUser, null);
         getOntologyRepository().clearCache();
+
+        workspace = getWorkspaceRepository().add("ws1", "workspace 1", user);
+        workspaceAuthorizations = getAuthorizationRepository().getGraphAuthorizations(user, workspace.getWorkspaceId());
+    }
+
+    private WorkspaceHelper getWorkspaceHelper() {
+        if (workspaceHelper == null) {
+            workspaceHelper = new WorkspaceHelper(
+                    getTermMentionRepository(),
+                    getWorkQueueRepository(),
+                    getGraph(),
+                    getOntologyRepository(),
+                    getWorkspaceRepository(),
+                    getPrivilegeRepository(),
+                    getAuthorizationRepository()
+            );
+        }
+
+        return workspaceHelper;
     }
 
     @Override
@@ -45,9 +75,6 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
 
     @Test
     public void testUpdateProductExtendedData() {
-        Workspace workspace = getWorkspaceRepository().add("ws1", "workspace 1", user);
-        String workspaceId = workspace.getWorkspaceId();
-
         String kind = MockWorkProduct.class.getName();
         JSONObject params = new JSONObject();
         JSONObject extendedData = new JSONObject();
@@ -56,7 +83,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         extendedData.put("key3", new JSONObject("{\"a\":\"b\"}"));
         params.put("extendedData", extendedData);
         Product product = getWorkspaceRepository().addOrUpdateProduct(
-                workspaceId,
+                workspace.getWorkspaceId(),
                 "p1",
                 "product 1",
                 kind,
@@ -65,7 +92,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         );
         String productId = product.getId();
 
-        product = getWorkspaceRepository().findProductById(workspaceId, productId, new JSONObject(), true, user);
+        product = getWorkspaceRepository().findProductById(workspace.getWorkspaceId(), productId, new JSONObject(), true, user);
         assertEquals("value1", product.getExtendedData().get("key1"));
         assertEquals("value2", product.getExtendedData().get("key2"));
         Object value3 = product.getExtendedData().get("key3");
@@ -79,9 +106,9 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         extendedData.put("key2", "value2b");
         extendedData.put("key3", new JSONObject("{\"a\":\"b2\"}"));
         params.put("extendedData", extendedData);
-        getWorkspaceRepository().addOrUpdateProduct(workspaceId, productId, null, null, params, user);
+        getWorkspaceRepository().addOrUpdateProduct(workspace.getWorkspaceId(), productId, null, null, params, user);
 
-        product = getWorkspaceRepository().findProductById(workspaceId, productId, new JSONObject(), true, user);
+        product = getWorkspaceRepository().findProductById(workspace.getWorkspaceId(), productId, new JSONObject(), true, user);
         assertEquals(null, product.getExtendedData().get("key1"));
         assertEquals("value2b", product.getExtendedData().get("key2"));
         value3 = product.getExtendedData().get("key3");
@@ -90,49 +117,73 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
     }
 
     @Test
-    public void testPublishingVerticesWithUnknownConcept() {
-        doTestPublishVertexAdd("ws1", "junit-missing", "Unable to locate concept with IRI junit-missing", null);
+    public void testPublishingNewVertexWithUnknownConcept() {
+        doTestPublishVertexAdd("junit-missing", "Unable to locate concept with IRI junit-missing", null);
     }
 
     @Test
-    public void testPublishingVertices() {
-        doTestPublishVertexAdd("ws1", JUNIT_CONCEPT_TYPE, null, SandboxStatus.PUBLIC);
+    public void testPublishingNewVertex() {
+        doTestPublishVertexAdd(JUNIT_CONCEPT_TYPE, null, SandboxStatus.PUBLIC);
     }
 
     @Test
-    public void testPublishingVerticesAndConceptsWithoutPublishPrivilege() {
-        String workspaceId = "ws";
-
+    public void testPublishingNewVertexAndConceptWithoutPublishPrivilege() {
         UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
         privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD), getUserRepository().getSystemUser());
 
-        Concept thing = getOntologyRepository().getEntityConcept(getUserRepository().getSystemUser(), null);
         String newConceptIri = "new-concept";
-        getOntologyRepository().getOrCreateConcept(thing, newConceptIri, "Junit Concept", null, user, workspaceId);
+        getOntologyRepository().getOrCreateConcept(thingConcept, newConceptIri, "Junit Concept", null, user, workspace.getWorkspaceId());
         getOntologyRepository().clearCache();
 
-        doTestPublishVertexAdd(workspaceId, newConceptIri, "Unable to publish concept Junit Concept", SandboxStatus.PRIVATE);
+        doTestPublishVertexAdd(newConceptIri, "Unable to publish concept Junit Concept", SandboxStatus.PRIVATE);
     }
 
     @Test
-    public void testPublishingVerticesAndConcepts() {
-        String workspaceId = "ws";
-
+    public void testPublishingNewVertexAndConcept() {
         UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
         privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD, Privilege.ONTOLOGY_PUBLISH), getUserRepository().getSystemUser());
 
-        Concept thing = getOntologyRepository().getEntityConcept(getUserRepository().getSystemUser(), null);
         String newConceptIri = "new-concept";
-        getOntologyRepository().getOrCreateConcept(thing, newConceptIri, "Junit Concept", null, user, workspaceId);
+        getOntologyRepository().getOrCreateConcept(thingConcept, newConceptIri, "Junit Concept", null, user, workspace.getWorkspaceId());
         getOntologyRepository().clearCache();
 
-        doTestPublishVertexAdd(workspaceId, newConceptIri, null, SandboxStatus.PUBLIC);
+        doTestPublishVertexAdd(newConceptIri, null, SandboxStatus.PUBLIC);
+    }
+
+    @Test
+    public void testPublishDeletedVertex() {
+        User systemUser = getUserRepository().getSystemUser();
+        Authorizations systemAuthorizations = getAuthorizationRepository().getGraphAuthorizations(systemUser);
+        Vertex vertex = getGraphRepository().addVertex("v1", JUNIT_CONCEPT_TYPE, "", null, null, null, systemUser, systemAuthorizations);
+        getWorkspaceRepository().updateEntitiesOnWorkspace(workspace, Collections.singleton(vertex.getId()), user);
+
+        getWorkspaceHelper().deleteVertex(vertex, workspace.getWorkspaceId(), true, Priority.HIGH, workspaceAuthorizations, user);
+
+        ClientApiVertexPublishItem publishItem = new ClientApiVertexPublishItem();
+        publishItem.setVertexId(vertex.getId());
+        publishItem.setAction(ClientApiPublishItem.Action.DELETE);
+
+        List<ClientApiWorkspaceDiff.Item> diffs = getWorkspaceRepository().getDiff(workspace, user, null).getDiffs();
+        assertEquals(1, diffs.size());
+
+        assertNull(getGraph().getVertex(vertex.getId(), workspaceAuthorizations));
+        assertNotNull(getGraph().getVertex(vertex.getId(), systemAuthorizations));
+
+        ClientApiWorkspacePublishResponse response = getWorkspaceRepository().publish(new ClientApiPublishItem[]{publishItem}, user, workspace.getWorkspaceId(), workspaceAuthorizations);
+
+        assertTrue(response.isSuccess());
+        assertTrue(response.getFailures().isEmpty());
+
+        assertNull(getGraph().getVertex(vertex.getId(), workspaceAuthorizations));
+        assertNull(getGraph().getVertex(vertex.getId(), systemAuthorizations));
+
+        diffs = getWorkspaceRepository().getDiff(workspace, user, null).getDiffs();
+        assertEquals(0, diffs.size());
     }
 
     // TODO: Test auto publish properties
 
-    private ClientApiWorkspacePublishResponse doTestPublishVertexAdd(String workspaceId, String conceptIri, String expectedError, SandboxStatus expectedConceptStatus) {
-        Workspace workspace = getWorkspaceRepository().add(workspaceId, "workspace 1", user);
+    private void doTestPublishVertexAdd(String conceptIri, String expectedError, SandboxStatus expectedConceptStatus) {
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(user, workspace.getWorkspaceId());
 
         Vertex vertex = getGraphRepository().addVertex("junit-vertex", conceptIri, "", workspace.getWorkspaceId(), null, null, user, authorizations);
@@ -145,31 +196,144 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         ClientApiWorkspacePublishResponse response = getWorkspaceRepository().publish(new ClientApiPublishItem[]{publishItem}, user, workspace.getWorkspaceId(), authorizations);
 
         if (expectedError != null) {
-            assertFalse(response.isSuccess());
-
-            List<ClientApiPublishItem> failures = response.getFailures();
-            assertEquals(1, failures.size());
-            assertEquals(expectedError, failures.get(0).getErrorMessage());
-
-            vertex = getGraph().getVertex(vertex.getId(), authorizations);
-            assertEquals(SandboxStatus.PRIVATE, SandboxStatusUtil.getSandboxStatus(vertex, workspace.getWorkspaceId()));
-
-            List<ClientApiWorkspaceDiff.Item> diffs = getWorkspaceRepository().getDiff(workspace, user, null).getDiffs();
-            assertEquals(1, diffs.size());
-            assertEquals("VertexDiffItem", diffs.get(0).getType());
+            assertPublishFailure(response, workspace, getGraph().getVertex(vertex.getId(), authorizations), expectedError);
         } else {
-            assertTrue(response.isSuccess());
-            assertTrue(response.getFailures().isEmpty());
-
-            vertex = getGraph().getVertex(vertex.getId(), authorizations);
-            assertEquals(SandboxStatus.PUBLIC, SandboxStatusUtil.getSandboxStatus(vertex, workspace.getWorkspaceId()));
+            assertPublishSuccess(response, workspace, getGraph().getVertex(vertex.getId(), authorizations));
         }
 
         if (expectedConceptStatus != null) {
             Concept concept = getOntologyRepository().getConceptByIRI(conceptIri, user, workspace.getWorkspaceId());
             assertEquals(expectedConceptStatus, concept.getSandboxStatus());
         }
+    }
 
-        return response;
+    @Test
+    public void testPublishingNewEdgeWithUnknownRelationship() {
+        doTestPublishEdgeAdd("junit-missing", "Unable to locate relationship with IRI junit-missing", null);
+    }
+
+    @Test
+    public void testPublishingNewEdge() {
+        doTestPublishEdgeAdd(JUNIT_EDGE_LABEL, null, SandboxStatus.PUBLIC);
+    }
+
+    @Test
+    public void testPublishingNewEdgeAndRelationshipWithoutPublishPrivilege() {
+        UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
+        privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD), getUserRepository().getSystemUser());
+
+        String newRelationshipIri = "new-relationship";
+        getOntologyRepository().getOrCreateRelationshipType(null, Collections.singleton(thingConcept), Collections.singleton(thingConcept), newRelationshipIri, "Junit Relationship", true, user, workspace.getWorkspaceId());
+        getOntologyRepository().clearCache();
+
+        doTestPublishEdgeAdd(newRelationshipIri, "Unable to publish relationship Junit Relationship", SandboxStatus.PRIVATE);
+    }
+
+    @Test
+    public void testPublishingNewEdgeAndRelationship() {
+        UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
+        privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD, Privilege.ONTOLOGY_PUBLISH), getUserRepository().getSystemUser());
+
+        String newRelationshipIri = "new-relationship";
+        getOntologyRepository().getOrCreateRelationshipType(null, Collections.singleton(thingConcept), Collections.singleton(thingConcept), newRelationshipIri, "Junit Relationship", true, user, workspace.getWorkspaceId());
+        getOntologyRepository().clearCache();
+
+        doTestPublishEdgeAdd(newRelationshipIri, null, SandboxStatus.PUBLIC);
+    }
+
+    @Test
+    public void testPublishDeletedEdge() {
+        User systemUser = getUserRepository().getSystemUser();
+        Authorizations systemAuthorizations = getAuthorizationRepository().getGraphAuthorizations(systemUser);
+        Vertex v1 = getGraphRepository().addVertex("v1", JUNIT_CONCEPT_TYPE, "", null, null, null, systemUser, systemAuthorizations);
+        Vertex v2 = getGraphRepository().addVertex("v2", JUNIT_CONCEPT_TYPE, "", null, null, null, systemUser, systemAuthorizations);
+        Edge edge = getGraphRepository().addEdge("e1", v1, v2, JUNIT_EDGE_LABEL, null, null, null, null, systemUser, systemAuthorizations);
+        getWorkspaceRepository().updateEntitiesOnWorkspace(workspace, Arrays.asList(v1.getId(), v2.getId()), user);
+
+        getWorkspaceHelper().deleteEdge(workspace.getWorkspaceId(), edge, v1, v2, true, Priority.HIGH, workspaceAuthorizations, user);
+
+        ClientApiRelationshipPublishItem publishItem = new ClientApiRelationshipPublishItem();
+        publishItem.setEdgeId(edge.getId());
+        publishItem.setAction(ClientApiPublishItem.Action.DELETE);
+
+        List<ClientApiWorkspaceDiff.Item> diffs = getWorkspaceRepository().getDiff(workspace, user, null).getDiffs();
+        assertEquals(1, diffs.size());
+
+        assertNull(getGraph().getEdge(edge.getId(), workspaceAuthorizations));
+        assertNotNull(getGraph().getEdge(edge.getId(), systemAuthorizations));
+
+        ClientApiWorkspacePublishResponse response = getWorkspaceRepository().publish(new ClientApiPublishItem[]{publishItem}, user, workspace.getWorkspaceId(), workspaceAuthorizations);
+
+        assertTrue(response.isSuccess());
+        assertTrue(response.getFailures().isEmpty());
+
+        assertNull(getGraph().getEdge(edge.getId(), workspaceAuthorizations));
+        assertNull(getGraph().getEdge(edge.getId(), systemAuthorizations));
+
+        diffs = getWorkspaceRepository().getDiff(workspace, user, null).getDiffs();
+        assertEquals(0, diffs.size());
+    }
+
+
+    private void doTestPublishEdgeAdd(String edgeLabel, String expectedError, SandboxStatus expectedEdgeStatus) {
+        User systemUser = getUserRepository().getSystemUser();
+        Authorizations systemAuthorizations = getAuthorizationRepository().getGraphAuthorizations(systemUser);
+        Vertex v1 = getGraphRepository().addVertex("v1", JUNIT_CONCEPT_TYPE, "", null, null, null, systemUser, systemAuthorizations);
+        Vertex v2 = getGraphRepository().addVertex("v2", JUNIT_CONCEPT_TYPE, "", null, null, null, systemUser, systemAuthorizations);
+        getWorkspaceRepository().updateEntitiesOnWorkspace(workspace, Arrays.asList(v1.getId(), v2.getId()), user);
+
+        Edge edge = getGraphRepository().addEdge("e1", v1, v2, edgeLabel, null, null, "", workspace.getWorkspaceId(), user, workspaceAuthorizations);
+
+        ClientApiRelationshipPublishItem publishItem = new ClientApiRelationshipPublishItem();
+        publishItem.setEdgeId(edge.getId());
+        publishItem.setAction(ClientApiPublishItem.Action.ADD_OR_UPDATE);
+
+        ClientApiWorkspacePublishResponse response = getWorkspaceRepository().publish(new ClientApiPublishItem[]{publishItem}, user, workspace.getWorkspaceId(), workspaceAuthorizations);
+
+        if (expectedError != null) {
+            assertPublishFailure(response, workspace, getGraph().getEdge(edge.getId(), workspaceAuthorizations), expectedError);
+        } else {
+            assertPublishSuccess(response, workspace, getGraph().getEdge(edge.getId(), workspaceAuthorizations));
+        }
+
+        if (expectedEdgeStatus != null) {
+            Relationship relationship = getOntologyRepository().getRelationshipByIRI(edgeLabel, user, workspace.getWorkspaceId());
+            assertEquals(expectedEdgeStatus, relationship.getSandboxStatus());
+        }
+    }
+
+    private void assertPublishSuccess(
+            ClientApiWorkspacePublishResponse response,
+            Workspace workspace,
+            Element element
+    ) {
+        assertTrue(response.isSuccess());
+        assertTrue(response.getFailures().isEmpty());
+
+        assertEquals(SandboxStatus.PUBLIC, SandboxStatusUtil.getSandboxStatus(element, workspace.getWorkspaceId()));
+
+        List<ClientApiWorkspaceDiff.Item> diffs = getWorkspaceRepository().getDiff(workspace, user, null).getDiffs();
+        assertEquals(0, diffs.size());
+    }
+
+    private void assertPublishFailure(
+            ClientApiWorkspacePublishResponse response,
+            Workspace workspace,
+            Element element,
+            String expectedError
+    ) {
+        assertFalse(response.isSuccess());
+
+        List<ClientApiPublishItem> failures = response.getFailures();
+        assertEquals(1, failures.size());
+        assertEquals(expectedError, failures.get(0).getErrorMessage());
+
+        assertEquals(SandboxStatus.PRIVATE, SandboxStatusUtil.getSandboxStatus(element, workspace.getWorkspaceId()));
+
+        List<ClientApiWorkspaceDiff.Item> diffs = getWorkspaceRepository().getDiff(workspace, user, null).getDiffs();
+        assertEquals(1, diffs.size());
+
+        String diffItemType = element instanceof Vertex ? "VertexDiffItem" : "EdgeDiffItem";
+        assertEquals(diffItemType, diffs.get(0).getType());
     }
 }

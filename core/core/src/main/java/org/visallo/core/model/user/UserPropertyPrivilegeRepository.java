@@ -62,7 +62,7 @@ public class UserPropertyPrivilegeRepository extends PrivilegeRepositoryBase imp
 
     private void definePrivilegesProperty(OntologyRepository ontologyRepository) {
         List<Concept> concepts = new ArrayList<>();
-        concepts.add(ontologyRepository.getConceptByIRI(UserRepository.USER_CONCEPT_IRI));
+        concepts.add(ontologyRepository.getConceptByIRI(UserRepository.USER_CONCEPT_IRI, new SystemUser(), null));
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
                 concepts,
                 PRIVILEGES_PROPERTY_IRI,

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.json.JSONException;
 import org.vertexium.Authorizations;
 import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +30,8 @@ public abstract class Relationship implements OntologyElement, HasOntologyProper
     }
 
     public abstract String getId();
+
+    public abstract SandboxStatus getSandboxStatus();
 
     public abstract String getIRI();
 

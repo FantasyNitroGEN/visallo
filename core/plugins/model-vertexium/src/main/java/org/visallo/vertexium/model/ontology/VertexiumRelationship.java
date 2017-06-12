@@ -8,6 +8,8 @@ import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
+import org.visallo.core.util.SandboxStatusUtil;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 public class VertexiumRelationship extends Relationship {
     private final Vertex vertex;
     private final List<String> inverseOfIRIs;
+    private final String workspaceId;
 
     public VertexiumRelationship(
             String parentIRI,
@@ -22,11 +25,13 @@ public class VertexiumRelationship extends Relationship {
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
             List<String> inverseOfIRIs,
-            Collection<OntologyProperty> properties
+            Collection<OntologyProperty> properties,
+            String workspaceId
     ) {
         super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.vertex = vertex;
         this.inverseOfIRIs = inverseOfIRIs;
+        this.workspaceId = workspaceId;
     }
 
     @Override
@@ -108,5 +113,10 @@ public class VertexiumRelationship extends Relationship {
 
     public Vertex getVertex() {
         return vertex;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return SandboxStatusUtil.getSandboxStatus(this.vertex, this.workspaceId);
     }
 }

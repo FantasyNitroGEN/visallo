@@ -46,10 +46,10 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
             User user,
             Authorizations authorizations
     ) {
-        JSONArray filterJson = getFilterJson(searchOptions);
+        JSONArray filterJson = getFilterJson(searchOptions, user, searchOptions.getWorkspaceId());
 
-        QueryAndData queryAndData = getQuery(searchOptions, authorizations);
-        applyFiltersToQuery(queryAndData, filterJson, user);
+        QueryAndData queryAndData = getQuery(searchOptions, user, authorizations);
+        applyFiltersToQuery(queryAndData, filterJson, user, searchOptions.getWorkspaceId());
         applyConceptTypeFilterToQuery(queryAndData, user, searchOptions);
         applyEdgeLabelFilterToQuery(queryAndData, user, searchOptions);
         applySortToQuery(queryAndData, searchOptions);
@@ -230,7 +230,7 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
 
     protected abstract EnumSet<VertexiumObjectType> getResultType();
 
-    protected abstract QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations);
+    protected abstract QueryAndData getQuery(SearchOptions searchOptions, User user, Authorizations authorizations);
 
     protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, User user, SearchOptions searchOptions) {
         Query query = queryAndData.getQuery();
@@ -273,22 +273,22 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
         return filters;
     }
 
-    protected void applyFiltersToQuery(QueryAndData queryAndData, JSONArray filterJson, User user) {
+    protected void applyFiltersToQuery(QueryAndData queryAndData, JSONArray filterJson, User user, String workspaceId) {
         for (int i = 0; i < filterJson.length(); i++) {
             JSONObject obj = filterJson.getJSONObject(i);
             if (obj.length() > 0) {
-                updateQueryWithFilter(queryAndData.getQuery(), obj, user);
+                updateQueryWithFilter(queryAndData.getQuery(), obj, user, workspaceId);
             }
         }
     }
 
-    protected JSONArray getFilterJson(SearchOptions searchOptions) {
+    protected JSONArray getFilterJson(SearchOptions searchOptions, User user, String workspaceId) {
         JSONArray filterJson = searchOptions.getRequiredParameter("filter", JSONArray.class);
-        ontologyRepository.resolvePropertyIds(filterJson);
+        ontologyRepository.resolvePropertyIds(filterJson, user, workspaceId);
         return filterJson;
     }
 
-    private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user) {
+    private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user, String workspaceId) {
         try {
             String predicateString = obj.optString("predicate");
             String propertyName = obj.getString("propertyName");
@@ -306,7 +306,7 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
                 if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "~".equals(predicateString) || "".equals(predicateString))) {
                     graphQuery.has(propertyName, TextPredicate.CONTAINS, value0);
                 } else if (PropertyType.DATE.equals(propertyDataType)) {
-                    applyDateToQuery(graphQuery, obj, predicateString, values);
+                    applyDateToQuery(graphQuery, obj, predicateString, values, user, workspaceId);
                 } else if (PropertyType.BOOLEAN.equals(propertyDataType)) {
                     graphQuery.has(propertyName, Compare.EQUAL, value0);
                 } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
@@ -365,10 +365,17 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
         }
     }
 
-    private void applyDateToQuery(Query graphQuery, JSONObject obj, String predicate, JSONArray values) throws ParseException {
+    private void applyDateToQuery(
+            Query graphQuery,
+            JSONObject obj,
+            String predicate,
+            JSONArray values,
+            User user,
+            String workspaceId
+    ) throws ParseException {
         String propertyName = obj.getString("propertyName");
         PropertyType propertyDataType = PropertyType.DATE;
-        OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyName);
+        OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyName, user, workspaceId);
 
         if (property != null && values.length() > 0) {
             String displayType = property.getDisplayType();

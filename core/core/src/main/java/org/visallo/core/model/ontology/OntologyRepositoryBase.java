@@ -44,6 +44,7 @@ import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.ping.PingOntology;
+import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ExecutorServiceUtil;
 import org.visallo.core.util.OWLOntologyUtil;
@@ -72,7 +73,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     private final Configuration configuration;
     private final LockRepository lockRepository;
 
-    private UserRepository userRepository;
     private PrivilegeRepository privilegeRepository;
 
     @Inject
@@ -396,7 +396,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     ) throws IOException {
         String uri = ontologyClass.getIRI().toString();
         if ("http://www.w3.org/2002/07/owl#Thing".equals(uri)) {
-            return getEntityConcept();
+            return getEntityConcept(getSystemUser(), null);
         }
 
         String label = OWLOntologyUtil.getLabel(o, ontologyClass);
@@ -683,10 +683,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     protected void addExtendedDataTableProperty(String tablePropertyIri, String propertyIri, User user, String workspaceId) {
-        OntologyProperty tableProperty = getPropertyByIRI(tablePropertyIri);
+        OntologyProperty tableProperty = getPropertyByIRI(tablePropertyIri, user, workspaceId);
         checkNotNull(tableProperty, "Could not find table property: " + tablePropertyIri);
 
-        OntologyProperty property = getPropertyByIRI(propertyIri);
+        OntologyProperty property = getPropertyByIRI(propertyIri, user, workspaceId);
         checkNotNull(property, "Could not find property: " + propertyIri);
 
         addExtendedDataTableProperty(tableProperty, property, user, workspaceId);
@@ -855,7 +855,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             OWLObjectPropertyExpression superPropertyExpr = superProperties.iterator().next();
             OWLObjectProperty superProperty = superPropertyExpr.asOWLObjectProperty();
             String superPropertyUri = superProperty.getIRI().toString();
-            Relationship parent = getRelationshipByIRI(superPropertyUri);
+            Relationship parent = getRelationshipByIRI(superPropertyUri, getSystemUser(), null);
             if (parent != null) {
                 return parent;
             }
@@ -877,7 +877,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         for (OWLObjectPropertyExpression inverseOf : EntitySearcher.getInverses(objectProperty, o)) {
             if (inverseOf instanceof OWLObjectProperty) {
                 if (fromRelationship == null) {
-                    fromRelationship = getRelationshipByIRI(iri);
+                    fromRelationship = getRelationshipByIRI(iri, getSystemUser(), null);
                     checkNotNull(fromRelationship, "could not find from relationship: " + iri);
                 }
 
@@ -899,7 +899,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         for (OWLClassExpression rangeClassExpr : EntitySearcher.getRanges(objectProperty, o)) {
             OWLClass rangeClass = rangeClassExpr.asOWLClass();
             String rangeClassIri = rangeClass.getIRI().toString();
-            Concept ontologyClass = getConceptByIRI(rangeClassIri);
+            Concept ontologyClass = getConceptByIRI(rangeClassIri, getSystemUser(), null);
             if (ontologyClass == null) {
                 LOGGER.error("Could not find class with IRI \"%s\" for object property \"%s\"", rangeClassIri, objectProperty.getIRI());
             } else {
@@ -914,7 +914,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(objectProperty, o)) {
             OWLClass rangeClass = domainClassExpr.asOWLClass();
             String rangeClassIri = rangeClass.getIRI().toString();
-            Concept ontologyClass = getConceptByIRI(rangeClassIri);
+            Concept ontologyClass = getConceptByIRI(rangeClassIri, getSystemUser(), null);
             if (ontologyClass == null) {
                 LOGGER.error("Could not find class with IRI \"%s\" for object property \"%s\"", rangeClassIri, objectProperty.getIRI());
             } else {
@@ -1051,6 +1051,24 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return result;
     }
 
+    @Override
+    public Set<Relationship> getAncestorRelationships(Relationship relationship, User user, String workspaceId) {
+        Set<Relationship> result = Sets.newHashSet();
+        Relationship parentRelationship = getParentRelationship(relationship, user, workspaceId);
+        while (parentRelationship != null) {
+            result.add(parentRelationship);
+            parentRelationship = getParentRelationship(relationship, user, workspaceId);
+        }
+        return result;
+    }
+
+    @Override
+    public Set<Relationship> getRelationshipAndAncestors(Relationship relationship, User user, String workspaceId) {
+        Set<Relationship> result = Sets.newHashSet(relationship);
+        result.addAll(getAncestorRelationships(relationship, user, workspaceId));
+        return result;
+    }
+
     @Deprecated
     @Override
     public final boolean hasRelationshipByIRI(String relationshipIRI) {
@@ -1155,6 +1173,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getDisplayNameForLabel(relationshipIRI, null, null);
     }
 
+    @Deprecated
     @Override
     public Iterable<Concept> getConceptsWithProperties() {
         return getConceptsWithProperties(null, null);
@@ -1178,6 +1197,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getParentConcept(concept, null, null);
     }
 
+    @Deprecated
     @Override
     public Relationship getRelationshipByIRI(String relationshipIRI) {
         return getRelationshipByIRI(relationshipIRI, null, null);
@@ -1228,6 +1248,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         throw new VisalloException("Found multiple concepts for intent: " + intent + " (" + iris + ")");
     }
 
+    @Deprecated
     @Override
     public String getConceptIRIByIntent(String intent) {
         return getConceptIRIByIntent(intent, null, null);
@@ -1349,6 +1370,19 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean deleteChangeableProperties
     ) {
         return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, null, deleteChangeableProperties, null, null);
+    }
+
+    @Override
+    public final Relationship getOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            boolean isDeclaredInOntology,
+            User user,
+            String workspaceId
+    ) {
+        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, null, isDeclaredInOntology, user, workspaceId);
     }
 
     @Override
@@ -1781,6 +1815,14 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     public abstract void internalPublishConcept(Concept concept, User user, String workspaceId);
 
+    @Override
+    public final void publishRelationship(Relationship relationship, User user, String workspaceId) {
+        checkPrivileges(user, null);
+        internalPublishRelationship(relationship, user, workspaceId);
+    }
+
+    public abstract void internalPublishRelationship(Relationship relationship, User user, String workspaceId);
+
     protected void checkPrivileges(User user, String workspaceId) {
         // TODO: check that the user has access to the workspace
 
@@ -1820,6 +1862,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
         }
         return results;
+    }
+
+    protected User getSystemUser() {
+        return new SystemUser();
     }
 
     protected PrivilegeRepository getPrivilegeRepository() {

@@ -179,7 +179,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
         if (isCommentProperty(propertyName)) {
             value = valueStr;
         } else {
-            OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
+            OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName, user, workspaceId);
 
             if (property.hasDependentPropertyIris()) {
                 if (valuesStr == null) {
