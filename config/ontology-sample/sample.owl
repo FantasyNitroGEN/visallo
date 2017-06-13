@@ -56,6 +56,26 @@
     
 
 
+    <!-- http://visallo.org/sample#personHasContactInfo -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/sample#personHasContactInfo">
+        <rdfs:label xml:lang="en">Has Contact Info</rdfs:label>
+        <rdfs:range rdf:resource="http://visallo.org/sample#contactInformation"/>
+        <rdfs:domain rdf:resource="http://visallo.org/sample#person"/>
+    </owl:ObjectProperty>
+
+
+
+    <!-- http://visallo.org/sample#personLivesInZipCode -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/sample#personLivesInZipCode">
+        <rdfs:label xml:lang="en">Lives in</rdfs:label>
+        <rdfs:range rdf:resource="http://visallo.org/sample#zipCode"/>
+        <rdfs:domain rdf:resource="http://visallo.org/sample#person"/>
+    </owl:ObjectProperty>
+
+
+
     <!-- http://visallo.org/sample#rawContainsImageOfEntity -->
 
     <owl:ObjectProperty rdf:about="http://visallo.org/sample#rawContainsImageOfEntity">
@@ -89,6 +109,17 @@
         <rdfs:range rdf:resource="&xsd;integer"/>
     </owl:DatatypeProperty>
     
+
+
+    <!-- http://visallo.org/sample#dateOfBirth -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/sample#dateOfBirth">
+        <rdfs:label xml:lang="en">Date of Birth</rdfs:label>
+        <visallo:displayType>dateOnly</visallo:displayType>
+        <rdfs:domain rdf:resource="http://visallo.org/sample#person"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+
 
 
     <!-- http://visallo.org/sample#dateTaken -->
@@ -137,6 +168,16 @@
     
 
 
+    <!-- http://visallo.org/sample#emailAddressProp -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/sample#emailAddressProp">
+        <rdfs:label xml:lang="en">Email Address</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/sample#emailAddress"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+
+
+
     <!-- http://visallo.org/sample#fileSize -->
 
     <owl:DatatypeProperty rdf:about="http://visallo.org/sample#fileSize">
@@ -156,6 +197,7 @@
         <visallo:intent xml:lang="en">media.geoLocation</visallo:intent>
         <rdfs:range rdf:resource="&visallo;geolocation"/>
         <rdfs:domain rdf:resource="http://visallo.org/sample#raw"/>
+        <rdfs:domain rdf:resource="http://visallo.org/sample#location"/>
     </owl:DatatypeProperty>
     
 
@@ -180,6 +222,16 @@
         <rdfs:range rdf:resource="&xsd;double"/>
     </owl:DatatypeProperty>
     
+
+
+    <!-- http://visallo.org/sample#phoneNumberProp -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/sample#phoneNumberProp">
+        <rdfs:label xml:lang="en">Phone Number</rdfs:label>
+        <rdfs:domain rdf:resource="http://visallo.org/sample#phoneNumber"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+
 
 
     <!-- http://visallo.org/sample#rawMetadata -->
@@ -214,6 +266,17 @@
         <rdfs:range rdf:resource="&xsd;boolean"/>
     </owl:DatatypeProperty>
     
+
+    <!-- http://visallo.org/sample#zipCodeProp -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/sample#zipCodeProp">
+        <rdfs:label xml:lang="en">Zip Code</rdfs:label>
+        <visallo:intent>zipCode</visallo:intent>
+        <visallo:intent>geocodable</visallo:intent>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/sample#zipCode"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
 
 
     <!-- 
@@ -269,6 +332,7 @@
         <visallo:intent>email</visallo:intent>
         <visallo:glyphIconFileName xml:lang="en">emailAddress.png</visallo:glyphIconFileName>
         <visallo:color xml:lang="en">rgb(203, 130, 4)</visallo:color>
+        <visallo:titleFormula> prop(&apos;http://visallo.org/sample#emailAddressProp&apos;) || &apos;&apos; </visallo:titleFormula>
     </owl:Class>
     
 
@@ -297,6 +361,17 @@
     
 
 
+    <!-- http://visallo.org/sample#person -->
+
+    <owl:Class rdf:about="http://visallo.org/sample#person">
+        <rdfs:label xml:lang="en">Person</rdfs:label>
+        <visallo:intent>person</visallo:intent>
+        <visallo:glyphIconFileName xml:lang="en">person.png</visallo:glyphIconFileName>
+        <visallo:subtitleFormula>prop(&apos;http://visallo.org/sample#dateOfBirth&apos;) || &apos;&apos;  </visallo:subtitleFormula>
+    </owl:Class>
+
+
+
     <!-- http://visallo.org/sample#phoneNumber -->
 
     <owl:Class rdf:about="http://visallo.org/sample#phoneNumber">
@@ -305,6 +380,7 @@
         <visallo:intent>phoneNumber</visallo:intent>
         <visallo:glyphIconFileName xml:lang="en">phoneNumber.png</visallo:glyphIconFileName>
         <visallo:color xml:lang="en">rgb(225, 225, 24)</visallo:color>
+        <visallo:titleFormula> prop(&apos;http://visallo.org/sample#phoneNumberProp&apos;) || &apos;&apos; </visallo:titleFormula>
     </owl:Class>
     
 
@@ -338,10 +414,10 @@
         <rdfs:subClassOf rdf:resource="http://visallo.org/sample#location"/>
         <visallo:intent>zipCode</visallo:intent>
         <visallo:color xml:lang="en">rgb(219, 63, 219)</visallo:color>
+        <visallo:titleFormula> prop(&apos;http://visallo.org/sample#zipCodeProp&apos;) || &apos;&apos; </visallo:titleFormula>
     </owl:Class>
 </rdf:RDF>
 
 
 
 <!-- Generated by the OWL API (version 3.5.1) http://owlapi.sourceforge.net -->
-
