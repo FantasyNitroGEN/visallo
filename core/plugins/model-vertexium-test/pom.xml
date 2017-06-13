@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.visallo</groupId>
+        <artifactId>visallo-core-plugins-group</artifactId>
+        <version>3.2-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>visallo-model-vertexium-test</artifactId>
+    <name>Visallo: Core: Plugin: Model: Vertexium Tests</name>
+    <description>
+        The visallo-core-test module depends on the visallo-model-vertexium-inmemory module, which
+        means that the visallo-model-vertexium-* modules cannot use any of the helpers in
+        visallo-core-test due to a circular dependency. This module exists to work around
+        that circular dependency.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-core-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

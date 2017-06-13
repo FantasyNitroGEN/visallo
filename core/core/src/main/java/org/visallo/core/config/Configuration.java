@@ -95,6 +95,7 @@ public class Configuration {
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
     private PrivilegeRepository privilegeRepository;
+    private OntologyRepository ontologyRepository;
 
     private Map<String, String> config = new HashMap<>();
 
@@ -376,7 +377,7 @@ public class Configuration {
     public JSONObject toJSON(ResourceBundle resourceBundle) {
         JSONObject properties = new JSONObject();
 
-        OntologyRepository ontologyRepository = InjectHelper.getInstance(OntologyRepository.class);
+        OntologyRepository ontologyRepository = getOntologyRepository();
         for (Concept concept : ontologyRepository.getConceptsWithProperties()) {
             for (String intent : concept.getIntents()) {
                 properties.put(OntologyRepository.CONFIG_INTENT_CONCEPT_PREFIX + intent, concept.getIRI());
@@ -421,7 +422,14 @@ public class Configuration {
         return configuration;
     }
 
-    private PrivilegeRepository getPrivilegeRepository() {
+    protected OntologyRepository getOntologyRepository() {
+        if (ontologyRepository == null) {
+            ontologyRepository = InjectHelper.getInstance(OntologyRepository.class);
+        }
+        return ontologyRepository;
+    }
+
+    protected PrivilegeRepository getPrivilegeRepository() {
         if (privilegeRepository == null) {
             privilegeRepository = InjectHelper.getInstance(PrivilegeRepository.class);
         }
