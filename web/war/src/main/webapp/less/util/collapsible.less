@@ -26,6 +26,7 @@
   margin-top: 1px;
 
   & > h1, .collapsible-header {
+    display: flex;
     .badge {      
       position: absolute;
       right: 1ex;
@@ -105,12 +106,19 @@
     &:hover {
       background: darken(@pane-background, 6%);
     }
+    s {
+      flex: 0 0 auto;
+    }
     strong {
       display: block;          
+      flex: 0 1 auto;
       text-overflow: ellipsis;
       overflow: hidden;      
       white-space: nowrap;
       padding-right: 3em;
+    }
+    .badge {
+      flex: 0 0 auto;
     }
   }
 
