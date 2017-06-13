@@ -36,7 +36,11 @@ public class ConceptWriter extends EntityWriter {
                     parentClass = packageNameFromIri(concept.getParentConcept()) + "." + classNameFromIri(concept.getParentConcept());
                 }
 
-                Consumer<PrintWriter> constructorWriter = methodWriter -> writer.println("  public " + conceptClassName + "(String id) { super(id); }");
+                Consumer<PrintWriter> constructorWriter = methodWriter -> {
+                    writer.println("  public " + conceptClassName + "(String id) { super(id); }");
+                    writer.println();
+                    writer.println("  public " + conceptClassName + "(String id, String visibility) { super(id, visibility); }");
+                };
 
                 writeClass(
                         writer,

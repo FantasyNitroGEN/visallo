@@ -14,6 +14,7 @@ public class IngestOptions {
     private User ingestUser;
 
     private boolean validateOntologyWhenSaving = true;
+    private String[] additionalAuthorizations = new String[0];
 
     public IngestOptions(User ingestUser) {
         this.setIngestUser(ingestUser);
@@ -58,5 +59,13 @@ public class IngestOptions {
 
     public void setValidateOntologyWhenSaving(boolean validateOntologyWhenSaving) {
         this.validateOntologyWhenSaving = validateOntologyWhenSaving;
+    }
+
+    public void setAdditionalAuthorizations(String[] additionalAuthorizations) {
+        this.additionalAuthorizations = additionalAuthorizations;
+    }
+
+    public String[] getAdditionalAuthorizations() {
+        return additionalAuthorizations;
     }
 }
