@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -86,7 +87,7 @@ public class RemoveVertices implements ParameterizedHandler {
             Vertex productVertex = graph.getVertex(productId, authorizations);
             JSONArray removeVertices = new JSONArray(vertexIds);
 
-            graphWorkProduct.removeVertices(ctx, productVertex, removeVertices, removeChildren, user, visibilityTranslator.getDefaultVisibility(), authorizations);
+            graphWorkProduct.removeVertices(ctx, productVertex, removeVertices, removeChildren, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }

@@ -468,14 +468,7 @@ define([
 
             if (nodes.length < 2) return;
 
-            nodes.forEach(node => {
-                if (node.data.vertexIds) {
-                    vertexIds = vertexIds.concat(node.data.vertexIds);
-                } else {
-                    vertexIds.push(node.id());
-                }
-            });
-
+            const children = nodes.map(node => node.id());
             const positions = nodes.map(node => retina.pixelsToPoints(node.position()));
             const pos = {
                 x: Math.floor(positions.reduce((total, pos) => total + pos.x, 0) / positions.length),
@@ -483,7 +476,7 @@ define([
             };
 
             this.props.onCollapseNodes(product.id, {
-                children: vertexIds,
+                children,
                 pos,
                 parent: rootId
              });
@@ -1060,7 +1053,6 @@ define([
     });
 
     const getVertexIdsFromCollapsedNode = (collapsedNodes, collapsedNodeId) => {
-        console.log('called getVertexIdsFromCollapsedNode'); //TODO remove debugging
         const vertexIds = [];
         const queue = [collapsedNodes[collapsedNodeId]];
 

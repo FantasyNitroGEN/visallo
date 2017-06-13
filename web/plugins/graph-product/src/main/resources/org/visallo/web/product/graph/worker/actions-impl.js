@@ -339,49 +339,85 @@ define([
 
             const workspaceId = state.workspace.currentId;
             const { vertices, compoundNodes: collapsedNodes } = state.product.workspaces[workspaceId].products[productId].extendedData;
-            const { id, ...params } = collapseData;
+            const { id, children, ...params } = collapseData;
+
+            const flattenNodes = children.reduce((nodes, id) => {
+                if (collapsedNodes[id]) {
+                    nodes.push(id);
+                }
+                return nodes;
+            }, []);
+            const flattenPromise = flattenNodes.length ?
+                ajax('POST', '/product/graph/vertices/remove', { productId, vertexIds: flattenNodes }) :
+                Promise.resolve([]);
+
+            const childIds = _.flatten(children.map((id) => {
+                if (collapsedNodes[id]) {
+                    return collapsedNodes[id].children;
+                } else {
+                    return id
+                }
+            }));
             const requestData = {
-                params,
+                params: {
+                    ...params,
+                    children: childIds,
+                },
                 productId
             };
             if (id) {
                 requestData.vertexId = id;
             }
 
-            ajax('POST', '/product/graph/vertices/collapse', requestData).then(collapsedNode => {
-                const updateVertices = { [collapsedNode.id]: collapsedNode };
-                const oldParent = collapseData.parent === 'root' ? { id: 'root', pos: { x: 0, y: 0 }} : collapsedNodes[collapseData.parent];
-
-                collapsedNode.children.forEach(id => {
-                    const child = vertices[id] || collapsedNodes[id];
-                    const updated = {
-                        ...child,
-                        pos: calculatePositionFromParents(child, oldParent, collapsedNode, true),
-                        parent: collapsedNode.id
+            flattenPromise.then(() => {
+                dispatch({
+                    type: 'PRODUCT_GRAPH_REMOVE_ELEMENTS',
+                    payload: {
+                       elements: { collapsedNodeIds: flattenNodes },
+                       productId,
+                       workspaceId
                     }
-                    updateVertices[updated.id] = updated
                 });
 
-                dispatch({
-                    type: 'PRODUCT_GRAPH_SET_POSITIONS',
-                    payload: {
-                        productId,
-                        updateVertices,
-                        workspaceId
-                    }
-                })
+                ajax('POST', '/product/graph/vertices/collapse', requestData).then(collapsedNode => {
+                    const updateVertices = { [collapsedNode.id]: collapsedNode };
+                    const oldParent = collapseData.parent === 'root' ? { id: 'root', pos: { x: 0, y: 0 }} : collapsedNodes[collapseData.parent];
 
-                if (undoable) {
-                    dispatch({
-                        type: 'PUSH_UNDO',
-                        payload: {
-                            undoActionType: 'PRODUCT_GRAPH_COLLAPSE_NODES',
-                            undoScope: productId,
-                            undo: { productId, collapsedNodeId: collapsedNode.id },
-                            redo: { productId, collapseData }
+                    collapsedNode.children.forEach(id => {
+                        const child = vertices[id] || collapsedNodes[id];
+                        const updated = {
+                            ...child,
+                            pos: calculatePositionFromParents(child, oldParent, collapsedNode, true),
+                            parent: collapsedNode.id
                         }
-                    })
-                }
+                        updateVertices[updated.id] = updated
+                    });
+
+                    dispatch({
+                        type: 'PRODUCT_GRAPH_SET_POSITIONS',
+                        payload: {
+                            productId,
+                            updateVertices,
+                            workspaceId
+                        }
+                    });
+
+                    if (undoable) {
+                        dispatch({
+                            type: 'PUSH_UNDO',
+                            payload: {
+                                undoActionType: 'PRODUCT_GRAPH_COLLAPSE_NODES',
+                                undoScope: productId,
+                                undo: { productId, collapsedNodeId: collapsedNode.id },
+                                redo: { productId, collapseData: {
+                                    ...collapseData,
+                                    children: childIds,
+                                    id: collapsedNode.id
+                                }}
+                            }
+                        });
+                    }
+                });
             });
         },
 
@@ -403,11 +439,13 @@ define([
                     newPos = snapPosition(newPos);
                 }
 
-                return [id, {
-                    ...child,
-                    pos: newPos,
-                    parent: newParent.id
-                }]
+                return (
+                    [id, {
+                        ...child,
+                        pos: newPos,
+                        parent: newParent.id
+                    }]
+                );
             }));
 
             dispatch({

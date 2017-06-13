@@ -102,18 +102,18 @@ public class GraphWorkProduct extends WorkProductElements {
             }
 
             if (compoundNodes.length() > 0) {
-                JSONUtil.stream(compoundNodes.toJSONArray(compoundNodes.names())) //TODO: synchronize this so I can take advantage of chains? (e.g c1 > c2 > c3 > v1, if v1 is visible all are visible)
-                    .forEach(compoundNode -> {
+                JSONUtil.streamKeys(compoundNodes)
+                    .forEach(compoundNodeId -> {
+                        JSONObject compoundNode = compoundNodes.getJSONObject(compoundNodeId);
                         ArrayDeque<JSONObject> childrenDFS = Queues.newArrayDeque();
-                        Map<String,Object> compoundNodeMap = (Map<String, Object>) compoundNode;
-                        String childId = ((String) ((List) compoundNodeMap.get("children")).get(0));
+                        String childId = (String) compoundNode.getJSONArray("children").get(0);
                         JSONObject firstChild = vertices.optJSONObject(childId);
                         if (firstChild == null) {
                             firstChild = compoundNodes.optJSONObject(childId);
                         }
                         childrenDFS.push(firstChild);
 
-                        boolean visible = (boolean) compoundNodeMap.getOrDefault("visible", false);
+                        boolean visible = compoundNode.optBoolean("visible", false);
                         while (!visible && !childrenDFS.isEmpty()) {
                             JSONObject child = childrenDFS.poll();
                             JSONArray children = child.optJSONArray("children");
@@ -128,13 +128,11 @@ public class GraphWorkProduct extends WorkProductElements {
                                     childrenDFS.push(nextChild);
                                 });
                             } else {
-                                child = vertices.optJSONObject(childId);
                                 visible = !child.optBoolean("unauthorized");
                             }
                         }
 
-                        compoundNodeMap.put("visible", visible);
-                        compoundNodes.put((String) compoundNodeMap.get("id"), compoundNode);
+                        compoundNode.put("visible", visible);
                     });
             }
 
@@ -417,31 +415,32 @@ public class GraphWorkProduct extends WorkProductElements {
         Edge productVertexEdge = ctx.getGraph().getEdge(edgeId, authorizations);
         JSONArray children = GraphProductOntology.NODE_CHILDREN.getPropertyValue(productVertexEdge);
 
-        for (int i = 0; i < children.length(); i++) {
-            if (children.get(i).equals(childId)) {
-                children.remove(i);
-                break;
+        if (children != null) {
+            for (int i = 0; i < children.length(); i++) {
+                if (children.get(i).equals(childId)) {
+                    children.remove(i);
+                    break;
+                }
+                i++;
             }
-            i++;
-        }
-        if (children.length() == 0) {
-            ctx.getGraph().softDeleteVertex(parentId, authorizations);
+            if (children.length() == 0) {
+                ctx.getGraph().softDeleteVertex(parentId, authorizations);
 
-            String ancestorId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge);
-            if (ancestorId.equals(productVertex.getId())) {
-                removeChild(ctx, productVertex, parentId, ancestorId, visibility, authorizations);
+                String ancestorId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge);
+                if (ancestorId.equals(productVertex.getId())) {
+                    removeChild(ctx, productVertex, parentId, ancestorId, visibility, authorizations);
+                }
+            } else {
+                EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
+                        edgeId,
+                        parentId,
+                        childId,
+                        WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                        visibility
+                );
+                edgeBuilder.setProperty(GraphProductOntology.NODE_CHILDREN.getPropertyName(), children, visibility);
             }
-        } else {
-            EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
-                    edgeId,
-                    parentId,
-                    childId,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    visibility
-            );
-            edgeBuilder.setProperty(GraphProductOntology.NODE_CHILDREN.getPropertyName(), children, visibility);
         }
-
     }
 
     private void updateParent(

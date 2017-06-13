@@ -18,18 +18,18 @@ define([
                     productSelectors.getProducts(state).forEach(product => {
                         if (product.extendedData) {
                             const { vertices, edges } = product.extendedData;
-                            const addEdges = [];
+                            const addEdges = {};
                             _.each(newEdges, (edge, id) => {
-                                if (edge !== null && !(id in edges)) {
+                                if (edge !== null && (!(id in edges) || !edges[id].inVertexId || !edges[id].outVertexId)) {
                                     if (edge.inVertexId in vertices && edge.outVertexId in vertices) {
-                                        addEdges.push({
+                                        addEdges[id] = {
                                             edgeId: id,
                                             ..._.pick(edge, 'inVertexId', 'outVertexId', 'label')
-                                        });
+                                        };
                                     }
                                 }
                             })
-                            if (addEdges.length) {
+                            if (!_.isEmpty(addEdges)) {
                                 _.defer(() => {
                                     store.dispatch({
                                         type: 'PRODUCT_ADD_EDGE_IDS',

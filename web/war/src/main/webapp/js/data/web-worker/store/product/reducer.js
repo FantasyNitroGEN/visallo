@@ -166,13 +166,13 @@ define(['updeep'], function(u) {
         }, state);
     }
 
-    function updateUnauthorizedElements(state, {workspaceId, vertices, edges = []}) {
+    function updateUnauthorizedElements(state, {workspaceId, vertices, edges}) {
         const updateProduct = (product) => {
             if (product.extendedData) {
-                const { vertices: prevVertices, edge: prevEdges } = product.extendedData;
+                const { vertices: prevVertices, edges: prevEdges } = product.extendedData;
                 const transformElements = (prevElements, idKey, updateElements) => {
                     return _.mapObject(prevElements, (element) => {
-                        const { [idKey]: id, unauthorized, ...rest } = element;
+                        const { id, unauthorized, ...rest } = element;
                         const update = updateElements.find((e) => e[idKey] === id);
                         if (update !== undefined) {
                             if (update._DELETED !== true) {
@@ -190,7 +190,7 @@ define(['updeep'], function(u) {
                 if (prevVertices && vertices && vertices.some(({ id }) => prevVertices[id])) {
                     updates.vertices = transformElements(prevVertices, 'id', vertices);
                 }
-                if (prevEdges && edges && edges.some(({ edgeId }) => prevEdges[edgeId])) {
+                if (prevEdges && edges && edges.some(({ id }) => prevEdges[id])) {
                     updates.edges = transformElements(prevEdges, 'edgeId', edges);
                 }
 

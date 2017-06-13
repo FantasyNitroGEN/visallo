@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -98,7 +99,7 @@ public class UpdateVertices implements ParameterizedHandler {
             GraphWorkProduct graphWorkProduct = new GraphWorkProduct(ontologyRepository, authorizationRepository, graphRepository, userRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
-            graphWorkProduct.updateVertices(ctx, productVertex, updateVertices, user, visibilityTranslator.getDefaultVisibility(), authorizations);
+            graphWorkProduct.updateVertices(ctx, productVertex, updateVertices, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }

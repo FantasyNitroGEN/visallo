@@ -71,6 +71,7 @@
         <rdfs:domain rdf:resource="http://visallo.org/workspace#product"/>
         <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
         <rdfs:label xml:lang="en">To Entity</rdfs:label>
+        <visallo:userVisible>false</visallo:userVisible>
     </owl:ObjectProperty>
 
 

@@ -17,27 +17,6 @@
     <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
-    // Object Properties
-    //
-    ///////////////////////////////////////////////////////////////////////////////////////
-     -->
-
-
-
-    <!-- http://visallo.org/workspace/product/graph#toNode -->
-
-    <owl:ObjectProperty rdf:about="http://visallo.org/workspace/product/graph#toNode">
-        <rdfs:domain rdf:resource="http://visallo.org/workspace#product"/>
-        <rdfs:domain rdf:resource="http://visallo.org/workspace/product/graph#compoundNode"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-        <rdfs:label xml:lang="en">To Node</rdfs:label>
-    </owl:ObjectProperty>
-
-
-
-    <!--
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //
     // Data properties
     //
     ///////////////////////////////////////////////////////////////////////////////////////

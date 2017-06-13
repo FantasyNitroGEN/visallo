@@ -118,16 +118,23 @@ define([
         });
 
         describe('ELEMENT_UPDATE', () => {
-            it('should update extendedData with added edges', () => {
+            it('should update extendedData with authorized edges', () => {
                 const nextState = reducer(
                     genState({
                         products: {
                             p1: {
                                 id: 'p1',
                                 extendedData: {
-                                    edges: {},
-                                    vertices: {},
-                                    unauthorizedEdgeIds: [ 'e1' ]
+                                    edges: {
+                                        e1: {
+                                            edgeId: 'e1',
+                                            inVertexId: 'v1',
+                                            label: 'l',
+                                            outVertexId: 'v2',
+                                            unauthorized: true
+                                        }
+                                    },
+                                    vertices: {}
                                 }
                             }
                         }
@@ -135,15 +142,15 @@ define([
                     {
                         type: 'ELEMENT_UPDATE',
                         payload: {
-                            edges: {
-                                e1: {
+                            edges: [
+                                {
                                     id: 'e1',
                                     inVertexId: 'v1',
                                     label: 'l',
                                     outVertexId: 'v2'
                                 }
-                            },
-                            vertices: {},
+                            ],
+                            vertices: [],
                             workspaceId
                         }
                     }
@@ -159,13 +166,12 @@ define([
                                 outVertexId: 'v2'
                             }
                         },
-                        vertices: {},
-                        unauthorizedEdgeIds: []
+                        vertices: {}
                     }
                 });
             });
 
-            it('should update extendedData with deleted edges', () => {
+            it('should update extendedData with unauthorized edges', () => {
                 const nextState = reducer(
                     genState({
                         products: {
@@ -180,8 +186,7 @@ define([
                                             outVertexId: 'v2'
                                         }
                                     },
-                                    vertices: {},
-                                    unauthorizedEdgeIds: []
+                                    vertices: {}
                                 }
                             }
                         }
@@ -189,13 +194,13 @@ define([
                     {
                         type: 'ELEMENT_UPDATE',
                         payload: {
-                            edges: {
-                                e1: {
+                            edges: [
+                                {
                                     id: 'e1',
                                     _DELETED: true
                                 }
-                            },
-                            vertices: {},
+                            ],
+                            vertices: [],
                             workspaceId
                         }
                     }
@@ -203,9 +208,16 @@ define([
                 nextState.workspaces[workspaceId].products['p1'].should.deep.equal({
                     id: 'p1',
                     extendedData: {
-                        edges: {},
-                        vertices: {},
-                        unauthorizedEdgeIds: [ 'e1' ]
+                        edges: {
+                            e1: {
+                                edgeId: 'e1',
+                                inVertexId: 'v1',
+                                label: 'l',
+                                outVertexId: 'v2',
+                                unauthorized: true
+                            }
+                        },
+                        vertices: {}
                     }
                 });
             });

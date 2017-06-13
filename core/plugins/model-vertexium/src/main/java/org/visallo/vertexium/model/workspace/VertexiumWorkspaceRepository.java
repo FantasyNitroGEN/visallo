@@ -1071,11 +1071,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 }
             }).get();
 
-            WorkProduct workProduct = getWorkProductByKind(
-                    kind == null
-                            ? WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex, null)
-                            : kind
-            );
             String edgeId = workspaceVertex.getId() + "_hasProduct_" + productVertex.getId();
             ctx.getOrCreateEdgeAndUpdate(
                     edgeId,

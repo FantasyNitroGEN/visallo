@@ -7,18 +7,12 @@ public class GraphPosition {
     private int y;
 
     public GraphPosition(JSONObject position) {
-        this.x = position.optInt("x", 0);
-        this.y = position.optInt("y", 0);
+        this(position.optInt("x", 0), position.optInt("y", 0));
     }
 
     public GraphPosition(int x, int y) {
         this.x = x;
         this.y = y;
-    }
-
-    public GraphPosition() {
-        this.x = 0;
-        this.y = 0;
     }
 
     public int getX() {

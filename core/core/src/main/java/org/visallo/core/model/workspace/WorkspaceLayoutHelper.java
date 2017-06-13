@@ -6,7 +6,6 @@ import org.visallo.web.clientapi.model.GraphPosition;
 
 import java.util.OptionalInt;
 
-@Deprecated
 public class WorkspaceLayoutHelper {
     public static GraphPosition findOpening(
             Iterable<GraphPosition> existingPositions,
