@@ -236,7 +236,7 @@ public interface OntologyRepository {
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getOrCreateRelationshipType(Relationship, Iterable, Iterable, String, boolean, User, String)} instead.
+     *              use {@link #getOrCreateRelationshipType(Relationship, Iterable, Iterable, String, String, boolean, User, String)} instead.
      */
     Relationship getOrCreateRelationshipType(
             Relationship parent,
@@ -251,6 +251,7 @@ public interface OntologyRepository {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
+            String displayName,
             boolean deleteChangeableProperties,
             User user,
             String workspaceId

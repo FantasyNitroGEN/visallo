@@ -139,6 +139,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 TOP_OBJECT_PROPERTY_IRI,
+                null,
                 true,
                 null,
                 null
@@ -785,6 +786,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 getDomainsConcepts(o, objectProperty),
                 getRangesConcepts(o, objectProperty),
                 iri,
+                null,
                 isDeclaredInOntology,
                 null,
                 null
@@ -1334,7 +1336,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             Iterable<Concept> rangeConcepts,
             String relationshipIRI
     ) {
-        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, true, null, null);
+        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, null, true, null, null);
     }
 
     @Deprecated
@@ -1346,7 +1348,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             String relationshipIRI,
             boolean deleteChangeableProperties
     ) {
-        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, deleteChangeableProperties, null, null);
+        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, null, deleteChangeableProperties, null, null);
     }
 
     @Override
@@ -1355,12 +1357,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
+            String displayName,
             boolean isDeclaredInOntology,
             User user,
             String workspaceId
     ) {
         checkPrivileges(user, workspaceId);
-        return internalGetOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, isDeclaredInOntology, user, workspaceId);
+        return internalGetOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, displayName, isDeclaredInOntology, user, workspaceId);
     }
 
     protected abstract Relationship internalGetOrCreateRelationshipType(
@@ -1368,6 +1371,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
+            String displayName,
             boolean isDeclaredInOntology,
             User user,
             String workspaceId

@@ -490,7 +490,16 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    protected Relationship internalGetOrCreateRelationshipType(Relationship parent, Iterable<Concept> domainConcepts, Iterable<Concept> rangeConcepts, String relationshipIRI, boolean deleteChangeableProperties, User user, String workspaceId) {
+    protected Relationship internalGetOrCreateRelationshipType(
+            Relationship parent,
+            Iterable<Concept> domainConcepts,
+            Iterable<Concept> rangeConcepts,
+            String relationshipIRI,
+            String displayName,
+            boolean deleteChangeableProperties,
+            User user,
+            String workspaceId
+    ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI, user, workspaceId);
         if (relationship != null) {
             return relationship;

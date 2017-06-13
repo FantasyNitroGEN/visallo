@@ -57,6 +57,7 @@ define([
             return {
                 privileges: userSelectors.getPrivileges(state),
                 options: ontologySelectors.getVisiblePropertiesWithHeaders(state),
+                iriKeys: ontologySelectors.getPropertyKeyIris(state),
                 ...props
             };
         },

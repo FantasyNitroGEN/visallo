@@ -63,7 +63,7 @@ public class OntologyRealtionshipSave implements ParameterizedHandler {
             parent = ontologyRepository.getRelationshipByIRI(parentIri, user, workspaceId);
         }
 
-        Relationship relationship = ontologyRepository.getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIri, false, user, workspaceId);
+        Relationship relationship = ontologyRepository.getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIri, displayName, false, user, workspaceId);
         relationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, authorizations);
 
         ontologyRepository.clearCache(workspaceId);

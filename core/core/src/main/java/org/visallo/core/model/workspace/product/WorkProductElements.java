@@ -67,6 +67,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                 domainConcepts,
                 rangeConcepts,
                 WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                null,
                 true,
                 systemUser,
                 null

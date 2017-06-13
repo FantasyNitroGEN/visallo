@@ -306,19 +306,19 @@ public class VertexiumOntologyRepositoryTest {
     @Test(expected = VisalloAccessDeniedException.class)
     public void creatingOntologyRelationshipsWithNoUserOrWorkspace() {
         List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
-        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, null, null);
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, null, true, null, null);
     }
 
     @Test(expected = VisalloAccessDeniedException.class)
     public void creatingPublicOntologyRelationshipsWithoutPublishPrivilege() {
         List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
-        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, user, null);
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, null, true, user, null);
     }
 
     @Test
     public void creatingPublicOntologyRelationships() {
         List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
-        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, systemUser, null);
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, null, true, systemUser, null);
         ontologyRepository.clearCache();
 
         Relationship noWorkspace = ontologyRepository.getRelationshipByIRI(PUBLIC_IRI, user, null);
@@ -331,7 +331,7 @@ public class VertexiumOntologyRepositoryTest {
     @Test(expected = VisalloAccessDeniedException.class)
     public void creatingSandboxedOntologyRelationshipsWithoutAddPermissionPrivilege() {
         List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
-        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, true, user, workspaceId);
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, PUBLIC_IRI, null, true, user, workspaceId);
     }
 
     @Test
@@ -339,7 +339,7 @@ public class VertexiumOntologyRepositoryTest {
         userPrivileges.add(Privilege.ONTOLOGY_ADD);
 
         List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
-        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, SANDBOX_IRI, true, user, workspaceId);
+        ontologyRepository.getOrCreateRelationshipType(null, thing, thing, SANDBOX_IRI, null, true, user, workspaceId);
         ontologyRepository.clearCache();
 
         Relationship noWorkspace = ontologyRepository.getRelationshipByIRI(SANDBOX_IRI, user, null);

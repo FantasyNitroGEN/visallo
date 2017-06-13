@@ -60,9 +60,18 @@ define([
         onDisplayNameChange(event) {
             this.setState({ displayName: event.target.value });
         },
-        onSourceConceptSelected() {
+        onSourceConceptSelected(concept) {
+            this.setState({ sourceConcept: concept })
         },
-        onTargetConceptSelected() {
+        onTargetConceptSelected(concept) {
+            this.setState({ targetConcept: concept })
+        },
+        onCreate() {
+            this.props.onCreate({
+                sourceIris: [this.state.sourceConcept || this.props.sourceConcept],
+                targetIris: [this.state.targetConcept || this.props.targetConcept],
+                displayName: this.getValue()
+            })
         }
     });
 

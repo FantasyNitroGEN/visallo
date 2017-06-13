@@ -22,7 +22,6 @@ import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
-import org.vertexium.util.IterableUtils;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
@@ -39,7 +38,10 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
-import org.visallo.core.util.*;
+import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.TimingCallable;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.*;
 
 import javax.annotation.Nullable;
@@ -48,7 +50,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -822,6 +823,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Iterable<Concept> domainConcepts,
             Iterable<Concept> rangeConcepts,
             String relationshipIRI,
+            String displayName,
             boolean isDeclaredInOntology,
             User user,
             String workspaceId
@@ -847,6 +849,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             Vertex relationshipVertex = ctx.update(builder, modifiedDate, visibilityJson, TYPE_RELATIONSHIP, elemCtx -> {
                 Metadata metadata = getMetadata(modifiedDate, user, visibility);
                 OntologyProperties.ONTOLOGY_TITLE.updateProperty(elemCtx, relationshipIRI, metadata, visibility);
+                if (displayName != null) {
+                    OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName, metadata, visibility);
+                }
             }).get();
 
             for (Concept domainConcept : domainConcepts) {
@@ -876,6 +881,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     return o.getIRI();
                 }
             });
+
+            if (workspaceId != null) {
+                findOrAddEdge(ctx, workspaceId, relationshipVertex.getId(), WorkspaceProperties.WORKSPACE_TO_ONTOLOGY_RELATIONSHIP_IRI, user, workspaceId);
+            }
 
             Collection<OntologyProperty> properties = new ArrayList<>();
             String parentIRI = parent == null ? null : parent.getIRI();
@@ -935,6 +944,11 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 for (Relationship relationship : relationships) {
                     checkNotNull(relationships, "relationships cannot have null values");
                     findOrAddEdge(ctx, ((VertexiumRelationship) relationship).getVertex(), propertyVertex, LabelName.HAS_PROPERTY.toString(), user, workspaceId);
+                }
+
+
+                if (workspaceId != null) {
+                    findOrAddEdge(ctx, workspaceId, propertyVertex.getId(), WorkspaceProperties.WORKSPACE_TO_ONTOLOGY_RELATIONSHIP_IRI, user, workspaceId);
                 }
             } catch (Exception e) {
                 throw new VisalloException("Could not getOrCreatePropertyVertex: " + propertyIri, e);

@@ -13,7 +13,6 @@ define([
     ontologySelectors,
     ontologyActions) {
 
-    // TODO: Check for ontology editor priv
     const PropTypes = React.PropTypes;
     const ConceptsSelector = React.createClass({
         propTypes: {

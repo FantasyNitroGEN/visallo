@@ -33,7 +33,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(systemUser);
         Concept thing = getOntologyRepository().getEntityConcept(systemUser, null);
 
-        Relationship hasEntityRel = getOntologyRepository().getOrCreateRelationshipType(null, Collections.singleton(thing), Collections.singleton(thing), "has-entity-iri", true, systemUser, null);
+        Relationship hasEntityRel = getOntologyRepository().getOrCreateRelationshipType(null, Collections.singleton(thing), Collections.singleton(thing), "has-entity-iri", null, true, systemUser, null);
         hasEntityRel.addIntent("entityHasImage", authorizations);
 
         getOntologyRepository().getOrCreateConcept(thing, JUNIT_CONCEPT_TYPE, "Junit Concept", null, systemUser, null);

@@ -82,7 +82,7 @@ define(['reselect'], function(reselect) {
             .value()
     })
 
-    const getRelationshipKeyIris = createSelector([getOntologyRoot], ontology => ontology.iris && ontology.iris.relationship)
+    const getRelationshipKeyIris = state => state.ontology.iris && state.ontology.iris.relationship;
 
     const getConceptAncestors = createSelector([getConcepts], concepts => {
         const byParent = _.groupBy(concepts, 'parentConcept');
@@ -116,7 +116,7 @@ define(['reselect'], function(reselect) {
             .value()
     })
 
-    const getConceptKeyIris = createSelector([getOntologyRoot], ontology => ontology.iris && ontology.iris.concept)
+    const getConceptKeyIris = state => state.ontology.iris && state.ontology.iris.concept
 
     const getOntology = createSelector([getOntologyRoot, getWorkspace], (ontology, workspaceId) => ontology[workspaceId])
 
@@ -131,6 +131,8 @@ define(['reselect'], function(reselect) {
             .sortBy(compareNameAndGroup)
             .value()
     });
+
+    const getPropertyKeyIris = state => state.ontology.iris && state.ontology.iris.properties;
 
     const getVisiblePropertiesWithHeaders = createSelector([getVisibleProperties], properties => {
         let lastGroup;
@@ -164,6 +166,7 @@ define(['reselect'], function(reselect) {
         getVisibleConcepts,
 
         getProperties,
+        getPropertyKeyIris,
         getVisibleProperties,
         getVisiblePropertiesWithHeaders,
 
