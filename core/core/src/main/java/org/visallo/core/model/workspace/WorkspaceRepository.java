@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
@@ -318,6 +319,7 @@ public abstract class WorkspaceRepository {
         if (addUpdateData != null && !addUpdateData.isEmpty()) {
             publishRequiredConcepts(addUpdateData, user, workspaceId, authorizations);
             publishRequiredRelationships(addUpdateData, user, workspaceId, authorizations);
+            publishRequiredPropertyTypes(addUpdateData, user, workspaceId, authorizations);
 
             // Don't publish any data for which we couldn't also publish the required ontology
             addUpdateData = addUpdateData.stream().filter(data -> data.getErrorMessage() == null).collect(Collectors.toList());
@@ -522,6 +524,50 @@ public abstract class WorkspaceRepository {
         CloseableUtils.closeQuietly(edgesToPublish);
     }
 
+    private void publishRequiredPropertyTypes(
+            List<ClientApiPublishItem> publishData,
+            User user,
+            String workspaceId,
+            Authorizations authorizations
+    ) {
+        Map<String, List<ClientApiPropertyPublishItem>> publishDataByPropertyIri = publishData.stream()
+                .filter(data -> data instanceof ClientApiPropertyPublishItem)
+                .map(data -> ((ClientApiPropertyPublishItem) data))
+                .filter(data -> data.getAction() == ClientApiPublishItem.Action.ADD_OR_UPDATE)
+                .collect(Collectors.groupingBy(ClientApiPropertyPublishItem::getName, Collectors.toList()));
+
+        List<String> publishedPropertyIds = publishDataByPropertyIri.keySet().stream()
+                .map(iri -> {
+                    OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, user, workspaceId);
+                    if (property == null) {
+                        publishDataByPropertyIri.get(iri).forEach(data -> {
+                            data.setErrorMessage("Unable to locate property with IRI " + iri);
+                        });
+                    }
+                    return property;
+                })
+                .filter(property -> property != null && property.getSandboxStatus() != SandboxStatus.PUBLIC)
+                .map(property -> {
+                    try {
+                        ontologyRepository.publishProperty(property, user, workspaceId);
+                        return null;
+                    } catch (Exception ex) {
+                        LOGGER.error("Error publishing property %s", property.getIri(), ex);
+                        publishDataByPropertyIri.get(property.getIri()).forEach(data -> {
+                            data.setErrorMessage("Unable to publish relationship " + property.getDisplayName());
+                        });
+                    }
+                    return property.getId();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (!publishedPropertyIds.isEmpty()) {
+            ontologyRepository.clearCache();
+            workQueueRepository.pushOntologyPropertiesChange(null, publishedPropertyIds);
+        }
+    }
+
     private void publishEdges(
             List<ClientApiPublishItem> publishData,
             User user,
@@ -578,7 +624,7 @@ public abstract class WorkspaceRepository {
         LOGGER.debug("BEGIN publishProperties");
         for (ClientApiPublishItem data : publishData) {
             try {
-                if (!(data instanceof ClientApiPropertyPublishItem)) {
+                if (!(data instanceof ClientApiPropertyPublishItem) || data.getErrorMessage() != null) {
                     continue;
                 }
                 ClientApiPropertyPublishItem propertyPublishItem = (ClientApiPropertyPublishItem) data;

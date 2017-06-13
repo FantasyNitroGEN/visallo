@@ -5,6 +5,7 @@ import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,6 +31,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private ImmutableList<String> dependentPropertyIris = ImmutableList.of();
     private List<String> intents = new ArrayList<>();
     private List<String> textIndexHints = new ArrayList<>();
+    private String workspaceId;
 
     @Override
     public String getTitle() {
@@ -251,4 +253,22 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     public void removeIntent(String intent, Authorizations authorizations) {
         this.intents.remove(intent);
     }
+
+    public void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void removeWorkspaceId() {
+        workspaceId = null;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return workspaceId == null ? SandboxStatus.PUBLIC : SandboxStatus.PRIVATE;
+    }
+
 }

@@ -9,7 +9,9 @@ import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.Collection;
 import java.util.Map;
@@ -18,11 +20,13 @@ public class VertexiumOntologyProperty extends OntologyProperty {
     private final Vertex vertex;
     private final String iri;
     private ImmutableList<String> dependentPropertyIris;
+    private String workspaceId;
 
-    public VertexiumOntologyProperty(Vertex vertex, ImmutableList<String> dependentPropertyIris) {
+    public VertexiumOntologyProperty(Vertex vertex, ImmutableList<String> dependentPropertyIris, String workspaceId) {
         this.vertex = vertex;
         this.dependentPropertyIris = dependentPropertyIris;
         this.iri = OntologyProperties.ONTOLOGY_TITLE.getPropertyValue(vertex);
+        this.workspaceId = workspaceId;
     }
 
     @Override
@@ -170,5 +174,10 @@ public class VertexiumOntologyProperty extends OntologyProperty {
 
     public void setDependentProperties(Collection<String> newDependentPropertyIris) {
         this.dependentPropertyIris = ImmutableList.copyOf(newDependentPropertyIris);
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return SandboxStatusUtil.getSandboxStatus(this.vertex, this.workspaceId);
     }
 }

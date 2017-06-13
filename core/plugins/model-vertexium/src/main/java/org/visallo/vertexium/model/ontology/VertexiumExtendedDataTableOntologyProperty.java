@@ -11,8 +11,8 @@ import java.util.List;
 public class VertexiumExtendedDataTableOntologyProperty extends VertexiumOntologyProperty implements ExtendedDataTableProperty {
     private List<String> tablePropertyIris = new ArrayList<>();
 
-    public VertexiumExtendedDataTableOntologyProperty(Vertex vertex, ImmutableList<String> dependentPropertyIris) {
-        super(vertex, dependentPropertyIris);
+    public VertexiumExtendedDataTableOntologyProperty(Vertex vertex, ImmutableList<String> dependentPropertyIris, String workspaceId) {
+        super(vertex, dependentPropertyIris, workspaceId);
     }
 
     @Override

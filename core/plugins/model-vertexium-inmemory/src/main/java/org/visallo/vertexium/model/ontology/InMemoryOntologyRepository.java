@@ -282,6 +282,18 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
+    public void internalPublishProperty(OntologyProperty property, User user, String workspaceId) {
+        if (propertiesCache.containsKey(workspaceId)) {
+            Map<String, InMemoryOntologyProperty> sandboxedProperties = propertiesCache.get(workspaceId);
+            if (sandboxedProperties.containsKey(property.getIri())) {
+                InMemoryOntologyProperty sandboxProperty = sandboxedProperties.remove(property.getIri());
+                sandboxProperty.removeWorkspaceId();
+                propertiesCache.get(PUBLIC_ONTOLOGY_CACHE_KEY).put(property.getIri(), sandboxProperty);
+            }
+        }
+    }
+
+    @Override
     protected void getOrCreateInverseOfRelationship(Relationship fromRelationship, Relationship inverseOfRelationship) {
         InMemoryRelationship fromRelationshipMem = (InMemoryRelationship) fromRelationship;
         InMemoryRelationship inverseOfRelationshipMem = (InMemoryRelationship) inverseOfRelationship;
@@ -322,6 +334,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             } else {
                 property = new InMemoryOntologyProperty();
             }
+            property.setWorkspaceId(workspaceId);
             property.setDataType(dataType);
             property.setUserVisible(userVisible);
             property.setSearchable(searchable);

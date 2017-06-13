@@ -1823,6 +1823,14 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     public abstract void internalPublishRelationship(Relationship relationship, User user, String workspaceId);
 
+    @Override
+    public void publishProperty(OntologyProperty property, User user, String workspaceId) {
+        checkPrivileges(user, null);
+        internalPublishProperty(property, user, workspaceId);
+    }
+
+    public abstract void internalPublishProperty(OntologyProperty property, User user, String workspaceId);
+
     protected void checkPrivileges(User user, String workspaceId) {
         // TODO: check that the user has access to the workspace
 

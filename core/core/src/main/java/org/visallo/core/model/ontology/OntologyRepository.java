@@ -558,6 +558,8 @@ public interface OntologyRepository {
 
     void publishRelationship(Relationship relationship, User user, String workspaceId);
 
+    void publishProperty(OntologyProperty property, User user, String workspaceId);
+
     class ElementTypeFilter implements ClientApiObject {
         public String iri;
         public boolean includeChildNodes;

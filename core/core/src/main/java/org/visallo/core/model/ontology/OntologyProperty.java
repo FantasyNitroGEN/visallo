@@ -13,6 +13,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.types.*;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -42,6 +43,8 @@ public abstract class OntologyProperty {
     }
 
     public abstract String getId();
+
+    public abstract SandboxStatus getSandboxStatus();
 
     public abstract String getTitle();
 

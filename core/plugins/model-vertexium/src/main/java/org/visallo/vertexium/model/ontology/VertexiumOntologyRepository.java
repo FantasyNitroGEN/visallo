@@ -1081,14 +1081,14 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     ) {
         if (propertyType.equals(PropertyType.EXTENDED_DATA_TABLE)) {
             Authorizations authorizations = getAuthorizations(user, workspaceId);
-            VertexiumExtendedDataTableOntologyProperty result = new VertexiumExtendedDataTableOntologyProperty(propertyVertex, dependentPropertyIris);
+            VertexiumExtendedDataTableOntologyProperty result = new VertexiumExtendedDataTableOntologyProperty(propertyVertex, dependentPropertyIris, workspaceId);
             Iterable<String> tablePropertyIris = propertyVertex.getVertexIds(Direction.OUT, LabelName.HAS_PROPERTY.toString(), authorizations);
             for (String tablePropertyIri : tablePropertyIris) {
                 result.addProperty(tablePropertyIri.substring(VertexiumOntologyRepository.ID_PREFIX_PROPERTY.length()));
             }
             return result;
         } else {
-            return new VertexiumOntologyProperty(propertyVertex, dependentPropertyIris);
+            return new VertexiumOntologyProperty(propertyVertex, dependentPropertyIris, workspaceId);
         }
     }
 
@@ -1242,6 +1242,26 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         assert(relationship instanceof VertexiumRelationship);
         if (relationship.getSandboxStatus() != SandboxStatus.PUBLIC) {
             Vertex vertex = ((VertexiumRelationship) relationship).getVertex();
+            VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
+            if (visibilityJson.getWorkspaces().contains(workspaceId)) {
+                visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
+                VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
+                try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, getAuthorizations(user, workspaceId))) {
+                    ctx.update(vertex, new Date(), visibilityJson, null, vertexUpdateCtx -> {
+                        ExistingElementMutation<Vertex> mutation = (ExistingElementMutation<Vertex>) vertexUpdateCtx.getMutation();
+                        mutation.alterElementVisibility(visalloVisibility.getVisibility());
+                    });
+                    removeEdge(ctx, workspaceId, vertex.getId());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void internalPublishProperty(OntologyProperty property, User user, String workspaceId) {
+        assert(property instanceof VertexiumOntologyProperty);
+        if (property.getSandboxStatus() != SandboxStatus.PUBLIC) {
+            Vertex vertex = ((VertexiumOntologyProperty) property).getVertex();
             VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
             if (visibilityJson.getWorkspaces().contains(workspaceId)) {
                 visibilityJson = VisibilityJson.removeFromAllWorkspace(visibilityJson);
