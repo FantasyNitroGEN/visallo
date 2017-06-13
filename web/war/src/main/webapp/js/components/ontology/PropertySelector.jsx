@@ -2,16 +2,16 @@ define([
     'react',
     'react-redux',
     './BaseSelect',
+    'data/web-worker/store/user/selectors',
     'data/web-worker/store/ontology/selectors',
     'data/web-worker/store/ontology/actions'
 ], function(
     React,
     redux,
     BaseSelect,
+    userSelectors,
     ontologySelectors,
     ontologyActions) {
-
-    // TODO: Check for ontology editor priv
 
     const ontologyDisplayTypes = {
         bytes: {
@@ -36,9 +36,18 @@ define([
     const PropertySelector = React.createClass({
         propTypes: {
         },
+        getDefaultProps() {
+            return { creatable: true }
+        },
         render() {
+            const { privileges, creatable, concept, ...rest } = this.props;
+            const formProps = { concept };
             return (
-                <BaseSelect createForm={'components/ontology/PropertyForm'} {...this.props} />
+                <BaseSelect
+                    createForm={'components/ontology/PropertyForm'}
+                    formProps={formProps}
+                    creatable={creatable && Boolean(privileges.ONTOLOGY_ADD)}
+                    {...rest} />
             );
         }
     });
@@ -46,6 +55,7 @@ define([
     return redux.connect(
         (state, props) => {
             return {
+                privileges: userSelectors.getPrivileges(state),
                 options: ontologySelectors.getVisiblePropertiesWithHeaders(state),
                 ...props
             };

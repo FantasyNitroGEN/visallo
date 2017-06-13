@@ -29,7 +29,6 @@ define([
 
         this.after('initialize', function() {
             var self = this;
-            console.log(this.node)
             this.on('limitParentConceptId', function(event, data) {
                 const { conceptId: concept, sourceConceptId: sourceConcept, targetConceptId: targetConcept } = data;
                 self.attacher.params({ concept, sourceConcept, targetConcept });

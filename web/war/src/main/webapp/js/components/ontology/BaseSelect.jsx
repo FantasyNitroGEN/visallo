@@ -60,21 +60,7 @@ define([
         },
         componentDidMount() {
             if (this.props.creatable) {
-                // Hack to get the internal Creatable from the Select dependency of
-                // virtualized. Requiring 'react-select' in amd doesn't work
-                const ref = this._virtualized;
-                const Select = ref._getSelectComponent();
-                if (Select) {
-                    const { Creatable } = Select;
-                    this.setState({ selectComponent: createFixedCreatable(Creatable) });
-                } else {
-                    throw new Error('Internal structure of select has changed');
-                }
-                if (this.props.createForm) {
-                    Promise.require(this.props.createForm).then(CreateForm => {
-                        this.setState({ CreateForm })
-                    })
-                } else throw new Error('Create form prop required when creatable')
+                this.setupCreatable(this.props)
             }
         },
         componentWillReceiveProps(nextProps) {
@@ -85,6 +71,13 @@ define([
                 this.props.onSelected(this.getOptionByValue(value));
             } else if (nextProps.value !== this.props.value) {
                 this.setState({ value: nextProps.value })
+            }
+            if (nextProps.creatable !== this.props.creatable) {
+                if (nextProps.creatable) {
+                    this.setupCreatable(nextProps);
+                } else {
+                    this.setState({ selectComponent: null, CreateForm: null })
+                }
             }
         },
         render() {
@@ -127,6 +120,23 @@ define([
                 }
                 </div>
             );
+        },
+        setupCreatable(props) {
+            // Hack to get the internal Creatable from the Select dependency of
+            // virtualized. Requiring 'react-select' in amd doesn't work
+            const ref = this._virtualized;
+            const Select = ref._getSelectComponent();
+            if (Select) {
+                const { Creatable } = Select;
+                this.setState({ selectComponent: createFixedCreatable(Creatable) });
+            } else {
+                throw new Error('Internal structure of select has changed');
+            }
+            if (props.createForm) {
+                Promise.require(props.createForm).then(CreateForm => {
+                    this.setState({ CreateForm })
+                })
+            } else throw new Error('Create form prop required when creatable')
         },
         onCancel() {
             this.setState({ creating: false })

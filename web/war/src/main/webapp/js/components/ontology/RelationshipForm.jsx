@@ -25,6 +25,7 @@ define([
                         placeholder="From Concept"
                         filter={{conceptId: this.props.sourceConcept, showAncestors: true }}
                         creatable={false}
+                        clearable={false}
                         onSelected={this.onSourceConceptSelected} />
 
                     <input type="text"
@@ -36,6 +37,7 @@ define([
                         value={_.isString(this.state.targetConcept) ? this.state.targetConcept : this.props.targetConcept}
                         filter={{conceptId: this.props.targetConcept, showAncestors: true }}
                         placeholder="To Concept"
+                        clearable={false}
                         creatable={false}
                         onSelected={this.onTargetConceptSelected} />
 

@@ -2,12 +2,14 @@ define([
     'react',
     'react-redux',
     './BaseSelect',
+    'data/web-worker/store/user/selectors',
     'data/web-worker/store/ontology/selectors',
     'data/web-worker/store/ontology/actions'
 ], function(
     React,
     redux,
     BaseSelect,
+    userSelectors,
     ontologySelectors,
     ontologyActions) {
 
@@ -18,10 +20,24 @@ define([
             filter: PropTypes.shape({
                 conceptId: PropTypes.string.isRequired,
                 showAncestors: PropTypes.bool
-            })
+            }),
+            privileges: PropTypes.object.isRequired,
+            concepts: PropTypes.array.isRequired,
+            conceptAncestors: PropTypes.object.isRequired
+        },
+        getDefaultProps() {
+            return { creatable: true }
         },
         render() {
-            const { concepts, filter, conceptAncestors } = this.props;
+            const {
+                conceptAncestors,
+                concepts,
+                filter,
+                privileges,
+                creatable,
+                ...rest
+            } = this.props;
+
             var options = concepts;
             if (filter) {
                 options = concepts.filter(o => {
@@ -33,7 +49,8 @@ define([
                 <BaseSelect
                     createForm={'components/ontology/ConceptForm'}
                     options={options}
-                    {...this.props} />
+                    creatable={creatable && Boolean(privileges.ONTOLOGY_ADD)}
+                    {...rest} />
             );
         }
     });
@@ -41,6 +58,7 @@ define([
     return redux.connect(
         (state, props) => {
             return {
+                privileges: userSelectors.getPrivileges(state),
                 concepts: ontologySelectors.getVisibleConcepts(state),
                 conceptAncestors: ontologySelectors.getConceptAncestors(state),
                 iriKeys: ontologySelectors.getConceptKeyIris(state),
