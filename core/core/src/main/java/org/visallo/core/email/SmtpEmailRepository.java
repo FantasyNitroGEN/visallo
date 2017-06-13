@@ -38,7 +38,7 @@ public class SmtpEmailRepository implements EmailRepository {
     @Override
     public void send(String fromAddress, String[] toAddresses, String subject, String body) {
         String joinedToAddresses = Joiner.on(",").join(toAddresses);
-        LOGGER.debug("sending SMTP email from: \"%s\", to: \"%s\", subject: \"%s\"", fromAddress, joinedToAddresses, subject);
+        LOGGER.info("sending SMTP email from: \"%s\", to: \"%s\", subject: \"%s\"", fromAddress, joinedToAddresses, subject);
         LOGGER.debug("sending SMTP email body:%n%s", body);
 
         try {
