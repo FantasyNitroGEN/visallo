@@ -225,24 +225,23 @@ define([
 
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
-            const byId = _.indexBy(product.extendedData.vertices, 'id');
-            const updateVertices = _.object(_.compact(vertices.map(vertex => {
-                if (vertex.id in byId) {
-                    return;
-                }
-
-                return [vertex.id, {}]
-            })));
+            const updateVertices = _.object(vertices
+                .filter(({ id }) => !product.extendedData.vertices[id])
+                .map(({ id }) => [id, { id }])
+            );
             const length = _.size(updateVertices);
+
             if (length) {
-                const nextPosition = positionGeneratorFrom(null, length, product);
                 dispatch(elementActions.update({
                     workspaceId,
                     vertices: vertices
                 }));
+
+                const nextPosition = positionGeneratorFrom(null, length, product);
+                const parent = product.localData && product.localData.rootId || 'root';
                 dispatch(api.updatePositions({
                     productId,
-                    updateVertices: _.mapObject(updateVertices, p => nextPosition())
+                    updateVertices: _.mapObject(updateVertices, id => ({ id, parent, pos: nextPosition()}))
                 }));
             }
 
@@ -402,6 +401,12 @@ define([
                         }
                     });
 
+                    dispatch(selectionActions.set({
+                        selection: {
+                            vertices: collapsedNode.children.filter(id => vertices[id])
+                        }
+                    }));
+
                     if (undoable) {
                         dispatch({
                             type: 'PUSH_UNDO',
@@ -417,6 +422,8 @@ define([
                             }
                         });
                     }
+
+
                 });
             });
         },
@@ -486,7 +493,7 @@ define([
     return api;
 
     function getAdditionalRemovedElementIds(product, removeElements, removeChildren) {
-        const { compoundNodes, vertices } = product.extendedData;
+        const { compoundNodes: collapsedNodes, vertices } = product.extendedData;
         const collapsedNodeIds = removeElements.collapsedNodeIds || [];
         const additionalVertexIds = [];
         const additionalCollapsedNodeIds = [];
@@ -496,9 +503,9 @@ define([
 
             while (childQueue.length) {
                 const id = childQueue.shift();
-                const node = compoundNodes[id];
+                const node = collapsedNodes[id];
                 node.children.forEach(childId => {
-                    if (childId in compoundNodes) {
+                    if (childId in collapsedNodes) {
                         childQueue.push(childId);
                     } else {
                         additionalVertexIds.push(childId);
@@ -509,14 +516,14 @@ define([
         }
 
         collapsedNodeIds.forEach(id => {
-            const node = compoundNodes[id];
-            let parent = compoundNodes[node.parent];
+            const node = collapsedNodes[id];
+            let parent = collapsedNodes[node.parent];
             while (parent) {
                 const children = parent.children.filter(childId => childId !== id);
-                if (children.length === 0) { //TODO: change visible status if necessary
+                if (children.length === 0) {
                     additionalCollapsedNodeIds.push(parent.id);
                 }
-                parent = compoundNodes[parent.parent];
+                parent = collapsedNodes[parent.parent];
             }
         });
 
@@ -542,9 +549,13 @@ define([
         const maxX = Math.round(Math.sqrt(number)) * xInc;
 
         if (!position) {
-            const vertices = product.extendedData && product.extendedData.vertices || [];
+            let vertices = product.extendedData && product.extendedData.vertices || {};
+            const graphRoot = product.localData && product.localData.rootId || 'root';
+            vertices = _.values(_.pick(vertices, (vertex => vertex.parent === graphRoot)));
+
             const maxY = vertices.length ? _.max(vertices, v => v.pos.y).pos.y + yInc : 0;
             const minX = vertices.length ? _.min(vertices, v => v.pos.x).pos.x : 0;
+
             position = { x: minX, y: maxY }
         }
 

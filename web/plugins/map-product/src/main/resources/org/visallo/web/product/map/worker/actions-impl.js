@@ -60,7 +60,6 @@ define([
             const workspace = state.workspace.byId[workspaceId];
             if (workspace.editable && elements && elements.vertexIds && elements.vertexIds.length) {
                 const product = state.product.workspaces[workspaceId].products[productId];
-                const byId = _.indexBy(product.extendedData.vertices, 'id');
 
                 let undoPayload = {};
                 if (undoable) {

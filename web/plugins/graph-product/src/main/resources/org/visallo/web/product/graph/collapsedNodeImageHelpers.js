@@ -49,9 +49,9 @@ define([
         return textMeasurements[text] = canvasCtx.measureText(text);
     };
 
-    const drawCount = function(canvas, canvasCtx, collapsedNode) {
+    const drawCount = function(canvas, canvasCtx, count) {
         canvasCtx.font = countTextFont;
-        const countText = collapsedNode.children.length.toString();
+        const countText = count.toString();
         const countTextMeasurements = measureText(canvasCtx, countText);
         const countTextCenterY = countTextBorderRadius;
         const countTextRight = canvas.width;
@@ -87,14 +87,8 @@ define([
         );
     };
 
-    const generateImageDataUriForCollapsedNode = function(
-        vertices,
-        collapsedNodeId,
-        collapsedNode,
-        collapsedImageDataUris,
-        onCollapsedImageDataUrisChange
-    ) {
-        Promise.all(collapsedNode.children.map(vertexId => loadVertexImage(vertices, vertexId)))
+    const generateImageDataUriForCollapsedNode = function(vertices, collapsedNodeId, collapsedNode, childCount) {
+        return Promise.all(collapsedNode.children.map(vertexId => loadVertexImage(vertices, vertexId)))
             .then(images => {
                 images = _.compact(images);
                 const canvas = document.createElement('canvas');
@@ -103,15 +97,9 @@ define([
 
                 drawCircle(canvas, canvasCtx);
                 drawImages(canvasCtx, images);
-                drawCount(canvas, canvasCtx, collapsedNode);
+                drawCount(canvas, canvasCtx, childCount);
 
-                onCollapsedImageDataUrisChange({
-                    ...collapsedImageDataUris,
-                    [collapsedNodeId]: {
-                        ...collapsedImageDataUris[collapsedNodeId],
-                        imageDataUri: canvas.toDataURL('image/png')
-                    }
-                });
+                return canvas.toDataURL('image/png');
             })
             .catch(err => {
                 console.error('could not load vertex images', err);
@@ -177,49 +165,38 @@ define([
     };
 
     return {
-        updateImageDataUrisForCollapsedNodes(collapseData, vertices, collapsedImageDataUris, onCollapsedImageDataUrisChange) {
+        updateImageDataUrisForCollapsedNodes(collapsedNodes, vertices, rootNode, collapsedImageDataUris, onCollapsedImageDataUrisChange) {
             if (!vertices || Object.keys(vertices).length === 0) {
                 return;
             }
+            const renderedNodes = _.pick(collapsedNodes, ({ id }) => rootNode.children.includes(id));
 
-            const newCollapsedImageDataUris = {
-                ...collapsedImageDataUris
-            };
-
-            Object.keys(newCollapsedImageDataUris).forEach(collapsedNodeId => {
-                const collapsedNode = collapseData[collapsedNodeId];
-                if (!collapsedNode) {
-                    delete newCollapsedImageDataUris[collapsedNodeId];
-                }
-            });
-
-            let changed = false;
-            Object.keys(collapseData).forEach(collapsedNodeId => {
-                const collapsedNode = collapseData[collapsedNodeId];
-                const childIdsString = collapsedNode.children.join(';');
+            Promise.map(Object.keys(renderedNodes), collapsedNodeId => {
+                const collapsedNode = renderedNodes[collapsedNodeId];
+                const childIds = collapsedNode.children.filter(id => {
+                    return vertices[id] || collapsedNodes[id] && collapsedNodes[id].visible
+                });
+                const childIdsString = childIds.join(';');
                 const existingCollapsedNodeImageUriInfo = collapsedImageDataUris[collapsedNodeId];
+                console.log('existingCollapsedNodeImageUriInfo.childIdsString === childIdsString', existingCollapsedNodeImageUriInfo && existingCollapsedNodeImageUriInfo.childIdsString === childIdsString); //TODO: remove debugging
                 if (existingCollapsedNodeImageUriInfo && existingCollapsedNodeImageUriInfo.childIdsString === childIdsString) {
                     return;
                 }
 
-                newCollapsedImageDataUris[collapsedNodeId] = {
-                    childIdsString: childIdsString,
-                    imageDataUri: null
-                };
-                changed = true;
-                _.defer(() => {
-                    generateImageDataUriForCollapsedNode(
-                        vertices,
-                        collapsedNodeId,
-                        collapsedNode,
-                        newCollapsedImageDataUris,
-                        onCollapsedImageDataUrisChange
-                    );
-                });
+                return generateImageDataUriForCollapsedNode(vertices, collapsedNodeId, collapsedNode, childIds.length)
+                    .then(imageDataUri => [
+                        collapsedNodeId, {
+                            childIdsString,
+                            imageDataUri
+                        }
+                    ]);
+            }).then(newImageDataUris => {
+                const updates = _.object(_.compact(newImageDataUris));
+
+                if (!_.isEmpty(updates)) {
+                    onCollapsedImageDataUrisChange(updates)
+                }
             });
-            if (changed) {
-                onCollapsedImageDataUrisChange(newCollapsedImageDataUris);
-            }
         }
     };
 });

@@ -11,6 +11,8 @@ define([
                 case 'PRODUCT_GRAPH_SET_POSITIONS': return updateOrAddElements(state, payload);
                 case 'PRODUCT_GRAPH_REMOVE_ELEMENTS': return removeElements(state, payload);
                 case 'PRODUCT_ADD_EDGE_IDS': return addEdges(state, payload);
+
+                case 'ELEMENT_UPDATE': return updateVisibleCollapsedNodes(state, payload);
             }
 
             return state;
@@ -153,6 +155,49 @@ define([
                             extendedData: updates
                         }
                     }
+                }
+            }
+        }, state);
+    }
+
+    function updateVisibleCollapsedNodes(state, {workspaceId, vertices, edges}) {
+        const updateProduct = (product) => {
+            if (product.extendedData) {
+                const { vertices: prevVertices, edges: prevEdges } = product.extendedData;
+                const transformElements = (prevElements, idKey, updateElements) => {
+                    return _.mapObject(prevElements, (element) => {
+                        const { id, unauthorized, ...rest } = element;
+                        const update = updateElements.find((e) => e[idKey] === id);
+                        if (update !== undefined) {
+                            if (update._DELETED !== true) {
+                                return { [idKey]: id, ...rest }
+                            } else {
+                                return { [idKey]: id, unauthorized: true, ...rest };
+                            }
+                        } else {
+                            return element;
+                        }
+                    });
+                };
+                const updates = { ...product.extendedData };
+
+                if (prevVertices && vertices && vertices.some(({ id }) => prevVertices[id])) {
+                    updates.vertices = transformElements(prevVertices, 'id', vertices);
+                }
+                if (prevEdges && edges && edges.some(({ id }) => prevEdges[id])) {
+                    updates.edges = transformElements(prevEdges, 'edgeId', edges);
+                }
+
+                return u({ extendedData: u.constant(updates) }, product)
+            } else {
+                return product;
+            }
+        }
+
+        return u({
+            workspaces: {
+                [workspaceId]: {
+                    products: u.map(updateProduct)
                 }
             }
         }, state);

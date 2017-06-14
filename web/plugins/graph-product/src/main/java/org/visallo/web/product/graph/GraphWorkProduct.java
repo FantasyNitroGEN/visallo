@@ -106,17 +106,12 @@ public class GraphWorkProduct extends WorkProductElements {
                     .forEach(compoundNodeId -> {
                         JSONObject compoundNode = compoundNodes.getJSONObject(compoundNodeId);
                         ArrayDeque<JSONObject> childrenDFS = Queues.newArrayDeque();
-                        String childId = (String) compoundNode.getJSONArray("children").get(0);
-                        JSONObject firstChild = vertices.optJSONObject(childId);
-                        if (firstChild == null) {
-                            firstChild = compoundNodes.optJSONObject(childId);
-                        }
-                        childrenDFS.push(firstChild);
 
+                        childrenDFS.push(compoundNode);
                         boolean visible = compoundNode.optBoolean("visible", false);
                         while (!visible && !childrenDFS.isEmpty()) {
-                            JSONObject child = childrenDFS.poll();
-                            JSONArray children = child.optJSONArray("children");
+                            JSONObject next = childrenDFS.poll();
+                            JSONArray children = next.optJSONArray("children");
 
                             if (children != null) {
                                 JSONUtil.stream(children).forEach(nextChildId -> {
@@ -128,7 +123,7 @@ public class GraphWorkProduct extends WorkProductElements {
                                     childrenDFS.push(nextChild);
                                 });
                             } else {
-                                visible = !child.optBoolean("unauthorized");
+                                visible = !next.optBoolean("unauthorized");
                             }
                         }
 

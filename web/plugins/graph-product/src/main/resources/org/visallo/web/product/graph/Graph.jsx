@@ -26,6 +26,7 @@ define([
 
     const MaxPathsToFocus = 100;
     const MaxPreviewPopovers = 5;
+    const MaxEdgesBetween = 5;
 
     const PropTypes = React.PropTypes;
     const noop = function() {};
@@ -720,8 +721,10 @@ define([
         },
 
         mapPropsToElements(editable) {
+            const renderCalls = { vertex: 0, compoundNode: 0 }; //TODO: remove debugging
+
             const { selection, ghosts, productElementIds, elements, ontology, registry, focusing, product } = this.props;
-            const { hovering } = this.state;
+            const { hovering, collapsedImageDataUris } = this.state;
             const { vertices: productVertices, edges: productEdges } = productElementIds;
             const { vertices, edges } = elements;
             const { vertices: verticesSelectedById, edges: edgesSelectedById } = selection;
@@ -733,7 +736,7 @@ define([
             const cyNodeConfig = (node) => {
                 const { id, type, pos, children, parent, title } = node;
                 let selected, classes, data;
-
+                renderCalls[type] = renderCalls[type] + 1;
                 if (type === 'vertex') {
                    selected = id in verticesSelectedById;
                    classes = mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']);
@@ -749,7 +752,7 @@ define([
                    data = {
                        ...node,
                        vertexIds,
-                       truncatedTitle: title || F.string.truncate(generateCollapsedNodeTitle(node, vertices), 3),
+                       truncatedTitle: title || F.string.truncate(generateCollapsedNodeTitle(node, vertices, productVertices, collapsedNodes), 3),
                        imageSrc: this.state.collapsedImageDataUris[id] && this.state.collapsedImageDataUris[id].imageDataUri || 'img/loading-large@2x.png'
                    }
                 }
@@ -861,12 +864,16 @@ define([
 
             _.defer(() => {
                 CollapsedNodeImageHelpers.updateImageDataUrisForCollapsedNodes(
-                    _.pick(collapsedNodes, ({ id }) => rootNode.children.includes(id)),
-                    this.props.elements.vertices,
-                    this.state.collapsedImageDataUris,
+                    collapsedNodes,
+                    vertices,
+                    rootNode,
+                    collapsedImageDataUris,
                     (newCollapsedImageDataUris) => {
                         this.setState({
-                            collapsedImageDataUris: newCollapsedImageDataUris
+                            collapsedImageDataUris: {
+                                ...collapsedImageDataUris,
+                                ...newCollapsedImageDataUris
+                            }
                         });
                     }
                 );
@@ -941,16 +948,61 @@ define([
                 .filter(({inNodeId, outNodeId}) => {
                     return inNodeId && outNodeId && (inNodeId !== outNodeId);
                 })
+                .groupBy(({ inNodeId, outNodeId }) => inNodeId + outNodeId)
+                .reduce((edgeGroups, edgeGroup) => {
+                    if (edgeGroup.length > MaxEdgesBetween) {
+                        const { inNodeId, outNodeId } = edgeGroup[0];
+                        const edgeInfos = edgeGroup.reduce((infos, group) => [...infos, ...group.edgeInfos], []);
+                        const edgesForInfos = Object.values(_.pick(edges, _.pluck(edgeInfos, 'edgeId')));
+                        const multiEdgeLabel = (edges) => {
+                            const numTypes = _.size(_.groupBy(edgesForInfos, 'label'));
+                            const display = edges[0] ?
+                                edges[0].label in ontology.relationships ?
+                                    ontology.relationships[edges[0].label].displayName : '' :
+                                '';
+
+                            return numTypes === 1 ?
+                                i18n('org.visallo.web.product.graph.multi.edge.label.single.type', edges.length, display) :
+                                i18n('org.visallo.web.product.graph.multi.edge.label', edges.length, numTypes);
+                        }
+                        let classes = 'e';
+                        if (edgeInfos.some(({ edgeId }) => edgeId in focusing.edges)) {
+                            classes += ' focusing';
+                        }
+
+                        const edgeData = {
+                            data: {
+                                id: inNodeId + outNodeId,
+                                source: outNodeId,
+                                target: inNodeId,
+                                label: multiEdgeLabel(edgesForInfos),
+                                edges: edgesForInfos,
+                                edgeInfos,
+                            },
+                            classes,
+                            selected: _.any(edgeInfos, e => e.edgeId in edgesSelectedById)
+                        };
+                        return [...edgeGroups, edgeData];
+                    } else {
+                        return [...edgeGroups, ...edgeGroup];
+                    }
+                }, [])
                 .map(data => {
-                    const edgesForInfos = Object.values(_.pick(edges, _.pluck(data.edgeInfos, 'edgeId')));
-                    return {
-                        data: mapEdgeToData(data, edgesForInfos, ontology, registry['org.visallo.graph.edge.transformer']),
-                        classes: mapEdgeToClasses(data.edgeInfos, edgesForInfos, focusing, registry['org.visallo.graph.edge.class']),
-                        selected: _.any(data.edgeInfos, e => e.edgeId in edgesSelectedById)
+                    if (data.id) {
+                        const edgesForInfos = Object.values(_.pick(edges, _.pluck(data.edgeInfos, 'edgeId')));
+                        return {
+                            data: mapEdgeToData(data, edgesForInfos, ontology, registry['org.visallo.graph.edge.transformer']),
+                            classes: mapEdgeToClasses(data.edgeInfos, edgesForInfos, focusing, registry['org.visallo.graph.edge.class']),
+                            selected: _.any(data.edgeInfos, e => e.edgeId in edgesSelectedById)
+                        }
+                    } else {
+                        return data;
                     }
                 })
                 .value();
+            const xEdges = _.chain(cyEdges)
 
+            console.log(`graph mapPropsToElements ${renderCalls.vertex} ${renderCalls.compoundNode}`) //TODO: remove debugging
             return { nodes: cyNodes, edges: cyEdges };
 
         },
@@ -982,7 +1034,6 @@ define([
 
             if (cyElementOrId && _.isFunction(cyElementOrId.data)) {
                 if (type === 'compoundNode') {
-                    //TODO: getting previous collapsedNode id for this not new
                     cyElementOrId.data('vertexIds').forEach(vertexId => {
                         this.coalesceSelection(action, 'vertices', vertexId);
                     });
@@ -1326,13 +1377,26 @@ define([
         return 'edges';
     };
 
-    const generateCollapsedNodeTitle = (collapsedNode, vertices) => {
-        const children = _.pick(vertices, collapsedNode.children);
-        const title = Object.keys(children).length && collapsedNode.children.map(vertexId => (
-            vertices[vertexId] ? F.vertex.title(vertices[vertexId]) : ''
-        )).join(', ');
+    const generateCollapsedNodeTitle = (collapsedNode, vertices, productVertices, collapsedNodes) => {
+        const children = _.chain(collapsedNode.children)
+            .map(id => productVertices[id] || collapsedNodes[id])
+            .compact()
+            .reject(node => node.unauthorized || 'visible' in node && !node.visible)
+            .value();
+        const byType = _.groupBy(children, 'type');
 
-        return  title || i18n('org.visallo.web.product.graph.collapsedNode.entities', collapsedNode.children.length);
+        let title;
+        if (vertices) {
+            if (byType.vertex && byType.vertex.length > 1) {
+                title = byType.vertex.map(({ id }) => (
+                    vertices[id] ? F.vertex.title(vertices[id]) : ''
+                )).join(', ');
+            } else {
+                title = i18n('org.visallo.web.product.graph.collapsedNode.entities.singular');
+            }
+        }
+
+        return  title || i18n('org.visallo.web.product.graph.collapsedNode.entities', children.length);
     };
 
     const vertexToCyNode = (vertex, transformers, hovering) => {
